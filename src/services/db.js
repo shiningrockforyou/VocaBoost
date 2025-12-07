@@ -14,6 +14,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter,
   updateDoc,
   where,
   writeBatch,
@@ -281,15 +282,14 @@ export const fetchDashboardStats = async (userId) => {
   const oneWeekMillis = 7 * 24 * 60 * 60 * 1000
   const cutoff = Timestamp.fromMillis(Date.now() - oneWeekMillis)
 
-  const [userSnap, studyStatesSnap, latestTestSnap] = await Promise.all([
+  const [userSnap, studyStatesSnap, attemptsSnap] = await Promise.all([
     getDoc(userRef),
     getDocs(studyStatesRef),
+    // Remove orderBy to avoid index requirement - we'll sort client-side
     getDocs(
       query(
         attemptsRef,
         where('studentId', '==', userId),
-        orderBy('submittedAt', 'desc'),
-        limit(1),
       ),
     ),
   ])
@@ -309,8 +309,33 @@ export const fetchDashboardStats = async (userId) => {
     }
   })
 
-  const latestTestDoc = latestTestSnap.docs[0]
-  const latestTest = latestTestDoc ? { id: latestTestDoc.id, ...latestTestDoc.data() } : null
+  // Sort attempts client-side by submittedAt (descending) and get the latest
+  const attemptsArray = attemptsSnap.docs.map((docSnap) => ({
+    id: docSnap.id,
+    ...docSnap.data(),
+  }))
+  
+  attemptsArray.sort((a, b) => {
+    // Handle Firestore Timestamp objects
+    const getTimestamp = (attempt) => {
+      if (attempt.submittedAt?.toMillis) {
+        return attempt.submittedAt.toMillis()
+      }
+      if (attempt.submittedAt?.toDate) {
+        return attempt.submittedAt.toDate().getTime()
+      }
+      if (attempt.submittedAt?.seconds) {
+        return attempt.submittedAt.seconds * 1000
+      }
+      return 0
+    }
+    
+    const timeA = getTimestamp(a)
+    const timeB = getTimestamp(b)
+    return timeB - timeA // Descending order (most recent first)
+  })
+  
+  const latestTest = attemptsArray.length > 0 ? attemptsArray[0] : null
 
   const userData = userSnap.exists() ? userSnap.data() : {}
   const retention = userData.stats?.retention ?? 1
@@ -1063,7 +1088,7 @@ export const calculateCredibility = (answers, userWordStates) => {
   return correctCount / answers.length
 }
 
-export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0) => {
+export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null) => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
   }
@@ -1148,6 +1173,19 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 
   await Promise.all(batchUpdates)
 
+  // Get teacherId from the class document if classId is provided
+  let teacherId = null
+  if (classId) {
+    try {
+      const classDoc = await getDoc(doc(db, 'classes', classId))
+      if (classDoc.exists()) {
+        teacherId = classDoc.data().ownerTeacherId || null
+      }
+    } catch (err) {
+      console.error('Error fetching class for teacherId:', err)
+    }
+  }
+
   const attemptData = {
     studentId: userId,
     testId,
@@ -1159,6 +1197,14 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
     credibility,
     retention,
     submittedAt: serverTimestamp(),
+  }
+
+  // Add classId and teacherId if provided (for new attempts)
+  if (classId) {
+    attemptData.classId = classId
+  }
+  if (teacherId) {
+    attemptData.teacherId = teacherId
   }
 
   const attemptRef = await addDoc(collection(db, 'attempts'), attemptData)
@@ -1238,4 +1284,799 @@ export const fetchClassAttempts = async (classId) => {
   }
 
   return attempts
+}
+
+export const fetchAllTeacherAttempts = async (teacherId) => {
+  if (!teacherId) {
+    return []
+  }
+
+  // Step 1: Get teacher's classes
+  const teacherClasses = await fetchTeacherClasses(teacherId)
+  if (teacherClasses.length === 0) {
+    return []
+  }
+
+  // Build classId -> className map for fast lookup
+  const classIdToNameMap = new Map()
+  teacherClasses.forEach((klass) => {
+    classIdToNameMap.set(klass.id, klass.name)
+  })
+
+  // Step 2: Get all student IDs from all classes
+  const studentIdSet = new Set()
+  const classMap = new Map() // Map studentId -> array of class names
+  const classListMap = new Map() // Map classId -> assigned list IDs
+
+  // Build maps for efficient lookup
+  for (const klass of teacherClasses) {
+    const classId = klass.id
+    const className = klass.name
+    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
+    classListMap.set(classId, assignedListIds)
+
+    // Query members subcollection for this class
+    try {
+      const membersRef = collection(db, 'classes', classId, 'members')
+      const membersSnap = await getDocs(membersRef)
+      
+      membersSnap.docs.forEach((memberDoc) => {
+        const studentId = memberDoc.id
+        studentIdSet.add(studentId)
+        
+        // Track which classes this student is in
+        if (!classMap.has(studentId)) {
+          classMap.set(studentId, [])
+        }
+        classMap.get(studentId).push({ id: classId, name: className, listIds: assignedListIds })
+      })
+    } catch (err) {
+      console.error(`Error fetching members for class ${classId}:`, err)
+    }
+  }
+
+  if (studentIdSet.size === 0) {
+    return []
+  }
+
+  // Step 3: Fetch attempts - batch student IDs into chunks of 10 (Firestore limit)
+  const studentIds = Array.from(studentIdSet)
+  const batchSize = 10
+  const attemptBatches = []
+
+  for (let i = 0; i < studentIds.length; i += batchSize) {
+    const batch = studentIds.slice(i, i + batchSize)
+    const attemptsRef = collection(db, 'attempts')
+    const attemptsQuery = query(attemptsRef, where('studentId', 'in', batch))
+    attemptBatches.push(getDocs(attemptsQuery))
+  }
+
+  const attemptSnapshots = await Promise.all(attemptBatches)
+  const allAttemptDocs = attemptSnapshots.flatMap((snapshot) => snapshot.docs)
+
+  // Step 4: Enrich data
+  // Build caches for student and list data
+  const studentCache = new Map()
+  const listCache = new Map()
+
+  // Pre-fetch student data
+  const studentFetchPromises = Array.from(studentIdSet).map(async (studentId) => {
+    try {
+      const studentSnap = await getDoc(doc(db, 'users', studentId))
+      if (studentSnap.exists()) {
+        const studentData = studentSnap.data()
+        studentCache.set(studentId, {
+          name: studentData.profile?.displayName || studentData.email || 'Unknown Student',
+          email: studentData.email || '',
+        })
+      }
+    } catch (err) {
+      console.error(`Error fetching student ${studentId}:`, err)
+    }
+  })
+
+  await Promise.all(studentFetchPromises)
+
+  // Process attempts and enrich
+  const enrichedAttempts = []
+
+  for (const attemptDoc of allAttemptDocs) {
+    const attemptData = attemptDoc.data()
+    const testId = attemptData.testId || ''
+
+    // Extract listId from testId format: test_{listId}_{timestamp}
+    const testIdMatch = testId.match(/^test_([^_]+)_/)
+    if (!testIdMatch) continue
+
+    const listId = testIdMatch[1]
+    const studentId = attemptData.studentId
+
+    // Get student info
+    const studentInfo = studentCache.get(studentId) || { name: 'Unknown Student', email: '' }
+    const studentName = studentInfo.name
+
+    // Get list name (with caching)
+    let listName = 'Unknown List'
+    if (!listCache.has(listId)) {
+      try {
+        const listSnap = await getDoc(doc(db, 'lists', listId))
+        if (listSnap.exists()) {
+          listName = listSnap.data().title || 'Unknown List'
+          listCache.set(listId, listName)
+        }
+      } catch (err) {
+        console.error(`Error fetching list ${listId}:`, err)
+      }
+    } else {
+      listName = listCache.get(listId)
+    }
+
+    // Determine class name(s)
+    // Step A (Fast Path): Check if attempt has classId
+    let className = 'Unknown Class'
+    if (attemptData.classId && classIdToNameMap.has(attemptData.classId)) {
+      // New attempt with classId - direct lookup
+      className = classIdToNameMap.get(attemptData.classId)
+    } else {
+      // Step B (Legacy Fallback): Use heuristic for old attempts without classId
+      // Find which classes this student is in that have this list assigned
+      const studentClasses = classMap.get(studentId) || []
+      const matchingClasses = studentClasses.filter((klass) => klass.listIds.includes(listId))
+      
+      if (matchingClasses.length === 1) {
+        className = matchingClasses[0].name
+      } else if (matchingClasses.length > 1) {
+        // Multiple classes have this list - join names
+        className = matchingClasses.map((c) => c.name).join(', ')
+      } else if (studentClasses.length > 0) {
+        // Student is in classes but list not assigned - use first class
+        className = studentClasses[0].name
+      }
+    }
+
+    // Format date
+    let date = new Date()
+    if (attemptData.submittedAt) {
+      if (attemptData.submittedAt.toDate) {
+        date = attemptData.submittedAt.toDate()
+      } else if (attemptData.submittedAt.toMillis) {
+        date = new Date(attemptData.submittedAt.toMillis())
+      } else if (attemptData.submittedAt instanceof Date) {
+        date = attemptData.submittedAt
+      }
+    }
+
+    // Calculate correct answers from answers array
+    const answers = attemptData.answers || []
+    const correctAnswers = answers.filter((a) => a.isCorrect).length
+    const totalQuestions = attemptData.totalQuestions || answers.length || 0
+    const score = attemptData.score || (totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0)
+
+    // Format answers for the modal view
+    // Build a word cache for this attempt to avoid redundant fetches
+    const wordCache = new Map()
+    
+    const formattedAnswers = await Promise.all(
+      answers.map(async (answer) => {
+        // Extract word from answer if available, or use wordId
+        const word = answer.word || `Word ${answer.wordId || 'Unknown'}`
+        const wordId = answer.wordId || ''
+        const studentAnswer = answer.studentResponse || answer.studentAnswer || 'No answer'
+        const isCorrect = answer.isCorrect || false
+
+        // Get correct answer - check if it's already stored (new attempts)
+        let correctAnswer = answer.correctAnswer || answer.definition
+        
+        // If not found, fetch from database (old attempts)
+        if (!correctAnswer && wordId && listId) {
+          // Check cache first
+          if (wordCache.has(wordId)) {
+            correctAnswer = wordCache.get(wordId)
+          } else {
+            try {
+              const wordDoc = await getDoc(doc(db, 'lists', listId, 'words', wordId))
+              if (wordDoc.exists()) {
+                correctAnswer = wordDoc.data().definition || 'No definition'
+                wordCache.set(wordId, correctAnswer)
+              } else {
+                correctAnswer = 'No definition'
+              }
+            } catch (err) {
+              console.error(`Error fetching word ${wordId} from list ${listId}:`, err)
+              correctAnswer = 'No definition'
+            }
+          }
+        }
+        
+        // Fallback if still no definition
+        if (!correctAnswer) {
+          correctAnswer = 'No definition'
+        }
+
+        return {
+          wordId,
+          word,
+          correctAnswer,
+          studentAnswer,
+          isCorrect,
+        }
+      })
+    )
+
+    const resolvedFormattedAnswers = await formattedAnswers
+
+    enrichedAttempts.push({
+      id: attemptDoc.id,
+      class: className,
+      list: listName,
+      date: date,
+      name: studentName,
+      score: score,
+      totalQuestions: totalQuestions,
+      correctAnswers: correctAnswers,
+      answers: resolvedFormattedAnswers,
+      // Keep original data for reference
+      studentId: studentId,
+      listId: listId,
+      testId: testId,
+      submittedAt: attemptData.submittedAt,
+      credibility: attemptData.credibility,
+      retention: attemptData.retention,
+    })
+  }
+
+  // Step 5: Sort by date descending (client-side to avoid index requirements)
+  enrichedAttempts.sort((a, b) => {
+    const dateA = a.date instanceof Date ? a.date.getTime() : 0
+    const dateB = b.date instanceof Date ? b.date.getTime() : 0
+    return dateB - dateA
+  })
+
+  return enrichedAttempts
+}
+
+/**
+ * Query teacher attempts with server-side filtering and pagination
+ * @param {string} teacherId - Teacher's user ID
+ * @param {Array} filters - Array of filter tags: [{ category: 'Class'|'List'|'Name'|'Date', value: string|{start, end} }]
+ * @param {DocumentSnapshot|null} lastDoc - Last document from previous page (for pagination)
+ * @param {number} pageSize - Number of results per page (default: 50)
+ * @returns {Promise<{attempts: Array, lastVisible: DocumentSnapshot|null, hasMore: boolean}>}
+ */
+// Cache for teacher data to avoid re-fetching on every filter change
+const teacherDataCache = new Map()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+/**
+ * Get cached or fresh teacher data (classes, students, lists)
+ */
+async function getTeacherData(teacherId) {
+  const cached = teacherDataCache.get(teacherId)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data
+  }
+
+  // Fetch fresh data
+  const teacherClasses = await fetchTeacherClasses(teacherId)
+  if (teacherClasses.length === 0) {
+    return null
+  }
+
+  // Build classId -> className map
+  const classIdToNameMap = new Map()
+  const classNameToIdMap = new Map()
+  teacherClasses.forEach((klass) => {
+    classIdToNameMap.set(klass.id, klass.name)
+    classNameToIdMap.set(klass.name.toLowerCase(), klass.id)
+  })
+
+  // Get all student IDs and build student lookup maps
+  const studentIdSet = new Set()
+  const studentIdToNameMap = new Map()
+  const studentNameToIdMap = new Map()
+  const classMap = new Map() // Map studentId -> array of class info
+
+  for (const klass of teacherClasses) {
+    const classId = klass.id
+    const className = klass.name
+    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
+
+    try {
+      const membersRef = collection(db, 'classes', classId, 'members')
+      const membersSnap = await getDocs(membersRef)
+      
+      membersSnap.docs.forEach((memberDoc) => {
+        const studentId = memberDoc.id
+        const memberData = memberDoc.data()
+        const studentName = memberData.displayName || memberData.email || 'Unknown Student'
+        
+        studentIdSet.add(studentId)
+        studentIdToNameMap.set(studentId, studentName)
+        studentNameToIdMap.set(studentName.toLowerCase(), studentId)
+        
+        if (!classMap.has(studentId)) {
+          classMap.set(studentId, [])
+        }
+        classMap.get(studentId).push({ id: classId, name: className, listIds: assignedListIds })
+      })
+    } catch (err) {
+      console.error(`Error fetching members for class ${classId}:`, err)
+    }
+  }
+
+  // Get teacher's lists for list filter
+  const teacherLists = await fetchTeacherLists(teacherId)
+  const listIdToNameMap = new Map()
+  const listNameToIdMap = new Map()
+  teacherLists.forEach((list) => {
+    listIdToNameMap.set(list.id, list.title)
+    listNameToIdMap.set(list.title.toLowerCase(), list.id)
+  })
+
+  const data = {
+    teacherClasses,
+    teacherLists,
+    classIdToNameMap,
+    classNameToIdMap,
+    studentIdToNameMap,
+    studentNameToIdMap,
+    classMap,
+    listIdToNameMap,
+    listNameToIdMap,
+  }
+
+  teacherDataCache.set(teacherId, { data, timestamp: Date.now() })
+  return data
+}
+
+export const queryTeacherAttempts = async (teacherId, filters = [], lastDoc = null, pageSize = 50) => {
+  if (!teacherId) {
+    return { attempts: [], lastVisible: null, hasMore: false }
+  }
+
+  // Get cached teacher data for name lookups
+  const teacherData = await getTeacherData(teacherId)
+  if (!teacherData) {
+    return { attempts: [], lastVisible: null, hasMore: false }
+  }
+
+  const {
+    teacherClasses,
+    teacherLists,
+    classIdToNameMap,
+    studentIdToNameMap,
+    studentNameToIdMap,
+    listIdToNameMap,
+  } = teacherData
+
+  // Parse filters
+  const filterClassIds = []
+  const filterStudentIds = []
+  const filterListIds = []
+  let dateStart = null
+  let dateEnd = null
+
+  filters.forEach((tag) => {
+    if (tag.category === 'Class') {
+      const matchingClassIds = teacherClasses
+        .filter((c) => c.name.toLowerCase().includes(tag.value.toLowerCase()))
+        .map((c) => c.id)
+      filterClassIds.push(...matchingClassIds)
+    } else if (tag.category === 'Name') {
+      const matchingStudentIds = Array.from(studentNameToIdMap.entries())
+        .filter(([name]) => name.includes(tag.value.toLowerCase()))
+        .map(([, id]) => id)
+      filterStudentIds.push(...matchingStudentIds)
+    } else if (tag.category === 'List') {
+      const matchingListIds = teacherLists
+        .filter((l) => l.title.toLowerCase().includes(tag.value.toLowerCase()))
+        .map((l) => l.id)
+      filterListIds.push(...matchingListIds)
+    } else if (tag.category === 'Date' && tag.value && typeof tag.value === 'object') {
+      dateStart = Timestamp.fromDate(new Date(tag.value.start))
+      const endDate = new Date(tag.value.end)
+      endDate.setHours(23, 59, 59, 999)
+      dateEnd = Timestamp.fromDate(endDate)
+    }
+  })
+
+// If filters were provided but none matched, return empty results
+const hasClassFilter = filters.some((f) => f.category === 'Class')
+const hasNameFilter = filters.some((f) => f.category === 'Name')
+const hasListFilter = filters.some((f) => f.category === 'List')
+
+if ((hasClassFilter && filterClassIds.length === 0) ||
+    (hasNameFilter && filterStudentIds.length === 0) ||
+    (hasListFilter && filterListIds.length === 0)) {
+  return { attempts: [], lastVisible: null, hasMore: false }
+}
+
+  // Build query - start with teacherId (single query, no batching!)
+  let attemptsQuery = query(
+    collection(db, 'attempts'),
+    where('teacherId', '==', teacherId),
+    orderBy('submittedAt', 'desc')
+  )
+
+  // Apply class filter at query level
+  if (filterClassIds.length === 1) {
+    attemptsQuery = query(attemptsQuery, where('classId', '==', filterClassIds[0]))
+  } else if (filterClassIds.length > 1 && filterClassIds.length <= 10) {
+    attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+  }
+
+  // Apply date filter at query level
+  if (dateStart && dateEnd) {
+    attemptsQuery = query(attemptsQuery, where('submittedAt', '>=', dateStart), where('submittedAt', '<=', dateEnd))
+  }
+
+  // Apply pagination
+  attemptsQuery = query(attemptsQuery, limit(pageSize))
+  if (lastDoc) {
+    attemptsQuery = query(attemptsQuery, startAfter(lastDoc))
+  }
+
+  // Execute single query
+  const attemptsSnap = await getDocs(attemptsQuery)
+  const attemptDocs = attemptsSnap.docs
+  const lastVisible = attemptDocs.length > 0 ? attemptDocs[attemptDocs.length - 1] : null
+  const hasMore = attemptDocs.length === pageSize
+
+  console.log('Query returned:', attemptDocs.length, 'attempts')
+
+  // Enrich attempts
+  const enrichedAttempts = []
+  const listCache = new Map()
+
+  for (const attemptDoc of attemptDocs) {
+    const attemptData = attemptDoc.data()
+    const testId = attemptData.testId || ''
+    const testIdMatch = testId.match(/^test_([^_]+)_/)
+
+    if (!testIdMatch) continue
+
+    const listId = testIdMatch[1]
+    const studentId = attemptData.studentId
+
+    // Apply Name filter (post-processing)
+    if (filterStudentIds.length > 0 && !filterStudentIds.includes(studentId)) {
+      continue
+    }
+
+    // Apply List filter (post-processing)
+    if (filterListIds.length > 0 && !filterListIds.includes(listId)) {
+      continue
+    }
+
+    // Get student name
+    const studentName = studentIdToNameMap.get(studentId) || 'Unknown Student'
+
+    // Get list name
+    let listName = listCache.get(listId)
+    if (!listName) {
+      listName = listIdToNameMap.get(listId) || 'Unknown List'
+      listCache.set(listId, listName)
+    }
+
+    // Get class name
+    const className = classIdToNameMap.get(attemptData.classId) || 'No data'
+
+    // Format date
+    let date = new Date()
+    if (attemptData.submittedAt?.toDate) {
+      date = attemptData.submittedAt.toDate()
+    } else if (attemptData.submittedAt?.toMillis) {
+      date = new Date(attemptData.submittedAt.toMillis())
+    }
+
+    // Calculate scores
+    const answers = attemptData.answers || []
+    const correctAnswers = answers.filter((a) => a.isCorrect).length
+    const totalQuestions = attemptData.totalQuestions || answers.length || 0
+    const score = attemptData.score || (totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0)
+
+    enrichedAttempts.push({
+      id: attemptDoc.id,
+      class: className,
+      list: listName,
+      date: date,
+      name: studentName,
+      score: score,
+      totalQuestions: totalQuestions,
+      correctAnswers: correctAnswers,
+      answers: [], // Lazy load on demand
+      studentId: studentId,
+      listId: listId,
+      testId: testId,
+      submittedAt: attemptData.submittedAt,
+    })
+  }
+
+  return {
+    attempts: enrichedAttempts,
+    lastVisible: lastVisible,
+    hasMore: hasMore,
+  }
+}
+
+/**
+ * Fetch full attempt details including answers (for View Details modal)
+ * @param {string} attemptId - The attempt document ID
+ * @returns {Promise<Object|null>} - Full attempt with formatted answers
+ */
+export const fetchAttemptDetails = async (attemptId) => {
+  if (!attemptId) return null
+
+  try {
+    const attemptDoc = await getDoc(doc(db, 'attempts', attemptId))
+    if (!attemptDoc.exists()) return null
+
+    const attemptData = attemptDoc.data()
+    const testId = attemptData.testId || ''
+    const testIdMatch = testId.match(/^test_([^_]+)_/)
+    const listId = testIdMatch ? testIdMatch[1] : null
+    const studentId = attemptData.studentId
+
+    // Get student name
+    let studentName = 'Unknown Student'
+    if (studentId) {
+      try {
+        const userSnap = await getDoc(doc(db, 'users', studentId))
+        if (userSnap.exists()) {
+          const userData = userSnap.data()
+          studentName = userData.profile?.displayName || userData.email || 'Unknown Student'
+        }
+      } catch (err) {
+        console.error(`Error fetching user ${studentId}:`, err)
+      }
+    }
+
+    // Get list name
+    let listName = 'Unknown List'
+    if (listId) {
+      try {
+        const listSnap = await getDoc(doc(db, 'lists', listId))
+        if (listSnap.exists()) {
+          listName = listSnap.data().title || 'Unknown List'
+        }
+      } catch (err) {
+        console.error(`Error fetching list ${listId}:`, err)
+      }
+    }
+
+    // Get class name
+    let className = 'Unknown Class'
+    if (attemptData.classId) {
+      // Fast path: direct lookup using classId
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', attemptData.classId))
+        if (classSnap.exists()) {
+          className = classSnap.data().name || 'Unknown Class'
+        }
+      } catch (err) {
+        console.error(`Error fetching class ${attemptData.classId}:`, err)
+      }
+    } else if (studentId && listId) {
+      // Legacy fallback: find which class has this list assigned
+      try {
+        const userSnap = await getDoc(doc(db, 'users', studentId))
+        if (userSnap.exists()) {
+          const userData = userSnap.data()
+          const enrolledClasses = userData.enrolledClasses || {}
+          const classIds = Object.keys(enrolledClasses)
+          
+          // Check each class to see if it has this list assigned
+          for (const classId of classIds) {
+            try {
+              const classSnap = await getDoc(doc(db, 'classes', classId))
+              if (classSnap.exists()) {
+                const classData = classSnap.data()
+                const assignedLists = classData.assignedLists || Object.keys(classData.assignments || {})
+                if (assignedLists.includes(listId)) {
+                  className = classData.name || 'Unknown Class'
+                  break
+                }
+              }
+            } catch (err) {
+              // Continue to next class
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error finding class for student ${studentId} and list ${listId}:`, err)
+      }
+    }
+
+    // Convert submittedAt to Date
+    let date = new Date()
+    if (attemptData.submittedAt) {
+      if (attemptData.submittedAt.toDate) {
+        date = attemptData.submittedAt.toDate()
+      } else if (attemptData.submittedAt.toMillis) {
+        date = new Date(attemptData.submittedAt.toMillis())
+      } else if (attemptData.submittedAt.seconds) {
+        date = new Date(attemptData.submittedAt.seconds * 1000)
+      }
+    }
+
+    const answers = attemptData.answers || []
+    const correctAnswers = answers.filter((a) => a.isCorrect).length
+
+    // Format answers with correct definitions
+    const formattedAnswers = await Promise.all(
+      answers.map(async (answer) => {
+        const word = answer.word || `Word ${answer.wordId || 'Unknown'}`
+        const wordId = answer.wordId || ''
+        const studentAnswer = answer.studentResponse || answer.studentAnswer || 'No answer'
+        const isCorrect = answer.isCorrect || false
+
+        let correctAnswer = answer.correctAnswer || answer.definition
+
+        if (!correctAnswer && wordId && listId) {
+          try {
+            const wordDoc = await getDoc(doc(db, 'lists', listId, 'words', wordId))
+            if (wordDoc.exists()) {
+              correctAnswer = wordDoc.data().definition || 'No definition'
+            } else {
+              correctAnswer = 'No definition'
+            }
+          } catch (err) {
+            console.error(`Error fetching word ${wordId} from list ${listId}:`, err)
+            correctAnswer = 'No definition'
+          }
+        }
+
+        return {
+          wordId,
+          word,
+          correctAnswer: correctAnswer || 'No definition',
+          studentAnswer,
+          isCorrect,
+        }
+      })
+    )
+
+    return {
+      id: attemptDoc.id,
+      name: studentName,
+      class: className,
+      list: listName,
+      date: date,
+      score: attemptData.score || 0,
+      totalQuestions: attemptData.totalQuestions || answers.length,
+      correctAnswers: correctAnswers,
+      answers: formattedAnswers,
+    }
+  } catch (err) {
+    console.error('Error fetching attempt details:', err)
+    return null
+  }
+}
+
+export const fetchUserAttempts = async (uid) => {
+  if (!uid) {
+    return []
+  }
+
+  const attemptsRef = collection(db, 'attempts')
+  // Remove orderBy to avoid index requirement - we'll sort client-side
+  const attemptsQuery = query(
+    attemptsRef,
+    where('studentId', '==', uid),
+  )
+
+  try {
+    const snapshot = await getDocs(attemptsQuery)
+    const attempts = []
+    
+    // Get user's enrolled classes for class name lookup
+    const userSnap = await getDoc(doc(db, 'users', uid))
+    const userData = userSnap.exists() ? userSnap.data() : {}
+    const enrolledClasses = userData.enrolledClasses || {}
+    
+    // Create class lookup map
+    const classLookup = {}
+    for (const [classId, classInfo] of Object.entries(enrolledClasses)) {
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', classId))
+        if (classSnap.exists()) {
+          classLookup[classId] = {
+            name: classSnap.data().name || classInfo.name || 'Unknown Class',
+            id: classId,
+          }
+        }
+      } catch (err) {
+        console.error(`Error fetching class ${classId}:`, err)
+      }
+    }
+    
+    for (const docSnap of snapshot.docs) {
+      const attemptData = docSnap.data()
+      const testId = attemptData.testId || ''
+      
+      // Extract listId from testId format: test_{listId}_{timestamp}
+      const testIdMatch = testId.match(/^test_([^_]+)_/)
+      const listId = testIdMatch ? testIdMatch[1] : null
+      
+      let listTitle = 'Vocabulary Test'
+      let className = 'Unknown Class'
+      let classId = null
+      
+      // Fetch list title
+      if (listId) {
+        try {
+          const listSnap = await getDoc(doc(db, 'lists', listId))
+          if (listSnap.exists()) {
+            listTitle = listSnap.data().title || 'Vocabulary Test'
+          }
+        } catch (err) {
+          console.error(`Error fetching list ${listId}:`, err)
+        }
+        
+        // Find which class this list belongs to
+        for (const [cid, classInfo] of Object.entries(classLookup)) {
+          try {
+            const classSnap = await getDoc(doc(db, 'classes', cid))
+            if (classSnap.exists()) {
+              const classData = classSnap.data()
+              const assignedListIds = classData.assignedLists || []
+              if (assignedListIds.includes(listId)) {
+                className = classInfo.name
+                classId = cid
+                break
+              }
+            }
+          } catch (err) {
+            console.error(`Error checking class ${cid}:`, err)
+          }
+        }
+      }
+      
+      // Convert submittedAt timestamp to Date
+      const submittedDate = attemptData.submittedAt?.toDate 
+        ? attemptData.submittedAt.toDate() 
+        : (attemptData.submittedAt?.toMillis 
+          ? new Date(attemptData.submittedAt.toMillis()) 
+          : new Date())
+      
+      attempts.push({
+        id: docSnap.id,
+        ...attemptData,
+        listId,
+        listTitle,
+        className,
+        classId,
+        date: submittedDate,
+      })
+    }
+    
+    // Sort client-side by submittedAt (descending - most recent first)
+    attempts.sort((a, b) => {
+      // Handle Firestore Timestamp objects
+      const getTimestamp = (attempt) => {
+        if (attempt.submittedAt?.toMillis) {
+          return attempt.submittedAt.toMillis()
+        }
+        if (attempt.submittedAt?.toDate) {
+          return attempt.submittedAt.toDate().getTime()
+        }
+        if (attempt.submittedAt?.seconds) {
+          return attempt.submittedAt.seconds * 1000
+        }
+        if (attempt.date instanceof Date) {
+          return attempt.date.getTime()
+        }
+        return 0
+      }
+      
+      const timeA = getTimestamp(a)
+      const timeB = getTimestamp(b)
+      return timeB - timeA // Descending order
+    })
+    
+    return attempts
+  } catch (err) {
+    console.error('Error fetching user attempts:', err)
+    return []
+  }
 }

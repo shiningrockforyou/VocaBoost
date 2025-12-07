@@ -96,12 +96,16 @@ const TakeTest = () => {
   const handleSubmit = async () => {
     if (!user?.uid || !listId) return
 
-    const answerArray = Object.entries(answers).map(([wordId, option]) => ({
-      wordId,
-      word: testWords.find((w) => w.id === wordId)?.word || '',
-      studentResponse: option?.definition || '',
-      isCorrect: option?.isCorrect || false,
-    }))
+    const answerArray = Object.entries(answers).map(([wordId, option]) => {
+      const testWord = testWords.find((w) => w.id === wordId)
+      return {
+        wordId,
+        word: testWord?.word || '',
+        correctAnswer: testWord?.definition || '', // Store the correct definition
+        studentResponse: option?.definition || '',
+        isCorrect: option?.isCorrect || false,
+      }
+    })
 
     if (answerArray.length === 0) {
       setError('Please answer at least one question before submitting.')
@@ -112,7 +116,7 @@ const TakeTest = () => {
     setError('')
     try {
       const testId = `test_${listId}_${Date.now()}`
-      const result = await submitTestAttempt(user.uid, testId, answerArray, testWords.length)
+      const result = await submitTestAttempt(user.uid, testId, answerArray, testWords.length, classIdParam || null)
       setResults(result)
     } catch (err) {
       setError(err.message ?? 'Unable to submit test.')

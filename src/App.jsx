@@ -3,11 +3,13 @@ import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import Gradebook from './pages/Gradebook.jsx'
 import ListLibrary from './pages/ListLibrary.jsx'
 import ListEditor from './pages/ListEditor.jsx'
 import ClassDetail from './pages/ClassDetail.jsx'
 import StudySession from './pages/StudySession.jsx'
 import TakeTest from './pages/TakeTest.jsx'
+import TeacherGradebook from './pages/TeacherGradebook.jsx'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
 
@@ -79,6 +81,24 @@ function App() {
             element={
               <PrivateRoute>
                 <TakeTest />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/gradebook"
+            element={
+              <PrivateRoute>
+                <Gradebook />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/teacher/gradebook"
+            element={
+              <PrivateRoute>
+                <TeacherRoute>
+                  <TeacherGradebook />
+                </TeacherRoute>
               </PrivateRoute>
             }
           />
