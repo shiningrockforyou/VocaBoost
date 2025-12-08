@@ -42,7 +42,7 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
 
   return (
     <div
-      className="relative mx-auto h-96 w-full max-w-2xl cursor-pointer select-none rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-2xl transition hover:shadow-blue-100"
+      className="relative mx-auto h-96 w-full max-w-2xl cursor-pointer select-none rounded-3xl border border-border-muted bg-surface p-10 text-center shadow-2xl transition hover:shadow-blue-100"
       onClick={onFlip}
       role="button"
       tabIndex={0}
@@ -55,29 +55,29 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
     >
       {!isFlipped ? (
         <div className="flex h-full flex-col items-center justify-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Word</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.4em] text-text-faint">Word</p>
           <div className="mt-4 flex items-baseline gap-3 flex-wrap justify-center">
-            <p className={`font-bold text-slate-900 ${word.word.length > 12 ? 'text-3xl' : 'text-5xl'}`}>
+            <p className={`font-bold text-text-primary ${word.word.length > 12 ? 'text-3xl' : 'text-5xl'}`}>
               {word.word}
             </p>
             {word.partOfSpeech && (
-              <span className={`italic font-medium text-slate-500 ${word.word.length > 12 ? 'text-base' : 'text-xl'}`}>
+              <span className={`italic font-medium text-text-muted ${word.word.length > 12 ? 'text-base' : 'text-xl'}`}>
                 ({word.partOfSpeech})
               </span>
             )}
           </div>
-          <p className="mt-4 text-sm text-slate-500">Tap to reveal the definition</p>
+          <p className="mt-4 text-sm text-text-muted">Tap to reveal the definition</p>
         </div>
       ) : (
         <div className="flex h-full flex-col justify-between text-left">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Word</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.4em] text-text-faint">Word</p>
             <div className="mt-2 flex items-baseline gap-3 flex-wrap">
-              <p className={`font-bold text-slate-900 ${word.word.length > 12 ? 'text-2xl' : 'text-4xl'}`}>
+              <p className={`font-bold text-text-primary ${word.word.length > 12 ? 'text-2xl' : 'text-4xl'}`}>
                 {word.word}
               </p>
               {word.partOfSpeech && (
-                <span className={`italic font-medium text-slate-500 ${word.word.length > 12 ? 'text-sm' : 'text-lg'}`}>
+                <span className={`italic font-medium text-text-muted ${word.word.length > 12 ? 'text-sm' : 'text-lg'}`}>
                   ({word.partOfSpeech})
                 </span>
               )}
@@ -87,12 +87,12 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
             <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">Definition</p>
             <div className="mt-2 flex items-start gap-2">
               {word.partOfSpeech && (
-                <span className="text-slate-500 italic mr-2">({word.partOfSpeech})</span>
+                <span className="text-text-muted italic mr-2">({word.partOfSpeech})</span>
               )}
               <p className="text-lg text-slate-800">{word.definition}</p>
             </div>
             {word.definitions && Object.keys(word.definitions).filter((lang) => lang !== 'en').length > 0 && (
-              <div className="mt-4 space-y-2 border-t border-slate-200 pt-4">
+              <div className="mt-4 space-y-2 border-t border-border-default pt-4">
                 {Object.entries(word.definitions)
                   .filter(([lang]) => lang !== 'en')
                   .map(([lang, def]) => {
@@ -124,7 +124,7 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
                       <div key={lang} className="flex items-start gap-2">
                         <span className="text-base">{flags[lang] || '🌐'}</span>
                         <div className="flex-1">
-                          <p className="text-xs font-semibold text-slate-500">
+                          <p className="text-xs font-semibold text-text-muted">
                             {langNames[lang] || lang.toUpperCase()}
                           </p>
                           <p className="mt-0.5 text-sm text-slate-600">{def}</p>
@@ -145,7 +145,7 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
           </div>
           <button
             type="button"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border-default px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
             onClick={(event) => {
               event.stopPropagation()
               handlePlayAudio()

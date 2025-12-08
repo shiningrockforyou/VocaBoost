@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { X } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { Button, IconButton } from './ui'
 import { batchAddWords } from '../services/db'
 
 const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
@@ -200,7 +202,7 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Import Words from File</h2>
@@ -208,13 +210,9 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
               Upload an Excel (.xlsx, .xls) or CSV file with Word, Definition, and optional Sample columns.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
-          >
-            ✕
-          </button>
+          <IconButton variant="close" size="sm" onClick={onClose} aria-label="Close modal">
+            <X size={18} />
+          </IconButton>
         </div>
 
         <div className="mt-6 space-y-4">
@@ -226,7 +224,7 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 transition hover:border-blue-400 hover:bg-blue-50">
+              <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-border-strong bg-muted px-4 py-6 transition hover:border-blue-400 hover:bg-blue-50">
                 <div className="text-center">
                   <p className="text-sm font-semibold text-slate-700">
                     {file ? file.name : 'Click to select file'}
@@ -235,13 +233,9 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
                 </div>
               </div>
             </label>
-            <button
-              type="button"
-              onClick={downloadTemplate}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
+            <Button variant="outline" size="lg" onClick={downloadTemplate}>
               Download Template
-            </button>
+            </Button>
           </div>
 
           {error && (
@@ -257,14 +251,14 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
           )}
 
           {preview.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-lg border border-border-default bg-muted p-4">
               <p className="mb-3 text-sm font-semibold text-slate-700">
                 Preview (first 5 rows of {parsedData.length} total)
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
                   <thead>
-                    <tr className="bg-white">
+                    <tr className="bg-surface">
                       <th className="px-3 py-2 font-medium text-slate-600">Word</th>
                       <th className="px-3 py-2 font-medium text-slate-600">POS</th>
                       <th className="px-3 py-2 font-medium text-slate-600">Definition (EN)</th>
@@ -272,7 +266,7 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
                       <th className="px-3 py-2 font-medium text-slate-600">Sample</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-slate-100 bg-surface">
                     {preview.map((row, index) => {
                       const otherLangs = Object.entries(row.definitions || {})
                         .filter(([lang]) => lang !== 'en')
@@ -295,25 +289,18 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
           )}
 
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
+            <Button variant="outline" size="lg" className="flex-1" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button 
+              variant="success" 
+              size="lg" 
+              className="flex-1" 
               onClick={handleSubmit}
               disabled={!parsedData.length || importing}
-              className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
-                importing
-                  ? 'bg-blue-400 opacity-70 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
             >
               {importing ? 'Importing...' : `Import ${parsedData.length} Words`}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

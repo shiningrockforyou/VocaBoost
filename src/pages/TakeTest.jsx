@@ -6,6 +6,8 @@ import { db } from '../firebase'
 import { generateTest, submitTestAttempt } from '../services/db'
 import { speak } from '../utils/tts'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
+import TestResults from '../components/TestResults.jsx'
+import { Button } from '../components/ui'
 
 const Watermark = () => (
   <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
@@ -34,6 +36,7 @@ const TakeTest = () => {
   const [error, setError] = useState('')
   const [results, setResults] = useState(null)
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
+  const [attemptId, setAttemptId] = useState(null)
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -99,11 +102,11 @@ const TakeTest = () => {
     const answerArray = Object.entries(answers).map(([wordId, option]) => {
       const testWord = testWords.find((w) => w.id === wordId)
       return {
-        wordId,
+      wordId,
         word: testWord?.word || '',
         correctAnswer: testWord?.definition || '', // Store the correct definition
-        studentResponse: option?.definition || '',
-        isCorrect: option?.isCorrect || false,
+      studentResponse: option?.definition || '',
+      isCorrect: option?.isCorrect || false,
       }
     })
 
@@ -117,6 +120,7 @@ const TakeTest = () => {
     try {
       const testId = `test_${listId}_${Date.now()}`
       const result = await submitTestAttempt(user.uid, testId, answerArray, testWords.length, classIdParam || null)
+      setAttemptId(result.id)
       setResults(result)
     } catch (err) {
       setError(err.message ?? 'Unable to submit test.')
@@ -139,7 +143,7 @@ const TakeTest = () => {
 
   if (loading) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50">
+      <main className="relative flex min-h-screen items-center justify-center bg-base">
         <Watermark />
         <div className="relative z-10">
           <LoadingSpinner size="lg" />
@@ -150,93 +154,65 @@ const TakeTest = () => {
 
   if (error && !results) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="relative flex min-h-screen items-center justify-center bg-base px-4">
         <Watermark />
-        <div className="relative z-10 max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
-          <p className="text-lg font-semibold text-slate-900">Something went wrong</p>
-          <p className="mt-3 text-sm text-slate-500">{error}</p>
-          <button
-            type="button"
-            onClick={loadTestWords}
-            className="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
+        <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
+          <p className="text-lg font-semibold text-text-primary">Something went wrong</p>
+          <p className="mt-3 text-sm text-text-muted">{error}</p>
+          <Button variant="primary-blue" size="lg" onClick={loadTestWords} className="mt-6">
             Try Again
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-6">
             Go Back
-          </button>
+          </Button>
         </div>
       </main>
     )
   }
 
   if (results) {
+    // Format data for TestResults component
+    // words: array of { id, word, definition }
+    const formattedWords = testWords.map(w => ({
+      id: w.id,
+      word: w.word,
+      definition: w.definition,
+    }))
+
+    // responses: { wordId: 'selected answer text' }
+    const userAnswers = {}
+    Object.entries(answers).forEach(([wordId, option]) => {
+      userAnswers[wordId] = option?.definition || ''
+    })
+
+    // results: array of { wordId, isCorrect }
+    const testResults = Object.entries(answers).map(([wordId, option]) => ({
+      wordId,
+      isCorrect: option?.isCorrect || false,
+    }))
+
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-        <Watermark />
-        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-xl ring-1 ring-slate-200">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-            <span className="text-3xl">📊</span>
-          </div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-500">Test Complete</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Results</h1>
-          <div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-6 text-left">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Score</span>
-              <span className="text-lg font-semibold text-slate-900">{results.score}%</span>
-            </div>
-            {results.skipped > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-600">Skipped</span>
-                <span className="text-lg font-semibold text-slate-500">{results.skipped} questions</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">New Trust Score</span>
-              <span className="text-lg font-semibold text-blue-600">
-                {Math.round(results.credibility * 100)}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Retention</span>
-              <span className="text-lg font-semibold text-slate-900">
-                {Math.round(results.retention * 100)}%
-              </span>
-            </div>
-          </div>
-          <p className="mt-6 text-sm text-slate-500">
-            Your progress has been saved. Keep studying to improve your scores!
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </main>
+      <TestResults
+        testType="mcq"
+        listTitle={listDetails?.title}
+        words={formattedWords}
+        responses={userAnswers}
+        results={testResults}
+        attemptId={attemptId}
+      />
     )
   }
 
   if (!testWords.length) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="relative flex min-h-screen items-center justify-center bg-base px-4">
         <Watermark />
-        <div className="relative z-10 max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
-          <p className="text-lg font-semibold text-slate-900">No Test Content</p>
-          <p className="mt-3 text-sm text-slate-500">Your teacher hasn't assigned enough words yet.</p>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
+        <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
+          <p className="text-lg font-semibold text-text-primary">No Test Content</p>
+          <p className="mt-3 text-sm text-text-muted">Your teacher hasn't assigned enough words yet.</p>
+          <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-6">
             Go Back
-          </button>
+          </Button>
         </div>
       </main>
     )
@@ -248,34 +224,29 @@ const TakeTest = () => {
   const answeredCount = Object.keys(answers).length
 
   return (
-    <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white">
+    <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-900">
       <Watermark />
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Progress Bar & Quit Button */}
-        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur-sm">
+        <div className="sticky top-0 z-10 border-b border-border-default bg-surface/80 px-4 py-3 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
-              <div className="mb-1 flex items-center justify-between text-xs text-slate-600">
+              <div className="mb-1 flex items-center justify-between text-xs text-text-secondary">
                 <span>
                   Question {currentIndex + 1} of {testWords.length}
                 </span>
                 <span>{answeredCount} answered</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-inset">
                 <div
                   className="h-full bg-blue-600 transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
-            >
+            <Button variant="outline" size="sm" onClick={() => navigate('/')} disabled={submitting}>
               ← Quit to Dashboard
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -283,12 +254,12 @@ const TakeTest = () => {
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-4 py-6">
           {/* Top Half: Question Card */}
           <div className="relative z-10 w-full max-w-2xl">
-            <div className="flex aspect-[2/1] flex-col items-center justify-center rounded-3xl border-2 border-slate-200 bg-white p-8 shadow-xl">
+            <div className="flex aspect-[2/1] flex-col items-center justify-center rounded-3xl border-2 border-border-default bg-surface p-8 shadow-xl">
               <div className="text-center">
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <h2 className="text-5xl font-bold text-slate-900 md:text-6xl">{currentWord.word}</h2>
+                  <h2 className="text-5xl font-bold text-text-primary md:text-6xl">{currentWord.word}</h2>
                   {currentWord.partOfSpeech && (
-                    <p className="text-xl italic text-slate-500 md:text-2xl">({currentWord.partOfSpeech})</p>
+                    <p className="text-xl italic text-text-muted md:text-2xl">({currentWord.partOfSpeech})</p>
                   )}
                 </div>
                 <button
@@ -320,10 +291,10 @@ const TakeTest = () => {
                   className={`min-h-[80px] rounded-2xl border-2 p-4 text-left transition-all ${
                     isSelected
                       ? 'scale-105 border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-md'
+                      : 'border-border-default bg-surface hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-md'
                   } disabled:opacity-60`}
                 >
-                  <span className="text-sm font-medium text-slate-700">{option.definition}</span>
+                  <span className="text-sm font-medium text-text-secondary">{option.definition}</span>
                 </button>
               )
             })}

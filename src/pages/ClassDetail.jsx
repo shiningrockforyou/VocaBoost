@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ClipboardList } from 'lucide-react'
 import {
   collection,
   doc,
@@ -17,13 +18,16 @@ import {
   fetchClassAttempts,
   fetchStudentAggregateStats,
   fetchTeacherLists,
+  fetchTeacherClasses,
   unassignListFromClass,
   updateAssignmentSettings,
 } from '../services/db'
 import AssignListModal from '../components/AssignListModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
-import BackButton from '../components/BackButton.jsx'
+import HeaderBar from '../components/HeaderBar.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
+import { Button, IconButton, TabButton, LinkButton } from '../components/ui'
+import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download } from 'lucide-react'
 
 const ClassDetail = () => {
   const { classId } = useParams()
@@ -45,9 +49,13 @@ const ClassDetail = () => {
   const [listFilter, setListFilter] = useState('all')
   const [generatingPDF, setGeneratingPDF] = useState(null)
 const [settingsModalList, setSettingsModalList] = useState(null)
-const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4 })
+  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq' })
 const [savingSettings, setSavingSettings] = useState(false)
 const [unassigningListId, setUnassigningListId] = useState(null)
+  const [removingStudentId, setRemovingStudentId] = useState(null)
+  const [selectedStudents, setSelectedStudents] = useState([])
+  const [allClasses, setAllClasses] = useState([])
+  const [classSwitcherOpen, setClassSwitcherOpen] = useState(false)
 
   const isOwner = useMemo(
     () => classInfo?.ownerTeacherId === user?.uid,
@@ -106,12 +114,13 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         const listSnap = await getDoc(doc(db, 'lists', id))
         if (!listSnap.exists()) return null
         
-        const assignment = assignments[id] || { pace: 20, testOptionsCount: 4 }
+        const assignment = assignments[id] || { pace: 20, testOptionsCount: 4, testMode: 'mcq' }
         return {
           id: listSnap.id,
           ...listSnap.data(),
           pace: assignment.pace,
           testOptionsCount: assignment.testOptionsCount ?? 4,
+          testMode: assignment.testMode || 'mcq',
         }
       }),
     )
@@ -138,6 +147,16 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     if (user?.uid) {
       fetchTeacherLists(user.uid).then(setTeacherLists).catch(() => {})
     }
+  }, [user?.uid])
+
+  useEffect(() => {
+    const loadAllClasses = async () => {
+      if (user?.uid) {
+        const classes = await fetchTeacherClasses(user.uid)
+        setAllClasses(classes)
+      }
+    }
+    loadAllClasses()
   }, [user?.uid])
 
   const loadAttempts = useCallback(async () => {
@@ -167,12 +186,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     return teacherLists.filter((list) => !assignedIds.has(list.id))
   }, [classInfo?.assignedLists, classInfo?.assignments, teacherLists])
 
-  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4) => {
+  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq') => {
     if (!classId) return
     setAssigning(true)
     setFeedback('')
     try {
-      await assignListToClass(classId, listId, pace, testOptionsCount)
+      await assignListToClass(classId, listId, pace, testOptionsCount, testMode)
       setAssignModalOpen(false)
       setFeedback('List assigned successfully.')
       await loadClass()
@@ -188,6 +207,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     setSettingsForm({
       pace: list.pace ?? 20,
       testOptionsCount: list.testOptionsCount ?? 4,
+      testMode: list.testMode || 'mcq',
     })
   }
 
@@ -203,6 +223,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       await updateAssignmentSettings(classId, settingsModalList.id, {
         pace: settingsForm.pace,
         testOptionsCount: settingsForm.testOptionsCount,
+        testMode: settingsForm.testMode,
       })
       setFeedback('List settings updated successfully.')
       await loadClass()
@@ -230,6 +251,86 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     } finally {
       setUnassigningListId(null)
     }
+  }
+
+  const handleRemoveStudent = async (studentId) => {
+    if (!window.confirm('Are you sure you want to remove this student from the class?')) {
+      return
+    }
+    
+    setRemovingStudentId(studentId)
+    try {
+      const { removeStudentFromClass } = await import('../services/db')
+      await removeStudentFromClass(classId, studentId)
+      // Refresh the class data to update student list
+      loadClass()
+      // Remove from selected if it was selected
+      setSelectedStudents(prev => prev.filter(id => id !== studentId))
+    } catch (err) {
+      console.error('Failed to remove student:', err)
+      alert('Failed to remove student. Please try again.')
+    } finally {
+      setRemovingStudentId(null)
+    }
+  }
+
+  const handleSelectStudent = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) 
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    )
+  }
+
+  const handleSelectAllStudents = () => {
+    const membersList = members || []
+    if (selectedStudents.length === membersList.length && membersList.length > 0) {
+      setSelectedStudents([])
+    } else {
+      setSelectedStudents(membersList.map(m => m.id))
+    }
+  }
+
+  const handleRemoveSelectedStudents = async () => {
+    if (selectedStudents.length === 0) return
+    
+    const confirmMessage = `Are you sure you want to remove ${selectedStudents.length} student${selectedStudents.length > 1 ? 's' : ''} from this class?`
+    if (!window.confirm(confirmMessage)) return
+    
+    setRemovingStudentId('bulk')
+    try {
+      const { removeStudentFromClass } = await import('../services/db')
+      for (const studentId of selectedStudents) {
+        await removeStudentFromClass(classId, studentId)
+      }
+      setSelectedStudents([])
+      loadClass()
+    } catch (err) {
+      console.error('Failed to remove students:', err)
+      alert('Failed to remove some students. Please try again.')
+    } finally {
+      setRemovingStudentId(null)
+    }
+  }
+
+  const handleExportSelectedStudents = () => {
+    const membersList = members || []
+    const selectedData = membersList.filter(m => selectedStudents.includes(m.id))
+    const csvContent = [
+      ['Name', 'Email'].join(','),
+      ...selectedData.map(m => [
+        m.displayName || 'N/A',
+        m.email || 'N/A'
+      ].join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `students-${classInfo?.name || 'class'}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const handleDownloadPDF = async (listId, listTitle) => {
@@ -273,7 +374,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50">
+      <main className="flex min-h-screen items-center justify-center bg-base">
         <LoadingSpinner size="lg" />
       </main>
     )
@@ -281,14 +382,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
-          <p className="text-lg font-semibold text-slate-900">Something went wrong</p>
-          <p className="mt-3 text-sm text-slate-500">{error}</p>
+      <main className="flex min-h-screen items-center justify-center bg-base px-4">
+        <div className="max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
+          <p className="text-lg font-semibold text-text-primary">Something went wrong</p>
+          <p className="mt-3 text-sm text-text-muted">{error}</p>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="mt-6 rounded-lg border border-border-default px-4 py-2 text-sm font-semibold text-text-secondary transition hover:bg-base"
           >
             Go Back
           </button>
@@ -302,30 +403,82 @@ const [unassigningListId, setUnassigningListId] = useState(null)
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-base px-4 py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <BackButton />
-        <header className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
+        <HeaderBar />
+        <header className="rounded-2xl bg-surface p-8 shadow-lg ring-1 ring-border-default">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-500">
                 Class Detail
               </p>
-              <h1 className="mt-2 text-4xl font-bold text-slate-900">{classInfo.name}</h1>
-              <p className="mt-2 text-base text-slate-600">
+              <div className="relative mt-2">
+                {/* Clickable class name */}
+                <button
+                  type="button"
+                  onClick={() => setClassSwitcherOpen(!classSwitcherOpen)}
+                  className="flex items-center gap-2 text-3xl font-heading font-bold text-text-primary hover:text-brand-primary transition-colors"
+                >
+                  {classInfo.name}
+                  {allClasses.length > 1 && (
+                    <svg 
+                      className={`w-5 h-5 text-text-faint transition-transform ${classSwitcherOpen ? 'rotate-180' : ''}`}
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Popover */}
+                {classSwitcherOpen && allClasses.length > 1 && (
+                  <>
+                    {/* Backdrop to close */}
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setClassSwitcherOpen(false)} 
+                    />
+                    
+                    {/* Menu */}
+                    <div className="absolute top-full left-0 mt-2 z-20 w-72 bg-surface rounded-xl border border-border-default shadow-lg overflow-hidden">
+                      <div className="p-2">
+                        <p className="px-3 py-2 text-xs font-medium text-text-muted uppercase tracking-wide">
+                          Switch Class
+                        </p>
+                        {allClasses.map((c) => (
+                          <button
+                            key={c.id}
+                            onClick={() => {
+                              navigate(`/classes/${c.id}`)
+                              setClassSwitcherOpen(false)
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              c.id === classId 
+                                ? 'bg-brand-primary/10 text-brand-text' 
+                                : 'text-text-secondary hover:bg-muted'
+                            }`}
+                          >
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <p className="mt-2 text-base text-text-secondary">
                 Share the join code for students to enroll.
               </p>
             </div>
-            <Link
-              to="/lists"
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
+            <Button variant="outline" size="md" to="/lists">
               Manage Lists
-            </Link>
+            </Button>
           </div>
-          <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-4 text-center">
-            <p className="text-sm uppercase tracking-wide text-slate-500">Join Code</p>
-            <p className="mt-2 text-4xl font-bold tracking-[0.35em] text-slate-900">
+          <div className="mt-6 rounded-xl border border-dashed border-border-strong bg-base px-6 py-4 text-center">
+            <p className="text-sm uppercase tracking-wide text-text-muted">Join Code</p>
+            <p className="mt-2 text-4xl font-bold tracking-[0.35em] text-text-primary">
               {classInfo.joinCode}
             </p>
           </div>
@@ -337,197 +490,99 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         </header>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-slate-200">
-          <button
-            type="button"
-            onClick={() => setActiveTab('lists')}
-            className={`px-4 py-2 text-sm font-semibold transition ${
-              activeTab === 'lists'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
+        <div className="flex gap-2 border-b border-border-default">
+          <TabButton active={activeTab === 'lists'} onClick={() => setActiveTab('lists')}>
             Assigned Lists
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('students')}
-            className={`px-4 py-2 text-sm font-semibold transition ${
-              activeTab === 'students'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
+          </TabButton>
+          <TabButton active={activeTab === 'students'} onClick={() => setActiveTab('students')}>
             Students
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('gradebook')}
-            className={`px-4 py-2 text-sm font-semibold transition ${
-              activeTab === 'gradebook'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
+          </TabButton>
+          <TabButton active={activeTab === 'gradebook'} onClick={() => setActiveTab('gradebook')}>
             Gradebook
-          </button>
+          </TabButton>
         </div>
 
         {/* Assigned Lists Tab */}
         {activeTab === 'lists' && (
-        <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
+        <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Assigned Lists</h2>
-              <p className="text-sm text-slate-500">These lists appear in class study plans.</p>
+              <h2 className="text-xl font-semibold text-text-primary">Assigned Lists</h2>
+              <p className="text-sm text-text-muted">These lists appear in class study plans.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setAssignModalOpen(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
-              disabled={availableLists.length === 0}
-            >
+            <Button variant="primary-blue" size="md" onClick={() => setAssignModalOpen(true)} disabled={availableLists.length === 0}>
               Assign List
-            </button>
+            </Button>
           </div>
           {assignedLists.length ? (
             <ul className="mt-6 grid gap-4 md:grid-cols-2">
               {assignedLists.map((list) => (
                 <li
                   key={list.id}
-                  className="rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition hover:border-slate-200 hover:bg-white"
+                  className="rounded-xl border border-border-muted bg-base/60 p-4 transition hover:border-border-default hover:bg-surface"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-900">{list.title}</h3>
-                      <p className="mt-1 text-sm text-slate-500 line-clamp-2">{list.description}</p>
+                      <h3 className="text-lg font-semibold text-text-primary">{list.title}</h3>
+                      <p className="mt-1 text-sm text-text-muted line-clamp-2">{list.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-semibold">
-                        <span className="uppercase tracking-wide text-slate-500">
+                        <span className="uppercase tracking-wide text-text-muted">
                           {list.wordCount ?? 0} words
                         </span>
-                        <span className="text-slate-300">|</span>
+                        <span className="text-text-muted">|</span>
                         <span className="text-blue-600">Pace: {list.pace ?? 20} words/day</span>
-                        <span className="text-slate-300">|</span>
+                        <span className="text-text-muted">|</span>
                         <span className="text-emerald-600">
                           Test Options: {list.testOptionsCount ?? 4} choices
                         </span>
                       </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadPDF(list.id, list.title)}
-                          disabled={generatingPDF === list.id}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
-                          title="Download PDF"
-                        >
-                          {generatingPDF === list.id ? (
-                            <>
-                              <svg
-                                className="h-3 w-3 animate-spin"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                              </svg>
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <svg
-                                className="h-3 w-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
-                              Download PDF
-                            </>
-                          )}
-                        </button>
-                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => openSettingsModal(list)}
-                        className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
-                        title="Edit Settings"
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleDownloadPDF(list.id, list.title)
+                        }}
+                        disabled={generatingPDF === list.id}
+                        title="Download PDF"
                       >
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
+                        {generatingPDF === list.id ? (
+                          '...'
+                        ) : (
+                          <>
+                            <FileText size={14} />
+                            PDF
+                          </>
+                        )}
+                      </Button>
+                      <IconButton variant="default" size="sm" onClick={() => openSettingsModal(list)} title="Edit Settings">
+                        <Settings size={16} />
+                      </IconButton>
+                      <IconButton 
+                        variant="danger" 
+                        size="sm" 
                         onClick={() => handleUnassignList(list.id)}
                         disabled={unassigningListId === list.id}
-                        className="rounded-lg p-1.5 text-red-500 transition hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
-                        title="Remove from class"
+                        title="Unassign list"
                       >
                         {unassigningListId === list.id ? (
-                          <svg
-                            className="h-4 w-4 animate-spin"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                          </svg>
+                          <RefreshCw size={16} className="animate-spin" />
                         ) : (
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
+                          <Trash2 size={16} />
                         )}
-                        <span className="sr-only">Remove list</span>
-                      </button>
+                      </IconButton>
                     </div>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <p className="text-sm text-slate-500">No content assigned.</p>
-              <p className="mt-1 text-sm text-slate-500">Click 'Assign List' to start.</p>
+            <div className="mt-6 rounded-xl border border-dashed border-border-strong bg-base p-8 text-center">
+              <p className="text-sm text-text-muted">No content assigned.</p>
+              <p className="mt-1 text-sm text-text-muted">Click 'Assign List' to start.</p>
             </div>
           )}
         </section>
@@ -535,139 +590,151 @@ const [unassigningListId, setUnassigningListId] = useState(null)
 
         {/* Students Tab */}
         {activeTab === 'students' && (
-        <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-900">Student Roster</h2>
-            <p className="text-sm text-slate-500">{members.length} enrolled</p>
-          </div>
-          {members.length ? (
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead>
-                  <tr className="text-slate-500">
-                    <th className="px-3 py-2 font-medium">Name</th>
-                    <th className="px-3 py-2 font-medium">Email</th>
-                    <th className="px-3 py-2 font-medium">Words Learned</th>
-                    <th className="px-3 py-2 font-medium">Joined</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {members.map((member) => (
-                    <tr key={member.id}>
-                      <td className="px-3 py-2 font-semibold text-slate-900">
-                        {member.displayName || 'Unnamed Student'}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{member.email || '—'}</td>
-                      <td className="px-3 py-2 text-slate-600">
-                        <span className="font-semibold text-slate-900">
-                          {member.stats?.totalWordsLearned ?? 0}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">
-                        {member.joinedAt?.toDate
-                          ? member.joinedAt.toDate().toLocaleDateString()
-                          : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <p className="text-sm font-semibold text-slate-700">No students enrolled yet</p>
-              <p className="mt-2 text-sm text-slate-500">
-                Share the join code below for students to enroll.
-              </p>
-              <div className="mt-6 rounded-xl border border-slate-300 bg-white px-6 py-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Join Code</p>
-                <div className="mt-3 flex items-center justify-center gap-3">
-                  <p className="text-3xl font-bold tracking-[0.35em] text-slate-900">
-                    {classInfo?.joinCode || '—'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleCopyJoinCode}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Copy
-                  </button>
-                </div>
+        <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
+          <div className="space-y-4">
+            {/* Control bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={handleSelectAllStudents}
+                  disabled={!members || members.length === 0}
+                >
+                  {selectedStudents.length === members?.length && members?.length > 0 
+                    ? 'Uncheck All' 
+                    : 'Check All'}
+                </Button>
+                {selectedStudents.length > 0 && (
+                  <span className="text-sm text-text-muted">
+                    {selectedStudents.length} selected
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={handleExportSelectedStudents}
+                  disabled={selectedStudents.length === 0}
+                >
+                  <Download size={16} />
+                  Export{selectedStudents.length > 0 ? ` (${selectedStudents.length})` : ''}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="md"
+                  onClick={handleRemoveSelectedStudents}
+                  disabled={selectedStudents.length === 0 || removingStudentId === 'bulk'}
+                >
+                  {removingStudentId === 'bulk' ? 'Removing...' : `Remove${selectedStudents.length > 0 ? ` (${selectedStudents.length})` : ''}`}
+                </Button>
               </div>
             </div>
-          )}
+
+            {/* Students table */}
+            {!members ? (
+              <div className="flex justify-center py-8">
+                <LoadingSpinner size="md" />
+              </div>
+            ) : members.length > 0 ? (
+              <div className="overflow-x-auto rounded-xl border border-border-default">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-base text-xs uppercase text-text-muted">
+                    <tr>
+                      <th className="px-4 py-3 w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedStudents.length === members?.length && members?.length > 0}
+                          onChange={handleSelectAllStudents}
+                          className="h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-brand-primary"
+                        />
+                      </th>
+                      <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Joined</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-default">
+                    {members.map((member) => (
+                      <tr 
+                        key={member.id} 
+                        className={`bg-surface hover:bg-base transition-colors ${
+                          selectedStudents.includes(member.id) ? 'bg-accent-blue' : ''
+                        }`}
+                      >
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.includes(member.id)}
+                            onChange={() => handleSelectStudent(member.id)}
+                            className="h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-brand-primary"
+                          />
+                        </td>
+                        <td className="px-4 py-3 font-medium text-text-primary">
+                          {member.displayName || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-text-secondary">
+                          {member.email || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-text-muted">
+                          {member.joinedAt 
+                            ? (member.joinedAt?.toDate 
+                              ? member.joinedAt.toDate().toLocaleDateString()
+                              : new Date(member.joinedAt.seconds ? member.joinedAt.seconds * 1000 : member.joinedAt).toLocaleDateString())
+                            : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <LinkButton
+                            variant="danger"
+                            onClick={() => handleRemoveStudent(member.id)}
+                            disabled={removingStudentId === member.id}
+                          >
+                            {removingStudentId === member.id ? 'Removing...' : 'Remove'}
+                          </LinkButton>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border-strong bg-base p-8 text-center">
+                <p className="text-sm text-text-muted">No students enrolled yet.</p>
+                <p className="mt-1 text-xs text-text-faint">Share the join code with your students to get started.</p>
+                <div className="mt-6 rounded-xl border border-border-strong bg-surface px-6 py-4">
+                  <p className="text-xs uppercase tracking-wide text-text-muted">Join Code</p>
+                  <div className="mt-3 flex items-center justify-center gap-3">
+                    <p className="text-3xl font-bold tracking-[0.35em] text-text-primary">
+                      {classInfo?.joinCode || '—'}
+                    </p>
+                    <Button variant="outline" size="sm" onClick={handleCopyJoinCode}>
+                      <Copy size={16} />
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </section>
         )}
 
         {/* Gradebook Tab */}
         {activeTab === 'gradebook' && (
-        <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <h2 className="text-xl font-semibold text-slate-900">Gradebook</h2>
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-slate-600">Filter:</label>
-              <select
-                value={listFilter}
-                onChange={(e) => setListFilter(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none ring-slate-300 focus:ring-2"
-              >
-                <option value="all">All Lists</option>
-                {assignedLists.map((list) => (
-                  <option key={list.id} value={list.id}>
-                    {list.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
+          <div className="text-center py-12">
+            <p className="font-body text-text-secondary mb-6">
+              View all test attempts for this class in the gradebook.
+            </p>
+            <Link to={`/teacher/gradebook?classId=${classId}`}>
+              <Button variant="primary-blue" size="lg">
+                <ClipboardList size={20} />
+                Open Gradebook
+              </Button>
+            </Link>
           </div>
-          {attemptsLoading ? (
-            <div className="mt-6 flex justify-center">
-              <LoadingSpinner size="md" />
-            </div>
-          ) : attempts.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-              <p className="text-sm text-slate-500">No test attempts recorded yet.</p>
-            </div>
-          ) : (
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                <thead>
-                  <tr className="text-slate-500">
-                    <th className="px-3 py-2 font-medium">Student Name</th>
-                    <th className="px-3 py-2 font-medium">Test (List Name)</th>
-                    <th className="px-3 py-2 font-medium">Score</th>
-                    <th className="px-3 py-2 font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {attempts
-                    .filter((attempt) => listFilter === 'all' || attempt.listId === listFilter)
-                    .map((attempt) => (
-                      <tr key={attempt.id}>
-                        <td className="px-3 py-2 font-semibold text-slate-900">
-                          {attempt.studentName}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">{attempt.listName}</td>
-                        <td className="px-3 py-2">
-                          <span
-                            className={`font-semibold ${
-                              attempt.score < 60 ? 'text-red-600' : 'text-slate-900'
-                            }`}
-                          >
-                            {attempt.score}%
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">
-                          {attempt.submittedAt?.toDate
-                            ? attempt.submittedAt.toDate().toLocaleDateString()
-                            : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </section>
         )}
       </div>
@@ -682,25 +749,21 @@ const [unassigningListId, setUnassigningListId] = useState(null)
 
       {settingsModalList && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-2xl">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-xl font-semibold text-slate-900">Edit List Settings</h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="text-xl font-semibold text-text-primary">Edit List Settings</h3>
+                <p className="text-sm text-text-muted">
                   Control pacing and test options for "{settingsModalList.title}".
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={closeSettingsModal}
-                className="rounded-full p-1 text-slate-500 transition hover:bg-slate-100"
-              >
-                ✕
-              </button>
+              <IconButton variant="close" size="sm" onClick={closeSettingsModal} aria-label="Close modal">
+                <X size={18} />
+              </IconButton>
             </div>
 
             <div className="mt-6 space-y-4">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-text-secondary">
                 Daily New Words (Pace)
                 <input
                   type="number"
@@ -713,11 +776,11 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                       pace: Math.max(1, parseInt(event.target.value, 10) || 20),
                     }))
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                   placeholder="20"
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-text-secondary">
                 Test Options (choices per question)
                 <input
                   type="number"
@@ -733,30 +796,38 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                       ),
                     }))
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                   placeholder="4"
                 />
-                <p className="mt-1 text-xs text-slate-500">Students will see this many answer choices.</p>
+                <p className="mt-1 text-xs text-text-muted">Students will see this many answer choices.</p>
+              </label>
+              <label className="block text-sm font-medium text-text-secondary">
+                Test Mode
+                <select
+                  value={settingsForm.testMode}
+                  onChange={(event) =>
+                    setSettingsForm((prev) => ({
+                      ...prev,
+                      testMode: event.target.value,
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-surface px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
+                >
+                  <option value="mcq">Multiple Choice Only</option>
+                  <option value="typed">Written Only</option>
+                  <option value="both">Both</option>
+                </select>
+                <p className="mt-1 text-xs text-text-muted">Choose how students take tests for this list.</p>
               </label>
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button
-                type="button"
-                onClick={closeSettingsModal}
-                className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                disabled={savingSettings}
-              >
+              <Button variant="outline" size="lg" className="flex-1" onClick={closeSettingsModal} disabled={savingSettings}>
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveSettings}
-                disabled={savingSettings}
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
-              >
+              </Button>
+              <Button variant="primary-blue" size="lg" className="flex-1" onClick={handleSaveSettings} disabled={savingSettings}>
                 {savingSettings ? 'Saving…' : 'Save Settings'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

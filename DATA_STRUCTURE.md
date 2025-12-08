@@ -20,9 +20,9 @@
   },
   stats: {
     totalWordsLearned: number,      // Words with box > 1
-    streakDays: number,              // Consecutive days with activity
-    retention: number,               // 0.0-1.0, calculated from test results
-    credibility: number              // 0.0-1.0, calculated from test accuracy
+    streakDays: number,             // Consecutive days with activity
+    retention: number,               // 0.0-1.0, calculated from test results (Box 4+ words)
+    credibility: number             // 0.0-1.0, calculated from test accuracy
   },
   settings: {
     weeklyGoal: number,              // Default: 100 words/week
@@ -42,11 +42,10 @@
 ```javascript
 {
   box: number,                       // 1-5 (Leitner system)
-  streak: number,                    // Consecutive correct answers
-  lastReviewed: Timestamp,
-  nextReview: Timestamp,             // Calculated based on box
-  result: "again" | "hard" | "easy", // Last study result
-  easeFactor: number                 // For SRS calculations
+  streak: number,                    // Consecutive "easy" responses (resets on "again"/"hard")
+  lastReviewed: Timestamp,           // Last time word was studied
+  nextReview: Timestamp,             // Next review time (calculated: currentTime + box * 15 minutes)
+  result: "again" | "hard" | "easy"  // Last study result
 }
 ```
 
@@ -128,15 +127,17 @@
 {
   studentId: string,                  // Reference to users/{uid}
   testId: string,                     // Format: "test_{listId}_{timestamp}"
-  score: number,                       // 0-100 (percentage)
-  graded: boolean,                    // Always true (graded immediately)
+  classId: string | null,            // Class ID if test taken in class context (NEW)
+  teacherId: string | null,           // Teacher ID for efficient gradebook queries (NEW)
+  score: number,                      // 0-100 (percentage)
+  graded: boolean,                   // Always true (graded immediately)
   answers: [
     {
       wordId: string,
       word: string,                   // Denormalized for display
+      correctAnswer: string,          // The correct definition (NEW - stored for legacy compatibility)
       studentResponse: string,        // The answer the student provided
-      isCorrect: boolean,
-      aiFeedback: string | null       // Populated by Cloud Function (future)
+      isCorrect: boolean
     }
   ],
   skipped: number,                    // Number of unanswered questions
@@ -146,6 +147,11 @@
   submittedAt: Timestamp
 }
 ```
+
+**Note:** 
+- `classId` and `teacherId` are added to new attempts (legacy attempts may not have these fields)
+- `correctAnswer` is stored in each answer object for accurate display in gradebook
+- Legacy attempts without `correctAnswer` will fetch it from `lists/{listId}/words/{wordId}` on demand
 
 ---
 
@@ -186,7 +192,9 @@ defaultProfile = {
 
 defaultStats = {
   totalWordsLearned: 0,
-  streakDays: 0
+  streakDays: 0,
+  credibility: 1.0,        // Default trust score (updated after tests)
+  retention: 1.0          // Default retention rate (updated after tests)
 }
 
 defaultSettings = {
@@ -232,15 +240,19 @@ defaultSettings = {
 ### Test Flow
 1. **Generate Test:** `generateTest(userId, listId, classId, limit)`
    - Fetches words from list
-   - Creates MCQ options with distractors
+   - Prioritizes: Due Review Words (Box 1) → Glass Ceiling Words (Box 3) → New Words
+   - Creates MCQ options with distractors (prefers same part of speech)
    - Returns shuffled array
-2. **Submit Test:** `submitTestAttempt(userId, testId, answers, totalQuestions)`
-   - Creates document in `attempts` collection
+2. **Submit Test:** `submitTestAttempt(userId, testId, answers, totalQuestions, classId)`
+   - Fetches `classId` from URL params (if provided)
+   - Fetches `teacherId` from class document (if `classId` provided)
+   - Creates document in `attempts` collection with `classId` and `teacherId`
    - Updates `users/{userId}/study_states` for each word
    - Calculates and updates `credibility` and `retention` in user stats
    - **Box Logic:**
-     - Correct answer: Box < 3 → Box 4, Box >= 3 → Box 5
-     - Wrong answer: → Box 1
+     - Correct answer: Box < 3 → Box 4 (instant mastery), Box >= 3 → Box 5 (expert)
+     - Wrong answer: → Box 1 (reset to learning phase)
+   - **Answer Storage:** Each answer includes `correctAnswer` field for gradebook display
 
 ### Dashboard Stats Flow
 1. **Fetch Stats:** `fetchDashboardStats(userId)`
@@ -279,7 +291,12 @@ defaultSettings = {
 - **`masteredWords`:** Count of words where `box >= 4`
 - **`mastery`:** Percentage = `(masteryCount / totalWords) * 100`
 - **`retention`:** Calculated from test results on words in box >= 4
-- **`credibility`:** Calculated from test accuracy (correct / total)
+  - Formula: `(correct answers on box 4+ words) / (total box 4+ words tested)`
+  - Default: 1.0 if no box 4+ words tested
+- **`credibility`:** Calculated from test accuracy (affects daily new word limit)
+  - Formula: `(correct answers) / (total answers)`
+  - Default: 1.0 for new users
+  - Used in: `dailyNewLimit = basePace * credibility`
 
 ---
 
@@ -295,6 +312,8 @@ defaultSettings = {
 - **Teacher Lists:** `where('ownerId', '==', uid)`
 - **Class by Join Code:** `where('joinCode', '==', code)`
 - **Latest Test:** `where('studentId', '==', uid), orderBy('submittedAt', 'desc'), limit(1)`
+- **Teacher Attempts:** `where('teacherId', '==', uid), orderBy('submittedAt', 'desc')` (NEW - efficient gradebook queries)
+- **Teacher Attempts by Class:** `where('teacherId', '==', uid), where('classId', '==', classId), orderBy('submittedAt', 'desc')` (NEW)
 - **Weekly Progress:** Filter `study_states` by `lastReviewed` within 7 days
 
 ---
@@ -305,17 +324,68 @@ defaultSettings = {
 - **Cached Counts:** `lists.wordCount` updated on word add/remove operations
 - **Atomic Updates:** Uses Firestore batches for multi-document updates
 - **Cleanup:** `fetchStudentClasses` removes invalid class references from `enrolledClasses`
+- **Legacy Data Support:** 
+  - Old attempts without `classId`/`teacherId` are handled via fallback logic
+  - Old attempts without `correctAnswer` fetch definition from `lists/{listId}/words/{wordId}` on demand
+- **Teacher Data Caching:** Teacher-related data (classes, students, lists) cached for 5 minutes to reduce redundant queries
 
 ---
 
-## 8. Collection Summary
+## 8. Firestore Indexes
+
+### Required Composite Indexes
+
+The following composite indexes are required for efficient queries:
+
+**Index 1: Teacher Attempts Query**
+- Collection: `attempts`
+- Fields:
+  - `teacherId` (Ascending)
+  - `submittedAt` (Descending)
+- Used by: `queryTeacherAttempts()` for gradebook queries
+
+**Index 2: Teacher Attempts by Class**
+- Collection: `attempts`
+- Fields:
+  - `teacherId` (Ascending)
+  - `classId` (Ascending)
+  - `submittedAt` (Descending)
+- Used by: `queryTeacherAttempts()` with class filter
+
+**Deployment:**
+- Indexes are defined in `firestore.indexes.json`
+- Deploy via Firebase Console (link provided when query runs) or CLI: `firebase deploy --only firestore:indexes`
+
+---
+
+## 9. Collection Summary
 
 | Collection | Document ID | Key Fields | Subcollections |
 |------------|-------------|------------|----------------|
 | `users` | `{uid}` | `role`, `profile`, `stats`, `settings`, `enrolledClasses` | `study_states/{wordId}` |
 | `classes` | `{classId}` | `name`, `ownerTeacherId`, `joinCode`, `assignments` | `members/{studentUid}` |
 | `lists` | `{listId}` | `title`, `ownerId`, `visibility`, `wordCount` | `words/{wordId}` |
-| `attempts` | `{attemptId}` | `studentId`, `testId`, `score`, `answers`, `credibility`, `retention` | None |
+| `attempts` | `{attemptId}` | `studentId`, `testId`, `classId`, `teacherId`, `score`, `answers`, `credibility`, `retention` | None |
+
+---
+
+## 10. Recent Schema Changes
+
+### Added Fields (2024)
+
+**`attempts` Collection:**
+- `classId` (string | null) - Added to new test attempts for direct class attribution
+- `teacherId` (string | null) - Added for efficient teacher gradebook queries
+- `answers[].correctAnswer` (string) - Added to each answer object for accurate gradebook display
+
+**`users.stats` Object:**
+- `credibility` (number) - Default 1.0, updated after tests
+- `retention` (number) - Default 1.0, updated after tests
+
+**Migration Notes:**
+- Legacy attempts without `classId`/`teacherId` are handled via fallback logic
+- Legacy attempts without `correctAnswer` fetch definition on demand from word documents
+- All new attempts include these fields automatically
 
 ---
 

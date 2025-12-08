@@ -10,11 +10,13 @@ import {
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
+import { Pencil, Trash2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { addWordToList, createList, updateWord, deleteWord } from '../services/db'
 import { db } from '../firebase'
 import ImportWordsModal from '../components/ImportWordsModal.jsx'
-import BackButton from '../components/BackButton.jsx'
+import HeaderBar from '../components/HeaderBar.jsx'
+import { Button, IconButton } from '../components/ui'
 
 const ListEditor = ({ mode }) => {
   const { user } = useAuth()
@@ -251,24 +253,24 @@ const ListEditor = ({ mode }) => {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-muted px-4 py-10">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
-        <BackButton />
-        <header className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
+        <HeaderBar />
+        <header className="rounded-2xl bg-surface p-8 shadow-lg ring-1 ring-border-default">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-500">
             Vocabulary Content
           </p>
-          <h1 className="mt-2 text-4xl font-bold text-slate-900">{pageTitle}</h1>
-          <p className="mt-2 text-base text-slate-600">
+          <h1 className="mt-2 text-4xl font-bold text-text-primary">{pageTitle}</h1>
+          <p className="mt-2 text-base text-text-secondary">
             Create and manage lists for your classes and study sessions.
           </p>
         </header>
 
-        <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
-          <h2 className="text-xl font-semibold text-slate-900">
+        <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
+          <h2 className="text-xl font-semibold text-text-primary">
             {isCreateMode ? 'New List Details' : 'List Details'}
           </h2>
-          <p className="text-sm text-slate-500">Set the title and description students will see.</p>
+          <p className="text-sm text-text-muted">Set the title and description students will see.</p>
           <form
             onSubmit={isCreateMode ? handleCreateList : handleUpdateDetails}
             className="mt-6 space-y-4"
@@ -283,7 +285,7 @@ const ListEditor = ({ mode }) => {
                 {detailSuccess}
               </p>
             )}
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-text-secondary">
               List Title
               <input
                 type="text"
@@ -291,38 +293,39 @@ const ListEditor = ({ mode }) => {
                 value={details.title}
                 onChange={handleDetailChange}
                 required
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                 placeholder="SAT Power List"
               />
             </label>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-text-secondary">
               Description
               <textarea
                 name="description"
                 rows={3}
                 value={details.description}
                 onChange={handleDetailChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                 placeholder="Explain when and how to use this list."
               />
             </label>
-            <button
+            <Button 
+              variant="primary-blue" 
+              size="lg" 
               type="submit"
               disabled={savingDetails}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
             >
               {isCreateMode ? 'Create List' : 'Save Changes'}
-            </button>
+            </Button>
           </form>
         </section>
 
         {!isCreateMode && (
           <>
-            <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
-              <h2 className="text-xl font-semibold text-slate-900">
+            <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
+              <h2 className="text-xl font-semibold text-text-primary">
                 {editingId ? 'Edit Word' : 'Add a New Word'}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-text-muted">
                 {editingId ? 'Update the word details below.' : 'Populate the list with vocabulary content.'}
               </p>
               <form onSubmit={handleAddWord} className="mt-6 space-y-4">
@@ -337,7 +340,7 @@ const ListEditor = ({ mode }) => {
                   </p>
                 )}
                 <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-text-secondary">
                     Word
                     <input
                       type="text"
@@ -345,17 +348,17 @@ const ListEditor = ({ mode }) => {
                       value={wordForm.word}
                       onChange={handleWordChange}
                       required
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                      className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                       placeholder="Abate"
                     />
                   </label>
-                  <label className="block text-sm font-medium text-slate-700">
+                  <label className="block text-sm font-medium text-text-secondary">
                     Part of Speech
                     <select
                       name="partOfSpeech"
                       value={wordForm.partOfSpeech}
                       onChange={handleWordChange}
-                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                      className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                     >
                       <option value="">—</option>
                       <option value="n.">n. (Noun)</option>
@@ -370,7 +373,7 @@ const ListEditor = ({ mode }) => {
                     </select>
                   </label>
                 </div>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-text-secondary">
                   Definition
                   <textarea
                     name="definition"
@@ -378,56 +381,58 @@ const ListEditor = ({ mode }) => {
                     value={wordForm.definition}
                     onChange={handleWordChange}
                     required
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                     placeholder="To become less intense or widespread."
                   />
                 </label>
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-text-secondary">
                   Sample Sentence
                   <textarea
                     name="sampleSentence"
                     rows={2}
                     value={wordForm.sampleSentence}
                     onChange={handleWordChange}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:bg-white focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
                     placeholder="After weeks of rain, the storm finally abated."
                   />
                 </label>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="rounded-lg border border-border-default bg-muted p-4">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
                     Optional: Secondary Definition
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-text-secondary">
                       Language Code
                       <input
                         type="text"
                         name="secondaryLang"
                         value={wordForm.secondaryLang}
                         onChange={handleWordChange}
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:ring-2"
+                        className="mt-1 w-full rounded-lg border border-border-default bg-surface px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
                         placeholder="ko, es, fr, etc."
                         maxLength={2}
                       />
                     </label>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-medium text-text-secondary">
                       Definition
                       <input
                         type="text"
                         name="secondaryDefinition"
                         value={wordForm.secondaryDefinition}
                         onChange={handleWordChange}
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-slate-300 focus:ring-2"
+                        className="mt-1 w-full rounded-lg border border-border-default bg-surface px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
                         placeholder="Translation in the selected language"
                       />
                     </label>
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <button
+                  <Button 
+                    variant="success" 
+                    size="lg" 
                     type="submit"
                     disabled={addingWord}
-                    className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                    className="flex-1"
                   >
                     {addingWord
                       ? editingId
@@ -436,40 +441,32 @@ const ListEditor = ({ mode }) => {
                       : editingId
                         ? 'Update Word'
                         : 'Add Word'}
-                  </button>
+                  </Button>
                   {editingId ? (
-                    <button
-                      type="button"
-                      onClick={handleCancelEdit}
-                      className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
+                    <Button variant="outline" size="lg" onClick={handleCancelEdit} className="flex-1">
                       Cancel Edit
-                    </button>
+                    </Button>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsImportModalOpen(true)}
-                      className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
+                    <Button variant="outline" size="lg" onClick={() => setIsImportModalOpen(true)} className="flex-1">
                       Import Words
-                    </button>
+                    </Button>
                   )}
                 </div>
               </form>
             </section>
 
-            <section className="rounded-2xl bg-white p-6 shadow-md ring-1 ring-slate-100">
+            <section className="rounded-2xl bg-surface p-6 shadow-md ring-1 ring-border-muted">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-900">Words in this List</h2>
-                <p className="text-sm text-slate-500">{words.length} total</p>
+                <h2 className="text-xl font-semibold text-text-primary">Words in this List</h2>
+                <p className="text-sm text-text-muted">{words.length} total</p>
               </div>
               {wordsLoading ? (
-                <p className="mt-4 text-sm text-slate-500">Loading words…</p>
+                <p className="mt-4 text-sm text-text-muted">Loading words…</p>
               ) : words.length ? (
                 <div className="mt-4 overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+                  <table className="min-w-full divide-y divide-border-default text-left text-sm">
                     <thead>
-                      <tr className="text-slate-500">
+                      <tr className="text-text-muted">
                         <th className="px-3 py-2 font-medium">Word</th>
                         <th className="px-3 py-2 font-medium">POS</th>
                         <th className="px-3 py-2 font-medium">Definition</th>
@@ -477,59 +474,23 @@ const ListEditor = ({ mode }) => {
                         <th className="px-3 py-2 font-medium">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-border-muted">
                       {words.map((word) => (
                         <tr key={word.id}>
-                          <td className="px-3 py-2 font-semibold text-slate-900">{word.word}</td>
-                          <td className="px-3 py-2 text-slate-500 italic">{word.partOfSpeech || '—'}</td>
-                          <td className="px-3 py-2 text-slate-600">{word.definition}</td>
-                          <td className="px-3 py-2 text-slate-600">
+                          <td className="px-3 py-2 font-semibold text-text-primary">{word.word}</td>
+                          <td className="px-3 py-2 text-text-muted italic">{word.partOfSpeech || '—'}</td>
+                          <td className="px-3 py-2 text-text-secondary">{word.definition}</td>
+                          <td className="px-3 py-2 text-text-secondary">
                             {word.samples?.[0] ?? '—'}
                           </td>
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleEditWord(word)}
-                                className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
-                                title="Edit word"
-                              >
-                                <svg
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteWord(word.id)}
-                                className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-red-600"
-                                title="Delete word"
-                              >
-                                <svg
-                                  className="h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
-                                </svg>
-                              </button>
+                              <IconButton variant="default" size="sm" onClick={() => handleEditWord(word)} title="Edit word">
+                                <Pencil size={16} />
+                              </IconButton>
+                              <IconButton variant="danger" size="sm" onClick={() => handleDeleteWord(word.id)} title="Delete word">
+                                <Trash2 size={16} />
+                              </IconButton>
                             </div>
                           </td>
                         </tr>
@@ -538,7 +499,7 @@ const ListEditor = ({ mode }) => {
                   </table>
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-slate-500">
+                <p className="mt-4 text-sm text-text-muted">
                   No words yet. Use the form above to add vocabulary entries.
                 </p>
               )}

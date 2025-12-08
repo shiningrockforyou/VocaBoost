@@ -3,11 +3,13 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  linkWithPopup,
   signOut,
   updateProfile,
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../firebase'
+import { auth, db, googleProvider } from '../firebase'
 import { createUserDocument } from '../services/db'
 
 const AuthContext = createContext(undefined)
@@ -84,6 +86,50 @@ export const AuthProvider = ({ children }) => {
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password)
   const logout = () => signOut(auth)
 
+  const signInWithGoogle = async () => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider)
+      const firebaseUser = userCredential.user
+
+      // Check if user document exists in Firestore
+      const userSnap = await getDoc(doc(db, 'users', firebaseUser.uid))
+      
+      if (!userSnap.exists()) {
+        // First-time OAuth user - create Firestore document
+        await createUserDocument(firebaseUser, {
+          profile: {
+            displayName: firebaseUser.displayName || '',
+            avatarUrl: firebaseUser.photoURL || '',
+          },
+        })
+      }
+
+      return firebaseUser
+    } catch (err) {
+      // Handle popup closed by user gracefully
+      if (err.code === 'auth/popup-closed-by-user') {
+        return null // Not an error, user just closed popup
+      }
+      throw err
+    }
+  }
+
+  const linkGoogleAccount = async () => {
+    try {
+      const userCredential = await linkWithPopup(auth.currentUser, googleProvider)
+      return userCredential.user
+    } catch (err) {
+      // Handle specific errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        return null // Not an error, user just closed popup
+      }
+      if (err.code === 'auth/credential-already-in-use') {
+        throw new Error('This Google account is already linked to another user.')
+      }
+      throw err
+    }
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -91,6 +137,8 @@ export const AuthProvider = ({ children }) => {
       signup,
       login,
       logout,
+      signInWithGoogle,
+      linkGoogleAccount,
     }),
     [user, initializing],
   )

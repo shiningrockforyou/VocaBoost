@@ -6,6 +6,7 @@ import { db } from '../firebase'
 import Flashcard from '../components/Flashcard.jsx'
 import { fetchSmartStudyQueue, saveStudyResult } from '../services/db'
 import BackButton from '../components/BackButton.jsx'
+import { Button } from '../components/ui'
 
 const Watermark = () => (
   <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
@@ -90,27 +91,23 @@ const StudySession = () => {
 
   if (loading) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50">
+      <main className="relative flex min-h-screen items-center justify-center bg-base">
         <Watermark />
-        <p className="relative z-10 text-sm font-medium text-slate-600">Loading study session...</p>
+        <p className="relative z-10 text-sm font-medium text-text-secondary">Loading study session...</p>
       </main>
     )
   }
 
   if (error) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="relative flex min-h-screen items-center justify-center bg-base px-4">
         <Watermark />
-        <div className="relative z-10 max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
-          <p className="text-lg font-semibold text-slate-900">Something went wrong</p>
-          <p className="mt-3 text-sm text-slate-500">{error}</p>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          >
+        <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
+          <p className="text-lg font-semibold text-text-primary">Something went wrong</p>
+          <p className="mt-3 text-sm text-text-muted">{error}</p>
+          <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-6">
             Go Back
-          </button>
+          </Button>
         </div>
       </main>
     )
@@ -118,53 +115,49 @@ const StudySession = () => {
 
   if (!words.length || completed) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+      <main className="relative flex min-h-screen items-center justify-center bg-base px-4 py-10">
         <Watermark />
-        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-xl ring-1 ring-slate-200">
+        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-8 text-center shadow-xl ring-1 ring-border-default">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
             <span className="text-3xl">✓</span>
           </div>
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-500">
             Session Complete
           </p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">Great Job!</h1>
-          <div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-6 text-left">
+          <h1 className="mt-2 text-3xl font-bold text-text-primary">Great Job!</h1>
+          <div className="mt-6 space-y-3 rounded-xl bg-muted p-6 text-left">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">List</span>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-medium text-text-secondary">List</span>
+              <span className="text-sm font-semibold text-text-primary">
                 {listDetails?.title || 'Study Session'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Cards Reviewed</span>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-medium text-text-secondary">Cards Reviewed</span>
+              <span className="text-sm font-semibold text-text-primary">
                 {cardsReviewed || words.length} {cardsReviewed === 1 ? 'card' : 'cards'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Total Words</span>
-              <span className="text-sm font-semibold text-slate-900">{words.length} words</span>
+              <span className="text-sm font-medium text-text-secondary">Total Words</span>
+              <span className="text-sm font-semibold text-text-primary">{words.length} words</span>
             </div>
           </div>
-          <p className="mt-6 text-sm text-slate-500">
+          <p className="mt-6 text-sm text-text-muted">
             {words.length
               ? 'Keep up the great work! Your progress has been saved.'
               : 'No words available yet. Ask your teacher to assign content.'}
           </p>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-          >
+          <Button variant="primary-blue" size="lg" onClick={() => navigate('/')} className="mt-6 w-full">
             Back to Dashboard
-          </button>
+          </Button>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-white px-4 py-10">
+    <main className="relative min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 px-4 py-10">
       <Watermark />
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-10">
         <BackButton text="← Exit Session" />
@@ -172,8 +165,8 @@ const StudySession = () => {
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-500">
             Study Session
           </p>
-          <h1 className="mt-2 text-4xl font-bold text-slate-900">{listDetails?.title}</h1>
-          <p className="mt-2 text-base text-slate-600">
+          <h1 className="mt-2 text-4xl font-bold text-text-primary">{listDetails?.title}</h1>
+          <p className="mt-2 text-base text-text-secondary">
             Card {currentIndex + 1} of {words.length}
           </p>
           <label className="mt-4 flex items-center gap-2">
@@ -181,9 +174,9 @@ const StudySession = () => {
               type="checkbox"
               checked={autoPlay}
               onChange={(e) => setAutoPlay(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-border-strong text-blue-600 focus:ring-2 focus:ring-blue-500"
             />
-            <span className="text-sm text-slate-600">Auto-play audio</span>
+            <span className="text-sm text-text-secondary">Auto-play audio</span>
           </label>
         </header>
 
@@ -224,7 +217,7 @@ const StudySession = () => {
             </button>
           </div>
         ) : (
-          <p className="relative z-10 text-center text-sm text-slate-500">
+          <p className="relative z-10 text-center text-sm text-text-muted">
             Tap the card to reveal the definition.
           </p>
         )}

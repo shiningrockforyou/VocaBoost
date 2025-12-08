@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
-import { Activity, BookOpen, Plus, RefreshCw, Trash2, FileText, ExternalLink, ClipboardList } from 'lucide-react'
+import { Activity, BookOpen, Plus, RefreshCw, Trash2, FileText, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import HeaderBar from '../components/HeaderBar.jsx'
 import {
   deleteClass,
   deleteList,
@@ -18,10 +19,10 @@ import {
 import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
-import CollapsibleCard from '../components/CollapsibleCard.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
+import { Button, IconButton, CardButton } from '../components/ui'
 
 const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 
@@ -31,7 +32,7 @@ const extractListIdFromTestId = (testId = '') => {
 }
 
 const Dashboard = () => {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [error, setError] = useState('')
   const [classError, setClassError] = useState('')
   const [classes, setClasses] = useState([])
@@ -303,14 +304,6 @@ const Dashboard = () => {
     loadUserStats()
   }, [isTeacher, user?.uid])
 
-  const handleLogout = async () => {
-    setError('')
-    try {
-      await logout()
-    } catch (err) {
-      setError(err.message ?? 'Unable to log out right now.')
-    }
-  }
 
   const handleJoinClass = async (event) => {
     event.preventDefault()
@@ -334,19 +327,10 @@ const Dashboard = () => {
 
   if (isTeacher) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10">
+      <main className="min-h-screen bg-base px-4 py-10">
         <div className="mx-auto max-w-7xl">
-          {/* Global Top Bar */}
-          <div className="mb-8 flex items-center justify-between">
-            <img src="/logo_vector.svg" alt="VocaBoost" className="w-32 md:w-48 h-auto" />
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="h-12 flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-            >
-              Log Out
-            </button>
-          </div>
+          {/* Global Header Bar */}
+          <HeaderBar />
 
           {error && (
             <div className="mb-6 rounded-xl border-2 border-red-300 bg-red-50 p-4">
@@ -359,44 +343,27 @@ const Dashboard = () => {
           {/* Page Header */}
           <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-heading font-bold text-brand-primary">Welcome, {displayName}</h1>
-              <p className="font-body mt-1 text-base text-slate-500">
+              <h1 className="text-3xl font-heading font-bold text-brand-text">Welcome, {displayName}</h1>
+              <p className="font-body mt-1 text-base text-text-muted">
                 Manage classes, lists, and upcoming assessments.
               </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                to="/teacher/gradebook"
-                className="h-12 flex items-center gap-2 px-5 bg-white border border-slate-200 rounded-xl shadow-sm text-brand-primary font-bold hover:bg-slate-50 transition-colors"
-              >
-                <ClipboardList size={20} />
-                <span>Gradebook</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(true)}
-                className="h-12 flex items-center gap-2 rounded-xl bg-brand-accent px-5 text-sm font-bold text-white shadow-sm hover:bg-brand-accent-hover transition-colors"
-              >
-                <Plus size={20} />
-                <span className="truncate whitespace-nowrap max-w-full">Create New Class</span>
-              </button>
             </div>
           </div>
 
           <div className="grid grid-cols-12 gap-6">
             {/* My Classes Section */}
             <div className="col-span-12">
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+              <div className="bg-surface border border-border-default rounded-3xl p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                  <h2 className="text-xl font-heading font-bold text-slate-900">My Classes</h2>
-                  <button
-                    type="button"
-                    onClick={loadTeacherClasses}
-                    className="h-10 w-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-brand-primary hover:bg-blue-50 transition-colors"
-                    title="Refresh classes"
+                  <h2 className="text-xl font-heading font-bold text-text-primary">My Classes</h2>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => setIsCreateModalOpen(true)}
                   >
-                    <RefreshCw size={18} />
-                  </button>
+                    <Plus size={20} />
+                    Create New Class
+                  </Button>
                 </div>
 
                 {classError && (
@@ -412,81 +379,74 @@ const Dashboard = () => {
                 ) : classes.length ? (
                   <ul className="grid gap-4 md:grid-cols-2">
                     {classes.map((klass) => (
-                      <li
-                        key={klass.id}
-                        className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:shadow-md hover:border-brand-primary/30"
-                      >
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-heading text-lg font-bold text-slate-800 group-hover:text-brand-primary transition-colors">
-                              {klass.name}
-                            </h3>
-                            <div className="mt-2 space-y-1">
-                              <p className="font-body text-sm text-slate-500">
-                                Join Code:{' '}
-                                <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
-                                  {klass.joinCode}
-                                </span>
-                              </p>
-                              <p className="font-body text-sm text-slate-500">
-                                Students enrolled: <span className="font-semibold text-slate-900">—</span>
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteClass(klass.id)}
-                            disabled={deletingClassId === klass.id}
-                            className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-60"
-                            title="Delete class"
-                          >
-                            {deletingClassId === klass.id ? (
-                              <RefreshCw size={16} className="animate-spin" />
-                            ) : (
-                              <Trash2 size={16} />
-                            )}
-                          </button>
-                        </div>
-                        <Link
+                      <li key={klass.id}>
+                        <CardButton 
                           to={`/classes/${klass.id}`}
-                          className="h-10 inline-flex items-center gap-1 rounded-xl bg-blue-50 px-4 text-sm font-bold text-brand-primary hover:bg-blue-100 transition-colors"
+                          className="flex flex-col justify-between rounded-2xl border border-border-default bg-surface p-5"
                         >
-                          <span className="truncate whitespace-nowrap max-w-full">Open Class</span>
-                          <ExternalLink size={14} />
-                        </Link>
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-heading text-lg font-bold text-text-primary">
+                                {klass.name}
+                              </h3>
+                              <div className="mt-2 space-y-1">
+                                <p className="font-body text-sm text-text-muted">
+                                  Join Code:{' '}
+                                  <span className="rounded-lg bg-muted px-2.5 py-1 text-xs font-bold text-text-secondary">
+                                    {klass.joinCode}
+                                  </span>
+                                </p>
+                                <p className="font-body text-sm text-text-muted">
+                                  Students enrolled: <span className="font-semibold text-text-primary">{klass.studentCount ?? klass.students?.length ?? 0}</span>
+                                </p>
+                              </div>
+                            </div>
+                            <IconButton
+                              variant="danger"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDeleteClass(klass.id)
+                              }}
+                              disabled={deletingClassId === klass.id}
+                              title="Delete class"
+                            >
+                              {deletingClassId === klass.id ? (
+                                <RefreshCw size={16} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
+                            </IconButton>
+                          </div>
+                        </CardButton>
                       </li>
                     ))}
-                  </ul>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                    <p className="font-body text-sm text-slate-500">
-                      You have not created any classes yet. Use the button above to get started.
-                    </p>
-                  </div>
-                )}
+                </ul>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border-strong bg-base p-8 text-center">
+                      <p className="font-body text-sm text-text-muted">
+                        You have not created any classes yet. Use the button above to get started.
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
 
             {/* My Vocabulary Lists Section */}
             <div className="col-span-12">
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+              <div className="bg-surface border border-border-default rounded-3xl p-6 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                  <h2 className="text-xl font-heading font-bold text-slate-900">My Vocabulary Lists</h2>
+                  <h2 className="text-xl font-heading font-bold text-text-primary">My Vocabulary Lists</h2>
                   <div className="flex items-center gap-3">
-                    <Link
-                      to="/lists"
-                      className="h-12 flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
+                    <Button variant="outline" size="lg" to="/lists">
                       <BookOpen size={18} />
-                      <span className="truncate whitespace-nowrap max-w-full">View All Lists</span>
-                    </Link>
-                    <Link
-                      to="/lists/new"
-                      className="h-12 flex items-center gap-2 rounded-xl bg-brand-accent px-5 text-sm font-bold text-white shadow-sm hover:bg-brand-accent-hover transition-colors"
-                    >
+                      View All Lists
+                    </Button>
+                    <Button variant="primary" size="lg" to="/lists/new">
                       <Plus size={20} />
-                      <span className="truncate whitespace-nowrap max-w-full">Create New List</span>
-                    </Link>
+                      Create New List
+                    </Button>
                   </div>
                 </div>
 
@@ -503,71 +463,75 @@ const Dashboard = () => {
                 ) : teacherLists.length ? (
                   <ul className="grid gap-4 md:grid-cols-2">
                     {teacherLists.map((list) => (
-                      <li
-                        key={list.id}
-                        className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:shadow-md hover:border-brand-primary/30"
-                      >
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-heading text-lg font-bold text-slate-800 group-hover:text-brand-primary transition-colors">
-                              {list.title}
-                            </h3>
-                            <p className="mt-1 font-body text-sm text-slate-500 line-clamp-2">{list.description}</p>
+                      <li key={list.id}>
+                        <CardButton 
+                          to={`/lists/${list.id}`}
+                          className="group relative flex flex-col gap-3 rounded-2xl border border-border-default bg-surface p-5 transition-all hover:shadow-md hover:border-brand-primary/30"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-heading text-lg font-bold text-text-primary group-hover:text-brand-primary transition-colors truncate">
+                                {list.title}
+                              </h3>
+                              <p className="mt-1 font-body text-sm text-text-muted line-clamp-2">{list.description || list.title}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-sm text-text-muted">{list.wordCount ?? 0} words</span>
+                              <IconButton 
+                                variant="danger" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleDeleteList(list.id)
+                                }}
+                                disabled={deletingListId === list.id}
+                                title="Delete list"
+                              >
+                                {deletingListId === list.id ? (
+                                  <RefreshCw size={16} className="animate-spin" />
+                                ) : (
+                                  <Trash2 size={16} />
+                                )}
+                              </IconButton>
+                            </div>
                           </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
-                              {list.wordCount ?? 0} words
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteList(list.id)}
-                              disabled={deletingListId === list.id}
-                              className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-60"
-                              title="Delete list"
+                          <div className="flex justify-end">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleDownloadPDF(list.id, list.title, null, false)
+                              }}
+                              disabled={generatingPDF === list.id}
+                              title="Download PDF"
                             >
-                              {deletingListId === list.id ? (
-                                <RefreshCw size={16} className="animate-spin" />
+                              {generatingPDF === list.id ? (
+                                <>
+                                  <RefreshCw size={16} className="animate-spin" />
+                                  Generating...
+                                </>
                               ) : (
-                                <Trash2 size={16} />
+                                <>
+                                  <FileText size={14} />
+                                  PDF
+                                </>
                               )}
-                            </button>
+                            </Button>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Link
-                            to={`/lists/${list.id}`}
-                            className="h-10 inline-flex items-center gap-1 rounded-xl bg-blue-50 px-4 text-sm font-bold text-brand-primary hover:bg-blue-100 transition-colors"
-                          >
-                            <span className="truncate whitespace-nowrap max-w-full">Edit List</span>
-                            <ExternalLink size={14} />
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadPDF(list.id, list.title, null, false)}
-                            disabled={generatingPDF === list.id}
-                            className="h-10 inline-flex items-center gap-1.5 rounded-xl border border-brand-primary bg-white px-3 text-sm font-semibold text-brand-primary transition hover:bg-blue-50 disabled:opacity-60"
-                            title="Download PDF"
-                          >
-                            {generatingPDF === list.id ? (
-                              <RefreshCw size={16} className="animate-spin" />
-                            ) : (
-                              <>
-                                <FileText size={16} />
-                                <span>PDF</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
+                        </CardButton>
                       </li>
                     ))}
-                  </ul>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                    <p className="font-body text-sm text-slate-500">
-                      You have not created any lists yet. Click &quot;Create New List&quot; to start.
-                    </p>
-                  </div>
-                )}
+                </ul>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border-strong bg-base p-8 text-center">
+                      <p className="font-body text-sm text-text-muted">
+                        You have not created any lists yet. Click &quot;Create New List&quot; to start.
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -766,18 +730,10 @@ const Dashboard = () => {
   const [testModalOpen, setTestModalOpen] = useState(false)
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-base px-4 py-10">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex items-center justify-between">
-          <img src="/logo_vector.svg" alt="VocaBoost" className="w-32 md:w-48 h-auto" />
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="h-12 flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            Log Out
-          </button>
-        </div>
+        {/* Global Header Bar */}
+        <HeaderBar />
 
         {error && (
           <div className="mb-6 rounded-xl border-2 border-red-300 bg-red-50 p-4">
@@ -802,20 +758,11 @@ const Dashboard = () => {
         )}
 
         {/* Welcome Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-heading font-bold text-brand-primary">Welcome, {displayName}</h1>
-            <p className="font-body mt-1 text-base text-slate-500">
-              Your personalized vocabulary journey starts here.
-            </p>
-          </div>
-          <Link
-            to="/gradebook"
-            className="h-12 flex items-center gap-2 px-5 bg-white border border-slate-200 rounded-xl shadow-sm text-brand-primary font-bold hover:bg-slate-50 transition-colors"
-          >
-            <BookOpen size={20} />
-            <span>Gradebook</span>
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-3xl font-heading font-bold text-brand-text">Welcome, {displayName}</h1>
+          <p className="font-body mt-1 text-base text-text-muted">
+            Your personalized vocabulary journey starts here.
+          </p>
         </div>
 
         {/* Command Deck - 3-Panel Grid */}
@@ -906,12 +853,12 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setStudyModalOpen(true)}
-                  className={`w-full h-14 flex items-center justify-center gap-2 rounded-xl px-6 text-base font-bold border-none shadow-sm transition hover:bg-white/90 ${
+                  className={`w-full h-14 flex items-center justify-center gap-2 rounded-button px-6 text-base font-bold border-none shadow-sm transition hover:bg-surface/90 ${
                     smartCTAStatus === 'behind'
-                      ? 'bg-white text-rose-600'
+                      ? 'bg-surface text-rose-600'
                       : smartCTAStatus === 'ahead'
-                      ? 'bg-white text-emerald-600'
-                      : 'bg-white text-brand-primary'
+                      ? 'bg-surface text-emerald-600'
+                      : 'bg-surface text-brand-text'
                   }`}
                 >
                   <svg
@@ -932,7 +879,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setTestModalOpen(true)}
-                  className="w-full h-14 flex items-center justify-center gap-2 rounded-xl bg-transparent text-white font-bold border-2 border-white hover:bg-white/20 transition-all active:scale-95"
+                  className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-bold border-2 border-white hover:bg-surface/20 transition-all active:scale-95"
                 >
                   <svg
                     className="h-5 w-5 flex-shrink-0"
@@ -957,10 +904,10 @@ const Dashboard = () => {
               <div className="col-span-1">
                 <div className="flex flex-col gap-3 h-full">
                   {/* Card 1: Words Mastered */}
-                  <div className="bg-white border border-slate-200 rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
                     <div className="rounded-lg bg-brand-primary/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-7 h-7 text-brand-primary"
+                        className="w-7 h-7 text-brand-text"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -974,18 +921,18 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-body text-xs text-slate-500">Words Mastered</p>
-                      <p className="font-heading text-2xl font-bold text-brand-primary">
+                      <p className="font-body text-xs text-text-muted">Words Mastered</p>
+                      <p className="font-heading text-2xl font-bold text-brand-text">
                         {wordsMastered.toLocaleString()}
                       </p>
                     </div>
                   </div>
 
                   {/* Card 2: Retention Rate */}
-                  <div className="bg-white border border-slate-200 rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
                     <div className="rounded-lg bg-brand-primary/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-7 h-7 text-brand-primary"
+                        className="w-7 h-7 text-brand-text"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -999,15 +946,15 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-body text-xs text-slate-500">Retention Rate</p>
-                      <p className="font-heading text-2xl font-bold text-brand-primary">
+                      <p className="font-body text-xs text-text-muted">Retention Rate</p>
+                      <p className="font-heading text-2xl font-bold text-brand-text">
                         {retentionPercent !== null ? `${retentionPercent}%` : '—'}
                       </p>
                     </div>
                   </div>
 
                   {/* Card 3: Current Streak */}
-                  <div className="bg-white border border-slate-200 rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
                     <div className="rounded-lg bg-brand-accent/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
                       <svg
                         className="w-7 h-7 text-brand-accent"
@@ -1030,7 +977,7 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-body text-xs text-slate-500">Current Streak</p>
+                      <p className="font-body text-xs text-text-muted">Current Streak</p>
                       <p className="font-heading text-2xl font-bold text-brand-accent">{streakDays} days</p>
                     </div>
                   </div>
@@ -1040,10 +987,10 @@ const Dashboard = () => {
 
             {/* Bottom Row: Panel D - The Activity Bar */}
             <div className="shrink-0">
-              <div className="bg-white border border-slate-200 rounded-3xl shadow-sm flex flex-row items-center justify-between gap-6 px-6 h-28">
+              <div className="bg-surface border border-border-default rounded-3xl shadow-sm flex flex-row items-center justify-between gap-6 px-6 h-28">
                 <div className="flex items-center gap-2 whitespace-nowrap shrink-0">
-                  <Activity size={24} className="text-brand-primary" />
-                  <p className="font-heading font-bold text-sm text-slate-500 tracking-wider uppercase">
+                  <Activity size={24} className="text-brand-text" />
+                  <p className="font-heading font-bold text-sm text-text-muted tracking-wider uppercase">
                     7-DAY RHYTHM
                   </p>
                 </div>
@@ -1068,10 +1015,10 @@ const Dashboard = () => {
                         onMouseLeave={() => setHoveredBarIndex(null)}
                       >
                         <div
-                          className={`w-full rounded-t-lg transition-all duration-300 ${
+                          className={`w-full rounded-t-[4px] transition-all duration-300 ${
                             day.wordCount > 0
-                              ? 'bg-[#1B3A94]'
-                              : 'bg-slate-200'
+                              ? 'bg-brand-primary'
+                              : 'bg-inset'
                           }`}
                           style={{
                             height: barHeight,
@@ -1079,7 +1026,7 @@ const Dashboard = () => {
                           }}
                         />
                         {hoveredBarIndex === index && day.wordCount > 0 && (
-                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 bg-slate-800 text-white text-xs rounded-lg py-1.5 px-3 shadow-xl w-max">
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 bg-surface text-text-primary text-xs rounded-lg py-1.5 px-3 shadow-xl w-max border border-border-default">
                             <div className="text-center">
                               <div className="font-semibold">{day.formattedDate}</div>
                               <div className="mt-0.5">
@@ -1088,7 +1035,7 @@ const Dashboard = () => {
                             </div>
                             {/* Arrow pointer */}
                             <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                              <div className="w-2 h-2 bg-slate-800 rotate-45"></div>
+                              <div className="w-2 h-2 bg-surface border-r border-b border-border-default rotate-45"></div>
                             </div>
                           </div>
                         )}
@@ -1103,11 +1050,11 @@ const Dashboard = () => {
 
         {/* Recent Classes (Col-span-12) */}
         <div className="col-span-12">
-          <div className="surface-card p-6">
+          <div className="bg-surface border border-border-default rounded-card-lg p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="font-heading text-xl font-bold text-slate-900">My Classes</h2>
+                <h2 className="font-heading text-xl font-bold text-text-primary">My Classes</h2>
                 {studentClasses.length > 0 && (
-                  <p className="font-body text-sm text-slate-500">
+                  <p className="font-body text-sm text-text-muted">
                     {studentClasses.length} enrolled
                   </p>
                 )}
@@ -1118,13 +1065,13 @@ const Dashboard = () => {
                   <LoadingSpinner size="md" />
                 </div>
               ) : studentClasses.length === 0 ? (
-                <div className="surface-card p-12 text-center">
-                  <h3 className="font-heading text-xl font-bold text-slate-900">Welcome! Join your first class</h3>
-                  <p className="font-body mt-2 text-sm text-slate-500">
+                <div className="bg-surface border border-border-default rounded-card-lg p-12 text-center shadow-sm">
+                  <h3 className="font-heading text-xl font-bold text-text-primary">Welcome! Join your first class</h3>
+                  <p className="font-body mt-2 text-sm text-text-muted">
                     Enter the 6-character code your teacher shared to get started.
                   </p>
                   <form onSubmit={handleJoinClass} className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-center">
-                    <label className="flex-1 max-w-md text-sm font-medium text-slate-700">
+                    <label className="flex-1 max-w-md text-sm font-medium text-text-secondary">
                       Class Code
                       <input
                         type="text"
@@ -1132,14 +1079,14 @@ const Dashboard = () => {
                         onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
                         placeholder="ABC123"
                         maxLength={6}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-center text-2xl font-bold tracking-[0.4em] text-slate-900 outline-none ring-slate-300 focus:ring-2 focus:ring-brand-primary"
+                        className="mt-1 w-full rounded-button border border-border-strong bg-surface px-3 py-2 text-center text-2xl font-bold tracking-[0.4em] text-text-primary outline-none ring-border-strong focus:ring-2 focus:ring-brand-primary"
                         required
                       />
                     </label>
                     <button
                       type="submit"
                       disabled={joining}
-                      className="h-12 flex items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-semibold text-white transition hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 disabled:opacity-60"
+                      className="h-12 flex items-center justify-center rounded-button bg-brand-primary px-6 text-sm font-semibold text-white transition hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 disabled:opacity-60"
                     >
                       <span className="truncate whitespace-nowrap max-w-full">{joining ? 'Joining…' : 'Join Class'}</span>
                     </button>
@@ -1158,9 +1105,9 @@ const Dashboard = () => {
               ) : (
                 <>
                   {/* Join Class Form */}
-                  <div className="mb-6 surface-card p-4">
+                  <div className="mb-6 bg-surface border border-border-default rounded-card-lg p-4 shadow-sm">
                     <form onSubmit={handleJoinClass} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                      <label className="flex-1 text-sm font-medium text-slate-700">
+                      <label className="flex-1 text-sm font-medium text-text-secondary">
                         <span className="font-body">Join a new class</span>
                         <input
                           type="text"
@@ -1168,14 +1115,14 @@ const Dashboard = () => {
                           onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
                           placeholder="ABC123"
                           maxLength={6}
-                          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-center text-xl font-bold tracking-[0.4em] text-slate-900 outline-none ring-slate-300 focus:ring-2 focus:ring-brand-primary"
+                          className="mt-1 w-full rounded-button border border-border-strong bg-surface px-3 py-2 text-center text-xl font-bold tracking-[0.4em] text-text-primary outline-none ring-border-strong focus:ring-2 focus:ring-brand-primary"
                           required
                         />
                       </label>
                       <button
                         type="submit"
                         disabled={joining}
-                        className="h-12 flex items-center justify-center rounded-xl bg-brand-primary px-4 text-sm font-semibold text-white transition hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 disabled:opacity-60"
+                        className="h-12 flex items-center justify-center rounded-button bg-brand-primary px-4 text-sm font-semibold text-white transition hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 disabled:opacity-60"
                       >
                         <span className="truncate whitespace-nowrap max-w-full">{joining ? 'Joining…' : 'Join'}</span>
                       </button>
@@ -1197,21 +1144,21 @@ const Dashboard = () => {
                     {studentClasses.map((klass) => (
                       <li
                         key={klass.id}
-                        className="surface-card p-5 transition hover:shadow-md"
+                        className="bg-surface border border-border-default rounded-card-lg p-5 shadow-sm transition hover:shadow-md"
                       >
                         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                           <div>
-                            <h3 className="font-heading text-lg font-bold text-slate-900">{klass.name}</h3>
-                            <p className="font-body text-sm text-slate-500">
+                            <h3 className="font-heading text-lg font-bold text-text-primary">{klass.name}</h3>
+                            <p className="font-body text-sm text-text-muted">
                               Joined:{' '}
-                              <span className="font-semibold text-slate-900">
+                              <span className="font-semibold text-text-primary">
                                 {klass.joinedAt?.toDate
                                   ? klass.joinedAt.toDate().toLocaleDateString()
                                   : 'Today'}
                               </span>
                             </p>
                           </div>
-                          <p className="font-body text-sm font-medium text-brand-primary">
+                          <p className="font-body text-sm font-medium text-brand-text">
                             {klass.assignedLists?.length ?? 0} assigned lists
                           </p>
                         </div>
@@ -1220,12 +1167,12 @@ const Dashboard = () => {
                             {klass.assignedListDetails.map((list) => (
                               <div
                                 key={list.id}
-                                className="flex flex-col gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3"
+                                className="flex flex-col gap-3 rounded-card border border-border-strong bg-surface px-4 py-3"
                               >
                                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <p className="font-heading text-sm font-semibold text-slate-800">
+                                      <p className="font-heading text-sm font-semibold text-text-primary">
                                         {list.title || 'Vocabulary List'}
                                       </p>
                                       {list.stats?.due > 0 && (
@@ -1234,7 +1181,7 @@ const Dashboard = () => {
                                         </span>
                                       )}
                                     </div>
-                                    <p className="font-body text-xs text-slate-500">
+                                    <p className="font-body text-xs text-text-muted">
                                       {list.wordCount ?? 0} words · Assigned by your teacher.
                                     </p>
                                     {list.stats && (() => {
@@ -1247,12 +1194,12 @@ const Dashboard = () => {
                                       const isWideBar = percentage > 15
                                       
                                       return (
-                                        <div className="mt-3 space-y-2 text-xs text-slate-600">
+                                        <div className="mt-3 space-y-2 text-xs text-text-secondary">
                                           <div className="flex items-center justify-between">
                                             <span>{wordsLearned} learned</span>
                                             <span>{totalWords} total</span>
                                           </div>
-                                          <div className="relative h-12 w-full rounded-xl bg-slate-200 flex items-center overflow-hidden">
+                                          <div className="relative h-12 w-full rounded-xl bg-inset flex items-center overflow-hidden">
                                             <div
                                               className="h-full rounded-xl bg-brand-primary transition-all duration-1000 ease-out flex items-center"
                                               style={{ width: barWidth }}
@@ -1264,7 +1211,7 @@ const Dashboard = () => {
                                               )}
                                             </div>
                                             {!isWideBar && (
-                                              <span className="text-xs font-bold text-slate-700 ml-2">
+                                              <span className="text-xs font-bold text-text-secondary ml-2">
                                                 {percentage}%
                                               </span>
                                             )}
@@ -1273,26 +1220,44 @@ const Dashboard = () => {
                                       )
                                     })()}
                                   </div>
-                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:flex-wrap">
                                     <Link
                                       to={`/study/${list.id}?classId=${klass.id}`}
-                                      className="h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
+                                      className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
                                     >
                                       <span className="truncate whitespace-nowrap max-w-full">Study Now</span>
                                     </Link>
-                                    {(list.wordCount ?? 0) > 10 && (
-                                      <Link
-                                        to={`/test/${list.id}?classId=${klass.id}`}
-                                        className="h-12 flex items-center justify-center gap-2 rounded-xl bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
-                                      >
-                                        <span className="truncate whitespace-nowrap max-w-full">Take Test</span>
-                                      </Link>
-                                    )}
+                                    {(() => {
+                                      const mode = list.testMode || 'mcq'
+                                      const showMcq = mode === 'mcq' || mode === 'both' || !mode
+                                      const showTyped = mode === 'typed' || mode === 'both'
+                                      const canTest = (list.wordCount ?? 0) > 10
+                                      return (
+                                        <>
+                                          {showMcq && canTest && (
+                                            <Link
+                                              to={`/test/${list.id}?classId=${klass.id}`}
+                                              className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
+                                            >
+                                              <span className="truncate whitespace-nowrap max-w-full">Take Test</span>
+                                            </Link>
+                                          )}
+                                          {showTyped && canTest && (
+                                            <Link
+                                              to={`/typed-test/${list.id}?classId=${klass.id}`}
+                                              className="h-12 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 text-sm font-heading font-bold text-brand-text hover:bg-accent-blue hover:border-brand-primary shadow-sm transition-all active:scale-95"
+                                            >
+                                              <span className="truncate whitespace-nowrap max-w-full">Typed Test</span>
+                                            </Link>
+                                          )}
+                                        </>
+                                      )
+                                    })()}
                                     <button
                                       type="button"
                                       onClick={() => handleDownloadPDF(list.id, list.title, klass.id, true)}
                                       disabled={generatingPDF === list.id}
-                                      className="h-12 flex items-center justify-center gap-1.5 rounded-xl border border-brand-primary bg-white px-4 text-sm font-semibold text-brand-primary transition hover:bg-blue-50 disabled:opacity-60"
+                                      className="h-12 flex items-center justify-center gap-1.5 rounded-button border border-border-strong bg-surface px-4 text-sm font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
                                       title="Download PDF"
                                     >
                                       {generatingPDF === list.id ? (
@@ -1336,8 +1301,8 @@ const Dashboard = () => {
                             ))}
                           </div>
                         ) : (
-                          <div className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
-                            <p className="font-body text-sm text-slate-500">
+                          <div className="mt-3 rounded-lg border border-dashed border-border-strong bg-base p-4 text-center">
+                            <p className="font-body text-sm text-text-muted">
                               Waiting for teacher to assign content...
                             </p>
                           </div>

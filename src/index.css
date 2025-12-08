@@ -1,5 +1,117 @@
 @import 'tailwindcss';
 
+/* ========================================
+   THEME TOKENS
+   ======================================== */
+
+:root {
+  /* ===== COLORS ===== */
+  
+  /* Background colors */
+  --color-bg-base: 248 250 252;        /* slate-50 - page backgrounds */
+  --color-bg-surface: 255 255 255;     /* white - cards, modals */
+  --color-bg-muted: 241 245 249;       /* slate-100 - subtle backgrounds */
+  --color-bg-inset: 226 232 240;       /* slate-200 - inset elements */
+  
+  /* Border colors (raw RGB values) */
+  --border-default-rgb: 226 232 240; /* slate-200 - standard borders */
+  --border-strong-rgb: 203 213 225;  /* slate-300 - emphasized borders */
+  --border-muted-rgb: 241 245 249;   /* slate-100 - subtle borders */
+  
+  /* Text colors (raw RGB values) */
+  --text-primary-rgb: 15 23 42;      /* slate-900 - headings, primary text */
+  --text-secondary-rgb: 51 65 85;    /* slate-700 - body text */
+  --text-muted-rgb: 100 116 139;     /* slate-500 - secondary info */
+  --text-faint-rgb: 148 163 184;     /* slate-400 - placeholders, hints */
+  --text-inverted-rgb: 255 255 255;  /* white - text on dark backgrounds */
+  
+  /* Interactive states */
+  --color-bg-hover: 248 250 252;       /* slate-50 - hover on white */
+  --color-bg-hover-strong: 241 245 249; /* slate-100 - stronger hover */
+  --color-bg-active: 226 232 240;      /* slate-200 - active/pressed */
+  
+  /* Accent backgrounds (for tags, badges, highlights) */
+  --color-bg-accent-blue: 239 246 255;   /* blue-50 */
+  --color-bg-accent-red: 254 242 242;    /* red-50 */
+  --color-bg-accent-green: 236 253 245;  /* emerald-50 */
+  --color-bg-accent-amber: 255 251 235;  /* amber-50 */
+  --color-bg-accent-purple: 250 245 255; /* purple-50 */
+  
+  /* ===== BORDERS ===== */
+  
+  /* Border widths */
+  --border-width-default: 1px;
+  --border-width-thick: 2px;
+  
+  /* ===== RADIUS ===== */
+  
+  /* Border radius scale */
+  --radius-sm: 0.5rem;    /* 8px - alerts, small elements */
+  --radius-md: 0.75rem;   /* 12px - buttons, inputs, small cards */
+  --radius-lg: 1rem;      /* 16px - cards, dropdowns */
+  --radius-xl: 1.5rem;    /* 24px - large sections, modals */
+  
+  /* Semantic radius tokens */
+  --radius-card: var(--radius-lg);           /* Standard cards */
+  --radius-card-lg: var(--radius-xl);        /* Large section cards */
+  --radius-button: var(--radius-lg);         /* Standard buttons - matches cards */
+  --radius-button-sm: var(--radius-sm);      /* Small buttons, tags, icon buttons */
+  --radius-input: var(--radius-md);          /* Inputs */
+  --radius-alert: var(--radius-sm);          /* Alerts */
+  --radius-modal: var(--radius-lg);          /* Modals */
+  
+  /* ===== SHADOWS ===== */
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+/* Dark theme */
+.dark {
+  /* Background colors */
+  --color-bg-base: 15 23 42;           /* slate-900 */
+  --color-bg-surface: 30 41 59;        /* slate-800 */
+  --color-bg-muted: 51 65 85;          /* slate-700 */
+  --color-bg-inset: 71 85 105;         /* slate-600 */
+  
+  /* Border colors */
+  --border-default-rgb: 71 85 105;   /* slate-600 */
+  --border-strong-rgb: 100 116 139;  /* slate-500 */
+  --border-muted-rgb: 51 65 85;      /* slate-700 */
+  
+  /* Text colors */
+  --text-primary-rgb: 248 250 252;   /* slate-50 */
+  --text-secondary-rgb: 203 213 225; /* slate-300 */
+  --text-muted-rgb: 148 163 184;     /* slate-400 */
+  --text-faint-rgb: 100 116 139;     /* slate-500 */
+  --text-inverted-rgb: 15 23 42;     /* slate-900 */
+  
+  /* Interactive states */
+  --color-bg-hover: 51 65 85;          /* slate-700 */
+  --color-bg-hover-strong: 71 85 105;  /* slate-600 */
+  --color-bg-active: 100 116 139;      /* slate-500 */
+  
+  /* Accent backgrounds (darker versions) */
+  --color-bg-accent-blue: 30 58 138;   /* blue-900 */
+  --color-bg-accent-red: 127 29 29;    /* red-900 */
+  --color-bg-accent-green: 6 78 59;    /* emerald-900 */
+  --color-bg-accent-amber: 120 53 15;  /* amber-900 */
+  --color-bg-accent-purple: 76 29 149; /* purple-900 */
+  
+  /* Shadows (more subtle in dark mode) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.6);
+  
+  /* Brand text - white for prominence on dark backgrounds */
+  --color-brand-text: #FFFFFF;
+}
+
 /* Plus Jakarta Sans is loaded via Google Fonts in index.html */
 
 @font-face {
@@ -83,6 +195,7 @@
   --color-brand-primary: #1B3A94;   /* Royal Navy */
   --color-brand-accent: #F97316;    /* Ember Orange */
   --color-brand-accent-hover: #EA580C;
+  --color-brand-text: #1B3A94;      /* Brand text - same as primary in light mode */
   
   /* 2. SEMANTIC MAPS */
   --color-action-primary: var(--color-brand-accent);
@@ -91,6 +204,60 @@
   /* 3. BACKGROUNDS */
   --color-bg-app-light: #F1F5F9;
   --color-bg-app-dark: #020617;
+  
+  /* ===== SEMANTIC COLOR TOKENS ===== */
+  
+  /* Background colors */
+  --color-base: rgb(var(--color-bg-base));
+  --color-surface: rgb(var(--color-bg-surface));
+  --color-muted: rgb(var(--color-bg-muted));
+  --color-inset: rgb(var(--color-bg-inset));
+  
+  /* Border colors */
+  --color-border-default: rgb(var(--border-default-rgb));
+  --color-border-strong: rgb(var(--border-strong-rgb));
+  --color-border-muted: rgb(var(--border-muted-rgb));
+  
+  /* Text colors */
+  --color-text-primary: rgb(var(--text-primary-rgb));
+  --color-text-secondary: rgb(var(--text-secondary-rgb));
+  --color-text-muted: rgb(var(--text-muted-rgb));
+  --color-text-faint: rgb(var(--text-faint-rgb));
+  --color-text-inverted: rgb(var(--text-inverted-rgb));
+  
+  /* Interactive states */
+  --color-hover: rgb(var(--color-bg-hover));
+  --color-hover-strong: rgb(var(--color-bg-hover-strong));
+  --color-active: rgb(var(--color-bg-active));
+  
+  /* Accent backgrounds */
+  --color-accent-blue: rgb(var(--color-bg-accent-blue));
+  --color-accent-red: rgb(var(--color-bg-accent-red));
+  --color-accent-green: rgb(var(--color-bg-accent-green));
+  --color-accent-amber: rgb(var(--color-bg-accent-amber));
+  --color-accent-purple: rgb(var(--color-bg-accent-purple));
+  
+  /* ===== BORDER RADIUS TOKENS ===== */
+  /* Note: These reference the CSS variables defined in :root above */
+  --radius-card: 1rem;           /* Standard cards - matches --radius-lg */
+  --radius-card-lg: 1.5rem;      /* Large section cards - matches --radius-xl */
+  --radius-button: 1rem;         /* Standard buttons - matches cards */
+  --radius-button-sm: 0.5rem;    /* Small buttons, tags, icon buttons - matches --radius-sm */
+  --radius-input: 0.75rem;       /* Inputs - matches --radius-md */
+  --radius-alert: 0.5rem;        /* Alerts - matches --radius-sm */
+  --radius-modal: 1rem;          /* Modals - matches --radius-lg */
+  
+  /* ===== BORDER WIDTH TOKENS ===== */
+  /* Note: These reference the CSS variables defined in :root above */
+  --border-width-default: 1px;
+  --border-width-thick: 2px;
+  
+  /* ===== SHADOW TOKENS ===== */
+  --shadow-theme-sm: var(--shadow-sm);
+  --shadow-theme-md: var(--shadow-md);
+  --shadow-theme-lg: var(--shadow-lg);
+  --shadow-theme-xl: var(--shadow-xl);
+  --shadow-theme-2xl: var(--shadow-2xl);
 }
 
 :root {
@@ -131,6 +298,10 @@ body {
   color: var(--color-brand-primary);
 }
 
+.text-brand-text {
+  color: var(--color-brand-text);
+}
+
 .text-brand-accent {
   color: var(--color-brand-accent);
 }
@@ -148,21 +319,6 @@ body {
   background: linear-gradient(to right, var(--color-brand-primary), var(--color-brand-accent));
 }
 
-/* Surface Card Utility - Solid white cards with sharp borders */
-.surface-card {
-  background-color: rgb(255, 255, 255);
-  border: 1px solid rgb(203, 213, 225); /* slate-300 */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  border-radius: 1rem;
-  transition: all 0.2s;
-}
-
-@media (prefers-color-scheme: dark) {
-  .surface-card {
-    background-color: rgb(15, 23, 42); /* slate-900 */
-    border-color: rgb(51, 65, 85); /* slate-700 */
-  }
-}
 
 /* Drawer slide-in animation */
 @keyframes slideInFromRight {

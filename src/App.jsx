@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
+import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Gradebook from './pages/Gradebook.jsx'
 import ListLibrary from './pages/ListLibrary.jsx'
@@ -9,14 +10,17 @@ import ListEditor from './pages/ListEditor.jsx'
 import ClassDetail from './pages/ClassDetail.jsx'
 import StudySession from './pages/StudySession.jsx'
 import TakeTest from './pages/TakeTest.jsx'
-import TeacherGradebook from './pages/TeacherGradebook.jsx'
+import TypedTest from './pages/TypedTest.jsx'
+import Settings from './pages/Settings.jsx'
+import { queryStudentAttempts } from './services/db'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           <Route
             path="/"
@@ -85,10 +89,25 @@ function App() {
             }
           />
           <Route
+            path="/typed-test/:listId"
+            element={
+              <PrivateRoute>
+                <TypedTest />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/gradebook"
             element={
               <PrivateRoute>
-                <Gradebook />
+                <Gradebook
+                  role="student"
+                  queryFn={queryStudentAttempts}
+                  showNameColumn={false}
+                  showNameFilter={false}
+                  showAiReasoning={false}
+                  challengeMode="submit"
+                />
               </PrivateRoute>
             }
           />
@@ -97,8 +116,22 @@ function App() {
             element={
               <PrivateRoute>
                 <TeacherRoute>
-                  <TeacherGradebook />
+                  <Gradebook
+                    role="teacher"
+                    showNameColumn={true}
+                    showNameFilter={true}
+                    showAiReasoning={true}
+                    challengeMode="review"
+                  />
                 </TeacherRoute>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
               </PrivateRoute>
             }
           />
@@ -106,6 +139,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

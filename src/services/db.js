@@ -35,6 +35,10 @@ const defaultStats = {
   streakDays: 0,
 }
 
+const defaultChallenges = {
+  history: [],
+}
+
 const defaultSettings = {
   weeklyGoal: 100,
   useUnifiedQueue: false,
@@ -42,6 +46,19 @@ const defaultSettings = {
 
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5)
 const normalizePOS = (value) => (value || '').toString().trim().toLowerCase()
+
+/**
+ * Calculate available challenge tokens based on active rejections
+ * @param {Array} challengeHistory - Array of challenge history entries
+ * @returns {number} Available tokens (0-5)
+ */
+export const getAvailableChallengeTokens = (challengeHistory = []) => {
+  const now = Date.now()
+  const activeRejections = challengeHistory.filter(
+    (h) => h.status === 'rejected' && h.replenishAt?.toMillis?.() > now,
+  ).length
+  return Math.max(0, 5 - activeRejections)
+}
 
 /**
  * Creates or merges a Firestore user document that matches the spec defaults.
@@ -83,6 +100,7 @@ export const createUserDocument = async (user, payload = {}) => {
     profile: mergedProfile,
     stats: mergedStats,
     settings: mergedSettings,
+    challenges: docOverrides.challenges ?? defaultChallenges,
     enrolledClasses: {},
     createdAt: serverTimestamp(),
     ...docOverrides,
@@ -138,6 +156,7 @@ export const createClass = async ({ name, ownerTeacherId }) => {
     ownerTeacherId,
     joinCode: generateJoinCode(),
     createdAt: serverTimestamp(),
+    studentCount: 0,
     settings: {
       allowStudentListImport: false,
     },
@@ -159,10 +178,45 @@ export const fetchTeacherClasses = async (ownerTeacherId) => {
     where('ownerTeacherId', '==', ownerTeacherId),
   )
   const snapshot = await getDocs(classesQuery)
-  return snapshot.docs.map((docSnap) => ({
-    id: docSnap.id,
-    ...docSnap.data(),
-  }))
+  
+  // Fetch student counts for all classes in parallel
+  const classesWithCounts = await Promise.all(
+    snapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data()
+      const classId = docSnap.id
+      
+      // If studentCount exists and is a number, use it
+      if (typeof data.studentCount === 'number') {
+        return {
+          id: classId,
+          ...data,
+          studentCount: data.studentCount
+        }
+      }
+      
+      // Otherwise, count from members subcollection (for legacy classes)
+      try {
+        const membersRef = collection(db, 'classes', classId, 'members')
+        const membersSnap = await getDocs(membersRef)
+        const count = membersSnap.size
+        
+        return {
+          id: classId,
+          ...data,
+          studentCount: count
+        }
+      } catch (err) {
+        console.warn(`Failed to count members for class ${classId}:`, err)
+        return {
+          id: classId,
+          ...data,
+          studentCount: 0
+        }
+      }
+    })
+  )
+  
+  return classesWithCounts
 }
 
 export const deleteClass = async (classId) => {
@@ -170,6 +224,36 @@ export const deleteClass = async (classId) => {
     throw new Error('classId is required.')
   }
   await deleteDoc(doc(db, 'classes', classId))
+}
+
+export const removeStudentFromClass = async (classId, studentId) => {
+  if (!classId || !studentId) {
+    throw new Error('classId and studentId are required.')
+  }
+
+  const classRef = doc(db, 'classes', classId)
+  const classDoc = await getDoc(classRef)
+  
+  if (!classDoc.exists()) {
+    throw new Error('Class not found')
+  }
+  
+  const currentStudents = classDoc.data().students || []
+  const updatedStudents = currentStudents.filter(id => id !== studentId)
+  
+  await updateDoc(classRef, {
+    students: updatedStudents,
+    studentCount: updatedStudents.length
+  })
+
+  // Also remove from members subcollection
+  try {
+    const memberRef = doc(db, 'classes', classId, 'members', studentId)
+    await deleteDoc(memberRef)
+  } catch (err) {
+    console.warn('Could not remove from members subcollection:', err)
+    // Continue anyway - main removal succeeded
+  }
 }
 
 export const createList = async ({ title, description = '', ownerId, visibility = 'private' }) => {
@@ -237,6 +321,11 @@ export const fetchStudentClasses = async (studentId) => {
 
       const classData = classSnap.data() || {}
       const assignments = classData.assignments || {}
+      Object.keys(assignments).forEach((key) => {
+        if (!assignments[key].testMode) {
+          assignments[key].testMode = 'mcq'
+        }
+      })
       const assignedListIds = classData.assignedLists || Object.keys(assignments)
 
       const assignedListDetails = await Promise.all(
@@ -245,7 +334,14 @@ export const fetchStudentClasses = async (studentId) => {
           if (!listSnap.exists()) return null
           const listData = { id: listSnap.id, ...listSnap.data() }
           const stats = await fetchStudentStats(studentId, listId)
-          return { ...listData, stats }
+          const assignment = assignments[listId] || {}
+          return {
+            ...listData,
+            stats,
+            pace: assignment.pace,
+            testOptionsCount: assignment.testOptionsCount,
+            testMode: assignment.testMode || 'mcq',
+          }
         }),
       )
 
@@ -541,6 +637,9 @@ export const fetchClass = async (classId) => {
       if (!assignment.testOptionsCount) {
         assignment.testOptionsCount = 4
       }
+      if (!assignment.testMode) {
+        assignment.testMode = 'mcq'
+      }
       classData.assignments[id] = assignment
     })
   }
@@ -548,7 +647,13 @@ export const fetchClass = async (classId) => {
   return { id: classSnap.id, ...classData }
 }
 
-export const assignListToClass = async (classId, listId, pace = 20, testOptionsCount = 4) => {
+export const assignListToClass = async (
+  classId,
+  listId,
+  pace = 20,
+  testOptionsCount = 4,
+  testMode = 'mcq',
+) => {
   if (!classId || !listId) {
     throw new Error('classId and listId are required.')
   }
@@ -565,6 +670,7 @@ export const assignListToClass = async (classId, listId, pace = 20, testOptionsC
     ...(assignments[listId] || {}),
     pace: Number(pace),
     testOptionsCount: Number(testOptionsCount) || 4,
+    testMode: testMode || 'mcq',
     assignedAt: assignments[listId]?.assignedAt ?? serverTimestamp(),
   }
 
@@ -638,6 +744,14 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
     updates.testOptionsCount = optionValue
   }
 
+  if (settings.testMode !== undefined) {
+    const allowedModes = ['mcq', 'typed', 'both']
+    if (!allowedModes.includes(settings.testMode)) {
+      throw new Error('Invalid test mode. Must be mcq, typed, or both.')
+    }
+    updates.testMode = settings.testMode
+  }
+
   assignments[listId] = {
     ...assignments[listId],
     ...updates,
@@ -669,8 +783,13 @@ export const joinClass = async (studentId, joinCode) => {
   const displayName = userData.profile?.displayName ?? userData.email ?? ''
   const email = userData.email ?? ''
 
+  // Check if student is already a member
+  const memberRef = doc(db, 'classes', classDoc.id, 'members', studentId)
+  const memberSnap = await getDoc(memberRef)
+  const isNewMember = !memberSnap.exists()
+
   await setDoc(
-    doc(db, 'classes', classDoc.id, 'members', studentId),
+    memberRef,
     {
       joinedAt: serverTimestamp(),
       displayName,
@@ -678,6 +797,13 @@ export const joinClass = async (studentId, joinCode) => {
     },
     { merge: true },
   )
+
+  // Increment studentCount if this is a new member
+  if (isNewMember) {
+    await updateDoc(doc(db, 'classes', classDoc.id), {
+      studentCount: increment(1),
+    })
+  }
 
   await setDoc(
     doc(db, 'users', studentId),
@@ -1077,6 +1203,71 @@ export const generateTest = async (userId, listId, classId = null, limit = 50) =
   return testWordsWithOptions
 }
 
+/**
+ * Generate words for typed test (same prioritization as MCQ but without options)
+ * @param {string} userId - User ID
+ * @param {string} listId - List ID
+ * @param {string|null} classId - Optional class ID
+ * @param {number} limit - Maximum number of words (default: 50)
+ * @returns {Promise<Array>} Array of word objects without MCQ options
+ */
+export const generateTypedTest = async (userId, listId, classId = null, limit = 50) => {
+  if (!userId || !listId) {
+    throw new Error('userId and listId are required.')
+  }
+
+  // Fetch all words from the list
+  const allWords = await fetchAllWords(listId)
+
+  if (allWords.length === 0) {
+    return []
+  }
+
+  const studyStatesRef = collection(db, 'users', userId, 'study_states')
+  const studyStatesSnap = await getDocs(studyStatesRef)
+  const wordStates = {}
+  studyStatesSnap.docs.forEach((docSnap) => {
+    wordStates[docSnap.id] = docSnap.data()
+  })
+
+  const now = Timestamp.now()
+
+  // Priority 1: Due Review Words (Box 1)
+  const dueReviewWords = allWords.filter((word) => {
+    const state = wordStates[word.id]
+    if (!state || state.box !== 1) return false
+    const nextReview = state.nextReview
+    return nextReview && nextReview.toMillis && nextReview.toMillis() < now.toMillis()
+  })
+
+  // Priority 2: "Glass Ceiling" Words (Box 3)
+  const glassCeilingWords = allWords.filter((word) => {
+    const state = wordStates[word.id]
+    return state && state.box === 3
+  })
+
+  // Priority 3: New/Unseen Words
+  const newWords = allWords.filter((word) => !wordStates[word.id])
+
+  // Combine and prioritize
+  const selected = []
+  selected.push(...dueReviewWords.slice(0, limit))
+  const remaining = limit - selected.length
+  if (remaining > 0) {
+    selected.push(...glassCeilingWords.slice(0, remaining))
+  }
+  const finalRemaining = limit - selected.length
+  if (finalRemaining > 0) {
+    selected.push(...newWords.slice(0, finalRemaining))
+  }
+
+  // Shuffle and limit
+  const shuffled = shuffleArray(selected).slice(0, limit)
+
+  // Return words without MCQ options
+  return shuffled
+}
+
 export const calculateCredibility = (answers, userWordStates) => {
   // Calculate credibility based on ALL answers in this test
   // Taking the test is an implicit claim of knowledge
@@ -1218,6 +1409,187 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
   })
 
   return { id: attemptRef.id, ...attemptData }
+}
+
+/**
+ * Submit a typed test attempt (AI-graded definitions)
+ * @param {string} userId - User ID
+ * @param {string} testId - Test ID (format: "typed_{listId}_{timestamp}")
+ * @param {Array} words - Original word objects with definitions
+ * @param {Object} responses - Object mapping wordId to student response string
+ * @param {Array} gradingResults - AI grading results: [{ wordId, isCorrect, reasoning }]
+ * @param {string|null} classId - Optional class ID
+ * @returns {Promise<Object>} Attempt document data
+ */
+export const submitTypedTestAttempt = async (
+  userId,
+  testId,
+  words,
+  responses,
+  gradingResults,
+  classId = null,
+) => {
+  console.log('submitTypedTestAttempt called with:', { userId, testId, classId })
+
+  try {
+    if (!userId || !testId) {
+      throw new Error('userId and testId are required.')
+    }
+
+    if (!words || !Array.isArray(words) || words.length === 0) {
+      throw new Error('words array is required and cannot be empty.')
+    }
+
+    if (!gradingResults || !Array.isArray(gradingResults)) {
+      throw new Error('gradingResults array is required.')
+    }
+
+    // Build answers array combining words, responses, and grading results
+    const answers = words.map((word) => {
+      const gradingResult = gradingResults.find((r) => r.wordId === word.id)
+      return {
+        wordId: word.id,
+        word: word.word,
+        correctAnswer: word.definition,
+        studentResponse: responses[word.id] || '',
+        isCorrect: gradingResult?.isCorrect ?? false,
+        aiReasoning: gradingResult?.reasoning || '',
+        challengeStatus: null,
+        challengeNote: null,
+        challengeReviewedBy: null,
+        challengeReviewedAt: null,
+      }
+    })
+
+    // Calculate score based on answered questions
+    const answeredWords = answers.filter((a) => a.studentResponse.trim() !== '')
+    if (answeredWords.length === 0) {
+      throw new Error('No answers provided. Cannot submit empty test.')
+    }
+
+    const correctCount = answeredWords.filter((a) => a.isCorrect).length
+    const score = correctCount / answeredWords.length
+
+    // Get user stats
+    const userRef = doc(db, 'users', userId)
+    const userSnap = await getDoc(userRef)
+    const userData = userSnap.exists() ? userSnap.data() : {}
+    const currentStats = userData.stats ?? {}
+
+    // Get study states for credibility/retention calculation
+    const studyStatesRef = collection(db, 'users', userId, 'study_states')
+    const studyStatesSnap = await getDocs(studyStatesRef)
+    const userWordStates = {}
+    studyStatesSnap.docs.forEach((docSnap) => {
+      userWordStates[docSnap.id] = docSnap.data()
+    })
+
+    // Calculate credibility and retention (same logic as MCQ)
+    const credibility = calculateCredibility(answeredWords, userWordStates)
+
+    const box4PlusWords = answeredWords.filter((answer) => {
+      const wordState = userWordStates[answer.wordId]
+      return wordState && wordState.box >= 4
+    })
+    const retention =
+      box4PlusWords.length > 0
+        ? box4PlusWords.filter((answer) => answer.isCorrect).length / box4PlusWords.length
+        : 1.0
+
+    // Update word states (same logic as MCQ)
+    const batchUpdates = []
+    for (const answer of answeredWords) {
+      const wordState = userWordStates[answer.wordId]
+      const currentBox = wordState?.box ?? 1
+
+      if (answer.isCorrect) {
+        // IF Correct: Promote to Box 4 or 5
+        let nextBox = 4
+        if (currentBox >= 3) {
+          nextBox = 5
+        }
+
+        batchUpdates.push(
+          setDoc(
+            doc(db, 'users', userId, 'study_states', answer.wordId),
+            {
+              box: nextBox,
+              streak: 0,
+              lastReviewed: serverTimestamp(),
+              nextReview: computeNextReview(nextBox),
+            },
+            { merge: true },
+          ),
+        )
+      } else {
+        // IF Wrong: Demote to Box 1
+        batchUpdates.push(
+          setDoc(
+            doc(db, 'users', userId, 'study_states', answer.wordId),
+            {
+              box: 1,
+              streak: 0,
+              lastReviewed: serverTimestamp(),
+              nextReview: computeNextReview(1),
+            },
+            { merge: true },
+          ),
+        )
+      }
+    }
+
+    await Promise.all(batchUpdates)
+
+    // Get teacherId from the class document if classId is provided
+    let teacherId = null
+    if (classId) {
+      try {
+        const classDoc = await getDoc(doc(db, 'classes', classId))
+        if (classDoc.exists()) {
+          teacherId = classDoc.data().ownerTeacherId || null
+        }
+      } catch (err) {
+        console.error('Error fetching class for teacherId:', err)
+      }
+    }
+
+    // Create attempt document
+    const attemptData = {
+      studentId: userId,
+      testId,
+      classId: classId || null,
+      teacherId: teacherId,
+      testType: 'typed',
+      score: Math.round(score * 100),
+      graded: true,
+      answers: answers,
+      skipped: words.length - answeredWords.length,
+      totalQuestions: words.length,
+      credibility,
+      retention,
+      submittedAt: serverTimestamp(),
+    }
+
+    console.log('Saving attempt document:', attemptData)
+
+    const attemptRef = await addDoc(collection(db, 'attempts'), attemptData)
+
+    // Update user stats
+    await updateDoc(userRef, {
+      stats: {
+        ...currentStats,
+        credibility,
+        retention,
+      },
+    })
+
+    console.log('Attempt saved with ID:', attemptRef.id)
+
+    return { id: attemptRef.id, ...attemptData }
+  } catch (error) {
+    console.error('Error saving typed test attempt:', error)
+    throw error
+  }
 }
 
 export const fetchClassAttempts = async (classId) => {
@@ -1653,6 +2025,7 @@ export const queryTeacherAttempts = async (teacherId, filters = [], lastDoc = nu
   const filterClassIds = []
   const filterStudentIds = []
   const filterListIds = []
+  const filterTestTypes = []
   let dateStart = null
   let dateEnd = null
 
@@ -1672,6 +2045,8 @@ export const queryTeacherAttempts = async (teacherId, filters = [], lastDoc = nu
         .filter((l) => l.title.toLowerCase().includes(tag.value.toLowerCase()))
         .map((l) => l.id)
       filterListIds.push(...matchingListIds)
+    } else if (tag.category === 'Test Type') {
+      filterTestTypes.push(tag.value) // 'mcq' or 'typed'
     } else if (tag.category === 'Date' && tag.value && typeof tag.value === 'object') {
       dateStart = Timestamp.fromDate(new Date(tag.value.start))
       const endDate = new Date(tag.value.end)
@@ -1731,11 +2106,11 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
   for (const attemptDoc of attemptDocs) {
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
-    const testIdMatch = testId.match(/^test_([^_]+)_/)
+    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
 
     if (!testIdMatch) continue
 
-    const listId = testIdMatch[1]
+    const listId = testIdMatch[2]
     const studentId = attemptData.studentId
 
     // Apply Name filter (post-processing)
@@ -1745,6 +2120,12 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
 
     // Apply List filter (post-processing)
     if (filterListIds.length > 0 && !filterListIds.includes(listId)) {
+      continue
+    }
+
+    // Apply Test Type filter (post-processing)
+    const attemptTestType = attemptData.testType || 'mcq'
+    if (filterTestTypes.length > 0 && !filterTestTypes.includes(attemptTestType)) {
       continue
     }
 
@@ -1788,6 +2169,172 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
       studentId: studentId,
       listId: listId,
       testId: testId,
+      testType: attemptData.testType || 'mcq',
+      submittedAt: attemptData.submittedAt,
+    })
+  }
+
+  return {
+    attempts: enrichedAttempts,
+    lastVisible: lastVisible,
+    hasMore: hasMore,
+  }
+}
+
+/**
+ * Query attempts for a specific student with filtering and pagination
+ * @param {string} studentId - Student user ID
+ * @param {Array} filters - Array of filter tags (Class, List, Date)
+ * @param {DocumentSnapshot|null} lastDoc - Last document for pagination
+ * @param {number} pageSize - Number of results per page
+ * @returns {Promise<Object>} Object with attempts array, lastVisible doc, and hasMore flag
+ */
+export const queryStudentAttempts = async (studentId, filters = [], lastDoc = null, pageSize = 50) => {
+  if (!studentId) {
+    return { attempts: [], lastVisible: null, hasMore: false }
+  }
+
+  // Parse filters (only Class, List, Date - no Name filter needed)
+  let filterClassIds = []
+  let filterListIds = []
+  let dateStart = null
+  let dateEnd = null
+
+  // Get student's classes for name lookups
+  const studentDoc = await getDoc(doc(db, 'users', studentId))
+  if (!studentDoc.exists()) {
+    return { attempts: [], lastVisible: null, hasMore: false }
+  }
+
+  const studentData = studentDoc.data()
+  const enrolledClasses = studentData?.enrolledClasses || {}
+  const enrolledClassIds = Object.keys(enrolledClasses)
+
+  // Build class name map
+  const classIdToNameMap = new Map()
+  for (const classId of enrolledClassIds) {
+    try {
+      const classDoc = await getDoc(doc(db, 'classes', classId))
+      if (classDoc.exists()) {
+        classIdToNameMap.set(classId, classDoc.data().name)
+      }
+    } catch (err) {
+      console.error(`Error fetching class ${classId}:`, err)
+    }
+  }
+
+  // Parse filters
+  filters.forEach((tag) => {
+    if (tag.category === 'Class') {
+      const matchingClassIds = Array.from(classIdToNameMap.entries())
+        .filter(([, name]) => name.toLowerCase().includes(tag.value.toLowerCase()))
+        .map(([id]) => id)
+      filterClassIds.push(...matchingClassIds)
+    } else if (tag.category === 'List') {
+      // Will filter post-query
+      filterListIds.push(tag.value.toLowerCase())
+    } else if (tag.category === 'Date' && tag.value && typeof tag.value === 'object') {
+      dateStart = Timestamp.fromDate(new Date(tag.value.start))
+      const endDate = new Date(tag.value.end)
+      endDate.setHours(23, 59, 59, 999)
+      dateEnd = Timestamp.fromDate(endDate)
+    }
+  })
+
+  // Build query
+  let attemptsQuery = query(
+    collection(db, 'attempts'),
+    where('studentId', '==', studentId),
+    orderBy('submittedAt', 'desc'),
+  )
+
+  // Apply class filter
+  if (filterClassIds.length === 1) {
+    attemptsQuery = query(attemptsQuery, where('classId', '==', filterClassIds[0]))
+  } else if (filterClassIds.length > 1 && filterClassIds.length <= 10) {
+    attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+  }
+
+  // Apply date filter
+  if (dateStart && dateEnd) {
+    attemptsQuery = query(attemptsQuery, where('submittedAt', '>=', dateStart), where('submittedAt', '<=', dateEnd))
+  }
+
+  // Apply pagination
+  attemptsQuery = query(attemptsQuery, limit(pageSize))
+  if (lastDoc) {
+    attemptsQuery = query(attemptsQuery, startAfter(lastDoc))
+  }
+
+  // Execute query
+  const attemptsSnap = await getDocs(attemptsQuery)
+  const attemptDocs = attemptsSnap.docs
+  const lastVisible = attemptDocs.length > 0 ? attemptDocs[attemptDocs.length - 1] : null
+  const hasMore = attemptDocs.length === pageSize
+
+  // Build list name cache
+  const listCache = new Map()
+
+  // Enrich attempts
+  const enrichedAttempts = []
+
+  for (const attemptDoc of attemptDocs) {
+    const attemptData = attemptDoc.data()
+    const testId = attemptData.testId || ''
+    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
+
+    if (!testIdMatch) continue
+
+    const listId = testIdMatch[2]
+
+    // Get list name
+    let listName = listCache.get(listId)
+    if (!listName) {
+      try {
+        const listDoc = await getDoc(doc(db, 'lists', listId))
+        listName = listDoc.exists() ? listDoc.data().title : 'Unknown List'
+        listCache.set(listId, listName)
+      } catch (err) {
+        console.error(`Error fetching list ${listId}:`, err)
+        listName = 'Unknown List'
+        listCache.set(listId, listName)
+      }
+    }
+
+    // Apply list filter (post-processing)
+    if (filterListIds.length > 0 && !filterListIds.some((f) => listName.toLowerCase().includes(f))) {
+      continue
+    }
+
+    // Get class name
+    const className = classIdToNameMap.get(attemptData.classId) || 'No Class'
+
+    // Format date
+    let date = new Date()
+    if (attemptData.submittedAt?.toDate) {
+      date = attemptData.submittedAt.toDate()
+    } else if (attemptData.submittedAt?.toMillis) {
+      date = new Date(attemptData.submittedAt.toMillis())
+    }
+
+    // Calculate scores
+    const answers = attemptData.answers || []
+    const correctAnswers = answers.filter((a) => a.isCorrect).length
+    const totalQuestions = attemptData.totalQuestions || answers.length || 0
+    const score = attemptData.score || (totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0)
+
+    enrichedAttempts.push({
+      id: attemptDoc.id,
+      class: className,
+      list: listName,
+      date: date,
+      score: score,
+      totalQuestions: totalQuestions,
+      correctAnswers: correctAnswers,
+      answers: [],
+      listId: listId,
+      testId: testId,
+      testType: attemptData.testType || 'mcq',
       submittedAt: attemptData.submittedAt,
     })
   }
@@ -1813,8 +2360,8 @@ export const fetchAttemptDetails = async (attemptId) => {
 
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
-    const testIdMatch = testId.match(/^test_([^_]+)_/)
-    const listId = testIdMatch ? testIdMatch[1] : null
+    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const listId = testIdMatch ? testIdMatch[2] : null
     const studentId = attemptData.studentId
 
     // Get student name
@@ -1932,6 +2479,12 @@ export const fetchAttemptDetails = async (attemptId) => {
           correctAnswer: correctAnswer || 'No definition',
           studentAnswer,
           isCorrect,
+          // Include challenge-related fields
+          aiReasoning: answer.aiReasoning || '',
+          challengeStatus: answer.challengeStatus || null,
+          challengeNote: answer.challengeNote || null,
+          challengeReviewedBy: answer.challengeReviewedBy || null,
+          challengeReviewedAt: answer.challengeReviewedAt || null,
         }
       })
     )
@@ -1945,6 +2498,7 @@ export const fetchAttemptDetails = async (attemptId) => {
       score: attemptData.score || 0,
       totalQuestions: attemptData.totalQuestions || answers.length,
       correctAnswers: correctAnswers,
+      testType: attemptData.testType || 'mcq',
       answers: formattedAnswers,
     }
   } catch (err) {
@@ -2079,4 +2633,210 @@ export const fetchUserAttempts = async (uid) => {
     console.error('Error fetching user attempts:', err)
     return []
   }
+}
+
+/**
+ * Submit a challenge for a graded answer
+ * @param {string} userId - Student user ID
+ * @param {string} attemptId - Attempt document ID
+ * @param {string} wordId - Word ID being challenged
+ * @param {string} note - Optional note explaining the challenge
+ * @returns {Promise<Object>} Success object
+ */
+export const submitChallenge = async (userId, attemptId, wordId, note = '') => {
+  if (!userId || !attemptId || !wordId) {
+    throw new Error('userId, attemptId, and wordId are required.')
+  }
+
+  // Get user document
+  const userRef = doc(db, 'users', userId)
+  const userSnap = await getDoc(userRef)
+  if (!userSnap.exists()) {
+    throw new Error('User not found.')
+  }
+
+  const userData = userSnap.data()
+  const challengeHistory = userData.challenges?.history || []
+
+  // Calculate available tokens
+  const availableTokens = getAvailableChallengeTokens(challengeHistory)
+  if (availableTokens === 0) {
+    throw new Error('No challenge tokens available. You have active rejections.')
+  }
+
+  // Get attempt document
+  const attemptRef = doc(db, 'attempts', attemptId)
+  const attemptSnap = await getDoc(attemptRef)
+  if (!attemptSnap.exists()) {
+    throw new Error('Attempt not found.')
+  }
+
+  const attemptData = attemptSnap.data()
+
+  // Verify this is the student's attempt
+  if (attemptData.studentId !== userId) {
+    throw new Error('Unauthorized: This is not your attempt.')
+  }
+
+  // Find the answer with matching wordId
+  const answers = attemptData.answers || []
+  const answerIndex = answers.findIndex((a) => a.wordId === wordId)
+  if (answerIndex === -1) {
+    throw new Error('Answer not found in attempt.')
+  }
+
+  // Check if already challenged
+  if (answers[answerIndex].challengeStatus === 'pending') {
+    throw new Error('This answer is already being challenged.')
+  }
+
+  // Add new entry to challenges.history
+  const replenishAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+  const newChallengeEntry = {
+    attemptId,
+    wordId,
+    challengedAt: Timestamp.now(),
+    replenishAt,
+    status: 'pending',
+  }
+
+  const updatedHistory = [...challengeHistory, newChallengeEntry]
+
+  // Update user document
+  await updateDoc(userRef, {
+    'challenges.history': updatedHistory,
+  })
+
+  // Update the specific answer in attempts document
+  const updatedAnswers = [...answers]
+  updatedAnswers[answerIndex] = {
+    ...updatedAnswers[answerIndex],
+    challengeStatus: 'pending',
+    challengeNote: note || null,
+  }
+
+  await updateDoc(attemptRef, {
+    answers: updatedAnswers,
+  })
+
+  return { success: true }
+}
+
+/**
+ * Review a challenge (teacher action)
+ * @param {string} teacherId - Teacher user ID
+ * @param {string} attemptId - Attempt document ID
+ * @param {string} wordId - Word ID being challenged
+ * @param {boolean} accepted - Whether to accept the challenge
+ * @returns {Promise<Object>} Success object
+ */
+export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) => {
+  if (!teacherId || !attemptId || !wordId) {
+    throw new Error('teacherId, attemptId, and wordId are required.')
+  }
+
+  // Get attempt document
+  const attemptRef = doc(db, 'attempts', attemptId)
+  const attemptSnap = await getDoc(attemptRef)
+  if (!attemptSnap.exists()) {
+    throw new Error('Attempt not found.')
+  }
+
+  const attemptData = attemptSnap.data()
+
+  // Verify teacherId matches
+  if (attemptData.teacherId !== teacherId) {
+    throw new Error('Unauthorized: You are not the teacher for this attempt.')
+  }
+
+  // Find the answer with matching wordId
+  const answers = attemptData.answers || []
+  const answerIndex = answers.findIndex((a) => a.wordId === wordId)
+  if (answerIndex === -1) {
+    throw new Error('Answer not found in attempt.')
+  }
+
+  const answer = answers[answerIndex]
+
+  // Verify challenge is pending
+  if (answer.challengeStatus !== 'pending') {
+    throw new Error('This challenge has already been reviewed.')
+  }
+
+  // Update answer
+  const updatedAnswers = [...answers]
+  updatedAnswers[answerIndex] = {
+    ...answer,
+    challengeStatus: accepted ? 'accepted' : 'rejected',
+    challengeReviewedBy: teacherId,
+    challengeReviewedAt: Timestamp.now(),
+  }
+
+  // If accepted, update isCorrect and recalculate score
+  if (accepted) {
+    updatedAnswers[answerIndex].isCorrect = true
+  }
+
+  // Recalculate score
+  const correctCount = updatedAnswers.filter((a) => a.isCorrect).length
+  const newScore = Math.round((correctCount / updatedAnswers.length) * 100)
+
+  // Update attempt document
+  await updateDoc(attemptRef, {
+    answers: updatedAnswers,
+    score: newScore,
+  })
+
+  // Get studentId and update their challenges.history
+  const studentId = attemptData.studentId
+  const studentRef = doc(db, 'users', studentId)
+  const studentSnap = await getDoc(studentRef)
+
+  if (studentSnap.exists()) {
+    const studentData = studentSnap.data()
+    const challengeHistory = studentData.challenges?.history || []
+    const updatedHistory = challengeHistory.map((entry) => {
+      if (entry.attemptId === attemptId && entry.wordId === wordId) {
+        return {
+          ...entry,
+          status: accepted ? 'accepted' : 'rejected',
+        }
+      }
+      return entry
+    })
+
+    await updateDoc(studentRef, {
+      'challenges.history': updatedHistory,
+    })
+
+    // If accepted, update study_state for this word (promote instead of demote)
+    if (accepted) {
+      const studyStateRef = doc(db, 'users', studentId, 'study_states', wordId)
+      const studyStateSnap = await getDoc(studyStateRef)
+
+      if (studyStateSnap.exists()) {
+        const currentState = studyStateSnap.data()
+        const currentBox = currentState.box ?? 1
+
+        // Promote to Box 4 or 5 (same logic as correct answer)
+        let nextBox = 4
+        if (currentBox >= 3) {
+          nextBox = 5
+        }
+
+        await setDoc(
+          studyStateRef,
+          {
+            box: nextBox,
+            streak: 0,
+            lastReviewed: serverTimestamp(),
+            nextReview: computeNextReview(nextBox),
+          },
+          { merge: true },
+        )
+      }
+    }
+  }
+
+  return { success: true }
 }
