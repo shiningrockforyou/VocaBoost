@@ -339,23 +339,31 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     try {
       console.log('Fetching words for...', listId)
       // Teacher view: Always get full list
-      const words = await fetchAllWords(listId)
-      console.log('Fetched words:', words)
-      console.log('Words count:', words?.length || 0)
+      const allWords = await fetchAllWords(listId)
       
-      if (words.length === 0) {
+      // Add wordIndex if not present
+      const wordsWithIndex = allWords.map((w, idx) => ({ 
+        ...w, 
+        wordIndex: w.wordIndex ?? idx 
+      }))
+      
+      console.log('Fetched words:', wordsWithIndex)
+      console.log('Words count:', wordsWithIndex?.length || 0)
+      
+      if (wordsWithIndex.length === 0) {
         alert('This list has no words to export.')
         setGeneratingPDF(null)
         return
       }
       
-      // Log data before generating PDF
-      console.log('PDF Generator Data:', words)
-      console.log('Words count:', words.length)
-      console.log('Sample word:', words[0] || 'No words')
+      // Normalize words
+      const normalizedWords = wordsWithIndex.map((word) => ({
+        ...word,
+        partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
+      }))
       
       // Generate PDF with Full List mode
-      await downloadListAsPDF(listTitle, words, 'Full List')
+      await downloadListAsPDF(listTitle, normalizedWords, 'full')
     } catch (err) {
       console.error('Error generating PDF:', err)
       alert('Failed to generate PDF. Please try again.')

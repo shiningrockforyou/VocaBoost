@@ -20,6 +20,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
 
 const defaultProfile = {
   displayName: '',
@@ -1043,16 +1044,23 @@ export const fetchStudentStats = async (userId, listId) => {
     if (!wordIds.includes(wordId)) return
 
     const data = docSnap.data()
-    const box = data.box ?? 1
-    if (box > 1) {
+    // Use new status field if available, otherwise fall back to box
+    const normalized = normalizeStudyState(data)
+    const status = normalized.status
+    
+    // Words learned: PASSED or FAILED (tested at least once)
+    if (status === WORD_STATUS.PASSED || status === WORD_STATUS.FAILED) {
       wordsLearned += 1
       masteryCount += 1
     }
 
-    if (box >= 4) {
+    // Mastered words: PASSED status
+    if (status === WORD_STATUS.PASSED) {
       masteredWords += 1
     }
 
+    // Due count: For backwards compatibility, check nextReview (old system)
+    // New system doesn't use nextReview, so this will be 0 for new format
     const nextReview = data.nextReview
     if (nextReview && nextReview.toMillis && nextReview.toMillis() < now.toMillis()) {
       dueCount += 1
@@ -1279,6 +1287,10 @@ export const calculateCredibility = (answers, userWordStates) => {
   return correctCount / answers.length
 }
 
+/**
+ * @deprecated - Use processTestResults from studyService instead
+ * This function is kept for backwards compatibility but will be removed in a future version.
+ */
 export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null) => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
@@ -1412,6 +1424,9 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 }
 
 /**
+ * @deprecated - Use processTestResults from studyService instead
+ * This function is kept for backwards compatibility but will be removed in a future version.
+ * 
  * Submit a typed test attempt (AI-graded definitions)
  * @param {string} userId - User ID
  * @param {string} testId - Test ID (format: "typed_{listId}_{timestamp}")
@@ -2839,4 +2854,71 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
   }
 
   return { success: true }
+}
+
+/**
+ * Normalize a study state document to ensure all fields exist.
+ * Handles both old (Leitner) and new (random sampling) formats.
+ * 
+ * @param {Object} doc - Raw Firestore document data
+ * @returns {Object} Normalized study state
+ */
+export function normalizeStudyState(doc) {
+  if (!doc) {
+    return { ...DEFAULT_STUDY_STATE }
+  }
+
+  // If document has new 'status' field, use new format
+  if (doc.status) {
+    return {
+      ...DEFAULT_STUDY_STATE,
+      ...doc
+    }
+  }
+
+  // Convert from old format (Leitner box system)
+  // This is a read-time conversion for backwards compatibility
+  let status = WORD_STATUS.NEVER_TESTED
+
+  const box = doc.box ?? 1
+
+  if (box >= 4) {
+    status = WORD_STATUS.PASSED
+  } else if (box > 1 || doc.lastReviewed) {
+    status = WORD_STATUS.FAILED
+  } else if (box === 1 && !doc.lastReviewed) {
+    status = WORD_STATUS.NEW
+  }
+
+  return {
+    // New fields (derived from old)
+    status,
+    timesTestedTotal: box > 1 ? 1 : 0,
+    timesCorrectTotal: status === WORD_STATUS.PASSED ? 1 : 0,
+    lastTestedAt: doc.lastReviewed || null,
+    lastTestResult: status === WORD_STATUS.PASSED,
+    dismissedUntil: null,
+    lastQueuedAt: null,
+    queueAppearances: 0,
+    wordIndex: doc.wordIndex || 0,
+    introducedOnDay: doc.introducedOnDay || 1,
+    listId: doc.listId || '',
+
+    // Preserve old fields
+    box: doc.box,
+    streak: doc.streak,
+    lastReviewed: doc.lastReviewed,
+    nextReview: doc.nextReview,
+    result: doc.result,
+    legacyBox: doc.box
+  }
+}
+
+/**
+ * Check if a study state uses the new format
+ * @param {Object} doc - Study state document
+ * @returns {boolean} True if document has 'status' field
+ */
+export function isNewFormatStudyState(doc) {
+  return doc?.status !== undefined
 }

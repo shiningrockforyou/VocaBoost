@@ -16,10 +16,15 @@ import {
   fetchUserAttempts,
   joinClass,
 } from '../services/db'
+import { getClassProgress } from '../services/progressService'
+import { getBlindSpotCount } from '../services/studyService'
+import { WORD_STATUS } from '../types/studyTypes'
 import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
+import PDFOptionsModal from '../components/PDFOptionsModal.jsx'
+import { getTodaysBatchForPDF } from '../services/studyService'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
 import { Button, IconButton, CardButton } from '../components/ui'
@@ -29,6 +34,70 @@ const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 const extractListIdFromTestId = (testId = '') => {
   const match = /^test_([^_]+)_/.exec(testId)
   return match ? match[1] : null
+}
+
+function ListProgressStats({ classId, listId, progressData, blindSpotCount }) {
+  const key = `${classId}_${listId}`
+  const progress = progressData[key]
+
+  if (!progress) {
+    return (
+      <div className="text-sm text-text-muted">
+        No sessions yet
+      </div>
+    )
+  }
+
+  const { currentStudyDay, totalWordsIntroduced, interventionLevel, stats } = progress
+
+  return (
+    <div className="mt-3 space-y-2 rounded-lg bg-muted p-3">
+      {/* Progress row */}
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-text-secondary">Day</span>
+        <span className="font-medium text-text-primary">{currentStudyDay}</span>
+      </div>
+      
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-text-secondary">Words Introduced</span>
+        <span className="font-medium text-text-primary">{totalWordsIntroduced}</span>
+      </div>
+
+      {/* Intervention indicator */}
+      {interventionLevel > 0 && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-secondary">Intervention</span>
+          <span className={`font-medium ${
+            interventionLevel > 0.5 
+              ? 'text-red-500' 
+              : interventionLevel > 0.25 
+              ? 'text-amber-500' 
+              : 'text-emerald-500'
+          }`}>
+            {Math.round(interventionLevel * 100)}%
+          </span>
+        </div>
+      )}
+
+      {/* Review score */}
+      {stats?.avgReviewScore !== null && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-secondary">Avg Review Score</span>
+          <span className="font-medium text-text-primary">
+            {Math.round(stats.avgReviewScore * 100)}%
+          </span>
+        </div>
+      )}
+
+      {/* Blind spots indicator */}
+      {blindSpotCount > 0 && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-secondary">Blind Spots</span>
+          <span className="font-medium text-amber-500">{blindSpotCount}</span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 const Dashboard = () => {
@@ -59,6 +128,10 @@ const Dashboard = () => {
   const [deletingListId, setDeletingListId] = useState(null)
   const [hoveredBarIndex, setHoveredBarIndex] = useState(null)
   const [userAttempts, setUserAttempts] = useState([])
+  const [progressData, setProgressData] = useState({}) // keyed by `${classId}_${listId}`
+  const [blindSpotCounts, setBlindSpotCounts] = useState({}) // keyed by `${classId}_${listId}`
+  const [pdfModalOpen, setPdfModalOpen] = useState(false)
+  const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
 
   const masteryTotals = useMemo(() => {
     if (!studentClasses.length) {
@@ -182,39 +255,80 @@ const Dashboard = () => {
     loadUserAttempts()
   }, [loadDashboardStats, loadUserAttempts])
 
-  const handleDownloadPDF = async (listId, listTitle, classId = null, isStudent = false) => {
-    if (!listId) return
+  const handlePDFClick = (classId, listId, listTitle, assignment) => {
+    setPdfModalContext({ classId, listId, listTitle, assignment })
+    setPdfModalOpen(true)
+  }
+
+  const handlePDFSelect = async (mode) => {
+    if (!pdfModalContext) return
+    
+    const { classId, listId, listTitle, assignment } = pdfModalContext
     setGeneratingPDF(listId)
+    setPdfModalOpen(false)
+    
     try {
-      console.log('Fetching words for...', listId, 'isStudent:', isStudent)
       let words
-      let mode
       
-      if (isStudent && user?.uid) {
-        if (pdfDataCache.current[listId]) {
-          words = pdfDataCache.current[listId]
-        } else {
-          words = await fetchSmartStudyQueue(listId, user.uid, classId)
-          pdfDataCache.current[listId] = words
-        }
-        mode = 'Daily Worksheet'
+      if (mode === 'today' && user?.uid) {
+        // Smart selection for today's batch
+        words = await getTodaysBatchForPDF(user.uid, classId, listId, assignment)
       } else {
-        if (pdfDataCache.current[listId]) {
-          words = pdfDataCache.current[listId]
-        } else {
-          words = await fetchAllWords(listId)
-          pdfDataCache.current[listId] = words
-        }
-        mode = 'Full List'
+        // Full list - need to add wordIndex
+        const allWords = await fetchAllWords(listId)
+        words = allWords.map((w, idx) => ({ ...w, wordIndex: w.wordIndex ?? idx }))
       }
       
-      const normalizedWords = (Array.isArray(words) ? words : Object.values(words || {})).map((word) => ({
+      if (words.length === 0) {
+        alert('This list has no words to export.')
+        setGeneratingPDF(null)
+        setPdfModalContext(null)
+        return
+      }
+      
+      const normalizedWords = words.map((word) => ({
         ...word,
         partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
       }))
-      console.log('Fetched words:', normalizedWords)
-      console.log('PDF Button Data:', normalizedWords)
-      console.log('Words count:', normalizedWords?.length || 0)
+      
+      await downloadListAsPDF(listTitle, normalizedWords, mode)
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      alert('Failed to generate PDF')
+    } finally {
+      setGeneratingPDF(null)
+      setPdfModalContext(null)
+    }
+  }
+
+  // Legacy handler for teachers (no modal)
+  const handleDownloadPDF = async (listId, listTitle, classId = null, isStudent = false) => {
+    if (!listId) return
+    
+    // If student, show modal instead
+    if (isStudent && user?.uid) {
+      // Find assignment from student classes
+      const klass = studentClasses.find(c => c.id === classId)
+      const assignment = klass?.assignments?.[listId]
+      if (assignment) {
+        handlePDFClick(classId, listId, listTitle, assignment)
+        return
+      }
+    }
+    
+    // Teacher or fallback: direct download
+    setGeneratingPDF(listId)
+    try {
+      const allWords = await fetchAllWords(listId)
+      const wordsWithIndex = allWords.map((w, idx) => ({ 
+        ...w, 
+        wordIndex: w.wordIndex ?? idx 
+      }))
+      
+      const normalizedWords = wordsWithIndex.map((word) => ({
+        ...word,
+        partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
+      }))
       
       if (normalizedWords.length === 0) {
         alert('This list has no words to export.')
@@ -222,13 +336,7 @@ const Dashboard = () => {
         return
       }
       
-      // Log data before generating PDF
-      console.log('PDF Generator Data:', normalizedWords)
-      console.log('Words count:', normalizedWords.length)
-      console.log('Sample word:', normalizedWords[0] || 'No words')
-      
-      // Generate PDF
-      await downloadListAsPDF(listTitle, normalizedWords, mode)
+      await downloadListAsPDF(listTitle, normalizedWords, 'full')
     } catch (err) {
       console.error('Error generating PDF:', err)
       alert('Failed to generate PDF. Please try again.')
@@ -287,6 +395,39 @@ const Dashboard = () => {
   useEffect(() => {
     loadStudentClasses()
   }, [loadStudentClasses])
+
+  // Load progress and blind spot data for each class/list
+  useEffect(() => {
+    if (!user?.uid || !studentClasses.length || isTeacher) return
+
+    const loadProgressData = async () => {
+      const progressMap = {}
+      const blindSpotMap = {}
+
+      for (const cls of studentClasses) {
+        const assignments = cls.assignments || {}
+        for (const listId of Object.keys(assignments)) {
+          const key = `${cls.id}_${listId}`
+          try {
+            const progress = await getClassProgress(user.uid, cls.id, listId)
+            if (progress) {
+              progressMap[key] = progress
+            }
+            const blindSpots = await getBlindSpotCount(user.uid, listId)
+            blindSpotMap[key] = blindSpots
+          } catch (err) {
+            console.error(`Failed to load progress for ${key}:`, err)
+            // Don't break the page, just show default state
+          }
+        }
+      }
+
+      setProgressData(progressMap)
+      setBlindSpotCounts(blindSpotMap)
+    }
+
+    loadProgressData()
+  }, [user?.uid, studentClasses, isTeacher])
 
   useEffect(() => {
     const loadUserStats = async () => {
@@ -1220,10 +1361,22 @@ const Dashboard = () => {
                                       )
                                     })()}
                                   </div>
+                                  <ListProgressStats
+                                    classId={klass.id}
+                                    listId={list.id}
+                                    progressData={progressData}
+                                    blindSpotCount={blindSpotCounts[`${klass.id}_${list.id}`] || 0}
+                                  />
                                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:flex-wrap">
                                     <Link
-                                      to={`/study/${list.id}?classId=${klass.id}`}
+                                      to={`/session/${klass.id}/${list.id}`}
                                       className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
+                                    >
+                                      <span className="truncate whitespace-nowrap max-w-full">Start Today's Session</span>
+                                    </Link>
+                                    <Link
+                                      to={`/study/${list.id}?classId=${klass.id}`}
+                                      className="h-12 flex items-center justify-center gap-2 rounded-button bg-surface border border-border-strong px-4 text-sm font-semibold text-text-secondary transition hover:bg-muted"
                                     >
                                       <span className="truncate whitespace-nowrap max-w-full">Study Now</span>
                                     </Link>
@@ -1236,26 +1389,43 @@ const Dashboard = () => {
                                         <>
                                           {showMcq && canTest && (
                                             <Link
-                                              to={`/test/${list.id}?classId=${klass.id}`}
+                                              to={`/mcqtest/${klass.id}/${list.id}?type=review`}
                                               className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
                                             >
-                                              <span className="truncate whitespace-nowrap max-w-full">Take Test</span>
+                                              <span className="truncate whitespace-nowrap max-w-full">Take MCQ Test</span>
                                             </Link>
                                           )}
                                           {showTyped && canTest && (
                                             <Link
-                                              to={`/typed-test/${list.id}?classId=${klass.id}`}
+                                              to={`/typedtest/${klass.id}/${list.id}?type=review`}
                                               className="h-12 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 text-sm font-heading font-bold text-brand-text hover:bg-accent-blue hover:border-brand-primary shadow-sm transition-all active:scale-95"
                                             >
-                                              <span className="truncate whitespace-nowrap max-w-full">Typed Test</span>
+                                              <span className="truncate whitespace-nowrap max-w-full">Take Written Test</span>
                                             </Link>
                                           )}
                                         </>
                                       )
                                     })()}
+                                    <Link
+                                      to={`/blindspots/${klass.id}/${list.id}`}
+                                      className="h-12 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
+                                    >
+                                      <span>🔍</span>
+                                      <span className="truncate whitespace-nowrap">Check Blind Spots</span>
+                                    </Link>
                                     <button
                                       type="button"
-                                      onClick={() => handleDownloadPDF(list.id, list.title, klass.id, true)}
+                                      onClick={() => {
+                                        // Get assignment from class data
+                                        const assignment = klass.assignments?.[list.id] || {
+                                          pace: list.pace || 20,
+                                          testMode: list.testMode || 'mcq',
+                                          testSizeNew: 50,
+                                          testSizeReview: 30,
+                                          newWordRetakeThreshold: 0.95
+                                        }
+                                        handlePDFClick(klass.id, list.id, list.title || 'Vocabulary List', assignment)
+                                      }}
                                       disabled={generatingPDF === list.id}
                                       className="h-12 flex items-center justify-center gap-1.5 rounded-button border border-border-strong bg-surface px-4 text-sm font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
                                       title="Download PDF"
@@ -1328,6 +1498,14 @@ const Dashboard = () => {
         onClose={() => setTestModalOpen(false)}
         classes={studentClasses}
         mode="test"
+      />
+      
+      {/* PDF Options Modal */}
+      <PDFOptionsModal
+        isOpen={pdfModalOpen}
+        onClose={() => { setPdfModalOpen(false); setPdfModalContext(null); }}
+        onSelect={handlePDFSelect}
+        listTitle={pdfModalContext?.listTitle || ''}
       />
     </main>
   )

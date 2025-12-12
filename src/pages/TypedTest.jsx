@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import {
-  generateTypedTest,
-  submitTypedTestAttempt,
-} from '../services/db'
+  initializeDailySession,
+  getNewWords,
+  getSegmentWords,
+  processTestResults,
+  selectTestWords
+} from '../services/studyService'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
 import { Button } from '../components/ui'
@@ -23,15 +26,27 @@ const Watermark = () => (
 )
 
 const TypedTest = () => {
-  const { listId } = useParams()
+  const { classId, listId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
+  
+  // Get navigation state
+  const {
+    testType = 'review',
+    wordPool = null,
+    returnPath = '/',
+    sessionContext = null
+  } = location.state || {}
+
+  // Also check query params for backwards compatibility
   const searchParams = new URLSearchParams(location.search)
-  const classIdParam = searchParams.get('classId')
+  const testTypeParam = searchParams.get('type') || testType
+  const classIdParam = searchParams.get('classId') || classId
 
   const [listDetails, setListDetails] = useState(null)
   const [words, setWords] = useState([])
+  const [originalWords, setOriginalWords] = useState([]) // Store original word list for retake
   const [responses, setResponses] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -40,6 +55,11 @@ const TypedTest = () => {
   const inputRefs = useRef([])
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [attemptId, setAttemptId] = useState(null)
+  const [currentTestType, setCurrentTestType] = useState(testTypeParam)
+  const [canRetake, setCanRetake] = useState(false)
+  const [retakeThreshold] = useState(0.95)
+  const [showResults, setShowResults] = useState(false)
+  const [testResultsData, setTestResultsData] = useState(null)
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -64,46 +84,110 @@ const TypedTest = () => {
     setIsLoading(true)
     setError('')
     try {
-      const testWords = await generateTypedTest(user.uid, listId, classIdParam)
-      if (testWords.length === 0) {
+      // If word pool provided (from DailySessionFlow), use it
+      if (wordPool && wordPool.length > 0) {
+        setOriginalWords(wordPool)
+        setWords(wordPool)
+        setResponses({})
+        setResults(null)
+        setShowResults(false)
+        setCanRetake(false)
+        setTestResultsData(null)
+        setFocusedIndex(0)
+        inputRefs.current = new Array(wordPool.length)
+        setIsLoading(false)
+        return
+      }
+
+      // Otherwise, use smart selection based on test type
+      if (!classIdParam) {
+        throw new Error('Class ID required for smart selection')
+      }
+
+      const classRef = doc(db, 'classes', classIdParam)
+      const classSnap = await getDoc(classRef)
+      if (!classSnap.exists()) {
+        throw new Error('Class not found')
+      }
+
+      const assignment = classSnap.data()?.assignments?.[listId]
+      if (!assignment) {
+        throw new Error('Assignment not found')
+      }
+
+      const testSize = currentTestType === 'new'
+        ? (assignment.testSizeNew || 50)
+        : (assignment.testSizeReview || 30)
+
+      let wordsToTest = []
+
+      if (currentTestType === 'new') {
+        // Get today's new words
+        const config = await initializeDailySession(user.uid, classIdParam, listId, {
+          weeklyPace: assignment.pace * 7 || 400,
+          studyDaysPerWeek: 5,
+          testSizeNew: assignment.testSizeNew || 50,
+          testSizeReview: assignment.testSizeReview || 30,
+          newWordRetakeThreshold: 0.95
+        })
+        
+        if (config.newWordCount > 0) {
+          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
+          wordsToTest = selectTestWords(newWords, testSize)
+        } else {
+          throw new Error('No new words available for testing')
+        }
+      } else {
+        // Get review segment words
+        const config = await initializeDailySession(user.uid, classIdParam, listId, {
+          weeklyPace: assignment.pace * 7 || 400,
+          studyDaysPerWeek: 5,
+          testSizeNew: assignment.testSizeNew || 50,
+          testSizeReview: assignment.testSizeReview || 30,
+          newWordRetakeThreshold: 0.95
+        })
+        
+        if (config.segment) {
+          const segmentWords = await getSegmentWords(
+            user.uid,
+            listId,
+            config.segment.startIndex,
+            config.segment.endIndex
+          )
+          wordsToTest = selectTestWords(segmentWords, testSize)
+        } else {
+          // Fallback: load all words if no segment (day 1)
+          const wordsRef = collection(db, 'lists', listId, 'words')
+          const snap = await getDocs(query(wordsRef, orderBy('createdAt', 'asc')))
+          const allWords = snap.docs.map((d, i) => ({ id: d.id, wordIndex: i, ...d.data() }))
+          wordsToTest = selectTestWords(allWords, testSize)
+        }
+      }
+
+      if (wordsToTest.length === 0) {
         throw new Error('No words available for testing.')
       }
-      setWords(testWords)
+
+      setOriginalWords(wordsToTest)
+      setWords(wordsToTest)
       setResponses({})
       setResults(null)
+      setShowResults(false)
+      setCanRetake(false)
+      setTestResultsData(null)
       setFocusedIndex(0)
-      // Initialize refs array
-      inputRefs.current = new Array(testWords.length)
+      inputRefs.current = new Array(wordsToTest.length)
     } catch (err) {
       setError(err.message ?? 'Unable to load test.')
     } finally {
       setIsLoading(false)
     }
-  }, [user?.uid, listId, classIdParam])
+  }, [user?.uid, listId, classIdParam, currentTestType, wordPool])
 
   useEffect(() => {
     loadTestWords()
   }, [loadTestWords])
 
-  // Fetch challenge tokens
-  useEffect(() => {
-    const loadChallengeTokens = async () => {
-      if (!user?.uid) return
-      try {
-        const userRef = doc(db, 'users', user.uid)
-        const userSnap = await getDoc(userRef)
-        if (userSnap.exists()) {
-          const userData = userSnap.data()
-          const challengeHistory = userData.challenges?.history || []
-          const tokens = getAvailableChallengeTokens(challengeHistory)
-          setAvailableTokens(tokens)
-        }
-      } catch (err) {
-        console.error('Error loading challenge tokens:', err)
-      }
-    }
-    loadChallengeTokens()
-  }, [user?.uid])
 
   // Auto-focus first input when words load
   useEffect(() => {
@@ -156,7 +240,7 @@ const TypedTest = () => {
   }
 
   const handleSubmit = async () => {
-    if (!user?.uid || !listId || isSubmitting || results) return
+    if (!user?.uid || !listId || isSubmitting || showResults) return
 
     setIsSubmitting(true)
     setError('')
@@ -170,34 +254,58 @@ const TypedTest = () => {
         studentResponse: responses[word.id] || '',
       }))
 
-      // Call Cloud Function
+      // Call Cloud Function for AI grading
       const functions = getFunctions()
       const gradeTypedTest = httpsCallable(functions, 'gradeTypedTest')
 
       const gradingResult = await gradeTypedTest({ answers: answersToGrade })
 
-      // Save attempt to Firestore
-      const testId = `typed_${listId}_${Date.now()}`
-      const attemptResult = await submitTypedTestAttempt(
-        user.uid,
-        testId,
-        words,
-        responses,
-        gradingResult.data.results,
-        classIdParam || null,
-      )
+      // Build results array for processTestResults
+      const results = gradingResult.data.results.map(r => ({
+        wordId: r.wordId,
+        correct: r.isCorrect
+      }))
 
-      // Store attempt ID for challenges
-      setAttemptId(attemptResult.id)
+      // Process test results (updates word statuses)
+      const summary = await processTestResults(user.uid, results, listId)
 
-      // Show results
+      // Check if retake available
+      if (currentTestType === 'new' && summary.score < retakeThreshold) {
+        setCanRetake(true)
+      }
+
+      // Store for display
+      setTestResultsData({
+        score: Math.round(summary.score * 100),
+        correct: summary.correct,
+        total: summary.total,
+        failed: summary.failed,
+        gradedResults: gradingResult.data.results, // Include detailed grading for review
+        testType: currentTestType
+      })
+
       setResults(gradingResult.data.results)
+      setShowResults(true)
     } catch (err) {
       console.error('Grading error:', err)
       setError(err.message ?? 'Failed to grade test. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleRetake = () => {
+    setResponses({})
+    setFocusedIndex(0)
+    setShowResults(false)
+    setCanRetake(false)
+    setTestResultsData(null)
+    setResults(null)
+    
+    // Regenerate from original words
+    const shuffled = [...originalWords].sort(() => Math.random() - 0.5)
+    setWords(shuffled.slice(0, 50))
+    inputRefs.current = new Array(50)
   }
 
   const answeredCount = Object.values(responses).filter((r) => r.trim() !== '').length
@@ -214,7 +322,7 @@ const TypedTest = () => {
     )
   }
 
-  if (error && !results) {
+  if (error && !showResults) {
     return (
       <main className="relative flex min-h-screen items-center justify-center bg-muted px-4">
         <Watermark />
@@ -248,16 +356,88 @@ const TypedTest = () => {
   }
 
   // Results Mode
-  if (results) {
+  if (showResults && testResultsData && results) {
     return (
-      <TestResults
-        testType="typed"
-        listTitle={listDetails?.title}
-        words={words}
-        responses={responses}
-        results={results}
-        attemptId={attemptId}
-      />
+      <main className="relative flex min-h-screen items-center justify-center bg-base px-4 py-10">
+        <Watermark />
+        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-8 text-center shadow-xl ring-1 ring-border-default">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <span className="text-3xl">✓</span>
+          </div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-500">
+            Test Complete
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-text-primary">
+            {testResultsData.score}%
+          </h2>
+          <p className="text-text-secondary">
+            {testResultsData.correct} of {testResultsData.total} correct
+          </p>
+
+          {/* Test type indicator */}
+          <p className="mt-2 text-sm text-text-muted">
+            {currentTestType === 'new' ? 'New Word Test' : 'Review Test'}
+          </p>
+
+          {/* Retake prompt for new word test below threshold */}
+          {canRetake && (
+            <div className="mt-4 rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Score below {Math.round(retakeThreshold * 100)}% — retake recommended
+              </p>
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">
+                New word tests require {Math.round(retakeThreshold * 100)}% to proceed.
+              </p>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="mt-6 flex flex-col gap-3">
+            {canRetake && (
+              <Button
+                variant="primary-blue"
+                size="lg"
+                onClick={handleRetake}
+                className="w-full"
+              >
+                Retake Test
+              </Button>
+            )}
+            <Button
+              variant={canRetake ? "outline" : "primary-blue"}
+              size="lg"
+              onClick={() => {
+                if (returnPath) {
+                  navigate(returnPath, {
+                    state: {
+                      testCompleted: true,
+                      testType: currentTestType,
+                      results: testResultsData
+                    }
+                  })
+                } else {
+                  navigate('/')
+                }
+              }}
+              className="w-full"
+            >
+              {canRetake ? 'Continue Anyway' : (returnPath ? 'Continue' : 'Back to Dashboard')}
+            </Button>
+          </div>
+
+          {/* Detailed results */}
+          <div className="mt-6">
+            <TestResults
+              testType="typed"
+              listTitle={listDetails?.title}
+              words={words}
+              responses={responses}
+              results={results}
+              attemptId={attemptId}
+            />
+          </div>
+        </div>
+      </main>
     )
   }
 

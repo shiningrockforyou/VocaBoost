@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import Flashcard from '../components/Flashcard.jsx'
-import { fetchSmartStudyQueue, saveStudyResult } from '../services/db'
+import { 
+  initializeDailySession,
+  getNewWords,
+  getSegmentWords,
+  buildReviewQueue,
+  updateQueueTracking
+} from '../services/studyService'
 import BackButton from '../components/BackButton.jsx'
 import { Button } from '../components/ui'
 
@@ -31,62 +37,134 @@ const StudySession = () => {
   const [isFlipped, setIsFlipped] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [savingResult, setSavingResult] = useState(false)
-  const [completed, setCompleted] = useState(false)
+  // Session queue management
+  const [sessionQueue, setSessionQueue] = useState([])      // Full queue for this session
+  const [currentQueue, setCurrentQueue] = useState([])      // Active queue (not dismissed)
+  const [dismissedIds, setDismissedIds] = useState(new Set()) // Dismissed word IDs
+  const [sessionPhase, setSessionPhase] = useState('loading') // 'loading' | 'study' | 'complete'
   const [cardsReviewed, setCardsReviewed] = useState(0)
   const [autoPlay, setAutoPlay] = useState(false)
 
-  const loadList = useCallback(async () => {
-    if (!listId) return
+  const loadSession = useCallback(async () => {
+    if (!listId || !user?.uid) return
+
     setLoading(true)
     setError('')
+    setSessionPhase('loading')
+
     try {
+      // Get list details
       const listRef = doc(db, 'lists', listId)
       const listSnap = await getDoc(listRef)
       if (!listSnap.exists()) {
         throw new Error('List not found.')
       }
       setListDetails({ id: listSnap.id, ...listSnap.data() })
-      const listWords = await fetchSmartStudyQueue(listId, user?.uid, classId || null)
-      setWords(listWords)
-      setCurrentIndex(0)
-      setCardsReviewed(0)
-      setCompleted(false)
+
+      // For now, load all words for simple study mode
+      // (Full session flow with phases will come in Block E)
+      const wordsRef = collection(db, 'lists', listId, 'words')
+      const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'))
+      const wordsSnap = await getDocs(wordsQuery)
+
+      const allWords = wordsSnap.docs.map((docSnap, index) => ({
+        id: docSnap.id,
+        wordIndex: index,
+        ...docSnap.data()
+      }))
+
+      if (allWords.length === 0) {
+        setWords([])
+        setSessionQueue([])
+        setCurrentQueue([])
+        setSessionPhase('complete')
+      } else {
+        setWords(allWords)
+        setSessionQueue(allWords)
+        setCurrentQueue(allWords)
+        setDismissedIds(new Set())
+        setCurrentIndex(0)
+        setCardsReviewed(0)
+        setSessionPhase('study')
+      }
     } catch (err) {
-      setError(err.message ?? 'Unable to load list.')
+      setError(err.message ?? 'Unable to load session.')
     } finally {
       setLoading(false)
     }
-  }, [listId, user?.uid, classId])
+  }, [listId, user?.uid])
 
   useEffect(() => {
-    loadList()
-  }, [loadList])
+    loadSession()
+  }, [loadSession])
 
-  const currentWord = words[currentIndex]
+  const currentWord = currentQueue[currentIndex]
 
   const handleFlip = () => {
     setIsFlipped((prev) => !prev)
   }
 
-  const handleResult = async (result) => {
-    if (!user?.uid || !currentWord) return
-    setSavingResult(true)
-    try {
-      await saveStudyResult(user.uid, currentWord.id, result)
-      setCardsReviewed((prev) => prev + 1)
-      const nextIndex = currentIndex + 1
-      if (nextIndex >= words.length) {
-        setCompleted(true)
-      } else {
-        setCurrentIndex(nextIndex)
-        setIsFlipped(false)
+  // Handle "I Know This" - dismiss from current session
+  const handleKnowThis = () => {
+    if (!currentWord) return
+
+    const wordId = currentWord.id
+
+    // Add to dismissed set
+    setDismissedIds(prev => new Set([...prev, wordId]))
+
+    // Remove from current queue
+    setCurrentQueue(prev => prev.filter(w => w.id !== wordId))
+
+    // Track cards reviewed
+    setCardsReviewed(prev => prev + 1)
+
+    // Move to next card or complete
+    if (currentQueue.length <= 1) {
+      setSessionPhase('complete')
+    } else {
+      // Stay at same index (next card shifts into position)
+      // Unless we're at the end
+      if (currentIndex >= currentQueue.length - 1) {
+        setCurrentIndex(0)
       }
-    } catch (err) {
-      setError(err.message ?? 'Unable to save result.')
-    } finally {
-      setSavingResult(false)
     }
+
+    setIsFlipped(false)
+  }
+
+  // Handle "Not Sure" - keep in queue, move to end
+  const handleNotSure = () => {
+    if (!currentWord) return
+
+    // Move current word to end of queue
+    setCurrentQueue(prev => {
+      const word = prev.find(w => w.id === currentWord.id)
+      if (!word) return prev
+      const filtered = prev.filter(w => w.id !== currentWord.id)
+      return [...filtered, word]
+    })
+
+    // Track cards reviewed
+    setCardsReviewed(prev => prev + 1)
+
+    // Move to next card (which is now at current index)
+    // If we were at the last card, go to beginning
+    if (currentIndex >= currentQueue.length - 1) {
+      setCurrentIndex(0)
+    }
+
+    setIsFlipped(false)
+  }
+
+  // Handle "Reset Session" - start over with full queue
+  const handleResetSession = () => {
+    setDismissedIds(new Set())
+    setCurrentQueue([...sessionQueue])
+    setCurrentIndex(0)
+    setCardsReviewed(0)
+    setIsFlipped(false)
+    setSessionPhase('study')
   }
 
   if (loading) {
@@ -113,7 +191,7 @@ const StudySession = () => {
     )
   }
 
-  if (!words.length || completed) {
+  if (sessionPhase === 'complete' || currentQueue.length === 0) {
     return (
       <main className="relative flex min-h-screen items-center justify-center bg-base px-4 py-10">
         <Watermark />
@@ -125,6 +203,7 @@ const StudySession = () => {
             Session Complete
           </p>
           <h1 className="mt-2 text-3xl font-bold text-text-primary">Great Job!</h1>
+
           <div className="mt-6 space-y-3 rounded-xl bg-muted p-6 text-left">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-text-secondary">List</span>
@@ -135,22 +214,47 @@ const StudySession = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-text-secondary">Cards Reviewed</span>
               <span className="text-sm font-semibold text-text-primary">
-                {cardsReviewed || words.length} {cardsReviewed === 1 ? 'card' : 'cards'}
+                {cardsReviewed}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-text-secondary">Dismissed (Knew)</span>
+              <span className="text-sm font-semibold text-text-primary">
+                {dismissedIds.size}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-text-secondary">Total Words</span>
-              <span className="text-sm font-semibold text-text-primary">{words.length} words</span>
+              <span className="text-sm font-semibold text-text-primary">
+                {sessionQueue.length}
+              </span>
             </div>
           </div>
+
           <p className="mt-6 text-sm text-text-muted">
-            {words.length
-              ? 'Keep up the great work! Your progress has been saved.'
-              : 'No words available yet. Ask your teacher to assign content.'}
+            Your study session is complete. Take a test to update your mastery!
           </p>
-          <Button variant="primary-blue" size="lg" onClick={() => navigate('/')} className="mt-6 w-full">
-            Back to Dashboard
-          </Button>
+
+          <div className="mt-6 flex flex-col gap-3">
+            {dismissedIds.size < sessionQueue.length && (
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleResetSession}
+                className="w-full"
+              >
+                Study Again ({sessionQueue.length - dismissedIds.size} remaining)
+              </Button>
+            )}
+            <Button 
+              variant="primary-blue" 
+              size="lg" 
+              onClick={() => navigate('/')} 
+              className="w-full"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </main>
     )
@@ -167,7 +271,10 @@ const StudySession = () => {
           </p>
           <h1 className="mt-2 text-4xl font-bold text-text-primary">{listDetails?.title}</h1>
           <p className="mt-2 text-base text-text-secondary">
-            Card {currentIndex + 1} of {words.length}
+            Card {currentIndex + 1} of {currentQueue.length}
+            {dismissedIds.size > 0 && (
+              <span className="text-text-muted"> ({dismissedIds.size} dismissed)</span>
+            )}
           </p>
           <label className="mt-4 flex items-center gap-2">
             <input
@@ -190,31 +297,35 @@ const StudySession = () => {
         </div>
 
         {isFlipped ? (
-          <div className="relative z-10 flex flex-col gap-3 md:flex-row">
-            <button
-              type="button"
-              disabled={savingResult}
-              onClick={() => handleResult('again')}
-              className="flex-1 rounded-2xl bg-red-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-red-100 transition hover:bg-red-600 disabled:opacity-60"
-            >
-              Again
-            </button>
-            <button
-              type="button"
-              disabled={savingResult}
-              onClick={() => handleResult('hard')}
-              className="flex-1 rounded-2xl bg-amber-400 px-6 py-4 text-base font-semibold text-slate-900 shadow-lg shadow-amber-100 transition hover:bg-amber-500 disabled:opacity-60"
-            >
-              Hard
-            </button>
-            <button
-              type="button"
-              disabled={savingResult}
-              onClick={() => handleResult('easy')}
-              className="flex-1 rounded-2xl bg-emerald-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-100 transition hover:bg-emerald-600 disabled:opacity-60"
-            >
-              Easy
-            </button>
+          <div className="relative z-10 flex flex-col gap-3">
+            {/* Main action buttons */}
+            <div className="flex flex-col gap-3 md:flex-row">
+              <button
+                type="button"
+                onClick={handleNotSure}
+                className="flex-1 rounded-2xl bg-amber-400 px-6 py-4 text-base font-semibold text-slate-900 shadow-lg shadow-amber-100 transition hover:bg-amber-500 active:scale-95"
+              >
+                Not Sure
+              </button>
+              <button
+                type="button"
+                onClick={handleKnowThis}
+                className="flex-1 rounded-2xl bg-emerald-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-100 transition hover:bg-emerald-600 active:scale-95"
+              >
+                I Know This
+              </button>
+            </div>
+
+            {/* Reset session button */}
+            {dismissedIds.size > 0 && (
+              <button
+                type="button"
+                onClick={handleResetSession}
+                className="rounded-xl border border-border-default bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-muted"
+              >
+                Reset Session ({dismissedIds.size} dismissed)
+              </button>
+            )}
           </div>
         ) : (
           <p className="relative z-10 text-center text-sm text-text-muted">

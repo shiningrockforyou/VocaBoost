@@ -123,22 +123,34 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
     doc.setFontSize(16)
     doc.text(listTitle, 14, 30)
 
-    if (mode === 'Daily Worksheet') {
+    // Update subtitle based on mode
+    let subtitle = ''
+    if (mode === 'today') {
+      subtitle = `Today's Study Batch • ${new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}`
+    } else if (mode === 'full') {
+      subtitle = `Complete List • ${words.length} words`
+    } else if (mode === 'Daily Worksheet') {
+      subtitle = `Personalized Study Queue for ${new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}`
+    }
+
+    // Add subtitle if provided
+    if (subtitle) {
       doc.setFontSize(11)
       doc.setTextColor(71, 85, 105)
-      doc.text(
-        `Personalized Study Queue for ${new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}`,
-        14,
-        38,
-      )
+      doc.text(subtitle, 14, 38)
     }
 
     doc.setFontSize(10)
     doc.setTextColor(71, 85, 105)
+    const generatedY = subtitle ? 44 : 38
     doc.text(
       `Generated: ${new Date().toLocaleDateString('en-US', {
         year: 'numeric',
@@ -146,15 +158,17 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
         day: 'numeric',
       })}`,
       14,
-      mode === 'Daily Worksheet' ? 44 : 38,
+      generatedY,
     )
 
     doc.setTextColor(0, 0, 0)
 
     console.log('Raw Words Input:', words)
-    const tableBody = (Array.isArray(words) ? words : Object.values(words || {})).map((word) => {
+    const tableBody = (Array.isArray(words) ? words : Object.values(words || {})).map((word, idx) => {
       const definitionText = (word.definition || '') + (word.definitions?.ko ? `\n[KR] ${word.definitions.ko}` : '')
+      const wordNumber = (word.wordIndex ?? word.index ?? idx) + 1 // 1-indexed position in master list
       return [
+        wordNumber.toString(),
         word.word || word.term || '—',
         word.partOfSpeech || word.pos || '—',
         definitionText?.trim()?.length ? definitionText : buildDefinitionCell(word),
@@ -166,8 +180,8 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
     doc.setFont(fontName, 'normal')
 
     autoTable(doc, {
-      startY: mode === 'Daily Worksheet' ? 48 : 42,
-      head: [['Word', 'POS', 'Definition', 'Sample']],
+      startY: subtitle ? 48 : 42,
+      head: [['#', 'Word', 'POS', 'Definition', 'Sample']],
       body: tableBody,
       theme: 'grid',
       styles: {
@@ -190,10 +204,11 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
         fillColor: [248, 250, 252],
       },
       columnStyles: {
-        0: { cellWidth: 35, fontStyle: 'bold' },
-        1: { cellWidth: 20, fontStyle: 'normal' },
-        2: { cellWidth: 75, fontStyle: 'normal' },
-        3: { cellWidth: 60, fontStyle: 'normal' },
+        0: { cellWidth: 10, halign: 'center' }, // Number column - narrow, centered
+        1: { cellWidth: 35, fontStyle: 'bold' }, // Word column
+        2: { cellWidth: 20, fontStyle: 'normal' }, // POS column
+        3: { cellWidth: 75, fontStyle: 'normal' }, // Definition column
+        4: { cellWidth: 60, fontStyle: 'normal' }, // Sample column
       },
     })
 

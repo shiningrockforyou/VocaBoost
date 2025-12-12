@@ -9,7 +9,9 @@ import ListLibrary from './pages/ListLibrary.jsx'
 import ListEditor from './pages/ListEditor.jsx'
 import ClassDetail from './pages/ClassDetail.jsx'
 import StudySession from './pages/StudySession.jsx'
-import TakeTest from './pages/TakeTest.jsx'
+import DailySessionFlow from './pages/DailySessionFlow.jsx'
+import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
+import MCQTest from './pages/MCQTest.jsx'
 import TypedTest from './pages/TypedTest.jsx'
 import Settings from './pages/Settings.jsx'
 import { queryStudentAttempts } from './services/db'
@@ -81,15 +83,31 @@ function App() {
             }
           />
           <Route
-            path="/test/:listId"
+            path="/session/:classId/:listId"
             element={
               <PrivateRoute>
-                <TakeTest />
+                <DailySessionFlow />
               </PrivateRoute>
             }
           />
           <Route
-            path="/typed-test/:listId"
+            path="/blindspots/:classId/:listId"
+            element={
+              <PrivateRoute>
+                <BlindSpotCheck />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/mcqtest/:classId/:listId"
+            element={
+              <PrivateRoute>
+                <MCQTest />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/typedtest/:classId/:listId"
             element={
               <PrivateRoute>
                 <TypedTest />

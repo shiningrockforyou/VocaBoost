@@ -63,6 +63,12 @@ const variants = {
     hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-600/30
     active:translate-y-0 active:scale-95 active:shadow-md
   `,
+  warning: `
+    bg-amber-400 text-slate-900 font-bold
+    shadow-lg shadow-amber-100
+    hover:bg-amber-500 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-200
+    active:translate-y-0 active:scale-95 active:shadow-md
+  `,
 }
 
 const sizes = {
