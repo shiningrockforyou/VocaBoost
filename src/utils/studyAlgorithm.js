@@ -16,7 +16,9 @@ export const STUDY_ALGORITHM_CONSTANTS = {
 
   // Default test sizes
   DEFAULT_TEST_SIZE_NEW: 50,        // Default number of new words per test
-  DEFAULT_TEST_SIZE_REVIEW: 30,     // Default number of review words per test
+  DEFAULT_TEST_SIZE_REVIEW: 30,     // Default number of review words per test (base, scales with intervention)
+  REVIEW_TEST_SIZE_MIN: 20,         // Minimum review test size (at 0% intervention)
+  REVIEW_TEST_SIZE_MAX: 50,         // Maximum review test size (at 100% intervention)
 
   // Retake threshold
   DEFAULT_RETAKE_THRESHOLD: 0.95,   // Must score 95% on new word test to "pass"
@@ -166,6 +168,25 @@ export function calculateReviewCount(recentSessions, reviewCap) {
 
   // Return bounded: max(15, min(scoreBased, reviewCap))
   return Math.max(STUDY_ALGORITHM_CONSTANTS.REVIEW_COUNT_MIN, Math.min(scoreBased, reviewCap));
+}
+
+/**
+ * Calculate review test size based on intervention level.
+ * Higher intervention = larger review test (more practice needed).
+ *
+ * @param {number} interventionLevel - Intervention level (0.0 to 1.0)
+ * @returns {number} Review test size
+ */
+export function calculateReviewTestSize(interventionLevel) {
+  const { REVIEW_TEST_SIZE_MIN, REVIEW_TEST_SIZE_MAX } = STUDY_ALGORITHM_CONSTANTS;
+
+  // Linear interpolation: min + (max - min) * intervention
+  // At 0% intervention: 20 words (doing well, smaller test)
+  // At 100% intervention: 50 words (struggling, larger test)
+  const size = REVIEW_TEST_SIZE_MIN +
+    (REVIEW_TEST_SIZE_MAX - REVIEW_TEST_SIZE_MIN) * interventionLevel;
+
+  return Math.round(size);
 }
 
 /**

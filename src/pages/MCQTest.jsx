@@ -12,9 +12,17 @@ import {
 } from '../services/studyService'
 import { speak } from '../utils/tts'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import {
+  getTestId,
+  saveTestState,
+  getTestState,
+  clearTestState,
+  getRecoveryTimeRemaining
+} from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
 import Watermark from '../components/Watermark.jsx'
+import ConfirmModal from '../components/ConfirmModal.jsx'
 import { Button } from '../components/ui'
 
 const MCQTest = () => {
@@ -28,7 +36,8 @@ const MCQTest = () => {
     testType = 'review',
     wordPool = null,
     returnPath = '/',
-    sessionContext = null
+    sessionContext = null,
+    practiceMode = false
   } = location.state || {}
 
   // Also check query params for backwards compatibility
@@ -51,6 +60,18 @@ const MCQTest = () => {
   const [canRetake, setCanRetake] = useState(false)
   const [retakeThreshold] = useState(0.95)
   const [showResults, setShowResults] = useState(false)
+
+  // Modal states
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false)
+  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
+  const [savedRecoveryState, setSavedRecoveryState] = useState(null)
+  const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
+
+  // Practice mode (after passing, test doesn't save)
+  const [isPracticeMode] = useState(practiceMode)
+
+  // Test ID for recovery
+  const testId = getTestId(classIdParam || classId, listId, currentTestType)
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -195,6 +216,47 @@ const MCQTest = () => {
     loadTestWords()
   }, [loadTestWords])
 
+  // Check for recoverable test state on mount
+  useEffect(() => {
+    if (!testId || loading) return
+
+    const saved = getTestState(testId)
+    if (saved && Object.keys(saved.answers || {}).length > 0) {
+      setSavedRecoveryState(saved)
+      setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+      setShowRecoveryPrompt(true)
+    }
+  }, [testId, loading])
+
+  // Save test state on each answer (for recovery)
+  useEffect(() => {
+    if (!testId || testWords.length === 0 || showResults) return
+
+    const wordIds = testWords.map(w => w.id)
+    if (Object.keys(answers).length > 0) {
+      saveTestState(testId, answers, wordIds, currentIndex)
+    }
+  }, [answers, testId, testWords, currentIndex, showResults])
+
+  // Handle recovery - restore saved answers
+  const handleRecoveryResume = () => {
+    if (savedRecoveryState?.answers) {
+      setAnswers(savedRecoveryState.answers)
+      if (savedRecoveryState.currentIndex !== undefined) {
+        setCurrentIndex(savedRecoveryState.currentIndex)
+      }
+    }
+    setShowRecoveryPrompt(false)
+    setSavedRecoveryState(null)
+  }
+
+  // Handle recovery - start fresh
+  const handleRecoveryStartFresh = () => {
+    clearTestState(testId)
+    setShowRecoveryPrompt(false)
+    setSavedRecoveryState(null)
+  }
+
   const handleAnswerSelect = (wordId, option) => {
     setAnswers((prev) => ({
       ...prev,
@@ -219,6 +281,9 @@ const MCQTest = () => {
     setError('')
 
     try {
+      // Clear saved test state
+      clearTestState(testId)
+
       // Build results array
       const results = testWords.map((word) => {
         const selectedOption = answers[word.id]
@@ -234,8 +299,20 @@ const MCQTest = () => {
         return
       }
 
-      // Process test results (updates word statuses)
-      const summary = await processTestResults(user.uid, results, listId)
+      // Process test results (updates word statuses) - skip if practice mode
+      let summary
+      if (isPracticeMode) {
+        // Calculate score locally without saving
+        const correct = results.filter(r => r.correct).length
+        summary = {
+          score: correct / results.length,
+          correct,
+          total: results.length,
+          failed: results.filter(r => !r.correct).map(r => r.wordId)
+        }
+      } else {
+        summary = await processTestResults(user.uid, results, listId)
+      }
 
       // Calculate score
       const score = summary.score
@@ -299,6 +376,13 @@ const MCQTest = () => {
     } else {
       navigate('/')
     }
+  }
+
+  // Quit test with confirmation
+  const handleQuitConfirm = () => {
+    clearTestState(testId)
+    setShowQuitConfirm(false)
+    navigate(returnPath || '/')
   }
 
   const handlePlayAudio = async (word) => {
@@ -469,11 +553,20 @@ const MCQTest = () => {
                 />
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate(returnPath || '/')} disabled={submitting}>
-              ← {returnPath ? 'Quit' : 'Quit to Dashboard'}
+            <Button variant="outline" size="sm" onClick={() => setShowQuitConfirm(true)} disabled={submitting}>
+              ← Quit
             </Button>
           </div>
         </div>
+
+        {/* Practice Mode Banner */}
+        {isPracticeMode && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
+            <p className="text-sm font-medium text-amber-800">
+              Practice Mode — This attempt won't be recorded
+            </p>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-4 py-6">
@@ -534,6 +627,30 @@ const MCQTest = () => {
           </div>
         )}
       </div>
+
+      {/* Quit Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showQuitConfirm}
+        title="Quit Test?"
+        message="Are you sure you want to quit? All progress on this test will be lost."
+        confirmLabel="Quit"
+        cancelLabel="Continue Test"
+        onConfirm={handleQuitConfirm}
+        onCancel={() => setShowQuitConfirm(false)}
+        variant="danger"
+      />
+
+      {/* Recovery Prompt Modal */}
+      <ConfirmModal
+        isOpen={showRecoveryPrompt}
+        title="Resume Previous Test?"
+        message={`You have an unfinished test from ${recoveryTimeRemaining || 'a few'} minutes ago. Would you like to resume where you left off?`}
+        confirmLabel="Resume"
+        cancelLabel="Start Fresh"
+        onConfirm={handleRecoveryResume}
+        onCancel={handleRecoveryStartFresh}
+        variant="info"
+      />
     </main>
   )
 }

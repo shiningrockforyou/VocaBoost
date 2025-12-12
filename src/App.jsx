@@ -8,7 +8,6 @@ import Gradebook from './pages/Gradebook.jsx'
 import ListLibrary from './pages/ListLibrary.jsx'
 import ListEditor from './pages/ListEditor.jsx'
 import ClassDetail from './pages/ClassDetail.jsx'
-import StudySession from './pages/StudySession.jsx'
 import DailySessionFlow from './pages/DailySessionFlow.jsx'
 import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
 import MCQTest from './pages/MCQTest.jsx'
@@ -71,14 +70,6 @@ function App() {
                 <TeacherRoute>
                   <ClassDetail />
                 </TeacherRoute>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/study/:listId"
-            element={
-              <PrivateRoute>
-                <StudySession />
               </PrivateRoute>
             }
           />
