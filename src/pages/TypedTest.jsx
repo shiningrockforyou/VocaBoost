@@ -11,19 +11,11 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
+import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
+import Watermark from '../components/Watermark.jsx'
 import { Button } from '../components/ui'
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
 
 const TypedTest = () => {
   const { classId, listId } = useParams()
@@ -116,21 +108,21 @@ const TypedTest = () => {
       }
 
       const testSize = currentTestType === 'new'
-        ? (assignment.testSizeNew || 50)
-        : (assignment.testSizeReview || 30)
+        ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)
+        : (assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW)
 
       let wordsToTest = []
 
       if (currentTestType === 'new') {
         // Get today's new words
         const config = await initializeDailySession(user.uid, classIdParam, listId, {
-          weeklyPace: assignment.pace * 7 || 400,
-          studyDaysPerWeek: 5,
-          testSizeNew: assignment.testSizeNew || 50,
-          testSizeReview: assignment.testSizeReview || 30,
-          newWordRetakeThreshold: 0.95
+          weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+          studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+          testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+          testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+          newWordRetakeThreshold: STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
         })
-        
+
         if (config.newWordCount > 0) {
           const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
           wordsToTest = selectTestWords(newWords, testSize)
@@ -140,11 +132,11 @@ const TypedTest = () => {
       } else {
         // Get review segment words
         const config = await initializeDailySession(user.uid, classIdParam, listId, {
-          weeklyPace: assignment.pace * 7 || 400,
-          studyDaysPerWeek: 5,
-          testSizeNew: assignment.testSizeNew || 50,
-          testSizeReview: assignment.testSizeReview || 30,
-          newWordRetakeThreshold: 0.95
+          weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+          studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+          testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+          testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+          newWordRetakeThreshold: STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
         })
         
         if (config.segment) {

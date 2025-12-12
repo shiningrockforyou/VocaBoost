@@ -17,16 +17,7 @@ import {
   selectTestWords
 } from '../services/studyService'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
+import Watermark from '../components/Watermark.jsx'
 
 const TEST_SIZE = 30 // Max words per blind spot test
 

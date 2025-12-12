@@ -12,17 +12,8 @@ import {
   updateQueueTracking
 } from '../services/studyService'
 import BackButton from '../components/BackButton.jsx'
+import Watermark from '../components/Watermark.jsx'
 import { Button } from '../components/ui'
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
 
 const StudySession = () => {
   const { listId } = useParams()

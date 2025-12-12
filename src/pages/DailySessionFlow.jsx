@@ -11,6 +11,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
+import Watermark from '../components/Watermark'
 import { Button } from '../components/ui'
 
 // Services
@@ -23,6 +24,7 @@ import {
   recordSessionCompletion,
   initializeNewWordStates
 } from '../services/studyService'
+import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 
 // Constants
 const PHASES = {
@@ -33,16 +35,6 @@ const PHASES = {
   REVIEW_TEST: 'review_test',
   COMPLETE: 'complete'
 }
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
 
 export default function DailySessionFlow() {
   const { classId, listId } = useParams()
@@ -135,11 +127,11 @@ export default function DailySessionFlow() {
           classId,
           listId,
           {
-            weeklyPace: assignment.pace * 7 || 400,
-            studyDaysPerWeek: 5,
-            testSizeNew: assignment.testSizeNew || 50,
-            testSizeReview: assignment.testSizeReview || 30,
-            newWordRetakeThreshold: assignment.newWordRetakeThreshold || 0.95
+            weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+            studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+            testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+            testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+            newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
           }
         )
         

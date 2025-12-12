@@ -64,7 +64,8 @@ export async function initializeDailySession(userId, classId, listId, assignment
 
   // Get daily pace from settings
   const dailyPace = Math.ceil(
-    (assignmentSettings.weeklyPace || 400) / (assignmentSettings.studyDaysPerWeek || 5)
+    (assignmentSettings.weeklyPace || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE) /
+    (assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK)
   );
 
   // Calculate allocation
@@ -77,7 +78,7 @@ export async function initializeDailySession(userId, classId, listId, assignment
   // Calculate segment for review
   const segment = calculateSegment(
     currentStudyDay,
-    assignmentSettings.studyDaysPerWeek || 5,
+    assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     totalWordsIntroduced
   );
 
@@ -549,11 +550,11 @@ export async function getBlindSpotCount(userId, listId) {
 export async function getTodaysBatchForPDF(userId, classId, listId, assignment) {
   // Initialize session to get allocation
   const config = await initializeDailySession(userId, classId, listId, {
-    weeklyPace: assignment.pace * 7 || 400,
-    studyDaysPerWeek: 5,
-    testSizeNew: assignment.testSizeNew || 50,
-    testSizeReview: assignment.testSizeReview || 30,
-    newWordRetakeThreshold: assignment.newWordRetakeThreshold || 0.95
+    weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+    studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+    testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+    testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
   });
   
   // Get new words (already have wordIndex from getNewWords)

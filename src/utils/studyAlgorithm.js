@@ -7,25 +7,30 @@
 
 export const STUDY_ALGORITHM_CONSTANTS = {
   // Intervention thresholds
-  INTERVENTION_HIGH_SCORE: 0.75,    // Score above this = 0% intervention
-  INTERVENTION_LOW_SCORE: 0.30,     // Score below this = 100% intervention
+  INTERVENTION_HIGH_SCORE: 0.75,    // Score above this = 0% intervention (full new words)
+  INTERVENTION_LOW_SCORE: 0.30,     // Score below this = 100% intervention (pause new words)
 
-  // Review count
-  REVIEW_COUNT_BASE: 100,
-  REVIEW_COUNT_MIN: 15,
+  // Review count calculation
+  REVIEW_COUNT_BASE: 100,           // Base multiplier for review queue size formula
+  REVIEW_COUNT_MIN: 15,             // Minimum words in review queue (floor)
 
   // Default test sizes
-  DEFAULT_TEST_SIZE_NEW: 50,
-  DEFAULT_TEST_SIZE_REVIEW: 30,
+  DEFAULT_TEST_SIZE_NEW: 50,        // Default number of new words per test
+  DEFAULT_TEST_SIZE_REVIEW: 30,     // Default number of review words per test
 
   // Retake threshold
-  DEFAULT_RETAKE_THRESHOLD: 0.95,
+  DEFAULT_RETAKE_THRESHOLD: 0.95,   // Must score 95% on new word test to "pass"
 
   // Blind spot threshold
-  STALE_DAYS_THRESHOLD: 21,
+  STALE_DAYS_THRESHOLD: 21,         // Words not seen in 21+ days are "blind spots"
 
   // Early days (cumulative instead of rotation)
-  EARLY_DAYS_THRESHOLD: 4
+  EARLY_DAYS_THRESHOLD: 4,          // Days 1-4 use cumulative review; day 5+ uses segment rotation
+
+  // Pace defaults
+  DEFAULT_WEEKLY_PACE: 400,         // Default words per week (≈57/day at 7 days, ≈80/day at 5 days)
+  DEFAULT_STUDY_DAYS_PER_WEEK: 5,   // Default number of study days per week
+  DEFAULT_DAILY_PACE: 20,           // Default words per day for new assignments
 };
 
 /**
