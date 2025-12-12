@@ -1374,12 +1374,6 @@ const Dashboard = () => {
                                     >
                                       <span className="truncate whitespace-nowrap max-w-full">Start Today's Session</span>
                                     </Link>
-                                    <Link
-                                      to={`/study/${list.id}?classId=${klass.id}`}
-                                      className="h-12 flex items-center justify-center gap-2 rounded-button bg-surface border border-border-strong px-4 text-sm font-semibold text-text-secondary transition hover:bg-muted"
-                                    >
-                                      <span className="truncate whitespace-nowrap max-w-full">Study Now</span>
-                                    </Link>
                                     {(() => {
                                       const mode = list.testMode || 'mcq'
                                       const showMcq = mode === 'mcq' || mode === 'both' || !mode

@@ -11,19 +11,19 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
+import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import {
+  getTestId,
+  saveTestState,
+  getTestState,
+  clearTestState,
+  getRecoveryTimeRemaining
+} from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
+import Watermark from '../components/Watermark.jsx'
+import ConfirmModal from '../components/ConfirmModal.jsx'
 import { Button } from '../components/ui'
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
 
 const TypedTest = () => {
   const { classId, listId } = useParams()
@@ -36,7 +36,8 @@ const TypedTest = () => {
     testType = 'review',
     wordPool = null,
     returnPath = '/',
-    sessionContext = null
+    sessionContext = null,
+    practiceMode = false
   } = location.state || {}
 
   // Also check query params for backwards compatibility
@@ -60,6 +61,18 @@ const TypedTest = () => {
   const [retakeThreshold] = useState(0.95)
   const [showResults, setShowResults] = useState(false)
   const [testResultsData, setTestResultsData] = useState(null)
+
+  // Modal states
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false)
+  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
+  const [savedRecoveryState, setSavedRecoveryState] = useState(null)
+  const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
+
+  // Practice mode (after passing, test doesn't save)
+  const [isPracticeMode] = useState(practiceMode)
+
+  // Test ID for recovery
+  const testId = getTestId(classIdParam || classId, listId, currentTestType)
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -116,21 +129,21 @@ const TypedTest = () => {
       }
 
       const testSize = currentTestType === 'new'
-        ? (assignment.testSizeNew || 50)
-        : (assignment.testSizeReview || 30)
+        ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)
+        : (assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW)
 
       let wordsToTest = []
 
       if (currentTestType === 'new') {
         // Get today's new words
         const config = await initializeDailySession(user.uid, classIdParam, listId, {
-          weeklyPace: assignment.pace * 7 || 400,
-          studyDaysPerWeek: 5,
-          testSizeNew: assignment.testSizeNew || 50,
-          testSizeReview: assignment.testSizeReview || 30,
-          newWordRetakeThreshold: 0.95
+          weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+          studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+          testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+          testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+          newWordRetakeThreshold: STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
         })
-        
+
         if (config.newWordCount > 0) {
           const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
           wordsToTest = selectTestWords(newWords, testSize)
@@ -140,11 +153,11 @@ const TypedTest = () => {
       } else {
         // Get review segment words
         const config = await initializeDailySession(user.uid, classIdParam, listId, {
-          weeklyPace: assignment.pace * 7 || 400,
-          studyDaysPerWeek: 5,
-          testSizeNew: assignment.testSizeNew || 50,
-          testSizeReview: assignment.testSizeReview || 30,
-          newWordRetakeThreshold: 0.95
+          weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+          studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+          testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+          testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+          newWordRetakeThreshold: STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
         })
         
         if (config.segment) {
@@ -206,6 +219,54 @@ const TypedTest = () => {
     }
   }, [focusedIndex, results])
 
+  // Check for recoverable test state on mount
+  useEffect(() => {
+    if (!testId || isLoading) return
+
+    const saved = getTestState(testId)
+    if (saved && Object.keys(saved.answers || {}).length > 0) {
+      setSavedRecoveryState(saved)
+      setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+      setShowRecoveryPrompt(true)
+    }
+  }, [testId, isLoading])
+
+  // Save test state on each answer (for recovery)
+  useEffect(() => {
+    if (!testId || words.length === 0 || showResults) return
+
+    const wordIds = words.map(w => w.id)
+    if (Object.keys(responses).length > 0) {
+      saveTestState(testId, responses, wordIds, focusedIndex)
+    }
+  }, [responses, testId, words, focusedIndex, showResults])
+
+  // Handle recovery - restore saved answers
+  const handleRecoveryResume = () => {
+    if (savedRecoveryState?.answers) {
+      setResponses(savedRecoveryState.answers)
+      if (savedRecoveryState.currentIndex !== undefined) {
+        setFocusedIndex(savedRecoveryState.currentIndex)
+      }
+    }
+    setShowRecoveryPrompt(false)
+    setSavedRecoveryState(null)
+  }
+
+  // Handle recovery - start fresh
+  const handleRecoveryStartFresh = () => {
+    clearTestState(testId)
+    setShowRecoveryPrompt(false)
+    setSavedRecoveryState(null)
+  }
+
+  // Quit test with confirmation
+  const handleQuitConfirm = () => {
+    clearTestState(testId)
+    setShowQuitConfirm(false)
+    navigate(returnPath || '/')
+  }
+
   const handleKeyDown = (e, index) => {
     if (results || isSubmitting) return
 
@@ -246,6 +307,9 @@ const TypedTest = () => {
     setError('')
 
     try {
+      // Clear saved test state
+      clearTestState(testId)
+
       // Prepare answers for grading
       const answersToGrade = words.map((word) => ({
         wordId: word.id,
@@ -261,13 +325,25 @@ const TypedTest = () => {
       const gradingResult = await gradeTypedTest({ answers: answersToGrade })
 
       // Build results array for processTestResults
-      const results = gradingResult.data.results.map(r => ({
+      const resultsArray = gradingResult.data.results.map(r => ({
         wordId: r.wordId,
         correct: r.isCorrect
       }))
 
-      // Process test results (updates word statuses)
-      const summary = await processTestResults(user.uid, results, listId)
+      // Process test results (updates word statuses) - skip if practice mode
+      let summary
+      if (isPracticeMode) {
+        // Calculate score locally without saving
+        const correct = resultsArray.filter(r => r.correct).length
+        summary = {
+          score: correct / resultsArray.length,
+          correct,
+          total: resultsArray.length,
+          failed: resultsArray.filter(r => !r.correct).map(r => r.wordId)
+        }
+      } else {
+        summary = await processTestResults(user.uid, resultsArray, listId)
+      }
 
       // Check if retake available
       if (currentTestType === 'new' && summary.score < retakeThreshold) {
@@ -446,13 +522,27 @@ const TypedTest = () => {
     <main className="relative min-h-screen bg-muted px-4 py-10">
       <Watermark />
       <div className="relative z-10 mx-auto max-w-4xl">
+        {/* Practice Mode Banner */}
+        {isPracticeMode && (
+          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center">
+            <p className="text-sm font-medium text-amber-800">
+              Practice Mode — This attempt won't be recorded
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-6 flex items-center justify-between rounded-2xl bg-surface p-6 shadow-lg ring-1 ring-border-default">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">{listDetails?.title || 'Typed Test'}</h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              Progress: {answeredCount}/{words.length} answered
-            </p>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={() => setShowQuitConfirm(true)} disabled={isSubmitting}>
+              ← Quit
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary">{listDetails?.title || 'Typed Test'}</h1>
+              <p className="mt-1 text-sm text-text-secondary">
+                Progress: {answeredCount}/{words.length} answered
+              </p>
+            </div>
           </div>
           <Button variant="primary-blue" size="lg" onClick={handleSubmit} disabled={isSubmitting || answeredCount === 0}>
             {isSubmitting ? 'Grading...' : 'Submit Test'}
@@ -498,6 +588,30 @@ const TypedTest = () => {
           </div>
         )}
       </div>
+
+      {/* Quit Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showQuitConfirm}
+        title="Quit Test?"
+        message="Are you sure you want to quit? All progress on this test will be lost."
+        confirmLabel="Quit"
+        cancelLabel="Continue Test"
+        onConfirm={handleQuitConfirm}
+        onCancel={() => setShowQuitConfirm(false)}
+        variant="danger"
+      />
+
+      {/* Recovery Prompt Modal */}
+      <ConfirmModal
+        isOpen={showRecoveryPrompt}
+        title="Resume Previous Test?"
+        message={`You have an unfinished test from ${recoveryTimeRemaining || 'a few'} minutes ago. Would you like to resume where you left off?`}
+        confirmLabel="Resume"
+        cancelLabel="Start Fresh"
+        onConfirm={handleRecoveryResume}
+        onCancel={handleRecoveryStartFresh}
+        variant="info"
+      />
     </main>
   )
 }

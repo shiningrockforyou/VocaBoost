@@ -11,18 +11,21 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
+import Watermark from '../components/Watermark'
 import { Button } from '../components/ui'
 
 // Services
 import {
   initializeDailySession,
   getNewWords,
+  getFailedFromPreviousNewWords,
   getSegmentWords,
   buildReviewQueue,
   updateQueueTracking,
   recordSessionCompletion,
   initializeNewWordStates
 } from '../services/studyService'
+import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 
 // Constants
 const PHASES = {
@@ -33,16 +36,6 @@ const PHASES = {
   REVIEW_TEST: 'review_test',
   COMPLETE: 'complete'
 }
-
-const Watermark = () => (
-  <div className="pointer-events-none fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vmin] h-[90vmin] opacity-5 z-0">
-    <img
-      src="/logo_square_vector.svg"
-      alt="VocaBoost watermark"
-      className="h-full w-full object-contain"
-    />
-  </div>
-)
 
 export default function DailySessionFlow() {
   const { classId, listId } = useParams()
@@ -57,6 +50,7 @@ export default function DailySessionFlow() {
 
   // New words phase
   const [newWords, setNewWords] = useState([])
+  const [failedCarryover, setFailedCarryover] = useState([]) // FAILED from previous tests
   const [newWordsQueue, setNewWordsQueue] = useState([])
   const [newWordsDismissed, setNewWordsDismissed] = useState(new Set())
 
@@ -81,6 +75,12 @@ export default function DailySessionFlow() {
   const [showTestTypeModal, setShowTestTypeModal] = useState(false)
   const [pendingTestPhase, setPendingTestPhase] = useState(null) // 'new' | 'review'
   const [assignmentSettings, setAssignmentSettings] = useState(null)
+
+  // Track typed test passes (to disable re-taking typed after 95%+)
+  const [typedTestPassed, setTypedTestPassed] = useState({
+    new: false,
+    review: false
+  })
 
   // Session summary
   const [sessionSummary, setSessionSummary] = useState(null)
@@ -135,11 +135,11 @@ export default function DailySessionFlow() {
           classId,
           listId,
           {
-            weeklyPace: assignment.pace * 7 || 400,
-            studyDaysPerWeek: 5,
-            testSizeNew: assignment.testSizeNew || 50,
-            testSizeReview: assignment.testSizeReview || 30,
-            newWordRetakeThreshold: assignment.newWordRetakeThreshold || 0.95
+            weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+            studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+            testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+            testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+            newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
           }
         )
         
@@ -152,10 +152,22 @@ export default function DailySessionFlow() {
             config.newWordStartIndex,
             config.newWordCount
           )
-          setNewWords(words)
-          setNewWordsQueue(words)
-          
-          // Initialize study states for new words
+
+          // Also get FAILED words from previous tests (carryover)
+          const failedWords = await getFailedFromPreviousNewWords(
+            user.uid,
+            listId,
+            config.newWordStartIndex // Words before today's new words
+          )
+          setFailedCarryover(failedWords)
+
+          // Combine: failed carryover + today's new words
+          // Failed words go first so they appear in the test
+          const combinedWords = [...failedWords, ...words]
+          setNewWords(combinedWords)
+          setNewWordsQueue(combinedWords)
+
+          // Initialize study states for new words only (failed words already have states)
           await initializeNewWordStates(
             user.uid,
             listId,
@@ -348,8 +360,17 @@ export default function DailySessionFlow() {
   // Navigation to test
   const navigateToTest = (testPhase, mode) => {
     const wordPool = testPhase === 'new' ? newWords : null // Review uses smart selection
-    const route = mode === 'typed' ? '/typedtest' : '/mcqtest'
-    
+    let actualMode = mode
+    let practiceMode = false
+
+    // Check if typed test was already passed - redirect to MCQ practice mode
+    if (mode === 'typed' && typedTestPassed[testPhase]) {
+      actualMode = 'mcq'
+      practiceMode = true
+    }
+
+    const route = actualMode === 'typed' ? '/typedtest' : '/mcqtest'
+
     // Store session state in sessionStorage for return
     sessionStorage.setItem('dailySessionState', JSON.stringify({
       classId,
@@ -362,12 +383,14 @@ export default function DailySessionFlow() {
       sessionConfig,
       assignmentSettings
     }))
-    
+
     navigate(`${route}/${classId}/${listId}`, {
       state: {
         testType: testPhase,
         wordPool: testPhase === 'new' ? newWords : null,
         returnPath: `/session/${classId}/${listId}`,
+        practiceMode,
+        wasTypedTest: actualMode === 'typed',
         sessionContext: {
           dayNumber: sessionConfig.dayNumber,
           phase: testPhase
@@ -398,7 +421,13 @@ export default function DailySessionFlow() {
         if (location.state?.testType === 'new') {
           setNewWordTestResults(results)
           setNewWordFailedIds(results?.failed || [])
-          
+
+          // Track if typed test was passed (95%+)
+          const wasTypedTest = location.state?.wasTypedTest
+          if (wasTypedTest && results?.score >= state.sessionConfig?.retakeThreshold) {
+            setTypedTestPassed(prev => ({ ...prev, new: true }))
+          }
+
           // Check if retake needed
           if (results?.score < state.sessionConfig?.retakeThreshold) {
             // Stay in new word test phase, show retake option
@@ -409,6 +438,13 @@ export default function DailySessionFlow() {
           }
         } else {
           setReviewTestResults(results)
+
+          // Track if typed test was passed (95%+) for review
+          const wasTypedTest = location.state?.wasTypedTest
+          if (wasTypedTest && results?.score >= 0.95) {
+            setTypedTestPassed(prev => ({ ...prev, review: true }))
+          }
+
           await completeSession()
         }
         
@@ -607,6 +643,7 @@ export default function DailySessionFlow() {
         onClose={() => setShowTestTypeModal(false)}
         onSelect={handleTestTypeSelect}
         testPhase={pendingTestPhase}
+        typedTestPassed={typedTestPassed[pendingTestPhase]}
       />
     </main>
   )
@@ -761,7 +798,7 @@ function RetakePrompt({ results, threshold, onRetake, onContinue }) {
   )
 }
 
-function TestTypeModal({ isOpen, onClose, onSelect, testPhase }) {
+function TestTypeModal({ isOpen, onClose, onSelect, testPhase, typedTestPassed }) {
   if (!isOpen) return null
 
   return (
@@ -773,7 +810,7 @@ function TestTypeModal({ isOpen, onClose, onSelect, testPhase }) {
         <p className="mt-2 text-sm text-text-secondary">
           {testPhase === 'new' ? 'New Word Test' : 'Review Test'}
         </p>
-        
+
         <div className="mt-6 flex flex-col gap-3">
           <Button
             onClick={() => { onClose(); onSelect('mcq'); }}
@@ -783,16 +820,23 @@ function TestTypeModal({ isOpen, onClose, onSelect, testPhase }) {
           >
             Multiple Choice
           </Button>
-          <Button
-            onClick={() => { onClose(); onSelect('typed'); }}
-            variant="outline"
-            size="lg"
-            className="w-full"
-          >
-            Written
-          </Button>
+          <div className="relative">
+            <Button
+              onClick={() => { onClose(); onSelect('typed'); }}
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
+              Written
+            </Button>
+            {typedTestPassed && (
+              <p className="mt-1 text-center text-xs text-amber-600">
+                (You passed — this will be practice mode)
+              </p>
+            )}
+          </div>
         </div>
-        
+
         <button
           onClick={onClose}
           className="mt-4 w-full text-center text-sm text-text-muted hover:text-text-secondary"

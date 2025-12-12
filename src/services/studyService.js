@@ -24,6 +24,7 @@ import {
   calculateDailyAllocation,
   calculateSegment,
   calculateReviewCount,
+  calculateReviewTestSize,
   selectReviewQueue,
   selectTestWords,
   STUDY_ALGORITHM_CONSTANTS
@@ -64,7 +65,8 @@ export async function initializeDailySession(userId, classId, listId, assignment
 
   // Get daily pace from settings
   const dailyPace = Math.ceil(
-    (assignmentSettings.weeklyPace || 400) / (assignmentSettings.studyDaysPerWeek || 5)
+    (assignmentSettings.weeklyPace || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE) /
+    (assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK)
   );
 
   // Calculate allocation
@@ -77,7 +79,7 @@ export async function initializeDailySession(userId, classId, listId, assignment
   // Calculate segment for review
   const segment = calculateSegment(
     currentStudyDay,
-    assignmentSettings.studyDaysPerWeek || 5,
+    assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     totalWordsIntroduced
   );
 
@@ -117,9 +119,9 @@ export async function initializeDailySession(userId, classId, listId, assignment
     segment,
     reviewCount: segment ? reviewCount : 0,
 
-    // Test sizes
+    // Test sizes (review scales with intervention)
     testSizeNew: assignmentSettings.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
-    testSizeReview: assignmentSettings.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
+    testSizeReview: calculateReviewTestSize(interventionLevel),
     retakeThreshold: assignmentSettings.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD,
 
     // Progress reference
@@ -379,10 +381,52 @@ export async function initializeNewWordStates(userId, listId, words, introducedO
 }
 
 /**
+ * Get FAILED words from previous new word tests
+ *
+ * Fetches words that were introduced in previous days but still have FAILED status.
+ * These are from passing tests (95%+) where up to 5% of words failed.
+ *
+ * @param {string} userId - User ID
+ * @param {string} listId - List ID
+ * @param {number} endIndexExclusive - End index (exclusive) - words before this index
+ * @returns {Promise<Array>} Array of FAILED word objects
+ */
+export async function getFailedFromPreviousNewWords(userId, listId, endIndexExclusive) {
+  if (endIndexExclusive <= 0) return [];
+
+  // Get all words up to the end index
+  const wordsRef = collection(db, 'lists', listId, 'words');
+  const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'));
+  const wordsSnap = await getDocs(wordsQuery);
+
+  const previousWords = wordsSnap.docs
+    .slice(0, endIndexExclusive)
+    .map((docSnap, index) => ({
+      id: docSnap.id,
+      wordIndex: index,
+      ...docSnap.data()
+    }));
+
+  if (previousWords.length === 0) return [];
+
+  // Get study states for these words
+  const wordIds = previousWords.map(w => w.id);
+  const studyStates = await getStudyStatesForWords(userId, wordIds);
+
+  // Filter to only FAILED words
+  const failedWords = previousWords.filter(word => {
+    const state = studyStates[word.id];
+    return state?.status === WORD_STATUS.FAILED;
+  });
+
+  return failedWords;
+}
+
+/**
  * Get new words for today
- * 
+ *
  * Fetches the next batch of new words from a list.
- * 
+ *
  * @param {string} listId - List ID
  * @param {number} startIndex - Start index (inclusive)
  * @param {number} count - Number of words to get
@@ -547,13 +591,12 @@ export async function getBlindSpotCount(userId, listId) {
  * @returns {Promise<Array>} Words for today's batch (with wordIndex)
  */
 export async function getTodaysBatchForPDF(userId, classId, listId, assignment) {
-  // Initialize session to get allocation
+  // Initialize session to get allocation (testSizeReview calculated internally based on intervention)
   const config = await initializeDailySession(userId, classId, listId, {
-    weeklyPace: assignment.pace * 7 || 400,
-    studyDaysPerWeek: 5,
-    testSizeNew: assignment.testSizeNew || 50,
-    testSizeReview: assignment.testSizeReview || 30,
-    newWordRetakeThreshold: assignment.newWordRetakeThreshold || 0.95
+    weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+    studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+    testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
   });
   
   // Get new words (already have wordIndex from getNewWords)

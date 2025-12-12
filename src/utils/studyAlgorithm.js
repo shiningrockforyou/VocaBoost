@@ -7,25 +7,32 @@
 
 export const STUDY_ALGORITHM_CONSTANTS = {
   // Intervention thresholds
-  INTERVENTION_HIGH_SCORE: 0.75,    // Score above this = 0% intervention
-  INTERVENTION_LOW_SCORE: 0.30,     // Score below this = 100% intervention
+  INTERVENTION_HIGH_SCORE: 0.75,    // Score above this = 0% intervention (full new words)
+  INTERVENTION_LOW_SCORE: 0.30,     // Score below this = 100% intervention (pause new words)
 
-  // Review count
-  REVIEW_COUNT_BASE: 100,
-  REVIEW_COUNT_MIN: 15,
+  // Review count calculation
+  REVIEW_COUNT_BASE: 100,           // Base multiplier for review queue size formula
+  REVIEW_COUNT_MIN: 15,             // Minimum words in review queue (floor)
 
   // Default test sizes
-  DEFAULT_TEST_SIZE_NEW: 50,
-  DEFAULT_TEST_SIZE_REVIEW: 30,
+  DEFAULT_TEST_SIZE_NEW: 50,        // Default number of new words per test
+  DEFAULT_TEST_SIZE_REVIEW: 30,     // Default number of review words per test (base, scales with intervention)
+  REVIEW_TEST_SIZE_MIN: 20,         // Minimum review test size (at 0% intervention)
+  REVIEW_TEST_SIZE_MAX: 50,         // Maximum review test size (at 100% intervention)
 
   // Retake threshold
-  DEFAULT_RETAKE_THRESHOLD: 0.95,
+  DEFAULT_RETAKE_THRESHOLD: 0.95,   // Must score 95% on new word test to "pass"
 
   // Blind spot threshold
-  STALE_DAYS_THRESHOLD: 21,
+  STALE_DAYS_THRESHOLD: 21,         // Words not seen in 21+ days are "blind spots"
 
   // Early days (cumulative instead of rotation)
-  EARLY_DAYS_THRESHOLD: 4
+  EARLY_DAYS_THRESHOLD: 4,          // Days 1-4 use cumulative review; day 5+ uses segment rotation
+
+  // Pace defaults
+  DEFAULT_WEEKLY_PACE: 400,         // Default words per week (≈57/day at 7 days, ≈80/day at 5 days)
+  DEFAULT_STUDY_DAYS_PER_WEEK: 5,   // Default number of study days per week
+  DEFAULT_DAILY_PACE: 20,           // Default words per day for new assignments
 };
 
 /**
@@ -161,6 +168,25 @@ export function calculateReviewCount(recentSessions, reviewCap) {
 
   // Return bounded: max(15, min(scoreBased, reviewCap))
   return Math.max(STUDY_ALGORITHM_CONSTANTS.REVIEW_COUNT_MIN, Math.min(scoreBased, reviewCap));
+}
+
+/**
+ * Calculate review test size based on intervention level.
+ * Higher intervention = larger review test (more practice needed).
+ *
+ * @param {number} interventionLevel - Intervention level (0.0 to 1.0)
+ * @returns {number} Review test size
+ */
+export function calculateReviewTestSize(interventionLevel) {
+  const { REVIEW_TEST_SIZE_MIN, REVIEW_TEST_SIZE_MAX } = STUDY_ALGORITHM_CONSTANTS;
+
+  // Linear interpolation: min + (max - min) * intervention
+  // At 0% intervention: 20 words (doing well, smaller test)
+  // At 100% intervention: 50 words (struggling, larger test)
+  const size = REVIEW_TEST_SIZE_MIN +
+    (REVIEW_TEST_SIZE_MAX - REVIEW_TEST_SIZE_MIN) * interventionLevel;
+
+  return Math.round(size);
 }
 
 /**
