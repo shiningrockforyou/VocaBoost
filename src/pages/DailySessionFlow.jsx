@@ -166,7 +166,8 @@ export default function DailySessionFlow() {
         newWordsTestScore: newWordTestResults?.score || null,
         reviewTestScore: reviewTestResults?.score || null,
         reviewTestAttempts,
-        dismissedWordIds: [...newWordsDismissed, ...reviewDismissed],
+        newWordsDismissedIds: [...newWordsDismissed],
+        reviewDismissedIds: [...reviewDismissed],
         ...updates
       })
     } catch (err) {
@@ -401,9 +402,12 @@ export default function DailySessionFlow() {
             setReviewTestResults({ score: existingState.reviewTestScore })
           }
 
-          // Restore dismissed words
-          if (existingState.dismissedWordIds?.length > 0) {
-            setNewWordsDismissed(new Set(existingState.dismissedWordIds))
+          // Restore dismissed words (stored separately)
+          if (existingState.newWordsDismissedIds?.length > 0) {
+            setNewWordsDismissed(new Set(existingState.newWordsDismissedIds))
+          }
+          if (existingState.reviewDismissedIds?.length > 0) {
+            setReviewDismissed(new Set(existingState.reviewDismissedIds))
           }
         }
 

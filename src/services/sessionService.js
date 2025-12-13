@@ -41,7 +41,8 @@ export const DEFAULT_SESSION_STATE = {
   newWordsTestScore: null,
   reviewTestScore: null,
   reviewTestAttempts: 0,
-  dismissedWordIds: [],
+  newWordsDismissedIds: [],
+  reviewDismissedIds: [],
   lastUpdated: null
 };
 
@@ -161,16 +162,26 @@ export async function updateSessionState(userId, classId, listId, updates) {
  * @param {string} classId - Class ID
  * @param {string} listId - List ID
  * @param {string} wordId - Word ID to dismiss
+ * @param {string} phase - Current phase ('new' or 'review')
  * @returns {Promise<void>}
  */
-export async function dismissWord(userId, classId, listId, wordId) {
+export async function dismissWord(userId, classId, listId, wordId, phase = 'new') {
   const currentState = await getSessionState(userId, classId, listId);
-  const dismissedWordIds = currentState?.dismissedWordIds || [];
 
-  if (!dismissedWordIds.includes(wordId)) {
-    await updateSessionState(userId, classId, listId, {
-      dismissedWordIds: [...dismissedWordIds, wordId]
-    });
+  if (phase === 'review') {
+    const reviewDismissedIds = currentState?.reviewDismissedIds || [];
+    if (!reviewDismissedIds.includes(wordId)) {
+      await updateSessionState(userId, classId, listId, {
+        reviewDismissedIds: [...reviewDismissedIds, wordId]
+      });
+    }
+  } else {
+    const newWordsDismissedIds = currentState?.newWordsDismissedIds || [];
+    if (!newWordsDismissedIds.includes(wordId)) {
+      await updateSessionState(userId, classId, listId, {
+        newWordsDismissedIds: [...newWordsDismissedIds, wordId]
+      });
+    }
   }
 }
 
@@ -180,12 +191,24 @@ export async function dismissWord(userId, classId, listId, wordId) {
  * @param {string} userId - User ID
  * @param {string} classId - Class ID
  * @param {string} listId - List ID
+ * @param {string} phase - Which phase to reset ('new', 'review', or 'all')
  * @returns {Promise<void>}
  */
-export async function resetDismissedWords(userId, classId, listId) {
-  await updateSessionState(userId, classId, listId, {
-    dismissedWordIds: []
-  });
+export async function resetDismissedWords(userId, classId, listId, phase = 'all') {
+  if (phase === 'new') {
+    await updateSessionState(userId, classId, listId, {
+      newWordsDismissedIds: []
+    });
+  } else if (phase === 'review') {
+    await updateSessionState(userId, classId, listId, {
+      reviewDismissedIds: []
+    });
+  } else {
+    await updateSessionState(userId, classId, listId, {
+      newWordsDismissedIds: [],
+      reviewDismissedIds: []
+    });
+  }
 }
 
 /**
