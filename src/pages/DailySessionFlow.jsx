@@ -20,8 +20,8 @@ import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
 import ConfirmModal from '../components/ConfirmModal'
-import SessionProgressBanner from '../components/SessionProgressBanner'
 import BlindSpotsCard from '../components/BlindSpotsCard'
+import SessionSteps from '../components/SessionSteps'
 import { Button } from '../components/ui'
 
 // Services
@@ -829,7 +829,7 @@ export default function DailySessionFlow() {
     <main className="relative min-h-screen bg-base">
       <Watermark />
 
-      {/* Phase indicator with navigation */}
+      {/* Header with navigation */}
       <div className="relative z-10 border-b border-border-default bg-surface px-4 py-3">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
           {/* Left: Quit button */}
@@ -843,17 +843,11 @@ export default function DailySessionFlow() {
             </Button>
           )}
 
-          {/* Center: Day info and phase indicator */}
-          <div className="flex flex-1 items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-text-secondary">
-                Day {sessionConfig?.dayNumber} · {listTitle}
-              </p>
-              <p className="text-xs text-text-muted">
-                Words #{(sessionConfig?.newWordStartIndex || 0) + 1}–{(sessionConfig?.newWordEndIndex || 0) + 1}
-              </p>
-            </div>
-            <PhaseIndicator phase={phase} hasReview={!!sessionConfig?.segment} />
+          {/* Center: List title */}
+          <div className="flex-1 text-center">
+            <p className="text-sm font-medium text-text-primary truncate">
+              {listTitle}
+            </p>
           </div>
 
           {/* Right: Skip to Test button */}
@@ -867,6 +861,19 @@ export default function DailySessionFlow() {
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Session Progress Steps */}
+      <div className="relative z-10 mx-auto max-w-2xl px-4 pt-4">
+        <SessionSteps
+          currentPhase={phase}
+          isFirstDay={sessionConfig?.isFirstDay}
+          dayNumber={sessionConfig?.dayNumber || 1}
+          wordRangeStart={(sessionConfig?.newWordStartIndex || 0) + 1}
+          wordRangeEnd={(sessionConfig?.newWordEndIndex || 0) + 1}
+          newWordsTestScore={newWordTestResults?.score}
+          reviewTestScore={reviewTestResults?.score}
+        />
       </div>
 
       {/* Phase content */}
@@ -892,12 +899,6 @@ export default function DailySessionFlow() {
 
         {phase === PHASES.NEW_WORD_TEST && (
           <div className="text-center">
-            <SessionProgressBanner
-              currentPhase="new-words-test"
-              newWordsTestScore={newWordTestResults?.score}
-              isFirstDay={sessionConfig?.isFirstDay}
-            />
-
             {newWordTestResults ? (
               <RetakePrompt
                 results={newWordTestResults}
@@ -1018,8 +1019,8 @@ export default function DailySessionFlow() {
         isOpen={showTestConfirm}
         title="Ready for the Test?"
         message={currentQueueLength > 0
-          ? `You still have ${currentQueueLength} cards remaining. Once you start the test, you can't return to study.`
-          : "Once you start the test, you can't return to study these words."
+          ? `You still have ${currentQueueLength} cards remaining. If you don't pass, you can study again and retake.`
+          : "If you don't pass, you can study again and retake the test."
         }
         confirmLabel="Start Test"
         cancelLabel="Keep Studying"
@@ -1116,16 +1117,17 @@ export default function DailySessionFlow() {
               >
                 Start Next Session
               </Button>
-              <button
-                type="button"
+              <Button
                 onClick={() => {
                   setShowNextSessionModal(false)
                   navigate('/')
                 }}
-                className="w-full text-center text-sm text-text-muted hover:text-text-secondary"
+                variant="outline"
+                size="lg"
+                className="w-full"
               >
                 Maybe Later
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1137,37 +1139,6 @@ export default function DailySessionFlow() {
 // ============================================================
 // Sub-components
 // ============================================================
-
-function PhaseIndicator({ phase, hasReview }) {
-  const phases = [
-    { key: PHASES.NEW_WORDS, label: 'Study' },
-    { key: PHASES.NEW_WORD_TEST, label: 'Test' },
-    ...(hasReview ? [
-      { key: PHASES.REVIEW_STUDY, label: 'Review' },
-      { key: PHASES.REVIEW_TEST, label: 'Test' }
-    ] : []),
-    { key: PHASES.COMPLETE, label: 'Done' }
-  ]
-
-  const currentIdx = phases.findIndex(p => p.key === phase)
-
-  return (
-    <div className="flex items-center gap-2">
-      {phases.map((p, idx) => (
-        <div key={p.key} className="flex items-center">
-          <div className={`h-2 w-2 rounded-full ${
-            idx <= currentIdx ? 'bg-blue-500' : 'bg-border-default'
-          }`} />
-          {idx < phases.length - 1 && (
-            <div className={`h-0.5 w-4 ${
-              idx < currentIdx ? 'bg-blue-500' : 'bg-border-default'
-            }`} />
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function StudyPhase({
   title,
@@ -1339,14 +1310,9 @@ function RetakePrompt({ results, threshold, onRetake, onContinue, isFirstDay }) 
 
       <div className="flex flex-col gap-3">
         {needsRetake ? (
-          <>
-            <Button onClick={onRetake} variant="primary-blue" size="lg">
-              Study Again & Retake
-            </Button>
-            <Button onClick={onContinue} variant="outline" size="lg">
-              Continue Anyway
-            </Button>
-          </>
+          <Button onClick={onRetake} variant="primary-blue" size="lg">
+            Study Again & Retake
+          </Button>
         ) : (
           <Button onClick={onContinue} variant="primary-blue" size="lg">
             {isFirstDay ? 'Complete Day 1' : 'Continue to Review'}
@@ -1404,15 +1370,6 @@ function CompletePhase({
             : `${Math.abs(progressInfo.difference)} day${Math.abs(progressInfo.difference) > 1 ? 's' : ''} behind`}
         </div>
       )}
-
-      {/* Session Progress Banner */}
-      <SessionProgressBanner
-        currentPhase="complete"
-        newWordsTestScore={newWordTestResults?.score}
-        reviewTestScore={reviewTestResults?.score}
-        isFirstDay={isFirstDay}
-        showNextStep={false}
-      />
 
       {/* Day 1 Message */}
       {isFirstDay && (
