@@ -750,11 +750,50 @@ const Dashboard = () => {
     return primaryList
   }, [studentClasses])
 
+  // Helper: Get start of current calendar week (Monday 00:00:00)
+  const getStartOfWeek = () => {
+    const now = new Date()
+    const day = now.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const diff = day === 0 ? 6 : day - 1 // Days since Monday
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - diff)
+    monday.setHours(0, 0, 0, 0)
+    return monday
+  }
+
+  // Helper: Calculate words introduced this week from recentSessions
+  const getWeeklyWordsIntroduced = (recentSessions) => {
+    if (!recentSessions || recentSessions.length === 0) return 0
+
+    const weekStart = getStartOfWeek()
+
+    return recentSessions
+      .filter(session => {
+        if (!session.date) return false
+        // Handle Firestore Timestamp or Date object
+        const sessionDate = session.date?.toDate?.() || session.date
+        return sessionDate >= weekStart
+      })
+      .reduce((sum, session) => sum + (session.wordsIntroduced || 0), 0)
+  }
+
   // Calculate weekly goal from pace
   const primaryFocusWeeklyGoal = getPrimaryFocus ? (getPrimaryFocus.pace * 7) : 50
-  const primaryFocusProgress = getPrimaryFocus?.stats?.wordsLearned || 0
-  const primaryFocusPercent = primaryFocusWeeklyGoal > 0 
-    ? Math.min(100, Math.round((primaryFocusProgress / primaryFocusWeeklyGoal) * 100)) 
+
+  // Calculate this week's progress from progressData
+  const primaryFocusProgress = useMemo(() => {
+    if (!getPrimaryFocus) return 0
+
+    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+    const progress = progressData[key]
+
+    if (!progress?.recentSessions) return 0
+
+    return getWeeklyWordsIntroduced(progress.recentSessions)
+  }, [getPrimaryFocus, progressData])
+
+  const primaryFocusPercent = primaryFocusWeeklyGoal > 0
+    ? Math.min(100, Math.round((primaryFocusProgress / primaryFocusWeeklyGoal) * 100))
     : 0
 
   // 7-Day Activity Data (Yesterday to 7 days ago, left to right)
@@ -937,9 +976,9 @@ const Dashboard = () => {
 
                   {/* Progress Labels */}
                   <div className="flex items-center justify-between text-sm text-white/70 mb-2">
-                    <span>Progress</span>
+                    <span>This Week</span>
                     <span>
-                      {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} words remaining
+                      {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} more to hit your goal
                     </span>
                   </div>
 
