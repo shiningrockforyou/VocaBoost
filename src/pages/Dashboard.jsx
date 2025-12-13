@@ -213,6 +213,7 @@ const Dashboard = () => {
   const [blindSpotCounts, setBlindSpotCounts] = useState({}) // keyed by `${classId}_${listId}`
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
+  const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
 
   const masteryTotals = useMemo(() => {
     if (!studentClasses.length) {
@@ -1783,8 +1784,8 @@ const Dashboard = () => {
                                   <div className="shrink-0 lg:self-stretch flex flex-col gap-1">
                                     {/* PDF Label */}
                                     <span className="text-xs text-text-muted font-medium text-center hidden lg:block">PDF</span>
-                                    <div className="flex flex-row lg:flex-col gap-1.5 flex-1">
-                                      {/* Fast Mode PDF (Smart Selection) */}
+                                    <div className="flex flex-row lg:flex-col gap-2 flex-1">
+                                      {/* Today's Batch PDF - opens modal */}
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -1795,56 +1796,28 @@ const Dashboard = () => {
                                             testSizeReview: 30,
                                             newWordRetakeThreshold: 0.95
                                           }
-                                          handlePDFSelect('today-fast', {
+                                          setPdfModalContext({
                                             classId: klass.id,
                                             listId: list.id,
                                             listTitle: list.title || 'Vocabulary List',
                                             assignment
                                           })
+                                          setShowTodayPdfModal(true)
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-amber-300 bg-amber-50 px-2 py-1.5 text-[10px] font-semibold text-amber-700 transition hover:bg-amber-100 hover:border-amber-400 disabled:opacity-60 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-400"
-                                        title="Fast Mode: Smart selection of priority words for today"
+                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                        title="Download Today's Batch as PDF"
                                       >
-                                        {generatingPDF?.listId === list.id && generatingPDF?.mode === 'today-fast' ? (
-                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        {generatingPDF?.listId === list.id && (generatingPDF?.mode === 'today-fast' || generatingPDF?.mode === 'today-complete') ? (
+                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <span className="text-sm">⚡</span>
-                                        )}
-                                        <span>Fast</span>
-                                      </button>
-                                      {/* Complete Mode PDF (All Segment Words) */}
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const assignment = klass.assignments?.[list.id] || {
-                                            pace: list.pace || 20,
-                                            testMode: list.testMode || 'mcq',
-                                            testSizeNew: 50,
-                                            testSizeReview: 30,
-                                            newWordRetakeThreshold: 0.95
-                                          }
-                                          handlePDFSelect('today-complete', {
-                                            classId: klass.id,
-                                            listId: list.id,
-                                            listTitle: list.title || 'Vocabulary List',
-                                            assignment
-                                          })
-                                        }}
-                                        disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-blue-300 bg-blue-50 px-2 py-1.5 text-[10px] font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-400 disabled:opacity-60 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-400"
-                                        title="Complete Mode: All words in today's segment for thorough review"
-                                      >
-                                        {generatingPDF?.listId === list.id && generatingPDF?.mode === 'today-complete' ? (
-                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                           </svg>
-                                        ) : (
-                                          <span className="text-sm">📚</span>
                                         )}
-                                        <span>Complete</span>
+                                        <span>Today</span>
                                       </button>
                                       {/* Full List PDF */}
                                       <button
@@ -1865,15 +1838,15 @@ const Dashboard = () => {
                                           })
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-border-strong bg-surface px-2 py-1.5 text-[10px] font-semibold text-text-muted transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
-                                        title="Full List: Download all words in the entire list"
+                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                        title="Download Full List as PDF"
                                       >
                                         {generatingPDF?.listId === list.id && generatingPDF?.mode === 'full' ? (
-                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                           </svg>
                                         )}
@@ -1922,6 +1895,55 @@ const Dashboard = () => {
         onSelect={handlePDFSelect}
         listTitle={pdfModalContext?.listTitle || ''}
       />
+
+      {/* Today's PDF Modal */}
+      {showTodayPdfModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-text-primary">
+              Today&apos;s Study Words
+            </h3>
+            <p className="mt-2 text-sm text-text-secondary">
+              This will generate a PDF with the recommended words you should study today.
+            </p>
+
+            <Button
+              onClick={() => {
+                setShowTodayPdfModal(false)
+                handlePDFSelect('today-fast', pdfModalContext)
+              }}
+              variant="primary-blue"
+              size="lg"
+              className="mt-6 w-full"
+            >
+              Generate PDF
+            </Button>
+
+            <p className="mt-4 text-center text-xs text-text-muted">
+              For a list of ALL words you might be tested on today,{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTodayPdfModal(false)
+                  handlePDFSelect('today-complete', pdfModalContext)
+                }}
+                className="text-brand-primary underline hover:text-brand-primary/80"
+              >
+                click here
+              </button>
+              .
+            </p>
+
+            <button
+              type="button"
+              onClick={() => { setShowTodayPdfModal(false); setPdfModalContext(null); }}
+              className="mt-4 w-full text-center text-sm text-text-muted hover:text-text-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
