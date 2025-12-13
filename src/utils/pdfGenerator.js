@@ -204,11 +204,11 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
         fillColor: [248, 250, 252],
       },
       columnStyles: {
-        0: { cellWidth: 10, halign: 'center' }, // Number column - narrow, centered
-        1: { cellWidth: 35, fontStyle: 'bold' }, // Word column
-        2: { cellWidth: 20, fontStyle: 'normal' }, // POS column
-        3: { cellWidth: 75, fontStyle: 'normal' }, // Definition column
-        4: { cellWidth: 60, fontStyle: 'normal' }, // Sample column
+        0: { cellWidth: 8, halign: 'center' }, // Number column - narrow, centered
+        1: { cellWidth: 28, fontStyle: 'bold' }, // Word column
+        2: { cellWidth: 15, fontStyle: 'normal' }, // POS column
+        3: { cellWidth: 68, fontStyle: 'normal' }, // Definition column
+        4: { cellWidth: 63, fontStyle: 'normal' }, // Sample column (total: 182mm for A4 margins)
       },
     })
 
