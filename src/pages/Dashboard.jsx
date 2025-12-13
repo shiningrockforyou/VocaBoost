@@ -336,16 +336,17 @@ const Dashboard = () => {
     setPdfModalOpen(true)
   }
 
-  const handlePDFSelect = async (mode) => {
-    if (!pdfModalContext) return
-    
-    const { classId, listId, listTitle, assignment } = pdfModalContext
+  const handlePDFSelect = async (mode, directContext = null) => {
+    const context = directContext || pdfModalContext
+    if (!context) return
+
+    const { classId, listId, listTitle, assignment } = context
     setGeneratingPDF(listId)
     setPdfModalOpen(false)
-    
+
     try {
       let words
-      
+
       if (mode === 'today' && user?.uid) {
         // Smart selection for today's batch
         words = await getTodaysBatchForPDF(user.uid, classId, listId, assignment)
@@ -354,19 +355,19 @@ const Dashboard = () => {
         const allWords = await fetchAllWords(listId)
         words = allWords.map((w, idx) => ({ ...w, wordIndex: w.wordIndex ?? idx }))
       }
-      
+
       if (words.length === 0) {
         alert('This list has no words to export.')
         setGeneratingPDF(null)
         setPdfModalContext(null)
         return
       }
-      
+
       const normalizedWords = words.map((word) => ({
         ...word,
         partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
       }))
-      
+
       await downloadListAsPDF(listTitle, normalizedWords, mode)
     } catch (err) {
       console.error('PDF generation failed:', err)
@@ -1772,8 +1773,9 @@ const Dashboard = () => {
                                     </Link>
                                   </div>
 
-                                  {/* Column 4: PDF Button (tall, icon above text) */}
-                                  <div className="shrink-0 lg:self-stretch">
+                                  {/* Column 4: Two PDF Buttons (Today + Full) */}
+                                  <div className="shrink-0 lg:self-stretch flex flex-row lg:flex-col gap-2">
+                                    {/* Today's Batch PDF */}
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -1784,43 +1786,60 @@ const Dashboard = () => {
                                           testSizeReview: 30,
                                           newWordRetakeThreshold: 0.95
                                         }
-                                        handlePDFClick(klass.id, list.id, list.title || 'Vocabulary List', assignment)
+                                        handlePDFSelect('today', {
+                                          classId: klass.id,
+                                          listId: list.id,
+                                          listTitle: list.title || 'Vocabulary List',
+                                          assignment
+                                        })
                                       }}
                                       disabled={generatingPDF === list.id}
-                                      className="h-full w-full lg:w-20 min-h-[80px] flex flex-col items-center justify-center gap-1 rounded-button border border-border-strong bg-surface px-4 py-3 text-sm font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
-                                      title="Download PDF"
+                                      className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                      title="Download Today's Batch as PDF"
                                     >
                                       {generatingPDF === list.id ? (
-                                        <svg
-                                          className="h-6 w-6 animate-spin"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                          />
+                                        <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                         </svg>
                                       ) : (
-                                        <svg
-                                          className="h-6 w-6"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                          xmlns="http://www.w3.org/2000/svg"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                          />
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                       )}
-                                      <span className="text-xs">{generatingPDF === list.id ? '...' : 'PDF'}</span>
+                                      <span>Today</span>
+                                    </button>
+                                    {/* Full List PDF */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const assignment = klass.assignments?.[list.id] || {
+                                          pace: list.pace || 20,
+                                          testMode: list.testMode || 'mcq',
+                                          testSizeNew: 50,
+                                          testSizeReview: 30,
+                                          newWordRetakeThreshold: 0.95
+                                        }
+                                        handlePDFSelect('full', {
+                                          classId: klass.id,
+                                          listId: list.id,
+                                          listTitle: list.title || 'Vocabulary List',
+                                          assignment
+                                        })
+                                      }}
+                                      disabled={generatingPDF === list.id}
+                                      className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                      title="Download Full List as PDF"
+                                    >
+                                      {generatingPDF === list.id ? (
+                                        <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                      )}
+                                      <span>Full</span>
                                     </button>
                                   </div>
                                 </div>
