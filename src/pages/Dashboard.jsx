@@ -25,6 +25,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import PDFOptionsModal from '../components/PDFOptionsModal.jsx'
 import { getTodaysBatchForPDF, getCompleteBatchForPDF } from '../services/studyService'
+import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../services/sessionService'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
 import { Button, IconButton, CardButton } from '../components/ui'
@@ -241,8 +242,8 @@ const Dashboard = () => {
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
   const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
-  const [showNextSessionModal, setShowNextSessionModal] = useState(false)
-  const [nextSessionContext, setNextSessionContext] = useState(null) // { classId, listId, isOnTrack, difference }
+  const [showReEntryModal, setShowReEntryModal] = useState(false)
+  const [reEntryContext, setReEntryContext] = useState(null) // { classId, listId, score }
 
   const masteryTotals = useMemo(() => {
     if (!studentClasses.length) {
@@ -576,6 +577,48 @@ const Dashboard = () => {
       setJoinError(err.message ?? 'Unable to join class.')
     } finally {
       setJoining(false)
+    }
+  }
+
+  // Handle Start Session click - check if review test already completed
+  const handleStartSession = async (classId, listId) => {
+    if (!user?.uid) return
+
+    try {
+      const sessionState = await getSessionState(user.uid, classId, listId)
+
+      if (shouldShowReEntryModal(sessionState)) {
+        // User already completed review test - show re-entry modal
+        setReEntryContext({
+          classId,
+          listId,
+          score: sessionState.reviewTestScore
+        })
+        setShowReEntryModal(true)
+      } else {
+        // No completed session - go directly to session
+        navigate(`/session/${classId}/${listId}`)
+      }
+    } catch (err) {
+      console.error('Failed to check session state:', err)
+      // On error, just go to session
+      navigate(`/session/${classId}/${listId}`)
+    }
+  }
+
+  // Handle moving to next day from re-entry modal
+  const handleMoveToNextDay = async () => {
+    if (!user?.uid || !reEntryContext) return
+
+    try {
+      // Clear the session state so next session starts fresh
+      await clearSessionState(user.uid, reEntryContext.classId, reEntryContext.listId)
+      setShowReEntryModal(false)
+      setReEntryContext(null)
+      // Navigate to session (which will now start the next day)
+      navigate(`/session/${reEntryContext.classId}/${reEntryContext.listId}`)
+    } catch (err) {
+      console.error('Failed to clear session state:', err)
     }
   }
 
@@ -1732,36 +1775,12 @@ const Dashboard = () => {
 
                                   {/* Column 3: Stacked Action Buttons */}
                                   <div className="flex flex-col gap-2 shrink-0 lg:min-w-[160px]">
-                                    <Link
-                                      to={`/session/${klass.id}/${list.id}`}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartSession(klass.id, list.id)}
                                       className="h-10 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
                                     >
                                       <span className="truncate whitespace-nowrap">Start Session</span>
-                                    </Link>
-                                    {/* Next Session Button */}
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const key = `${klass.id}_${list.id}`
-                                        const progress = progressData[key]
-                                        const completedDays = progress?.currentStudyDay ?? 0
-                                        const studyDaysPerWeek = klass.assignments?.[list.id]?.studyDaysPerWeek ?? 5
-                                        const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
-                                        const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
-                                        const difference = completedDays - expectedDay
-                                        const isOnTrack = difference >= 0
-
-                                        if (isOnTrack) {
-                                          setNextSessionContext({ classId: klass.id, listId: list.id, isOnTrack, difference })
-                                          setShowNextSessionModal(true)
-                                        } else {
-                                          // Behind - go directly to session
-                                          navigate(`/session/${klass.id}/${list.id}`)
-                                        }
-                                      }}
-                                      className="h-10 flex items-center justify-center gap-2 rounded-button border border-brand-accent/50 bg-brand-accent/10 px-4 text-sm font-semibold text-brand-accent transition hover:bg-brand-accent/20"
-                                    >
-                                      <span className="truncate whitespace-nowrap">Next</span>
                                     </button>
                                     <Link
                                       to={`/blindspots/${klass.id}/${list.id}`}
@@ -1937,8 +1956,8 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Next Session Modal (On Track Prompt) */}
-      {showNextSessionModal && nextSessionContext && (
+      {/* Re-Entry Modal (Already completed today's session) */}
+      {showReEntryModal && reEntryContext && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-center">
@@ -1948,37 +1967,41 @@ const Dashboard = () => {
             </div>
 
             <h3 className="text-center text-lg font-bold text-text-primary">
-              You&apos;re on track!
+              Session Completed
             </h3>
             <p className="mt-2 text-center text-sm text-text-secondary">
-              {nextSessionContext.difference > 0
-                ? `You're ${nextSessionContext.difference} day${nextSessionContext.difference > 1 ? 's' : ''} ahead. Great work!`
-                : 'You\'ve completed today\'s session.'}
+              You scored <span className="font-bold text-emerald-600">{Math.round((reEntryContext.score || 0) * 100)}%</span> on your review test.
             </p>
             <p className="mt-2 text-center text-sm text-text-muted">
-              Starting another session isn&apos;t necessary, but you can get ahead if you want.
+              Would you like to study again or move on?
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
               <Button
                 onClick={() => {
-                  setShowNextSessionModal(false)
-                  navigate(`/session/${nextSessionContext.classId}/${nextSessionContext.listId}`)
+                  setShowReEntryModal(false)
+                  setReEntryContext(null)
+                  navigate(`/session/${reEntryContext.classId}/${reEntryContext.listId}`)
                 }}
-                variant="primary-blue"
+                variant="primary"
                 size="lg"
                 className="w-full"
               >
-                Start Next Session
+                Study Again
               </Button>
-              <button
-                type="button"
-                onClick={() => { setShowNextSessionModal(false); setNextSessionContext(null); }}
-                className="w-full text-center text-sm text-text-muted hover:text-text-secondary"
+              <Button
+                onClick={handleMoveToNextDay}
+                variant="outline"
+                size="lg"
+                className="w-full"
               >
-                Maybe Later
-              </button>
+                Move to Next Day
+              </Button>
             </div>
+
+            <p className="mt-4 text-center text-xs text-text-faint">
+              Moving to the next day will start fresh with new words.
+            </p>
           </div>
         </div>
       )}
