@@ -1310,14 +1310,9 @@ function RetakePrompt({ results, threshold, onRetake, onContinue, isFirstDay }) 
 
       <div className="flex flex-col gap-3">
         {needsRetake ? (
-          <>
-            <Button onClick={onRetake} variant="primary-blue" size="lg">
-              Study Again & Retake
-            </Button>
-            <Button onClick={onContinue} variant="outline" size="lg">
-              Continue Anyway
-            </Button>
-          </>
+          <Button onClick={onRetake} variant="primary-blue" size="lg">
+            Study Again & Retake
+          </Button>
         ) : (
           <Button onClick={onContinue} variant="primary-blue" size="lg">
             {isFirstDay ? 'Complete Day 1' : 'Continue to Review'}
