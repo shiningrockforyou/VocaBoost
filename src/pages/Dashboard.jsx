@@ -31,9 +31,140 @@ import { Button, IconButton, CardButton } from '../components/ui'
 
 const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 
+// Helper: Calculate streak from recentSessions with weekend skip logic
+const calculateStreak = (recentSessions, studyDaysPerWeek) => {
+  if (!recentSessions || recentSessions.length === 0) return 0
+
+  // Sort sessions by date descending (most recent first)
+  const sortedSessions = [...recentSessions]
+    .filter(s => s.date)
+    .map(s => {
+      const date = s.date?.toDate?.() || s.date
+      return { ...s, dateObj: date instanceof Date ? date : new Date(date) }
+    })
+    .sort((a, b) => b.dateObj - a.dateObj)
+
+  if (sortedSessions.length === 0) return 0
+
+  const skipWeekends = studyDaysPerWeek <= 5
+
+  // Helper to check if a date is a weekend
+  const isWeekend = (date) => {
+    const day = date.getDay()
+    return day === 0 || day === 6 // Sunday = 0, Saturday = 6
+  }
+
+  // Helper to get the previous expected study day
+  const getPreviousStudyDay = (date) => {
+    const prev = new Date(date)
+    prev.setDate(prev.getDate() - 1)
+    prev.setHours(0, 0, 0, 0)
+
+    if (skipWeekends) {
+      // Skip backwards over weekends
+      while (isWeekend(prev)) {
+        prev.setDate(prev.getDate() - 1)
+      }
+    }
+    return prev
+  }
+
+  // Normalize a date to start of day for comparison
+  const normalizeDate = (date) => {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  // Create a set of session dates for quick lookup
+  const sessionDates = new Set(
+    sortedSessions.map(s => normalizeDate(s.dateObj).getTime())
+  )
+
+  // Start from the most recent session date
+  let streak = 1
+  let currentDate = normalizeDate(sortedSessions[0].dateObj)
+
+  // Walk backwards checking for consecutive study days
+  while (true) {
+    const expectedPrevDate = getPreviousStudyDay(currentDate)
+
+    if (sessionDates.has(expectedPrevDate.getTime())) {
+      streak++
+      currentDate = expectedPrevDate
+    } else {
+      break
+    }
+  }
+
+  // Only count streak if the most recent session was today or yesterday (or last weekday if skipping weekends)
+  const today = normalizeDate(new Date())
+  const mostRecentSession = normalizeDate(sortedSessions[0].dateObj)
+
+  // Calculate expected "yesterday" (accounting for weekend skip)
+  const getYesterday = () => {
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (skipWeekends) {
+      while (isWeekend(yesterday)) {
+        yesterday.setDate(yesterday.getDate() - 1)
+      }
+    }
+    return yesterday
+  }
+
+  const yesterday = getYesterday()
+
+  if (mostRecentSession.getTime() === today.getTime() ||
+      mostRecentSession.getTime() === yesterday.getTime()) {
+    return streak
+  }
+
+  // Streak is broken - most recent session is too old
+  return 0
+}
+
 const extractListIdFromTestId = (testId = '') => {
   const match = /^test_([^_]+)_/.exec(testId)
   return match ? match[1] : null
+}
+
+// Error state component for dashboard panels
+function PanelError({ message = "Unable to load", className = "" }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl bg-muted border border-border-default ${className}`}>
+      {/* Diagonal stripes background */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            currentColor 10px,
+            currentColor 12px
+          )`
+        }}
+      />
+      {/* Content */}
+      <div className="relative flex flex-col items-center justify-center h-full p-6 text-center">
+        <svg
+          className="w-8 h-8 text-text-muted mb-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <p className="text-sm text-text-muted font-medium">{message}</p>
+      </div>
+    </div>
+  )
 }
 
 function ListProgressStats({ classId, listId, progressData, blindSpotCount }) {
@@ -173,52 +304,65 @@ const Dashboard = () => {
   
   // Panel B: Vitals - calculated from progressData (new study system)
   const panelBState = useMemo(() => {
-    if (!getPrimaryFocus) {
+    try {
+      if (!getPrimaryFocus) {
+        return {
+          wordsEstimate: 0,
+          retentionPercent: null,
+          streakDays: 0,
+          error: false
+        }
+      }
+
+      const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+      const progress = progressData[key]
+
+      if (!progress) {
+        return {
+          wordsEstimate: 0,
+          retentionPercent: null,
+          streakDays: 0,
+          error: false
+        }
+      }
+
+      const { totalWordsIntroduced, stats, recentSessions } = progress
+      const avgReviewScore = stats?.avgReviewScore ?? null
+
+      // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
+      // This represents our estimate of how many words the student knows
+      const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
+        ? Math.round(totalWordsIntroduced * avgReviewScore)
+        : totalWordsIntroduced || 0
+
+      // Retention Rate: avgReviewScore as percentage
+      const retentionPercent = avgReviewScore !== null
+        ? Math.round(avgReviewScore * 100)
+        : null
+
+      // Current Streak: calculated from recentSessions with weekend skip logic
+      const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
+      const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
+
+      return {
+        wordsEstimate,
+        retentionPercent,
+        streakDays,
+        error: false
+      }
+    } catch (err) {
+      console.error('Panel B calculation error:', err)
       return {
         wordsEstimate: 0,
         retentionPercent: null,
-        streakDays: 0
+        streakDays: 0,
+        error: true
       }
-    }
-
-    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
-    const progress = progressData[key]
-
-    if (!progress) {
-      return {
-        wordsEstimate: 0,
-        retentionPercent: null,
-        streakDays: 0
-      }
-    }
-
-    const { totalWordsIntroduced, stats, recentSessions } = progress
-    const avgReviewScore = stats?.avgReviewScore ?? null
-
-    // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
-    // This represents our estimate of how many words the student knows
-    const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
-      ? Math.round(totalWordsIntroduced * avgReviewScore)
-      : totalWordsIntroduced || 0
-
-    // Retention Rate: avgReviewScore as percentage
-    const retentionPercent = avgReviewScore !== null
-      ? Math.round(avgReviewScore * 100)
-      : null
-
-    // Current Streak: calculated from recentSessions with weekend skip logic
-    const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
-    const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
-
-    return {
-      wordsEstimate,
-      retentionPercent,
-      streakDays
     }
   }, [getPrimaryFocus, progressData])
 
   // Destructure for easier access
-  const { wordsEstimate: wordsMastered, retentionPercent, streakDays } = panelBState
+  const { wordsEstimate: wordsMastered, retentionPercent, streakDays, error: panelBError } = panelBState
   const latestTest = dashboardStats?.latestTest || null
   const latestTestListId = latestTest ? extractListIdFromTestId(latestTest.testId) : null
   const latestTestTitle =
@@ -902,118 +1046,55 @@ const Dashboard = () => {
     return messages[dayOfYear % messages.length]
   }
 
-  // Helper: Calculate streak from recentSessions with weekend skip logic
-  const calculateStreak = (recentSessions, studyDaysPerWeek) => {
-    if (!recentSessions || recentSessions.length === 0) return 0
+  // Panel A: Weekly progress state with error handling
+  const panelAState = useMemo(() => {
+    try {
+      const weeklyGoal = getPrimaryFocus ? (getPrimaryFocus.pace * 7) : 50
 
-    // Sort sessions by date descending (most recent first)
-    const sortedSessions = [...recentSessions]
-      .filter(s => s.date)
-      .map(s => {
-        const date = s.date?.toDate?.() || s.date
-        return { ...s, dateObj: date instanceof Date ? date : new Date(date) }
-      })
-      .sort((a, b) => b.dateObj - a.dateObj)
-
-    if (sortedSessions.length === 0) return 0
-
-    const skipWeekends = studyDaysPerWeek <= 5
-
-    // Helper to check if a date is a weekend
-    const isWeekend = (date) => {
-      const day = date.getDay()
-      return day === 0 || day === 6 // Sunday = 0, Saturday = 6
-    }
-
-    // Helper to get the previous expected study day
-    const getPreviousStudyDay = (date) => {
-      const prev = new Date(date)
-      prev.setDate(prev.getDate() - 1)
-      prev.setHours(0, 0, 0, 0)
-
-      if (skipWeekends) {
-        // Skip backwards over weekends
-        while (isWeekend(prev)) {
-          prev.setDate(prev.getDate() - 1)
+      if (!getPrimaryFocus) {
+        return {
+          weeklyGoal,
+          progress: 0,
+          percent: 0,
+          error: false
         }
       }
-      return prev
-    }
 
-    // Normalize a date to start of day for comparison
-    const normalizeDate = (date) => {
-      const d = new Date(date)
-      d.setHours(0, 0, 0, 0)
-      return d
-    }
+      const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+      const progress = progressData[key]
 
-    // Create a set of session dates for quick lookup
-    const sessionDates = new Set(
-      sortedSessions.map(s => normalizeDate(s.dateObj).getTime())
-    )
+      const weeklyProgress = progress?.recentSessions
+        ? getWeeklyWordsIntroduced(progress.recentSessions)
+        : 0
 
-    // Start from the most recent session date
-    let streak = 1
-    let currentDate = normalizeDate(sortedSessions[0].dateObj)
+      const percent = weeklyGoal > 0
+        ? Math.min(100, Math.round((weeklyProgress / weeklyGoal) * 100))
+        : 0
 
-    // Walk backwards checking for consecutive study days
-    while (true) {
-      const expectedPrevDate = getPreviousStudyDay(currentDate)
-
-      if (sessionDates.has(expectedPrevDate.getTime())) {
-        streak++
-        currentDate = expectedPrevDate
-      } else {
-        // Check if we should still be counting (if most recent session was today or yesterday)
-        break
+      return {
+        weeklyGoal,
+        progress: weeklyProgress,
+        percent,
+        error: false
+      }
+    } catch (err) {
+      console.error('Panel A calculation error:', err)
+      return {
+        weeklyGoal: 50,
+        progress: 0,
+        percent: 0,
+        error: true
       }
     }
-
-    // Only count streak if the most recent session was today or yesterday (or last weekday if skipping weekends)
-    const today = normalizeDate(new Date())
-    const mostRecentSession = normalizeDate(sortedSessions[0].dateObj)
-
-    // Calculate expected "yesterday" (accounting for weekend skip)
-    const getYesterday = () => {
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      if (skipWeekends) {
-        while (isWeekend(yesterday)) {
-          yesterday.setDate(yesterday.getDate() - 1)
-        }
-      }
-      return yesterday
-    }
-
-    const yesterday = getYesterday()
-
-    if (mostRecentSession.getTime() === today.getTime() ||
-        mostRecentSession.getTime() === yesterday.getTime()) {
-      return streak
-    }
-
-    // Streak is broken - most recent session is too old
-    return 0
-  }
-
-  // Calculate weekly goal from pace
-  const primaryFocusWeeklyGoal = getPrimaryFocus ? (getPrimaryFocus.pace * 7) : 50
-
-  // Calculate this week's progress from progressData
-  const primaryFocusProgress = useMemo(() => {
-    if (!getPrimaryFocus) return 0
-
-    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
-    const progress = progressData[key]
-
-    if (!progress?.recentSessions) return 0
-
-    return getWeeklyWordsIntroduced(progress.recentSessions)
   }, [getPrimaryFocus, progressData])
 
-  const primaryFocusPercent = primaryFocusWeeklyGoal > 0
-    ? Math.min(100, Math.round((primaryFocusProgress / primaryFocusWeeklyGoal) * 100))
-    : 0
+  // Destructure for easier access
+  const {
+    weeklyGoal: primaryFocusWeeklyGoal,
+    progress: primaryFocusProgress,
+    percent: primaryFocusPercent,
+    error: panelAError
+  } = panelAState
 
   // 7-Day Activity Data (Yesterday to 7 days ago, left to right)
   const dailyActivity = useMemo(() => {
@@ -1092,42 +1173,57 @@ const Dashboard = () => {
 
   // Panel C: Retention status and daily task status
   const panelCState = useMemo(() => {
-    if (!getPrimaryFocus) {
+    try {
+      if (!getPrimaryFocus) {
+        return {
+          interventionLevel: 0,
+          retentionTier: 'good',
+          retentionMessage: "Join a class to get started",
+          sessionCompletedToday: false,
+          testCompletedToday: false,
+          dailyStatus: 'noList', // 'noList' | 'needsSession' | 'needsTest' | 'completed'
+          error: false
+        }
+      }
+
+      const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+      const progress = progressData[key]
+
+      const interventionLevel = progress?.interventionLevel ?? 0
+      const retentionTier = getRetentionTier(interventionLevel)
+      const retentionMessage = getRetentionMessage(retentionTier)
+
+      const sessionCompletedToday = hasSessionToday(progress?.recentSessions)
+      const testCompletedToday = hasTestToday(userAttempts)
+
+      // Determine daily status
+      let dailyStatus = 'needsSession'
+      if (testCompletedToday) {
+        dailyStatus = 'completed'
+      } else if (sessionCompletedToday) {
+        dailyStatus = 'needsTest'
+      }
+
+      return {
+        interventionLevel,
+        retentionTier,
+        retentionMessage,
+        sessionCompletedToday,
+        testCompletedToday,
+        dailyStatus,
+        error: false
+      }
+    } catch (err) {
+      console.error('Panel C calculation error:', err)
       return {
         interventionLevel: 0,
         retentionTier: 'good',
-        retentionMessage: "Join a class to get started",
+        retentionMessage: "Unable to load",
         sessionCompletedToday: false,
         testCompletedToday: false,
-        dailyStatus: 'noList' // 'noList' | 'needsSession' | 'needsTest' | 'completed'
+        dailyStatus: 'needsSession',
+        error: true
       }
-    }
-
-    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
-    const progress = progressData[key]
-
-    const interventionLevel = progress?.interventionLevel ?? 0
-    const retentionTier = getRetentionTier(interventionLevel)
-    const retentionMessage = getRetentionMessage(retentionTier)
-
-    const sessionCompletedToday = hasSessionToday(progress?.recentSessions)
-    const testCompletedToday = hasTestToday(userAttempts)
-
-    // Determine daily status
-    let dailyStatus = 'needsSession'
-    if (testCompletedToday) {
-      dailyStatus = 'completed'
-    } else if (sessionCompletedToday) {
-      dailyStatus = 'needsTest'
-    }
-
-    return {
-      interventionLevel,
-      retentionTier,
-      retentionMessage,
-      sessionCompletedToday,
-      testCompletedToday,
-      dailyStatus
     }
   }, [getPrimaryFocus, progressData, userAttempts])
 
@@ -1176,55 +1272,59 @@ const Dashboard = () => {
         <div className="grid grid-cols-12 gap-6 mb-6">
           {/* Panel A: The Focus Card (Col-Span-12 lg:Col-Span-6) */}
           <div className="col-span-12 lg:col-span-6 h-full">
-            <div className="bg-brand-primary text-white rounded-2xl shadow-lg relative overflow-hidden p-8 flex flex-col justify-center h-full">
-              <div>
-                {/* Weekly Goals Header */}
-                <h2 className="font-heading text-xl font-bold text-white mb-4 pb-4 border-b border-white/20">
-                  Weekly Goals
-                </h2>
-                <h3 className="font-heading text-4xl md:text-5xl font-bold text-white mb-8 leading-tight max-w-md">
-                  {getPrimaryFocus ? getPrimaryFocus.title : 'No Active List'}
-                </h3>
-              </div>
-              
-              {getPrimaryFocus && (
-                <>
-                  {/* Hero Numbers */}
-                  <div className="flex items-baseline mb-6">
-                    <span className="text-6xl md:text-7xl font-heading font-bold text-white tracking-tighter">
-                      {primaryFocusProgress}
-                    </span>
-                    <span className="text-3xl text-white/40 mx-2 font-light">/</span>
-                    <span className="text-3xl text-white/60 font-heading font-medium">
-                      {primaryFocusWeeklyGoal}
-                    </span>
-                    <span className="text-base text-white/60 font-body ml-2">words</span>
-                  </div>
+            {panelAError ? (
+              <PanelError message="Weekly progress unavailable" className="h-full min-h-[280px]" />
+            ) : (
+              <div className="bg-brand-primary text-white rounded-2xl shadow-lg relative overflow-hidden p-8 flex flex-col justify-center h-full">
+                <div>
+                  {/* Weekly Goals Header */}
+                  <h2 className="font-heading text-xl font-bold text-white mb-4 pb-4 border-b border-white/20">
+                    Weekly Goals
+                  </h2>
+                  <h3 className="font-heading text-4xl md:text-5xl font-bold text-white mb-8 leading-tight max-w-md">
+                    {getPrimaryFocus ? getPrimaryFocus.title : 'No Active List'}
+                  </h3>
+                </div>
 
-                  {/* Progress Labels */}
-                  <div className="flex items-center justify-between text-sm text-white/70 mb-2">
-                    <span>This Week</span>
-                    <span>
-                      {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} more to hit your goal
-                    </span>
-                  </div>
-
-                  {/* Thick Progress Bar */}
-                  <div className="relative h-6 w-full overflow-hidden rounded-full bg-black/20">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-brand-accent to-orange-400 transition-all duration-500 relative"
-                      style={{ width: `${primaryFocusPercent}%` }}
-                    >
-                      {primaryFocusPercent > 10 && (
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-heading font-bold text-white">
-                          {primaryFocusPercent}%
-                        </span>
-                      )}
+                {getPrimaryFocus && (
+                  <>
+                    {/* Hero Numbers */}
+                    <div className="flex items-baseline mb-6">
+                      <span className="text-6xl md:text-7xl font-heading font-bold text-white tracking-tighter">
+                        {primaryFocusProgress}
+                      </span>
+                      <span className="text-3xl text-white/40 mx-2 font-light">/</span>
+                      <span className="text-3xl text-white/60 font-heading font-medium">
+                        {primaryFocusWeeklyGoal}
+                      </span>
+                      <span className="text-base text-white/60 font-body ml-2">words</span>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
+
+                    {/* Progress Labels */}
+                    <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+                      <span>This Week</span>
+                      <span>
+                        {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} more to hit your goal
+                      </span>
+                    </div>
+
+                    {/* Thick Progress Bar */}
+                    <div className="relative h-6 w-full overflow-hidden rounded-full bg-black/20">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-brand-accent to-orange-400 transition-all duration-500 relative"
+                        style={{ width: `${primaryFocusPercent}%` }}
+                      >
+                        {primaryFocusPercent > 10 && (
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-heading font-bold text-white">
+                            {primaryFocusPercent}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Column: Vitals + Launchpad + Activity Bar */}
@@ -1233,6 +1333,9 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 gap-6 flex-1">
               {/* Panel C: The Launchpad (Retention Status + Daily CTA) */}
               <div className="col-span-1">
+                {panelCState.error ? (
+                  <PanelError message="Daily status unavailable" className="h-full min-h-[280px]" />
+                ) : (
                 <div className={`py-4 px-6 min-h-[280px] flex flex-col justify-between h-full rounded-2xl border shadow-lg ${
                   panelCState.dailyStatus === 'completed'
                     ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-teal-600 shadow-emerald-500/20'
@@ -1330,10 +1433,14 @@ const Dashboard = () => {
                     )}
                   </div>
                 </div>
+                )}
               </div>
 
               {/* Panel B: The Vitals (Col-Span-1) */}
               <div className="col-span-1">
+                {panelBError ? (
+                  <PanelError message="Stats unavailable" className="h-full min-h-[280px]" />
+                ) : (
                 <div className="flex flex-col gap-3 h-full">
                   {/* Card 1: Words Mastered */}
                   <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
@@ -1414,6 +1521,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
+                )}
               </div>
             </div>
 
