@@ -580,6 +580,20 @@ const MCQTest = () => {
           </div>
         </div>
 
+        {/* Session Context Header */}
+        {sessionContext && (
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-center dark:bg-blue-900/20 dark:border-blue-800">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+              {sessionContext.phase === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext.dayNumber}
+            </p>
+            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Practice Mode Banner */}
         {isPracticeMode && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">

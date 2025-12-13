@@ -543,6 +543,20 @@ const TypedTest = () => {
     <main className="relative min-h-screen bg-muted px-4 py-10">
       <Watermark />
       <div className="relative z-10 mx-auto max-w-4xl">
+        {/* Session Context Header */}
+        {sessionContext && (
+          <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-center dark:bg-blue-900/20 dark:border-blue-800">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+              {sessionContext.phase === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext.dayNumber}
+            </p>
+            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Practice Mode Banner */}
         {isPracticeMode && (
           <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center">
