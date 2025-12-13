@@ -1,8 +1,15 @@
 /**
  * DailySessionFlow.jsx
- * 
+ *
  * Orchestrates the complete daily study session with phases:
- * New Words → New Word Test → Review Study → Review Test → Complete
+ * New Words Study → New Words Test → Review Study → Review Test → Complete
+ *
+ * Key features:
+ * - Session progress persists (can leave and resume)
+ * - Test progress does NOT persist (exit = reset)
+ * - Day 1 has no review phase
+ * - PDF buttons available in study screens
+ * - Blind spots shown at completion
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -13,6 +20,8 @@ import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
 import ConfirmModal from '../components/ConfirmModal'
+import SessionProgressBanner from '../components/SessionProgressBanner'
+import BlindSpotsCard from '../components/BlindSpotsCard'
 import { Button } from '../components/ui'
 
 // Services
@@ -24,8 +33,19 @@ import {
   buildReviewQueue,
   updateQueueTracking,
   recordSessionCompletion,
-  initializeNewWordStates
+  initializeNewWordStates,
+  getTodaysBatchForPDF,
+  getCompleteBatchForPDF
 } from '../services/studyService'
+import { fetchAllWords } from '../services/db'
+import {
+  getSessionState,
+  saveSessionState,
+  clearSessionState,
+  SESSION_PHASE,
+  getReviewTestType
+} from '../services/sessionService'
+import { downloadListAsPDF } from '../utils/pdfGenerator'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 import { calculateExpectedStudyDay } from '../types/studyTypes'
 import { getClassProgress } from '../services/progressService'
@@ -50,14 +70,15 @@ export default function DailySessionFlow() {
   const [phase, setPhase] = useState(PHASES.LOADING)
   const [sessionConfig, setSessionConfig] = useState(null)
   const [error, setError] = useState('')
+  const [listTitle, setListTitle] = useState('')
 
   // New words phase
   const [newWords, setNewWords] = useState([])
-  const [failedCarryover, setFailedCarryover] = useState([]) // FAILED from previous tests
+  const [failedCarryover, setFailedCarryover] = useState([])
   const [newWordsQueue, setNewWordsQueue] = useState([])
   const [newWordsDismissed, setNewWordsDismissed] = useState(new Set())
 
-  // New word test phase (results only, no inline test)
+  // New word test results
   const [newWordTestResults, setNewWordTestResults] = useState(null)
   const [newWordFailedIds, setNewWordFailedIds] = useState([])
 
@@ -66,38 +87,39 @@ export default function DailySessionFlow() {
   const [reviewQueueCurrent, setReviewQueueCurrent] = useState([])
   const [reviewDismissed, setReviewDismissed] = useState(new Set())
 
-  // Review test phase (results only, no inline test)
+  // Review test results
   const [reviewTestResults, setReviewTestResults] = useState(null)
+  const [reviewTestAttempts, setReviewTestAttempts] = useState(0)
 
   // Shared flashcard state
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [cardsReviewed, setCardsReviewed] = useState(0)
 
-  // Test navigation state
-  const [showTestTypeModal, setShowTestTypeModal] = useState(false)
-  const [pendingTestPhase, setPendingTestPhase] = useState(null) // 'new' | 'review'
+  // Assignment settings
   const [assignmentSettings, setAssignmentSettings] = useState(null)
-
-  // Track typed test passes (to disable re-taking typed after 95%+)
-  const [typedTestPassed, setTypedTestPassed] = useState({
-    new: false,
-    review: false
-  })
 
   // Session summary
   const [sessionSummary, setSessionSummary] = useState(null)
 
+  // PDF generation state
+  const [generatingPDF, setGeneratingPDF] = useState(null)
+
   // Confirmation modals
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
-  const [showSkipConfirm, setShowSkipConfirm] = useState(false)
+  const [showTestConfirm, setShowTestConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showReEntryModal, setShowReEntryModal] = useState(false)
+  const [showMoveOnConfirm, setShowMoveOnConfirm] = useState(false)
 
-  // Review mode: 'fast' (smart selection) or 'complete' (all words)
+  // Review mode
   const [reviewMode, setReviewMode] = useState('fast')
   const [showCompleteModeModal, setShowCompleteModeModal] = useState(false)
   const [showFastModeModal, setShowFastModeModal] = useState(false)
   const [isSwitchingMode, setIsSwitchingMode] = useState(false)
+
+  // Re-entry state (for modal)
+  const [savedSessionState, setSavedSessionState] = useState(null)
 
   // Next session modal (on complete screen)
   const [showNextSessionModal, setShowNextSessionModal] = useState(false)
@@ -108,7 +130,6 @@ export default function DailySessionFlow() {
   // ============================================================
 
   useEffect(() => {
-    // Only warn during active study phases (not loading, complete, or test phases)
     const isActivePhase = phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY
 
     const handleBeforeUnload = (e) => {
@@ -129,6 +150,85 @@ export default function DailySessionFlow() {
   }, [phase])
 
   // ============================================================
+  // Session State Persistence
+  // ============================================================
+
+  const persistSessionState = useCallback(async (updates = {}) => {
+    if (!user?.uid || !classId || !listId) return
+
+    const currentPhaseMap = {
+      [PHASES.NEW_WORDS]: SESSION_PHASE.NEW_WORDS_STUDY,
+      [PHASES.NEW_WORD_TEST]: SESSION_PHASE.NEW_WORDS_TEST,
+      [PHASES.REVIEW_STUDY]: SESSION_PHASE.REVIEW_STUDY,
+      [PHASES.REVIEW_TEST]: SESSION_PHASE.REVIEW_TEST,
+      [PHASES.COMPLETE]: SESSION_PHASE.COMPLETE
+    }
+
+    try {
+      await saveSessionState(user.uid, classId, listId, {
+        phase: currentPhaseMap[phase] || SESSION_PHASE.NEW_WORDS_STUDY,
+        currentStudyDay: sessionConfig?.dayNumber || 1,
+        newWordsTestPassed: !!newWordTestResults && newWordTestResults.score >= (sessionConfig?.retakeThreshold || 0.95),
+        newWordsTestScore: newWordTestResults?.score || null,
+        reviewTestScore: reviewTestResults?.score || null,
+        reviewTestAttempts,
+        newWordsDismissedIds: [...newWordsDismissed],
+        reviewDismissedIds: [...reviewDismissed],
+        ...updates
+      })
+    } catch (err) {
+      console.error('Failed to persist session state:', err)
+    }
+  }, [user?.uid, classId, listId, phase, sessionConfig, newWordTestResults, reviewTestResults, reviewTestAttempts, newWordsDismissed, reviewDismissed])
+
+  // Auto-save on phase changes
+  useEffect(() => {
+    if (phase !== PHASES.LOADING) {
+      persistSessionState()
+    }
+  }, [phase, persistSessionState])
+
+  // ============================================================
+  // PDF Generation
+  // ============================================================
+
+  const handlePDFDownload = async (mode) => {
+    if (!user?.uid || !classId || !listId || !assignmentSettings) return
+
+    setGeneratingPDF(mode)
+
+    try {
+      let words
+
+      if (mode === 'today') {
+        words = await getTodaysBatchForPDF(user.uid, classId, listId, assignmentSettings)
+      } else if (mode === 'complete') {
+        words = await getCompleteBatchForPDF(user.uid, classId, listId, assignmentSettings)
+      } else {
+        const allWords = await fetchAllWords(listId)
+        words = allWords.map((w, idx) => ({ ...w, wordIndex: w.wordIndex ?? idx }))
+      }
+
+      if (words.length === 0) {
+        alert('No words available to export.')
+        return
+      }
+
+      const normalizedWords = words.map((word) => ({
+        ...word,
+        partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
+      }))
+
+      await downloadListAsPDF(listTitle || 'Vocabulary List', normalizedWords, mode)
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      alert('Failed to generate PDF')
+    } finally {
+      setGeneratingPDF(null)
+    }
+  }
+
+  // ============================================================
   // Helper: Load Review Queue
   // ============================================================
 
@@ -142,7 +242,7 @@ export default function DailySessionFlow() {
       config.reviewCount,
       newWordFailedIds
     )
-    
+
     setReviewQueue(queue)
     setReviewQueueCurrent(queue)
     setCurrentIndex(0)
@@ -159,7 +259,6 @@ export default function DailySessionFlow() {
     setShowCompleteModeModal(false)
 
     try {
-      // Load ALL words in the segment instead of smart selection
       if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
         const allWords = await getSegmentWords(
           user.uid,
@@ -189,7 +288,6 @@ export default function DailySessionFlow() {
     setShowFastModeModal(false)
 
     try {
-      // Reload with smart selection
       if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
         const queue = await buildReviewQueue(
           user.uid,
@@ -216,10 +314,10 @@ export default function DailySessionFlow() {
   // ============================================================
   // PHASE 0: Initialize Session
   // ============================================================
-  
+
   useEffect(() => {
     if (!user?.uid || !classId || !listId) return
-    
+
     const init = async () => {
       try {
         // Get class to find assignment settings
@@ -234,10 +332,19 @@ export default function DailySessionFlow() {
           throw new Error('List not assigned to this class')
         }
 
-        // Store assignment settings
         setAssignmentSettings(assignment)
 
-        // Initialize session
+        // Get list title
+        const listRef = doc(db, 'lists', listId)
+        const listSnap = await getDoc(listRef)
+        if (listSnap.exists()) {
+          setListTitle(listSnap.data().title || 'Vocabulary List')
+        }
+
+        // Check for existing session state
+        const existingState = await getSessionState(user.uid, classId, listId)
+
+        // Initialize session config
         const config = await initializeDailySession(
           user.uid,
           classId,
@@ -250,7 +357,7 @@ export default function DailySessionFlow() {
             newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
           }
         )
-        
+
         setSessionConfig(config)
 
         // Load new words
@@ -261,21 +368,17 @@ export default function DailySessionFlow() {
             config.newWordCount
           )
 
-          // Also get FAILED words from previous tests (carryover)
           const failedWords = await getFailedFromPreviousNewWords(
             user.uid,
             listId,
-            config.newWordStartIndex // Words before today's new words
+            config.newWordStartIndex
           )
           setFailedCarryover(failedWords)
 
-          // Combine: failed carryover + today's new words
-          // Failed words go first so they appear in the test
           const combinedWords = [...failedWords, ...words]
           setNewWords(combinedWords)
           setNewWordsQueue(combinedWords)
 
-          // Initialize study states for new words only (failed words already have states)
           await initializeNewWordStates(
             user.uid,
             listId,
@@ -284,8 +387,52 @@ export default function DailySessionFlow() {
           )
         }
 
+        // Handle re-entry: check if user already completed review test
+        if (existingState && existingState.phase === SESSION_PHASE.COMPLETE && existingState.reviewTestScore !== null) {
+          setSavedSessionState(existingState)
+          setReviewTestResults({ score: existingState.reviewTestScore })
+          setReviewTestAttempts(existingState.reviewTestAttempts || 0)
+          setShowReEntryModal(true)
+          setPhase(PHASES.COMPLETE)
+          return
+        }
+
+        // Restore session state if exists
+        if (existingState) {
+          setReviewTestAttempts(existingState.reviewTestAttempts || 0)
+
+          if (existingState.newWordsTestScore !== null) {
+            setNewWordTestResults({ score: existingState.newWordsTestScore })
+          }
+          if (existingState.reviewTestScore !== null) {
+            setReviewTestResults({ score: existingState.reviewTestScore })
+          }
+
+          // Restore dismissed words (stored separately)
+          if (existingState.newWordsDismissedIds?.length > 0) {
+            setNewWordsDismissed(new Set(existingState.newWordsDismissedIds))
+          }
+          if (existingState.reviewDismissedIds?.length > 0) {
+            setReviewDismissed(new Set(existingState.reviewDismissedIds))
+          }
+        }
+
         // Determine starting phase
-        if (config.newWordCount > 0) {
+        if (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST) {
+          // Resume at review phase
+          if (config.segment) {
+            const queue = await buildReviewQueue(
+              user.uid,
+              listId,
+              config.segment,
+              config.reviewCount,
+              []
+            )
+            setReviewQueue(queue)
+            setReviewQueueCurrent(queue)
+          }
+          setPhase(PHASES.REVIEW_STUDY)
+        } else if (config.newWordCount > 0) {
           setPhase(PHASES.NEW_WORDS)
         } else if (config.segment) {
           const queue = await buildReviewQueue(
@@ -299,14 +446,13 @@ export default function DailySessionFlow() {
           setReviewQueueCurrent(queue)
           setPhase(PHASES.REVIEW_STUDY)
         } else {
-          // No new words and no review (shouldn't happen normally)
           setPhase(PHASES.COMPLETE)
         }
       } catch (err) {
         setError(err.message || 'Failed to initialize session')
       }
     }
-    
+
     init()
   }, [user?.uid, classId, listId])
 
@@ -321,10 +467,10 @@ export default function DailySessionFlow() {
     setNewWordsDismissed(prev => new Set([...prev, currentNewWord.id]))
     setNewWordsQueue(prev => prev.filter(w => w.id !== currentNewWord.id))
     setCardsReviewed(prev => prev + 1)
-    
+
     if (newWordsQueue.length <= 1) {
-      // Done with new words, move to test
-      prepareNewWordTest()
+      // All cards reviewed - prompt for test
+      setShowTestConfirm(true)
     } else if (currentIndex >= newWordsQueue.length - 1) {
       setCurrentIndex(0)
     }
@@ -352,23 +498,14 @@ export default function DailySessionFlow() {
     setIsFlipped(false)
   }
 
-  const handleFinishNewWordsStudy = () => {
-    goToNewWordTest()
-  }
-
   const goToNewWordTest = () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
-    
-    if (testMode === 'both') {
-      setPendingTestPhase('new')
-      setShowTestTypeModal(true)
-    } else {
-      navigateToTest('new', testMode)
-    }
+    const actualMode = testMode === 'typed' ? 'typed' : 'mcq'
+    navigateToTest('new', actualMode)
   }
 
   // ============================================================
-  // PHASE 2: New Word Test (Navigation)
+  // PHASE 2: New Word Test Navigation
   // ============================================================
 
   const handleContinueToReview = async () => {
@@ -377,7 +514,7 @@ export default function DailySessionFlow() {
 
   const handleNewWordTestRetake = () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
-    navigateToTest('new', testMode)
+    navigateToTest('new', testMode === 'typed' ? 'typed' : 'mcq')
   }
 
   // ============================================================
@@ -385,7 +522,7 @@ export default function DailySessionFlow() {
   // ============================================================
 
   const moveToReviewPhase = async () => {
-    if (!sessionConfig.segment) {
+    if (!sessionConfig?.segment) {
       // No review (day 1), go to complete
       await completeSession()
       return
@@ -413,9 +550,9 @@ export default function DailySessionFlow() {
     setReviewDismissed(prev => new Set([...prev, currentReviewWord.id]))
     setReviewQueueCurrent(prev => prev.filter(w => w.id !== currentReviewWord.id))
     setCardsReviewed(prev => prev + 1)
-    
+
     if (reviewQueueCurrent.length <= 1) {
-      prepareReviewTest()
+      setShowTestConfirm(true)
     } else if (currentIndex >= reviewQueueCurrent.length - 1) {
       setCurrentIndex(0)
     }
@@ -444,52 +581,46 @@ export default function DailySessionFlow() {
   }
 
   const handleFinishReviewStudy = async () => {
-    // Update queue tracking for words that were studied
     const studiedIds = reviewQueue.map(w => w.id)
     await updateQueueTracking(user.uid, studiedIds)
     goToReviewTest()
   }
 
-  const goToReviewTest = async () => {
+  const goToReviewTest = () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
-    
-    if (testMode === 'both') {
-      setPendingTestPhase('review')
-      setShowTestTypeModal(true)
-    } else {
-      navigateToTest('review', testMode)
-    }
+    const actualMode = getReviewTestType(reviewTestAttempts, testMode)
+    navigateToTest('review', actualMode)
   }
 
   // ============================================================
-  // PHASE 4: Review Test (Navigation)
+  // Test Navigation
   // ============================================================
 
-  // Navigation to test
   const navigateToTest = (testPhase, mode) => {
-    const wordPool = testPhase === 'new' ? newWords : null // Review uses smart selection
-    let actualMode = mode
-    let practiceMode = false
+    const wordPool = testPhase === 'new' ? newWords : null
 
-    // Check if typed test was already passed - redirect to MCQ practice mode
-    if (mode === 'typed' && typedTestPassed[testPhase]) {
-      actualMode = 'mcq'
-      practiceMode = true
-    }
+    // Build context for test header
+    const wordRangeStart = testPhase === 'new'
+      ? (sessionConfig?.newWordStartIndex || 0) + 1
+      : (sessionConfig?.segment?.startIndex || 0) + 1
+    const wordRangeEnd = testPhase === 'new'
+      ? (sessionConfig?.newWordEndIndex || 0) + 1
+      : (sessionConfig?.segment?.endIndex || 0) + 1
 
-    const route = actualMode === 'typed' ? '/typedtest' : '/mcqtest'
+    const route = mode === 'typed' ? '/typedtest' : '/mcqtest'
 
     // Store session state in sessionStorage for return
     sessionStorage.setItem('dailySessionState', JSON.stringify({
       classId,
       listId,
-      dayNumber: sessionConfig.dayNumber,
+      dayNumber: sessionConfig?.dayNumber,
       phase: testPhase === 'new' ? PHASES.NEW_WORD_TEST : PHASES.REVIEW_TEST,
       newWords,
       newWordTestResults,
       reviewQueue,
       sessionConfig,
-      assignmentSettings
+      assignmentSettings,
+      reviewTestAttempts
     }))
 
     navigate(`${route}/${classId}/${listId}`, {
@@ -497,11 +628,12 @@ export default function DailySessionFlow() {
         testType: testPhase,
         wordPool: testPhase === 'new' ? newWords : null,
         returnPath: `/session/${classId}/${listId}`,
-        practiceMode,
-        wasTypedTest: actualMode === 'typed',
         sessionContext: {
-          dayNumber: sessionConfig.dayNumber,
-          phase: testPhase
+          dayNumber: sessionConfig?.dayNumber,
+          phase: testPhase,
+          wordRangeStart,
+          wordRangeEnd,
+          listTitle
         }
       }
     })
@@ -510,59 +642,50 @@ export default function DailySessionFlow() {
   // Handle return from test
   useEffect(() => {
     if (!location.state?.testCompleted) return
-    
+
     const handleReturnFromTest = async () => {
       const savedState = sessionStorage.getItem('dailySessionState')
       if (!savedState) return
-      
+
       try {
         const state = JSON.parse(savedState)
         const results = location.state?.results
-        
+
         // Restore session state
         setSessionConfig(state.sessionConfig)
         setNewWords(state.newWords)
         setReviewQueue(state.reviewQueue)
         setAssignmentSettings(state.assignmentSettings)
-        
+        setReviewTestAttempts(state.reviewTestAttempts || 0)
+
         // Handle test results
         if (location.state?.testType === 'new') {
           setNewWordTestResults(results)
           setNewWordFailedIds(results?.failed || [])
 
-          // Track if typed test was passed (95%+)
-          const wasTypedTest = location.state?.wasTypedTest
-          if (wasTypedTest && results?.score >= state.sessionConfig?.retakeThreshold) {
-            setTypedTestPassed(prev => ({ ...prev, new: true }))
-          }
-
-          // Check if retake needed
           if (results?.score < state.sessionConfig?.retakeThreshold) {
-            // Stay in new word test phase, show retake option
             setPhase(PHASES.NEW_WORD_TEST)
           } else {
-            // Move to review
-            await moveToReviewPhase()
+            // Check if Day 1 (no review phase)
+            if (state.sessionConfig?.isFirstDay) {
+              await completeSession()
+            } else {
+              await moveToReviewPhase()
+            }
           }
         } else {
           setReviewTestResults(results)
-
-          // Track if typed test was passed (95%+) for review
-          const wasTypedTest = location.state?.wasTypedTest
-          if (wasTypedTest && results?.score >= 0.95) {
-            setTypedTestPassed(prev => ({ ...prev, review: true }))
-          }
-
+          setReviewTestAttempts(prev => prev + 1)
           await completeSession()
         }
-        
+
         sessionStorage.removeItem('dailySessionState')
       } catch (err) {
         console.error('Failed to restore session state:', err)
         setError('Failed to restore session. Please start over.')
       }
     }
-    
+
     handleReturnFromTest()
   }, [location.state])
 
@@ -575,11 +698,11 @@ export default function DailySessionFlow() {
       const summary = {
         classId,
         listId,
-        dayNumber: sessionConfig.dayNumber,
-        interventionLevel: sessionConfig.interventionLevel,
+        dayNumber: sessionConfig?.dayNumber,
+        interventionLevel: sessionConfig?.interventionLevel,
         newWordScore: newWordTestResults?.score || null,
         reviewScore: reviewTestResults?.score || null,
-        segment: sessionConfig.segment,
+        segment: sessionConfig?.segment,
         wordsIntroduced: newWords.length,
         wordsReviewed: reviewQueue.length,
         wordsTested: (newWordTestResults?.total || 0) + (reviewTestResults?.total || 0)
@@ -613,12 +736,32 @@ export default function DailySessionFlow() {
   }
 
   // ============================================================
-  // Test Type Modal
+  // Re-entry and Move On Handlers
   // ============================================================
 
-  const handleTestTypeSelect = (mode) => {
-    setShowTestTypeModal(false)
-    navigateToTest(pendingTestPhase, mode)
+  const handleReEntryRetake = () => {
+    setShowReEntryModal(false)
+    setPhase(PHASES.REVIEW_STUDY)
+  }
+
+  const handleReEntryMoveOn = async () => {
+    setShowReEntryModal(false)
+    await handleMoveToNextDay()
+  }
+
+  const handleMoveToNextDay = async () => {
+    try {
+      // Clear session state for this list
+      await clearSessionState(user.uid, classId, listId)
+      // Navigate to dashboard
+      navigate('/')
+    } catch (err) {
+      console.error('Failed to move to next day:', err)
+    }
+  }
+
+  const handleRetakeReviewTest = () => {
+    setPhase(PHASES.REVIEW_STUDY)
   }
 
   // ============================================================
@@ -630,8 +773,8 @@ export default function DailySessionFlow() {
     navigate('/')
   }
 
-  const handleSkipConfirm = () => {
-    setShowSkipConfirm(false)
+  const handleTestConfirm = () => {
+    setShowTestConfirm(false)
     if (phase === PHASES.NEW_WORDS) {
       goToNewWordTest()
     } else if (phase === PHASES.REVIEW_STUDY) {
@@ -682,11 +825,10 @@ export default function DailySessionFlow() {
     )
   }
 
-  // Render based on current phase
   return (
     <main className="relative min-h-screen bg-base">
       <Watermark />
-      
+
       {/* Phase indicator with navigation */}
       <div className="relative z-10 border-b border-border-default bg-surface px-4 py-3">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
@@ -705,27 +847,21 @@ export default function DailySessionFlow() {
           <div className="flex flex-1 items-center justify-between">
             <div>
               <p className="text-sm font-medium text-text-secondary">
-                Day {sessionConfig?.dayNumber}
+                Day {sessionConfig?.dayNumber} · {listTitle}
               </p>
-              {sessionConfig?.interventionLevel > 0.25 && (
-                <p className={`text-xs ${
-                  sessionConfig.interventionLevel > 0.5
-                    ? 'text-red-500'
-                    : 'text-amber-500'
-                }`}>
-                  {sessionConfig.interventionLevel > 0.5 ? '⚠️ High' : '📊'} Intervention: {Math.round(sessionConfig.interventionLevel * 100)}%
-                </p>
-              )}
+              <p className="text-xs text-text-muted">
+                Words #{(sessionConfig?.newWordStartIndex || 0) + 1}–{(sessionConfig?.newWordEndIndex || 0) + 1}
+              </p>
             </div>
             <PhaseIndicator phase={phase} hasReview={!!sessionConfig?.segment} />
           </div>
 
           {/* Right: Skip to Test button */}
-          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
+          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && currentQueueLength > 0 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowSkipConfirm(true)}
+              onClick={() => setShowTestConfirm(true)}
             >
               Test →
             </Button>
@@ -737,8 +873,8 @@ export default function DailySessionFlow() {
       <div className="relative z-10 mx-auto max-w-2xl px-4 py-8">
         {phase === PHASES.NEW_WORDS && (
           <StudyPhase
-            title="New Words"
-            subtitle={`${newWordsQueue.length} words remaining`}
+            title="Study New Words"
+            subtitle="Review each word. If you already know it, tap 'I Know This' to remove it from your study list."
             currentWord={currentNewWord}
             currentIndex={currentIndex}
             totalCount={newWordsQueue.length}
@@ -748,23 +884,30 @@ export default function DailySessionFlow() {
             onKnowThis={handleNewWordKnowThis}
             onNotSure={handleNewWordNotSure}
             onReset={() => setShowResetConfirm(true)}
-            onFinish={handleFinishNewWordsStudy}
+            onReadyForTest={() => setShowTestConfirm(true)}
+            onPDFDownload={handlePDFDownload}
+            generatingPDF={generatingPDF}
           />
         )}
 
         {phase === PHASES.NEW_WORD_TEST && (
           <div className="text-center">
+            <SessionProgressBanner
+              currentPhase="new-words-test"
+              newWordsTestScore={newWordTestResults?.score}
+              isFirstDay={sessionConfig?.isFirstDay}
+            />
+
             {newWordTestResults ? (
-              // Show retake option if below threshold
               <RetakePrompt
                 results={newWordTestResults}
                 threshold={sessionConfig?.retakeThreshold}
                 onRetake={handleNewWordTestRetake}
                 onContinue={handleContinueToReview}
+                isFirstDay={sessionConfig?.isFirstDay}
               />
             ) : (
-              // Redirecting to test
-              <div className="space-y-4">
+              <div className="space-y-4 mt-6">
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
                 <p className="text-text-secondary">Loading test...</p>
               </div>
@@ -775,8 +918,8 @@ export default function DailySessionFlow() {
         {phase === PHASES.REVIEW_STUDY && (
           <>
             <StudyPhase
-              title="Review"
-              subtitle={`${reviewQueueCurrent.length} words remaining`}
+              title="Review Words"
+              subtitle="Review words from previous days. Mark the ones you're confident about."
               currentWord={currentReviewWord}
               currentIndex={currentIndex}
               totalCount={reviewQueueCurrent.length}
@@ -786,7 +929,9 @@ export default function DailySessionFlow() {
               onKnowThis={handleReviewKnowThis}
               onNotSure={handleReviewNotSure}
               onReset={() => setShowResetConfirm(true)}
-              onFinish={handleFinishReviewStudy}
+              onReadyForTest={() => setShowTestConfirm(true)}
+              onPDFDownload={handlePDFDownload}
+              generatingPDF={generatingPDF}
             />
 
             {/* Mode Toggle */}
@@ -824,25 +969,24 @@ export default function DailySessionFlow() {
 
         {phase === PHASES.REVIEW_TEST && (
           <div className="text-center">
-            {reviewTestResults ? (
-              // Auto-complete
-              <div className="space-y-4">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-                <p className="text-text-secondary">Completing session...</p>
-              </div>
-            ) : (
-              // Redirecting to test
-              <div className="space-y-4">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-                <p className="text-text-secondary">Loading test...</p>
-              </div>
-            )}
+            <div className="space-y-4">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+              <p className="text-text-secondary">Loading test...</p>
+            </div>
           </div>
         )}
 
         {phase === PHASES.COMPLETE && (
           <CompletePhase
             summary={sessionSummary}
+            sessionConfig={sessionConfig}
+            newWordTestResults={newWordTestResults}
+            reviewTestResults={reviewTestResults}
+            userId={user?.uid}
+            classId={classId}
+            listId={listId}
+            onRetakeReview={handleRetakeReviewTest}
+            onMoveOn={() => setShowMoveOnConfirm(true)}
             onDashboard={() => navigate('/')}
             progressInfo={progressInfo}
             onNext={() => {
@@ -857,36 +1001,30 @@ export default function DailySessionFlow() {
         )}
       </div>
 
-      {/* Test Type Selection Modal */}
-      <TestTypeModal
-        isOpen={showTestTypeModal}
-        onClose={() => setShowTestTypeModal(false)}
-        onSelect={handleTestTypeSelect}
-        testPhase={pendingTestPhase}
-        typedTestPassed={typedTestPassed[pendingTestPhase]}
-      />
-
       {/* Quit Confirmation */}
       <ConfirmModal
         isOpen={showQuitConfirm}
         title="Leave Study Session?"
-        message="Your flashcard progress will be lost. Test progress is saved separately."
+        message="Your study progress will be saved. You can resume later."
         confirmLabel="Leave"
         cancelLabel="Keep Studying"
         onConfirm={handleQuitConfirm}
         onCancel={() => setShowQuitConfirm(false)}
-        variant="danger"
+        variant="warning"
       />
 
-      {/* Skip to Test Confirmation */}
+      {/* Ready for Test Confirmation */}
       <ConfirmModal
-        isOpen={showSkipConfirm}
-        title="Skip to Test?"
-        message={`You still have ${currentQueueLength} cards remaining. Are you ready to test?`}
+        isOpen={showTestConfirm}
+        title="Ready for the Test?"
+        message={currentQueueLength > 0
+          ? `You still have ${currentQueueLength} cards remaining. Once you start the test, you can't return to study.`
+          : "Once you start the test, you can't return to study these words."
+        }
         confirmLabel="Start Test"
         cancelLabel="Keep Studying"
-        onConfirm={handleSkipConfirm}
-        onCancel={() => setShowSkipConfirm(false)}
+        onConfirm={handleTestConfirm}
+        onCancel={() => setShowTestConfirm(false)}
         variant="warning"
       />
 
@@ -902,7 +1040,31 @@ export default function DailySessionFlow() {
         variant="warning"
       />
 
-      {/* Complete Mode Explanation */}
+      {/* Re-entry Modal */}
+      <ConfirmModal
+        isOpen={showReEntryModal}
+        title={`Resume Day ${savedSessionState?.currentStudyDay || sessionConfig?.dayNumber}?`}
+        message={`You scored ${savedSessionState?.reviewTestScore ? Math.round(savedSessionState.reviewTestScore * 100) : reviewTestResults?.score ? Math.round(reviewTestResults.score * 100) : '—'}% on the review test. Would you like to retry the review test or move on to the next day?`}
+        confirmLabel="Retry Review Test"
+        cancelLabel="Move On to Next Day"
+        onConfirm={handleReEntryRetake}
+        onCancel={handleReEntryMoveOn}
+        variant="info"
+      />
+
+      {/* Move On Confirmation */}
+      <ConfirmModal
+        isOpen={showMoveOnConfirm}
+        title="Complete This Day?"
+        message={`Once you move on to Day ${(sessionConfig?.dayNumber || 0) + 1}, you can't return to Day ${sessionConfig?.dayNumber}. Are you sure?`}
+        confirmLabel="Complete & Move On"
+        cancelLabel="Stay"
+        onConfirm={handleMoveToNextDay}
+        onCancel={() => setShowMoveOnConfirm(false)}
+        variant="success"
+      />
+
+      {/* Complete Mode Modal */}
       <ReviewModeModal
         isOpen={showCompleteModeModal}
         mode="complete"
@@ -911,7 +1073,7 @@ export default function DailySessionFlow() {
         onCancel={() => setShowCompleteModeModal(false)}
       />
 
-      {/* Fast Mode Explanation */}
+      {/* Fast Mode Modal */}
       <ReviewModeModal
         isOpen={showFastModeModal}
         mode="fast"
@@ -1019,20 +1181,28 @@ function StudyPhase({
   onKnowThis,
   onNotSure,
   onReset,
-  onFinish
+  onReadyForTest,
+  onPDFDownload,
+  generatingPDF
 }) {
   if (!currentWord) {
     return (
-      <div className="text-center">
-        <p className="text-text-secondary">All cards reviewed!</p>
-        <Button onClick={onFinish} className="mt-4">
-          Continue to Test
+      <div className="text-center space-y-6">
+        <div className="rounded-xl bg-emerald-50 p-6 dark:bg-emerald-900/20">
+          <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+            All cards reviewed!
+          </p>
+          <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
+            You're ready to take the test.
+          </p>
+        </div>
+        <Button onClick={onReadyForTest} variant="primary-blue" size="lg" className="w-full">
+          I'm Ready for the Test
         </Button>
       </div>
     )
   }
 
-  // Handle "Not Sure" - if not flipped, flip the card; if flipped, move to end
   const handleNotSure = () => {
     if (!isFlipped) {
       onFlip()
@@ -1043,9 +1213,10 @@ function StudyPhase({
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="text-center">
         <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-        <p className="text-sm text-text-secondary">{subtitle}</p>
+        <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
       </div>
 
       {/* Progress */}
@@ -1063,7 +1234,7 @@ function StudyPhase({
         />
       </div>
 
-      {/* Action Buttons - always visible */}
+      {/* Action Buttons */}
       <div className="space-y-3">
         <div className="flex gap-3">
           <Button onClick={handleNotSure} variant="outline" className="flex-1">
@@ -1074,27 +1245,73 @@ function StudyPhase({
           </Button>
         </div>
 
-        {/* Reset button - only show when there are dismissed cards */}
         {dismissedCount > 0 && (
           <Button onClick={onReset} variant="ghost" className="w-full text-text-muted">
             Reset ({dismissedCount} dismissed)
           </Button>
         )}
       </div>
+
+      {/* Ready for Test Button */}
+      <div className="pt-4 border-t border-border-default">
+        <Button
+          onClick={onReadyForTest}
+          variant="primary-blue"
+          size="lg"
+          className="w-full"
+        >
+          I'm Ready for the Test
+        </Button>
+      </div>
+
+      {/* PDF Buttons */}
+      <div className="pt-4 border-t border-border-default">
+        <p className="text-xs text-text-muted text-center mb-3">
+          Prefer to study offline? Download a PDF.
+        </p>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => onPDFDownload('today')}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            disabled={generatingPDF !== null}
+          >
+            {generatingPDF === 'today' ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              "Today's Words"
+            )}
+          </Button>
+          <Button
+            onClick={() => onPDFDownload('full')}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            disabled={generatingPDF !== null}
+          >
+            {generatingPDF === 'full' ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              'Full List'
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
 
-function RetakePrompt({ results, threshold, onRetake, onContinue }) {
-  const percentage = Math.round(results.score * 100)
-  const needsRetake = results.score < threshold
+function RetakePrompt({ results, threshold, onRetake, onContinue, isFirstDay }) {
+  const percentage = Math.round((results?.score || 0) * 100)
+  const needsRetake = (results?.score || 0) < threshold
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-6">
       <div className="rounded-xl bg-surface p-6 shadow ring-1 ring-border-default">
         <p className="text-4xl font-bold text-text-primary">{percentage}%</p>
         <p className="text-text-secondary">
-          {results.correct} of {results.total} correct
+          {results?.correct || 0} of {results?.total || 0} correct
         </p>
       </div>
 
@@ -1104,92 +1321,76 @@ function RetakePrompt({ results, threshold, onRetake, onContinue }) {
             Score below {Math.round(threshold * 100)}%
           </p>
           <p className="mt-1 text-sm text-amber-600 dark:text-amber-300">
-            Retake recommended for new word tests
+            You need to score at least {Math.round(threshold * 100)}% to continue.
+          </p>
+        </div>
+      )}
+
+      {isFirstDay && !needsRetake && (
+        <div className="rounded-lg bg-emerald-50 p-4 dark:bg-emerald-900/20">
+          <p className="font-medium text-emerald-800 dark:text-emerald-200">
+            Great job on Day 1!
+          </p>
+          <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-300">
+            Since this is your first day, you're done! Starting tomorrow, you'll also review these words.
           </p>
         </div>
       )}
 
       <div className="flex flex-col gap-3">
-        {needsRetake && (
-          <Button onClick={onRetake} variant="primary-blue">
-            Retake Test
+        {needsRetake ? (
+          <>
+            <Button onClick={onRetake} variant="primary-blue" size="lg">
+              Study Again & Retake
+            </Button>
+            <Button onClick={onContinue} variant="outline" size="lg">
+              Continue Anyway
+            </Button>
+          </>
+        ) : (
+          <Button onClick={onContinue} variant="primary-blue" size="lg">
+            {isFirstDay ? 'Complete Day 1' : 'Continue to Review'}
           </Button>
         )}
-        <Button onClick={onContinue} variant={needsRetake ? 'outline' : 'primary-blue'}>
-          {needsRetake ? 'Continue Anyway' : 'Continue to Review'}
-        </Button>
       </div>
     </div>
   )
 }
 
-function TestTypeModal({ isOpen, onClose, onSelect, testPhase, typedTestPassed }) {
-  if (!isOpen) return null
+function CompletePhase({
+  summary,
+  sessionConfig,
+  newWordTestResults,
+  reviewTestResults,
+  userId,
+  classId,
+  listId,
+  onRetakeReview,
+  onMoveOn,
+  onDashboard,
+  progressInfo,
+  onNext
+}) {
+  const isFirstDay = sessionConfig?.isFirstDay
+  const reviewScore = reviewTestResults?.score
+  const showRetakeOption = !isFirstDay && reviewScore !== null && reviewScore < 0.95
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="mx-4 w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
-        <h3 className="text-lg font-bold text-text-primary">
-          Choose Test Type
-        </h3>
-        <p className="mt-2 text-sm text-text-secondary">
-          {testPhase === 'new' ? 'New Word Test' : 'Review Test'}
-        </p>
-
-        <div className="mt-6 flex flex-col gap-3">
-          <Button
-            onClick={() => { onClose(); onSelect('mcq'); }}
-            variant="outline"
-            size="lg"
-            className="w-full"
-          >
-            Multiple Choice
-          </Button>
-          <div className="relative">
-            <Button
-              onClick={() => { onClose(); onSelect('typed'); }}
-              variant="outline"
-              size="lg"
-              className="w-full"
-            >
-              Written
-            </Button>
-            {typedTestPassed && (
-              <p className="mt-1 text-center text-xs text-amber-600">
-                (You passed — this will be practice mode)
-              </p>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* Success Header */}
+      <div className="text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+          <span className="text-3xl">✓</span>
         </div>
-
-        <button
-          onClick={onClose}
-          className="mt-4 w-full text-center text-sm text-text-muted hover:text-text-secondary"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function CompletePhase({ summary, onDashboard, progressInfo, onNext }) {
-  return (
-    <div className="space-y-6 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-        <span className="text-3xl">✓</span>
-      </div>
-
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">
-          Session Complete
+        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-emerald-600">
+          Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
         </p>
         <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
       </div>
 
       {/* Progress indicator */}
       {progressInfo && (
-        <div className={`rounded-lg px-4 py-2 text-sm font-medium ${
+        <div className={`rounded-lg px-4 py-2 text-sm font-medium text-center ${
           progressInfo.isOnTrack
             ? progressInfo.difference > 0
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
@@ -1204,37 +1405,69 @@ function CompletePhase({ summary, onDashboard, progressInfo, onNext }) {
         </div>
       )}
 
-      <div className="rounded-xl bg-surface p-6 shadow ring-1 ring-border-default">
-        <div className="grid grid-cols-2 gap-4 text-left">
-          <div>
-            <p className="text-sm text-text-muted">Day</p>
-            <p className="font-semibold text-text-primary">{summary?.dayNumber}</p>
-          </div>
-          <div>
-            <p className="text-sm text-text-muted">New Words</p>
-            <p className="font-semibold text-text-primary">{summary?.wordsIntroduced}</p>
-          </div>
-          <div>
-            <p className="text-sm text-text-muted">New Word Score</p>
-            <p className="font-semibold text-text-primary">
-              {summary?.newWordScore ? `${Math.round(summary.newWordScore * 100)}%` : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-text-muted">Review Score</p>
-            <p className="font-semibold text-text-primary">
-              {summary?.reviewScore ? `${Math.round(summary.reviewScore * 100)}%` : '—'}
-            </p>
+      {/* Session Progress Banner */}
+      <SessionProgressBanner
+        currentPhase="complete"
+        newWordsTestScore={newWordTestResults?.score}
+        reviewTestScore={reviewTestResults?.score}
+        isFirstDay={isFirstDay}
+        showNextStep={false}
+      />
+
+      {/* Day 1 Message */}
+      {isFirstDay && (
+        <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+          <p className="font-medium text-blue-800 dark:text-blue-200">
+            Welcome to your first day!
+          </p>
+          <p className="mt-1 text-sm text-blue-600 dark:text-blue-300">
+            Starting tomorrow, you'll also review these words to help you remember them long-term.
+          </p>
+        </div>
+      )}
+
+      {/* Retake Option for Low Review Score */}
+      {showRetakeOption && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-5 dark:bg-amber-900/20 dark:border-amber-800">
+          <div className="flex items-start gap-3">
+            <span className="text-xl">⚠️</span>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                Your review score affects future pacing
+              </p>
+              <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                A lower score means the system will slow down and give you more review tomorrow.
+                Retaking can help you progress faster.
+              </p>
+              <Button
+                onClick={onRetakeReview}
+                variant="outline"
+                size="md"
+                className="mt-4"
+              >
+                Retake Review Test
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="flex flex-col gap-3">
-        <Button onClick={onDashboard} variant="primary-blue" size="lg" className="w-full">
-          Back to Dashboard
+      {/* Blind Spots Card */}
+      {!isFirstDay && (
+        <BlindSpotsCard
+          userId={userId}
+          classId={classId}
+          listId={listId}
+        />
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex flex-col gap-3 pt-4">
+        <Button onClick={onMoveOn} variant="primary-blue" size="lg" className="w-full">
+          Complete Day {summary?.dayNumber || sessionConfig?.dayNumber} & Move On
         </Button>
         <Button onClick={onNext} variant="outline" size="lg" className="w-full">
-          Next
+          Next Session
         </Button>
       </div>
     </div>
@@ -1275,10 +1508,7 @@ function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
               </p>
               <p className="text-blue-700 dark:text-blue-300">
                 This is more work, but leads to better retention over time.
-                Recommended if you&apos;re struggling with review tests.
-              </p>
-              <p className="text-blue-600 dark:text-blue-400">
-                You&apos;ll study all {wordCount} words before testing.
+                Recommended if you're struggling with review tests.
               </p>
             </div>
           ) : (
@@ -1287,22 +1517,15 @@ function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
                 Smart selection based on your performance
               </p>
               <p className="text-amber-700 dark:text-amber-300">
-                If you&apos;re doing well on tests, this minimal review is sufficient.
-                Focuses on words you&apos;ve struggled with.
-              </p>
-              <p className="text-amber-600 dark:text-amber-400">
-                Prioritizes ~{wordCount} words that need attention.
+                If you're doing well on tests, this minimal review is sufficient.
+                Focuses on words you've struggled with.
               </p>
             </div>
           )}
         </div>
 
         <div className="flex gap-3">
-          <Button
-            onClick={onCancel}
-            variant="outline"
-            className="flex-1"
-          >
+          <Button onClick={onCancel} variant="outline" className="flex-1">
             Cancel
           </Button>
           <Button

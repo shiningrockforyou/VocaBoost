@@ -25,6 +25,9 @@ import Watermark from '../components/Watermark.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
 import { Button } from '../components/ui'
 
+// Hard cap for typed tests to limit AI grading costs
+const MAX_TYPED_TEST_WORDS = 50
+
 const TypedTest = () => {
   const { classId, listId } = useParams()
   const navigate = useNavigate()
@@ -118,17 +121,18 @@ const TypedTest = () => {
     setIsLoading(true)
     setError('')
     try {
-      // If word pool provided (from DailySessionFlow), use it
+      // If word pool provided (from DailySessionFlow), use it (capped at MAX_TYPED_TEST_WORDS)
       if (wordPool && wordPool.length > 0) {
-        setOriginalWords(wordPool)
-        setWords(wordPool)
+        const cappedWords = wordPool.slice(0, MAX_TYPED_TEST_WORDS)
+        setOriginalWords(cappedWords)
+        setWords(cappedWords)
         setResponses({})
         setResults(null)
         setShowResults(false)
         setCanRetake(false)
         setTestResultsData(null)
         setFocusedIndex(0)
-        inputRefs.current = new Array(wordPool.length)
+        inputRefs.current = new Array(cappedWords.length)
         setIsLoading(false)
         return
       }
@@ -202,15 +206,17 @@ const TypedTest = () => {
         throw new Error('No words available for testing.')
       }
 
-      setOriginalWords(wordsToTest)
-      setWords(wordsToTest)
+      // Apply hard cap for typed tests
+      const cappedWords = wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
+      setOriginalWords(cappedWords)
+      setWords(cappedWords)
       setResponses({})
       setResults(null)
       setShowResults(false)
       setCanRetake(false)
       setTestResultsData(null)
       setFocusedIndex(0)
-      inputRefs.current = new Array(wordsToTest.length)
+      inputRefs.current = new Array(cappedWords.length)
     } catch (err) {
       setError(err.message ?? 'Unable to load test.')
     } finally {
@@ -398,11 +404,12 @@ const TypedTest = () => {
     setCanRetake(false)
     setTestResultsData(null)
     setResults(null)
-    
-    // Regenerate from original words
+
+    // Regenerate from original words (shuffled, capped at MAX_TYPED_TEST_WORDS)
     const shuffled = [...originalWords].sort(() => Math.random() - 0.5)
-    setWords(shuffled.slice(0, 50))
-    inputRefs.current = new Array(50)
+    const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
+    setWords(cappedWords)
+    inputRefs.current = new Array(cappedWords.length)
   }
 
   const answeredCount = Object.values(responses).filter((r) => r.trim() !== '').length
@@ -543,6 +550,20 @@ const TypedTest = () => {
     <main className="relative min-h-screen bg-muted px-4 py-10">
       <Watermark />
       <div className="relative z-10 mx-auto max-w-4xl">
+        {/* Session Context Header */}
+        {sessionContext && (
+          <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-center dark:bg-blue-900/20 dark:border-blue-800">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+              {sessionContext.phase === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext.dayNumber}
+            </p>
+            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Practice Mode Banner */}
         {isPracticeMode && (
           <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center">

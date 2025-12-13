@@ -1364,36 +1364,6 @@ const Dashboard = () => {
                           <span>Practice More</span>
                         </button>
                       </>
-                    ) : panelCState.dailyStatus === 'needsTest' ? (
-                      <>
-                        <div className="text-center mb-4">
-                          <h3 className="font-heading text-xl font-bold text-white mb-1">
-                            Ready to test your knowledge?
-                          </h3>
-                          <p className="font-body text-sm text-white/80">
-                            You've completed today's study session.
-                          </p>
-                        </div>
-                        <div className="space-y-3 max-w-[240px] mx-auto w-full">
-                          <button
-                            type="button"
-                            onClick={() => setTestModalOpen(true)}
-                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-surface text-brand-text font-bold border-none shadow-sm transition hover:bg-surface/90"
-                          >
-                            <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg>
-                            <span>Take Test</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setStudyModalOpen(true)}
-                            className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-semibold border border-white/50 hover:bg-white/10 transition-all active:scale-95"
-                          >
-                            <span>Study More</span>
-                          </button>
-                        </div>
-                      </>
                     ) : (
                       <>
                         <div className="text-center mb-4">
@@ -1414,13 +1384,6 @@ const Dashboard = () => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                             <span>Study Now</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setTestModalOpen(true)}
-                            className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-semibold border border-white/50 hover:bg-white/10 transition-all active:scale-95"
-                          >
-                            <span>Take Test</span>
                           </button>
                         </div>
                       </>
@@ -1800,32 +1763,6 @@ const Dashboard = () => {
                                     >
                                       <span className="truncate whitespace-nowrap">Next</span>
                                     </button>
-                                    {(() => {
-                                      const mode = list.testMode || 'mcq'
-                                      const showMcq = mode === 'mcq' || mode === 'both' || !mode
-                                      const showTyped = mode === 'typed' || mode === 'both'
-                                      const canTest = (list.wordCount ?? 0) > 10
-                                      return (
-                                        <>
-                                          {showMcq && canTest && (
-                                            <Link
-                                              to={`/mcqtest/${klass.id}/${list.id}?type=review`}
-                                              className="h-10 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
-                                            >
-                                              <span className="truncate whitespace-nowrap">Take MCQ Test</span>
-                                            </Link>
-                                          )}
-                                          {showTyped && canTest && (
-                                            <Link
-                                              to={`/typedtest/${klass.id}/${list.id}?type=review`}
-                                              className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 text-sm font-heading font-bold text-brand-text hover:bg-accent-blue hover:border-brand-primary shadow-sm transition-all active:scale-95"
-                                            >
-                                              <span className="truncate whitespace-nowrap">Written Test</span>
-                                            </Link>
-                                          )}
-                                        </>
-                                      )
-                                    })()}
                                     <Link
                                       to={`/blindspots/${klass.id}/${list.id}`}
                                       className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
