@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
 import { Activity, BookOpen, Plus, RefreshCw, Trash2, FileText, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
@@ -18,7 +18,7 @@ import {
 } from '../services/db'
 import { getClassProgress } from '../services/progressService'
 import { getBlindSpotCount } from '../services/studyService'
-import { WORD_STATUS } from '../types/studyTypes'
+import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
 import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
@@ -167,22 +167,49 @@ function PanelError({ message = "Unable to load", className = "" }) {
   )
 }
 
-function ListProgressStats({ classId, listId, progressData }) {
+function ListProgressStats({ classId, listId, progressData, assignment }) {
   const key = `${classId}_${listId}`
   const progress = progressData[key]
 
-  const currentStudyDay = progress?.currentStudyDay ?? 0
+  const completedDays = progress?.currentStudyDay ?? 0
+  const studyDaysPerWeek = assignment?.studyDaysPerWeek ?? 5
+  const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
+  const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+
+  const difference = completedDays - expectedDay
+  const isAhead = difference > 0
+  const isBehind = difference < 0
+  const isOnTrack = difference === 0
+
+  // Display day as at least 1 if no sessions completed
+  const displayDay = Math.max(completedDays, 1)
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-4 py-3 min-w-[80px] h-full">
+    <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-3 py-2 min-w-[90px] h-full">
       <span className="text-xs text-text-muted uppercase tracking-wide font-medium">Day</span>
-      <span className="font-heading text-4xl font-bold text-brand-primary">{currentStudyDay}</span>
+      <span className="font-heading text-3xl font-bold text-brand-primary">{displayDay}</span>
+      {isBehind && (
+        <span className="text-[10px] font-medium text-red-500 whitespace-nowrap">
+          {Math.abs(difference)} behind
+        </span>
+      )}
+      {isAhead && (
+        <span className="text-[10px] font-medium text-emerald-500 whitespace-nowrap">
+          {difference} ahead
+        </span>
+      )}
+      {isOnTrack && completedDays > 0 && (
+        <span className="text-[10px] font-medium text-blue-500 whitespace-nowrap">
+          On track
+        </span>
+      )}
     </div>
   )
 }
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [error, setError] = useState('')
   const [classError, setClassError] = useState('')
   const [classes, setClasses] = useState([])
@@ -214,6 +241,8 @@ const Dashboard = () => {
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
   const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
+  const [showNextSessionModal, setShowNextSessionModal] = useState(false)
+  const [nextSessionContext, setNextSessionContext] = useState(null) // { classId, listId, isOnTrack, difference }
 
   const masteryTotals = useMemo(() => {
     if (!studentClasses.length) {
@@ -1697,6 +1726,7 @@ const Dashboard = () => {
                                       classId={klass.id}
                                       listId={list.id}
                                       progressData={progressData}
+                                      assignment={klass.assignments?.[list.id]}
                                     />
                                   </div>
 
@@ -1708,6 +1738,31 @@ const Dashboard = () => {
                                     >
                                       <span className="truncate whitespace-nowrap">Start Session</span>
                                     </Link>
+                                    {/* Next Session Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const key = `${klass.id}_${list.id}`
+                                        const progress = progressData[key]
+                                        const completedDays = progress?.currentStudyDay ?? 0
+                                        const studyDaysPerWeek = klass.assignments?.[list.id]?.studyDaysPerWeek ?? 5
+                                        const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
+                                        const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+                                        const difference = completedDays - expectedDay
+                                        const isOnTrack = difference >= 0
+
+                                        if (isOnTrack) {
+                                          setNextSessionContext({ classId: klass.id, listId: list.id, isOnTrack, difference })
+                                          setShowNextSessionModal(true)
+                                        } else {
+                                          // Behind - go directly to session
+                                          navigate(`/session/${klass.id}/${list.id}`)
+                                        }
+                                      }}
+                                      className="h-10 flex items-center justify-center gap-2 rounded-button border border-brand-accent/50 bg-brand-accent/10 px-4 text-sm font-semibold text-brand-accent transition hover:bg-brand-accent/20"
+                                    >
+                                      <span className="truncate whitespace-nowrap">Next</span>
+                                    </button>
                                     <Link
                                       to={`/blindspots/${klass.id}/${list.id}`}
                                       className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
@@ -1878,6 +1933,52 @@ const Dashboard = () => {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Next Session Modal (On Track Prompt) */}
+      {showNextSessionModal && nextSessionContext && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <span className="text-2xl">✓</span>
+              </div>
+            </div>
+
+            <h3 className="text-center text-lg font-bold text-text-primary">
+              You&apos;re on track!
+            </h3>
+            <p className="mt-2 text-center text-sm text-text-secondary">
+              {nextSessionContext.difference > 0
+                ? `You're ${nextSessionContext.difference} day${nextSessionContext.difference > 1 ? 's' : ''} ahead. Great work!`
+                : 'You\'ve completed today\'s session.'}
+            </p>
+            <p className="mt-2 text-center text-sm text-text-muted">
+              Starting another session isn&apos;t necessary, but you can get ahead if you want.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  setShowNextSessionModal(false)
+                  navigate(`/session/${nextSessionContext.classId}/${nextSessionContext.listId}`)
+                }}
+                variant="primary-blue"
+                size="lg"
+                className="w-full"
+              >
+                Start Next Session
+              </Button>
+              <button
+                type="button"
+                onClick={() => { setShowNextSessionModal(false); setNextSessionContext(null); }}
+                className="w-full text-center text-sm text-text-muted hover:text-text-secondary"
+              >
+                Maybe Later
+              </button>
+            </div>
           </div>
         </div>
       )}
