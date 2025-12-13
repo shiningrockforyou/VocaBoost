@@ -1,11 +1,14 @@
 /**
  * ConfirmModal - Reusable confirmation dialog
  *
- * Used for:
- * - Submit test confirmation
- * - Quit test confirmation
- * - Practice mode redirect notification
- * - Test recovery prompt
+ * Variants:
+ * - danger: Destructive actions (quit, reset, delete) - red confirm button
+ * - warning: Risky but recoverable (skip, continue without saving) - amber confirm button
+ * - info: Informational prompts (recovery, practice mode) - blue confirm button
+ * - success: Positive confirmations - green confirm button
+ * - default: General prompts - blue confirm button
+ *
+ * Button order: Cancel (safe) first, Confirm (action) last
  */
 
 import { Button } from './ui'
@@ -18,7 +21,7 @@ const ConfirmModal = ({
   cancelLabel = 'Cancel',
   onConfirm,
   onCancel,
-  variant = 'default', // 'default' | 'danger' | 'info'
+  variant = 'default', // 'default' | 'danger' | 'warning' | 'info' | 'success'
   showCancel = true,
   children
 }) => {
@@ -27,18 +30,27 @@ const ConfirmModal = ({
   const variantStyles = {
     default: {
       icon: '❓',
-      confirmClass: 'bg-brand-primary hover:bg-brand-primary/90 text-white'
+      iconBg: 'bg-slate-100',
+      confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white'
     },
     danger: {
       icon: '⚠️',
+      iconBg: 'bg-red-100',
       confirmClass: 'bg-red-600 hover:bg-red-700 text-white'
+    },
+    warning: {
+      icon: '⚡',
+      iconBg: 'bg-amber-100',
+      confirmClass: 'bg-amber-600 hover:bg-amber-700 text-white'
     },
     info: {
       icon: 'ℹ️',
-      confirmClass: 'bg-brand-primary hover:bg-brand-primary/90 text-white'
+      iconBg: 'bg-blue-100',
+      confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white'
     },
     success: {
       icon: '✓',
+      iconBg: 'bg-emerald-100',
       confirmClass: 'bg-emerald-600 hover:bg-emerald-700 text-white'
     }
   }
@@ -56,7 +68,7 @@ const ConfirmModal = ({
       {/* Modal */}
       <div className="relative z-10 w-full max-w-md mx-4 rounded-2xl bg-surface p-6 shadow-2xl">
         {/* Icon */}
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg}`}>
           <span className="text-2xl">{styles.icon}</span>
         </div>
 

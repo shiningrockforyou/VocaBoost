@@ -74,6 +74,27 @@ const TypedTest = () => {
   // Test ID for recovery
   const testId = getTestId(classIdParam || classId, listId, currentTestType)
 
+  // Browser close warning
+  useEffect(() => {
+    const hasProgress = Object.keys(responses).length > 0 && !showResults
+
+    const handleBeforeUnload = (e) => {
+      if (hasProgress) {
+        e.preventDefault()
+        e.returnValue = 'You have unsaved test progress. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    if (hasProgress) {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [responses, showResults])
+
   const loadList = useCallback(async () => {
     if (!listId) return
     try {
