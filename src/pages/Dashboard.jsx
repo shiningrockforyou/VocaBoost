@@ -1097,80 +1097,86 @@ const Dashboard = () => {
     error: panelAError
   } = panelAState
 
-  // 7-Day Activity Data (Yesterday to 7 days ago, left to right)
+  // 7-Day Activity Data - Shows wordsIntroduced per study day (last 7 study days)
   const dailyActivity = useMemo(() => {
     const activity = []
     const today = new Date()
-    
-    // Get daily pace from primary focus, or default to 20
+    today.setHours(0, 0, 0, 0)
+
+    // Get settings from primary focus
     const primaryPace = getPrimaryFocus?.pace || 20
     const dailyPace = primaryPace > 0 ? primaryPace : 20
-    
+    const studyDaysPerWeek = getPrimaryFocus?.studyDaysPerWeek || 5
+    const skipWeekends = studyDaysPerWeek <= 5
+
     // Day and month names for formatting
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    
-    // Create buckets for the last 7 days (Index 0 = Yesterday, Index 6 = 7 days ago)
-    const dayBuckets = {}
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-      // Normalize to start of day for comparison
-      date.setHours(0, 0, 0, 0)
-      dayBuckets[date.getTime()] = 0
+
+    // Helper to check if a date is a weekend
+    const isWeekend = (date) => {
+      const day = date.getDay()
+      return day === 0 || day === 6 // Sunday = 0, Saturday = 6
     }
-    
-    // Aggregate word counts from attempts
-    if (userAttempts.length > 0) {
-      userAttempts.forEach((attempt) => {
-        if (!attempt.date) return
-        
-        const attemptDate = attempt.date instanceof Date 
-          ? attempt.date 
-          : (attempt.date?.toDate ? attempt.date.toDate() : new Date(attempt.date))
-        
-        // Normalize to start of day
-        const normalizedDate = new Date(attemptDate)
-        normalizedDate.setHours(0, 0, 0, 0)
-        const dateKey = normalizedDate.getTime()
-        
-        // If this date is in our 7-day window, add the word count
-        if (dayBuckets.hasOwnProperty(dateKey)) {
-          // Use totalQuestions from attempt, or count of answers
-          const wordCount = attempt.totalQuestions || attempt.answers?.length || 0
-          dayBuckets[dateKey] += wordCount
-        }
-      })
+
+    // Get recentSessions from progressData
+    const key = getPrimaryFocus ? `${getPrimaryFocus.classId}_${getPrimaryFocus.id}` : null
+    const progress = key ? progressData[key] : null
+    const recentSessions = progress?.recentSessions || []
+
+    // Create a map of session dates to wordsIntroduced
+    const sessionsByDate = {}
+    recentSessions.forEach(session => {
+      if (!session.date) return
+      const sessionDate = session.date?.toDate?.() || session.date
+      const normalized = new Date(sessionDate)
+      normalized.setHours(0, 0, 0, 0)
+      const dateKey = normalized.getTime()
+      // Sum wordsIntroduced for the same day (in case of multiple sessions)
+      sessionsByDate[dateKey] = (sessionsByDate[dateKey] || 0) + (session.wordsIntroduced || 0)
+    })
+
+    // Walk backwards through study days (skipping weekends if needed)
+    let currentDate = new Date(today)
+    currentDate.setDate(currentDate.getDate() - 1) // Start from yesterday
+
+    // Skip to last weekday if yesterday is weekend and we're skipping weekends
+    if (skipWeekends) {
+      while (isWeekend(currentDate)) {
+        currentDate.setDate(currentDate.getDate() - 1)
+      }
     }
-    
-    // Create array: Index 0 = Yesterday, Index 6 = 7 days ago
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-      date.setHours(0, 0, 0, 0)
+
+    // Collect 7 study days
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentDate)
       const dateKey = date.getTime()
-      
-      let wordCount = dayBuckets[dateKey] || 0
-      
-      // If no real data, show 0 (no mock data fallback)
-      // This ensures the chart accurately reflects actual user activity
-      
+      const wordCount = sessionsByDate[dateKey] || 0
+
       // Format date string (e.g., "Mon, Oct 24")
       const dayName = dayNames[date.getDay()]
       const monthName = monthNames[date.getMonth()]
       const dayNumber = date.getDate()
       const formattedDate = `${dayName}, ${monthName} ${dayNumber}`
-      
+
       activity.push({
         date,
         formattedDate,
         wordCount,
         dailyPace,
       })
+
+      // Move to previous study day
+      currentDate.setDate(currentDate.getDate() - 1)
+      if (skipWeekends) {
+        while (isWeekend(currentDate)) {
+          currentDate.setDate(currentDate.getDate() - 1)
+        }
+      }
     }
-    
+
     return activity
-  }, [getPrimaryFocus, userAttempts])
+  }, [getPrimaryFocus, progressData])
 
   // Panel C: Retention status and daily task status
   const panelCState = useMemo(() => {
