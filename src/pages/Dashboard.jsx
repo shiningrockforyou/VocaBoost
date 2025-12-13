@@ -31,6 +31,99 @@ import { Button, IconButton, CardButton } from '../components/ui'
 
 const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 
+// Helper: Calculate streak from recentSessions with weekend skip logic
+const calculateStreak = (recentSessions, studyDaysPerWeek) => {
+  if (!recentSessions || recentSessions.length === 0) return 0
+
+  // Sort sessions by date descending (most recent first)
+  const sortedSessions = [...recentSessions]
+    .filter(s => s.date)
+    .map(s => {
+      const date = s.date?.toDate?.() || s.date
+      return { ...s, dateObj: date instanceof Date ? date : new Date(date) }
+    })
+    .sort((a, b) => b.dateObj - a.dateObj)
+
+  if (sortedSessions.length === 0) return 0
+
+  const skipWeekends = studyDaysPerWeek <= 5
+
+  // Helper to check if a date is a weekend
+  const isWeekend = (date) => {
+    const day = date.getDay()
+    return day === 0 || day === 6 // Sunday = 0, Saturday = 6
+  }
+
+  // Helper to get the previous expected study day
+  const getPreviousStudyDay = (date) => {
+    const prev = new Date(date)
+    prev.setDate(prev.getDate() - 1)
+    prev.setHours(0, 0, 0, 0)
+
+    if (skipWeekends) {
+      // Skip backwards over weekends
+      while (isWeekend(prev)) {
+        prev.setDate(prev.getDate() - 1)
+      }
+    }
+    return prev
+  }
+
+  // Normalize a date to start of day for comparison
+  const normalizeDate = (date) => {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  // Create a set of session dates for quick lookup
+  const sessionDates = new Set(
+    sortedSessions.map(s => normalizeDate(s.dateObj).getTime())
+  )
+
+  // Start from the most recent session date
+  let streak = 1
+  let currentDate = normalizeDate(sortedSessions[0].dateObj)
+
+  // Walk backwards checking for consecutive study days
+  while (true) {
+    const expectedPrevDate = getPreviousStudyDay(currentDate)
+
+    if (sessionDates.has(expectedPrevDate.getTime())) {
+      streak++
+      currentDate = expectedPrevDate
+    } else {
+      break
+    }
+  }
+
+  // Only count streak if the most recent session was today or yesterday (or last weekday if skipping weekends)
+  const today = normalizeDate(new Date())
+  const mostRecentSession = normalizeDate(sortedSessions[0].dateObj)
+
+  // Calculate expected "yesterday" (accounting for weekend skip)
+  const getYesterday = () => {
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    if (skipWeekends) {
+      while (isWeekend(yesterday)) {
+        yesterday.setDate(yesterday.getDate() - 1)
+      }
+    }
+    return yesterday
+  }
+
+  const yesterday = getYesterday()
+
+  if (mostRecentSession.getTime() === today.getTime() ||
+      mostRecentSession.getTime() === yesterday.getTime()) {
+    return streak
+  }
+
+  // Streak is broken - most recent session is too old
+  return 0
+}
+
 const extractListIdFromTestId = (testId = '') => {
   const match = /^test_([^_]+)_/.exec(testId)
   return match ? match[1] : null
@@ -900,100 +993,6 @@ const Dashboard = () => {
     const messages = RETENTION_MESSAGES[tier]
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24))
     return messages[dayOfYear % messages.length]
-  }
-
-  // Helper: Calculate streak from recentSessions with weekend skip logic
-  const calculateStreak = (recentSessions, studyDaysPerWeek) => {
-    if (!recentSessions || recentSessions.length === 0) return 0
-
-    // Sort sessions by date descending (most recent first)
-    const sortedSessions = [...recentSessions]
-      .filter(s => s.date)
-      .map(s => {
-        const date = s.date?.toDate?.() || s.date
-        return { ...s, dateObj: date instanceof Date ? date : new Date(date) }
-      })
-      .sort((a, b) => b.dateObj - a.dateObj)
-
-    if (sortedSessions.length === 0) return 0
-
-    const skipWeekends = studyDaysPerWeek <= 5
-
-    // Helper to check if a date is a weekend
-    const isWeekend = (date) => {
-      const day = date.getDay()
-      return day === 0 || day === 6 // Sunday = 0, Saturday = 6
-    }
-
-    // Helper to get the previous expected study day
-    const getPreviousStudyDay = (date) => {
-      const prev = new Date(date)
-      prev.setDate(prev.getDate() - 1)
-      prev.setHours(0, 0, 0, 0)
-
-      if (skipWeekends) {
-        // Skip backwards over weekends
-        while (isWeekend(prev)) {
-          prev.setDate(prev.getDate() - 1)
-        }
-      }
-      return prev
-    }
-
-    // Normalize a date to start of day for comparison
-    const normalizeDate = (date) => {
-      const d = new Date(date)
-      d.setHours(0, 0, 0, 0)
-      return d
-    }
-
-    // Create a set of session dates for quick lookup
-    const sessionDates = new Set(
-      sortedSessions.map(s => normalizeDate(s.dateObj).getTime())
-    )
-
-    // Start from the most recent session date
-    let streak = 1
-    let currentDate = normalizeDate(sortedSessions[0].dateObj)
-
-    // Walk backwards checking for consecutive study days
-    while (true) {
-      const expectedPrevDate = getPreviousStudyDay(currentDate)
-
-      if (sessionDates.has(expectedPrevDate.getTime())) {
-        streak++
-        currentDate = expectedPrevDate
-      } else {
-        // Check if we should still be counting (if most recent session was today or yesterday)
-        break
-      }
-    }
-
-    // Only count streak if the most recent session was today or yesterday (or last weekday if skipping weekends)
-    const today = normalizeDate(new Date())
-    const mostRecentSession = normalizeDate(sortedSessions[0].dateObj)
-
-    // Calculate expected "yesterday" (accounting for weekend skip)
-    const getYesterday = () => {
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      if (skipWeekends) {
-        while (isWeekend(yesterday)) {
-          yesterday.setDate(yesterday.getDate() - 1)
-        }
-      }
-      return yesterday
-    }
-
-    const yesterday = getYesterday()
-
-    if (mostRecentSession.getTime() === today.getTime() ||
-        mostRecentSession.getTime() === yesterday.getTime()) {
-      return streak
-    }
-
-    // Streak is broken - most recent session is too old
-    return 0
   }
 
   // Calculate weekly goal from pace
