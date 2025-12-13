@@ -167,66 +167,16 @@ function PanelError({ message = "Unable to load", className = "" }) {
   )
 }
 
-function ListProgressStats({ classId, listId, progressData, blindSpotCount }) {
+function ListProgressStats({ classId, listId, progressData }) {
   const key = `${classId}_${listId}`
   const progress = progressData[key]
 
-  if (!progress) {
-    return (
-      <div className="text-sm text-text-muted">
-        No sessions yet
-      </div>
-    )
-  }
-
-  const { currentStudyDay, totalWordsIntroduced, interventionLevel, stats } = progress
+  const currentStudyDay = progress?.currentStudyDay ?? 0
 
   return (
-    <div className="mt-3 space-y-2 rounded-lg bg-muted p-3">
-      {/* Progress row */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-text-secondary">Day</span>
-        <span className="font-medium text-text-primary">{currentStudyDay}</span>
-      </div>
-      
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-text-secondary">Words Introduced</span>
-        <span className="font-medium text-text-primary">{totalWordsIntroduced}</span>
-      </div>
-
-      {/* Intervention indicator */}
-      {interventionLevel > 0 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-text-secondary">Intervention</span>
-          <span className={`font-medium ${
-            interventionLevel > 0.5 
-              ? 'text-red-500' 
-              : interventionLevel > 0.25 
-              ? 'text-amber-500' 
-              : 'text-emerald-500'
-          }`}>
-            {Math.round(interventionLevel * 100)}%
-          </span>
-        </div>
-      )}
-
-      {/* Review score */}
-      {stats?.avgReviewScore !== null && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-text-secondary">Avg Review Score</span>
-          <span className="font-medium text-text-primary">
-            {Math.round(stats.avgReviewScore * 100)}%
-          </span>
-        </div>
-      )}
-
-      {/* Blind spots indicator */}
-      {blindSpotCount > 0 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-text-secondary">Blind Spots</span>
-          <span className="font-medium text-amber-500">{blindSpotCount}</span>
-        </div>
-      )}
+    <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-4 py-3 min-w-[80px] h-full">
+      <span className="text-xs text-text-muted uppercase tracking-wide font-medium">Day</span>
+      <span className="font-heading text-4xl font-bold text-brand-primary">{currentStudyDay}</span>
     </div>
   )
 }
@@ -1316,13 +1266,13 @@ const Dashboard = () => {
                     </div>
 
                     {/* Thick Progress Bar */}
-                    <div className="relative h-6 w-full overflow-hidden rounded-full bg-black/20">
+                    <div className="relative h-10 w-full overflow-hidden rounded-lg bg-black/20">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-brand-accent to-orange-400 transition-all duration-500 relative"
+                        className="h-full rounded-lg bg-gradient-to-r from-brand-accent to-orange-400 transition-all duration-500 relative shadow-[0_0_20px_rgba(251,146,60,0.4)]"
                         style={{ width: `${primaryFocusPercent}%` }}
                       >
                         {primaryFocusPercent > 10 && (
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-heading font-bold text-white">
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-heading font-bold text-white">
                             {primaryFocusPercent}%
                           </span>
                         )}
@@ -1714,11 +1664,13 @@ const Dashboard = () => {
                             {klass.assignedListDetails.map((list) => (
                               <div
                                 key={list.id}
-                                className="flex flex-col gap-3 rounded-card border border-border-strong bg-surface px-4 py-3"
+                                className="rounded-card border border-border-strong bg-surface px-4 py-4"
                               >
-                                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
+                                {/* 4-Column Layout */}
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+                                  {/* Column 1: List Info + Progress Bar (min 50%) */}
+                                  <div className="flex-1 lg:min-w-[50%]">
+                                    <div className="flex items-center gap-2 mb-1">
                                       <p className="font-heading text-sm font-semibold text-text-primary">
                                         {list.title || 'Vocabulary List'}
                                       </p>
@@ -1728,27 +1680,27 @@ const Dashboard = () => {
                                         </span>
                                       )}
                                     </div>
-                                    <p className="font-body text-xs text-text-muted">
+                                    <p className="font-body text-xs text-text-muted mb-3">
                                       {list.wordCount ?? 0} words · Assigned by your teacher.
                                     </p>
                                     {list.stats && (() => {
                                       const wordsLearned = list.stats.wordsLearned ?? 0
                                       const totalWords = list.stats.totalWords ?? 0
-                                      const percentage = totalWords > 0 
+                                      const percentage = totalWords > 0
                                         ? Math.min(100, Math.max(0, Math.round((wordsLearned / totalWords) * 100)))
                                         : 0
                                       const barWidth = `${percentage}%`
                                       const isWideBar = percentage > 15
-                                      
+
                                       return (
-                                        <div className="mt-3 space-y-2 text-xs text-text-secondary">
+                                        <div className="space-y-1.5 text-xs text-text-secondary">
                                           <div className="flex items-center justify-between">
                                             <span>{wordsLearned} learned</span>
                                             <span>{totalWords} total</span>
                                           </div>
-                                          <div className="relative h-12 w-full rounded-xl bg-inset flex items-center overflow-hidden">
+                                          <div className="relative h-10 w-full rounded-lg bg-inset flex items-center overflow-hidden">
                                             <div
-                                              className="h-full rounded-xl bg-brand-primary transition-all duration-1000 ease-out flex items-center"
+                                              className="h-full rounded-lg bg-brand-primary transition-all duration-1000 ease-out flex items-center"
                                               style={{ width: barWidth }}
                                             >
                                               {isWideBar && (
@@ -1767,18 +1719,23 @@ const Dashboard = () => {
                                       )
                                     })()}
                                   </div>
-                                  <ListProgressStats
-                                    classId={klass.id}
-                                    listId={list.id}
-                                    progressData={progressData}
-                                    blindSpotCount={blindSpotCounts[`${klass.id}_${list.id}`] || 0}
-                                  />
-                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:flex-wrap">
+
+                                  {/* Column 2: Day Card */}
+                                  <div className="shrink-0">
+                                    <ListProgressStats
+                                      classId={klass.id}
+                                      listId={list.id}
+                                      progressData={progressData}
+                                    />
+                                  </div>
+
+                                  {/* Column 3: Stacked Action Buttons */}
+                                  <div className="flex flex-col gap-2 shrink-0 lg:min-w-[160px]">
                                     <Link
                                       to={`/session/${klass.id}/${list.id}`}
-                                      className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
+                                      className="h-10 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
                                     >
-                                      <span className="truncate whitespace-nowrap max-w-full">Start Today's Session</span>
+                                      <span className="truncate whitespace-nowrap">Start Session</span>
                                     </Link>
                                     {(() => {
                                       const mode = list.testMode || 'mcq'
@@ -1790,17 +1747,17 @@ const Dashboard = () => {
                                           {showMcq && canTest && (
                                             <Link
                                               to={`/mcqtest/${klass.id}/${list.id}?type=review`}
-                                              className="h-12 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
+                                              className="h-10 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 text-sm font-heading font-bold text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all active:scale-95"
                                             >
-                                              <span className="truncate whitespace-nowrap max-w-full">Take MCQ Test</span>
+                                              <span className="truncate whitespace-nowrap">Take MCQ Test</span>
                                             </Link>
                                           )}
                                           {showTyped && canTest && (
                                             <Link
                                               to={`/typedtest/${klass.id}/${list.id}?type=review`}
-                                              className="h-12 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 text-sm font-heading font-bold text-brand-text hover:bg-accent-blue hover:border-brand-primary shadow-sm transition-all active:scale-95"
+                                              className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-4 text-sm font-heading font-bold text-brand-text hover:bg-accent-blue hover:border-brand-primary shadow-sm transition-all active:scale-95"
                                             >
-                                              <span className="truncate whitespace-nowrap max-w-full">Take Written Test</span>
+                                              <span className="truncate whitespace-nowrap">Written Test</span>
                                             </Link>
                                           )}
                                         </>
@@ -1808,15 +1765,18 @@ const Dashboard = () => {
                                     })()}
                                     <Link
                                       to={`/blindspots/${klass.id}/${list.id}`}
-                                      className="h-12 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
+                                      className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
                                     >
                                       <span>🔍</span>
-                                      <span className="truncate whitespace-nowrap">Check Blind Spots</span>
+                                      <span className="truncate whitespace-nowrap">Blind Spots</span>
                                     </Link>
+                                  </div>
+
+                                  {/* Column 4: PDF Button (tall, icon above text) */}
+                                  <div className="shrink-0 lg:self-stretch">
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        // Get assignment from class data
                                         const assignment = klass.assignments?.[list.id] || {
                                           pace: list.pace || 20,
                                           testMode: list.testMode || 'mcq',
@@ -1827,29 +1787,26 @@ const Dashboard = () => {
                                         handlePDFClick(klass.id, list.id, list.title || 'Vocabulary List', assignment)
                                       }}
                                       disabled={generatingPDF === list.id}
-                                      className="h-12 flex items-center justify-center gap-1.5 rounded-button border border-border-strong bg-surface px-4 text-sm font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                      className="h-full w-full lg:w-20 min-h-[80px] flex flex-col items-center justify-center gap-1 rounded-button border border-border-strong bg-surface px-4 py-3 text-sm font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
                                       title="Download PDF"
                                     >
                                       {generatingPDF === list.id ? (
-                                        <>
-                                          <svg
-                                            className="h-3 w-3 animate-spin"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                            />
-                                          </svg>
-                                          Generating...
-                                        </>
+                                        <svg
+                                          className="h-6 w-6 animate-spin"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                          />
+                                        </svg>
                                       ) : (
                                         <svg
-                                          className="h-3 w-3"
+                                          className="h-6 w-6"
                                           fill="none"
                                           stroke="currentColor"
                                           viewBox="0 0 24 24"
@@ -1863,7 +1820,7 @@ const Dashboard = () => {
                                           />
                                         </svg>
                                       )}
-                                      <span>PDF</span>
+                                      <span className="text-xs">{generatingPDF === list.id ? '...' : 'PDF'}</span>
                                     </button>
                                   </div>
                                 </div>
