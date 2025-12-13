@@ -27,6 +27,8 @@ import {
   initializeNewWordStates
 } from '../services/studyService'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import { calculateExpectedStudyDay } from '../types/studyTypes'
+import { getClassProgress } from '../services/progressService'
 
 // Constants
 const PHASES = {
@@ -96,6 +98,10 @@ export default function DailySessionFlow() {
   const [showCompleteModeModal, setShowCompleteModeModal] = useState(false)
   const [showFastModeModal, setShowFastModeModal] = useState(false)
   const [isSwitchingMode, setIsSwitchingMode] = useState(false)
+
+  // Next session modal (on complete screen)
+  const [showNextSessionModal, setShowNextSessionModal] = useState(false)
+  const [progressInfo, setProgressInfo] = useState(null) // { completedDays, expectedDay, difference, isOnTrack }
 
   // ============================================================
   // Browser Close Warning
@@ -580,12 +586,26 @@ export default function DailySessionFlow() {
       }
 
       const result = await recordSessionCompletion(user.uid, summary)
-      
+
       setSessionSummary({
         ...summary,
         progress: result.progress
       })
-      
+
+      // Calculate progress info for "Next" button
+      const progress = await getClassProgress(user.uid, classId, listId)
+      const completedDays = progress?.currentStudyDay ?? 0
+      const studyDaysPerWeek = assignmentSettings?.studyDaysPerWeek ?? 5
+      const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
+      const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+      const difference = completedDays - expectedDay
+      setProgressInfo({
+        completedDays,
+        expectedDay,
+        difference,
+        isOnTrack: difference >= 0
+      })
+
       setPhase(PHASES.COMPLETE)
     } catch (err) {
       setError(err.message || 'Failed to record session')
@@ -824,6 +844,15 @@ export default function DailySessionFlow() {
           <CompletePhase
             summary={sessionSummary}
             onDashboard={() => navigate('/')}
+            progressInfo={progressInfo}
+            onNext={() => {
+              if (progressInfo?.isOnTrack) {
+                setShowNextSessionModal(true)
+              } else {
+                // Behind - reload the page to start new session
+                window.location.reload()
+              }
+            }}
           />
         )}
       </div>
@@ -890,6 +919,55 @@ export default function DailySessionFlow() {
         onConfirm={handleSwitchToFastMode}
         onCancel={() => setShowFastModeModal(false)}
       />
+
+      {/* Next Session Modal (On Track Prompt) */}
+      {showNextSessionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <span className="text-2xl">✓</span>
+              </div>
+            </div>
+
+            <h3 className="text-center text-lg font-bold text-text-primary">
+              You&apos;re on track!
+            </h3>
+            <p className="mt-2 text-center text-sm text-text-secondary">
+              {progressInfo?.difference > 0
+                ? `You're ${progressInfo.difference} day${progressInfo.difference > 1 ? 's' : ''} ahead. Great work!`
+                : 'You\'ve completed today\'s session.'}
+            </p>
+            <p className="mt-2 text-center text-sm text-text-muted">
+              Starting another session isn&apos;t necessary, but you can get ahead if you want.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  setShowNextSessionModal(false)
+                  window.location.reload()
+                }}
+                variant="primary-blue"
+                size="lg"
+                className="w-full"
+              >
+                Start Next Session
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNextSessionModal(false)
+                  navigate('/')
+                }}
+                className="w-full text-center text-sm text-text-muted hover:text-text-secondary"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
@@ -1095,19 +1173,36 @@ function TestTypeModal({ isOpen, onClose, onSelect, testPhase, typedTestPassed }
   )
 }
 
-function CompletePhase({ summary, onDashboard }) {
+function CompletePhase({ summary, onDashboard, progressInfo, onNext }) {
   return (
     <div className="space-y-6 text-center">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
         <span className="text-3xl">✓</span>
       </div>
-      
+
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">
           Session Complete
         </p>
         <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
       </div>
+
+      {/* Progress indicator */}
+      {progressInfo && (
+        <div className={`rounded-lg px-4 py-2 text-sm font-medium ${
+          progressInfo.isOnTrack
+            ? progressInfo.difference > 0
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+              : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+            : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+        }`}>
+          {progressInfo.isOnTrack
+            ? progressInfo.difference > 0
+              ? `${progressInfo.difference} day${progressInfo.difference > 1 ? 's' : ''} ahead!`
+              : 'On track!'
+            : `${Math.abs(progressInfo.difference)} day${Math.abs(progressInfo.difference) > 1 ? 's' : ''} behind`}
+        </div>
+      )}
 
       <div className="rounded-xl bg-surface p-6 shadow ring-1 ring-border-default">
         <div className="grid grid-cols-2 gap-4 text-left">
@@ -1134,9 +1229,14 @@ function CompletePhase({ summary, onDashboard }) {
         </div>
       </div>
 
-      <Button onClick={onDashboard} variant="primary-blue" size="lg" className="w-full">
-        Back to Dashboard
-      </Button>
+      <div className="flex flex-col gap-3">
+        <Button onClick={onDashboard} variant="primary-blue" size="lg" className="w-full">
+          Back to Dashboard
+        </Button>
+        <Button onClick={onNext} variant="outline" size="lg" className="w-full">
+          Next
+        </Button>
+      </div>
     </div>
   )
 }
