@@ -301,68 +301,7 @@ const Dashboard = () => {
     })
     return lookup
   }, [studentClasses])
-  
-  // Panel B: Vitals - calculated from progressData (new study system)
-  const panelBState = useMemo(() => {
-    try {
-      if (!getPrimaryFocus) {
-        return {
-          wordsEstimate: 0,
-          retentionPercent: null,
-          streakDays: 0,
-          error: false
-        }
-      }
 
-      const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
-      const progress = progressData[key]
-
-      if (!progress) {
-        return {
-          wordsEstimate: 0,
-          retentionPercent: null,
-          streakDays: 0,
-          error: false
-        }
-      }
-
-      const { totalWordsIntroduced, stats, recentSessions } = progress
-      const avgReviewScore = stats?.avgReviewScore ?? null
-
-      // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
-      // This represents our estimate of how many words the student knows
-      const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
-        ? Math.round(totalWordsIntroduced * avgReviewScore)
-        : totalWordsIntroduced || 0
-
-      // Retention Rate: avgReviewScore as percentage
-      const retentionPercent = avgReviewScore !== null
-        ? Math.round(avgReviewScore * 100)
-        : null
-
-      // Current Streak: calculated from recentSessions with weekend skip logic
-      const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
-      const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
-
-      return {
-        wordsEstimate,
-        retentionPercent,
-        streakDays,
-        error: false
-      }
-    } catch (err) {
-      console.error('Panel B calculation error:', err)
-      return {
-        wordsEstimate: 0,
-        retentionPercent: null,
-        streakDays: 0,
-        error: true
-      }
-    }
-  }, [getPrimaryFocus, progressData])
-
-  // Destructure for easier access
-  const { wordsEstimate: wordsMastered, retentionPercent, streakDays, error: panelBError } = panelBState
   const latestTest = dashboardStats?.latestTest || null
   const latestTestListId = latestTest ? extractListIdFromTestId(latestTest.testId) : null
   const latestTestTitle =
@@ -938,6 +877,68 @@ const Dashboard = () => {
 
     return primaryList
   }, [studentClasses])
+
+  // Panel B: Vitals - calculated from progressData (new study system)
+  const panelBState = useMemo(() => {
+    try {
+      if (!getPrimaryFocus) {
+        return {
+          wordsEstimate: 0,
+          retentionPercent: null,
+          streakDays: 0,
+          error: false
+        }
+      }
+
+      const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+      const progress = progressData[key]
+
+      if (!progress) {
+        return {
+          wordsEstimate: 0,
+          retentionPercent: null,
+          streakDays: 0,
+          error: false
+        }
+      }
+
+      const { totalWordsIntroduced, stats, recentSessions } = progress
+      const avgReviewScore = stats?.avgReviewScore ?? null
+
+      // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
+      // This represents our estimate of how many words the student knows
+      const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
+        ? Math.round(totalWordsIntroduced * avgReviewScore)
+        : totalWordsIntroduced || 0
+
+      // Retention Rate: avgReviewScore as percentage
+      const retentionPercent = avgReviewScore !== null
+        ? Math.round(avgReviewScore * 100)
+        : null
+
+      // Current Streak: calculated from recentSessions with weekend skip logic
+      const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
+      const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
+
+      return {
+        wordsEstimate,
+        retentionPercent,
+        streakDays,
+        error: false
+      }
+    } catch (err) {
+      console.error('Panel B calculation error:', err)
+      return {
+        wordsEstimate: 0,
+        retentionPercent: null,
+        streakDays: 0,
+        error: true
+      }
+    }
+  }, [getPrimaryFocus, progressData])
+
+  // Destructure for easier access
+  const { wordsEstimate: wordsMastered, retentionPercent, streakDays, error: panelBError } = panelBState
 
   // Helper: Get start of current calendar week (Monday 00:00:00)
   const getStartOfWeek = () => {
