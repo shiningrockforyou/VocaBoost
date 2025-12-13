@@ -171,11 +171,54 @@ const Dashboard = () => {
     return lookup
   }, [studentClasses])
   
-  // Vitals Panel Data - from user.stats directly
-  const wordsMastered = user?.stats?.totalWordsLearned ?? 0
-  const retentionRate = user?.stats?.retention ?? null
-  const retentionPercent = retentionRate !== null ? Math.round(retentionRate * 100) : null
-  const streakDays = user?.stats?.streakDays ?? 0
+  // Panel B: Vitals - calculated from progressData (new study system)
+  const panelBState = useMemo(() => {
+    if (!getPrimaryFocus) {
+      return {
+        wordsEstimate: 0,
+        retentionPercent: null,
+        streakDays: 0
+      }
+    }
+
+    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+    const progress = progressData[key]
+
+    if (!progress) {
+      return {
+        wordsEstimate: 0,
+        retentionPercent: null,
+        streakDays: 0
+      }
+    }
+
+    const { totalWordsIntroduced, stats, recentSessions } = progress
+    const avgReviewScore = stats?.avgReviewScore ?? null
+
+    // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
+    // This represents our estimate of how many words the student knows
+    const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
+      ? Math.round(totalWordsIntroduced * avgReviewScore)
+      : totalWordsIntroduced || 0
+
+    // Retention Rate: avgReviewScore as percentage
+    const retentionPercent = avgReviewScore !== null
+      ? Math.round(avgReviewScore * 100)
+      : null
+
+    // Current Streak: calculated from recentSessions with weekend skip logic
+    const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
+    const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
+
+    return {
+      wordsEstimate,
+      retentionPercent,
+      streakDays
+    }
+  }, [getPrimaryFocus, progressData])
+
+  // Destructure for easier access
+  const { wordsEstimate: wordsMastered, retentionPercent, streakDays } = panelBState
   const latestTest = dashboardStats?.latestTest || null
   const latestTestListId = latestTest ? extractListIdFromTestId(latestTest.testId) : null
   const latestTestTitle =
@@ -716,6 +759,7 @@ const Dashboard = () => {
               classId: klass.id,
               className: klass.name,
               pace: pace,
+              studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
               wordCount: list.wordCount || 0,
               stats: list.stats || {},
             }
@@ -739,6 +783,7 @@ const Dashboard = () => {
             classId: klass.id,
             className: klass.name,
             pace: pace,
+            studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
             wordCount: firstList.wordCount || 0,
             stats: firstList.stats || {},
           }
@@ -750,11 +795,224 @@ const Dashboard = () => {
     return primaryList
   }, [studentClasses])
 
+  // Helper: Get start of current calendar week (Monday 00:00:00)
+  const getStartOfWeek = () => {
+    const now = new Date()
+    const day = now.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const diff = day === 0 ? 6 : day - 1 // Days since Monday
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - diff)
+    monday.setHours(0, 0, 0, 0)
+    return monday
+  }
+
+  // Helper: Calculate words introduced this week from recentSessions
+  const getWeeklyWordsIntroduced = (recentSessions) => {
+    if (!recentSessions || recentSessions.length === 0) return 0
+
+    const weekStart = getStartOfWeek()
+
+    return recentSessions
+      .filter(session => {
+        if (!session.date) return false
+        // Handle Firestore Timestamp or Date object
+        const sessionDate = session.date?.toDate?.() || session.date
+        return sessionDate >= weekStart
+      })
+      .reduce((sum, session) => sum + (session.wordsIntroduced || 0), 0)
+  }
+
+  // Helper: Get start of today (00:00:00)
+  const getStartOfToday = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return today
+  }
+
+  // Helper: Check if session was completed today
+  const hasSessionToday = (recentSessions) => {
+    if (!recentSessions || recentSessions.length === 0) return false
+
+    const todayStart = getStartOfToday()
+
+    return recentSessions.some(session => {
+      if (!session.date) return false
+      const sessionDate = session.date?.toDate?.() || session.date
+      return sessionDate >= todayStart
+    })
+  }
+
+  // Helper: Check if test was completed today (from userAttempts)
+  const hasTestToday = (attempts) => {
+    if (!attempts || attempts.length === 0) return false
+
+    const todayStart = getStartOfToday()
+
+    return attempts.some(attempt => {
+      if (!attempt.submittedAt && !attempt.date) return false
+      const attemptDate = attempt.submittedAt?.toDate?.() || attempt.submittedAt || attempt.date?.toDate?.() || attempt.date
+      if (!attemptDate) return false
+      const date = attemptDate instanceof Date ? attemptDate : new Date(attemptDate)
+      return date >= todayStart
+    })
+  }
+
+  // Retention status messages based on intervention level
+  const RETENTION_MESSAGES = {
+    excellent: [
+      "Your retention is excellent!",
+      "Past words are sticking well!",
+      "Keep up the great work!"
+    ],
+    good: [
+      "Retention looks solid",
+      "You're remembering well",
+      "Past words are on track"
+    ],
+    moderate: [
+      "We're pacing things carefully",
+      "Taking it steady to help retention",
+      "Balancing new words and review"
+    ],
+    needsSupport: [
+      "Focusing more on review right now",
+      "Slowing down to strengthen retention",
+      "More review to help you retain"
+    ],
+    highIntervention: [
+      "Let's solidify what you've learned",
+      "Extra review time to build your foundation",
+      "Reinforcing before adding more"
+    ]
+  }
+
+  // Get retention tier from intervention level
+  const getRetentionTier = (interventionLevel) => {
+    if (interventionLevel <= 0.15) return 'excellent'
+    if (interventionLevel <= 0.3) return 'good'
+    if (interventionLevel <= 0.5) return 'moderate'
+    if (interventionLevel <= 0.75) return 'needsSupport'
+    return 'highIntervention'
+  }
+
+  // Get a consistent message for today (changes daily, not on every render)
+  const getRetentionMessage = (tier) => {
+    const messages = RETENTION_MESSAGES[tier]
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24))
+    return messages[dayOfYear % messages.length]
+  }
+
+  // Helper: Calculate streak from recentSessions with weekend skip logic
+  const calculateStreak = (recentSessions, studyDaysPerWeek) => {
+    if (!recentSessions || recentSessions.length === 0) return 0
+
+    // Sort sessions by date descending (most recent first)
+    const sortedSessions = [...recentSessions]
+      .filter(s => s.date)
+      .map(s => {
+        const date = s.date?.toDate?.() || s.date
+        return { ...s, dateObj: date instanceof Date ? date : new Date(date) }
+      })
+      .sort((a, b) => b.dateObj - a.dateObj)
+
+    if (sortedSessions.length === 0) return 0
+
+    const skipWeekends = studyDaysPerWeek <= 5
+
+    // Helper to check if a date is a weekend
+    const isWeekend = (date) => {
+      const day = date.getDay()
+      return day === 0 || day === 6 // Sunday = 0, Saturday = 6
+    }
+
+    // Helper to get the previous expected study day
+    const getPreviousStudyDay = (date) => {
+      const prev = new Date(date)
+      prev.setDate(prev.getDate() - 1)
+      prev.setHours(0, 0, 0, 0)
+
+      if (skipWeekends) {
+        // Skip backwards over weekends
+        while (isWeekend(prev)) {
+          prev.setDate(prev.getDate() - 1)
+        }
+      }
+      return prev
+    }
+
+    // Normalize a date to start of day for comparison
+    const normalizeDate = (date) => {
+      const d = new Date(date)
+      d.setHours(0, 0, 0, 0)
+      return d
+    }
+
+    // Create a set of session dates for quick lookup
+    const sessionDates = new Set(
+      sortedSessions.map(s => normalizeDate(s.dateObj).getTime())
+    )
+
+    // Start from the most recent session date
+    let streak = 1
+    let currentDate = normalizeDate(sortedSessions[0].dateObj)
+
+    // Walk backwards checking for consecutive study days
+    while (true) {
+      const expectedPrevDate = getPreviousStudyDay(currentDate)
+
+      if (sessionDates.has(expectedPrevDate.getTime())) {
+        streak++
+        currentDate = expectedPrevDate
+      } else {
+        // Check if we should still be counting (if most recent session was today or yesterday)
+        break
+      }
+    }
+
+    // Only count streak if the most recent session was today or yesterday (or last weekday if skipping weekends)
+    const today = normalizeDate(new Date())
+    const mostRecentSession = normalizeDate(sortedSessions[0].dateObj)
+
+    // Calculate expected "yesterday" (accounting for weekend skip)
+    const getYesterday = () => {
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      if (skipWeekends) {
+        while (isWeekend(yesterday)) {
+          yesterday.setDate(yesterday.getDate() - 1)
+        }
+      }
+      return yesterday
+    }
+
+    const yesterday = getYesterday()
+
+    if (mostRecentSession.getTime() === today.getTime() ||
+        mostRecentSession.getTime() === yesterday.getTime()) {
+      return streak
+    }
+
+    // Streak is broken - most recent session is too old
+    return 0
+  }
+
   // Calculate weekly goal from pace
   const primaryFocusWeeklyGoal = getPrimaryFocus ? (getPrimaryFocus.pace * 7) : 50
-  const primaryFocusProgress = getPrimaryFocus?.stats?.wordsLearned || 0
-  const primaryFocusPercent = primaryFocusWeeklyGoal > 0 
-    ? Math.min(100, Math.round((primaryFocusProgress / primaryFocusWeeklyGoal) * 100)) 
+
+  // Calculate this week's progress from progressData
+  const primaryFocusProgress = useMemo(() => {
+    if (!getPrimaryFocus) return 0
+
+    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+    const progress = progressData[key]
+
+    if (!progress?.recentSessions) return 0
+
+    return getWeeklyWordsIntroduced(progress.recentSessions)
+  }, [getPrimaryFocus, progressData])
+
+  const primaryFocusPercent = primaryFocusWeeklyGoal > 0
+    ? Math.min(100, Math.round((primaryFocusProgress / primaryFocusWeeklyGoal) * 100))
     : 0
 
   // 7-Day Activity Data (Yesterday to 7 days ago, left to right)
@@ -832,38 +1090,46 @@ const Dashboard = () => {
     return activity
   }, [getPrimaryFocus, userAttempts])
 
-  // Calculate Smart CTA status for Panel C
-  const currentDayOfWeek = useMemo(() => {
-    const day = new Date().getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    // Convert to 1-7 where Monday is 1
-    return day === 0 ? 7 : day
-  }, [])
-
-  const expectedProgress = useMemo(() => {
-    return (primaryFocusWeeklyGoal / 7) * currentDayOfWeek
-  }, [primaryFocusWeeklyGoal, currentDayOfWeek])
-
-  const delta = useMemo(() => {
-    return primaryFocusProgress - expectedProgress
-  }, [primaryFocusProgress, expectedProgress])
-
-  // Debug: Force a specific status for visual testing
-  // Options: 'behind', 'onTrack', 'ahead', or null (to use real data)
-  const DEBUG_STATUS = null; // Change this to test different states
-
-  const smartCTAStatus = useMemo(() => {
-    // Use debug status if set, otherwise calculate from delta
-    if (DEBUG_STATUS !== null) {
-      return DEBUG_STATUS
+  // Panel C: Retention status and daily task status
+  const panelCState = useMemo(() => {
+    if (!getPrimaryFocus) {
+      return {
+        interventionLevel: 0,
+        retentionTier: 'good',
+        retentionMessage: "Join a class to get started",
+        sessionCompletedToday: false,
+        testCompletedToday: false,
+        dailyStatus: 'noList' // 'noList' | 'needsSession' | 'needsTest' | 'completed'
+      }
     }
-    if (delta < -5) {
-      return 'behind'
-    } else if (delta > 5) {
-      return 'ahead'
-    } else {
-      return 'onTrack'
+
+    const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+    const progress = progressData[key]
+
+    const interventionLevel = progress?.interventionLevel ?? 0
+    const retentionTier = getRetentionTier(interventionLevel)
+    const retentionMessage = getRetentionMessage(retentionTier)
+
+    const sessionCompletedToday = hasSessionToday(progress?.recentSessions)
+    const testCompletedToday = hasTestToday(userAttempts)
+
+    // Determine daily status
+    let dailyStatus = 'needsSession'
+    if (testCompletedToday) {
+      dailyStatus = 'completed'
+    } else if (sessionCompletedToday) {
+      dailyStatus = 'needsTest'
     }
-  }, [delta, DEBUG_STATUS])
+
+    return {
+      interventionLevel,
+      retentionTier,
+      retentionMessage,
+      sessionCompletedToday,
+      testCompletedToday,
+      dailyStatus
+    }
+  }, [getPrimaryFocus, progressData, userAttempts])
 
 
   // Modal state
@@ -937,9 +1203,9 @@ const Dashboard = () => {
 
                   {/* Progress Labels */}
                   <div className="flex items-center justify-between text-sm text-white/70 mb-2">
-                    <span>Progress</span>
+                    <span>This Week</span>
                     <span>
-                      {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} words remaining
+                      {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} more to hit your goal
                     </span>
                   </div>
 
@@ -965,80 +1231,105 @@ const Dashboard = () => {
           <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 h-full">
             {/* Top Row: Launchpad & Vitals */}
             <div className="grid grid-cols-2 gap-6 flex-1">
-              {/* Panel C: The Launchpad (Smart CTA) (Col-Span-1) */}
+              {/* Panel C: The Launchpad (Retention Status + Daily CTA) */}
               <div className="col-span-1">
-            <div className={`py-4 px-6 min-h-[280px] flex flex-col justify-center h-full rounded-2xl border shadow-lg ${
-              smartCTAStatus === 'behind' 
-                ? 'bg-gradient-to-br from-rose-500 to-orange-600 border-orange-600 shadow-orange-500/20' 
-                : smartCTAStatus === 'ahead' 
-                ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-teal-600 shadow-emerald-500/20' 
-                : 'bg-gradient-to-br from-blue-500 to-brand-primary border-brand-primary shadow-blue-500/20'
-            }`}>
-              <div className="mb-6">
-                <h3 className="font-heading text-xl font-bold text-white mb-2">
-                  {smartCTAStatus === 'behind' 
-                    ? "Let's catch up!" 
-                    : smartCTAStatus === 'ahead' 
-                    ? "Wow, you're flying!" 
-                    : "Right on track!"}
-                </h3>
-                <p className="font-body text-base text-white/90">
-                  {smartCTAStatus === 'behind' 
-                    ? `You're roughly ${Math.abs(Math.round(delta))} words behind schedule.`
-                    : smartCTAStatus === 'ahead' 
-                    ? `You're ${Math.round(delta)} words ahead of schedule!`
-                    : "You're meeting your daily goals perfectly."}
-                </p>
-              </div>
-              <div className="space-y-3 max-w-[240px] mx-auto w-full">
-                <button
-                  type="button"
-                  onClick={() => setStudyModalOpen(true)}
-                  className={`w-full h-14 flex items-center justify-center gap-2 rounded-button px-6 text-base font-bold border-none shadow-sm transition hover:bg-surface/90 ${
-                    smartCTAStatus === 'behind'
-                      ? 'bg-surface text-rose-600'
-                      : smartCTAStatus === 'ahead'
-                      ? 'bg-surface text-emerald-600'
-                      : 'bg-surface text-brand-text'
-                  }`}
-                >
-                  <svg
-                    className="h-5 w-5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                  <span className="truncate whitespace-nowrap max-w-full">Study Now</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTestModalOpen(true)}
-                  className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-bold border-2 border-white hover:bg-surface/20 transition-all active:scale-95"
-                >
-                  <svg
-                    className="h-5 w-5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                    />
-                  </svg>
-                  <span className="truncate whitespace-nowrap max-w-full">Take Test</span>
-                </button>
-              </div>
-            </div>
+                <div className={`py-4 px-6 min-h-[280px] flex flex-col justify-between h-full rounded-2xl border shadow-lg ${
+                  panelCState.dailyStatus === 'completed'
+                    ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-teal-600 shadow-emerald-500/20'
+                    : 'bg-gradient-to-br from-blue-500 to-brand-primary border-brand-primary shadow-blue-500/20'
+                }`}>
+                  {/* Top: Retention Status */}
+                  <div className="mb-4 pb-4 border-b border-white/20">
+                    <p className="font-body text-sm text-white/70 mb-1">Retention Status</p>
+                    <p className="font-heading text-lg font-bold text-white">
+                      {panelCState.retentionMessage}
+                    </p>
+                  </div>
+
+                  {/* Bottom: Daily Task Status + CTA */}
+                  <div className="flex-1 flex flex-col justify-center">
+                    {panelCState.dailyStatus === 'completed' ? (
+                      <>
+                        <div className="text-center mb-4">
+                          <span className="text-4xl mb-2 block">✓</span>
+                          <h3 className="font-heading text-xl font-bold text-white">
+                            You finished today's task!
+                          </h3>
+                          <p className="font-body text-sm text-white/80 mt-1">
+                            Great work! Come back tomorrow.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setStudyModalOpen(true)}
+                          className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-white/20 text-white font-semibold border border-white/30 hover:bg-white/30 transition-all active:scale-95"
+                        >
+                          <span>Practice More</span>
+                        </button>
+                      </>
+                    ) : panelCState.dailyStatus === 'needsTest' ? (
+                      <>
+                        <div className="text-center mb-4">
+                          <h3 className="font-heading text-xl font-bold text-white mb-1">
+                            Ready to test your knowledge?
+                          </h3>
+                          <p className="font-body text-sm text-white/80">
+                            You've completed today's study session.
+                          </p>
+                        </div>
+                        <div className="space-y-3 max-w-[240px] mx-auto w-full">
+                          <button
+                            type="button"
+                            onClick={() => setTestModalOpen(true)}
+                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-surface text-brand-text font-bold border-none shadow-sm transition hover:bg-surface/90"
+                          >
+                            <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                            </svg>
+                            <span>Take Test</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setStudyModalOpen(true)}
+                            className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-semibold border border-white/50 hover:bg-white/10 transition-all active:scale-95"
+                          >
+                            <span>Study More</span>
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-center mb-4">
+                          <h3 className="font-heading text-xl font-bold text-white mb-1">
+                            Start today's session
+                          </h3>
+                          <p className="font-body text-sm text-white/80">
+                            Learn new words and review past ones.
+                          </p>
+                        </div>
+                        <div className="space-y-3 max-w-[240px] mx-auto w-full">
+                          <button
+                            type="button"
+                            onClick={() => setStudyModalOpen(true)}
+                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-surface text-brand-text font-bold border-none shadow-sm transition hover:bg-surface/90"
+                          >
+                            <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <span>Study Now</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTestModalOpen(true)}
+                            className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-transparent text-white font-semibold border border-white/50 hover:bg-white/10 transition-all active:scale-95"
+                          >
+                            <span>Take Test</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Panel B: The Vitals (Col-Span-1) */}
