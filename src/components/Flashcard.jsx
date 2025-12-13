@@ -66,6 +66,17 @@ const Flashcard = ({ word, isFlipped, onFlip, autoPlay = false }) => {
               </span>
             )}
           </div>
+          <button
+            type="button"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-200 disabled:opacity-60"
+            onClick={(event) => {
+              event.stopPropagation()
+              handlePlayAudio()
+            }}
+            disabled={isPlaying}
+          >
+            {isPlaying ? '🔊 Playing...' : '🔊 Play Audio'}
+          </button>
           <p className="mt-4 text-sm text-text-muted">Tap to reveal the definition</p>
         </div>
       ) : (

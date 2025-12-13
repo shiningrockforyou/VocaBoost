@@ -12,6 +12,7 @@ import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
+import ConfirmModal from '../components/ConfirmModal'
 import { Button } from '../components/ui'
 
 // Services
@@ -84,6 +85,36 @@ export default function DailySessionFlow() {
 
   // Session summary
   const [sessionSummary, setSessionSummary] = useState(null)
+
+  // Confirmation modals
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false)
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+
+  // ============================================================
+  // Browser Close Warning
+  // ============================================================
+
+  useEffect(() => {
+    // Only warn during active study phases (not loading, complete, or test phases)
+    const isActivePhase = phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY
+
+    const handleBeforeUnload = (e) => {
+      if (isActivePhase) {
+        e.preventDefault()
+        e.returnValue = 'You have unsaved progress. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    if (isActivePhase) {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [phase])
 
   // ============================================================
   // Helper: Load Review Queue
@@ -500,6 +531,37 @@ export default function DailySessionFlow() {
   }
 
   // ============================================================
+  // Confirmation Handlers
+  // ============================================================
+
+  const handleQuitConfirm = () => {
+    setShowQuitConfirm(false)
+    navigate('/')
+  }
+
+  const handleSkipConfirm = () => {
+    setShowSkipConfirm(false)
+    if (phase === PHASES.NEW_WORDS) {
+      goToNewWordTest()
+    } else if (phase === PHASES.REVIEW_STUDY) {
+      handleFinishReviewStudy()
+    }
+  }
+
+  const handleResetConfirm = () => {
+    setShowResetConfirm(false)
+    if (phase === PHASES.NEW_WORDS) {
+      handleNewWordReset()
+    } else if (phase === PHASES.REVIEW_STUDY) {
+      handleReviewReset()
+    }
+  }
+
+  // Get current counts for confirmation messages
+  const currentQueueLength = phase === PHASES.NEW_WORDS ? newWordsQueue.length : reviewQueueCurrent.length
+  const currentDismissedCount = phase === PHASES.NEW_WORDS ? newWordsDismissed.size : reviewDismissed.size
+
+  // ============================================================
   // RENDER
   // ============================================================
 
@@ -534,24 +596,49 @@ export default function DailySessionFlow() {
     <main className="relative min-h-screen bg-base">
       <Watermark />
       
-      {/* Phase indicator */}
+      {/* Phase indicator with navigation */}
       <div className="relative z-10 border-b border-border-default bg-surface px-4 py-3">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-text-secondary">
-              Day {sessionConfig?.dayNumber}
-            </p>
-            {sessionConfig?.interventionLevel > 0.25 && (
-              <p className={`text-xs ${
-                sessionConfig.interventionLevel > 0.5 
-                  ? 'text-red-500' 
-                  : 'text-amber-500'
-              }`}>
-                {sessionConfig.interventionLevel > 0.5 ? '⚠️ High' : '📊'} Intervention: {Math.round(sessionConfig.interventionLevel * 100)}%
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          {/* Left: Quit button */}
+          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowQuitConfirm(true)}
+            >
+              ← Quit
+            </Button>
+          )}
+
+          {/* Center: Day info and phase indicator */}
+          <div className="flex flex-1 items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-text-secondary">
+                Day {sessionConfig?.dayNumber}
               </p>
-            )}
+              {sessionConfig?.interventionLevel > 0.25 && (
+                <p className={`text-xs ${
+                  sessionConfig.interventionLevel > 0.5
+                    ? 'text-red-500'
+                    : 'text-amber-500'
+                }`}>
+                  {sessionConfig.interventionLevel > 0.5 ? '⚠️ High' : '📊'} Intervention: {Math.round(sessionConfig.interventionLevel * 100)}%
+                </p>
+              )}
+            </div>
+            <PhaseIndicator phase={phase} hasReview={!!sessionConfig?.segment} />
           </div>
-          <PhaseIndicator phase={phase} hasReview={!!sessionConfig?.segment} />
+
+          {/* Right: Skip to Test button */}
+          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSkipConfirm(true)}
+            >
+              Test →
+            </Button>
+          )}
         </div>
       </div>
 
@@ -569,7 +656,7 @@ export default function DailySessionFlow() {
             onFlip={() => setIsFlipped(!isFlipped)}
             onKnowThis={handleNewWordKnowThis}
             onNotSure={handleNewWordNotSure}
-            onReset={handleNewWordReset}
+            onReset={() => setShowResetConfirm(true)}
             onFinish={handleFinishNewWordsStudy}
           />
         )}
@@ -606,7 +693,7 @@ export default function DailySessionFlow() {
             onFlip={() => setIsFlipped(!isFlipped)}
             onKnowThis={handleReviewKnowThis}
             onNotSure={handleReviewNotSure}
-            onReset={handleReviewReset}
+            onReset={() => setShowResetConfirm(true)}
             onFinish={handleFinishReviewStudy}
           />
         )}
@@ -644,6 +731,42 @@ export default function DailySessionFlow() {
         onSelect={handleTestTypeSelect}
         testPhase={pendingTestPhase}
         typedTestPassed={typedTestPassed[pendingTestPhase]}
+      />
+
+      {/* Quit Confirmation */}
+      <ConfirmModal
+        isOpen={showQuitConfirm}
+        title="Leave Study Session?"
+        message="Your flashcard progress will be lost. Test progress is saved separately."
+        confirmLabel="Leave"
+        cancelLabel="Keep Studying"
+        onConfirm={handleQuitConfirm}
+        onCancel={() => setShowQuitConfirm(false)}
+        variant="danger"
+      />
+
+      {/* Skip to Test Confirmation */}
+      <ConfirmModal
+        isOpen={showSkipConfirm}
+        title="Skip to Test?"
+        message={`You still have ${currentQueueLength} cards remaining. Are you ready to test?`}
+        confirmLabel="Start Test"
+        cancelLabel="Keep Studying"
+        onConfirm={handleSkipConfirm}
+        onCancel={() => setShowSkipConfirm(false)}
+        variant="warning"
+      />
+
+      {/* Reset Confirmation */}
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        title="Reset Progress?"
+        message={`This will restore all ${currentDismissedCount} dismissed cards.`}
+        confirmLabel="Reset"
+        cancelLabel="Cancel"
+        onConfirm={handleResetConfirm}
+        onCancel={() => setShowResetConfirm(false)}
+        variant="warning"
       />
     </main>
   )
@@ -709,6 +832,15 @@ function StudyPhase({
     )
   }
 
+  // Handle "Not Sure" - if not flipped, flip the card; if flipped, move to end
+  const handleNotSure = () => {
+    if (!isFlipped) {
+      onFlip()
+    } else {
+      onNotSure()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -731,31 +863,24 @@ function StudyPhase({
         />
       </div>
 
-      {/* Buttons */}
-      {isFlipped ? (
-        <div className="space-y-3">
-          <div className="flex gap-3">
-            <Button onClick={onNotSure} variant="outline" className="flex-1">
-              Not Sure
-            </Button>
-            <Button onClick={onKnowThis} variant="success" className="flex-1">
-              I Know This
-            </Button>
-          </div>
-          {dismissedCount > 0 && (
-            <Button onClick={onReset} variant="ghost" className="w-full">
-              Reset Session ({dismissedCount} dismissed)
-            </Button>
-          )}
-          <Button onClick={onFinish} variant="outline" className="w-full">
-            Skip to Test →
+      {/* Action Buttons - always visible */}
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <Button onClick={handleNotSure} variant="outline" className="flex-1">
+            {isFlipped ? 'Not Sure' : 'Show Definition'}
+          </Button>
+          <Button onClick={onKnowThis} variant="success" className="flex-1">
+            I Know This
           </Button>
         </div>
-      ) : (
-        <p className="text-center text-sm text-text-muted">
-          Tap the card to reveal
-        </p>
-      )}
+
+        {/* Reset button - only show when there are dismissed cards */}
+        {dismissedCount > 0 && (
+          <Button onClick={onReset} variant="ghost" className="w-full text-text-muted">
+            Reset ({dismissedCount} dismissed)
+          </Button>
+        )}
+      </div>
     </div>
   )
 }
