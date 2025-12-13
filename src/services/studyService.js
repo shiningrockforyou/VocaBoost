@@ -620,7 +620,50 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
   // Sort by wordIndex so PDF shows words in list order
   const combined = [...newWords, ...reviewWords];
   combined.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0));
-  
+
+  return combined;
+}
+
+/**
+ * Get complete batch for PDF (all words in segment, not just priority)
+ *
+ * @param {string} userId - User ID
+ * @param {string} classId - Class ID
+ * @param {string} listId - List ID
+ * @param {Object} assignment - Assignment settings
+ * @returns {Promise<Array>} All words in today's segment (with wordIndex)
+ */
+export async function getCompleteBatchForPDF(userId, classId, listId, assignment) {
+  // Initialize session to get segment info
+  const config = await initializeDailySession(userId, classId, listId, {
+    weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+    studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+    testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
+  });
+
+  // Get new words
+  const newWords = config.newWordCount > 0
+    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
+    : [];
+
+  // Get ALL words in segment (complete mode)
+  let segmentWords = [];
+  if (config.segment) {
+    segmentWords = await getSegmentWords(
+      userId,
+      listId,
+      config.segment.startIndex,
+      config.segment.endIndex
+    );
+  }
+
+  // Combine: new words + all segment words (no duplicates)
+  const newWordIds = new Set(newWords.map(w => w.id));
+  const uniqueSegmentWords = segmentWords.filter(w => !newWordIds.has(w.id));
+  const combined = [...newWords, ...uniqueSegmentWords];
+  combined.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0));
+
   return combined;
 }
 

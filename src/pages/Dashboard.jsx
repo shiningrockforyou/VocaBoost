@@ -24,7 +24,7 @@ import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import PDFOptionsModal from '../components/PDFOptionsModal.jsx'
-import { getTodaysBatchForPDF } from '../services/studyService'
+import { getTodaysBatchForPDF, getCompleteBatchForPDF } from '../services/studyService'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
 import { Button, IconButton, CardButton } from '../components/ui'
@@ -347,8 +347,14 @@ const Dashboard = () => {
     try {
       let words
 
-      if (mode === 'today' && user?.uid) {
-        // Smart selection for today's batch
+      if (mode === 'today-fast' && user?.uid) {
+        // Smart selection for today's batch (fast mode)
+        words = await getTodaysBatchForPDF(user.uid, classId, listId, assignment)
+      } else if (mode === 'today-complete' && user?.uid) {
+        // All words in segment (complete mode)
+        words = await getCompleteBatchForPDF(user.uid, classId, listId, assignment)
+      } else if (mode === 'today' && user?.uid) {
+        // Legacy support - treat as fast mode
         words = await getTodaysBatchForPDF(user.uid, classId, listId, assignment)
       } else {
         // Full list - need to add wordIndex
@@ -1777,8 +1783,8 @@ const Dashboard = () => {
                                   <div className="shrink-0 lg:self-stretch flex flex-col gap-1">
                                     {/* PDF Label */}
                                     <span className="text-xs text-text-muted font-medium text-center hidden lg:block">PDF</span>
-                                    <div className="flex flex-row lg:flex-col gap-2 flex-1">
-                                      {/* Today's Batch PDF */}
+                                    <div className="flex flex-row lg:flex-col gap-1.5 flex-1">
+                                      {/* Fast Mode PDF (Smart Selection) */}
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -1789,7 +1795,7 @@ const Dashboard = () => {
                                             testSizeReview: 30,
                                             newWordRetakeThreshold: 0.95
                                           }
-                                          handlePDFSelect('today', {
+                                          handlePDFSelect('today-fast', {
                                             classId: klass.id,
                                             listId: list.id,
                                             listTitle: list.title || 'Vocabulary List',
@@ -1797,19 +1803,48 @@ const Dashboard = () => {
                                           })
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
-                                        title="Download Today's Batch as PDF"
+                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-amber-300 bg-amber-50 px-2 py-1.5 text-[10px] font-semibold text-amber-700 transition hover:bg-amber-100 hover:border-amber-400 disabled:opacity-60 dark:bg-amber-900/20 dark:border-amber-700 dark:text-amber-400"
+                                        title="Fast Mode: Smart selection of priority words for today"
                                       >
-                                        {generatingPDF?.listId === list.id && generatingPDF?.mode === 'today' ? (
-                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        {generatingPDF?.listId === list.id && generatingPDF?.mode === 'today-fast' ? (
+                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                          </svg>
+                                          <span className="text-sm">⚡</span>
                                         )}
-                                        <span>Today</span>
+                                        <span>Fast</span>
+                                      </button>
+                                      {/* Complete Mode PDF (All Segment Words) */}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const assignment = klass.assignments?.[list.id] || {
+                                            pace: list.pace || 20,
+                                            testMode: list.testMode || 'mcq',
+                                            testSizeNew: 50,
+                                            testSizeReview: 30,
+                                            newWordRetakeThreshold: 0.95
+                                          }
+                                          handlePDFSelect('today-complete', {
+                                            classId: klass.id,
+                                            listId: list.id,
+                                            listTitle: list.title || 'Vocabulary List',
+                                            assignment
+                                          })
+                                        }}
+                                        disabled={generatingPDF?.listId === list.id}
+                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-blue-300 bg-blue-50 px-2 py-1.5 text-[10px] font-semibold text-blue-700 transition hover:bg-blue-100 hover:border-blue-400 disabled:opacity-60 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-400"
+                                        title="Complete Mode: All words in today's segment for thorough review"
+                                      >
+                                        {generatingPDF?.listId === list.id && generatingPDF?.mode === 'today-complete' ? (
+                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                          </svg>
+                                        ) : (
+                                          <span className="text-sm">📚</span>
+                                        )}
+                                        <span>Complete</span>
                                       </button>
                                       {/* Full List PDF */}
                                       <button
@@ -1830,15 +1865,15 @@ const Dashboard = () => {
                                           })
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
-                                        title="Download Full List as PDF"
+                                        className="flex-1 lg:w-16 min-h-[32px] flex flex-col items-center justify-center gap-0 rounded-button border border-border-strong bg-surface px-2 py-1.5 text-[10px] font-semibold text-text-muted transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                        title="Full List: Download all words in the entire list"
                                       >
                                         {generatingPDF?.listId === list.id && generatingPDF?.mode === 'full' ? (
-                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-3.5 w-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                           </svg>
                                         )}

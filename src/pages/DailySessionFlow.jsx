@@ -91,6 +91,12 @@ export default function DailySessionFlow() {
   const [showSkipConfirm, setShowSkipConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
 
+  // Review mode: 'fast' (smart selection) or 'complete' (all words)
+  const [reviewMode, setReviewMode] = useState('fast')
+  const [showCompleteModeModal, setShowCompleteModeModal] = useState(false)
+  const [showFastModeModal, setShowFastModeModal] = useState(false)
+  const [isSwitchingMode, setIsSwitchingMode] = useState(false)
+
   // ============================================================
   // Browser Close Warning
   // ============================================================
@@ -135,6 +141,71 @@ export default function DailySessionFlow() {
     setReviewQueueCurrent(queue)
     setCurrentIndex(0)
   }, [user?.uid, listId, newWordFailedIds])
+
+  // ============================================================
+  // Mode Switch Handlers
+  // ============================================================
+
+  const handleSwitchToCompleteMode = useCallback(async () => {
+    if (!sessionConfig || !user?.uid) return
+
+    setIsSwitchingMode(true)
+    setShowCompleteModeModal(false)
+
+    try {
+      // Load ALL words in the segment instead of smart selection
+      if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
+        const allWords = await getSegmentWords(
+          user.uid,
+          listId,
+          sessionConfig.segment.startIndex,
+          sessionConfig.segment.endIndex
+        )
+        setReviewQueue(allWords)
+        setReviewQueueCurrent(allWords)
+        setReviewDismissed(new Set())
+        setCurrentIndex(0)
+        setIsFlipped(false)
+      }
+
+      setReviewMode('complete')
+    } catch (err) {
+      console.error('Failed to switch to complete mode:', err)
+    } finally {
+      setIsSwitchingMode(false)
+    }
+  }, [sessionConfig, user?.uid, listId, phase])
+
+  const handleSwitchToFastMode = useCallback(async () => {
+    if (!sessionConfig || !user?.uid) return
+
+    setIsSwitchingMode(true)
+    setShowFastModeModal(false)
+
+    try {
+      // Reload with smart selection
+      if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
+        const queue = await buildReviewQueue(
+          user.uid,
+          listId,
+          sessionConfig.segment,
+          sessionConfig.reviewCount,
+          newWordFailedIds
+        )
+        setReviewQueue(queue)
+        setReviewQueueCurrent(queue)
+        setReviewDismissed(new Set())
+        setCurrentIndex(0)
+        setIsFlipped(false)
+      }
+
+      setReviewMode('fast')
+    } catch (err) {
+      console.error('Failed to switch to fast mode:', err)
+    } finally {
+      setIsSwitchingMode(false)
+    }
+  }, [sessionConfig, user?.uid, listId, phase, newWordFailedIds])
 
   // ============================================================
   // PHASE 0: Initialize Session
@@ -682,20 +753,53 @@ export default function DailySessionFlow() {
         )}
 
         {phase === PHASES.REVIEW_STUDY && (
-          <StudyPhase
-            title="Review"
-            subtitle={`${reviewQueueCurrent.length} words remaining`}
-            currentWord={currentReviewWord}
-            currentIndex={currentIndex}
-            totalCount={reviewQueueCurrent.length}
-            dismissedCount={reviewDismissed.size}
-            isFlipped={isFlipped}
-            onFlip={() => setIsFlipped(!isFlipped)}
-            onKnowThis={handleReviewKnowThis}
-            onNotSure={handleReviewNotSure}
-            onReset={() => setShowResetConfirm(true)}
-            onFinish={handleFinishReviewStudy}
-          />
+          <>
+            <StudyPhase
+              title="Review"
+              subtitle={`${reviewQueueCurrent.length} words remaining`}
+              currentWord={currentReviewWord}
+              currentIndex={currentIndex}
+              totalCount={reviewQueueCurrent.length}
+              dismissedCount={reviewDismissed.size}
+              isFlipped={isFlipped}
+              onFlip={() => setIsFlipped(!isFlipped)}
+              onKnowThis={handleReviewKnowThis}
+              onNotSure={handleReviewNotSure}
+              onReset={() => setShowResetConfirm(true)}
+              onFinish={handleFinishReviewStudy}
+            />
+
+            {/* Mode Toggle */}
+            <div className="mt-8 border-t border-border-default pt-6">
+              {reviewMode === 'fast' ? (
+                <button
+                  onClick={() => setShowCompleteModeModal(true)}
+                  disabled={isSwitchingMode}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface/50 px-4 py-3 text-sm text-text-muted transition hover:bg-surface hover:text-text-secondary disabled:opacity-50"
+                >
+                  {isSwitchingMode ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <span>📚</span>
+                  )}
+                  Want a more complete review?
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowFastModeModal(true)}
+                  disabled={isSwitchingMode}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 px-4 py-3 text-sm text-amber-600 transition hover:bg-amber-500/10 disabled:opacity-50"
+                >
+                  {isSwitchingMode ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <span>⚡</span>
+                  )}
+                  Return to fast review mode
+                </button>
+              )}
+            </div>
+          </>
         )}
 
         {phase === PHASES.REVIEW_TEST && (
@@ -767,6 +871,24 @@ export default function DailySessionFlow() {
         onConfirm={handleResetConfirm}
         onCancel={() => setShowResetConfirm(false)}
         variant="warning"
+      />
+
+      {/* Complete Mode Explanation */}
+      <ReviewModeModal
+        isOpen={showCompleteModeModal}
+        mode="complete"
+        wordCount={sessionConfig?.segment ? (sessionConfig.segment.endIndex - sessionConfig.segment.startIndex + 1) : 0}
+        onConfirm={handleSwitchToCompleteMode}
+        onCancel={() => setShowCompleteModeModal(false)}
+      />
+
+      {/* Fast Mode Explanation */}
+      <ReviewModeModal
+        isOpen={showFastModeModal}
+        mode="fast"
+        wordCount={sessionConfig?.reviewCount || 0}
+        onConfirm={handleSwitchToFastMode}
+        onCancel={() => setShowFastModeModal(false)}
       />
     </main>
   )
@@ -1019,3 +1141,79 @@ function CompletePhase({ summary, onDashboard }) {
   )
 }
 
+function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
+  if (!isOpen) return null
+
+  const isComplete = mode === 'complete'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+        <div className="mb-4 flex items-center gap-3">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-full ${
+            isComplete ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
+          }`}>
+            <span className="text-2xl">{isComplete ? '📚' : '⚡'}</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-text-primary">
+              {isComplete ? 'Complete Review Mode' : 'Fast Review Mode'}
+            </h3>
+            <p className="text-sm text-text-muted">
+              {isComplete ? `${wordCount} words in this segment` : `~${wordCount} priority words`}
+            </p>
+          </div>
+        </div>
+
+        <div className={`mb-6 rounded-lg p-4 ${
+          isComplete ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
+        }`}>
+          {isComplete ? (
+            <div className="space-y-3 text-sm">
+              <p className="font-medium text-blue-800 dark:text-blue-200">
+                Review every word in the segment
+              </p>
+              <p className="text-blue-700 dark:text-blue-300">
+                This is more work, but leads to better retention over time.
+                Recommended if you&apos;re struggling with review tests.
+              </p>
+              <p className="text-blue-600 dark:text-blue-400">
+                You&apos;ll study all {wordCount} words before testing.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 text-sm">
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Smart selection based on your performance
+              </p>
+              <p className="text-amber-700 dark:text-amber-300">
+                If you&apos;re doing well on tests, this minimal review is sufficient.
+                Focuses on words you&apos;ve struggled with.
+              </p>
+              <p className="text-amber-600 dark:text-amber-400">
+                Prioritizes ~{wordCount} words that need attention.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={onConfirm}
+            variant={isComplete ? 'primary-blue' : 'primary'}
+            className="flex-1"
+          >
+            {isComplete ? 'Switch to Complete' : 'Switch to Fast'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
