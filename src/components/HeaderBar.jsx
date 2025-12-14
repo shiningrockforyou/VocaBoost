@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, ClipboardList, User, Settings, LogOut, BookOpen, CircleUser, ChevronDown, GraduationCap } from 'lucide-react'
+import { Home, ClipboardList, User, Settings, LogOut, BookOpen, CircleUser, ChevronDown, GraduationCap, HelpCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import { fetchTeacherClasses } from '../services/db'
 import { NavButton } from './ui'
+import HelpModal from './HelpModal'
 
 /**
  * HeaderBar - Global navigation header used across all pages
@@ -17,6 +18,7 @@ const HeaderBar = () => {
   const [classesDropdownOpen, setClassesDropdownOpen] = useState(false)
   const [teacherClasses, setTeacherClasses] = useState([])
   const [classesLoading, setClassesLoading] = useState(false)
+  const [helpModalOpen, setHelpModalOpen] = useState(false)
   const dropdownRef = useRef(null)
   const classesDropdownRef = useRef(null)
   
@@ -156,6 +158,18 @@ const HeaderBar = () => {
           </NavButton>
         )}
 
+        {/* Help Button (Students only) */}
+        {!isTeacher && (
+          <button
+            type="button"
+            onClick={() => setHelpModalOpen(true)}
+            className="h-12 w-12 flex items-center justify-center rounded-button bg-surface border border-border-default text-text-secondary hover:bg-hover hover:text-brand-primary transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
+            aria-label="Help"
+          >
+            <HelpCircle size={24} />
+          </button>
+        )}
+
         {/* Avatar Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -211,6 +225,11 @@ const HeaderBar = () => {
           )}
         </div>
       </div>
+
+      {/* Help Modal (Students only) */}
+      {!isTeacher && (
+        <HelpModal isOpen={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
+      )}
     </div>
   )
 }
