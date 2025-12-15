@@ -21,8 +21,11 @@ import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
 import ConfirmModal from '../components/ConfirmModal'
 import BlindSpotsCard from '../components/BlindSpotsCard'
-import SessionSteps from '../components/SessionSteps'
+import SessionProgressSheet from '../components/SessionProgressSheet'
+import SessionMenu from '../components/SessionMenu'
+import SessionHeader from '../components/SessionHeader'
 import { Button } from '../components/ui'
+import { RefreshCw, ChevronLeft, ChevronRight, HelpCircle, X } from 'lucide-react'
 
 // Services
 import {
@@ -47,6 +50,19 @@ import {
 } from '../services/sessionService'
 import { downloadListAsPDF } from '../utils/pdfGenerator'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import {
+  getSessionId as getLocalSessionId,
+  saveSessionState as saveLocalSessionState,
+  getSessionState as getLocalSessionState,
+  clearSessionState as clearLocalSessionState,
+  clearAllSessionStates,
+  wasInTestPhase
+} from '../utils/sessionRecovery'
+import {
+  getTestId,
+  getTestState as getLocalTestState,
+  wasIntentionalExit
+} from '../utils/testRecovery'
 import { calculateExpectedStudyDay } from '../types/studyTypes'
 import { getClassProgress } from '../services/progressService'
 
@@ -125,6 +141,27 @@ export default function DailySessionFlow() {
   const [showNextSessionModal, setShowNextSessionModal] = useState(false)
   const [progressInfo, setProgressInfo] = useState(null) // { completedDays, expectedDay, difference, isOnTrack }
 
+  // Progress sheet state
+  const [showProgressSheet, setShowProgressSheet] = useState(false)
+
+  // Help modal state
+  const [showHelpModal, setShowHelpModal] = useState(false)
+
+  // Card display settings (persisted to localStorage)
+  const [showKoreanDef, setShowKoreanDef] = useState(() => {
+    const saved = localStorage.getItem('vocaboost_showKoreanDef')
+    return saved !== null ? JSON.parse(saved) : null
+  })
+  const [showSampleSentence, setShowSampleSentence] = useState(() => {
+    const saved = localStorage.getItem('vocaboost_showSampleSentence')
+    return saved !== null ? JSON.parse(saved) : null
+  })
+  const [showCardSettingsModal, setShowCardSettingsModal] = useState(false)
+
+  // Local session recovery state
+  const [savedLocalSessionState, setSavedLocalSessionState] = useState(null)
+  const [pendingLocalRecovery, setPendingLocalRecovery] = useState(false)
+
   // ============================================================
   // Browser Close Warning
   // ============================================================
@@ -187,6 +224,83 @@ export default function DailySessionFlow() {
       persistSessionState()
     }
   }, [phase, persistSessionState])
+
+  // Persist card display settings to localStorage
+  useEffect(() => {
+    if (showKoreanDef !== null) {
+      localStorage.setItem('vocaboost_showKoreanDef', JSON.stringify(showKoreanDef))
+    }
+  }, [showKoreanDef])
+
+  useEffect(() => {
+    if (showSampleSentence !== null) {
+      localStorage.setItem('vocaboost_showSampleSentence', JSON.stringify(showSampleSentence))
+    }
+  }, [showSampleSentence])
+
+  // Show card settings modal on first study session (when settings are null)
+  useEffect(() => {
+    if (phase === PHASES.NEW_WORDS && showKoreanDef === null && showSampleSentence === null) {
+      setShowCardSettingsModal(true)
+    }
+  }, [phase, showKoreanDef, showSampleSentence])
+
+  // ============================================================
+  // Local Session State Persistence (for crash recovery)
+  // ============================================================
+
+  useEffect(() => {
+    // Only save meaningful study phase state
+    if (!user?.uid || !sessionConfig?.dayNumber || pendingLocalRecovery) return
+    if (phase !== PHASES.NEW_WORDS && phase !== PHASES.REVIEW_STUDY) return
+
+    const phaseType = phase === PHASES.NEW_WORDS ? 'new' : 'review'
+    const sessionId = getLocalSessionId(user.uid, classId, listId, sessionConfig.dayNumber, phaseType)
+
+    const currentQueue = phase === PHASES.NEW_WORDS ? newWordsQueue : reviewQueueCurrent
+    const currentDismissed = phase === PHASES.NEW_WORDS ? [...newWordsDismissed] : [...reviewDismissed]
+    const wordPool = phase === PHASES.NEW_WORDS ? newWords : reviewQueue
+
+    saveLocalSessionState(sessionId, {
+      lastPhase: phase === PHASES.NEW_WORDS ? 'NEW_STUDY' : 'REVIEW_STUDY',
+      studyQueue: currentQueue.map(w => w.id),
+      dismissedWords: currentDismissed,
+      currentIndex,
+      isFlipped,
+      testType: phaseType,
+      wordPool: wordPool.map(w => ({ id: w.id, word: w.word })),
+      sessionContext: {
+        dayNumber: sessionConfig.dayNumber,
+        phase: phaseType,
+        isFirstDay: sessionConfig?.isFirstDay
+      }
+    })
+  }, [
+    user?.uid, classId, listId, sessionConfig?.dayNumber, phase,
+    newWordsQueue, reviewQueueCurrent, newWordsDismissed, reviewDismissed,
+    currentIndex, isFlipped, newWords, reviewQueue, pendingLocalRecovery
+  ])
+
+  // Save when entering test phase (so we can navigate back on crash)
+  useEffect(() => {
+    if (!user?.uid || !sessionConfig?.dayNumber || pendingLocalRecovery) return
+    if (phase !== PHASES.NEW_WORD_TEST && phase !== PHASES.REVIEW_TEST) return
+
+    const phaseType = phase === PHASES.NEW_WORD_TEST ? 'new' : 'review'
+    const sessionId = getLocalSessionId(user.uid, classId, listId, sessionConfig.dayNumber, phaseType)
+    const wordPool = phase === PHASES.NEW_WORD_TEST ? newWords : reviewQueue
+
+    saveLocalSessionState(sessionId, {
+      lastPhase: phase === PHASES.NEW_WORD_TEST ? 'NEW_TEST' : 'REVIEW_TEST',
+      testType: phaseType,
+      wordPool: wordPool.map(w => ({ id: w.id, word: w.word })),
+      sessionContext: {
+        dayNumber: sessionConfig.dayNumber,
+        phase: phaseType,
+        isFirstDay: sessionConfig?.isFirstDay
+      }
+    })
+  }, [user?.uid, classId, listId, sessionConfig?.dayNumber, phase, newWords, reviewQueue, pendingLocalRecovery])
 
   // ============================================================
   // PDF Generation
@@ -361,6 +475,7 @@ export default function DailySessionFlow() {
         setSessionConfig(config)
 
         // Load new words
+        let combinedWords = []
         if (config.newWordCount > 0) {
           const words = await getNewWords(
             listId,
@@ -375,7 +490,7 @@ export default function DailySessionFlow() {
           )
           setFailedCarryover(failedWords)
 
-          const combinedWords = [...failedWords, ...words]
+          combinedWords = [...failedWords, ...words]
           setNewWords(combinedWords)
           setNewWordsQueue(combinedWords)
 
@@ -386,6 +501,90 @@ export default function DailySessionFlow() {
             config.dayNumber
           )
         }
+
+        // ========================================
+        // Local Session Recovery Check
+        // ========================================
+        // Check for local session state from crash/unexpected exit
+
+        const newSessionId = getLocalSessionId(user.uid, classId, listId, config.dayNumber, 'new')
+        const reviewSessionId = getLocalSessionId(user.uid, classId, listId, config.dayNumber, 'review')
+        const localNewState = getLocalSessionState(newSessionId)
+        const localReviewState = getLocalSessionState(reviewSessionId)
+
+        // Check if user was in a test phase and crashed (no intentional exit)
+        const checkTestRecovery = (localState, phaseType) => {
+          if (!localState || !wasInTestPhase(localState.lastPhase)) return null
+
+          const testId = getTestId(classId, listId, phaseType)
+          const testState = getLocalTestState(testId)
+
+          // Only recover if test state exists AND user didn't intentionally leave
+          if (testState && !wasIntentionalExit(testId)) {
+            return { localState, testId, phaseType }
+          }
+          return null
+        }
+
+        // Prioritize review test recovery over new test (more likely to be recent)
+        const reviewTestRecovery = checkTestRecovery(localReviewState, 'review')
+        const newTestRecovery = checkTestRecovery(localNewState, 'new')
+        const testRecovery = reviewTestRecovery || newTestRecovery
+
+        if (testRecovery) {
+          // Crashed during test - navigate directly back to test
+          const testMode = assignment.testMode || 'mcq'
+          const route = testMode === 'typed' ? '/typedtest' : '/mcqtest'
+
+          // Store session state for return
+          sessionStorage.setItem('dailySessionState', JSON.stringify({
+            classId,
+            listId,
+            dayNumber: config.dayNumber,
+            phase: testRecovery.phaseType === 'new' ? PHASES.NEW_WORD_TEST : PHASES.REVIEW_TEST,
+            newWords: combinedWords || [],
+            newWordTestResults: null,
+            reviewQueue: [],
+            sessionConfig: config,
+            assignmentSettings: assignment,
+            reviewTestAttempts: 0
+          }))
+
+          navigate(`${route}/${classId}/${listId}`, {
+            state: {
+              testType: testRecovery.phaseType,
+              wordPool: testRecovery.phaseType === 'new' ? (combinedWords || []) : null,
+              returnPath: `/session/${classId}/${listId}`,
+              sessionContext: {
+                dayNumber: config.dayNumber,
+                phase: testRecovery.phaseType,
+                isFirstDay: config?.isFirstDay,
+                listTitle
+              }
+            }
+          })
+          return // Exit init - navigating to test
+        }
+
+        // Check if user was in a study phase and has progress to recover
+        const studyRecovery = localReviewState?.lastPhase === 'REVIEW_STUDY'
+          ? localReviewState
+          : localNewState?.lastPhase === 'NEW_STUDY'
+            ? localNewState
+            : null
+
+        if (studyRecovery && studyRecovery.studyQueue?.length > 0) {
+          // Has study progress - auto-restore it
+          setSavedLocalSessionState(studyRecovery)
+          setSessionConfig(config)
+          setAssignmentSettings(assignment)
+          setPendingLocalRecovery(true)
+          // Auto-restore will be triggered by useEffect watching pendingLocalRecovery
+        }
+
+        // No local recovery needed - clear any stale local state and continue
+        clearLocalSessionState(newSessionId)
+        clearLocalSessionState(reviewSessionId)
 
         // Handle re-entry: check if user already completed review test
         if (existingState && existingState.phase === SESSION_PHASE.COMPLETE && existingState.reviewTestScore !== null) {
@@ -498,6 +697,18 @@ export default function DailySessionFlow() {
     setIsFlipped(false)
   }
 
+  const handleNewWordPrev = () => {
+    if (newWordsQueue.length === 0) return
+    setCurrentIndex(prev => prev <= 0 ? newWordsQueue.length - 1 : prev - 1)
+    setIsFlipped(false)
+  }
+
+  const handleNewWordNext = () => {
+    if (newWordsQueue.length === 0) return
+    setCurrentIndex(prev => prev >= newWordsQueue.length - 1 ? 0 : prev + 1)
+    setIsFlipped(false)
+  }
+
   const goToNewWordTest = () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
     const actualMode = testMode === 'typed' ? 'typed' : 'mcq'
@@ -580,6 +791,18 @@ export default function DailySessionFlow() {
     setIsFlipped(false)
   }
 
+  const handleReviewPrev = () => {
+    if (reviewQueueCurrent.length === 0) return
+    setCurrentIndex(prev => prev <= 0 ? reviewQueueCurrent.length - 1 : prev - 1)
+    setIsFlipped(false)
+  }
+
+  const handleReviewNext = () => {
+    if (reviewQueueCurrent.length === 0) return
+    setCurrentIndex(prev => prev >= reviewQueueCurrent.length - 1 ? 0 : prev + 1)
+    setIsFlipped(false)
+  }
+
   const handleFinishReviewStudy = async () => {
     const studiedIds = reviewQueue.map(w => w.id)
     await updateQueueTracking(user.uid, studiedIds)
@@ -631,6 +854,7 @@ export default function DailySessionFlow() {
         sessionContext: {
           dayNumber: sessionConfig?.dayNumber,
           phase: testPhase,
+          isFirstDay: sessionConfig?.isFirstDay,
           wordRangeStart,
           wordRangeEnd,
           listTitle
@@ -639,7 +863,57 @@ export default function DailySessionFlow() {
     })
   }
 
-  // Handle return from test
+  // Handle return from test (Study button - go back to study phase)
+  useEffect(() => {
+    if (!location.state?.goToStudy) return
+
+    const handleGoToStudy = async () => {
+      const savedState = sessionStorage.getItem('dailySessionState')
+      if (!savedState) {
+        // No saved state - restart from beginning
+        navigate(`/session/${classId}/${listId}`, { replace: true })
+        return
+      }
+
+      try {
+        const state = JSON.parse(savedState)
+
+        // Restore session state
+        setSessionConfig(state.sessionConfig)
+        setNewWords(state.newWords)
+        setReviewQueue(state.reviewQueue)
+        setAssignmentSettings(state.assignmentSettings)
+        setReviewTestAttempts(state.reviewTestAttempts || 0)
+
+        // Reset study queue to allow re-study
+        if (location.state?.testType === 'new') {
+          // Go back to new words study phase
+          setNewWordsQueue([...state.newWords])
+          setNewWordsDismissed(new Set())
+          setCurrentIndex(0)
+          setIsFlipped(false)
+          setPhase(PHASES.NEW_WORDS)
+        } else {
+          // Go back to review study phase
+          setReviewQueueCurrent([...state.reviewQueue])
+          setReviewDismissed(new Set())
+          setCurrentIndex(0)
+          setIsFlipped(false)
+          setPhase(PHASES.REVIEW_STUDY)
+        }
+
+        // Clear navigation state
+        navigate(location.pathname, { replace: true, state: {} })
+      } catch (err) {
+        console.error('Failed to restore session state:', err)
+        setError('Failed to restore session. Please start over.')
+      }
+    }
+
+    handleGoToStudy()
+  }, [location.state?.goToStudy, location.state?.testType, classId, listId, navigate])
+
+  // Handle return from test (completion)
   useEffect(() => {
     if (!location.state?.testCompleted) return
 
@@ -729,6 +1003,9 @@ export default function DailySessionFlow() {
         isOnTrack: difference >= 0
       })
 
+      // Clear all local session states for this user's class/list
+      clearAllSessionStates(user.uid, classId, listId)
+
       setPhase(PHASES.COMPLETE)
     } catch (err) {
       setError(err.message || 'Failed to record session')
@@ -762,6 +1039,82 @@ export default function DailySessionFlow() {
 
   const handleRetakeReviewTest = () => {
     setPhase(PHASES.REVIEW_STUDY)
+  }
+
+  // ============================================================
+  // Local Session Recovery Handlers
+  // ============================================================
+
+  const handleLocalRecoveryContinue = async () => {
+    if (!savedLocalSessionState || !sessionConfig) return
+
+    try {
+      const { lastPhase, studyQueue, dismissedWords, currentIndex: savedIndex, isFlipped: savedFlipped } = savedLocalSessionState
+      const phaseType = lastPhase === 'NEW_STUDY' ? 'new' : 'review'
+
+      // Load words for the queue
+      if (phaseType === 'new') {
+        // Re-filter the queue based on saved word IDs
+        const queueWordIds = new Set(studyQueue)
+        const restoredQueue = newWords.filter(w => queueWordIds.has(w.id))
+        setNewWordsQueue(restoredQueue)
+        setNewWordsDismissed(new Set(dismissedWords || []))
+        setPhase(PHASES.NEW_WORDS)
+      } else {
+        // Review phase - need to load review words first
+        if (sessionConfig.segment) {
+          const queue = await buildReviewQueue(
+            user.uid,
+            listId,
+            sessionConfig.segment,
+            sessionConfig.reviewCount,
+            []
+          )
+          setReviewQueue(queue)
+
+          // Re-filter based on saved state
+          const queueWordIds = new Set(studyQueue)
+          const restoredQueue = queue.filter(w => queueWordIds.has(w.id))
+          setReviewQueueCurrent(restoredQueue)
+          setReviewDismissed(new Set(dismissedWords || []))
+        }
+        setPhase(PHASES.REVIEW_STUDY)
+      }
+
+      setCurrentIndex(Math.min(savedIndex || 0, (studyQueue?.length || 1) - 1))
+      setIsFlipped(savedFlipped || false)
+    } catch (err) {
+      console.error('Failed to restore local session:', err)
+      // Fall back to starting fresh
+      handleLocalRecoveryStartFresh()
+      return
+    }
+
+    setSavedLocalSessionState(null)
+    setPendingLocalRecovery(false)
+  }
+
+  // Auto-restore local session when pendingLocalRecovery is set
+  useEffect(() => {
+    if (pendingLocalRecovery && savedLocalSessionState && sessionConfig) {
+      handleLocalRecoveryContinue()
+    }
+  }, [pendingLocalRecovery, savedLocalSessionState, sessionConfig])
+
+  const handleLocalRecoveryStartFresh = async () => {
+    // Clear local session states
+    if (user?.uid && sessionConfig?.dayNumber) {
+      const newSessionId = getLocalSessionId(user.uid, classId, listId, sessionConfig.dayNumber, 'new')
+      const reviewSessionId = getLocalSessionId(user.uid, classId, listId, sessionConfig.dayNumber, 'review')
+      clearLocalSessionState(newSessionId)
+      clearLocalSessionState(reviewSessionId)
+    }
+
+    setSavedLocalSessionState(null)
+    setPendingLocalRecovery(false)
+
+    // Re-run init by triggering effect (navigate to self)
+    navigate(`/session/${classId}/${listId}`, { replace: true })
   }
 
   // ============================================================
@@ -803,8 +1156,8 @@ export default function DailySessionFlow() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-base p-4">
         <Watermark />
-        <div className="relative z-10 rounded-xl bg-red-50 p-6 text-center dark:bg-red-900/20">
-          <p className="text-red-700 dark:text-red-300">{error}</p>
+        <div className="relative z-10 rounded-xl bg-error p-6 text-center">
+          <p className="text-text-error">{error}</p>
           <Button onClick={() => navigate('/')} className="mt-4">
             Back to Dashboard
           </Button>
@@ -821,6 +1174,7 @@ export default function DailySessionFlow() {
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="mt-4 text-text-secondary">Preparing your session...</p>
         </div>
+
       </main>
     )
   }
@@ -830,70 +1184,113 @@ export default function DailySessionFlow() {
       <Watermark />
 
       {/* Header with navigation */}
-      <div className="relative z-10 border-b border-border-default bg-surface px-4 py-3">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          {/* Left: Quit button */}
-          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowQuitConfirm(true)}
-            >
-              ← Quit
-            </Button>
-          )}
+      <SessionHeader
+        onBack={() => setShowQuitConfirm(true)}
+        backAriaLabel="Quit session"
+        stepText={(() => {
+          const stepNum =
+            phase === PHASES.NEW_WORDS ? 1 :
+            phase === PHASES.NEW_WORD_TEST ? 2 :
+            phase === PHASES.REVIEW_STUDY ? (sessionConfig?.isFirstDay ? 2 : 3) :
+            phase === PHASES.REVIEW_TEST ? 4 :
+            phase === PHASES.COMPLETE ? (sessionConfig?.isFirstDay ? 3 : 5) : 1
+          const totalSteps = sessionConfig?.isFirstDay ? 3 : 5
+          return `Step ${stepNum} of ${totalSteps}`
+        })()}
+        onStepClick={() => setShowProgressSheet(true)}
+        rightSlot={
+          (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) ? (
+            <div className="flex items-center gap-1">
+              {/* Help button */}
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-muted transition"
+                aria-label="Study help"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </button>
 
-          {/* Center: List title */}
-          <div className="flex-1 text-center">
-            <p className="text-sm font-medium text-text-primary truncate">
-              {listTitle}
-            </p>
-          </div>
+              <SessionMenu
+                onSkipToTest={() => setShowTestConfirm(true)}
+                onDownloadPDF={handlePDFDownload}
+                onReset={() => setShowResetConfirm(true)}
+                onQuit={() => setShowQuitConfirm(true)}
+                showSkipToTest={currentQueueLength > 0}
+                showReset={currentDismissedCount > 0}
+                generatingPDF={generatingPDF}
+                showReviewModeToggle={phase === PHASES.REVIEW_STUDY}
+                reviewMode={reviewMode}
+                onToggleReviewMode={() => {
+                  if (reviewMode === 'fast') {
+                    setShowCompleteModeModal(true)
+                  } else {
+                    setShowFastModeModal(true)
+                  }
+                }}
+                showKoreanDef={showKoreanDef ?? true}
+                onToggleKoreanDef={() => setShowKoreanDef(prev => !(prev ?? true))}
+                showSampleSentence={showSampleSentence ?? true}
+                onToggleSampleSentence={() => setShowSampleSentence(prev => !(prev ?? true))}
+              />
+            </div>
+          ) : null
+        }
+        // Session context - shown in study phases
+        sessionTitle={
+          phase === PHASES.NEW_WORDS ? 'New Words Study' :
+          phase === PHASES.REVIEW_STUDY ? 'Review Study' :
+          undefined
+        }
+        dayNumber={sessionConfig?.dayNumber || 1}
+        // Progress bar - shown in study phases
+        progressPercent={
+          (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY)
+            ? ((phase === PHASES.NEW_WORDS ? newWordsDismissed.size : reviewDismissed.size) /
+               (phase === PHASES.NEW_WORDS ? newWords.length : reviewQueue.length) * 100) || 0
+            : undefined
+        }
+        progressLabel={
+          (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY)
+            ? `${phase === PHASES.NEW_WORDS ? newWordsDismissed.size : reviewDismissed.size} of ${phase === PHASES.NEW_WORDS ? newWords.length : reviewQueue.length} mastered`
+            : undefined
+        }
+      />
 
-          {/* Right: Skip to Test button */}
-          {(phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && currentQueueLength > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTestConfirm(true)}
-            >
-              Test →
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Session Progress Steps */}
-      <div className="relative z-10 mx-auto max-w-2xl px-4 pt-4">
-        <SessionSteps
-          currentPhase={phase}
-          isFirstDay={sessionConfig?.isFirstDay}
-          dayNumber={sessionConfig?.dayNumber || 1}
-          wordRangeStart={(sessionConfig?.newWordStartIndex || 0) + 1}
-          wordRangeEnd={(sessionConfig?.newWordEndIndex || 0) + 1}
-          newWordsTestScore={newWordTestResults?.score}
-          reviewTestScore={reviewTestResults?.score}
-        />
-      </div>
+      {/* Progress Sheet */}
+      <SessionProgressSheet
+        isOpen={showProgressSheet}
+        onClose={() => setShowProgressSheet(false)}
+        currentPhase={phase}
+        isFirstDay={sessionConfig?.isFirstDay}
+        dayNumber={sessionConfig?.dayNumber || 1}
+        wordRangeStart={(sessionConfig?.newWordStartIndex || 0) + 1}
+        wordRangeEnd={(sessionConfig?.newWordEndIndex || 0) + 1}
+        newWordsTestScore={newWordTestResults?.score}
+        reviewTestScore={reviewTestResults?.score}
+        cardsRemaining={currentQueueLength}
+        cardsDismissed={currentDismissedCount}
+        totalCards={phase === PHASES.NEW_WORDS ? newWords.length : reviewQueue.length}
+      />
 
       {/* Phase content */}
       <div className="relative z-10 mx-auto max-w-2xl px-4 py-8">
         {phase === PHASES.NEW_WORDS && (
           <StudyPhase
-            title="Study New Words"
-            subtitle="Review each word. If you already know it, tap 'I Know This' to remove it from your study list."
             currentWord={currentNewWord}
             currentIndex={currentIndex}
             totalCount={newWordsQueue.length}
+            originalTotal={newWords.length}
             dismissedCount={newWordsDismissed.size}
             isFlipped={isFlipped}
             onFlip={() => setIsFlipped(!isFlipped)}
             onKnowThis={handleNewWordKnowThis}
             onNotSure={handleNewWordNotSure}
-            onReset={() => setShowResetConfirm(true)}
-            onReadyForTest={() => setShowTestConfirm(true)}
-            onPDFDownload={handlePDFDownload}
-            generatingPDF={generatingPDF}
+            onReadyForTest={goToNewWordTest}
+            onStudyAgain={handleNewWordReset}
+            onPrev={handleNewWordPrev}
+            onNext={handleNewWordNext}
+            showKoreanDef={showKoreanDef ?? true}
+            showSampleSentence={showSampleSentence ?? true}
           />
         )}
 
@@ -917,64 +1314,23 @@ export default function DailySessionFlow() {
         )}
 
         {phase === PHASES.REVIEW_STUDY && (
-          <>
-            <StudyPhase
-              title="Review Words"
-              subtitle="Review words from previous days. Mark the ones you're confident about."
-              currentWord={currentReviewWord}
-              currentIndex={currentIndex}
-              totalCount={reviewQueueCurrent.length}
-              dismissedCount={reviewDismissed.size}
-              isFlipped={isFlipped}
-              onFlip={() => setIsFlipped(!isFlipped)}
-              onKnowThis={handleReviewKnowThis}
-              onNotSure={handleReviewNotSure}
-              onReset={() => setShowResetConfirm(true)}
-              onReadyForTest={() => setShowTestConfirm(true)}
-              onPDFDownload={handlePDFDownload}
-              generatingPDF={generatingPDF}
-            />
-
-            {/* Mode Toggle */}
-            <div className="mt-8 border-t border-border-default pt-6">
-              {reviewMode === 'fast' ? (
-                <button
-                  onClick={() => setShowCompleteModeModal(true)}
-                  disabled={isSwitchingMode}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface/50 px-4 py-3 text-sm text-text-muted transition hover:bg-surface hover:text-text-secondary disabled:opacity-50"
-                >
-                  {isSwitchingMode ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <span>📚</span>
-                  )}
-                  Want a more complete review?
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowFastModeModal(true)}
-                  disabled={isSwitchingMode}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 px-4 py-3 text-sm text-amber-600 transition hover:bg-amber-500/10 disabled:opacity-50"
-                >
-                  {isSwitchingMode ? (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <span>⚡</span>
-                  )}
-                  Return to fast review mode
-                </button>
-              )}
-            </div>
-          </>
-        )}
-
-        {phase === PHASES.REVIEW_TEST && (
-          <div className="text-center">
-            <div className="space-y-4">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-              <p className="text-text-secondary">Loading test...</p>
-            </div>
-          </div>
+          <StudyPhase
+            currentWord={currentReviewWord}
+            currentIndex={currentIndex}
+            totalCount={reviewQueueCurrent.length}
+            originalTotal={reviewQueue.length}
+            dismissedCount={reviewDismissed.size}
+            isFlipped={isFlipped}
+            onFlip={() => setIsFlipped(!isFlipped)}
+            onKnowThis={handleReviewKnowThis}
+            onNotSure={handleReviewNotSure}
+            onReadyForTest={handleFinishReviewStudy}
+            onStudyAgain={handleReviewReset}
+            onPrev={handleReviewPrev}
+            onNext={handleReviewNext}
+            showKoreanDef={showKoreanDef ?? true}
+            showSampleSentence={showSampleSentence ?? true}
+          />
         )}
 
         {phase === PHASES.COMPLETE && (
@@ -1053,6 +1409,7 @@ export default function DailySessionFlow() {
         variant="info"
       />
 
+
       {/* Move On Confirmation */}
       <ConfirmModal
         isOpen={showMoveOnConfirm}
@@ -1083,12 +1440,18 @@ export default function DailySessionFlow() {
         onCancel={() => setShowFastModeModal(false)}
       />
 
+      {/* Study Help Modal */}
+      <StudyHelpModal
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+      />
+
       {/* Next Session Modal (On Track Prompt) */}
       {showNextSessionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-success-subtle">
                 <span className="text-2xl">✓</span>
               </div>
             </div>
@@ -1132,6 +1495,80 @@ export default function DailySessionFlow() {
           </div>
         </div>
       )}
+
+      {/* Card Settings Modal (First-time setup) */}
+      {showCardSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-info-subtle">
+                <svg className="w-7 h-7 text-text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </div>
+
+            <h3 className="text-center text-lg font-bold text-text-primary">
+              Customize Your Flashcards
+            </h3>
+            <p className="mt-2 text-center text-sm text-text-muted">
+              Choose what to show on the back of each card.
+            </p>
+
+            {/* Toggle options */}
+            <div className="mt-6 space-y-4">
+              {/* Korean Definition Toggle */}
+              <button
+                onClick={() => setShowKoreanDef(prev => !(prev ?? true))}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-muted hover:bg-muted/80 transition"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">🇰🇷</span>
+                  <span className="text-sm font-medium text-text-primary">Korean Definition</span>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition-colors ${(showKoreanDef ?? true) ? 'bg-brand-primary' : 'bg-border-strong'}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform mt-0.5 ${(showKoreanDef ?? true) ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                </div>
+              </button>
+
+              {/* Sample Sentence Toggle */}
+              <button
+                onClick={() => setShowSampleSentence(prev => !(prev ?? true))}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-muted hover:bg-muted/80 transition"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">💬</span>
+                  <span className="text-sm font-medium text-text-primary">Sample Sentence</span>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition-colors ${(showSampleSentence ?? true) ? 'bg-brand-primary' : 'bg-border-strong'}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform mt-0.5 ${(showSampleSentence ?? true) ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                </div>
+              </button>
+            </div>
+
+            <p className="mt-4 text-center text-xs text-text-faint">
+              You can change these anytime in the menu (⋮)
+            </p>
+
+            <div className="mt-6">
+              <Button
+                onClick={() => {
+                  // Set defaults if still null
+                  if (showKoreanDef === null) setShowKoreanDef(true)
+                  if (showSampleSentence === null) setShowSampleSentence(true)
+                  setShowCardSettingsModal(false)
+                }}
+                variant="primary-blue"
+                size="lg"
+                className="w-full"
+              >
+                Start Studying
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
@@ -1141,133 +1578,171 @@ export default function DailySessionFlow() {
 // ============================================================
 
 function StudyPhase({
-  title,
-  subtitle,
   currentWord,
   currentIndex,
   totalCount,
+  originalTotal,
   dismissedCount,
   isFlipped,
   onFlip,
   onKnowThis,
   onNotSure,
-  onReset,
   onReadyForTest,
-  onPDFDownload,
-  generatingPDF
+  onStudyAgain,
+  onPrev,
+  onNext,
+  showKoreanDef = true,
+  showSampleSentence = true
 }) {
-  if (!currentWord) {
-    return (
-      <div className="text-center space-y-6">
-        <div className="rounded-xl bg-emerald-50 p-6 dark:bg-emerald-900/20">
-          <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
-            All cards reviewed!
-          </p>
-          <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
-            You're ready to take the test.
-          </p>
-        </div>
-        <Button onClick={onReadyForTest} variant="primary-blue" size="lg" className="w-full">
-          I'm Ready for the Test
-        </Button>
-      </div>
-    )
-  }
+  const allCardsReviewed = !currentWord
 
   const handleNotSure = () => {
-    if (!isFlipped) {
-      onFlip()
-    } else {
-      onNotSure()
-    }
+    onNotSure()
   }
 
+  // Visual feedback state for keyboard presses
+  const [pressedButton, setPressedButton] = useState(null) // 'check' | 'notSure' | null
+
+  // Keyboard shortcuts: Space/Up/Down = flip, X = not sure, C = check, Left/Right = navigate
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+
+      if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        if (!allCardsReviewed) onFlip()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (!allCardsReviewed && onPrev) onPrev()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (!allCardsReviewed && onNext) onNext()
+      } else if (e.key === 'x' || e.key === 'X') {
+        e.preventDefault()
+        if (!allCardsReviewed) {
+          setPressedButton('notSure')
+          setTimeout(() => setPressedButton(null), 150)
+          handleNotSure()
+        }
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault()
+        if (!allCardsReviewed) {
+          setPressedButton('check')
+          setTimeout(() => setPressedButton(null), 150)
+          onKnowThis()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [allCardsReviewed, onFlip, onKnowThis, onPrev, onNext])
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-        <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
-      </div>
+    <div className="flex flex-col">
+      {/* Main content area */}
+      <div className="flex flex-col justify-center py-8">
+        {allCardsReviewed ? (
+          <div className="text-center space-y-6 py-8">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-success-subtle">
+              <svg className="w-10 h-10 text-text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-text-primary">
+                All cards reviewed!
+              </p>
+              <p className="mt-1 text-sm text-text-muted">
+                You're ready to take the test.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Card counter */}
+            <p className="text-center text-sm text-text-muted mb-4">
+              Card {currentIndex + 1} of {totalCount}
+            </p>
 
-      {/* Progress */}
-      <p className="text-center text-sm text-text-muted">
-        Card {currentIndex + 1} of {totalCount}
-        {dismissedCount > 0 && ` (${dismissedCount} dismissed)`}
-      </p>
+            {/* Navigation arrows + Flashcard */}
+            <div className="flex items-center gap-2">
+              {/* Left arrow */}
+              <button
+                onClick={onPrev}
+                className="p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0"
+                aria-label="Previous card"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
 
-      {/* Flashcard */}
-      <div onClick={onFlip} className="cursor-pointer">
-        <Flashcard
-          word={currentWord}
-          isFlipped={isFlipped}
-          onFlip={onFlip}
-        />
-      </div>
+              {/* Flashcard - takes majority of space */}
+              <Flashcard
+                word={currentWord}
+                isFlipped={isFlipped}
+                onFlip={onFlip}
+                showKoreanDef={showKoreanDef}
+                showSampleSentence={showSampleSentence}
+              />
 
-      {/* Action Buttons */}
-      <div className="space-y-3">
-        <div className="flex gap-3">
-          <Button onClick={handleNotSure} variant="outline" className="flex-1">
-            {isFlipped ? 'Not Sure' : 'Show Definition'}
-          </Button>
-          <Button onClick={onKnowThis} variant="success" className="flex-1">
-            I Know This
-          </Button>
-        </div>
-
-        {dismissedCount > 0 && (
-          <Button onClick={onReset} variant="ghost" className="w-full text-text-muted">
-            Reset ({dismissedCount} dismissed)
-          </Button>
+              {/* Right arrow */}
+              <button
+                onClick={onNext}
+                className="p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0"
+                aria-label="Next card"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Ready for Test Button */}
-      <div className="pt-4 border-t border-border-default">
-        <Button
-          onClick={onReadyForTest}
-          variant="primary-blue"
-          size="lg"
-          className="w-full"
-        >
-          I'm Ready for the Test
-        </Button>
-      </div>
+      {/* Bottom Actions */}
+      <div className="pt-5 max-w-sm mx-auto">
+        {allCardsReviewed ? (
+          <div className="space-y-3">
+            <Button onClick={onReadyForTest} variant="primary-blue" size="lg" className="w-full">
+              <span className="flex items-center justify-center gap-2">
+                Take Test
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+            </Button>
+            <Button onClick={onStudyAgain} variant="outline" size="lg" className="w-full">
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="w-5 h-5" />
+                Study Again
+              </span>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-16 justify-center">
+            {/* Not Sure - warning X oval */}
+            <button
+              onClick={handleNotSure}
+              className={`w-32 h-16 rounded-full border-2 border-border-warning bg-warning text-text-warning hover:bg-warning-subtle transition flex items-center justify-center ${pressedButton === 'notSure' ? 'scale-95' : 'active:scale-95'}`}
+              aria-label="Not sure, study again (X)"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
-      {/* PDF Buttons */}
-      <div className="pt-4 border-t border-border-default">
-        <p className="text-xs text-text-muted text-center mb-3">
-          Prefer to study offline? Download a PDF.
-        </p>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => onPDFDownload('today')}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            disabled={generatingPDF !== null}
-          >
-            {generatingPDF === 'today' ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              "Today's Words"
-            )}
-          </Button>
-          <Button
-            onClick={() => onPDFDownload('full')}
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            disabled={generatingPDF !== null}
-          >
-            {generatingPDF === 'full' ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              'Full List'
-            )}
-          </Button>
-        </div>
+            {/* I Know This - success checkmark oval */}
+            <button
+              onClick={onKnowThis}
+              className={`w-32 h-16 rounded-full border-2 border-border-success bg-success text-text-success hover:bg-success-subtle transition flex items-center justify-center ${pressedButton === 'check' ? 'scale-95' : 'active:scale-95'}`}
+              aria-label="I know this word (C)"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -1287,22 +1762,22 @@ function RetakePrompt({ results, threshold, onRetake, onContinue, isFirstDay }) 
       </div>
 
       {needsRetake && (
-        <div className="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
-          <p className="font-medium text-amber-800 dark:text-amber-200">
+        <div className="rounded-lg bg-warning p-4">
+          <p className="font-medium text-text-warning-strong">
             Score below {Math.round(threshold * 100)}%
           </p>
-          <p className="mt-1 text-sm text-amber-600 dark:text-amber-300">
+          <p className="mt-1 text-sm text-text-warning">
             You need to score at least {Math.round(threshold * 100)}% to continue.
           </p>
         </div>
       )}
 
       {isFirstDay && !needsRetake && (
-        <div className="rounded-lg bg-emerald-50 p-4 dark:bg-emerald-900/20">
-          <p className="font-medium text-emerald-800 dark:text-emerald-200">
+        <div className="rounded-lg bg-success p-4">
+          <p className="font-medium text-text-success-strong">
             Great job on Day 1!
           </p>
-          <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-300">
+          <p className="mt-1 text-sm text-text-success">
             Since this is your first day, you're done! Starting tomorrow, you'll also review these words.
           </p>
         </div>
@@ -1345,10 +1820,10 @@ function CompletePhase({
     <div className="space-y-6">
       {/* Success Header */}
       <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
           <span className="text-3xl">✓</span>
         </div>
-        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-emerald-600">
+        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
           Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
         </p>
         <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
@@ -1359,9 +1834,9 @@ function CompletePhase({
         <div className={`rounded-lg px-4 py-2 text-sm font-medium text-center ${
           progressInfo.isOnTrack
             ? progressInfo.difference > 0
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-              : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-            : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+              ? 'bg-success text-text-success-strong'
+              : 'bg-info text-text-info-strong'
+            : 'bg-error text-text-error-strong'
         }`}>
           {progressInfo.isOnTrack
             ? progressInfo.difference > 0
@@ -1373,11 +1848,11 @@ function CompletePhase({
 
       {/* Day 1 Message */}
       {isFirstDay && (
-        <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-          <p className="font-medium text-blue-800 dark:text-blue-200">
+        <div className="rounded-lg bg-info p-4">
+          <p className="font-medium text-text-info-strong">
             Welcome to your first day!
           </p>
-          <p className="mt-1 text-sm text-blue-600 dark:text-blue-300">
+          <p className="mt-1 text-sm text-text-info">
             Starting tomorrow, you'll also review these words to help you remember them long-term.
           </p>
         </div>
@@ -1385,14 +1860,14 @@ function CompletePhase({
 
       {/* Retake Option for Low Review Score */}
       {showRetakeOption && (
-        <div className="rounded-xl bg-amber-50 border border-amber-200 p-5 dark:bg-amber-900/20 dark:border-amber-800">
+        <div className="rounded-xl bg-warning border border-border-warning p-5">
           <div className="flex items-start gap-3">
             <span className="text-xl">⚠️</span>
             <div className="flex-1">
-              <p className="font-semibold text-amber-800 dark:text-amber-200">
+              <p className="font-semibold text-text-warning-strong">
                 Your review score affects future pacing
               </p>
-              <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+              <p className="mt-2 text-sm text-text-warning">
                 A lower score means the system will slow down and give you more review tomorrow.
                 Retaking can help you progress faster.
               </p>
@@ -1432,16 +1907,31 @@ function CompletePhase({
 }
 
 function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onCancel()
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onCancel])
+
   if (!isOpen) return null
 
   const isComplete = mode === 'complete'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop - click to close */}
+      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+
+      {/* Modal content */}
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
         <div className="mb-4 flex items-center gap-3">
           <div className={`flex h-12 w-12 items-center justify-center rounded-full ${
-            isComplete ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
+            isComplete ? 'bg-info-subtle' : 'bg-warning-subtle'
           }`}>
             <span className="text-2xl">{isComplete ? '📚' : '⚡'}</span>
           </div>
@@ -1456,24 +1946,24 @@ function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
         </div>
 
         <div className={`mb-6 rounded-lg p-4 ${
-          isComplete ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
+          isComplete ? 'bg-info' : 'bg-warning'
         }`}>
           {isComplete ? (
             <div className="space-y-3 text-sm">
-              <p className="font-medium text-blue-800 dark:text-blue-200">
+              <p className="font-medium text-text-info-strong">
                 Review every word in the segment
               </p>
-              <p className="text-blue-700 dark:text-blue-300">
+              <p className="text-text-info">
                 This is more work, but leads to better retention over time.
                 Recommended if you're struggling with review tests.
               </p>
             </div>
           ) : (
             <div className="space-y-3 text-sm">
-              <p className="font-medium text-amber-800 dark:text-amber-200">
+              <p className="font-medium text-text-warning-strong">
                 Smart selection based on your performance
               </p>
-              <p className="text-amber-700 dark:text-amber-300">
+              <p className="text-text-warning">
                 If you're doing well on tests, this minimal review is sufficient.
                 Focuses on words you've struggled with.
               </p>
@@ -1482,15 +1972,134 @@ function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
         </div>
 
         <div className="flex gap-3">
-          <Button onClick={onCancel} variant="outline" className="flex-1">
+          <Button onClick={onCancel} variant="outline" size="lg" className="flex-1">
             Cancel
           </Button>
           <Button
             onClick={onConfirm}
             variant={isComplete ? 'primary-blue' : 'primary'}
+            size="lg"
             className="flex-1"
           >
             {isComplete ? 'Switch to Complete' : 'Switch to Fast'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function StudyHelpModal({ isOpen, onClose }) {
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop - click to close */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+
+      {/* Modal content */}
+      <div className="relative z-10 w-full max-w-md mx-4 rounded-2xl bg-surface p-6 shadow-xl max-h-[85vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-text-primary">How Study Works</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-muted transition">
+            <X className="w-5 h-5 text-text-muted" />
+          </button>
+        </div>
+
+        {/* Goal */}
+        <div className="mb-5">
+          <h4 className="font-semibold text-text-primary mb-2">Goal</h4>
+          <p className="text-sm text-text-secondary">
+            Review each flashcard and mark whether you know the word or need more practice.
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="mb-5">
+          <h4 className="font-semibold text-text-primary mb-2">Buttons</h4>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-success border-2 border-border-success flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+              <span className="text-text-secondary">You know this word. It&apos;s removed from queue.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-warning border-2 border-border-warning flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </span>
+              <span className="text-text-secondary">You&apos;re not sure. It&apos;s shown again later.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Keyboard Shortcuts */}
+        <div className="mb-5">
+          <h4 className="font-semibold text-text-primary mb-2">Keyboard Shortcuts</h4>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <kbd className="px-2 py-1 rounded bg-muted text-text-muted font-mono text-xs">Space</kbd>
+              <span className="text-text-secondary">Flip card</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="px-2 py-1 rounded bg-muted text-text-muted font-mono text-xs">↑ ↓</kbd>
+              <span className="text-text-secondary">Flip card</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="px-2 py-1 rounded bg-muted text-text-muted font-mono text-xs">C</kbd>
+              <span className="w-6 h-6 rounded-full bg-success border border-border-success flex items-center justify-center">
+                <svg className="w-3 h-3 text-text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="px-2 py-1 rounded bg-muted text-text-muted font-mono text-xs">X</kbd>
+              <span className="w-6 h-6 rounded-full bg-warning border border-border-warning flex items-center justify-center">
+                <svg className="w-3 h-3 text-text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="px-2 py-1 rounded bg-muted text-text-muted font-mono text-xs">← →</kbd>
+              <span className="text-text-secondary">Browse cards</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-6">
+          <h4 className="font-semibold text-text-primary mb-2">Progress Bar</h4>
+          <p className="text-sm text-text-secondary">
+            Shows how many words you&apos;ve marked as &quot;known.&quot; Once all cards are reviewed,
+            you can take the test or study again.
+          </p>
+        </div>
+
+        {/* Close button */}
+        <div className="flex justify-center">
+          <Button onClick={onClose} variant="primary-blue" size="lg" className="w-1/4">
+            Got it
           </Button>
         </div>
       </div>

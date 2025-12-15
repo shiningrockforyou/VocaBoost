@@ -1,8 +1,20 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { Button, IconButton } from '../ui'
 
 const StudySelectionModal = ({ isOpen, onClose, classes, mode = 'study' }) => {
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) {
     return null
   }
@@ -29,8 +41,12 @@ const StudySelectionModal = ({ isOpen, onClose, classes, mode = 'study' }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl bg-surface p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop - click to close */}
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal content */}
+      <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-surface p-6 shadow-2xl">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="font-heading text-xl font-bold text-slate-900">

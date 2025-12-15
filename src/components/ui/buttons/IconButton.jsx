@@ -17,13 +17,13 @@ import { forwardRef } from 'react'
 
 const variants = {
   default: `
-    text-text-faint 
-    hover:text-brand-primary hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-md
+    text-text-faint
+    hover:text-brand-primary hover:bg-accent-blue hover:-translate-y-0.5 hover:shadow-md
     active:translate-y-0 active:scale-95 active:shadow-none
   `,
   danger: `
-    text-text-faint 
-    hover:text-red-600 hover:bg-red-50 hover:-translate-y-0.5 hover:shadow-md
+    text-text-faint
+    hover:text-text-error hover:bg-accent-red hover:-translate-y-0.5 hover:shadow-md
     active:translate-y-0 active:scale-95 active:shadow-none
   `,
   ghost: `

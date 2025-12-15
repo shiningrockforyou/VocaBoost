@@ -152,7 +152,7 @@ export default function SessionSteps({
 
                   {/* Current indicator */}
                   {status === STEP_STATUS.CURRENT && (
-                    <span className="text-xs text-brand-primary font-medium">← Current</span>
+                    <span className="text-xs text-brand-text font-medium">← Current</span>
                   )}
                 </div>
 

@@ -36,7 +36,65 @@
   --color-bg-accent-green: 236 253 245;  /* emerald-50 */
   --color-bg-accent-amber: 255 251 235;  /* amber-50 */
   --color-bg-accent-purple: 250 245 255; /* purple-50 */
-  
+
+  /* ===== SEMANTIC STATE COLORS ===== */
+
+  /* SUCCESS (emerald) */
+  --color-success-bg: 236 253 245;        /* emerald-50 */
+  --color-success-bg-subtle: 209 250 229; /* emerald-100 */
+  --color-success-border: 167 243 208;    /* emerald-200 */
+  --color-success-ring: 16 185 129;       /* emerald-500 */
+  --color-success-text: 5 150 105;        /* emerald-600 */
+  --color-success-text-strong: 6 95 70;   /* emerald-800 */
+
+  /* ERROR (red) */
+  --color-error-bg: 254 242 242;          /* red-50 */
+  --color-error-bg-subtle: 254 226 226;   /* red-100 */
+  --color-error-border: 254 202 202;      /* red-200 */
+  --color-error-ring: 239 68 68;          /* red-500 */
+  --color-error-text: 220 38 38;          /* red-600 */
+  --color-error-text-strong: 153 27 27;   /* red-800 */
+
+  /* WARNING (amber) */
+  --color-warning-bg: 255 251 235;        /* amber-50 */
+  --color-warning-bg-subtle: 254 243 199; /* amber-100 */
+  --color-warning-border: 253 230 138;    /* amber-200 */
+  --color-warning-ring: 245 158 11;       /* amber-500 */
+  --color-warning-text: 217 119 6;        /* amber-600 */
+  --color-warning-text-strong: 146 64 14; /* amber-800 */
+
+  /* INFO (blue) */
+  --color-info-bg: 239 246 255;           /* blue-50 */
+  --color-info-bg-subtle: 219 234 254;    /* blue-100 */
+  --color-info-border: 191 219 254;       /* blue-200 */
+  --color-info-ring: 59 130 246;          /* blue-500 */
+  --color-info-text: 37 99 235;           /* blue-600 */
+  --color-info-text-strong: 30 64 175;    /* blue-800 */
+
+  /* CRITICAL ERROR (darker red for ≤50% tier) */
+  --color-error-critical-bg: 127 29 29;      /* red-900 */
+  --color-error-critical-ring: 185 28 28;    /* red-700 */
+
+  /* Text colors for use ON semantic backgrounds (light mode: dark text, dark mode: white) */
+  --text-on-success-rgb: 6 95 70;           /* emerald-800 - dark text on light emerald bg */
+  --text-on-success-muted-rgb: 5 150 105;   /* emerald-600 */
+  --text-on-error-rgb: 153 27 27;           /* red-800 - dark text on light red bg */
+  --text-on-error-muted-rgb: 220 38 38;     /* red-600 */
+  --text-on-warning-rgb: 146 64 14;         /* amber-800 - dark text on light amber bg */
+  --text-on-warning-muted-rgb: 217 119 6;   /* amber-600 */
+
+  /* Solid button backgrounds (for destructive/success actions) */
+  --btn-danger-rgb: 220 38 38;           /* red-600 */
+  --btn-danger-hover-rgb: 185 28 28;     /* red-700 */
+  --btn-success-rgb: 5 150 105;          /* emerald-600 */
+  --btn-success-hover-rgb: 4 120 87;     /* emerald-700 */
+  --btn-warning-rgb: 251 191 36;         /* amber-400 */
+  --btn-warning-hover-rgb: 245 158 11;   /* amber-500 */
+  --btn-warning-text-rgb: 15 23 42;      /* slate-900 - dark text on yellow */
+
+  /* BRAND FILL (for progress bars, etc.) */
+  --color-brand-fill: 27 58 148;             /* #1B3A94 - Royal Navy */
+
   /* ===== BORDERS ===== */
   
   /* Border widths */
@@ -110,6 +168,64 @@
   
   /* Brand text - white for prominence on dark backgrounds */
   --color-brand-text: #FFFFFF;
+
+  /* ===== SEMANTIC STATE COLORS (Dark Mode) ===== */
+
+  /* SUCCESS (emerald) */
+  --color-success-bg: 6 78 59;              /* emerald-900 */
+  --color-success-bg-subtle: 6 95 70;       /* emerald-800 */
+  --color-success-border: 5 150 105;        /* emerald-600 */
+  --color-success-ring: 16 185 129;         /* emerald-500 */
+  --color-success-text: 52 211 153;         /* emerald-400 */
+  --color-success-text-strong: 167 243 208; /* emerald-200 */
+
+  /* ERROR (red) */
+  --color-error-bg: 127 29 29;              /* red-900 */
+  --color-error-bg-subtle: 153 27 27;       /* red-800 */
+  --color-error-border: 220 38 38;          /* red-600 */
+  --color-error-ring: 239 68 68;            /* red-500 */
+  --color-error-text: 248 113 113;          /* red-400 */
+  --color-error-text-strong: 254 202 202;   /* red-200 */
+
+  /* WARNING (amber) */
+  --color-warning-bg: 120 53 15;            /* amber-900 */
+  --color-warning-bg-subtle: 146 64 14;     /* amber-800 */
+  --color-warning-border: 217 119 6;        /* amber-600 */
+  --color-warning-ring: 245 158 11;         /* amber-500 */
+  --color-warning-text: 251 191 36;         /* amber-400 */
+  --color-warning-text-strong: 253 230 138; /* amber-200 */
+
+  /* INFO (blue) */
+  --color-info-bg: 30 58 138;               /* blue-900 */
+  --color-info-bg-subtle: 30 64 175;        /* blue-800 */
+  --color-info-border: 37 99 235;           /* blue-600 */
+  --color-info-ring: 59 130 246;            /* blue-500 */
+  --color-info-text: 96 165 250;            /* blue-400 */
+  --color-info-text-strong: 191 219 254;    /* blue-200 */
+
+  /* CRITICAL ERROR (even darker red for dark mode) */
+  --color-error-critical-bg: 69 10 10;      /* darker than red-900 */
+  --color-error-critical-ring: 127 29 29;   /* red-900 */
+
+  /* Text colors for use ON semantic backgrounds - WHITE in dark mode */
+  --text-on-success-rgb: 255 255 255;       /* white */
+  --text-on-success-muted-rgb: 255 255 255; /* white (opacity applied via utility) */
+  --text-on-error-rgb: 255 255 255;         /* white */
+  --text-on-error-muted-rgb: 255 255 255;   /* white */
+  --text-on-warning-rgb: 255 255 255;       /* white */
+  --text-on-warning-muted-rgb: 255 255 255; /* white */
+
+  /* Solid button backgrounds (same in dark mode - they're already high contrast) */
+  --color-btn-danger: 220 38 38;           /* red-600 */
+  --color-btn-danger-hover: 185 28 28;     /* red-700 */
+  --color-btn-success: 5 150 105;          /* emerald-600 */
+  --color-btn-success-hover: 4 120 87;     /* emerald-700 */
+  --color-btn-warning: 251 191 36;         /* amber-400 */
+  --color-btn-warning-hover: 245 158 11;   /* amber-500 */
+  --color-btn-warning-text: 15 23 42;      /* slate-900 */
+
+  /* BRAND FILL (white in dark mode for contrast) */
+  --color-brand-fill: 255 255 255;          /* white */
 }
 
 /* Plus Jakarta Sans is loaded via Google Fonts in index.html */
@@ -196,7 +312,8 @@
   --color-brand-accent: #F97316;    /* Ember Orange */
   --color-brand-accent-hover: #EA580C;
   --color-brand-text: #1B3A94;      /* Brand text - same as primary in light mode */
-  
+  --color-brand-fill: rgb(var(--color-brand-fill)); /* Progress bar fills - adapts to white in dark */
+
   /* 2. SEMANTIC MAPS */
   --color-action-primary: var(--color-brand-accent);
   --color-action-hover: var(--color-brand-accent-hover);
@@ -258,6 +375,61 @@
   --shadow-theme-lg: var(--shadow-lg);
   --shadow-theme-xl: var(--shadow-xl);
   --shadow-theme-2xl: var(--shadow-2xl);
+
+  /* ===== SEMANTIC STATE COLOR TOKENS ===== */
+
+  /* Success (emerald) */
+  --color-success: rgb(var(--color-success-bg));
+  --color-success-subtle: rgb(var(--color-success-bg-subtle));
+  --color-border-success: rgb(var(--color-success-border));
+  --color-ring-success: rgb(var(--color-success-ring));
+  --color-text-success: rgb(var(--color-success-text));
+  --color-text-success-strong: rgb(var(--color-success-text-strong));
+
+  /* Error (red) */
+  --color-error: rgb(var(--color-error-bg));
+  --color-error-subtle: rgb(var(--color-error-bg-subtle));
+  --color-border-error: rgb(var(--color-error-border));
+  --color-ring-error: rgb(var(--color-error-ring));
+  --color-text-error: rgb(var(--color-error-text));
+  --color-text-error-strong: rgb(var(--color-error-text-strong));
+
+  /* Error Critical (dark red for ≤50% tier) */
+  --color-error-critical: rgb(var(--color-error-critical-bg));
+  --color-ring-error-critical: rgb(var(--color-error-critical-ring));
+
+  /* Warning (amber) */
+  --color-warning: rgb(var(--color-warning-bg));
+  --color-warning-subtle: rgb(var(--color-warning-bg-subtle));
+  --color-border-warning: rgb(var(--color-warning-border));
+  --color-ring-warning: rgb(var(--color-warning-ring));
+  --color-text-warning: rgb(var(--color-warning-text));
+  --color-text-warning-strong: rgb(var(--color-warning-text-strong));
+
+  /* Info (blue) */
+  --color-info: rgb(var(--color-info-bg));
+  --color-info-subtle: rgb(var(--color-info-bg-subtle));
+  --color-border-info: rgb(var(--color-info-border));
+  --color-ring-info: rgb(var(--color-info-ring));
+  --color-text-info: rgb(var(--color-info-text));
+  --color-text-info-strong: rgb(var(--color-info-text-strong));
+
+  /* Text colors for use ON semantic backgrounds */
+  --color-text-on-success: rgb(var(--text-on-success-rgb));
+  --color-text-on-success-muted: rgb(var(--text-on-success-muted-rgb) / 0.8);
+  --color-text-on-error: rgb(var(--text-on-error-rgb));
+  --color-text-on-error-muted: rgb(var(--text-on-error-muted-rgb) / 0.8);
+  --color-text-on-warning: rgb(var(--text-on-warning-rgb));
+  --color-text-on-warning-muted: rgb(var(--text-on-warning-muted-rgb) / 0.8);
+
+  /* Solid button colors */
+  --color-btn-danger: rgb(var(--btn-danger-rgb));
+  --color-btn-danger-hover: rgb(var(--btn-danger-hover-rgb));
+  --color-btn-success: rgb(var(--btn-success-rgb));
+  --color-btn-success-hover: rgb(var(--btn-success-hover-rgb));
+  --color-btn-warning: rgb(var(--btn-warning-rgb));
+  --color-btn-warning-hover: rgb(var(--btn-warning-hover-rgb));
+  --color-btn-warning-text: rgb(var(--btn-warning-text-rgb));
 }
 
 :root {
@@ -302,6 +474,10 @@ body {
   color: var(--color-brand-text);
 }
 
+.bg-brand-fill {
+  background-color: rgb(var(--color-brand-fill));
+}
+
 .text-brand-accent {
   color: var(--color-brand-accent);
 }
@@ -328,4 +504,21 @@ body {
   to {
     transform: translateX(0);
   }
+}
+
+/* 3D Card Flip Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }

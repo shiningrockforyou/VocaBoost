@@ -2,11 +2,12 @@
  * Test Recovery Utility
  *
  * Handles saving and recovering test state for network disconnect scenarios.
- * Uses localStorage with time-limited recovery (10 minute window).
+ * Uses localStorage with time-limited recovery (3 minute window).
  */
 
 const STORAGE_PREFIX = 'vocaboost_test_'
-const RECOVERY_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
+const RECOVERY_WINDOW_MS = 3 * 60 * 1000 // 3 minutes
+const INTENTIONAL_EXIT_KEY = 'vocaboost_intentional_exit'
 
 /**
  * Generate a unique test ID
@@ -121,4 +122,45 @@ export function validateTestState(testId, currentWordIds) {
   }
 
   return true
+}
+
+/**
+ * Mark that user is intentionally exiting (set in beforeunload)
+ * @param {string} testId - Unique test identifier
+ */
+export function markIntentionalExit(testId) {
+  try {
+    localStorage.setItem(`${INTENTIONAL_EXIT_KEY}_${testId}`, 'true')
+  } catch (error) {
+    console.warn('Failed to mark intentional exit:', error)
+  }
+}
+
+/**
+ * Check if last exit was intentional, and clear the flag
+ * @param {string} testId - Unique test identifier
+ * @returns {boolean} True if last exit was intentional
+ */
+export function wasIntentionalExit(testId) {
+  try {
+    const key = `${INTENTIONAL_EXIT_KEY}_${testId}`
+    const wasIntentional = localStorage.getItem(key) === 'true'
+    localStorage.removeItem(key) // Always clear after checking
+    return wasIntentional
+  } catch (error) {
+    console.warn('Failed to check intentional exit:', error)
+    return false
+  }
+}
+
+/**
+ * Clear intentional exit flag (call if user clicks "Stay" or continues)
+ * @param {string} testId - Unique test identifier
+ */
+export function clearIntentionalExitFlag(testId) {
+  try {
+    localStorage.removeItem(`${INTENTIONAL_EXIT_KEY}_${testId}`)
+  } catch (error) {
+    console.warn('Failed to clear intentional exit flag:', error)
+  }
 }

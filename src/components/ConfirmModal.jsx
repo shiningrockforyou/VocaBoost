@@ -11,6 +11,7 @@
  * Button order: Cancel (safe) first, Confirm (action) last
  */
 
+import { useEffect } from 'react'
 import { Button } from './ui'
 
 const ConfirmModal = ({
@@ -25,34 +26,36 @@ const ConfirmModal = ({
   showCancel = true,
   children
 }) => {
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showCancel) {
+        onCancel()
+      }
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, showCancel, onCancel])
+
   if (!isOpen) return null
 
+  // Map modal variants to Button component variants
+  const variantToButtonVariant = {
+    default: 'primary-blue',
+    danger: 'danger',
+    warning: 'warning',
+    info: 'primary-blue',
+    success: 'success'
+  }
+
   const variantStyles = {
-    default: {
-      icon: '❓',
-      iconBg: 'bg-slate-100',
-      confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white'
-    },
-    danger: {
-      icon: '⚠️',
-      iconBg: 'bg-red-100',
-      confirmClass: 'bg-red-600 hover:bg-red-700 text-white'
-    },
-    warning: {
-      icon: '⚡',
-      iconBg: 'bg-amber-100',
-      confirmClass: 'bg-amber-600 hover:bg-amber-700 text-white'
-    },
-    info: {
-      icon: 'ℹ️',
-      iconBg: 'bg-blue-100',
-      confirmClass: 'bg-blue-600 hover:bg-blue-700 text-white'
-    },
-    success: {
-      icon: '✓',
-      iconBg: 'bg-emerald-100',
-      confirmClass: 'bg-emerald-600 hover:bg-emerald-700 text-white'
-    }
+    default: { icon: '❓', iconBg: 'bg-muted' },
+    danger: { icon: '⚠️', iconBg: 'bg-error-subtle' },
+    warning: { icon: '⚡', iconBg: 'bg-warning-subtle' },
+    info: { icon: 'ℹ️', iconBg: 'bg-info-subtle' },
+    success: { icon: '✓', iconBg: 'bg-success-subtle' }
   }
 
   const styles = variantStyles[variant] || variantStyles.default
@@ -98,16 +101,16 @@ const ConfirmModal = ({
               variant="outline"
               size="lg"
               onClick={onCancel}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-1/4"
             >
               {cancelLabel}
             </Button>
           )}
           <Button
-            variant="primary-blue"
+            variant={variantToButtonVariant[variant] || 'primary-blue'}
             size="lg"
             onClick={onConfirm}
-            className={`w-full sm:w-auto ${styles.confirmClass}`}
+            className="w-full sm:w-1/4"
           >
             {confirmLabel}
           </Button>

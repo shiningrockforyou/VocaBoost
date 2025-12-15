@@ -23,7 +23,6 @@ import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
-import PDFOptionsModal from '../components/PDFOptionsModal.jsx'
 import { getTodaysBatchForPDF, getCompleteBatchForPDF } from '../services/studyService'
 import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../services/sessionService'
 import MasterySquares from '../components/MasterySquares.jsx'
@@ -188,7 +187,7 @@ function ListProgressStats({ classId, listId, progressData, assignment }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-3 py-2 min-w-[90px] h-full">
       <span className="text-xs text-text-muted uppercase tracking-wide font-medium">Day</span>
-      <span className="font-heading text-3xl font-bold text-brand-primary">{displayDay}</span>
+      <span className="font-heading text-3xl font-bold text-brand-text">{displayDay}</span>
       {isBehind && (
         <span className="text-[10px] font-medium text-red-500 whitespace-nowrap">
           {Math.abs(difference)} behind
@@ -559,6 +558,19 @@ const Dashboard = () => {
     loadUserStats()
   }, [isTeacher, user?.uid])
 
+  // ESC key handler for Today's PDF Modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showTodayPdfModal) {
+        setShowTodayPdfModal(false)
+        setPdfModalContext(null)
+      }
+    }
+    if (showTodayPdfModal) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showTodayPdfModal])
 
   const handleJoinClass = async (event) => {
     event.preventDefault()
@@ -1080,7 +1092,9 @@ const Dashboard = () => {
   // Panel A: Weekly progress state with error handling
   const panelAState = useMemo(() => {
     try {
-      const weeklyGoal = getPrimaryFocus ? (getPrimaryFocus.pace * 7) : 50
+      const weeklyGoal = getPrimaryFocus
+        ? (getPrimaryFocus.pace * (getPrimaryFocus.studyDaysPerWeek || 5))
+        : 50
 
       if (!getPrimaryFocus) {
         return {
@@ -1421,12 +1435,12 @@ const Dashboard = () => {
                           <button
                             type="button"
                             onClick={() => setStudyModalOpen(true)}
-                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-surface text-brand-text font-bold border-none shadow-sm transition hover:bg-surface/90"
+                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-brand-accent text-white font-bold border-none shadow-sm transition hover:bg-brand-accent-hover"
                           >
                             <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            <span>Study Now</span>
+                            <span>Start Session</span>
                           </button>
                         </div>
                       </>
@@ -1774,28 +1788,30 @@ const Dashboard = () => {
                                   </div>
 
                                   {/* Column 3: Stacked Action Buttons */}
-                                  <div className="flex flex-col gap-2 shrink-0 lg:min-w-[160px]">
+                                  <div className="flex flex-col gap-2 shrink-0 lg:min-w-[160px] lg:self-stretch">
                                     <button
                                       type="button"
                                       onClick={() => handleStartSession(klass.id, list.id)}
-                                      className="h-10 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
+                                      className="flex-1 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
                                     >
+                                      <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                      </svg>
                                       <span className="truncate whitespace-nowrap">Start Session</span>
                                     </button>
                                     <Link
                                       to={`/blindspots/${klass.id}/${list.id}`}
-                                      className="h-10 flex items-center justify-center gap-2 rounded-button border border-border-default bg-surface px-4 text-sm font-medium text-text-secondary hover:bg-muted transition"
+                                      className="flex-1 flex items-center justify-center gap-2 rounded-button bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-primary/90"
                                     >
-                                      <span>🔍</span>
+                                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                      </svg>
                                       <span className="truncate whitespace-nowrap">Blind Spots</span>
                                     </Link>
                                   </div>
 
                                   {/* Column 4: PDF Buttons */}
-                                  <div className="shrink-0 lg:self-stretch flex flex-col gap-1">
-                                    {/* PDF Label */}
-                                    <span className="text-xs text-text-muted font-medium text-center hidden lg:block">PDF</span>
-                                    <div className="flex flex-row lg:flex-col gap-2 flex-1">
+                                  <div className="shrink-0 lg:self-stretch flex flex-col gap-2">
                                       {/* Today's Batch PDF - opens modal */}
                                       <button
                                         type="button"
@@ -1816,16 +1832,17 @@ const Dashboard = () => {
                                           setShowTodayPdfModal(true)
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
                                         title="Download Today's Batch as PDF"
                                       >
                                         {generatingPDF?.listId === list.id && (generatingPDF?.mode === 'today-fast' || generatingPDF?.mode === 'today-complete') ? (
-                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-5 w-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                            <text x="6.5" y="17" fontSize="6" fontWeight="bold" fill="currentColor" stroke="none">PDF</text>
                                           </svg>
                                         )}
                                         <span>Today</span>
@@ -1849,21 +1866,21 @@ const Dashboard = () => {
                                           })
                                         }}
                                         disabled={generatingPDF?.listId === list.id}
-                                        className="flex-1 lg:w-20 min-h-[40px] flex flex-col items-center justify-center gap-0.5 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
+                                        className="flex-1 flex items-center justify-center gap-2 rounded-button border border-border-strong bg-surface px-3 py-2 text-xs font-semibold text-brand-text transition hover:bg-accent-blue hover:border-brand-primary disabled:opacity-60"
                                         title="Download Full List as PDF"
                                       >
                                         {generatingPDF?.listId === list.id && generatingPDF?.mode === 'full' ? (
-                                          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="h-5 w-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                           </svg>
                                         ) : (
-                                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                            <text x="6.5" y="17" fontSize="6" fontWeight="bold" fill="currentColor" stroke="none">PDF</text>
                                           </svg>
                                         )}
                                         <span>Full</span>
                                       </button>
-                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1899,18 +1916,16 @@ const Dashboard = () => {
         mode="test"
       />
       
-      {/* PDF Options Modal */}
-      <PDFOptionsModal
-        isOpen={pdfModalOpen}
-        onClose={() => { setPdfModalOpen(false); setPdfModalContext(null); }}
-        onSelect={handlePDFSelect}
-        listTitle={pdfModalContext?.listTitle || ''}
-      />
 
       {/* Today's PDF Modal */}
       {showTodayPdfModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop - click to close */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => { setShowTodayPdfModal(false); setPdfModalContext(null); }}
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl">
             <h3 className="text-lg font-bold text-text-primary">
               Today&apos;s Study Words
             </h3>
@@ -1945,13 +1960,14 @@ const Dashboard = () => {
               .
             </p>
 
-            <button
-              type="button"
+            <Button
               onClick={() => { setShowTodayPdfModal(false); setPdfModalContext(null); }}
-              className="mt-4 w-full text-center text-sm text-text-muted hover:text-text-secondary"
+              variant="ghost"
+              size="lg"
+              className="mt-4 w-full"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}

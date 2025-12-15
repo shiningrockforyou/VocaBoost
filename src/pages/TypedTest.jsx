@@ -11,19 +11,25 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
-import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
   saveTestState,
   getTestState,
   clearTestState,
-  getRecoveryTimeRemaining
+  getRecoveryTimeRemaining,
+  markIntentionalExit,
+  wasIntentionalExit,
+  clearIntentionalExitFlag
 } from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
 import Watermark from '../components/Watermark.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import SessionProgressSheet from '../components/SessionProgressSheet'
+import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader'
 import { Button } from '../components/ui'
+import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle } from 'lucide-react'
 
 // Hard cap for typed tests to limit AI grading costs
 const MAX_TYPED_TEST_WORDS = 50
@@ -70,6 +76,15 @@ const TypedTest = () => {
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
   const [savedRecoveryState, setSavedRecoveryState] = useState(null)
   const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
+  const [showProgressSheet, setShowProgressSheet] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+
+  // Refs for scroll-based fade effect
+  const headerRef = useRef(null)
+  const contentRef = useRef(null)
+  const questionRefs = useRef([])
+  const [headerHeight, setHeaderHeight] = useState(0)
+  const [questionOpacities, setQuestionOpacities] = useState([])
 
   // Practice mode (after passing, test doesn't save)
   const [isPracticeMode] = useState(practiceMode)
@@ -77,26 +92,39 @@ const TypedTest = () => {
   // Test ID for recovery
   const testId = getTestId(classIdParam || classId, listId, currentTestType)
 
-  // Browser close warning
+  // Browser close warning + intentional exit tracking
   useEffect(() => {
     const hasProgress = Object.keys(responses).length > 0 && !showResults
 
     const handleBeforeUnload = (e) => {
       if (hasProgress) {
+        // Mark as intentional exit - if user clicks "Leave", this flag tells us
+        // If user clicks "Stay", we clear it on next interaction
+        markIntentionalExit(testId)
         e.preventDefault()
         e.returnValue = 'You have unsaved test progress. Are you sure you want to leave?'
         return e.returnValue
       }
     }
 
+    // Clear intentional exit flag on any user interaction (handles "Stay" case)
+    const handleInteraction = () => {
+      clearIntentionalExitFlag(testId)
+    }
+
     if (hasProgress) {
       window.addEventListener('beforeunload', handleBeforeUnload)
+      // Listen for user interaction to clear flag if they chose "Stay"
+      window.addEventListener('click', handleInteraction, { once: true })
+      window.addEventListener('keydown', handleInteraction, { once: true })
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('click', handleInteraction)
+      window.removeEventListener('keydown', handleInteraction)
     }
-  }, [responses, showResults])
+  }, [responses, showResults, testId])
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -121,9 +149,42 @@ const TypedTest = () => {
     setIsLoading(true)
     setError('')
     try {
+      // Check for recovery state FIRST - if exists, use saved wordIds to restore exact words
+      const savedState = getTestState(testId)
+      const hasValidRecovery = savedState &&
+        savedState.wordIds?.length > 0 &&
+        !wasIntentionalExit(testId)
+
+      if (hasValidRecovery && wordPool && wordPool.length > 0) {
+        // Recovery mode: restore exact words from saved state
+        const wordMap = new Map(wordPool.map(w => [w.id, w]))
+        const recoveredWords = savedState.wordIds
+          .map(id => wordMap.get(id))
+          .filter(Boolean)
+
+        if (recoveredWords.length > 0) {
+          setOriginalWords(recoveredWords)
+          setWords(recoveredWords)
+          // Don't reset responses - will be restored when user confirms recovery
+          setResults(null)
+          setShowResults(false)
+          setCanRetake(false)
+          setTestResultsData(null)
+          inputRefs.current = new Array(recoveredWords.length)
+          // Trigger recovery prompt
+          setSavedRecoveryState(savedState)
+          setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+          setShowRecoveryPrompt(true)
+          setIsLoading(false)
+          return
+        }
+        // If recovery failed (words not found), fall through to normal flow
+      }
+
       // If word pool provided (from DailySessionFlow), use it (capped at MAX_TYPED_TEST_WORDS)
       if (wordPool && wordPool.length > 0) {
-        const cappedWords = wordPool.slice(0, MAX_TYPED_TEST_WORDS)
+        const shuffled = shuffleArray([...wordPool])
+        const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
         setOriginalWords(cappedWords)
         setWords(cappedWords)
         setResponses({})
@@ -206,8 +267,34 @@ const TypedTest = () => {
         throw new Error('No words available for testing.')
       }
 
-      // Apply hard cap for typed tests
-      const cappedWords = wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
+      // Check for recovery in standalone mode
+      if (hasValidRecovery) {
+        const wordMap = new Map(wordsToTest.map(w => [w.id, w]))
+        const recoveredWords = savedState.wordIds
+          .map(id => wordMap.get(id))
+          .filter(Boolean)
+
+        if (recoveredWords.length > 0) {
+          setOriginalWords(recoveredWords)
+          setWords(recoveredWords)
+          // Don't reset responses - will be restored when user confirms recovery
+          setResults(null)
+          setShowResults(false)
+          setCanRetake(false)
+          setTestResultsData(null)
+          inputRefs.current = new Array(recoveredWords.length)
+          // Trigger recovery prompt
+          setSavedRecoveryState(savedState)
+          setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+          setShowRecoveryPrompt(true)
+          return
+        }
+        // If recovery failed, fall through to normal flow
+      }
+
+      // Apply hard cap for typed tests (with randomization)
+      const shuffledWords = shuffleArray([...wordsToTest])
+      const cappedWords = shuffledWords.slice(0, MAX_TYPED_TEST_WORDS)
       setOriginalWords(cappedWords)
       setWords(cappedWords)
       setResponses({})
@@ -222,7 +309,7 @@ const TypedTest = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [user?.uid, listId, classIdParam, currentTestType, wordPool])
+  }, [user?.uid, listId, classIdParam, currentTestType, wordPool, testId])
 
   useEffect(() => {
     loadTestWords()
@@ -246,17 +333,7 @@ const TypedTest = () => {
     }
   }, [focusedIndex, results])
 
-  // Check for recoverable test state on mount
-  useEffect(() => {
-    if (!testId || isLoading) return
-
-    const saved = getTestState(testId)
-    if (saved && Object.keys(saved.answers || {}).length > 0) {
-      setSavedRecoveryState(saved)
-      setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
-      setShowRecoveryPrompt(true)
-    }
-  }, [testId, isLoading])
+  // Recovery is now handled in loadTestWords to ensure words are restored before showing prompt
 
   // Save test state on each answer (for recovery)
   useEffect(() => {
@@ -268,8 +345,45 @@ const TypedTest = () => {
     }
   }, [responses, testId, words, focusedIndex, showResults])
 
+  // Measure header height after render
+  useEffect(() => {
+    if (headerRef.current) {
+      const height = headerRef.current.getBoundingClientRect().height
+      setHeaderHeight(height)
+    }
+  }, [words.length])
+
+  // Calculate question opacities on scroll
+  useEffect(() => {
+    if (headerHeight === 0 || words.length === 0) return
+
+    const calculateOpacities = () => {
+      const newOpacities = questionRefs.current.map((ref) => {
+        if (!ref) return 1
+        const rect = ref.getBoundingClientRect()
+        const questionTop = rect.top
+
+        // Binary: visible below header, hidden at or above
+        return questionTop >= headerHeight ? 1 : 0
+      })
+      setQuestionOpacities(newOpacities)
+    }
+
+    // Calculate initially
+    calculateOpacities()
+
+    // Listen to window scroll (page scrolls at window level, not content div)
+    window.addEventListener('scroll', calculateOpacities)
+
+    return () => {
+      window.removeEventListener('scroll', calculateOpacities)
+    }
+  }, [headerHeight, words.length])
+
   // Handle recovery - restore saved answers
   const handleRecoveryResume = () => {
+    // Clear any stale intentional exit flag
+    clearIntentionalExitFlag(testId)
     if (savedRecoveryState?.answers) {
       setResponses(savedRecoveryState.answers)
       if (savedRecoveryState.currentIndex !== undefined) {
@@ -280,11 +394,18 @@ const TypedTest = () => {
     setSavedRecoveryState(null)
   }
 
-  // Handle recovery - start fresh
+  // Handle recovery - start fresh (re-randomize words)
   const handleRecoveryStartFresh = () => {
     clearTestState(testId)
     setShowRecoveryPrompt(false)
     setSavedRecoveryState(null)
+    // Re-shuffle the words for a fresh start
+    const shuffled = shuffleArray([...words])
+    setWords(shuffled)
+    setOriginalWords(shuffled)
+    setResponses({})
+    setFocusedIndex(0)
+    inputRefs.current = new Array(shuffled.length)
   }
 
   // Quit test with confirmation
@@ -304,8 +425,8 @@ const TypedTest = () => {
         setFocusedIndex(nextIndex)
         inputRefs.current[nextIndex]?.focus()
       } else {
-        // Last input - submit
-        handleSubmit()
+        // Last input - show confirmation modal
+        setShowSubmitConfirm(true)
       }
     } else if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault()
@@ -461,76 +582,276 @@ const TypedTest = () => {
 
   // Results Mode
   if (showResults && testResultsData && results) {
-    return (
-      <main className="relative flex min-h-screen items-center justify-center bg-base px-4 py-10">
-        <Watermark />
-        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-8 text-center shadow-xl ring-1 ring-border-default">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-            <span className="text-3xl">✓</span>
+    const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
+    const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
+
+    const handleBackToSession = () => {
+      if (returnPath) {
+        navigate(returnPath, {
+          state: {
+            testCompleted: true,
+            testType: currentTestType,
+            results: testResultsData
+          }
+        })
+      } else {
+        navigate('/')
+      }
+    }
+
+    // Go back to study phase (for failed new word tests)
+    const handleGoToStudy = () => {
+      navigate(returnPath || '/', {
+        state: {
+          testCompleted: false,
+          goToStudy: true,
+          testType: currentTestType
+        }
+      })
+    }
+
+    const score = testResultsData.score
+    const dayNumber = sessionContext?.dayNumber || 1
+
+    // Render results card based on test type
+    const renderResultsCard = () => {
+      // New Word Test: Pass/Fail based on threshold
+      if (currentTestType === 'new') {
+        const passed = score >= (retakeThreshold * 100)
+
+        return (
+          <div className={`rounded-2xl p-8 text-center shadow-xl ${
+            passed
+              ? 'bg-success ring-2 ring-ring-success'
+              : 'bg-error ring-2 ring-ring-error'
+          }`}>
+            {/* Icon */}
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${
+              passed ? 'bg-success-subtle' : 'bg-error-subtle border-2 border-white'
+            }`}>
+              {passed ? (
+                <Trophy className="w-8 h-8 text-text-on-success" />
+              ) : (
+                <X className="w-8 h-8 text-text-on-error" />
+              )}
+            </div>
+
+            {/* Header */}
+            <h2 className={`text-xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
+              {passed ? `Completed Day ${dayNumber} session` : 'Did not pass'}
+            </h2>
+
+            {!passed && (
+              <p className="mt-1 text-sm text-text-on-error-muted">
+                Your score is below {Math.round(retakeThreshold * 100)}%
+              </p>
+            )}
+
+            {/* Score */}
+            <p className={`mt-4 text-4xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
+              {score}%
+            </p>
+            <p className={passed ? 'text-text-on-success-muted' : 'text-text-on-error-muted'}>
+              {testResultsData.correct} of {testResultsData.total} correct
+            </p>
+
+            {/* Buttons */}
+            <div className="mt-6">
+              {passed ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleBackToSession}
+                  className="inline-flex items-center gap-2"
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                  Return to Dashboard
+                </Button>
+              ) : (
+                <div className="flex justify-center gap-4">
+                  <Button
+                    variant="primary-blue"
+                    size="lg"
+                    onClick={handleRetake}
+                    className="flex-1 max-w-[140px]"
+                  >
+                    Retake
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleGoToStudy}
+                    className="flex-1 max-w-[140px]"
+                  >
+                    Study
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-500">
-            Test Complete
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-text-primary">
-            {testResultsData.score}%
+        )
+      }
+
+      // Review Test: 4-tier system
+      const tier = score >= 85 ? 'excellent'
+                 : score >= 70 ? 'good'
+                 : score >= 50 ? 'needs-work'
+                 : 'critical'
+
+      const tierConfig = {
+        excellent: {
+          bg: 'bg-success ring-2 ring-ring-success',
+          iconBg: 'bg-success-subtle',
+          icon: <Trophy className="w-8 h-8 text-text-on-success" />,
+          header: 'Great Work!',
+          headerColor: 'text-text-on-success',
+          subtext: "You're mastering these words",
+          subtextColor: 'text-text-on-success-muted',
+          scoreColor: 'text-text-on-success',
+        },
+        good: {
+          bg: 'bg-warning ring-2 ring-ring-warning',
+          iconBg: 'bg-warning-subtle',
+          icon: <TrendingUp className="w-8 h-8 text-text-on-warning" />,
+          header: 'Room for Improvement',
+          headerColor: 'text-text-on-warning',
+          subtext: 'Consider reviewing before moving on',
+          subtextColor: 'text-text-on-warning-muted',
+          scoreColor: 'text-text-on-warning',
+        },
+        'needs-work': {
+          bg: 'bg-error ring-2 ring-ring-error',
+          iconBg: 'bg-error-subtle border-2 border-white',
+          icon: <X className="w-8 h-8 text-text-on-error" />,
+          header: 'Keep Practicing',
+          headerColor: 'text-text-on-error',
+          subtext: 'Your score affects tomorrow\'s pacing',
+          subtextColor: 'text-text-on-error-muted',
+          scoreColor: 'text-text-on-error',
+        },
+        critical: {
+          bg: 'bg-error-critical ring-2 ring-ring-error-critical',
+          iconBg: 'bg-error-subtle',
+          icon: <AlertTriangle className="w-8 h-8 text-white" />,
+          header: 'Needs Attention',
+          headerColor: 'text-white',
+          subtext: 'Low scores significantly slow your progress',
+          subtextColor: 'text-white/80',
+          scoreColor: 'text-white',
+        },
+      }
+
+      const config = tierConfig[tier]
+
+      return (
+        <div className={`rounded-2xl p-8 text-center shadow-xl ${config.bg}`}>
+          {/* Icon */}
+          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${config.iconBg}`}>
+            {config.icon}
+          </div>
+
+          {/* Header */}
+          <h2 className={`text-xl font-bold ${config.headerColor}`}>
+            {config.header}
           </h2>
-          <p className="text-text-secondary">
+          <p className={`mt-1 text-sm ${config.subtextColor}`}>
+            {config.subtext}
+          </p>
+
+          {/* Score */}
+          <p className={`mt-4 text-4xl font-bold ${config.scoreColor}`}>
+            {score}%
+          </p>
+          <p className={config.subtextColor}>
             {testResultsData.correct} of {testResultsData.total} correct
           </p>
 
-          {/* Test type indicator */}
-          <p className="mt-2 text-sm text-text-muted">
-            {currentTestType === 'new' ? 'New Word Test' : 'Review Test'}
-          </p>
-
-          {/* Retake prompt for new word test below threshold */}
-          {canRetake && (
-            <div className="mt-4 rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Score below {Math.round(retakeThreshold * 100)}% — retake recommended
-              </p>
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">
-                New word tests require {Math.round(retakeThreshold * 100)}% to proceed.
-              </p>
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div className="mt-6 flex flex-col gap-3">
-            {canRetake && (
+          {/* Buttons based on tier */}
+          <div className="mt-6">
+            {tier === 'excellent' && (
               <Button
-                variant="primary-blue"
+                variant="primary"
                 size="lg"
-                onClick={handleRetake}
-                className="w-full"
+                onClick={handleBackToSession}
+                className="inline-flex items-center gap-2"
               >
-                Retake Test
+                <LayoutGrid className="w-5 h-5" />
+                Return to Dashboard
               </Button>
             )}
-            <Button
-              variant={canRetake ? "outline" : "primary-blue"}
-              size="lg"
-              onClick={() => {
-                if (returnPath) {
-                  navigate(returnPath, {
-                    state: {
-                      testCompleted: true,
-                      testType: currentTestType,
-                      results: testResultsData
-                    }
-                  })
-                } else {
-                  navigate('/')
-                }
-              }}
-              className="w-full"
-            >
-              {canRetake ? 'Continue Anyway' : (returnPath ? 'Continue' : 'Back to Dashboard')}
-            </Button>
-          </div>
 
-          {/* Detailed results */}
-          <div className="mt-6">
+            {tier === 'good' && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleBackToSession}
+                  className="flex-1 max-w-[140px]"
+                >
+                  Continue
+                </Button>
+                <Button
+                  variant="warning"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Review Again
+                </Button>
+              </div>
+            )}
+
+            {tier === 'needs-work' && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Retake Test
+                </Button>
+              </div>
+            )}
+
+            {tier === 'critical' && (
+              <div className="flex flex-col items-center gap-3">
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="w-full max-w-[200px]"
+                >
+                  Retake Test
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <main className="relative flex min-h-screen flex-col bg-muted">
+        <Watermark />
+
+        <SessionHeader
+          onBack={handleBackToSession}
+          backAriaLabel="Back to session"
+          stepText={`Step ${resultsStepNumber} of ${resultsTotalSteps}`}
+          onStepClick={() => setShowProgressSheet(true)}
+          rightSlot={<GreyedMenuIcon />}
+          sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
+          dayNumber={sessionContext?.dayNumber || 1}
+        />
+
+        {/* Scrollable content area */}
+        <div className="relative z-10 flex-1 overflow-y-auto px-4 py-8">
+          <div className="mx-auto w-full max-w-2xl space-y-6">
+            {/* Card 1: Results Summary */}
+            {renderResultsCard()}
+
+            {/* Card 2: Detailed results */}
             <TestResults
               testType="typed"
               listTitle={listDetails?.title}
@@ -541,94 +862,136 @@ const TypedTest = () => {
             />
           </div>
         </div>
+
+        {/* Session Progress Sheet */}
+        <SessionProgressSheet
+          isOpen={showProgressSheet}
+          onClose={() => setShowProgressSheet(false)}
+          currentPhase={currentTestType === 'new' ? 'new_word_test' : 'review_test'}
+          isFirstDay={sessionContext?.isFirstDay}
+        />
       </main>
     )
   }
 
+  // Calculate step info for header pill
+  const stepNumber = sessionContext?.phase === 'new' ? 2 : 4
+  const totalSteps = sessionContext?.isFirstDay ? 3 : 5
+  const progressPercent = words.length > 0 ? (answeredCount / words.length) * 100 : 0
+  const unansweredCount = words.length - answeredCount
+
+  // Handle submit button click - show confirmation if there are unanswered questions
+  const handleSubmitClick = () => {
+    if (unansweredCount > 0) {
+      setShowSubmitConfirm(true)
+    } else {
+      handleSubmit()
+    }
+  }
+
   // Test Mode
   return (
-    <main className="relative min-h-screen bg-muted px-4 py-10">
+    <main className="relative flex min-h-screen flex-col bg-muted">
       <Watermark />
-      <div className="relative z-10 mx-auto max-w-4xl">
-        {/* Session Context Header */}
-        {sessionContext && (
-          <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-center dark:bg-blue-900/20 dark:border-blue-800">
-            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-              {sessionContext.phase === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext.dayNumber}
-            </p>
-            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
-              </p>
-            )}
-          </div>
-        )}
 
-        {/* Practice Mode Banner */}
-        {isPracticeMode && (
-          <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center">
-            <p className="text-sm font-medium text-amber-800">
-              Practice Mode — This attempt won't be recorded
-            </p>
-          </div>
-        )}
+      {/* Sticky Header with session context + progress */}
+      <SessionHeader
+        ref={headerRef}
+        onBack={() => setShowQuitConfirm(true)}
+        backAriaLabel="Quit test"
+        backDisabled={isSubmitting}
+        stepText={`Step ${stepNumber} of ${totalSteps}`}
+        onStepClick={() => setShowProgressSheet(true)}
+        rightSlot={<GreyedMenuIcon />}
+        // Session context
+        sessionTitle={sessionContext?.phase === 'new' ? 'New Words Test' : 'Review Test'}
+        dayNumber={sessionContext?.dayNumber || 1}
+        // Progress bar
+        progressPercent={progressPercent}
+        progressLabel={`${answeredCount} of ${words.length} answered`}
+      />
 
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between rounded-2xl bg-surface p-6 shadow-lg ring-1 ring-border-default">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => setShowQuitConfirm(true)} disabled={isSubmitting}>
-              ← Quit
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">{listDetails?.title || 'Typed Test'}</h1>
-              <p className="mt-1 text-sm text-text-secondary">
-                Progress: {answeredCount}/{words.length} answered
+      {/* Session Progress Sheet */}
+      <SessionProgressSheet
+        isOpen={showProgressSheet}
+        onClose={() => setShowProgressSheet(false)}
+        currentPhase={sessionContext?.phase === 'new' ? 'new_word_test' : 'review_test'}
+        isFirstDay={sessionContext?.isFirstDay}
+        dayNumber={sessionContext?.dayNumber || 1}
+        wordRangeStart={sessionContext?.wordRangeStart}
+        wordRangeEnd={sessionContext?.wordRangeEnd}
+      />
+
+      {/* Main Content Area */}
+      <div ref={contentRef} className="relative z-10 flex-1 overflow-y-auto px-4 pt-4 pb-24">
+        <div className="mx-auto max-w-4xl">
+          {/* Practice Mode Banner */}
+          {isPracticeMode && (
+            <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center dark:bg-amber-900/20 dark:border-amber-800">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Practice Mode — This attempt won't be recorded
               </p>
             </div>
+          )}
+
+          {/* Words List */}
+          <div className="space-y-4">
+            {words.map((word, index) => (
+              <div
+                key={word.id}
+                ref={(el) => (questionRefs.current[index] = el)}
+                className="flex flex-col gap-2 rounded-xl bg-surface p-4 shadow-sm ring-1 ring-border-default"
+                style={{ opacity: questionOpacities[index] ?? 1 }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex w-8 shrink-0 items-center justify-center text-sm font-semibold text-text-secondary">
+                    {index + 1}.
+                  </span>
+                  <span className="font-medium text-text-primary">{word.word}</span>
+                  {word.partOfSpeech && (
+                    <span className="text-sm italic text-text-muted">({word.partOfSpeech})</span>
+                  )}
+                </div>
+                <input
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  value={responses[word.id] || ''}
+                  onChange={(e) =>
+                    setResponses((prev) => ({
+                      ...prev,
+                      [word.id]: e.target.value,
+                    }))
+                  }
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onFocus={() => setFocusedIndex(index)}
+                  placeholder="Type your definition..."
+                  disabled={isSubmitting || results !== null}
+                  className="ml-11 rounded-lg border border-border-default bg-muted px-4 py-3 text-text-primary outline-none ring-border-strong transition focus:bg-surface focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+            ))}
           </div>
-          <Button variant="primary-blue" size="lg" onClick={handleSubmit} disabled={isSubmitting || answeredCount === 0}>
+
+          {error && (
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky Bottom Footer with Submit Button */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-4">
+        <div className="mx-auto max-w-4xl flex justify-center">
+          <Button
+            variant="primary-blue"
+            size="lg"
+            onClick={handleSubmitClick}
+            disabled={isSubmitting || answeredCount === 0}
+          >
             {isSubmitting ? 'Grading...' : 'Submit Test'}
           </Button>
         </div>
-
-        {/* Words List */}
-        <div className="space-y-4 rounded-2xl bg-surface p-6 shadow-lg ring-1 ring-border-default">
-          {words.map((word, index) => (
-            <div key={word.id} className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <span className="flex w-8 shrink-0 items-center justify-center text-sm font-semibold text-text-secondary">
-                  {index + 1}.
-                </span>
-                <span className="font-medium text-text-primary">{word.word}</span>
-                {word.partOfSpeech && (
-                  <span className="text-sm italic text-text-muted">({word.partOfSpeech})</span>
-                )}
-              </div>
-              <input
-                ref={(el) => (inputRefs.current[index] = el)}
-                type="text"
-                value={responses[word.id] || ''}
-                onChange={(e) =>
-                  setResponses((prev) => ({
-                    ...prev,
-                    [word.id]: e.target.value,
-                  }))
-                }
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                onFocus={() => setFocusedIndex(index)}
-                placeholder="Type your definition..."
-                disabled={isSubmitting || results !== null}
-                className="ml-11 rounded-lg border border-border-default bg-muted px-4 py-3 text-text-primary outline-none ring-border-strong transition focus:bg-surface focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-          ))}
-        </div>
-
-        {error && (
-          <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
       </div>
 
       {/* Quit Confirmation Modal */}
@@ -641,6 +1004,23 @@ const TypedTest = () => {
         onConfirm={handleQuitConfirm}
         onCancel={() => setShowQuitConfirm(false)}
         variant="danger"
+      />
+
+      {/* Submit Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showSubmitConfirm}
+        title="Submit Test?"
+        message={unansweredCount > 0
+          ? `Are you sure you want to submit? There ${unansweredCount === 1 ? 'is' : 'are'} ${unansweredCount} question${unansweredCount === 1 ? '' : 's'} you still have not answered.`
+          : 'Are you sure you want to submit your answers?'}
+        confirmLabel="Submit"
+        cancelLabel="Go Back"
+        onConfirm={() => {
+          setShowSubmitConfirm(false)
+          handleSubmit()
+        }}
+        onCancel={() => setShowSubmitConfirm(false)}
+        variant="warning"
       />
 
       {/* Recovery Prompt Modal */}

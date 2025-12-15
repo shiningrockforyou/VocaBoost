@@ -36,8 +36,8 @@ const variants = {
   secondary: `
     bg-surface text-brand-text font-bold
     border border-brand-primary shadow-sm
-    hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary
-    active:translate-y-0 active:scale-95 active:bg-blue-100
+    hover:bg-accent-blue hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary
+    active:translate-y-0 active:scale-95 active:bg-info-subtle
   `,
   outline: `
     bg-surface text-text-secondary font-semibold
@@ -52,21 +52,21 @@ const variants = {
     active:translate-y-0 active:scale-95
   `,
   danger: `
-    bg-red-600 text-white font-bold
-    shadow-lg shadow-red-600/20
-    hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-600/30
+    bg-btn-danger text-white font-bold
+    shadow-lg shadow-btn-danger/20
+    hover:bg-btn-danger-hover hover:-translate-y-0.5 hover:shadow-xl hover:shadow-btn-danger/30
     active:translate-y-0 active:scale-95 active:shadow-md
   `,
   success: `
-    bg-emerald-600 text-white font-bold
-    shadow-lg shadow-emerald-600/20
-    hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-600/30
+    bg-btn-success text-white font-bold
+    shadow-lg shadow-btn-success/20
+    hover:bg-btn-success-hover hover:-translate-y-0.5 hover:shadow-xl hover:shadow-btn-success/30
     active:translate-y-0 active:scale-95 active:shadow-md
   `,
   warning: `
-    bg-amber-400 text-slate-900 font-bold
-    shadow-lg shadow-amber-100
-    hover:bg-amber-500 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-amber-200
+    bg-btn-warning text-btn-warning-text font-bold
+    shadow-lg shadow-btn-warning/20
+    hover:bg-btn-warning-hover hover:-translate-y-0.5 hover:shadow-xl hover:shadow-btn-warning/30
     active:translate-y-0 active:scale-95 active:shadow-md
   `,
 }

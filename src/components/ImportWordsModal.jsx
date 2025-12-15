@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { Button, IconButton } from './ui'
@@ -11,6 +11,17 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
   const [error, setError] = useState('')
   const [importing, setImporting] = useState(false)
   const [success, setSuccess] = useState('')
+
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen) {
     return null
@@ -201,8 +212,12 @@ const ImportWordsModal = ({ isOpen, onClose, listId, onImportComplete }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop - click to close */}
+      <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} />
+
+      {/* Modal content */}
+      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-surface p-6 shadow-2xl">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Import Words from File</h2>

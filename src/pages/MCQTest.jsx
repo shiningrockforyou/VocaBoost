@@ -17,13 +17,19 @@ import {
   saveTestState,
   getTestState,
   clearTestState,
-  getRecoveryTimeRemaining
+  getRecoveryTimeRemaining,
+  markIntentionalExit,
+  wasIntentionalExit,
+  clearIntentionalExitFlag
 } from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
 import Watermark from '../components/Watermark.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
+import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader.jsx'
+import SessionProgressSheet from '../components/SessionProgressSheet.jsx'
 import { Button } from '../components/ui'
+import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle } from 'lucide-react'
 
 const MCQTest = () => {
   const { classId, listId } = useParams()
@@ -66,6 +72,7 @@ const MCQTest = () => {
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false)
   const [savedRecoveryState, setSavedRecoveryState] = useState(null)
   const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
+  const [showProgressSheet, setShowProgressSheet] = useState(false)
 
   // Practice mode (after passing, test doesn't save)
   const [isPracticeMode] = useState(practiceMode)
@@ -73,26 +80,39 @@ const MCQTest = () => {
   // Test ID for recovery
   const testId = getTestId(classIdParam || classId, listId, currentTestType)
 
-  // Browser close warning
+  // Browser close warning + intentional exit tracking
   useEffect(() => {
     const hasProgress = Object.keys(answers).length > 0 && !showResults
 
     const handleBeforeUnload = (e) => {
       if (hasProgress) {
+        // Mark as intentional exit - if user clicks "Leave", this flag tells us
+        // If user clicks "Stay", we clear it on next interaction
+        markIntentionalExit(testId)
         e.preventDefault()
         e.returnValue = 'You have unsaved test progress. Are you sure you want to leave?'
         return e.returnValue
       }
     }
 
+    // Clear intentional exit flag on any user interaction (handles "Stay" case)
+    const handleInteraction = () => {
+      clearIntentionalExitFlag(testId)
+    }
+
     if (hasProgress) {
       window.addEventListener('beforeunload', handleBeforeUnload)
+      // Listen for user interaction to clear flag if they chose "Stay"
+      window.addEventListener('click', handleInteraction, { once: true })
+      window.addEventListener('keydown', handleInteraction, { once: true })
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('click', handleInteraction)
+      window.removeEventListener('keydown', handleInteraction)
     }
-  }, [answers, showResults])
+  }, [answers, showResults, testId])
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -243,6 +263,13 @@ const MCQTest = () => {
 
     const saved = getTestState(testId)
     if (saved && Object.keys(saved.answers || {}).length > 0) {
+      // Check if user left intentionally (via beforeunload dialog)
+      if (wasIntentionalExit(testId)) {
+        // User intentionally left - clear saved state and start fresh
+        clearTestState(testId)
+        return
+      }
+      // Unintentional exit (crash/disconnect) - offer recovery
       setSavedRecoveryState(saved)
       setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
       setShowRecoveryPrompt(true)
@@ -261,6 +288,8 @@ const MCQTest = () => {
 
   // Handle recovery - restore saved answers
   const handleRecoveryResume = () => {
+    // Clear any stale intentional exit flag
+    clearIntentionalExitFlag(testId)
     if (savedRecoveryState?.answers) {
       setAnswers(savedRecoveryState.answers)
       if (savedRecoveryState.currentIndex !== undefined) {
@@ -399,6 +428,17 @@ const MCQTest = () => {
     }
   }
 
+  // Go back to study phase (for failed new word tests)
+  const handleGoToStudy = () => {
+    navigate(returnPath || '/', {
+      state: {
+        testCompleted: false,
+        goToStudy: true,
+        testType: currentTestType
+      }
+    })
+  }
+
   // Quit test with confirmation
   const handleQuitConfirm = () => {
     clearTestState(testId)
@@ -465,60 +505,252 @@ const MCQTest = () => {
       isCorrect: option?.isCorrect || false,
     }))
 
-    return (
-      <main className="relative flex min-h-screen items-center justify-center bg-base px-4 py-10">
-        <Watermark />
-        <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-8 text-center shadow-xl ring-1 ring-border-default">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-            <span className="text-3xl">✓</span>
+    // Calculate step numbers for SessionHeader
+    const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
+    const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
+
+    const score = testResultsData.score
+    const dayNumber = sessionContext?.dayNumber || 1
+
+    // Render results card based on test type
+    const renderResultsCard = () => {
+      // New Word Test: Pass/Fail based on threshold
+      if (currentTestType === 'new') {
+        const passed = score >= (retakeThreshold * 100)
+
+        return (
+          <div className={`rounded-2xl p-8 text-center shadow-xl ${
+            passed
+              ? 'bg-success ring-2 ring-ring-success'
+              : 'bg-error ring-2 ring-ring-error'
+          }`}>
+            {/* Icon */}
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${
+              passed ? 'bg-success-subtle' : 'bg-error-subtle border-2 border-white'
+            }`}>
+              {passed ? (
+                <Trophy className="w-8 h-8 text-text-on-success" />
+              ) : (
+                <X className="w-8 h-8 text-text-on-error" />
+              )}
+            </div>
+
+            {/* Header */}
+            <h2 className={`text-xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
+              {passed ? `Completed Day ${dayNumber} session` : 'Did not pass'}
+            </h2>
+
+            {!passed && (
+              <p className="mt-1 text-sm text-text-on-error-muted">
+                Your score is below {Math.round(retakeThreshold * 100)}%
+              </p>
+            )}
+
+            {/* Score */}
+            <p className={`mt-4 text-4xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
+              {score}%
+            </p>
+            <p className={passed ? 'text-text-on-success-muted' : 'text-text-on-error-muted'}>
+              {testResultsData.correct} of {testResultsData.total} correct
+            </p>
+
+            {/* Buttons */}
+            <div className="mt-6">
+              {passed ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleFinish}
+                  className="inline-flex items-center gap-2"
+                >
+                  <LayoutGrid className="w-5 h-5" />
+                  Return to Dashboard
+                </Button>
+              ) : (
+                <div className="flex justify-center gap-4">
+                  <Button
+                    variant="primary-blue"
+                    size="lg"
+                    onClick={handleRetake}
+                    className="flex-1 max-w-[140px]"
+                  >
+                    Retake
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleGoToStudy}
+                    className="flex-1 max-w-[140px]"
+                  >
+                    Study
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-500">
-            Test Complete
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-text-primary">
-            {testResultsData.score}%
+        )
+      }
+
+      // Review Test: 4-tier system
+      const tier = score >= 85 ? 'excellent'
+                 : score >= 70 ? 'good'
+                 : score >= 50 ? 'needs-work'
+                 : 'critical'
+
+      const tierConfig = {
+        excellent: {
+          bg: 'bg-success ring-2 ring-ring-success',
+          iconBg: 'bg-success-subtle',
+          icon: <Trophy className="w-8 h-8 text-text-on-success" />,
+          header: 'Great Work!',
+          headerColor: 'text-text-on-success',
+          subtext: "You're mastering these words",
+          subtextColor: 'text-text-on-success-muted',
+          scoreColor: 'text-text-on-success',
+        },
+        good: {
+          bg: 'bg-warning ring-2 ring-ring-warning',
+          iconBg: 'bg-warning-subtle',
+          icon: <TrendingUp className="w-8 h-8 text-text-on-warning" />,
+          header: 'Room for Improvement',
+          headerColor: 'text-text-on-warning',
+          subtext: 'Consider reviewing before moving on',
+          subtextColor: 'text-text-on-warning-muted',
+          scoreColor: 'text-text-on-warning',
+        },
+        'needs-work': {
+          bg: 'bg-error ring-2 ring-ring-error',
+          iconBg: 'bg-error-subtle border-2 border-white',
+          icon: <X className="w-8 h-8 text-text-on-error" />,
+          header: 'Keep Practicing',
+          headerColor: 'text-text-on-error',
+          subtext: 'Your score affects tomorrow\'s pacing',
+          subtextColor: 'text-text-on-error-muted',
+          scoreColor: 'text-text-on-error',
+        },
+        critical: {
+          bg: 'bg-error-critical ring-2 ring-ring-error-critical',
+          iconBg: 'bg-error-subtle',
+          icon: <AlertTriangle className="w-8 h-8 text-white" />,
+          header: 'Needs Attention',
+          headerColor: 'text-white',
+          subtext: 'Low scores significantly slow your progress',
+          subtextColor: 'text-white/80',
+          scoreColor: 'text-white',
+        },
+      }
+
+      const config = tierConfig[tier]
+
+      return (
+        <div className={`rounded-2xl p-8 text-center shadow-xl ${config.bg}`}>
+          {/* Icon */}
+          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${config.iconBg}`}>
+            {config.icon}
+          </div>
+
+          {/* Header */}
+          <h2 className={`text-xl font-bold ${config.headerColor}`}>
+            {config.header}
           </h2>
-          <p className="text-text-secondary">
+          <p className={`mt-1 text-sm ${config.subtextColor}`}>
+            {config.subtext}
+          </p>
+
+          {/* Score */}
+          <p className={`mt-4 text-4xl font-bold ${config.scoreColor}`}>
+            {score}%
+          </p>
+          <p className={config.subtextColor}>
             {testResultsData.correct} of {testResultsData.total} correct
           </p>
 
-          <p className="mt-2 text-sm text-text-muted">
-            {currentTestType === 'new' ? 'New Word Test' : 'Review Test'}
-          </p>
-
-          {canRetake && (
-            <div className="mt-4 rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Score below {Math.round(retakeThreshold * 100)}% — retake recommended
-              </p>
-              <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">
-                New word tests require {Math.round(retakeThreshold * 100)}% to proceed.
-              </p>
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-col gap-3">
-            {canRetake && (
+          {/* Buttons based on tier */}
+          <div className="mt-6">
+            {tier === 'excellent' && (
               <Button
-                variant="primary-blue"
+                variant="primary"
                 size="lg"
-                onClick={handleRetake}
-                className="w-full"
+                onClick={handleFinish}
+                className="inline-flex items-center gap-2"
               >
-                Retake Test
+                <LayoutGrid className="w-5 h-5" />
+                Return to Dashboard
               </Button>
             )}
-            <Button
-              variant={canRetake ? "outline" : "primary-blue"}
-              size="lg"
-              onClick={handleFinish}
-              className="w-full"
-            >
-              {canRetake ? 'Continue Anyway' : (returnPath ? 'Continue' : 'Back to Dashboard')}
-            </Button>
-          </div>
 
-          <div className="mt-6">
+            {tier === 'good' && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleFinish}
+                  className="flex-1 max-w-[140px]"
+                >
+                  Continue
+                </Button>
+                <Button
+                  variant="warning"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Review Again
+                </Button>
+              </div>
+            )}
+
+            {tier === 'needs-work' && (
+              <div className="flex justify-center gap-4">
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Retake Test
+                </Button>
+              </div>
+            )}
+
+            {tier === 'critical' && (
+              <div className="flex flex-col items-center gap-3">
+                <Button
+                  variant="danger"
+                  size="lg"
+                  onClick={handleRetake}
+                  className="w-full max-w-[200px]"
+                >
+                  Retake Test
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <main className="relative flex min-h-screen flex-col bg-muted">
+        <Watermark />
+
+        <SessionHeader
+          onBack={handleFinish}
+          backAriaLabel="Back to session"
+          stepText={`Step ${resultsStepNumber} of ${resultsTotalSteps}`}
+          onStepClick={() => setShowProgressSheet(true)}
+          rightSlot={<GreyedMenuIcon />}
+          sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
+          dayNumber={dayNumber}
+        />
+
+        {/* Scrollable content area */}
+        <div className="relative z-10 flex-1 overflow-y-auto px-4 py-8">
+          <div className="mx-auto w-full max-w-2xl space-y-6">
+            {/* Card 1: Results Summary */}
+            {renderResultsCard()}
+
+            {/* Card 2: Detailed results */}
             <TestResults
               testType="mcq"
               listTitle={listDetails?.title}
@@ -529,6 +761,13 @@ const MCQTest = () => {
             />
           </div>
         </div>
+
+        <SessionProgressSheet
+          isOpen={showProgressSheet}
+          onClose={() => setShowProgressSheet(false)}
+          currentPhase={currentTestType === 'new' ? 'new_word_test' : 'review_test'}
+          isFirstDay={sessionContext?.isFirstDay}
+        />
       </main>
     )
   }
