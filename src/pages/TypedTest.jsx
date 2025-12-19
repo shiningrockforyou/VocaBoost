@@ -4,6 +4,7 @@ import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/fires
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
+import { submitTypedTestAttempt } from '../services/db'
 import {
   initializeDailySession,
   getNewWords,
@@ -491,6 +492,16 @@ const TypedTest = () => {
         }
       } else {
         summary = await processTestResults(user.uid, resultsArray, listId)
+
+        // Submit attempt for gradebook
+        await submitTypedTestAttempt(
+          user.uid,
+          testId,
+          words,
+          responses,
+          gradingResult.data.results,
+          classIdParam
+        )
       }
 
       // Check if retake available

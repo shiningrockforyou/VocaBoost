@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
+import { submitTestAttempt } from '../services/db'
 import {
   initializeDailySession,
   getNewWords,
@@ -384,6 +385,17 @@ const MCQTest = () => {
           isCorrect: option?.isCorrect || false,
         }
       })
+
+      // Submit attempt for gradebook (non-practice mode only)
+      if (!isPracticeMode) {
+        await submitTestAttempt(
+          user.uid,
+          testId,
+          answerArray,
+          testWords.length,
+          classIdParam
+        )
+      }
 
       setTestResultsData({
         score: percentage,

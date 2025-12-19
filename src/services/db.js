@@ -1288,8 +1288,15 @@ export const calculateCredibility = (answers, userWordStates) => {
 }
 
 /**
- * @deprecated - Use processTestResults from studyService instead
- * This function is kept for backwards compatibility but will be removed in a future version.
+ * Submit an MCQ test attempt and create a gradebook entry.
+ * This creates an attempt document in the 'attempts' collection for teacher visibility.
+ *
+ * @param {string} userId - User ID
+ * @param {string} testId - Test ID
+ * @param {Array} answers - Array of { wordId, word, correctAnswer, studentResponse, isCorrect }
+ * @param {number} totalQuestions - Total number of questions in the test
+ * @param {string|null} classId - Optional class ID (required for gradebook visibility)
+ * @returns {Promise<Object>} Attempt document data
  */
 export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null) => {
   if (!userId || !testId) {
@@ -1424,16 +1431,15 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 }
 
 /**
- * @deprecated - Use processTestResults from studyService instead
- * This function is kept for backwards compatibility but will be removed in a future version.
- * 
- * Submit a typed test attempt (AI-graded definitions)
+ * Submit a typed test attempt and create a gradebook entry.
+ * This creates an attempt document in the 'attempts' collection for teacher visibility.
+ *
  * @param {string} userId - User ID
  * @param {string} testId - Test ID (format: "typed_{listId}_{timestamp}")
  * @param {Array} words - Original word objects with definitions
  * @param {Object} responses - Object mapping wordId to student response string
  * @param {Array} gradingResults - AI grading results: [{ wordId, isCorrect, reasoning }]
- * @param {string|null} classId - Optional class ID
+ * @param {string|null} classId - Optional class ID (required for gradebook visibility)
  * @returns {Promise<Object>} Attempt document data
  */
 export const submitTypedTestAttempt = async (
