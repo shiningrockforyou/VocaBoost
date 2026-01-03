@@ -395,13 +395,14 @@ const MCQTest = () => {
 
       // Submit attempt for gradebook (non-practice mode only)
       if (!isPracticeMode) {
-        await submitTestAttempt(
+        const result = await submitTestAttempt(
           user.uid,
           testId,
           answerArray,
           testWords.length,
           classIdParam
         )
+        setAttemptId(result.id)
       }
 
       setTestResultsData({
@@ -429,8 +430,9 @@ const MCQTest = () => {
     setCanRetake(false)
     setTestResultsData(null)
 
-    // Regenerate questions from original words
-    generateQuestions(originalWords)
+    // Re-shuffle words for retake to avoid identical test order
+    const shuffled = selectTestWords(originalWords, originalWords.length)
+    generateQuestions(shuffled)
   }
 
   const handleFinish = () => {

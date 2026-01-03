@@ -77,11 +77,13 @@ export async function initializeDailySession(userId, classId, listId, assignment
   const currentStudyDay = (progress.currentStudyDay || 0) + 1;
   const totalWordsIntroduced = progress.totalWordsIntroduced || 0;
 
-  // Calculate segment for review
+  // Calculate segment for review (uses intervention-adjusted projection)
   const segment = calculateSegment(
     currentStudyDay,
     assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
-    totalWordsIntroduced
+    totalWordsIntroduced,
+    dailyPace,
+    interventionLevel
   );
 
   // Calculate review count
@@ -728,5 +730,101 @@ export async function getCompleteBatchForPDF(userId, classId, listId, assignment
   combined.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0));
 
   return combined;
+}
+
+/**
+ * Graduate a percentage of PASSED words from the segment after review test.
+ * Uses % culling approach: graduate X% of PASSED words where X = test score.
+ *
+ * @param {string} userId - User ID
+ * @param {string} listId - List ID
+ * @param {{ startIndex: number, endIndex: number }} segment - Review segment
+ * @param {number} testScore - Decimal 0-1 (e.g., 0.80 for 80%)
+ * @returns {Promise<{ graduated: number, remaining: number }>}
+ */
+export async function graduateSegmentWords(userId, listId, segment, testScore) {
+  if (!segment) {
+    return { graduated: 0, remaining: 0 };
+  }
+
+  // 1. Fetch all segment words with current status
+  const segmentWords = await getSegmentWords(userId, listId, segment.startIndex, segment.endIndex);
+
+  // 2. Filter to PASSED words only (exclude FAILED, NEVER_TESTED, MASTERED, NEEDS_CHECK)
+  const passedWords = segmentWords.filter(w => w.studyState?.status === WORD_STATUS.PASSED);
+
+  if (passedWords.length === 0) {
+    return { graduated: 0, remaining: 0 };
+  }
+
+  // 3. Calculate graduation count: X% of PASSED where X = testScore
+  // Use Math.floor (not Math.round) to be conservative on small pools
+  // Math.round(3 * 0.85) = 3 (too aggressive), Math.floor = 2 (safer)
+  const graduateCount = Math.floor(passedWords.length * testScore);
+
+  if (graduateCount === 0) {
+    return { graduated: 0, remaining: passedWords.length };
+  }
+
+  // 4. Randomly select which words to graduate (Fisher-Yates shuffle + slice)
+  const shuffled = [...passedWords].sort(() => Math.random() - 0.5);
+  const toGraduate = shuffled.slice(0, graduateCount);
+
+  // 5. Batch update to MASTERED status
+  const batch = writeBatch(db);
+  const now = Timestamp.now();
+  const returnAt = new Timestamp(now.seconds + (21 * 24 * 60 * 60), 0); // 21 days
+
+  for (const word of toGraduate) {
+    const stateRef = doc(db, `users/${userId}/study_states`, word.id);
+    batch.set(stateRef, {
+      status: WORD_STATUS.MASTERED,
+      masteredAt: now,
+      returnAt: returnAt
+    }, { merge: true });
+  }
+
+  await batch.commit();
+
+  return {
+    graduated: toGraduate.length,
+    remaining: passedWords.length - toGraduate.length
+  };
+}
+
+/**
+ * Check for MASTERED words that should return to pool after 21 days.
+ * Call at session initialization.
+ *
+ * @param {string} userId - User ID
+ * @param {string} listId - List ID
+ * @returns {Promise<number>} Number of words returned to pool
+ */
+export async function returnMasteredWords(userId, listId) {
+  const now = Timestamp.now();
+
+  const expiredQuery = query(
+    collection(db, 'users', userId, 'study_states'),
+    where('listId', '==', listId),
+    where('status', '==', WORD_STATUS.MASTERED),
+    where('returnAt', '<=', now)
+  );
+
+  const expiredSnap = await getDocs(expiredQuery);
+
+  if (expiredSnap.empty) return 0;
+
+  const batch = writeBatch(db);
+
+  for (const docSnap of expiredSnap.docs) {
+    batch.set(docSnap.ref, {
+      status: WORD_STATUS.NEEDS_CHECK,
+      masteredAt: null,
+      returnAt: null
+    }, { merge: true });
+  }
+
+  await batch.commit();
+  return expiredSnap.size;
 }
 

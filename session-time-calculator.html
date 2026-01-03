@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VocaBoost Study Model Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input[type="range"] {
+      -webkit-appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: #e2e8f0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+    }
+    .tab-active {
+      border-bottom: 2px solid #3b82f6;
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    .review-week {
+      background-color: #fef3c7;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-8">
+  <div class="max-w-5xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-slate-800 mb-2">VocaBoost Study Model Calculator</h1>
+    <p class="text-slate-600 mb-6">Model session time and pool dynamics for vocabulary learning</p>
+
+    <!-- Tabs -->
+    <div class="flex gap-4 border-b border-slate-300 mb-6">
+      <button id="tabSession" onclick="showTab('session')" class="pb-2 px-1 tab-active">
+        Session Time
+      </button>
+      <button id="tabPool" onclick="showTab('pool')" class="pb-2 px-1 text-slate-600 hover:text-slate-800">
+        Pool Dynamics
+      </button>
+    </div>
+
+    <!-- SESSION TIME TAB -->
+    <div id="sessionTab">
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Settings Panel -->
+        <div class="bg-white rounded-xl shadow-sm p-6 space-y-6">
+          <h2 class="text-lg font-semibold text-slate-800 border-b pb-2">Assignment Settings</h2>
+
+          <!-- Daily Pace -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Daily New Words (Pace)</label>
+            <div class="flex gap-3 items-center">
+              <input type="range" id="pace" min="10" max="100" value="20" step="5"
+                     class="flex-1" oninput="syncInput('pace', 'paceNum'); updateSessionCalculation()">
+              <input type="number" id="paceNum" min="10" max="100" value="20" step="5"
+                     class="w-20 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600"
+                     oninput="syncSlider('paceNum', 'pace'); updateSessionCalculation()">
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 mt-1">
+              <span>10</span>
+              <span>100</span>
+            </div>
+          </div>
+
+          <!-- New Word Test Size -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">New Word Test Size</label>
+            <div class="flex gap-3 items-center">
+              <input type="range" id="testSizeNew" min="10" max="100" value="50" step="5"
+                     class="flex-1" oninput="syncInput('testSizeNew', 'testSizeNewNum'); updateSessionCalculation()">
+              <input type="number" id="testSizeNewNum" min="10" max="100" value="50" step="5"
+                     class="w-20 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600"
+                     oninput="syncSlider('testSizeNewNum', 'testSizeNew'); updateSessionCalculation()">
+            </div>
+          </div>
+
+          <!-- Test Mode -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">New Word Test Mode</label>
+            <select id="testMode" class="w-full rounded-lg border border-slate-300 px-3 py-2" onchange="updateSessionCalculation()">
+              <option value="mcq">Multiple Choice Only</option>
+              <option value="typed">Written Only</option>
+              <option value="both">Both (Mixed)</option>
+            </select>
+          </div>
+
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-slate-700 mb-4">Review Test Settings</h3>
+
+            <!-- Review Test Type -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Review Test Mode</label>
+              <select id="reviewTestType" class="w-full rounded-lg border border-slate-300 px-3 py-2" onchange="updateSessionCalculation()">
+                <option value="mcq">Multiple Choice Only</option>
+                <option value="typed">Written Only</option>
+              </select>
+            </div>
+
+            <!-- Review Test Size Range -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Min Questions</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="reviewTestSizeMin" min="10" max="100" value="30" step="5"
+                         class="flex-1" oninput="syncInput('reviewTestSizeMin', 'reviewMinNum'); updateSessionCalculation()">
+                  <input type="number" id="reviewMinNum" min="10" max="100" value="30" step="5"
+                         class="w-16 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600 text-sm"
+                         oninput="syncSlider('reviewMinNum', 'reviewTestSizeMin'); updateSessionCalculation()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Max Questions</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="reviewTestSizeMax" min="10" max="100" value="60" step="5"
+                         class="flex-1" oninput="syncInput('reviewTestSizeMax', 'reviewMaxNum'); updateSessionCalculation()">
+                  <input type="number" id="reviewMaxNum" min="10" max="100" value="60" step="5"
+                         class="w-16 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600 text-sm"
+                         oninput="syncSlider('reviewMaxNum', 'reviewTestSizeMax'); updateSessionCalculation()">
+                </div>
+              </div>
+            </div>
+
+            <!-- Intervention Level -->
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Intervention Level (%)</label>
+              <div class="flex gap-3 items-center">
+                <input type="range" id="intervention" min="0" max="100" value="0" step="5"
+                       class="flex-1" oninput="syncInput('intervention', 'interventionNum'); updateSessionCalculation()">
+                <input type="number" id="interventionNum" min="0" max="100" value="0" step="5"
+                       class="w-20 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600"
+                       oninput="syncSlider('interventionNum', 'intervention'); updateSessionCalculation()">
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Higher = larger review tests (student struggling)</p>
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-slate-700 mb-4">Time Constants (seconds)</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Study new word</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="timeNewStudySlider" min="10" max="120" value="45" step="5"
+                         class="flex-1" oninput="syncInput('timeNewStudySlider', 'timeNewStudy'); updateSessionCalculation()">
+                  <input type="number" id="timeNewStudy" value="45" min="10" max="120"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('timeNewStudy', 'timeNewStudySlider'); updateSessionCalculation()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Study review word</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="timeReviewStudySlider" min="5" max="60" value="25" step="5"
+                         class="flex-1" oninput="syncInput('timeReviewStudySlider', 'timeReviewStudy'); updateSessionCalculation()">
+                  <input type="number" id="timeReviewStudy" value="25" min="5" max="60"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('timeReviewStudy', 'timeReviewStudySlider'); updateSessionCalculation()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">MCQ question</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="timeMCQSlider" min="5" max="60" value="20" step="5"
+                         class="flex-1" oninput="syncInput('timeMCQSlider', 'timeMCQ'); updateSessionCalculation()">
+                  <input type="number" id="timeMCQ" value="20" min="5" max="60"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('timeMCQ', 'timeMCQSlider'); updateSessionCalculation()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Typed question</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="timeTypedSlider" min="10" max="120" value="40" step="5"
+                         class="flex-1" oninput="syncInput('timeTypedSlider', 'timeTyped'); updateSessionCalculation()">
+                  <input type="number" id="timeTyped" value="40" min="10" max="120"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('timeTyped', 'timeTypedSlider'); updateSessionCalculation()">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="space-y-6">
+          <!-- Total Time Card -->
+          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <h2 class="text-lg font-medium opacity-90 mb-2">Estimated Daily Session Time</h2>
+            <div class="text-5xl font-bold mb-2" id="totalTime">52m</div>
+            <div class="text-blue-100" id="totalRange">Range: 42m - 1h 2m</div>
+          </div>
+
+          <!-- Breakdown Card -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Time Breakdown</h2>
+
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">📚</div>
+                  <div>
+                    <div class="font-medium text-slate-800">Study New Words</div>
+                    <div class="text-xs text-slate-500" id="newStudyItems">20 words</div>
+                  </div>
+                </div>
+                <div class="font-bold text-slate-800" id="newStudyTime">15m</div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">✍️</div>
+                  <div>
+                    <div class="font-medium text-slate-800">New Word Test</div>
+                    <div class="text-xs text-slate-500" id="newTestItems">20 MCQ</div>
+                  </div>
+                </div>
+                <div class="font-bold text-slate-800" id="newTestTime">7m</div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">🔄</div>
+                  <div>
+                    <div class="font-medium text-slate-800">Review Study</div>
+                    <div class="text-xs text-slate-500" id="reviewStudyItems">60 words</div>
+                  </div>
+                </div>
+                <div class="font-bold text-slate-800" id="reviewStudyTime">25m</div>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">📝</div>
+                  <div>
+                    <div class="font-medium text-slate-800">Review Test</div>
+                    <div class="text-xs text-slate-500" id="reviewTestItems">30 MCQ</div>
+                  </div>
+                </div>
+                <div class="font-bold text-slate-800" id="reviewTestTime">10m</div>
+              </div>
+
+              <div class="flex items-center justify-between border-t pt-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">⏱️</div>
+                  <div>
+                    <div class="font-medium text-slate-600">Transitions</div>
+                    <div class="text-xs text-slate-500">Loading, instructions</div>
+                  </div>
+                </div>
+                <div class="font-bold text-slate-600" id="transitionTime">4m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POOL DYNAMICS TAB -->
+    <div id="poolTab" class="hidden">
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Settings Panel -->
+        <div class="bg-white rounded-xl shadow-sm p-6 space-y-5">
+          <h2 class="text-lg font-semibold text-slate-800 border-b pb-2">Pool Settings</h2>
+
+          <!-- Daily Pace -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Daily Pace (words)</label>
+            <div class="flex gap-2 items-center">
+              <input type="range" id="poolPace" min="10" max="100" value="20" step="5"
+                     class="flex-1" oninput="syncInput('poolPace', 'poolPaceNum'); updatePoolCalculation()">
+              <input type="number" id="poolPaceNum" min="10" max="100" value="20" step="5"
+                     class="w-16 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600 text-sm"
+                     oninput="syncSlider('poolPaceNum', 'poolPace'); updatePoolCalculation()">
+            </div>
+          </div>
+
+          <!-- Study Days Per Week -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Study Days/Week</label>
+            <div class="flex gap-2 items-center">
+              <input type="range" id="studyDays" min="3" max="7" value="5" step="1"
+                     class="flex-1" oninput="syncInput('studyDays', 'studyDaysNum'); updatePoolCalculation()">
+              <input type="number" id="studyDaysNum" min="3" max="7" value="5" step="1"
+                     class="w-16 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600 text-sm"
+                     oninput="syncSlider('studyDaysNum', 'studyDays'); updatePoolCalculation()">
+            </div>
+          </div>
+
+          <!-- Weeks to Project -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Weeks to Project</label>
+            <div class="flex gap-2 items-center">
+              <input type="range" id="weeks" min="4" max="20" value="9" step="1"
+                     class="flex-1" oninput="syncInput('weeks', 'weeksNum'); updatePoolCalculation()">
+              <input type="number" id="weeksNum" min="4" max="20" value="9" step="1"
+                     class="w-16 rounded-lg border border-slate-300 px-2 py-1 text-center font-bold text-blue-600 text-sm"
+                     oninput="syncSlider('weeksNum', 'weeks'); updatePoolCalculation()">
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">Review Week Schedule</h3>
+
+            <div class="mb-3">
+              <label class="block text-sm font-medium text-slate-700 mb-2">Review Week Pattern</label>
+              <select id="reviewWeekPattern" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" onchange="updatePoolCalculation()">
+                <option value="none">No Review Weeks</option>
+                <option value="every3">Every 3rd Week (2 regular + 1 review)</option>
+                <option value="every4">Every 4th Week (3 regular + 1 review)</option>
+                <option value="once4">One-time on Week 4</option>
+                <option value="once5">One-time on Week 5</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">Algorithm Constants</h3>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Tests per regular day</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="testsPerDaySlider" min="20" max="100" value="50" step="5"
+                         class="flex-1" oninput="syncInput('testsPerDaySlider', 'testsPerDay'); updatePoolCalculation()">
+                  <input type="number" id="testsPerDay" value="50" min="20" max="100"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('testsPerDay', 'testsPerDaySlider'); updatePoolCalculation()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Tests per review day</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="testsPerReviewDaySlider" min="50" max="150" value="80" step="5"
+                         class="flex-1" oninput="syncInput('testsPerReviewDaySlider', 'testsPerReviewDay'); updatePoolCalculation()">
+                  <input type="number" id="testsPerReviewDay" value="80" min="50" max="150"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('testsPerReviewDay', 'testsPerReviewDaySlider'); updatePoolCalculation()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <h3 class="text-sm font-semibold text-slate-700 mb-3">Graduation Model</h3>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Student accuracy (%)</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="studentAccuracySlider" min="50" max="100" value="80" step="5"
+                         class="flex-1" oninput="syncInput('studentAccuracySlider', 'studentAccuracy'); updateGraduationModel()">
+                  <input type="number" id="studentAccuracy" value="80" min="50" max="100" step="5"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('studentAccuracy', 'studentAccuracySlider'); updateGraduationModel()">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-600 mb-1">Consecutive correct needed</label>
+                <div class="flex gap-2 items-center">
+                  <input type="range" id="consecutiveCorrectSlider" min="1" max="5" value="2" step="1"
+                         class="flex-1" oninput="syncInput('consecutiveCorrectSlider', 'consecutiveCorrect'); updateGraduationModel()">
+                  <input type="number" id="consecutiveCorrect" value="2" min="1" max="5" step="1"
+                         class="w-14 rounded border border-slate-300 px-2 py-1 text-sm text-center font-bold text-blue-600"
+                         oninput="syncSlider('consecutiveCorrect', 'consecutiveCorrectSlider'); updateGraduationModel()">
+                </div>
+              </div>
+              <div>
+                <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                  <input type="checkbox" id="newTestBonus" checked onchange="updateGraduationModel()"
+                         class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                  New test bonus (correct on new = streak 1)
+                </label>
+              </div>
+
+              <!-- Calculated Result -->
+              <div class="mt-3 p-3 bg-slate-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-xs text-slate-600">Avg tests to graduate:</span>
+                  <span id="testsToGraduateCalc" class="text-lg font-bold text-blue-600">1.81</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1" id="graduationFormula">E = (1 - p^n) / (p^n × (1-p)) - 1</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="md:col-span-2 space-y-6">
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+              <div class="text-sm text-slate-500 mb-1">Weekly Inflow</div>
+              <div class="text-2xl font-bold text-blue-600" id="weeklyInflow">100</div>
+              <div class="text-xs text-slate-400">words/week</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+              <div class="text-sm text-slate-500 mb-1">Max Graduation</div>
+              <div class="text-2xl font-bold text-green-600" id="maxGraduation">184</div>
+              <div class="text-xs text-slate-400">words/week</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+              <div class="text-sm text-slate-500 mb-1">Net Growth</div>
+              <div class="text-2xl font-bold" id="netGrowth">-84</div>
+              <div class="text-xs text-slate-400">words/week</div>
+            </div>
+          </div>
+
+          <!-- Projection Table -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Weekly Projection</h2>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b">
+                    <th class="pb-2 pr-4">Week</th>
+                    <th class="pb-2 pr-4">Type</th>
+                    <th class="pb-2 pr-4 text-right">New</th>
+                    <th class="pb-2 pr-4 text-right">Tests</th>
+                    <th class="pb-2 pr-4 text-right">Grads</th>
+                    <th class="pb-2 pr-4 text-right">Pool</th>
+                    <th class="pb-2 text-right">Segment</th>
+                  </tr>
+                </thead>
+                <tbody id="projectionTable">
+                  <!-- Filled by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Analysis -->
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">Analysis</h2>
+            <div id="analysisText" class="text-sm text-slate-700 space-y-2">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-8 text-center text-sm text-slate-500">
+      VocaBoost Study Model Calculator • Based on mastery graduation system with 2 consecutive correct + new test bonus
+    </footer>
+  </div>
+
+  <script>
+    // ============ TAB SWITCHING ============
+    function showTab(tab) {
+      document.getElementById('sessionTab').classList.toggle('hidden', tab !== 'session');
+      document.getElementById('poolTab').classList.toggle('hidden', tab !== 'pool');
+      document.getElementById('tabSession').classList.toggle('tab-active', tab === 'session');
+      document.getElementById('tabPool').classList.toggle('tab-active', tab === 'pool');
+      document.getElementById('tabSession').classList.toggle('text-slate-600', tab !== 'session');
+      document.getElementById('tabPool').classList.toggle('text-slate-600', tab !== 'pool');
+    }
+
+    // ============ SYNC HELPERS ============
+    // Sync slider value to number input
+    function syncInput(sliderId, inputId) {
+      document.getElementById(inputId).value = document.getElementById(sliderId).value;
+    }
+
+    // Sync number input value to slider
+    function syncSlider(inputId, sliderId) {
+      const input = document.getElementById(inputId);
+      const slider = document.getElementById(sliderId);
+      const min = parseFloat(slider.min);
+      const max = parseFloat(slider.max);
+      let value = parseFloat(input.value) || min;
+      value = Math.max(min, Math.min(max, value));
+      slider.value = value;
+      input.value = value;
+    }
+
+    // ============ SESSION TIME CALCULATOR ============
+    function formatDuration(seconds) {
+      const mins = Math.round(seconds / 60);
+      if (mins < 60) return `${mins}m`;
+      const hours = Math.floor(mins / 60);
+      const remainingMins = mins % 60;
+      return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
+    }
+
+    function updateSessionCalculation() {
+      // Get values
+      const pace = parseInt(document.getElementById('pace').value);
+      const testSizeNew = parseInt(document.getElementById('testSizeNew').value);
+      const testMode = document.getElementById('testMode').value;
+      const reviewTestType = document.getElementById('reviewTestType').value;
+      const reviewTestSizeMin = parseInt(document.getElementById('reviewTestSizeMin').value);
+      const reviewTestSizeMax = parseInt(document.getElementById('reviewTestSizeMax').value);
+      const intervention = parseInt(document.getElementById('intervention').value) / 100;
+
+      // Time constants
+      const timeNewStudy = parseInt(document.getElementById('timeNewStudy').value);
+      const timeReviewStudy = parseInt(document.getElementById('timeReviewStudy').value);
+      const timeMCQ = parseInt(document.getElementById('timeMCQ').value);
+      const timeTyped = parseInt(document.getElementById('timeTyped').value);
+      const transitionSec = 60 * 4;
+
+      // Calculate
+      const newWordsStudySec = pace * timeNewStudy;
+      const actualNewTestSize = Math.min(testSizeNew, pace);
+      let newWordTestSec = 0;
+      if (testMode === 'mcq') newWordTestSec = actualNewTestSize * timeMCQ;
+      else if (testMode === 'typed') newWordTestSec = actualNewTestSize * timeTyped;
+      else {
+        const halfSize = Math.ceil(actualNewTestSize / 2);
+        newWordTestSec = (halfSize * timeMCQ) + (halfSize * timeTyped);
+      }
+
+      const reviewStudyCount = reviewTestSizeMax;
+      const reviewStudySec = reviewStudyCount * timeReviewStudy;
+
+      const reviewTestSize = Math.round(reviewTestSizeMin + (reviewTestSizeMax - reviewTestSizeMin) * intervention);
+      let reviewTestSec = reviewTestType === 'mcq' ? reviewTestSize * timeMCQ : reviewTestSize * timeTyped;
+
+      const totalSec = newWordsStudySec + newWordTestSec + reviewStudySec + reviewTestSec + transitionSec;
+
+      // Update UI
+      document.getElementById('totalTime').textContent = formatDuration(totalSec);
+      document.getElementById('totalRange').textContent = `Range: ${formatDuration(totalSec * 0.8)} - ${formatDuration(totalSec * 1.2)}`;
+
+      document.getElementById('newStudyItems').textContent = `${pace} words`;
+      document.getElementById('newStudyTime').textContent = formatDuration(newWordsStudySec);
+
+      const testModeLabel = testMode === 'mcq' ? 'MCQ' : testMode === 'typed' ? 'Written' : 'Mixed';
+      document.getElementById('newTestItems').textContent = `${actualNewTestSize} ${testModeLabel}`;
+      document.getElementById('newTestTime').textContent = formatDuration(newWordTestSec);
+
+      document.getElementById('reviewStudyItems').textContent = `${reviewStudyCount} words`;
+      document.getElementById('reviewStudyTime').textContent = formatDuration(reviewStudySec);
+
+      const reviewModeLabel = reviewTestType === 'mcq' ? 'MCQ' : 'Written';
+      document.getElementById('reviewTestItems').textContent = `${reviewTestSize} ${reviewModeLabel}`;
+      document.getElementById('reviewTestTime').textContent = formatDuration(reviewTestSec);
+
+      document.getElementById('transitionTime').textContent = formatDuration(transitionSec);
+    }
+
+    // ============ GRADUATION MODEL CALCULATOR ============
+    function calculateTestsToGraduate(accuracy, consecutive, hasBonus) {
+      const p = accuracy / 100;
+      const n = consecutive;
+
+      // E_0 = (1 - p^n) / (p^n × (1-p)) - expected tests from streak 0
+      const pn = Math.pow(p, n);
+      const E0 = (1 - pn) / (pn * (1 - p));
+
+      if (hasBonus) {
+        // With new test bonus: expected = E_0 - 1
+        return Math.max(1, E0 - 1);
+      } else {
+        return E0;
+      }
+    }
+
+    function updateGraduationModel() {
+      const accuracy = parseInt(document.getElementById('studentAccuracy').value);
+      const consecutive = parseInt(document.getElementById('consecutiveCorrect').value);
+      const hasBonus = document.getElementById('newTestBonus').checked;
+
+      const testsToGrad = calculateTestsToGraduate(accuracy, consecutive, hasBonus);
+
+      document.getElementById('testsToGraduateCalc').textContent = testsToGrad.toFixed(2);
+
+      // Update formula display
+      const p = (accuracy / 100).toFixed(2);
+      const bonusText = hasBonus ? ' - 1' : '';
+      document.getElementById('graduationFormula').textContent =
+        `E = (1 - ${p}^${consecutive}) / (${p}^${consecutive} × ${(1 - accuracy/100).toFixed(2)})${bonusText}`;
+
+      // Recalculate pool dynamics
+      updatePoolCalculation();
+    }
+
+    // ============ POOL DYNAMICS CALCULATOR ============
+    function updatePoolCalculation() {
+      // Get values
+      const dailyPace = parseInt(document.getElementById('poolPace').value);
+      const studyDays = parseInt(document.getElementById('studyDays').value);
+      const weeks = parseInt(document.getElementById('weeks').value);
+      const pattern = document.getElementById('reviewWeekPattern').value;
+      const testsPerDay = parseInt(document.getElementById('testsPerDay').value);
+      const testsPerReviewDay = parseInt(document.getElementById('testsPerReviewDay').value);
+
+      // Calculate tests to graduate from model
+      const accuracy = parseInt(document.getElementById('studentAccuracy').value);
+      const consecutive = parseInt(document.getElementById('consecutiveCorrect').value);
+      const hasBonus = document.getElementById('newTestBonus').checked;
+      const testsToGraduate = calculateTestsToGraduate(accuracy, consecutive, hasBonus);
+
+      // Calculate base metrics
+      const weeklyInflow = dailyPace * studyDays;
+      const testsPerRegularWeek = testsPerDay * studyDays;
+      const testsPerReviewWeek = testsPerReviewDay * studyDays;
+      const gradsPerRegularWeek = Math.round(testsPerRegularWeek / testsToGraduate);
+      const gradsPerReviewWeek = Math.round(testsPerReviewWeek / testsToGraduate);
+
+      // Update summary cards
+      document.getElementById('weeklyInflow').textContent = weeklyInflow;
+      document.getElementById('maxGraduation').textContent = gradsPerRegularWeek;
+
+      const netGrowth = weeklyInflow - gradsPerRegularWeek;
+      const netEl = document.getElementById('netGrowth');
+      netEl.textContent = netGrowth >= 0 ? `+${netGrowth}` : netGrowth;
+      netEl.className = `text-2xl font-bold ${netGrowth > 0 ? 'text-red-600' : netGrowth < 0 ? 'text-green-600' : 'text-slate-600'}`;
+
+      // Determine which weeks are review weeks
+      function isReviewWeek(weekNum) {
+        if (pattern === 'none') return false;
+        if (pattern === 'every3') return weekNum % 3 === 0;
+        if (pattern === 'every4') return weekNum % 4 === 0;
+        if (pattern === 'once4') return weekNum === 4;
+        if (pattern === 'once5') return weekNum === 5;
+        return false;
+      }
+
+      // Generate projection
+      let pool = 0;
+      let rows = [];
+
+      for (let w = 1; w <= weeks; w++) {
+        const isReview = isReviewWeek(w);
+        const inflow = isReview ? 0 : weeklyInflow;
+        const tests = isReview ? testsPerReviewWeek : testsPerRegularWeek;
+        const maxGrads = isReview ? gradsPerReviewWeek : gradsPerRegularWeek;
+
+        pool += inflow;
+        const grads = Math.min(maxGrads, pool);
+        pool -= grads;
+
+        const segment = Math.round(pool / studyDays);
+
+        rows.push({
+          week: w,
+          type: isReview ? 'Review' : 'Regular',
+          isReview,
+          inflow,
+          tests,
+          grads,
+          pool,
+          segment
+        });
+      }
+
+      // Render table
+      const tbody = document.getElementById('projectionTable');
+      tbody.innerHTML = rows.map(r => `
+        <tr class="${r.isReview ? 'review-week' : ''} border-b border-slate-100">
+          <td class="py-2 pr-4 font-medium">${r.week}</td>
+          <td class="py-2 pr-4 ${r.isReview ? 'text-amber-700 font-medium' : ''}">${r.type}</td>
+          <td class="py-2 pr-4 text-right">${r.inflow}</td>
+          <td class="py-2 pr-4 text-right">${r.tests}</td>
+          <td class="py-2 pr-4 text-right text-green-600">${r.grads}${r.grads < (r.isReview ? gradsPerReviewWeek : gradsPerRegularWeek) ? '*' : ''}</td>
+          <td class="py-2 pr-4 text-right font-medium">${r.pool}</td>
+          <td class="py-2 text-right text-slate-600">${r.segment}</td>
+        </tr>
+      `).join('');
+
+      // Generate analysis
+      const finalPool = rows[rows.length - 1].pool;
+      const finalSegment = rows[rows.length - 1].segment;
+      const peakPool = Math.max(...rows.map(r => r.pool));
+      const minPool = Math.min(...rows.map(r => r.pool));
+      const reviewWeeks = rows.filter(r => r.isReview).length;
+
+      let analysis = [];
+
+      if (netGrowth > 0) {
+        analysis.push(`<p class="text-red-600">⚠️ <strong>Pool grows by ${netGrowth} words/week</strong> during regular weeks. Graduation cannot keep up with inflow.</p>`);
+      } else if (netGrowth < 0) {
+        analysis.push(`<p class="text-green-600">✅ <strong>Pool shrinks by ${Math.abs(netGrowth)} words/week</strong> during regular weeks. Graduation exceeds inflow.</p>`);
+      } else {
+        analysis.push(`<p class="text-blue-600">⚖️ <strong>Pool is balanced</strong>. Graduation matches inflow.</p>`);
+      }
+
+      if (reviewWeeks > 0) {
+        const avgReduction = Math.round((gradsPerReviewWeek - 0) / reviewWeeks);
+        analysis.push(`<p>📅 ${reviewWeeks} review week(s) provide extra graduation capacity (${gradsPerReviewWeek} grads vs ${gradsPerRegularWeek} regular).</p>`);
+      }
+
+      analysis.push(`<p>📊 Pool range: <strong>${minPool} - ${peakPool}</strong> words. Final: <strong>${finalPool}</strong> words.</p>`);
+      analysis.push(`<p>📐 Segment range: <strong>${Math.round(minPool/studyDays)} - ${Math.round(peakPool/studyDays)}</strong> words. Final: <strong>${finalSegment}</strong> words.</p>`);
+
+      if (finalSegment > 200) {
+        analysis.push(`<p class="text-amber-600">⚠️ Segment size (${finalSegment}) is large. Consider lowering pace or adding review weeks.</p>`);
+      }
+
+      if (netGrowth > 50) {
+        analysis.push(`<p class="text-red-600">💡 Recommended: Lower pace to ≤${Math.floor(gradsPerRegularWeek / studyDays)} words/day, or add review weeks.</p>`);
+      }
+
+      document.getElementById('analysisText').innerHTML = analysis.join('');
+    }
+
+    // Initial calculations
+    updateSessionCalculation();
+    updateGraduationModel(); // This also calls updatePoolCalculation()
+  </script>
+</body>
+</html>

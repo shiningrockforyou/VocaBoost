@@ -10,7 +10,9 @@ export const WORD_STATUS = {
   NEW: 'NEW',                    // Just introduced, not yet tested
   NEVER_TESTED: 'NEVER_TESTED',  // Introduced but never appeared in a test
   FAILED: 'FAILED',              // Last test result was incorrect
-  PASSED: 'PASSED'               // Last test result was correct
+  PASSED: 'PASSED',              // Last test result was correct
+  MASTERED: 'MASTERED',          // Graduated from review pool
+  NEEDS_CHECK: 'NEEDS_CHECK'     // Returned from MASTERED after 21 days
 };
 
 /**
@@ -45,7 +47,9 @@ export const DEFAULT_STUDY_STATE = {
   queueAppearances: 0,
   wordIndex: 0,
   introducedOnDay: 1,
-  listId: ''
+  listId: '',
+  masteredAt: null,    // Timestamp when word became MASTERED
+  returnAt: null       // Timestamp when word should return (masteredAt + 21 days)
 };
 
 /**

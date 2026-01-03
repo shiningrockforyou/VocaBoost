@@ -17,8 +17,8 @@ export const STUDY_ALGORITHM_CONSTANTS = {
   // Default test sizes
   DEFAULT_TEST_SIZE_NEW: 50,        // Default number of new words per test
   DEFAULT_TEST_SIZE_REVIEW: 30,     // Default number of review words per test (base, scales with intervention)
-  REVIEW_TEST_SIZE_MIN: 20,         // Minimum review test size (at 0% intervention)
-  REVIEW_TEST_SIZE_MAX: 50,         // Maximum review test size (at 100% intervention)
+  REVIEW_TEST_SIZE_MIN: 30,         // Minimum review test size (at 0% intervention)
+  REVIEW_TEST_SIZE_MAX: 60,         // Maximum review test size (at 100% intervention)
 
   // Retake threshold
   DEFAULT_RETAKE_THRESHOLD: 0.95,   // Must score 95% on new word test to "pass"
@@ -26,8 +26,8 @@ export const STUDY_ALGORITHM_CONSTANTS = {
   // Blind spot threshold
   STALE_DAYS_THRESHOLD: 21,         // Words not seen in 21+ days are "blind spots"
 
-  // Early days (cumulative instead of rotation)
-  EARLY_DAYS_THRESHOLD: 4,          // Days 1-4 use cumulative review; day 5+ uses segment rotation
+  // LEGACY: Early days threshold (no longer used - replaced by week-based segment rotation)
+  // EARLY_DAYS_THRESHOLD: 4,       // Days 1-4 use cumulative review; day 5+ uses segment rotation
 
   // Pace defaults
   DEFAULT_WEEKLY_PACE: 400,         // Default words per week (≈57/day at 7 days, ≈80/day at 5 days)
@@ -103,40 +103,89 @@ export function calculateDailyAllocation(dailyPace, interventionLevel) {
 }
 
 /**
- * Calculate which word indices to review today.
+ * Calculate which word indices to review today using intervention-adjusted projection.
+ *
+ * Week 1: Day 1 = no review; Days 2-n each get a distinct segment (divide by n-1)
+ * Week 2+: All days get a segment (divide by n)
+ *
+ * Projects forward to estimate words by start of last day of week, then divides
+ * into equal segments. Each day gets its assigned segment based on position in week.
+ *
  * @param {number} currentStudyDay - Current study day (1-indexed)
  * @param {number} studyDaysPerWeek - Study days per week (e.g., 5)
  * @param {number} totalWordsIntroduced - Total words introduced so far
+ * @param {number} dailyPace - Base daily pace before intervention (e.g., 80)
+ * @param {number} interventionLevel - Current intervention level (0.0 to 1.0)
  * @returns {{ startIndex: number, endIndex: number } | null}
  */
-export function calculateSegment(currentStudyDay, studyDaysPerWeek, totalWordsIntroduced) {
-  // Day 1 or totalWords = 0 → return null (no review)
-  if (currentStudyDay === 1 || totalWordsIntroduced === 0) {
+export function calculateSegment(currentStudyDay, studyDaysPerWeek, totalWordsIntroduced, dailyPace, interventionLevel) {
+  const weekNumber = Math.ceil(currentStudyDay / studyDaysPerWeek);
+  const dayOfWeek = ((currentStudyDay - 1) % studyDaysPerWeek) + 1;
+
+  // Week 1, Day 1: no review
+  if (weekNumber === 1 && dayOfWeek === 1) {
     return null;
   }
 
-  // Days 2-4 → cumulative: { startIndex: 0, endIndex: wordsBeforeToday - 1 }
-  if (currentStudyDay <= STUDY_ALGORITHM_CONSTANTS.EARLY_DAYS_THRESHOLD) {
-    // Assume 1 word introduced per day for simplicity
-    // In practice, this would be calculated from actual word introduction history
-    const wordsBeforeToday = currentStudyDay - 1;
-    if (wordsBeforeToday <= 0) {
-      return null;
-    }
-    return {
-      startIndex: 0,
-      endIndex: wordsBeforeToday - 1
-    };
+  // Project to start of last day using intervention-adjusted pace
+  const adjustedPace = dailyPace * (1 - interventionLevel);
+  const daysRemaining = studyDaysPerWeek - dayOfWeek;
+  const projectedTotal = totalWordsIntroduced + (daysRemaining * adjustedPace);
+
+  if (projectedTotal === 0) {
+    return null;
   }
 
-  // Days 5+ → segment rotation
-  const dayOfWeek = ((currentStudyDay - 1) % studyDaysPerWeek) + 1;
-  const segmentSize = Math.ceil(totalWordsIntroduced / studyDaysPerWeek);
-  const startIndex = (dayOfWeek - 1) * segmentSize;
-  const endIndex = Math.min(dayOfWeek * segmentSize, totalWordsIntroduced) - 1;
+  // Week 1: divide by n-1 (since Day 1 has no review), Week 2+: divide by n
+  const divisor = (weekNumber === 1) ? (studyDaysPerWeek - 1) : studyDaysPerWeek;
+  const segmentSize = Math.ceil(projectedTotal / divisor);
+
+  // Week 1: Day 2 = segment 0, Day 3 = segment 1, etc.
+  // Week 2+: Day 1 = segment 0, Day 2 = segment 1, etc.
+  const segmentPosition = (weekNumber === 1) ? (dayOfWeek - 2) : (dayOfWeek - 1);
+
+  const startIndex = segmentPosition * segmentSize;
+  const endIndex = Math.min((segmentPosition + 1) * segmentSize, totalWordsIntroduced) - 1;
+
+  // Handle edge case where segment starts beyond available words
+  if (startIndex >= totalWordsIntroduced) {
+    return null;
+  }
 
   return { startIndex, endIndex };
 }
+
+/* LEGACY: Old calculateSegment function (commented out for reference)
+ * Used cumulative review for days 2-4, then segment rotation for days 5+.
+ * Replaced with week-based segment rotation with intervention-adjusted projection.
+ *
+ * export function calculateSegment_LEGACY(currentStudyDay, studyDaysPerWeek, totalWordsIntroduced) {
+ *   // Day 1 or totalWords = 0 → return null (no review)
+ *   if (currentStudyDay === 1 || totalWordsIntroduced === 0) {
+ *     return null;
+ *   }
+ *
+ *   // Days 2-4 → cumulative: { startIndex: 0, endIndex: wordsBeforeToday - 1 }
+ *   if (currentStudyDay <= STUDY_ALGORITHM_CONSTANTS.EARLY_DAYS_THRESHOLD) {
+ *     const wordsBeforeToday = currentStudyDay - 1;
+ *     if (wordsBeforeToday <= 0) {
+ *       return null;
+ *     }
+ *     return {
+ *       startIndex: 0,
+ *       endIndex: wordsBeforeToday - 1
+ *     };
+ *   }
+ *
+ *   // Days 5+ → segment rotation
+ *   const dayOfWeek = ((currentStudyDay - 1) % studyDaysPerWeek) + 1;
+ *   const segmentSize = Math.ceil(totalWordsIntroduced / studyDaysPerWeek);
+ *   const startIndex = (dayOfWeek - 1) * segmentSize;
+ *   const endIndex = Math.min(dayOfWeek * segmentSize, totalWordsIntroduced) - 1;
+ *
+ *   return { startIndex, endIndex };
+ * }
+ */
 
 /**
  * Calculate how many words to include in review queue.
@@ -175,16 +224,18 @@ export function calculateReviewCount(recentSessions, reviewCap) {
  * Higher intervention = larger review test (more practice needed).
  *
  * @param {number} interventionLevel - Intervention level (0.0 to 1.0)
+ * @param {number} [minSize] - Optional minimum size (defaults to REVIEW_TEST_SIZE_MIN)
+ * @param {number} [maxSize] - Optional maximum size (defaults to REVIEW_TEST_SIZE_MAX)
  * @returns {number} Review test size
  */
-export function calculateReviewTestSize(interventionLevel) {
-  const { REVIEW_TEST_SIZE_MIN, REVIEW_TEST_SIZE_MAX } = STUDY_ALGORITHM_CONSTANTS;
+export function calculateReviewTestSize(interventionLevel, minSize, maxSize) {
+  const min = minSize ?? STUDY_ALGORITHM_CONSTANTS.REVIEW_TEST_SIZE_MIN;
+  const max = maxSize ?? STUDY_ALGORITHM_CONSTANTS.REVIEW_TEST_SIZE_MAX;
 
   // Linear interpolation: min + (max - min) * intervention
-  // At 0% intervention: 20 words (doing well, smaller test)
-  // At 100% intervention: 50 words (struggling, larger test)
-  const size = REVIEW_TEST_SIZE_MIN +
-    (REVIEW_TEST_SIZE_MAX - REVIEW_TEST_SIZE_MIN) * interventionLevel;
+  // At 0% intervention: 30 words (doing well, smaller test)
+  // At 100% intervention: 60 words (struggling, larger test)
+  const size = min + (max - min) * interventionLevel;
 
   return Math.round(size);
 }

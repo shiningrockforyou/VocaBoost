@@ -645,6 +645,9 @@ export const assignListToClass = async (
   testMode = 'mcq',
   passThreshold = 95,
   testSizeNew = 50,
+  reviewTestType = 'mcq',
+  reviewTestSizeMin = 30,
+  reviewTestSizeMax = 60,
 ) => {
   if (!classId || !listId) {
     throw new Error('classId and listId are required.')
@@ -665,6 +668,9 @@ export const assignListToClass = async (
     testMode: testMode || 'mcq',
     passThreshold: Number(passThreshold) || 95,
     testSizeNew: Number(testSizeNew) || 50,
+    reviewTestType: reviewTestType || 'mcq',
+    reviewTestSizeMin: Number(reviewTestSizeMin) || 30,
+    reviewTestSizeMax: Number(reviewTestSizeMax) || 60,
     assignedAt: assignments[listId]?.assignedAt ?? serverTimestamp(),
   }
 
@@ -744,6 +750,31 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
       throw new Error('Invalid test mode. Must be mcq, typed, or both.')
     }
     updates.testMode = settings.testMode
+  }
+
+  // Review test settings
+  if (settings.reviewTestType !== undefined) {
+    const allowedModes = ['mcq', 'typed']
+    if (!allowedModes.includes(settings.reviewTestType)) {
+      throw new Error('Invalid review test type. Must be mcq or typed.')
+    }
+    updates.reviewTestType = settings.reviewTestType
+  }
+
+  if (settings.reviewTestSizeMin !== undefined) {
+    const minValue = Number(settings.reviewTestSizeMin)
+    if (Number.isNaN(minValue) || minValue < 10 || minValue > 100) {
+      throw new Error('Review test size min must be between 10 and 100.')
+    }
+    updates.reviewTestSizeMin = minValue
+  }
+
+  if (settings.reviewTestSizeMax !== undefined) {
+    const maxValue = Number(settings.reviewTestSizeMax)
+    if (Number.isNaN(maxValue) || maxValue < 10 || maxValue > 100) {
+      throw new Error('Review test size max must be between 10 and 100.')
+    }
+    updates.reviewTestSizeMax = maxValue
   }
 
   assignments[listId] = {

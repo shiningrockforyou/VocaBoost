@@ -181,12 +181,13 @@ const getTableStyles = (fontName) => ({
 })
 
 export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') => {
-  // Check if structured data format { newWords, failedCarryover } or flat array
+  // Check if structured data format { newWords, failedCarryover, reviewWords } or flat array
   const isStructured = words && !Array.isArray(words) && 'newWords' in words
   const newWords = isStructured ? words.newWords : words
   const failedCarryover = isStructured ? (words.failedCarryover || []) : []
+  const reviewWords = isStructured ? (words.reviewWords || []) : []
 
-  const totalWords = (newWords?.length || 0) + failedCarryover.length
+  const totalWords = (newWords?.length || 0) + failedCarryover.length + reviewWords.length
 
   if (!newWords || totalWords === 0) {
     alert('No words to print')
@@ -336,6 +337,51 @@ export const downloadListAsPDF = async (listTitle, words, mode = 'Full List') =>
         headStyles: {
           ...tableStyles.headStyles,
           fillColor: [254, 226, 226], // Light red background for failed words header
+        },
+      })
+
+      currentY = doc.lastAutoTable.finalY + 8
+    }
+
+    // Render review words section
+    if (reviewWords && reviewWords.length > 0) {
+      // Check if we need a new page
+      if (currentY > 250) {
+        doc.addPage()
+        currentY = 20
+      }
+
+      // Demarcation line
+      doc.setDrawColor(226, 232, 240)
+      doc.setLineWidth(0.5)
+      doc.line(14, currentY, 196, currentY)
+      currentY += 6
+
+      // Section header
+      doc.setFontSize(12)
+      doc.setFont(fontName, 'bold')
+      doc.setTextColor(34, 197, 94) // Green for review words
+      doc.text(`Review Words (${reviewWords.length})`, 14, currentY)
+      currentY += 4
+
+      doc.setFontSize(9)
+      doc.setFont(fontName, 'normal')
+      doc.setTextColor(71, 85, 105)
+      doc.text('Words from today\'s review segment for reinforcement.', 14, currentY)
+      currentY += 6
+
+      doc.setTextColor(0, 0, 0)
+
+      const reviewBody = wordsToTableBody(reviewWords)
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['#', 'Word', 'POS', 'Definition', 'Sample']],
+        body: reviewBody,
+        ...tableStyles,
+        headStyles: {
+          ...tableStyles.headStyles,
+          fillColor: [220, 252, 231], // Light green background for review words header
         },
       })
     }

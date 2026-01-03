@@ -24,21 +24,23 @@ import BlindSpotsCard from '../components/BlindSpotsCard'
 import SessionProgressSheet from '../components/SessionProgressSheet'
 import SessionMenu from '../components/SessionMenu'
 import SessionHeader from '../components/SessionHeader'
+import DismissedWordsDrawer from '../components/DismissedWordsDrawer'
 import { Button } from '../components/ui'
-import { RefreshCw, ChevronLeft, ChevronRight, HelpCircle, X } from 'lucide-react'
+import { RefreshCw, ChevronLeft, ChevronRight, HelpCircle, X, ListChecks } from 'lucide-react'
 
 // Services
 import {
   initializeDailySession,
   getNewWords,
-  getFailedFromPreviousNewWords,
   getSegmentWords,
   buildReviewQueue,
   updateQueueTracking,
   recordSessionCompletion,
   initializeNewWordStates,
   getTodaysBatchForPDF,
-  getCompleteBatchForPDF
+  getCompleteBatchForPDF,
+  graduateSegmentWords,
+  returnMasteredWords
 } from '../services/studyService'
 import { fetchAllWords } from '../services/db'
 import {
@@ -90,7 +92,6 @@ export default function DailySessionFlow() {
 
   // New words phase
   const [newWords, setNewWords] = useState([])
-  const [failedCarryover, setFailedCarryover] = useState([])
   const [newWordsQueue, setNewWordsQueue] = useState([])
   const [newWordsDismissed, setNewWordsDismissed] = useState(new Set())
 
@@ -146,6 +147,10 @@ export default function DailySessionFlow() {
 
   // Help modal state
   const [showHelpModal, setShowHelpModal] = useState(false)
+
+  // Dismissed words drawer state
+  const [showDismissedDrawer, setShowDismissedDrawer] = useState(false)
+  const [dismissedWordsData, setDismissedWordsData] = useState([])
 
   // Card display settings (persisted to localStorage)
   const [showKoreanDef, setShowKoreanDef] = useState(() => {
@@ -473,6 +478,9 @@ export default function DailySessionFlow() {
         // Check for existing session state
         const existingState = await getSessionState(user.uid, classId, listId)
 
+        // Return any MASTERED words that have passed their 21-day period
+        await returnMasteredWords(user.uid, listId)
+
         // Initialize session config
         const config = await initializeDailySession(
           user.uid,
@@ -489,8 +497,7 @@ export default function DailySessionFlow() {
 
         setSessionConfig(config)
 
-        // Load new words
-        let combinedWords = []
+        // Load new words (failed carryover words are now handled via segment review priority)
         if (config.newWordCount > 0) {
           const words = await getNewWords(
             listId,
@@ -498,16 +505,8 @@ export default function DailySessionFlow() {
             config.newWordCount
           )
 
-          const failedWords = await getFailedFromPreviousNewWords(
-            user.uid,
-            listId,
-            config.newWordStartIndex
-          )
-          setFailedCarryover(failedWords)
-
-          combinedWords = [...failedWords, ...words]
-          setNewWords(combinedWords)
-          setNewWordsQueue(combinedWords)
+          setNewWords(words)
+          setNewWordsQueue(words)
 
           await initializeNewWordStates(
             user.uid,
@@ -679,6 +678,7 @@ export default function DailySessionFlow() {
   const handleNewWordKnowThis = () => {
     if (!currentNewWord) return
     setNewWordsDismissed(prev => new Set([...prev, currentNewWord.id]))
+    setDismissedWordsData(prev => [...prev, { ...currentNewWord, phase: 'new' }])
     setNewWordsQueue(prev => prev.filter(w => w.id !== currentNewWord.id))
     setCardsReviewed(prev => prev + 1)
 
@@ -707,6 +707,7 @@ export default function DailySessionFlow() {
 
   const handleNewWordReset = () => {
     setNewWordsDismissed(new Set())
+    setDismissedWordsData(prev => prev.filter(w => w.phase !== 'new'))
     setNewWordsQueue([...newWords])
     setCurrentIndex(0)
     setIsFlipped(false)
@@ -774,6 +775,7 @@ export default function DailySessionFlow() {
   const handleReviewKnowThis = () => {
     if (!currentReviewWord) return
     setReviewDismissed(prev => new Set([...prev, currentReviewWord.id]))
+    setDismissedWordsData(prev => [...prev, { ...currentReviewWord, phase: 'review' }])
     setReviewQueueCurrent(prev => prev.filter(w => w.id !== currentReviewWord.id))
     setCardsReviewed(prev => prev + 1)
 
@@ -801,9 +803,49 @@ export default function DailySessionFlow() {
 
   const handleReviewReset = () => {
     setReviewDismissed(new Set())
+    setDismissedWordsData(prev => prev.filter(w => w.phase !== 'review'))
     setReviewQueueCurrent([...reviewQueue])
     setCurrentIndex(0)
     setIsFlipped(false)
+  }
+
+  // Undo individual dismissed word
+  const handleUndoDismiss = (wordId, wordPhase) => {
+    const wordData = dismissedWordsData.find(w => w.id === wordId)
+    if (!wordData) return
+
+    if (wordPhase === 'new') {
+      setNewWordsDismissed(prev => {
+        const next = new Set(prev)
+        next.delete(wordId)
+        return next
+      })
+      setNewWordsQueue(prev => [...prev, wordData])
+    } else {
+      setReviewDismissed(prev => {
+        const next = new Set(prev)
+        next.delete(wordId)
+        return next
+      })
+      setReviewQueueCurrent(prev => [...prev, wordData])
+    }
+    setDismissedWordsData(prev => prev.filter(w => w.id !== wordId))
+  }
+
+  // Restore all dismissed words for current phase
+  const handleRestoreAllDismissed = () => {
+    const currentPhase = phase === PHASES.NEW_WORDS ? 'new' : 'review'
+    const wordsToRestore = dismissedWordsData.filter(w => w.phase === currentPhase)
+
+    if (currentPhase === 'new') {
+      setNewWordsDismissed(new Set())
+      setNewWordsQueue(prev => [...prev, ...wordsToRestore])
+    } else {
+      setReviewDismissed(new Set())
+      setReviewQueueCurrent(prev => [...prev, ...wordsToRestore])
+    }
+    setDismissedWordsData(prev => prev.filter(w => w.phase !== currentPhase))
+    setShowDismissedDrawer(false)
   }
 
   const handleReviewPrev = () => {
@@ -825,8 +867,9 @@ export default function DailySessionFlow() {
   }
 
   const goToReviewTest = () => {
-    const testMode = assignmentSettings?.testMode || 'mcq'
-    const actualMode = getReviewTestType(reviewTestAttempts, testMode)
+    // Use reviewTestType if set, otherwise fall back to legacy behavior
+    const reviewTestType = assignmentSettings?.reviewTestType
+    const actualMode = reviewTestType || getReviewTestType(reviewTestAttempts, assignmentSettings?.testMode || 'mcq')
     navigateToTest('review', actualMode)
   }
 
@@ -999,9 +1042,23 @@ export default function DailySessionFlow() {
 
       const result = await recordSessionCompletion(user.uid, summary)
 
+      // Graduate percentage of PASSED words from segment after review test
+      // Only do this if there was a review test (not Day 1)
+      let graduationResult = null
+      if (sessionConfig?.segment && reviewTestResults?.score !== undefined) {
+        graduationResult = await graduateSegmentWords(
+          user.uid,
+          listId,
+          sessionConfig.segment,
+          reviewTestResults.score
+        )
+        console.log(`Graduated ${graduationResult.graduated} words to MASTERED`)
+      }
+
       setSessionSummary({
         ...summary,
-        progress: result.progress
+        progress: result.progress,
+        graduated: graduationResult?.graduated || 0
       })
 
       // Calculate progress info for "Next" button
@@ -1224,6 +1281,20 @@ export default function DailySessionFlow() {
               >
                 <HelpCircle className="w-5 h-5" />
               </button>
+
+              {/* Dismissed words drawer toggle */}
+              {dismissedWordsData.filter(w => w.phase === (phase === PHASES.NEW_WORDS ? 'new' : 'review')).length > 0 && (
+                <button
+                  onClick={() => setShowDismissedDrawer(true)}
+                  className="relative p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-muted transition"
+                  aria-label="View dismissed words"
+                >
+                  <ListChecks className="w-5 h-5" />
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-brand-fill text-[10px] font-medium text-white">
+                    {dismissedWordsData.filter(w => w.phase === (phase === PHASES.NEW_WORDS ? 'new' : 'review')).length}
+                  </span>
+                </button>
+              )}
 
               <SessionMenu
                 onSkipToTest={() => setShowTestConfirm(true)}
@@ -1584,6 +1655,15 @@ export default function DailySessionFlow() {
           </div>
         </div>
       )}
+
+      {/* Dismissed Words Drawer */}
+      <DismissedWordsDrawer
+        isOpen={showDismissedDrawer}
+        onClose={() => setShowDismissedDrawer(false)}
+        dismissedWords={dismissedWordsData.filter(w => w.phase === (phase === PHASES.NEW_WORDS ? 'new' : 'review'))}
+        onRestore={handleUndoDismiss}
+        onRestoreAll={handleRestoreAllDismissed}
+      />
     </main>
   )
 }

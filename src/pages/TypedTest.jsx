@@ -497,7 +497,7 @@ const TypedTest = () => {
         summary = await processTestResults(user.uid, resultsArray, listId)
 
         // Submit attempt for gradebook
-        await submitTypedTestAttempt(
+        const result = await submitTypedTestAttempt(
           user.uid,
           testId,
           words,
@@ -505,6 +505,7 @@ const TypedTest = () => {
           gradingResult.data.results,
           classIdParam
         )
+        setAttemptId(result.id)
       }
 
       // Check if retake available

@@ -9,6 +9,10 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
   const [testMode, setTestMode] = useState('mcq')
   const [passThreshold, setPassThreshold] = useState(95)
   const [testSizeNew, setTestSizeNew] = useState(50)
+  // Review test settings
+  const [reviewTestType, setReviewTestType] = useState('mcq')
+  const [reviewTestSizeMin, setReviewTestSizeMin] = useState(30)
+  const [reviewTestSizeMax, setReviewTestSizeMax] = useState(60)
 
   useEffect(() => {
     if (isOpen) {
@@ -18,6 +22,9 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
       setTestMode('mcq')
       setPassThreshold(95)
       setTestSizeNew(50)
+      setReviewTestType('mcq')
+      setReviewTestSizeMin(30)
+      setReviewTestSizeMax(60)
     }
   }, [isOpen, lists])
 
@@ -39,7 +46,7 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
   const handleSubmit = (event) => {
     event.preventDefault()
     if (!selectedListId) return
-    onAssign?.(selectedListId, pace, testOptionsCount, testMode, passThreshold, testSizeNew)
+    onAssign?.(selectedListId, pace, testOptionsCount, testMode, passThreshold, testSizeNew, reviewTestType, reviewTestSizeMin, reviewTestSizeMax)
   }
 
   return (
@@ -154,6 +161,60 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
               Max words per new word test (actual count depends on daily pace).
             </p>
           </label>
+
+          {/* Review Test Settings */}
+          <div className="border-t border-border-default pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Review Test Settings</h3>
+
+            <label className="block text-sm font-medium text-slate-700 mb-3">
+              Review Test Mode
+              <select
+                value={reviewTestType}
+                onChange={(event) => setReviewTestType(event.target.value)}
+                className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+              >
+                <option value="mcq">Multiple Choice Only</option>
+                <option value="typed">Written Only</option>
+              </select>
+              <p className="mt-1 text-xs text-slate-500">
+                Test format for review tests (past words).
+              </p>
+            </label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-sm font-medium text-slate-700">
+                Min Questions
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={reviewTestSizeMin}
+                  onChange={(event) =>
+                    setReviewTestSizeMin(Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 30)))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  placeholder="30"
+                />
+              </label>
+              <label className="block text-sm font-medium text-slate-700">
+                Max Questions
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={reviewTestSizeMax}
+                  onChange={(event) =>
+                    setReviewTestSizeMax(Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 60)))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  placeholder="60"
+                />
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Review test size scales with intervention (min at 0%, max at 100%).
+            </p>
+          </div>
 
           <div className="flex gap-3">
             <Button variant="outline" size="lg" className="flex-1" onClick={onClose}>

@@ -49,7 +49,7 @@ const ClassDetail = () => {
   const [listFilter, setListFilter] = useState('all')
   const [generatingPDF, setGeneratingPDF] = useState(null)
 const [settingsModalList, setSettingsModalList] = useState(null)
-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50 })
+  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60 })
 const [savingSettings, setSavingSettings] = useState(false)
 const [unassigningListId, setUnassigningListId] = useState(null)
   const [removingStudentId, setRemovingStudentId] = useState(null)
@@ -187,12 +187,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     return teacherLists.filter((list) => !assignedIds.has(list.id))
   }, [classInfo?.assignedLists, classInfo?.assignments, teacherLists])
 
-  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq', passThreshold = 95, testSizeNew = 50) => {
+  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq', passThreshold = 95, testSizeNew = 50, reviewTestType = 'mcq', reviewTestSizeMin = 30, reviewTestSizeMax = 60) => {
     if (!classId) return
     setAssigning(true)
     setFeedback('')
     try {
-      await assignListToClass(classId, listId, pace, testOptionsCount, testMode, passThreshold, testSizeNew)
+      await assignListToClass(classId, listId, pace, testOptionsCount, testMode, passThreshold, testSizeNew, reviewTestType, reviewTestSizeMin, reviewTestSizeMax)
       setAssignModalOpen(false)
       setFeedback('List assigned successfully.')
       await loadClass()
@@ -212,6 +212,9 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       studyDaysPerWeek: list.studyDaysPerWeek ?? 5,
       passThreshold: list.passThreshold ?? 95,
       testSizeNew: list.testSizeNew ?? 50,
+      reviewTestType: list.reviewTestType || 'mcq',
+      reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
+      reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
     })
   }
 
@@ -231,6 +234,9 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         studyDaysPerWeek: settingsForm.studyDaysPerWeek,
         passThreshold: settingsForm.passThreshold,
         testSizeNew: settingsForm.testSizeNew,
+        reviewTestType: settingsForm.reviewTestType,
+        reviewTestSizeMin: settingsForm.reviewTestSizeMin,
+        reviewTestSizeMax: settingsForm.reviewTestSizeMax,
       })
       setFeedback('List settings updated successfully.')
       await loadClass()
@@ -888,6 +894,67 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 />
                 <p className="mt-1 text-xs text-text-muted">Max words per new word test (actual count depends on daily pace).</p>
               </label>
+            </div>
+
+            {/* Review Test Settings */}
+            <div className="border-t border-border-default pt-4 mt-4">
+              <h3 className="text-sm font-semibold text-text-primary mb-3">Review Test Settings</h3>
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-text-secondary">
+                  Review Test Mode
+                  <select
+                    value={settingsForm.reviewTestType}
+                    onChange={(event) =>
+                      setSettingsForm((prev) => ({
+                        ...prev,
+                        reviewTestType: event.target.value,
+                      }))
+                    }
+                    className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  >
+                    <option value="mcq">Multiple Choice Only</option>
+                    <option value="typed">Written Only</option>
+                  </select>
+                  <p className="mt-1 text-xs text-text-muted">Test format for review tests (past words).</p>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Min Questions
+                    <input
+                      type="number"
+                      min="10"
+                      max="100"
+                      value={settingsForm.reviewTestSizeMin}
+                      onChange={(event) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          reviewTestSizeMin: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 30)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                      placeholder="30"
+                    />
+                  </label>
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Max Questions
+                    <input
+                      type="number"
+                      min="10"
+                      max="100"
+                      value={settingsForm.reviewTestSizeMax}
+                      onChange={(event) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          reviewTestSizeMax: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 60)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                      placeholder="60"
+                    />
+                  </label>
+                </div>
+                <p className="text-xs text-text-muted">Review test size scales with intervention (min at 0%, max at 100%).</p>
+              </div>
             </div>
 
             <div className="mt-6 flex gap-3">
