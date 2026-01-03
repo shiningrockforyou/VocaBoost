@@ -68,7 +68,7 @@ const TypedTest = () => {
   const [attemptId, setAttemptId] = useState(null)
   const [currentTestType, setCurrentTestType] = useState(testTypeParam)
   const [canRetake, setCanRetake] = useState(false)
-  const [retakeThreshold] = useState(0.95)
+  const [retakeThreshold, setRetakeThreshold] = useState(0.95)
   const [showResults, setShowResults] = useState(false)
   const [testResultsData, setTestResultsData] = useState(null)
 
@@ -214,6 +214,9 @@ const TypedTest = () => {
       if (!assignment) {
         throw new Error('Assignment not found')
       }
+
+      // Set pass threshold from assignment (stored as percentage, convert to decimal)
+      setRetakeThreshold((assignment.passThreshold || 95) / 100)
 
       const testSize = currentTestType === 'new'
         ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)

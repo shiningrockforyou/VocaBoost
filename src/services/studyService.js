@@ -10,6 +10,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  updateDoc,
   query,
   where,
   orderBy,
@@ -479,9 +480,22 @@ export async function buildReviewQueue(userId, listId, segment, reviewCount, tod
   }));
 
   // Get today's failed words (need full word objects)
-  const todaysFailedWords = todaysNewFailed.length > 0
-    ? segmentWords.filter(w => todaysNewFailed.includes(w.id))
-    : [];
+  // These are NEW words (not in segment), so fetch them directly by ID
+  let todaysFailedWords = [];
+  if (todaysNewFailed.length > 0) {
+    const failedWordDocs = await Promise.all(
+      todaysNewFailed.map(wordId =>
+        getDoc(doc(db, 'lists', listId, 'words', wordId))
+      )
+    );
+    todaysFailedWords = failedWordDocs
+      .filter(docSnap => docSnap.exists())
+      .map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+        status: WORD_STATUS.FAILED // These are failed words by definition
+      }));
+  }
 
   // Select review queue using algorithm
   return selectReviewQueue(wordsWithState, reviewCount, todaysFailedWords);
@@ -498,16 +512,17 @@ export { selectTestWords };
 
 /**
  * G1: Get blind spot pool
- * 
+ *
  * Returns words that need verification:
  * - NEVER_TESTED status, OR
  * - Last tested > 21 days ago (stale)
- * 
+ *
  * @param {string} userId - User ID
  * @param {string} listId - List ID
+ * @param {string} classId - Class ID (optional, for caching count)
  * @returns {Promise<Array>} Pool of words needing verification
  */
-export async function getBlindSpotPool(userId, listId) {
+export async function getBlindSpotPool(userId, listId, classId = null) {
   // Get all words in list
   const wordsRef = collection(db, 'lists', listId, 'words');
   const wordsSnap = await getDocs(query(wordsRef, orderBy('createdAt', 'asc')));
@@ -565,17 +580,58 @@ export async function getBlindSpotPool(userId, listId) {
       return aTime - bTime;
     });
 
+  // Cache the count in class_progress if classId provided
+  if (classId) {
+    try {
+      const docId = `${classId}_${listId}`;
+      const progressRef = doc(db, `users/${userId}/class_progress`, docId);
+      await updateDoc(progressRef, {
+        blindSpotCount: blindSpots.length,
+        blindSpotCountUpdatedAt: Timestamp.now()
+      });
+    } catch (err) {
+      // Ignore errors - caching is best-effort
+      console.warn('Failed to cache blind spot count:', err);
+    }
+  }
+
   return blindSpots;
 }
 
 /**
  * Get blind spot count for display
+ * Optimized version that checks cached count in class_progress first
  * @param {string} userId - User ID
  * @param {string} listId - List ID
+ * @param {string} classId - Class ID (optional, for caching)
  * @returns {Promise<number>} Count of blind spots
  */
-export async function getBlindSpotCount(userId, listId) {
-  const pool = await getBlindSpotPool(userId, listId);
+export async function getBlindSpotCount(userId, listId, classId = null) {
+  // If classId provided, check for cached count in class_progress
+  if (classId) {
+    try {
+      const docId = `${classId}_${listId}`;
+      const progressRef = doc(db, `users/${userId}/class_progress`, docId);
+      const progressSnap = await getDoc(progressRef);
+
+      if (progressSnap.exists()) {
+        const data = progressSnap.data();
+        const cachedCount = data.blindSpotCount;
+        const cachedAt = data.blindSpotCountUpdatedAt?.toMillis?.() || 0;
+        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+
+        // Use cached value if less than 1 hour old
+        if (cachedCount !== undefined && cachedAt > oneHourAgo) {
+          return cachedCount;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to read cached blind spot count:', err);
+    }
+  }
+
+  // Fall back to full calculation
+  const pool = await getBlindSpotPool(userId, listId, classId);
   return pool.length;
 }
 

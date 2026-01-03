@@ -65,7 +65,8 @@ const MCQTest = () => {
   const [attemptId, setAttemptId] = useState(null)
   const [currentTestType, setCurrentTestType] = useState(testTypeParam)
   const [canRetake, setCanRetake] = useState(false)
-  const [retakeThreshold] = useState(0.95)
+  const [retakeThreshold, setRetakeThreshold] = useState(0.95)
+  const [optionsCount, setOptionsCount] = useState(4)
   const [showResults, setShowResults] = useState(false)
 
   // Modal states
@@ -135,11 +136,12 @@ const MCQTest = () => {
 
   const generateQuestions = (words) => {
     const testWordsWithOptions = words.map(word => {
-      const otherWords = originalWords.length > 0 
+      const otherWords = originalWords.length > 0
         ? originalWords.filter(w => w.id !== word.id)
         : words.filter(w => w.id !== word.id)
       const shuffledOthers = [...otherWords].sort(() => Math.random() - 0.5)
-      const distractors = shuffledOthers.slice(0, 3).map(w => ({
+      // Use optionsCount from assignment (optionsCount - 1 distractors + 1 correct = optionsCount total)
+      const distractors = shuffledOthers.slice(0, optionsCount - 1).map(w => ({
         wordId: w.id,
         definition: w.definition,
         isCorrect: false
@@ -191,6 +193,11 @@ const MCQTest = () => {
       if (!assignment) {
         throw new Error('Assignment not found')
       }
+
+      // Set pass threshold from assignment (stored as percentage, convert to decimal)
+      setRetakeThreshold((assignment.passThreshold || 95) / 100)
+      // Set MCQ options count from assignment
+      setOptionsCount(assignment.testOptionsCount || 4)
 
       const testSize = currentTestType === 'new'
         ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)

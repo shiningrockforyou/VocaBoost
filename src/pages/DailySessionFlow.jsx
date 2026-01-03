@@ -464,8 +464,8 @@ export default function DailySessionFlow() {
           classId,
           listId,
           {
-            weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
-            studyDaysPerWeek: STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
+            weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK),
+            studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
             testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
             testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
             newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
@@ -973,7 +973,7 @@ export default function DailySessionFlow() {
         classId,
         listId,
         dayNumber: sessionConfig?.dayNumber,
-        interventionLevel: sessionConfig?.interventionLevel,
+        interventionLevel: sessionConfig?.interventionLevel ?? 0,
         newWordScore: newWordTestResults?.score || null,
         reviewScore: reviewTestResults?.score || null,
         segment: sessionConfig?.segment,

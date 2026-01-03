@@ -49,7 +49,7 @@ const ClassDetail = () => {
   const [listFilter, setListFilter] = useState('all')
   const [generatingPDF, setGeneratingPDF] = useState(null)
 const [settingsModalList, setSettingsModalList] = useState(null)
-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq' })
+  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50 })
 const [savingSettings, setSavingSettings] = useState(false)
 const [unassigningListId, setUnassigningListId] = useState(null)
   const [removingStudentId, setRemovingStudentId] = useState(null)
@@ -114,13 +114,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         const listSnap = await getDoc(doc(db, 'lists', id))
         if (!listSnap.exists()) return null
         
-        const assignment = assignments[id] || { pace: 20, testOptionsCount: 4, testMode: 'mcq' }
+        const assignment = assignments[id] || { pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5 }
         return {
           id: listSnap.id,
           ...listSnap.data(),
           pace: assignment.pace,
           testOptionsCount: assignment.testOptionsCount ?? 4,
           testMode: assignment.testMode || 'mcq',
+          studyDaysPerWeek: assignment.studyDaysPerWeek ?? 5,
         }
       }),
     )
@@ -186,12 +187,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     return teacherLists.filter((list) => !assignedIds.has(list.id))
   }, [classInfo?.assignedLists, classInfo?.assignments, teacherLists])
 
-  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq') => {
+  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq', passThreshold = 95, testSizeNew = 50) => {
     if (!classId) return
     setAssigning(true)
     setFeedback('')
     try {
-      await assignListToClass(classId, listId, pace, testOptionsCount, testMode)
+      await assignListToClass(classId, listId, pace, testOptionsCount, testMode, passThreshold, testSizeNew)
       setAssignModalOpen(false)
       setFeedback('List assigned successfully.')
       await loadClass()
@@ -208,6 +209,9 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       pace: list.pace ?? 20,
       testOptionsCount: list.testOptionsCount ?? 4,
       testMode: list.testMode || 'mcq',
+      studyDaysPerWeek: list.studyDaysPerWeek ?? 5,
+      passThreshold: list.passThreshold ?? 95,
+      testSizeNew: list.testSizeNew ?? 50,
     })
   }
 
@@ -224,6 +228,9 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         pace: settingsForm.pace,
         testOptionsCount: settingsForm.testOptionsCount,
         testMode: settingsForm.testMode,
+        studyDaysPerWeek: settingsForm.studyDaysPerWeek,
+        passThreshold: settingsForm.passThreshold,
+        testSizeNew: settingsForm.testSizeNew,
       })
       setFeedback('List settings updated successfully.')
       await loadClass()
@@ -826,6 +833,60 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                   <option value="both">Both</option>
                 </select>
                 <p className="mt-1 text-xs text-text-muted">Choose how students take tests for this list.</p>
+              </label>
+              <label className="block text-sm font-medium text-text-secondary">
+                Study Days Per Week
+                <input
+                  type="number"
+                  min="1"
+                  max="7"
+                  value={settingsForm.studyDaysPerWeek}
+                  onChange={(event) =>
+                    setSettingsForm((prev) => ({
+                      ...prev,
+                      studyDaysPerWeek: Math.min(7, Math.max(1, parseInt(event.target.value, 10) || 5)),
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  placeholder="5"
+                />
+                <p className="mt-1 text-xs text-text-muted">How many days per week students study (5 = weekdays only).</p>
+              </label>
+              <label className="block text-sm font-medium text-text-secondary">
+                Pass Threshold (%)
+                <input
+                  type="number"
+                  min="50"
+                  max="100"
+                  value={settingsForm.passThreshold}
+                  onChange={(event) =>
+                    setSettingsForm((prev) => ({
+                      ...prev,
+                      passThreshold: Math.min(100, Math.max(50, parseInt(event.target.value, 10) || 95)),
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  placeholder="95"
+                />
+                <p className="mt-1 text-xs text-text-muted">Students must score this % or higher to pass new word tests.</p>
+              </label>
+              <label className="block text-sm font-medium text-text-secondary">
+                New Word Test Size
+                <input
+                  type="number"
+                  min="10"
+                  max="100"
+                  value={settingsForm.testSizeNew}
+                  onChange={(event) =>
+                    setSettingsForm((prev) => ({
+                      ...prev,
+                      testSizeNew: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 50)),
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                  placeholder="50"
+                />
+                <p className="mt-1 text-xs text-text-muted">Max words per new word test (actual count depends on daily pace).</p>
               </label>
             </div>
 

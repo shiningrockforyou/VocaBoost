@@ -255,6 +255,17 @@ export const removeStudentFromClass = async (classId, studentId) => {
     console.warn('Could not remove from members subcollection:', err)
     // Continue anyway - main removal succeeded
   }
+
+  // Also remove from user's enrolledClasses
+  try {
+    const userRef = doc(db, 'users', studentId)
+    await updateDoc(userRef, {
+      [`enrolledClasses.${classId}`]: deleteField()
+    })
+  } catch (err) {
+    console.warn('Could not remove from user enrolledClasses:', err)
+    // Continue anyway - main removal succeeded
+  }
 }
 
 export const createList = async ({ title, description = '', ownerId, visibility = 'private' }) => {
@@ -382,11 +393,13 @@ export const fetchDashboardStats = async (userId) => {
   const [userSnap, studyStatesSnap, attemptsSnap] = await Promise.all([
     getDoc(userRef),
     getDocs(studyStatesRef),
-    // Remove orderBy to avoid index requirement - we'll sort client-side
+    // Use index on attempts(studentId, submittedAt desc) to get only the latest
     getDocs(
       query(
         attemptsRef,
         where('studentId', '==', userId),
+        orderBy('submittedAt', 'desc'),
+        limit(1),
       ),
     ),
   ])
@@ -406,33 +419,10 @@ export const fetchDashboardStats = async (userId) => {
     }
   })
 
-  // Sort attempts client-side by submittedAt (descending) and get the latest
-  const attemptsArray = attemptsSnap.docs.map((docSnap) => ({
-    id: docSnap.id,
-    ...docSnap.data(),
-  }))
-  
-  attemptsArray.sort((a, b) => {
-    // Handle Firestore Timestamp objects
-    const getTimestamp = (attempt) => {
-      if (attempt.submittedAt?.toMillis) {
-        return attempt.submittedAt.toMillis()
-      }
-      if (attempt.submittedAt?.toDate) {
-        return attempt.submittedAt.toDate().getTime()
-      }
-      if (attempt.submittedAt?.seconds) {
-        return attempt.submittedAt.seconds * 1000
-      }
-      return 0
-    }
-    
-    const timeA = getTimestamp(a)
-    const timeB = getTimestamp(b)
-    return timeB - timeA // Descending order (most recent first)
-  })
-  
-  const latestTest = attemptsArray.length > 0 ? attemptsArray[0] : null
+  // Get latest attempt (query already sorted by submittedAt desc with limit 1)
+  const latestTest = attemptsSnap.docs.length > 0
+    ? { id: attemptsSnap.docs[0].id, ...attemptsSnap.docs[0].data() }
+    : null
 
   const userData = userSnap.exists() ? userSnap.data() : {}
   const retention = userData.stats?.retention ?? 1
@@ -654,6 +644,8 @@ export const assignListToClass = async (
   pace = 20,
   testOptionsCount = 4,
   testMode = 'mcq',
+  passThreshold = 95,
+  testSizeNew = 50,
 ) => {
   if (!classId || !listId) {
     throw new Error('classId and listId are required.')
@@ -662,16 +654,18 @@ export const assignListToClass = async (
   const classRef = doc(db, 'classes', classId)
   const classSnap = await getDoc(classRef)
   const classData = classSnap.exists() ? classSnap.data() : {}
-  
+
   // Get existing assignments or create new map
   const assignments = classData.assignments || {}
-  
+
   // Update the assignment for this list
   assignments[listId] = {
     ...(assignments[listId] || {}),
     pace: Number(pace),
     testOptionsCount: Number(testOptionsCount) || 4,
     testMode: testMode || 'mcq',
+    passThreshold: Number(passThreshold) || 95,
+    testSizeNew: Number(testSizeNew) || 50,
     assignedAt: assignments[listId]?.assignedAt ?? serverTimestamp(),
   }
 
@@ -780,7 +774,12 @@ export const joinClass = async (studentId, joinCode) => {
   const classDoc = classSnapshot.docs[0]
   const classData = { id: classDoc.id, ...classDoc.data() }
   const userSnap = await getDoc(doc(db, 'users', studentId))
-  const userData = userSnap.exists() ? userSnap.data() : {}
+
+  if (!userSnap.exists()) {
+    throw new Error('User profile not found. Please complete signup first.')
+  }
+
+  const userData = userSnap.data()
   const displayName = userData.profile?.displayName ?? userData.email ?? ''
   const email = userData.email ?? ''
 
@@ -1296,9 +1295,10 @@ export const calculateCredibility = (answers, userWordStates) => {
  * @param {Array} answers - Array of { wordId, word, correctAnswer, studentResponse, isCorrect }
  * @param {number} totalQuestions - Total number of questions in the test
  * @param {string|null} classId - Optional class ID (required for gradebook visibility)
+ * @param {string} testType - Test type ('mcq' or 'typed'), defaults to 'mcq'
  * @returns {Promise<Object>} Attempt document data
  */
-export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null) => {
+export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, testType = 'mcq') => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
   }
@@ -1399,6 +1399,7 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
   const attemptData = {
     studentId: userId,
     testId,
+    testType,
     score: Math.round(score * 100),
     graded: true,
     answers: answeredWords,
@@ -1625,15 +1626,21 @@ export const fetchClassAttempts = async (classId) => {
   }
 
   const classData = classSnap.data()
-  const assignedListIds = classData.assignedLists || []
+  // Support both old assignedLists array and new assignments map
+  const assignments = classData.assignments || {}
+  const assignedListIds = classData.assignedLists || Object.keys(assignments)
 
   if (assignedListIds.length === 0) {
     return []
   }
 
-  // Query all attempts and filter by listId extracted from testId
+  // Query attempts for this class only
   const attemptsRef = collection(db, 'attempts')
-  const attemptsQuery = query(attemptsRef, orderBy('submittedAt', 'desc'))
+  const attemptsQuery = query(
+    attemptsRef,
+    where('classId', '==', classId),
+    orderBy('submittedAt', 'desc')
+  )
   const attemptsSnap = await getDocs(attemptsQuery)
 
   const attempts = []
@@ -1641,11 +1648,20 @@ export const fetchClassAttempts = async (classId) => {
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
 
-    // Extract listId from testId format: test_${listId}_${timestamp}
-    const testIdMatch = testId.match(/^test_([^_]+)_/)
-    if (!testIdMatch) continue
+    // Extract listId from testId - handle multiple formats:
+    // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+    // New: vocaboost_test_{classId}_{listId}_{testType}
+    let listId = null
+    const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
-    const listId = testIdMatch[1]
+    if (oldFormatMatch) {
+      listId = oldFormatMatch[2]
+    } else if (newFormatMatch) {
+      listId = newFormatMatch[1]
+    }
+
+    if (!listId) continue
     if (!assignedListIds.includes(listId)) continue
 
     // Get student name
@@ -1777,11 +1793,21 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
 
-    // Extract listId from testId format: test_{listId}_{timestamp}
-    const testIdMatch = testId.match(/^test_([^_]+)_/)
-    if (!testIdMatch) continue
+    // Extract listId from testId - handle multiple formats:
+    // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+    // New: vocaboost_test_{classId}_{listId}_{testType}
+    let listId = null
+    const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
-    const listId = testIdMatch[1]
+    if (oldFormatMatch) {
+      listId = oldFormatMatch[2]
+    } else if (newFormatMatch) {
+      listId = newFormatMatch[1]
+    }
+
+    if (!listId) continue
+
     const studentId = attemptData.studentId
 
     // Get student info
@@ -2127,11 +2153,22 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
   for (const attemptDoc of attemptDocs) {
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
-    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
 
-    if (!testIdMatch) continue
+    // Extract listId from testId - handle multiple formats:
+    // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+    // New: vocaboost_test_{classId}_{listId}_{testType}
+    let listId = null
+    const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
-    const listId = testIdMatch[2]
+    if (oldFormatMatch) {
+      listId = oldFormatMatch[2]
+    } else if (newFormatMatch) {
+      listId = newFormatMatch[1]
+    }
+
+    if (!listId) continue
+
     const studentId = attemptData.studentId
 
     // Apply Name filter (post-processing)
@@ -2302,11 +2339,21 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
   for (const attemptDoc of attemptDocs) {
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
-    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
 
-    if (!testIdMatch) continue
+    // Extract listId from testId - handle multiple formats:
+    // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+    // New: vocaboost_test_{classId}_{listId}_{testType}
+    let listId = null
+    const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
-    const listId = testIdMatch[2]
+    if (oldFormatMatch) {
+      listId = oldFormatMatch[2]
+    } else if (newFormatMatch) {
+      listId = newFormatMatch[1]
+    }
+
+    if (!listId) continue
 
     // Get list name
     let listName = listCache.get(listId)
@@ -2381,8 +2428,20 @@ export const fetchAttemptDetails = async (attemptId) => {
 
     const attemptData = attemptDoc.data()
     const testId = attemptData.testId || ''
-    const testIdMatch = testId.match(/^(test|typed)_([^_]+)_/)
-    const listId = testIdMatch ? testIdMatch[2] : null
+
+    // Extract listId from testId - handle multiple formats:
+    // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+    // New: vocaboost_test_{classId}_{listId}_{testType}
+    let listId = null
+    const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+    const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+
+    if (oldFormatMatch) {
+      listId = oldFormatMatch[2]
+    } else if (newFormatMatch) {
+      listId = newFormatMatch[1]
+    }
+
     const studentId = attemptData.studentId
 
     // Get student name
@@ -2534,10 +2593,11 @@ export const fetchUserAttempts = async (uid) => {
   }
 
   const attemptsRef = collection(db, 'attempts')
-  // Remove orderBy to avoid index requirement - we'll sort client-side
+  // Use index on attempts(studentId, submittedAt desc) for sorted results
   const attemptsQuery = query(
     attemptsRef,
     where('studentId', '==', uid),
+    orderBy('submittedAt', 'desc'),
   )
 
   try {
@@ -2549,15 +2609,17 @@ export const fetchUserAttempts = async (uid) => {
     const userData = userSnap.exists() ? userSnap.data() : {}
     const enrolledClasses = userData.enrolledClasses || {}
     
-    // Create class lookup map
+    // Create class lookup map (including assignedLists to avoid duplicate fetches)
     const classLookup = {}
     for (const [classId, classInfo] of Object.entries(enrolledClasses)) {
       try {
         const classSnap = await getDoc(doc(db, 'classes', classId))
         if (classSnap.exists()) {
+          const classData = classSnap.data()
           classLookup[classId] = {
-            name: classSnap.data().name || classInfo.name || 'Unknown Class',
+            name: classData.name || classInfo.name || 'Unknown Class',
             id: classId,
+            assignedLists: classData.assignedLists || Object.keys(classData.assignments || {}),
           }
         }
       } catch (err) {
@@ -2568,11 +2630,20 @@ export const fetchUserAttempts = async (uid) => {
     for (const docSnap of snapshot.docs) {
       const attemptData = docSnap.data()
       const testId = attemptData.testId || ''
-      
-      // Extract listId from testId format: test_{listId}_{timestamp}
-      const testIdMatch = testId.match(/^test_([^_]+)_/)
-      const listId = testIdMatch ? testIdMatch[1] : null
-      
+
+      // Extract listId from testId - handle multiple formats:
+      // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+      // New: vocaboost_test_{classId}_{listId}_{testType}
+      let listId = null
+      const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+      const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+
+      if (oldFormatMatch) {
+        listId = oldFormatMatch[2]
+      } else if (newFormatMatch) {
+        listId = newFormatMatch[1]
+      }
+
       let listTitle = 'Vocabulary Test'
       let className = 'Unknown Class'
       let classId = null
@@ -2588,21 +2659,12 @@ export const fetchUserAttempts = async (uid) => {
           console.error(`Error fetching list ${listId}:`, err)
         }
         
-        // Find which class this list belongs to
+        // Find which class this list belongs to (using cached data)
         for (const [cid, classInfo] of Object.entries(classLookup)) {
-          try {
-            const classSnap = await getDoc(doc(db, 'classes', cid))
-            if (classSnap.exists()) {
-              const classData = classSnap.data()
-              const assignedListIds = classData.assignedLists || []
-              if (assignedListIds.includes(listId)) {
-                className = classInfo.name
-                classId = cid
-                break
-              }
-            }
-          } catch (err) {
-            console.error(`Error checking class ${cid}:`, err)
+          if (classInfo.assignedLists.includes(listId)) {
+            className = classInfo.name
+            classId = cid
+            break
           }
         }
       }
@@ -2625,30 +2687,7 @@ export const fetchUserAttempts = async (uid) => {
       })
     }
     
-    // Sort client-side by submittedAt (descending - most recent first)
-    attempts.sort((a, b) => {
-      // Handle Firestore Timestamp objects
-      const getTimestamp = (attempt) => {
-        if (attempt.submittedAt?.toMillis) {
-          return attempt.submittedAt.toMillis()
-        }
-        if (attempt.submittedAt?.toDate) {
-          return attempt.submittedAt.toDate().getTime()
-        }
-        if (attempt.submittedAt?.seconds) {
-          return attempt.submittedAt.seconds * 1000
-        }
-        if (attempt.date instanceof Date) {
-          return attempt.date.getTime()
-        }
-        return 0
-      }
-      
-      const timeA = getTimestamp(a)
-      const timeB = getTimestamp(b)
-      return timeB - timeA // Descending order
-    })
-    
+    // Results already sorted by Firestore (submittedAt desc)
     return attempts
   } catch (err) {
     console.error('Error fetching user attempts:', err)

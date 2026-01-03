@@ -91,10 +91,17 @@ function calculateProgressStats(sessions) {
 export async function updateClassProgress(userId, classId, listId, sessionSummary, newIntervention) {
   const docId = getProgressDocId(classId, listId);
   const progressRef = doc(db, `users/${userId}/class_progress`, docId);
-  
+
   const snapshot = await getDoc(progressRef);
   const current = snapshot.exists() ? snapshot.data() : DEFAULT_CLASS_PROGRESS;
-  
+
+  // Guard: Check if this is the expected next day (prevents duplicate completions)
+  const expectedDay = (current.currentStudyDay || 0) + 1;
+  if (sessionSummary.dayNumber && sessionSummary.dayNumber !== expectedDay) {
+    console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionSummary.dayNumber}`);
+    return { id: docId, ...current }; // Return existing progress unchanged
+  }
+
   // Keep only last MAX_RECENT_SESSIONS
   const recentSessions = [...(current.recentSessions || []), sessionSummary]
     .slice(-MAX_RECENT_SESSIONS);

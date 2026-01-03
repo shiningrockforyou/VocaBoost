@@ -526,7 +526,7 @@ const Dashboard = () => {
             if (progress) {
               progressMap[key] = progress
             }
-            const blindSpots = await getBlindSpotCount(user.uid, listId)
+            const blindSpots = await getBlindSpotCount(user.uid, listId, cls.id)
             blindSpotMap[key] = blindSpots
           } catch (err) {
             console.error(`Failed to load progress for ${key}:`, err)
@@ -1294,20 +1294,6 @@ const Dashboard = () => {
             <p className="text-sm text-red-600" role="alert">
               {error}
             </p>
-          </div>
-        )}
-
-        {userStats && (userStats.retention ?? 1.0) < 0.6 && (
-          <div className="mb-6 rounded-xl border-2 border-red-300 bg-red-50 p-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⚠️</span>
-              <div>
-                <p className="font-semibold text-red-900">Panic Mode Active</p>
-                <p className="text-sm text-red-700">
-                  Your retention is below 60%. Focus on reviewing words you've already learned.
-                </p>
-              </div>
-            </div>
           </div>
         )}
 

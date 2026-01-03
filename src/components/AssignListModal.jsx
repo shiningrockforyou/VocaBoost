@@ -7,6 +7,8 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
   const [pace, setPace] = useState(20)
   const [testOptionsCount, setTestOptionsCount] = useState(4)
   const [testMode, setTestMode] = useState('mcq')
+  const [passThreshold, setPassThreshold] = useState(95)
+  const [testSizeNew, setTestSizeNew] = useState(50)
 
   useEffect(() => {
     if (isOpen) {
@@ -14,6 +16,8 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
       setPace(20)
       setTestOptionsCount(4)
       setTestMode('mcq')
+      setPassThreshold(95)
+      setTestSizeNew(50)
     }
   }, [isOpen, lists])
 
@@ -35,7 +39,7 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
   const handleSubmit = (event) => {
     event.preventDefault()
     if (!selectedListId) return
-    onAssign?.(selectedListId, pace, testOptionsCount, testMode)
+    onAssign?.(selectedListId, pace, testOptionsCount, testMode, passThreshold, testSizeNew)
   }
 
   return (
@@ -114,6 +118,40 @@ const AssignListModal = ({ isOpen, onClose, lists = [], onAssign, isSubmitting }
             </select>
             <p className="mt-1 text-xs text-slate-500">
               Choose which test format students will use for this list.
+            </p>
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            Pass Threshold (%)
+            <input
+              type="number"
+              min="50"
+              max="100"
+              value={passThreshold}
+              onChange={(event) =>
+                setPassThreshold(Math.min(100, Math.max(50, parseInt(event.target.value, 10) || 95)))
+              }
+              className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+              placeholder="95"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Students must score this % or higher to pass new word tests.
+            </p>
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            New Word Test Size
+            <input
+              type="number"
+              min="10"
+              max="100"
+              value={testSizeNew}
+              onChange={(event) =>
+                setTestSizeNew(Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 50)))
+              }
+              className="mt-1 w-full rounded-lg border border-border-default bg-muted px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+              placeholder="50"
+            />
+            <p className="mt-1 text-xs text-slate-500">
+              Max words per new word test (actual count depends on daily pace).
             </p>
           </label>
 
