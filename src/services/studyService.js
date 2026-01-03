@@ -649,17 +649,24 @@ export async function getBlindSpotCount(userId, listId, classId = null) {
 export async function getTodaysBatchForPDF(userId, classId, listId, assignment) {
   // Initialize session to get allocation (testSizeReview calculated internally based on intervention)
   const config = await initializeDailySession(userId, classId, listId, {
-    weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+    weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK) || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
     studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
     newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
   });
-  
+
   // Get new words (already have wordIndex from getNewWords)
   const newWords = config.newWordCount > 0
     ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
     : [];
-  
+
+  // Get failed carryover (words from previous days with FAILED status)
+  const failedCarryover = await getFailedFromPreviousNewWords(
+    userId,
+    listId,
+    config.newWordStartIndex
+  );
+
   // Get review queue (already have wordIndex from buildReviewQueue)
   let reviewWords = [];
   if (config.segment) {
@@ -671,13 +678,13 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
       [] // No failed words yet
     );
   }
-  
-  // Combine: new words first, then review
-  // Sort by wordIndex so PDF shows words in list order
-  const combined = [...newWords, ...reviewWords];
-  combined.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0));
 
-  return combined;
+  // Return structured data for PDF with demarcation
+  return {
+    newWords: newWords.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0)),
+    failedCarryover: failedCarryover.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0)),
+    reviewWords: reviewWords.sort((a, b) => (a.wordIndex ?? 0) - (b.wordIndex ?? 0))
+  };
 }
 
 /**
@@ -692,7 +699,7 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
 export async function getCompleteBatchForPDF(userId, classId, listId, assignment) {
   // Initialize session to get segment info
   const config = await initializeDailySession(userId, classId, listId, {
-    weeklyPace: assignment.pace * 7 || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
+    weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK) || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
     studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
     newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD

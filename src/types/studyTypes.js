@@ -29,14 +29,6 @@ export const WORD_STATUS = {
  * @property {number} wordIndex - 0-indexed position in list
  * @property {number} introducedOnDay - Which study day this was introduced
  * @property {string} listId - Reference to parent list
- * 
- * Legacy fields (preserved for rollback):
- * @property {number} [box] - Old Leitner box (1-5)
- * @property {number} [streak] - Old streak count
- * @property {Timestamp} [lastReviewed] - Old last reviewed timestamp
- * @property {Timestamp} [nextReview] - Old next review timestamp
- * @property {string} [result] - Old result ('again'|'hard'|'easy')
- * @property {number} [legacyBox] - Preserved box value after migration
  */
 
 /**

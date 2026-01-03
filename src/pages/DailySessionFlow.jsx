@@ -323,15 +323,30 @@ export default function DailySessionFlow() {
         words = allWords.map((w, idx) => ({ ...w, wordIndex: w.wordIndex ?? idx }))
       }
 
-      if (words.length === 0) {
+      // Handle structured format { newWords, failedCarryover } or flat array
+      const isStructured = words && !Array.isArray(words) && 'newWords' in words
+      const wordCount = isStructured
+        ? (words.newWords?.length || 0) + (words.failedCarryover?.length || 0)
+        : (words?.length || 0)
+
+      if (wordCount === 0) {
         alert('No words available to export.')
         return
       }
 
-      const normalizedWords = words.map((word) => ({
+      // Normalize words while preserving structured format
+      const normalizeWord = (word) => ({
         ...word,
         partOfSpeech: word?.partOfSpeech ?? word?.pos ?? word?.part_of_speech ?? '',
-      }))
+      })
+
+      const normalizedWords = isStructured
+        ? {
+            newWords: words.newWords?.map(normalizeWord) || [],
+            failedCarryover: words.failedCarryover?.map(normalizeWord) || [],
+            reviewWords: words.reviewWords?.map(normalizeWord) || []
+          }
+        : words.map(normalizeWord)
 
       await downloadListAsPDF(listTitle || 'Vocabulary List', normalizedWords, mode)
     } catch (err) {

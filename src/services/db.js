@@ -410,11 +410,10 @@ export const fetchDashboardStats = async (userId) => {
   studyStatesSnap.docs.forEach((docSnap) => {
     const data = docSnap.data()
     const lastReviewed = data.lastReviewed
-    const box = data.box ?? 1
     if (lastReviewed?.toMillis && lastReviewed.toMillis() >= cutoff.toMillis()) {
       weeklyProgress += 1
     }
-    if (box >= 4) {
+    if (data.status === 'PASSED') {
       masteryCount += 1
     }
   })
@@ -956,67 +955,6 @@ export const fetchSmartStudyQueue = async (listId, userId, classId = null, limit
   return slicedQueue
 }
 
-const nextBoxValue = (currentBox, result) => {
-  if (result === 'again') return Math.max(1, currentBox - 1)
-  if (result === 'hard') return currentBox
-  return currentBox + 1 // easy
-}
-
-const computeNextReview = (box) => {
-  const now = Timestamp.now()
-  const minutes = Math.min(box * 15, 24 * 60)
-  return Timestamp.fromMillis(now.toMillis() + minutes * 60 * 1000)
-}
-
-export const saveStudyResult = async (userId, wordId, result) => {
-  if (!userId || !wordId) {
-    throw new Error('userId and wordId are required.')
-  }
-  if (!['again', 'hard', 'easy'].includes(result)) {
-    throw new Error('Invalid study result.')
-  }
-
-  const docRef = doc(db, 'users', userId, 'study_states', wordId)
-  const docSnap = await getDoc(docRef)
-  const currentData = docSnap.exists() ? docSnap.data() : {}
-  const currentBox = currentData.box ?? 1
-  const currentStreak = currentData.streak ?? 0
-
-  let nextBox = currentBox
-  let nextStreak = currentStreak
-
-  if (result === 'easy') {
-    nextStreak = currentStreak + 1
-    if (nextStreak >= 3 && currentBox === 3) {
-      nextBox = 4
-      nextStreak = 0
-    } else if (currentBox < 3) {
-      nextBox = currentBox + 1
-    } else {
-      nextBox = 3
-    }
-  } else {
-    nextStreak = 0
-    if (result === 'again') {
-      nextBox = 1
-    } else {
-      nextBox = Math.max(1, currentBox - 1)
-    }
-  }
-
-  await setDoc(
-    docRef,
-    {
-      lastReviewed: serverTimestamp(),
-      result,
-      box: nextBox,
-      streak: nextStreak,
-      nextReview: computeNextReview(nextBox),
-    },
-    { merge: true },
-  )
-}
-
 export const fetchStudentStats = async (userId, listId) => {
   if (!userId || !listId) {
     return { mastery: 0, due: 0, totalWords: 0, wordsLearned: 0, masteredWords: 0 }
@@ -1089,190 +1027,13 @@ export const fetchStudentAggregateStats = async (studentId) => {
   let totalWordsLearned = 0
   studyStatesSnap.docs.forEach((docSnap) => {
     const data = docSnap.data()
-    const box = data.box ?? 1
-    if (box > 1) {
+    // Count words that have been tested (PASSED or FAILED)
+    if (data.status && data.status !== 'NEVER_TESTED') {
       totalWordsLearned += 1
     }
   })
 
   return { totalWordsLearned }
-}
-
-export const generateTest = async (userId, listId, classId = null, limit = 50) => {
-  if (!userId || !listId) {
-    throw new Error('userId and listId are required.')
-  }
-
-  // Fetch all words from the list (no filtering for "only studied words")
-  const allWords = await fetchAllWords(listId)
-
-  if (allWords.length === 0) {
-    return []
-  }
-
-  let optionsCount = 4
-  if (classId) {
-    const classSnap = await getDoc(doc(db, 'classes', classId))
-    if (classSnap.exists()) {
-      const classData = classSnap.data() || {}
-      const assignment = classData.assignments?.[listId]
-      if (assignment?.testOptionsCount) {
-        optionsCount = assignment.testOptionsCount
-      }
-    }
-  }
-
-  const studyStatesRef = collection(db, 'users', userId, 'study_states')
-  const studyStatesSnap = await getDocs(studyStatesRef)
-  const wordStates = {}
-  studyStatesSnap.docs.forEach((docSnap) => {
-    wordStates[docSnap.id] = docSnap.data()
-  })
-
-  const now = Timestamp.now()
-
-  // Priority 1: Due Review Words (Box 1)
-  const dueReviewWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    if (!state || state.box !== 1) return false
-    const nextReview = state.nextReview
-    return nextReview && nextReview.toMillis && nextReview.toMillis() < now.toMillis()
-  })
-
-  // Priority 2: "Glass Ceiling" Words (Box 3)
-  const glassCeilingWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    return state && state.box === 3
-  })
-
-  // Priority 3: New/Unseen Words
-  const newWords = allWords.filter((word) => !wordStates[word.id])
-
-  // Combine and prioritize
-  const selected = []
-  selected.push(...dueReviewWords.slice(0, limit))
-  const remaining = limit - selected.length
-  if (remaining > 0) {
-    selected.push(...glassCeilingWords.slice(0, remaining))
-  }
-  const finalRemaining = limit - selected.length
-  if (finalRemaining > 0) {
-    selected.push(...newWords.slice(0, finalRemaining))
-  }
-
-  // Shuffle and limit
-  const shuffled = shuffleArray(selected).slice(0, limit)
-
-  // Generate options for each word
-  const testWordsWithOptions = shuffled.map((word) => {
-    const otherWords = allWords.filter((w) => w.id !== word.id)
-    const desiredDistractors = Math.min(Math.max(1, optionsCount - 1), Math.max(otherWords.length, 0))
-
-    const targetPOS = normalizePOS(word.partOfSpeech || word.pos || word.part_of_speech)
-    const samePOSPool = targetPOS
-      ? otherWords.filter(
-          (candidate) => normalizePOS(candidate.partOfSpeech || candidate.pos || candidate.part_of_speech) === targetPOS,
-        )
-      : []
-
-    const distractors = []
-    const takeFromPool = (pool) => {
-      for (const candidate of pool) {
-        if (distractors.length >= desiredDistractors) break
-        distractors.push(candidate)
-      }
-    }
-
-    takeFromPool(shuffleArray(samePOSPool))
-
-    if (distractors.length < desiredDistractors) {
-      const remainingPool = shuffleArray(
-        otherWords.filter((candidate) => !distractors.some((existing) => existing.id === candidate.id)),
-      )
-      takeFromPool(remainingPool)
-    }
-
-    const options = shuffleArray([
-      { wordId: word.id, definition: word.definition, isCorrect: true },
-      ...distractors.slice(0, desiredDistractors).map((w) => ({
-        wordId: w.id,
-        definition: w.definition,
-        isCorrect: false,
-      })),
-    ])
-
-    return {
-      ...word,
-      options,
-    }
-  })
-
-  return testWordsWithOptions
-}
-
-/**
- * Generate words for typed test (same prioritization as MCQ but without options)
- * @param {string} userId - User ID
- * @param {string} listId - List ID
- * @param {string|null} classId - Optional class ID
- * @param {number} limit - Maximum number of words (default: 50)
- * @returns {Promise<Array>} Array of word objects without MCQ options
- */
-export const generateTypedTest = async (userId, listId, classId = null, limit = 50) => {
-  if (!userId || !listId) {
-    throw new Error('userId and listId are required.')
-  }
-
-  // Fetch all words from the list
-  const allWords = await fetchAllWords(listId)
-
-  if (allWords.length === 0) {
-    return []
-  }
-
-  const studyStatesRef = collection(db, 'users', userId, 'study_states')
-  const studyStatesSnap = await getDocs(studyStatesRef)
-  const wordStates = {}
-  studyStatesSnap.docs.forEach((docSnap) => {
-    wordStates[docSnap.id] = docSnap.data()
-  })
-
-  const now = Timestamp.now()
-
-  // Priority 1: Due Review Words (Box 1)
-  const dueReviewWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    if (!state || state.box !== 1) return false
-    const nextReview = state.nextReview
-    return nextReview && nextReview.toMillis && nextReview.toMillis() < now.toMillis()
-  })
-
-  // Priority 2: "Glass Ceiling" Words (Box 3)
-  const glassCeilingWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    return state && state.box === 3
-  })
-
-  // Priority 3: New/Unseen Words
-  const newWords = allWords.filter((word) => !wordStates[word.id])
-
-  // Combine and prioritize
-  const selected = []
-  selected.push(...dueReviewWords.slice(0, limit))
-  const remaining = limit - selected.length
-  if (remaining > 0) {
-    selected.push(...glassCeilingWords.slice(0, remaining))
-  }
-  const finalRemaining = limit - selected.length
-  if (finalRemaining > 0) {
-    selected.push(...newWords.slice(0, finalRemaining))
-  }
-
-  // Shuffle and limit
-  const shuffled = shuffleArray(selected).slice(0, limit)
-
-  // Return words without MCQ options
-  return shuffled
 }
 
 export const calculateCredibility = (answers, userWordStates) => {
@@ -1325,63 +1086,11 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 
   const credibility = calculateCredibility(answeredWords, userWordStates)
 
-  const box4PlusWords = answeredWords.filter((answer) => {
-    const wordState = userWordStates[answer.wordId]
-    return wordState && wordState.box >= 4
-  })
-  const retention =
-    box4PlusWords.length > 0
-      ? box4PlusWords.filter((answer) => answer.isCorrect).length / box4PlusWords.length
-      : 1.0
-
-  const batchUpdates = []
   // Score based on answered questions only
   const score = answeredWords.filter((answer) => answer.isCorrect).length / answeredWords.length
 
-  // Only process words that were answered (ignore unanswered/skipped words)
-  for (const answer of answeredWords) {
-    const wordState = userWordStates[answer.wordId]
-    const currentBox = wordState?.box ?? 1
-
-    if (answer.isCorrect) {
-      // IF Correct:
-      //   IF box was Unseen or < 3: Promote directly to Box 4 (Instant Mastery)
-      //   IF box >= 3: Promote to Box 5
-      let nextBox = 4
-      if (currentBox >= 3) {
-        nextBox = 5
-      }
-
-      batchUpdates.push(
-        setDoc(
-          doc(db, 'users', userId, 'study_states', answer.wordId),
-          {
-            box: nextBox,
-            streak: 0,
-            lastReviewed: serverTimestamp(),
-            nextReview: computeNextReview(nextBox),
-          },
-          { merge: true },
-        ),
-      )
-    } else {
-      // IF Wrong: Demote to Box 1
-      batchUpdates.push(
-        setDoc(
-          doc(db, 'users', userId, 'study_states', answer.wordId),
-          {
-            box: 1,
-            streak: 0,
-            lastReviewed: serverTimestamp(),
-            nextReview: computeNextReview(1),
-          },
-          { merge: true },
-        ),
-      )
-    }
-  }
-
-  await Promise.all(batchUpdates)
+  // Retention = test score (random sample estimates overall retention)
+  const retention = score
 
   // Get teacherId from the class document if classId is provided
   let teacherId = null
@@ -1506,61 +1215,11 @@ export const submitTypedTestAttempt = async (
       userWordStates[docSnap.id] = docSnap.data()
     })
 
-    // Calculate credibility and retention (same logic as MCQ)
+    // Calculate credibility
     const credibility = calculateCredibility(answeredWords, userWordStates)
 
-    const box4PlusWords = answeredWords.filter((answer) => {
-      const wordState = userWordStates[answer.wordId]
-      return wordState && wordState.box >= 4
-    })
-    const retention =
-      box4PlusWords.length > 0
-        ? box4PlusWords.filter((answer) => answer.isCorrect).length / box4PlusWords.length
-        : 1.0
-
-    // Update word states (same logic as MCQ)
-    const batchUpdates = []
-    for (const answer of answeredWords) {
-      const wordState = userWordStates[answer.wordId]
-      const currentBox = wordState?.box ?? 1
-
-      if (answer.isCorrect) {
-        // IF Correct: Promote to Box 4 or 5
-        let nextBox = 4
-        if (currentBox >= 3) {
-          nextBox = 5
-        }
-
-        batchUpdates.push(
-          setDoc(
-            doc(db, 'users', userId, 'study_states', answer.wordId),
-            {
-              box: nextBox,
-              streak: 0,
-              lastReviewed: serverTimestamp(),
-              nextReview: computeNextReview(nextBox),
-            },
-            { merge: true },
-          ),
-        )
-      } else {
-        // IF Wrong: Demote to Box 1
-        batchUpdates.push(
-          setDoc(
-            doc(db, 'users', userId, 'study_states', answer.wordId),
-            {
-              box: 1,
-              streak: 0,
-              lastReviewed: serverTimestamp(),
-              nextReview: computeNextReview(1),
-            },
-            { merge: true },
-          ),
-        )
-      }
-    }
-
-    await Promise.all(batchUpdates)
+    // Retention = test score (random sample estimates overall retention)
+    const retention = score
 
     // Get teacherId from the class document if classId is provided
     let teacherId = null
@@ -2869,31 +2528,64 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
       'challenges.history': updatedHistory,
     })
 
-    // If accepted, update study_state for this word (promote instead of demote)
+    // If accepted, update study_state for this word to PASSED
     if (accepted) {
       const studyStateRef = doc(db, 'users', studentId, 'study_states', wordId)
-      const studyStateSnap = await getDoc(studyStateRef)
 
-      if (studyStateSnap.exists()) {
-        const currentState = studyStateSnap.data()
-        const currentBox = currentState.box ?? 1
+      await setDoc(
+        studyStateRef,
+        {
+          status: 'PASSED',
+          lastTestedAt: serverTimestamp(),
+        },
+        { merge: true },
+      )
 
-        // Promote to Box 4 or 5 (same logic as correct answer)
-        let nextBox = 4
-        if (currentBox >= 3) {
-          nextBox = 5
+      // Check if challenge acceptance should trigger day progression
+      // Only for 'new' word tests that cross the pass threshold
+      const testId = attemptData.testId || ''
+      const testIdParts = testId.split('_')
+      const phase = testIdParts[testIdParts.length - 1] // 'new' or 'review'
+
+      if (phase === 'new' && attemptData.classId) {
+        // Extract listId from testId (format: test_recovery_classId_listId_phase)
+        const listId = testIdParts.length >= 4 ? testIdParts[testIdParts.length - 2] : null
+
+        if (listId) {
+          try {
+            // Get pass threshold from assignment
+            const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
+            const assignment = classDoc.exists()
+              ? classDoc.data().assignedLists?.find((a) => a.listId === listId)
+              : null
+            const passThreshold = assignment?.passThreshold || 95
+
+            const oldScore = attemptData.score || 0
+
+            // If old score was below threshold and new score is at/above threshold
+            if (oldScore < passThreshold && newScore >= passThreshold) {
+              // Fetch class_progress to get current day
+              const progressDocId = `${attemptData.classId}_${listId}`
+              const progressRef = doc(db, `users/${studentId}/class_progress`, progressDocId)
+              const progressSnap = await getDoc(progressRef)
+
+              if (progressSnap.exists()) {
+                const progress = progressSnap.data()
+                const currentDay = progress.currentStudyDay || 0
+
+                // Increment day (challenge review = minimal update, no session summary)
+                await updateDoc(progressRef, {
+                  currentStudyDay: currentDay + 1,
+                  lastSessionAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                })
+              }
+            }
+          } catch (err) {
+            console.error('Error checking day progression after challenge:', err)
+            // Don't fail the challenge review if day progression check fails
+          }
         }
-
-        await setDoc(
-          studyStateRef,
-          {
-            box: nextBox,
-            streak: 0,
-            lastReviewed: serverTimestamp(),
-            nextReview: computeNextReview(nextBox),
-          },
-          { merge: true },
-        )
       }
     }
   }
@@ -2903,8 +2595,7 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
 
 /**
  * Normalize a study state document to ensure all fields exist.
- * Handles both old (Leitner) and new (random sampling) formats.
- * 
+ *
  * @param {Object} doc - Raw Firestore document data
  * @returns {Object} Normalized study state
  */
@@ -2913,49 +2604,9 @@ export function normalizeStudyState(doc) {
     return { ...DEFAULT_STUDY_STATE }
   }
 
-  // If document has new 'status' field, use new format
-  if (doc.status) {
-    return {
-      ...DEFAULT_STUDY_STATE,
-      ...doc
-    }
-  }
-
-  // Convert from old format (Leitner box system)
-  // This is a read-time conversion for backwards compatibility
-  let status = WORD_STATUS.NEVER_TESTED
-
-  const box = doc.box ?? 1
-
-  if (box >= 4) {
-    status = WORD_STATUS.PASSED
-  } else if (box > 1 || doc.lastReviewed) {
-    status = WORD_STATUS.FAILED
-  } else if (box === 1 && !doc.lastReviewed) {
-    status = WORD_STATUS.NEW
-  }
-
   return {
-    // New fields (derived from old)
-    status,
-    timesTestedTotal: box > 1 ? 1 : 0,
-    timesCorrectTotal: status === WORD_STATUS.PASSED ? 1 : 0,
-    lastTestedAt: doc.lastReviewed || null,
-    lastTestResult: status === WORD_STATUS.PASSED,
-    dismissedUntil: null,
-    lastQueuedAt: null,
-    queueAppearances: 0,
-    wordIndex: doc.wordIndex || 0,
-    introducedOnDay: doc.introducedOnDay || 1,
-    listId: doc.listId || '',
-
-    // Preserve old fields
-    box: doc.box,
-    streak: doc.streak,
-    lastReviewed: doc.lastReviewed,
-    nextReview: doc.nextReview,
-    result: doc.result,
-    legacyBox: doc.box
+    ...DEFAULT_STUDY_STATE,
+    ...doc
   }
 }
 
