@@ -320,12 +320,12 @@
 
     .flow-step {
       background: var(--bg-surface);
-      padding: 14px 18px;
+      padding: 10px 14px;
       border-radius: 10px;
       text-align: center;
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border-default);
-      min-width: 100px;
+      min-width: 85px;
     }
 
     .flow-step .step-title {
@@ -619,41 +619,50 @@
   <section id="dashboard">
     <h2><span class="section-number">2</span>대시보드 이해하기</h2>
 
-    <p>로그인하면 가장 먼저 보이는 화면이 <strong>대시보드</strong>입니다. 여기서 모든 학습을 시작할 수 있습니다.</p>
+    <p>로그인하면 가장 먼저 보이는 화면이 <strong>대시보드</strong>입니다. 학습을 관리하는 중심 화면입니다.</p>
 
-    <h3>대시보드 구성 요소</h3>
+    <h3>커맨드 덱</h3>
+    <p>대시보드 상단에는 4개의 주요 패널이 있습니다:</p>
+
     <div class="table-wrapper">
       <table>
         <tr>
-          <th>항목</th>
+          <th>패널</th>
           <th>설명</th>
         </tr>
         <tr>
-          <td><strong>My Classes</strong></td>
-          <td>참가한 모든 클래스 목록</td>
+          <td><strong>주간 목표</strong></td>
+          <td>이번 주 단어 목표와 현재 진도를 진행 막대로 표시합니다</td>
         </tr>
         <tr>
-          <td><strong>Assigned Lists</strong></td>
-          <td>각 클래스에 할당된 단어장들</td>
+          <td><strong>학습 현황</strong></td>
+          <td>세 가지 핵심 지표: 학습한 단어 수, 숙달률, 연속 학습 일수</td>
         </tr>
         <tr>
-          <td><strong>Progress</strong></td>
-          <td>각 단어장의 학습 진행률</td>
+          <td><strong>오늘의 학습</strong></td>
+          <td>현재 학습일과 "학습 시작" 버튼이 표시됩니다</td>
         </tr>
         <tr>
-          <td><strong>Streak</strong></td>
-          <td>연속으로 학습한 일수</td>
+          <td><strong>7일 활동</strong></td>
+          <td>최근 7일간의 복습 테스트 점수를 막대 그래프로 보여줍니다</td>
         </tr>
       </table>
     </div>
 
-    <h3>진도 표시 (Mastery Squares)</h3>
-    <p>단어장 옆에 보이는 7개의 작은 사각형이 진도 표시입니다.</p>
+    <h3>클래스 및 단어장</h3>
+    <p>커맨드 덱 아래에는 참가한 클래스와 할당된 단어장이 표시됩니다. 각 단어장에는:</p>
     <ul class="inline-list">
-      <li><strong>초록색</strong>: 학습을 완료한 날</li>
-      <li><strong>회색</strong>: 아직 학습하지 않은 날</li>
+      <li><strong>진행 막대</strong>: 학습한 단어 수 / 전체 단어 수</li>
+      <li><strong>학습일 표시</strong>: 해당 단어장의 현재 학습일</li>
+      <li><strong>학습 시작</strong>: 오늘의 학습 시작</li>
+      <li><strong>Blind Spots</strong>: 어려운 단어 집중 복습</li>
+      <li><strong>PDF 다운로드</strong>: 단어장을 PDF로 다운로드 (오늘/전체)</li>
     </ul>
-    <p>7칸이 모두 초록색이 되면 일주일 연속 학습 완료입니다.</p>
+
+    <div class="info-box tip">
+      <div class="info-box-title">단어장 선택</div>
+      <p>여러 단어장이 있는 경우, 상단의 드롭다운에서 주요 단어장을 선택할 수 있습니다. 선택한 단어장이 주간 목표 패널에 표시됩니다.</p>
+    </div>
 
     <div class="info-box success">
       <div class="info-box-title">연속 학습의 효과</div>

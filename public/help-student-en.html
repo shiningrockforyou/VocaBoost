@@ -311,21 +311,21 @@
       flex-wrap: wrap;
       justify-content: center;
       align-items: center;
-      gap: 12px;
-      margin: 24px 0;
-      padding: 24px;
+      gap: 8px;
+      margin: 20px 0;
+      padding: 16px;
       background: var(--bg-muted);
       border-radius: 12px;
     }
 
     .flow-step {
       background: var(--bg-surface);
-      padding: 14px 18px;
+      padding: 10px 14px;
       border-radius: 10px;
       text-align: center;
       box-shadow: var(--shadow-sm);
       border: 1px solid var(--border-default);
-      min-width: 100px;
+      min-width: 85px;
     }
 
     .flow-step .step-title {
@@ -619,41 +619,50 @@
   <section id="dashboard">
     <h2><span class="section-number">2</span>Understanding the Dashboard</h2>
 
-    <p>After logging in, the first screen you see is the <strong>Dashboard</strong>. This is where you start all your learning.</p>
+    <p>After logging in, the first screen you see is the <strong>Dashboard</strong>. This is your learning command center.</p>
 
-    <h3>Dashboard Components</h3>
+    <h3>Command Deck</h3>
+    <p>The top of your dashboard shows four key panels:</p>
+
     <div class="table-wrapper">
       <table>
         <tr>
-          <th>Item</th>
+          <th>Panel</th>
           <th>Description</th>
         </tr>
         <tr>
-          <td><strong>My Classes</strong></td>
-          <td>List of all classes you've joined</td>
+          <td><strong>Weekly Goals</strong></td>
+          <td>Shows your weekly word target and current progress with a visual progress bar</td>
         </tr>
         <tr>
-          <td><strong>Assigned Lists</strong></td>
-          <td>Word lists assigned to each class</td>
+          <td><strong>Vitals</strong></td>
+          <td>Three key metrics: Words Introduced, Mastery Rate, and Current Streak</td>
         </tr>
         <tr>
-          <td><strong>Progress</strong></td>
-          <td>Learning progress for each word list</td>
+          <td><strong>Day Status</strong></td>
+          <td>Shows your current study day and the "Start Session" button to begin learning</td>
         </tr>
         <tr>
-          <td><strong>Streak</strong></td>
-          <td>Number of consecutive days you've studied</td>
+          <td><strong>7-Day Activity</strong></td>
+          <td>Bar chart showing your review scores over the last 7 study days</td>
         </tr>
       </table>
     </div>
 
-    <h3>Progress Indicator (Mastery Squares)</h3>
-    <p>The 7 small squares next to each word list show your weekly progress.</p>
+    <h3>My Classes & Word Lists</h3>
+    <p>Below the command deck, you'll see your enrolled classes and assigned word lists. Each list shows:</p>
     <ul class="inline-list">
-      <li><strong>Green</strong>: Days you completed learning</li>
-      <li><strong>Gray</strong>: Days you haven't studied yet</li>
+      <li><strong>Progress bar</strong>: Words introduced vs total words</li>
+      <li><strong>Day indicator</strong>: Your current study day for this list</li>
+      <li><strong>Start Session</strong>: Begin your daily learning</li>
+      <li><strong>Blind Spots</strong>: Review words you find difficult</li>
+      <li><strong>PDF Download</strong>: Download word lists as PDF (Today or Full)</li>
     </ul>
-    <p>When all 7 squares are green, you've completed a week of consistent learning!</p>
+
+    <div class="info-box tip">
+      <div class="info-box-title">List Selector</div>
+      <p>If you have multiple word lists, use the dropdown at the top to choose your primary focus list. This determines which list appears in your Weekly Goals panel.</p>
+    </div>
 
     <div class="info-box success">
       <div class="info-box-title">Benefits of Consistent Learning</div>

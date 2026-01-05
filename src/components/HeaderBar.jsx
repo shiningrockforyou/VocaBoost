@@ -158,17 +158,15 @@ const HeaderBar = () => {
           </NavButton>
         )}
 
-        {/* Help Button (Students only) */}
-        {!isTeacher && (
-          <button
-            type="button"
-            onClick={() => setHelpModalOpen(true)}
-            className="h-12 w-12 flex items-center justify-center rounded-button bg-surface border border-border-default text-text-secondary hover:bg-hover hover:text-brand-primary transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
-            aria-label="Help"
-          >
-            <HelpCircle size={24} />
-          </button>
-        )}
+        {/* Help Button */}
+        <button
+          type="button"
+          onClick={() => setHelpModalOpen(true)}
+          className="h-12 w-12 flex items-center justify-center rounded-button bg-surface border border-border-default text-text-secondary hover:bg-hover hover:text-brand-primary transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-95"
+          aria-label="Help"
+        >
+          <HelpCircle size={24} />
+        </button>
 
         {/* Avatar Dropdown */}
         <div className="relative" ref={dropdownRef}>
@@ -226,10 +224,8 @@ const HeaderBar = () => {
         </div>
       </div>
 
-      {/* Help Modal (Students only) */}
-      {!isTeacher && (
-        <HelpModal isOpen={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
-      )}
+      {/* Help Modal */}
+      <HelpModal isOpen={helpModalOpen} onClose={() => setHelpModalOpen(false)} isTeacher={isTeacher} />
     </div>
   )
 }
