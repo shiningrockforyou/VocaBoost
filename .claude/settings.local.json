@@ -8,7 +8,8 @@
       "Bash(find:*)",
       "Bash(wc:*)",
       "Bash(dir:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" status --porcelain)"
     ]
   }
 }
