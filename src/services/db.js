@@ -1152,8 +1152,8 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 
   const credibility = calculateCredibility(answeredWords, userWordStates)
 
-  // Score based on answered questions only
-  const score = answeredWords.filter((answer) => answer.isCorrect).length / answeredWords.length
+  // Score based on total questions (unanswered = incorrect)
+  const score = answeredWords.filter((answer) => answer.isCorrect).length / totalQuestions
 
   // Retention = test score (random sample estimates overall retention)
   const retention = score
@@ -1265,7 +1265,7 @@ export const submitTypedTestAttempt = async (
     }
 
     const correctCount = answeredWords.filter((a) => a.isCorrect).length
-    const score = correctCount / answeredWords.length
+    const score = correctCount / words.length
 
     // Get user stats
     const userRef = doc(db, 'users', userId)

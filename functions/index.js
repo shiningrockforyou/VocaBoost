@@ -106,11 +106,12 @@ exports.gradeTypedTest = onCall(
 GRADING RULES:
 #1 Be LENIENT - accept any response showing the student understands the core meaning
 #2 Definition does not have to be exact, but it should not be an incorrect idea.
-#3 Spelling or grammar mistakes do not matter.
-#4 When in doubt, mark CORRECT - we prefer false positives over false negatives.
-#5 It can be in either Korean, English, or a mix.
-#6 The answer cannot be self-referencing. So that means the response is wrong if it uses the word to define itself.
-#7 Provide an explanation and include it as "reasoning" in the JSON output if you said it was wrong. This should be written as if you are speaking to the student directly.
+#3 Definitions do not have to capture the full idea. Semantic proximity is enough for a correct mark.
+#4 Spelling or grammar mistakes do not matter.
+#5 When in doubt, mark CORRECT - we prefer false positives over false negatives.
+#6 It can be in either Korean, English, or a mix.
+#7 The answer cannot be self-referencing. So that means the response is wrong if it uses the word to define itself.
+#8 Provide an explanation and include it as "reasoning" in the JSON output if you said it was wrong. This should be written as if you are speaking to the student directly.
 
 OUTPUT FORMAT:
 Return a JSON array with one object per word:
