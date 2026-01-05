@@ -605,7 +605,7 @@ const Gradebook = ({
         'Student Name': attempt.name || '',
         'Class': attempt.class || '',
         'List': attempt.list || '',
-        'Type': attempt.testType === 'typed' ? 'Written' : 'Multiple Choice',
+        'Type': attempt.testType === 'typed' ? 'Written' : 'MCQ',
         'Session': attempt.sessionType === 'new' ? 'New Words' : attempt.sessionType === 'review' ? 'Review' : '',
         'Day': attempt.studyDay ? `Day ${attempt.studyDay}` : '',
         'Score (%)': attempt.score || 0,
@@ -746,7 +746,7 @@ const Gradebook = ({
             {activeCategory === 'Test Type' ? (
               <div className="flex flex-wrap gap-2">
                 {[
-                  { value: 'mcq', label: 'Multiple Choice' },
+                  { value: 'mcq', label: 'MCQ' },
                   { value: 'typed', label: 'Written' },
                 ].map((testType) => {
                   const isActive = activeTags.some(
@@ -1120,7 +1120,7 @@ const Gradebook = ({
                                 : 'bg-blue-100 text-blue-700'
                             }`}
                           >
-                            {attempt.testType === 'typed' ? 'Written' : 'Multiple Choice'}
+                            {attempt.testType === 'typed' ? 'Written' : 'MCQ'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
