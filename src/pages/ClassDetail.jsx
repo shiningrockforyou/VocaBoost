@@ -22,12 +22,59 @@ import {
   unassignListFromClass,
   updateAssignmentSettings,
 } from '../services/db'
+import { fetchStudentsProgressForClass } from '../services/progressService'
 import AssignListModal from '../components/AssignListModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import { Button, IconButton, TabButton, LinkButton } from '../components/ui'
 import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download } from 'lucide-react'
+
+// Component to display student progress for each assigned list
+const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
+  const studentProgress = progressMap[studentId] || {}
+
+  if (!assignedLists || assignedLists.length === 0) {
+    return <span className="text-text-muted text-xs">No lists assigned</span>
+  }
+
+  return (
+    <div className="space-y-3">
+      {assignedLists.map(list => {
+        const progress = studentProgress[list.id]
+        const totalWords = list.wordCount || 0
+        const wordsIntroduced = progress?.totalWordsIntroduced || 0
+        const currentDay = progress?.currentStudyDay || 0
+        const percentage = totalWords > 0
+          ? Math.min(100, Math.round((wordsIntroduced / totalWords) * 100))
+          : 0
+        const hasStarted = progress !== null && progress !== undefined
+
+        return (
+          <div key={list.id} className="text-xs">
+            <div className="font-medium text-text-primary truncate max-w-[180px]" title={list.title}>
+              {list.title}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-text-muted whitespace-nowrap">
+                {hasStarted ? `Day ${currentDay}` : 'Not started'}
+              </span>
+              <div className="flex-1 h-2 bg-base rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-brand-primary rounded-full transition-all"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+              <span className="text-text-muted whitespace-nowrap text-[10px]">
+                {wordsIntroduced}/{totalWords}
+              </span>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 const ClassDetail = () => {
   const { classId } = useParams()
@@ -56,6 +103,8 @@ const [unassigningListId, setUnassigningListId] = useState(null)
   const [selectedStudents, setSelectedStudents] = useState([])
   const [allClasses, setAllClasses] = useState([])
   const [classSwitcherOpen, setClassSwitcherOpen] = useState(false)
+  const [studentProgressMap, setStudentProgressMap] = useState({})
+  const [progressLoading, setProgressLoading] = useState(false)
 
   const isOwner = useMemo(
     () => classInfo?.ownerTeacherId === user?.uid,
@@ -97,7 +146,24 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       }),
     )
     setMembers(membersData)
-  }, [classId])
+
+    // Fetch progress for all students if we have assigned lists
+    if (membersData.length > 0 && classInfo?.assignments) {
+      setProgressLoading(true)
+      try {
+        const studentIds = membersData.map(m => m.id)
+        const listIds = Object.keys(classInfo.assignments)
+        if (listIds.length > 0) {
+          const progressMap = await fetchStudentsProgressForClass(studentIds, classId, listIds)
+          setStudentProgressMap(progressMap)
+        }
+      } catch (err) {
+        console.error('Error fetching student progress:', err)
+      } finally {
+        setProgressLoading(false)
+      }
+    }
+  }, [classId, classInfo?.assignments])
 
   const loadAssignedLists = useCallback(async (classData) => {
     // Support both old assignedLists array and new assignments map
@@ -678,6 +744,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                       </th>
                       <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3 min-w-[220px]">Progress</th>
                       <th className="px-4 py-3">Joined</th>
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
@@ -704,21 +771,40 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                         <td className="px-4 py-3 text-text-secondary">
                           {member.email || 'N/A'}
                         </td>
+                        <td className="pl-4 pr-16 py-3">
+                          {progressLoading ? (
+                            <span className="text-text-muted text-xs">Loading...</span>
+                          ) : (
+                            <StudentProgressCell
+                              studentId={member.id}
+                              assignedLists={assignedLists}
+                              progressMap={studentProgressMap}
+                            />
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-text-muted">
-                          {member.joinedAt 
-                            ? (member.joinedAt?.toDate 
+                          {member.joinedAt
+                            ? (member.joinedAt?.toDate
                               ? member.joinedAt.toDate().toLocaleDateString()
                               : new Date(member.joinedAt.seconds ? member.joinedAt.seconds * 1000 : member.joinedAt).toLocaleDateString())
                             : '—'}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <LinkButton
-                            variant="danger"
-                            onClick={() => handleRemoveStudent(member.id)}
-                            disabled={removingStudentId === member.id}
-                          >
-                            {removingStudentId === member.id ? 'Removing...' : 'Remove'}
-                          </LinkButton>
+                          <div className="flex items-center justify-end gap-2">
+                            <Link to={`/teacher/gradebook?classId=${classId}&studentName=${encodeURIComponent(member.displayName || '')}`}>
+                              <Button variant="outline" size="sm">
+                                <ClipboardList size={14} />
+                                Grades
+                              </Button>
+                            </Link>
+                            <LinkButton
+                              variant="danger"
+                              onClick={() => handleRemoveStudent(member.id)}
+                              disabled={removingStudentId === member.id}
+                            >
+                              {removingStudentId === member.id ? 'Removing...' : 'Remove'}
+                            </LinkButton>
+                          </div>
                         </td>
                       </tr>
                     ))}

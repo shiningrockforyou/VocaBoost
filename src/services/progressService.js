@@ -67,16 +67,71 @@ function calculateProgressStats(sessions) {
     .map(s => s.reviewScore);
   
   return {
-    avgNewWordScore: newWordScores.length > 0 
-      ? newWordScores.reduce((a, b) => a + b, 0) / newWordScores.length 
+    avgNewWordScore: newWordScores.length > 0
+      ? newWordScores.reduce((a, b) => a + b, 0) / newWordScores.length
       : null,
-    avgReviewScore: reviewScores.length > 0 
-      ? reviewScores.reduce((a, b) => a + b, 0) / reviewScores.length 
-      : null,
-    estimatedMastery: null,  // Calculated elsewhere with status counts
-    recoveryRate: null,       // Requires tracking status transitions
-    discoveryFailureRate: null
+    avgReviewScore: reviewScores.length > 0
+      ? reviewScores.reduce((a, b) => a + b, 0) / reviewScores.length
+      : null
   };
+}
+
+/**
+ * Calculate streak based on last study date and current date
+ * @param {Date|null} lastStudyDate - Previous study date
+ * @param {number} currentStreak - Current streak count
+ * @param {number} studyDaysPerWeek - Study days per week (<=5 means skip weekends)
+ * @returns {number} Updated streak count
+ */
+function calculateUpdatedStreak(lastStudyDate, currentStreak, studyDaysPerWeek = 5) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const skipWeekends = studyDaysPerWeek <= 5;
+
+  // Helper to check if a date is a weekend
+  const isWeekend = (date) => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
+
+  // Get the expected previous study day (accounting for weekends)
+  const getExpectedPreviousDay = (fromDate) => {
+    const prev = new Date(fromDate);
+    prev.setDate(prev.getDate() - 1);
+    prev.setHours(0, 0, 0, 0);
+    if (skipWeekends) {
+      while (isWeekend(prev)) {
+        prev.setDate(prev.getDate() - 1);
+      }
+    }
+    return prev;
+  };
+
+  // No previous session - start fresh streak
+  if (!lastStudyDate) {
+    return 1;
+  }
+
+  // Normalize lastStudyDate
+  const lastDate = lastStudyDate instanceof Date
+    ? lastStudyDate
+    : (lastStudyDate?.toDate?.() || new Date(lastStudyDate));
+  lastDate.setHours(0, 0, 0, 0);
+
+  // Same day - streak unchanged
+  if (lastDate.getTime() === today.getTime()) {
+    return currentStreak || 1;
+  }
+
+  // Check if last session was the expected previous study day
+  const expectedPrevDay = getExpectedPreviousDay(today);
+  if (lastDate.getTime() === expectedPrevDay.getTime()) {
+    return (currentStreak || 0) + 1;
+  }
+
+  // Streak broken - reset to 1
+  return 1;
 }
 
 /**
@@ -86,9 +141,10 @@ function calculateProgressStats(sessions) {
  * @param {string} listId - List document ID
  * @param {Object} sessionSummary - Session summary object
  * @param {number} newIntervention - New intervention level (0.0 to 1.0)
+ * @param {number} studyDaysPerWeek - Study days per week for streak calculation
  * @returns {Promise<Object>} Updated class progress document
  */
-export async function updateClassProgress(userId, classId, listId, sessionSummary, newIntervention) {
+export async function updateClassProgress(userId, classId, listId, sessionSummary, newIntervention, studyDaysPerWeek = 5) {
   const docId = getProgressDocId(classId, listId);
   const progressRef = doc(db, `users/${userId}/class_progress`, docId);
 
@@ -105,16 +161,22 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
   // Keep only last MAX_RECENT_SESSIONS
   const recentSessions = [...(current.recentSessions || []), sessionSummary]
     .slice(-MAX_RECENT_SESSIONS);
-  
+
   // Calculate new stats from recent sessions
   const stats = calculateProgressStats(recentSessions);
-  
+
+  // Calculate updated streak
+  const lastStudyDate = current.lastStudyDate?.toDate?.() || current.lastStudyDate || null;
+  const streakDays = calculateUpdatedStreak(lastStudyDate, current.streakDays || 0, studyDaysPerWeek);
+
   const updates = {
     currentStudyDay: (current.currentStudyDay || 0) + 1,
     totalWordsIntroduced: (current.totalWordsIntroduced || 0) + (sessionSummary.wordsIntroduced || 0),
     interventionLevel: newIntervention,
     recentSessions,
     stats,
+    streakDays,
+    lastStudyDate: Timestamp.now(),
     lastSessionAt: Timestamp.now(),
     updatedAt: Timestamp.now()
   };
@@ -129,7 +191,7 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
       createdAt: Timestamp.now()
     });
   }
-  
+
   return { id: docId, ...current, ...updates };
 }
 
@@ -143,13 +205,49 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
 export async function getClassProgress(userId, classId, listId) {
   const docId = getProgressDocId(classId, listId);
   const progressRef = doc(db, `users/${userId}/class_progress`, docId);
-  
+
   const snapshot = await getDoc(progressRef);
-  
+
   if (!snapshot.exists()) {
     return null;
   }
-  
+
   return { id: snapshot.id, ...snapshot.data() };
+}
+
+/**
+ * Fetch progress for multiple students across all lists assigned to a class
+ * @param {string[]} studentIds - Array of student user IDs
+ * @param {string} classId - Class ID
+ * @param {string[]} listIds - Array of assigned list IDs
+ * @returns {Promise<Object>} Map of { [studentId]: { [listId]: progressData } }
+ */
+export async function fetchStudentsProgressForClass(studentIds, classId, listIds) {
+  const progressMap = {};
+
+  // Initialize structure
+  studentIds.forEach(studentId => {
+    progressMap[studentId] = {};
+  });
+
+  // Batch fetch: For each student, fetch progress for all lists
+  const promises = [];
+  for (const studentId of studentIds) {
+    for (const listId of listIds) {
+      promises.push(
+        getClassProgress(studentId, classId, listId)
+          .then(progress => ({ studentId, listId, progress }))
+          .catch(() => ({ studentId, listId, progress: null }))
+      );
+    }
+  }
+
+  const results = await Promise.all(promises);
+
+  results.forEach(({ studentId, listId, progress }) => {
+    progressMap[studentId][listId] = progress;
+  });
+
+  return progressMap;
 }
 

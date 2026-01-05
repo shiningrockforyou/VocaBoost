@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vocaBoost Student Guide</title>
+  <link rel="icon" type="image/svg+xml" href="logo_square_vector.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-primary: #1B3A94;
+      --brand-accent: #F97316;
+      --brand-accent-hover: #EA580C;
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-muted: #F1F5F9;
+      --text-primary: #0F172A;
+      --text-secondary: #334155;
+      --text-muted: #64748B;
+      --border-default: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+      --success-text: #059669;
+      --warning-bg: #FFFBEB;
+      --warning-border: #FDE68A;
+      --warning-text: #D97706;
+      --info-bg: #EFF6FF;
+      --info-border: #BFDBFE;
+      --info-text: #2563EB;
+      --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+      --radius-card: 1rem;
+      --radius-button: 1rem;
+      --radius-input: 0.75rem;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+      color: white;
+      padding: 72px 24px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.025em;
+    }
+
+    header p {
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: #FEF3C7;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .header-logo {
+      height: 56px;
+      width: auto;
+      margin-bottom: 20px;
+    }
+
+    /* Language Switcher */
+    .lang-switch {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .lang-switch a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .lang-switch a:hover {
+      color: white;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .lang-switch a.active {
+      color: white;
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Floating Cards Decoration */
+    header .card {
+      position: absolute;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    header .card-1 {
+      width: 80px;
+      height: 50px;
+      top: 15%;
+      left: 8%;
+      transform: rotate(-12deg);
+    }
+
+    header .card-2 {
+      width: 60px;
+      height: 38px;
+      top: 60%;
+      left: 5%;
+      transform: rotate(8deg);
+    }
+
+    header .card-3 {
+      width: 70px;
+      height: 44px;
+      top: 20%;
+      right: 10%;
+      transform: rotate(15deg);
+    }
+
+    header .card-4 {
+      width: 55px;
+      height: 35px;
+      bottom: 25%;
+      right: 6%;
+      transform: rotate(-8deg);
+    }
+
+    header .card-5 {
+      width: 45px;
+      height: 28px;
+      top: 45%;
+      right: 18%;
+      transform: rotate(20deg);
+    }
+
+    /* Navigation */
+    nav.toc {
+      background: var(--bg-surface);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-default);
+    }
+
+    nav.toc h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    nav.toc ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    nav.toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      display: block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    nav.toc a:hover {
+      background: var(--bg-muted);
+      color: var(--brand-accent);
+      border-color: var(--border-default);
+    }
+
+    /* Section */
+    section {
+      background: var(--bg-surface);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-default);
+    }
+
+    section h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-default);
+      letter-spacing: -0.01em;
+    }
+
+    section h2 .section-number {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      background: var(--brand-accent);
+      color: white;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 32px;
+      font-size: 0.875rem;
+      margin-right: 12px;
+    }
+
+    section h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 28px 0 14px 0;
+    }
+
+    section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Step List */
+    .step-list {
+      list-style: none;
+      counter-reset: step;
+      margin: 16px 0;
+    }
+
+    .step-list li {
+      counter-increment: step;
+      padding: 14px 16px 14px 52px;
+      position: relative;
+      margin-bottom: 10px;
+      background: var(--bg-muted);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 26px;
+      background: var(--brand-accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    .step-list li strong {
+      color: var(--text-primary);
+    }
+
+    /* Flow Diagram */
+    .flow-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      padding: 24px;
+      background: var(--bg-muted);
+      border-radius: 12px;
+    }
+
+    .flow-step {
+      background: var(--bg-surface);
+      padding: 14px 18px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-default);
+      min-width: 100px;
+    }
+
+    .flow-step .step-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .flow-step .step-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      font-weight: 300;
+    }
+
+    /* Info Box */
+    .info-box {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin: 18px 0;
+      font-size: 0.9375rem;
+    }
+
+    .info-box-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-box p {
+      margin: 0;
+    }
+
+    .info-box.tip {
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+    }
+
+    .info-box.tip .info-box-title {
+      color: var(--info-text);
+    }
+
+    .info-box.warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+    }
+
+    .info-box.warning .info-box-title {
+      color: var(--warning-text);
+    }
+
+    .info-box.success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+    }
+
+    .info-box.success .info-box-title {
+      color: var(--success-text);
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    th {
+      background: var(--bg-muted);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td {
+      color: var(--text-secondary);
+    }
+
+    td strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-new { background: #DBEAFE; color: #1D4ED8; }
+    .status-passed { background: #D1FAE5; color: #047857; }
+    .status-failed { background: #FEE2E2; color: #B91C1C; }
+    .status-mastered { background: #FEF3C7; color: #B45309; }
+
+    /* FAQ */
+    .faq-item {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .faq-item:first-child {
+      padding-top: 0;
+    }
+
+    .faq-question {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-size: 0.9375rem;
+    }
+
+    .faq-answer {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* Keyboard Key */
+    .key {
+      display: inline-block;
+      background: var(--bg-muted);
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.8125rem;
+      color: var(--text-primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    /* Inline List */
+    .inline-list {
+      padding-left: 24px;
+      margin: 14px 0;
+    }
+
+    .inline-list li {
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .inline-list li strong {
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      header {
+        padding: 36px 20px;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      section {
+        padding: 24px 20px;
+      }
+
+      .step-list li {
+        padding-left: 48px;
+      }
+
+      nav.toc ul {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-diagram {
+        flex-direction: column;
+      }
+
+      .flow-arrow {
+        transform: rotate(90deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="lang-switch">
+    <a href="help-student-ko.html">한국어</a>
+    <a href="help-student-en.html" class="active">English</a>
+  </div>
+  <div class="card card-1"></div>
+  <div class="card card-2"></div>
+  <div class="card card-3"></div>
+  <div class="card card-4"></div>
+  <div class="card card-5"></div>
+  <div class="header-content">
+    <img src="logo_header_orange.svg" alt="vocaBoost" class="header-logo">
+    <h1>vocaBoost Student Guide</h1>
+    <p>Learn vocabulary more effectively. Ready to start?</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ul>
+      <li><a href="#start">1. Getting Started</a></li>
+      <li><a href="#dashboard">2. Dashboard</a></li>
+      <li><a href="#daily">3. Daily Learning Flow</a></li>
+      <li><a href="#flashcard">4. Flashcards</a></li>
+      <li><a href="#test">5. Tests</a></li>
+      <li><a href="#progress">6. Progress & Stats</a></li>
+      <li><a href="#settings">7. Settings</a></li>
+      <li><a href="#faq">8. FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- 1. Getting Started -->
+  <section id="start">
+    <h2><span class="section-number">1</span>Getting Started</h2>
+
+    <h3>Creating an Account</h3>
+    <ol class="step-list">
+      <li>Go to the vocaBoost website.</li>
+      <li>Click the <strong>Sign Up</strong> button.</li>
+      <li>Enter your Full Name, email, and password.</li>
+      <li>Select <strong>Student</strong> for your Role.</li>
+      <li>Select your Graduation Year and Month.</li>
+      <li>Click <strong>Create Account</strong> to complete registration.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Quick Sign Up</div>
+      <p>Click <strong>Continue with Google</strong> to quickly sign up with your Google account.</p>
+    </div>
+
+    <h3>Logging In</h3>
+    <ol class="step-list">
+      <li>Go to the vocaBoost website.</li>
+      <li>Click the <strong>Log In</strong> button.</li>
+      <li>Enter the email and password you used to sign up.</li>
+      <li>Click <strong>Continue</strong> to go to your dashboard.</li>
+    </ol>
+
+    <h3>Joining a Class</h3>
+    <ol class="step-list">
+      <li>Get the <strong>join code</strong> (6 characters) from your teacher.</li>
+      <li>Find the join code input field on your dashboard.</li>
+      <li>Enter the join code.</li>
+      <li>Click <strong>Join Class</strong> to join the class.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Join Code Format</div>
+      <p>The join code is a 6-character alphanumeric code like <strong>ABC123</strong>. Make sure to enter it exactly as given.</p>
+    </div>
+  </section>
+
+  <!-- 2. Dashboard -->
+  <section id="dashboard">
+    <h2><span class="section-number">2</span>Understanding the Dashboard</h2>
+
+    <p>After logging in, the first screen you see is the <strong>Dashboard</strong>. This is where you start all your learning.</p>
+
+    <h3>Dashboard Components</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><strong>My Classes</strong></td>
+          <td>List of all classes you've joined</td>
+        </tr>
+        <tr>
+          <td><strong>Assigned Lists</strong></td>
+          <td>Word lists assigned to each class</td>
+        </tr>
+        <tr>
+          <td><strong>Progress</strong></td>
+          <td>Learning progress for each word list</td>
+        </tr>
+        <tr>
+          <td><strong>Streak</strong></td>
+          <td>Number of consecutive days you've studied</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Progress Indicator (Mastery Squares)</h3>
+    <p>The 7 small squares next to each word list show your weekly progress.</p>
+    <ul class="inline-list">
+      <li><strong>Green</strong>: Days you completed learning</li>
+      <li><strong>Gray</strong>: Days you haven't studied yet</li>
+    </ul>
+    <p>When all 7 squares are green, you've completed a week of consistent learning!</p>
+
+    <div class="info-box success">
+      <div class="info-box-title">Benefits of Consistent Learning</div>
+      <p>Studying a little bit every day helps you remember words much longer. Keep your streak going!</p>
+    </div>
+  </section>
+
+  <!-- 3. Daily Learning Flow -->
+  <section id="daily">
+    <h2><span class="section-number">3</span>Daily Learning Flow</h2>
+
+    <p>vocaBoost learning consists of 5 stages:</p>
+
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-title">New Words</div>
+        <div class="step-desc">Flashcards</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="step-title">New Word Test</div>
+        <div class="step-desc">MCQ/Written</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="step-title">Review</div>
+        <div class="step-desc">Previous words</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="step-title">Review Test</div>
+        <div class="step-desc">MCQ/Written</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="step-title">Complete</div>
+        <div class="step-desc">View results</div>
+      </div>
+    </div>
+
+    <h3>Starting a Session</h3>
+    <ol class="step-list">
+      <li>Find the word list you want to study on your dashboard.</li>
+      <li>Click the <strong>Start Session</strong> button.</li>
+      <li>Study today's new words with flashcards.</li>
+      <li>Take the new word test.</li>
+      <li>Review previously learned words. (No review on Day 1)</li>
+      <li>Take the review test.</li>
+      <li>View your results and complete the session.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">It's OK to Leave Mid-Session</div>
+      <p>Your progress is saved if you leave during a session. You can continue where you left off when you return. However, if you leave during a test, you'll need to restart that test.</p>
+    </div>
+
+    <h3>Automatic Pace Adjustment</h3>
+    <p>vocaBoost automatically adjusts your learning pace based on your performance:</p>
+    <ul class="inline-list">
+      <li><strong>Good scores</strong>: More new words to learn</li>
+      <li><strong>Low scores</strong>: Fewer new words, more review</li>
+    </ul>
+    <p>The system adapts to the pace that works best for you.</p>
+  </section>
+
+  <!-- 4. Flashcards -->
+  <section id="flashcard">
+    <h2><span class="section-number">4</span>Using Flashcards</h2>
+
+    <p>Flashcards are the most effective way to learn new words.</p>
+
+    <h3>Card Layout</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Front</th>
+          <th>Back</th>
+        </tr>
+        <tr>
+          <td>Word + Part of Speech</td>
+          <td>Definition + Translation + Sample Sentence</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Controls</h3>
+    <ul class="inline-list">
+      <li><strong>Flip card</strong>: Click the card or press <span class="key">Space</span> or <span class="key">Enter</span></li>
+      <li><strong>Hear pronunciation</strong>: Click the speaker icon</li>
+    </ul>
+
+    <h3>Learning Options</h3>
+    <p>During flashcard study, you can use these buttons:</p>
+    <ul class="inline-list">
+      <li><strong>I know this</strong>: Already know this word (removes from queue)</li>
+      <li><strong>Not Sure</strong>: Not familiar yet (keeps in queue)</li>
+      <li><strong>Take Test</strong>: Finish studying and proceed to the test</li>
+    </ul>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Effective Study Tips</div>
+      <p>1. Look at the word and try to recall the meaning<br>
+         2. Flip the card to check your answer<br>
+         3. Read the sample sentence to understand usage<br>
+         4. Listen to the pronunciation and say it out loud</p>
+    </div>
+
+    <h3>PDF Download</h3>
+    <p>You can download your studied words as a PDF to print. Select <strong>Download PDF</strong> from the flashcard study screen menu.</p>
+  </section>
+
+  <!-- 5. Tests -->
+  <section id="test">
+    <h2><span class="section-number">5</span>Test Types</h2>
+
+    <h3>Multiple Choice Test</h3>
+    <p>Select the correct answer from the given options. The number of options (4-10) is set by your teacher.</p>
+    <ol class="step-list">
+      <li>Read the definition.</li>
+      <li>Click the correct word from the options.</li>
+      <li>Click <strong>Submit Test</strong> when you've answered all questions.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Navigating Questions</div>
+      <p>Click the question numbers at the bottom to jump to any question. You can skip difficult questions and come back to them later.</p>
+    </div>
+
+    <h3>Written Test</h3>
+    <p>Type the word based on the given definition.</p>
+    <ol class="step-list">
+      <li>Read the definition.</li>
+      <li>Type the corresponding word in the input field.</li>
+      <li>Press <span class="key">Enter</span> to move to the next question.</li>
+      <li>Click <strong>Submit Test</strong> when you've answered all questions.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">AI Grading</div>
+      <p>Written tests are graded by AI. Minor typos may be accepted, but it's best to type accurately.</p>
+    </div>
+
+    <h3>Passing Criteria</h3>
+    <p>You must score at or above the threshold set by your teacher (usually 95%) to pass.</p>
+    <ul class="inline-list">
+      <li><strong>Pass</strong>: Proceed to the next stage</li>
+      <li><strong>Fail</strong>: Click <strong>Retake</strong> to try again</li>
+    </ul>
+
+    <h3>Challenge (Dispute)</h3>
+    <p>If you believe the AI graded your written answer incorrectly, you can file a challenge.</p>
+    <ol class="step-list">
+      <li>Find the question you want to dispute in your test results.</li>
+      <li>Click the <strong>Challenge</strong> button.</li>
+      <li>One challenge token is used. (You have 5 total)</li>
+      <li>If your teacher approves, your score is adjusted.</li>
+    </ol>
+
+    <div class="info-box warning">
+      <div class="info-box-title">Challenge Tokens</div>
+      <p>You start with 5 challenge tokens that recharge over time. Use them wisely.</p>
+    </div>
+  </section>
+
+  <!-- 6. Progress & Stats -->
+  <section id="progress">
+    <h2><span class="section-number">6</span>Progress & Statistics</h2>
+
+    <h3>Understanding Word Status</h3>
+    <p>Each word is displayed differently based on its learning status:</p>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Status</th>
+          <th>Meaning</th>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-new">NEW</span></td>
+          <td>Word learned today for the first time</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-passed">PASSED</span></td>
+          <td>Word answered correctly on test</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-failed">FAILED</span></td>
+          <td>Word answered incorrectly (needs review)</td>
+        </tr>
+        <tr>
+          <td><span class="status-badge status-mastered">MASTERED</span></td>
+          <td>Fully learned word (removed from review pool)</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Gradebook</h3>
+    <ol class="step-list">
+      <li>Click <strong>Gradebook</strong> in the top menu.</li>
+      <li>View all your test records.</li>
+      <li>Click on any test to see detailed results.</li>
+    </ol>
+
+    <h3>Blind Spots</h3>
+    <p>Blind Spots are <strong>words that need attention</strong>:</p>
+    <ul class="inline-list">
+      <li><strong>Never Tested</strong>: Words you haven't been tested on yet</li>
+      <li><strong>Stale</strong>: Words not reviewed for 21+ days</li>
+    </ul>
+    <p>After completing a session, if Blind Spots are shown, click <strong>Start Blind Spot Test</strong> to test them.</p>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Check Mastered Words Too</div>
+      <p>Even mastered words become "Stale" after 21 days. Use the Blind Spot check to maintain your memory.</p>
+    </div>
+  </section>
+
+  <!-- 7. Settings -->
+  <section id="settings">
+    <h2><span class="section-number">7</span>Settings Options</h2>
+
+    <p>Click the gear icon in the top right to go to the Settings page.</p>
+
+    <h3>Theme Settings</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Option</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td><strong>Light Mode</strong></td>
+          <td>Default bright background theme</td>
+        </tr>
+        <tr>
+          <td><strong>Dark Mode</strong></td>
+          <td>Dark background (reduces eye strain)</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>UI Style Settings</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Options</th>
+        </tr>
+        <tr>
+          <td><strong>Roundness</strong></td>
+          <td>Sharp / Normal / Rounded</td>
+        </tr>
+        <tr>
+          <td><strong>Border Weight</strong></td>
+          <td>Light / Normal / Strong</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Resetting Learning Progress</h3>
+    <p>Use this when you want to start a word list from the beginning.</p>
+    <ol class="step-list">
+      <li>Find the <strong>Reset Progress</strong> section in Settings.</li>
+      <li>Select the class and word list.</li>
+      <li>Click the <strong>Reset Progress</strong> button.</li>
+      <li>Type <strong>RESET</strong> to confirm.</li>
+      <li>Click the confirm button to reset.</li>
+    </ol>
+
+    <div class="info-box warning">
+      <div class="info-box-title">Warning: Reset Cannot Be Undone</div>
+      <p>Resetting progress deletes all learning records, test scores, and word mastery. You'll start from Day 1.</p>
+    </div>
+  </section>
+
+  <!-- 8. FAQ -->
+  <section id="faq">
+    <h2><span class="section-number">8</span>FAQ</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Do I have to complete all stages every day?</div>
+      <div class="faq-answer">No. You can leave and continue later at any time. However, if you leave during a test, you'll need to restart that test.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. There are too many new words. It's overwhelming.</div>
+      <div class="faq-answer">vocaBoost automatically adjusts based on your performance. If your scores are low, new words decrease and review increases. You can also ask your teacher to adjust the learning pace.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. It's hard to get above 95% on tests.</div>
+      <div class="faq-answer">The passing threshold is set by your teacher. Studying thoroughly with flashcards before taking tests will help you get better scores.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Do mastered words ever appear again?</div>
+      <div class="faq-answer">They don't appear in regular reviews, but after 21 days they become "Stale" and show up in Blind Spots. You can test them in the Blind Spot check.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I entered the wrong join code.</div>
+      <div class="faq-answer">Double-check the uppercase/lowercase letters and numbers. If it still doesn't work, ask your teacher to confirm the code.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Can I study on different devices?</div>
+      <div class="faq-answer">Yes. Log in with the same account and you can study anywhere. Works on computers, tablets, and smartphones.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I forgot my password.</div>
+      <div class="faq-answer">Click "Forgot Password" on the login screen and enter your email. A password reset link will be sent to you.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What happens if I reset my learning progress?</div>
+      <div class="faq-answer">All learning records for that word list are deleted and you start from Day 1. Previous test scores are also removed, so decide carefully.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I'm running out of challenge tokens.</div>
+      <div class="faq-answer">Challenge tokens automatically recharge over time. Only use challenges when you're confident your answer was correct.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Can I use vocaBoost offline?</div>
+      <div class="faq-answer">No, vocaBoost requires an internet connection. Your progress and test results are saved in real-time.</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>vocaBoost Student Guide</p>
+</footer>
+
+</body>
+</html>

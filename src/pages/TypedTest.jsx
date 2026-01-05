@@ -576,6 +576,7 @@ const TypedTest = () => {
         wordId: word.id,
         word: word.word,
         correctDefinition: word.definition,
+        koreanDefinition: word.definitions?.ko || '',
         studentResponse: responses[word.id] || '',
       }))
 
@@ -612,7 +613,9 @@ const TypedTest = () => {
           words,
           responses,
           gradingResult.data.results,
-          classIdParam
+          classIdParam,
+          currentTestType,
+          sessionContext?.dayNumber || null
         )
         setAttemptId(result.id)
       }

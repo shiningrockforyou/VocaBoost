@@ -90,15 +90,12 @@ export function createStudyState(wordId, listId, wordIndex, introducedOnDay) {
  * @typedef {Object} ProgressStats
  * @property {number|null} avgNewWordScore - Rolling average of new word scores
  * @property {number|null} avgReviewScore - Rolling average of review scores
- * @property {number|null} estimatedMastery - Estimated % of corpus mastered
- * @property {number|null} recoveryRate - FAILED → PASSED rate
- * @property {number|null} discoveryFailureRate - NEVER_TESTED → FAILED rate
  */
 
 /**
  * Class progress document structure
  * Collection: users/{userId}/class_progress/{classId}_{listId}
- * 
+ *
  * @typedef {Object} ClassProgress
  * @property {string} classId - Class ID
  * @property {string} listId - List ID
@@ -108,6 +105,8 @@ export function createStudyState(wordId, listId, wordIndex, introducedOnDay) {
  * @property {number} interventionLevel - Current intervention (0.0 to 1.0)
  * @property {SessionSummary[]} recentSessions - Last 10 sessions
  * @property {ProgressStats} stats - Aggregate statistics
+ * @property {number} streakDays - Consecutive study days
+ * @property {Timestamp} lastStudyDate - Date of last completed session
  * @property {Timestamp} lastSessionAt - Last session timestamp
  * @property {Timestamp} createdAt - Document creation timestamp
  * @property {Timestamp} updatedAt - Last update timestamp
@@ -126,11 +125,10 @@ export const DEFAULT_CLASS_PROGRESS = {
   recentSessions: [],
   stats: {
     avgNewWordScore: null,
-    avgReviewScore: null,
-    estimatedMastery: null,
-    recoveryRate: null,
-    discoveryFailureRate: null
+    avgReviewScore: null
   },
+  streakDays: 0,
+  lastStudyDate: null,
   lastSessionAt: null,
   createdAt: null,
   updatedAt: null

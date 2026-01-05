@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vocaBoost Teacher Guide</title>
+  <link rel="icon" type="image/svg+xml" href="logo_square_vector.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-primary: #1B3A94;
+      --brand-accent: #F97316;
+      --brand-accent-hover: #EA580C;
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-muted: #F1F5F9;
+      --text-primary: #0F172A;
+      --text-secondary: #334155;
+      --text-muted: #64748B;
+      --border-default: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+      --success-text: #059669;
+      --warning-bg: #FFFBEB;
+      --warning-border: #FDE68A;
+      --warning-text: #D97706;
+      --info-bg: #EFF6FF;
+      --info-border: #BFDBFE;
+      --info-text: #2563EB;
+      --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+      --radius-card: 1rem;
+      --radius-button: 1rem;
+      --radius-input: 0.75rem;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 100%);
+      color: white;
+      padding: 72px 24px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.025em;
+    }
+
+    header p {
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: #FEF3C7;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .header-logo {
+      height: 56px;
+      width: auto;
+      margin-bottom: 20px;
+    }
+
+    /* Language Switcher */
+    .lang-switch {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .lang-switch a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .lang-switch a:hover {
+      color: white;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .lang-switch a.active {
+      color: white;
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Floating Cards Decoration */
+    header .card {
+      position: absolute;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    header .card-1 {
+      width: 80px;
+      height: 50px;
+      top: 15%;
+      left: 8%;
+      transform: rotate(-12deg);
+    }
+
+    header .card-2 {
+      width: 60px;
+      height: 38px;
+      top: 60%;
+      left: 5%;
+      transform: rotate(8deg);
+    }
+
+    header .card-3 {
+      width: 70px;
+      height: 44px;
+      top: 20%;
+      right: 10%;
+      transform: rotate(15deg);
+    }
+
+    header .card-4 {
+      width: 55px;
+      height: 35px;
+      bottom: 25%;
+      right: 6%;
+      transform: rotate(-8deg);
+    }
+
+    header .card-5 {
+      width: 45px;
+      height: 28px;
+      top: 45%;
+      right: 18%;
+      transform: rotate(20deg);
+    }
+
+    /* Navigation */
+    nav.toc {
+      background: var(--bg-surface);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-default);
+    }
+
+    nav.toc h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    nav.toc ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+    }
+
+    nav.toc a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      display: block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    nav.toc a:hover {
+      background: var(--bg-muted);
+      color: var(--brand-primary);
+      border-color: var(--border-default);
+    }
+
+    /* Section */
+    section {
+      background: var(--bg-surface);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-default);
+    }
+
+    section h2 {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-default);
+      letter-spacing: -0.01em;
+    }
+
+    section h2 .section-number {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      background: var(--brand-primary);
+      color: white;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 32px;
+      font-size: 0.875rem;
+      margin-right: 12px;
+    }
+
+    section h3 {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 28px 0 14px 0;
+    }
+
+    section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Step List */
+    .step-list {
+      list-style: none;
+      counter-reset: step;
+      margin: 16px 0;
+    }
+
+    .step-list li {
+      counter-increment: step;
+      padding: 14px 16px 14px 52px;
+      position: relative;
+      margin-bottom: 10px;
+      background: var(--bg-muted);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 26px;
+      background: var(--brand-primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    .step-list li strong {
+      color: var(--text-primary);
+    }
+
+    /* Nested list in step */
+    .step-list li ul {
+      margin-top: 10px;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .step-list li ul li {
+      background: transparent;
+      padding: 4px 0 4px 20px;
+      margin-bottom: 2px;
+      position: relative;
+    }
+
+    .step-list li ul li::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 5px;
+      height: 5px;
+      background: var(--text-muted);
+      border-radius: 50%;
+    }
+
+    /* Info Box */
+    .info-box {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin: 18px 0;
+      font-size: 0.9375rem;
+    }
+
+    .info-box-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-box p {
+      margin: 0;
+    }
+
+    .info-box.tip {
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+    }
+
+    .info-box.tip .info-box-title {
+      color: var(--info-text);
+    }
+
+    .info-box.warning {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+    }
+
+    .info-box.warning .info-box-title {
+      color: var(--warning-text);
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 18px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    th {
+      background: var(--bg-muted);
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td {
+      color: var(--text-secondary);
+    }
+
+    td strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* FAQ */
+    .faq-item {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .faq-item:first-child {
+      padding-top: 0;
+    }
+
+    .faq-question {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-size: 0.9375rem;
+    }
+
+    .faq-answer {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* Code */
+    code {
+      background: var(--bg-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 0.875em;
+      color: var(--brand-primary);
+    }
+
+    /* Inline List */
+    .inline-list {
+      padding-left: 24px;
+      margin: 14px 0;
+    }
+
+    .inline-list li {
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .inline-list li strong {
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    footer a {
+      color: var(--brand-primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      header {
+        padding: 36px 20px;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      section {
+        padding: 24px 20px;
+      }
+
+      .step-list li {
+        padding-left: 48px;
+      }
+
+      nav.toc ul {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="lang-switch">
+    <a href="help-teacher-ko.html">한국어</a>
+    <a href="help-teacher-en.html" class="active">English</a>
+  </div>
+  <div class="card card-1"></div>
+  <div class="card card-2"></div>
+  <div class="card card-3"></div>
+  <div class="card card-4"></div>
+  <div class="card card-5"></div>
+  <div class="header-content">
+    <img src="logo_header_blue.svg" alt="vocaBoost" class="header-logo">
+    <h1>vocaBoost Teacher Guide</h1>
+    <p>From class management to grade tracking, everything you need to know</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <nav class="toc">
+    <h2>Table of Contents</h2>
+    <ul>
+      <li><a href="#start">1. Getting Started</a></li>
+      <li><a href="#class">2. Class Management</a></li>
+      <li><a href="#list">3. Word List Management</a></li>
+      <li><a href="#assign">4. Assigning Word Lists</a></li>
+      <li><a href="#gradebook">5. Using the Gradebook</a></li>
+      <li><a href="#faq">6. FAQ</a></li>
+    </ul>
+  </nav>
+
+  <!-- 1. Getting Started -->
+  <section id="start">
+    <h2><span class="section-number">1</span>Getting Started</h2>
+
+    <h3>Creating an Account</h3>
+    <ol class="step-list">
+      <li>Go to the vocaBoost website.</li>
+      <li>Click the <strong>Sign Up</strong> button.</li>
+      <li>Enter your Full Name, email, and password.</li>
+      <li>Select <strong>Teacher</strong> for your Role.</li>
+      <li>Click the <strong>Create Account</strong> button to complete registration.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Quick Sign Up</div>
+      <p>Click <strong>Continue with Google</strong> to quickly sign up with your Google account.</p>
+    </div>
+
+    <h3>Logging In</h3>
+    <ol class="step-list">
+      <li>Go to the vocaBoost website.</li>
+      <li>Click the <strong>Log In</strong> button.</li>
+      <li>Enter the email and password you used to sign up.</li>
+      <li>Click the <strong>Continue</strong> button to go to your dashboard.</li>
+    </ol>
+  </section>
+
+  <!-- 2. Class Management -->
+  <section id="class">
+    <h2><span class="section-number">2</span>Class Management</h2>
+
+    <h3>Creating a New Class</h3>
+    <ol class="step-list">
+      <li>Find the <strong>Classes</strong> section on your dashboard.</li>
+      <li>Click the <strong>Create New Class</strong> button.</li>
+      <li>Enter a class name (e.g., "AP History Period 4").</li>
+      <li>Click <strong>Create Class</strong> to create the class.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Join Code</div>
+      <p>When a class is created, a 6-character join code is automatically generated. Students use this code to join your class.</p>
+    </div>
+
+    <h3>Viewing and Sharing the Join Code</h3>
+    <ol class="step-list">
+      <li>Click on the class card from your dashboard.</li>
+      <li>Find the join code at the top of the class detail page.</li>
+      <li>Click the <strong>Copy</strong> button to copy it to your clipboard.</li>
+      <li>Share this code with your students.</li>
+    </ol>
+
+    <h3>Viewing Student List</h3>
+    <ol class="step-list">
+      <li>Go to the class detail page.</li>
+      <li>Click the <strong>Students</strong> tab.</li>
+      <li>View all enrolled students' names, emails, and join dates.</li>
+    </ol>
+
+    <h3>Removing Students</h3>
+    <ol class="step-list">
+      <li>In the Students tab, select the checkbox next to the student(s) to remove.</li>
+      <li>Use <strong>Check All</strong> to select multiple students.</li>
+      <li>Click the <strong>Remove (N)</strong> button.</li>
+      <li>Click <strong>OK</strong> in the confirmation dialog to complete.</li>
+    </ol>
+
+    <div class="info-box warning">
+      <div class="info-box-title">Note</div>
+      <p>Removing a student preserves their learning records. If they rejoin, they can continue from where they left off.</p>
+    </div>
+
+    <h3>Exporting Student List</h3>
+    <ol class="step-list">
+      <li>In the Students tab, select the students you want to export.</li>
+      <li>Click the <strong>Export (N)</strong> button.</li>
+      <li>A CSV file will automatically download.</li>
+    </ol>
+  </section>
+
+  <!-- 3. Word List Management -->
+  <section id="list">
+    <h2><span class="section-number">3</span>Word List Management</h2>
+
+    <h3>Creating a New Word List</h3>
+    <ol class="step-list">
+      <li>Click <strong>Lists</strong> in the top navigation.</li>
+      <li>Click the <strong>+ Create New List</strong> button.</li>
+      <li>Enter a title and description for the word list.</li>
+      <li>Click <strong>Create List</strong>.</li>
+    </ol>
+
+    <h3>Adding Words</h3>
+    <ol class="step-list">
+      <li>Click on the word list you want to edit.</li>
+      <li>Enter the following information:
+        <ul>
+          <li><strong>Word</strong>: The vocabulary word (e.g., abundant)</li>
+          <li><strong>Part of Speech</strong>: Select from the dropdown</li>
+          <li><strong>Definition</strong>: English definition</li>
+          <li><strong>Sample Sentence</strong>: Example sentence (optional)</li>
+          <li><strong>Secondary Definition</strong>: Definition in another language (optional)</li>
+        </ul>
+      </li>
+      <li>Click <strong>Add Word</strong>.</li>
+    </ol>
+
+    <h3>Editing and Deleting Words</h3>
+    <ol class="step-list">
+      <li>Find the word you want to edit in the word list editor.</li>
+      <li>To edit: Click the pencil icon, make changes, then click <strong>Update Word</strong>.</li>
+      <li>To delete: Click the trash icon and confirm.</li>
+    </ol>
+
+    <h3>Bulk Import from Excel/CSV</h3>
+    <ol class="step-list">
+      <li>In the word list editor, click the <strong>Import Words</strong> button.</li>
+      <li>Click <strong>Download Template</strong> to get the template file.</li>
+      <li>Fill in your words following the template format.</li>
+      <li>Select the file or drag and drop it.</li>
+      <li>Review the preview and click <strong>Import N Words</strong>.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Template Format</div>
+      <p>Excel column order: Word | Part of Speech | Definition (EN) | Definition (KO) | Sample</p>
+    </div>
+
+    <h3>Deleting a Word List</h3>
+    <ol class="step-list">
+      <li>On the Lists page, click the trash icon for the word list you want to delete.</li>
+      <li>Type the word list name in the confirmation dialog and delete.</li>
+    </ol>
+
+    <div class="info-box warning">
+      <div class="info-box-title">Warning</div>
+      <p>Deleting a word list also deletes all words in it. This action cannot be undone.</p>
+    </div>
+  </section>
+
+  <!-- 4. Assigning Word Lists -->
+  <section id="assign">
+    <h2><span class="section-number">4</span>Assigning Word Lists</h2>
+
+    <h3>Assigning a Word List to a Class</h3>
+    <ol class="step-list">
+      <li>Go to the class detail page.</li>
+      <li>Click the <strong>Assigned Lists</strong> tab.</li>
+      <li>Click the <strong>Assign List</strong> button.</li>
+      <li>Select the word list to assign.</li>
+      <li>Configure learning settings and click <strong>Assign List</strong>.</li>
+    </ol>
+
+    <h3>Learning Settings Options</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Setting</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+        <tr>
+          <td><strong>Daily New Words</strong></td>
+          <td>Number of new words students learn per day</td>
+          <td>20</td>
+        </tr>
+        <tr>
+          <td><strong>Test Mode</strong></td>
+          <td>Test type (Multiple Choice Only / Written Only / Both)</td>
+          <td>Multiple Choice</td>
+        </tr>
+        <tr>
+          <td><strong>Test Options</strong></td>
+          <td>Number of multiple choice options (4-10)</td>
+          <td>4</td>
+        </tr>
+        <tr>
+          <td><strong>Pass Threshold</strong></td>
+          <td>Minimum score to pass (%)</td>
+          <td>95%</td>
+        </tr>
+        <tr>
+          <td><strong>Study Days/Week</strong></td>
+          <td>Study days per week (1-7)</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td><strong>New Word Test Size</strong></td>
+          <td>Number of questions in new word tests</td>
+          <td>50</td>
+        </tr>
+        <tr>
+          <td><strong>Review Test Mode</strong></td>
+          <td>Review test type</td>
+          <td>Multiple Choice</td>
+        </tr>
+        <tr>
+          <td><strong>Review Test Size</strong></td>
+          <td>Review test question count (Min ~ Max)</td>
+          <td>30 ~ 60</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Changing Assignment Settings</h3>
+    <ol class="step-list">
+      <li>In the Assigned Lists tab, find the word list you want to modify.</li>
+      <li>Click the gear (Settings) icon.</li>
+      <li>Make your desired changes.</li>
+      <li>Click <strong>Save Settings</strong>.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Intervention Level</div>
+      <p>vocaBoost automatically adjusts learning pace based on student performance. If scores are low, new words decrease and review increases.</p>
+    </div>
+
+    <h3>Unassigning a Word List</h3>
+    <ol class="step-list">
+      <li>In Assigned Lists, find the word list to unassign.</li>
+      <li>Click the trash icon.</li>
+      <li>Click <strong>OK</strong> in the confirmation dialog.</li>
+    </ol>
+
+    <div class="info-box warning">
+      <div class="info-box-title">Note</div>
+      <p>Unassigning a list preserves students' existing learning records.</p>
+    </div>
+  </section>
+
+  <!-- 5. Using the Gradebook -->
+  <section id="gradebook">
+    <h2><span class="section-number">5</span>Using the Gradebook</h2>
+
+    <h3>Opening the Gradebook</h3>
+    <ol class="step-list">
+      <li>Click <strong>Gradebook</strong> in the top navigation.</li>
+      <li>Or click the <strong>Open Gradebook</strong> button in the Gradebook tab of a class detail page.</li>
+    </ol>
+
+    <h3>Filtering the Gradebook</h3>
+    <p>Use the filters at the top of the gradebook to view specific records:</p>
+    <ul class="inline-list">
+      <li><strong>Class</strong>: View records for a specific class</li>
+      <li><strong>List</strong>: View records for a specific word list</li>
+      <li><strong>Name</strong>: View records for a specific student</li>
+      <li><strong>Test Type</strong>: View only Multiple Choice or Written tests</li>
+      <li><strong>Date</strong>: Today, Yesterday, Past 7 days, Past 30 days, or custom range</li>
+    </ul>
+
+    <h3>Viewing Test Details</h3>
+    <ol class="step-list">
+      <li>Click the <strong>View Details</strong> button on a test row in the gradebook.</li>
+      <li>A detail panel opens on the right.</li>
+      <li>Review each question, the student's answer, and the correct answer.</li>
+    </ol>
+
+    <h3>Exporting Grades</h3>
+    <ol class="step-list">
+      <li>Select the records you want to export using checkboxes.</li>
+      <li>Click the <strong>Export</strong> button.</li>
+      <li>An Excel file (.xlsx) will automatically download.</li>
+    </ol>
+
+    <h3>Reviewing Challenges</h3>
+    <p>When a student disputes an AI-graded answer in a written test, it appears as "Challenge" status.</p>
+    <ol class="step-list">
+      <li>Find tests with challenge markers in the gradebook.</li>
+      <li>Click View Details to see the full details.</li>
+      <li>Review the student's answer and AI reasoning for challenged questions.</li>
+      <li>Select <strong>Accept</strong> (approve) or <strong>Reject</strong> (deny).</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Challenge System</div>
+      <p>Written tests are auto-graded by AI. Students who believe their answer was correct can use a challenge token (5 available) to request a review. If you approve, the score is adjusted and the token is returned.</p>
+    </div>
+  </section>
+
+  <!-- 6. FAQ -->
+  <section id="faq">
+    <h2><span class="section-number">6</span>FAQ</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What if a student loses their join code?</div>
+      <div class="faq-answer">Check the join code on the class detail page and share it with the student again. The join code does not change.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Can I assign the same word list to multiple classes?</div>
+      <div class="faq-answer">Yes, you can assign one word list to multiple classes. You can apply different settings (learning pace, test type, etc.) for each class.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Can I reset a student's learning progress?</div>
+      <div class="faq-answer">Students can reset their own progress from the Settings page. Currently, teachers cannot reset progress on behalf of students.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What's the difference between Multiple Choice and Written tests?</div>
+      <div class="faq-answer">
+        <strong>Multiple Choice</strong>: Students select the correct answer from options. Fast and intuitive.<br>
+        <strong>Written</strong>: Students type the word from a definition. AI-graded, tests more precise recall.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. How does Daily New Words work?</div>
+      <div class="faq-answer">The set number of new words is introduced to students each day. However, if a student's scores are low, the system automatically reduces new words and increases review (intervention level adjustment).</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What does Pass Threshold mean?</div>
+      <div class="faq-answer">Students must score at or above this percentage to "pass" a test. If set to 95%, they need to get 95 out of 100 correct. Students who don't pass can retake the test.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Does editing words affect student progress?</div>
+      <div class="faq-answer">Editing definitions or sample sentences does not affect student progress. However, deleting a word removes its learning records.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What happens if I delete a class?</div>
+      <div class="faq-answer">All student enrollments for that class are removed. Students' personal learning records are preserved, but they can no longer study through that class.</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>vocaBoost Teacher Guide</p>
+</footer>
+
+</body>
+</html>

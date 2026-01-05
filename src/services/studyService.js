@@ -318,7 +318,8 @@ export async function recordSessionCompletion(userId, sessionData) {
     wordsIntroduced,
     wordsReviewed,
     wordsTested,
-    interventionLevel
+    interventionLevel,
+    studyDaysPerWeek = 5
   } = sessionData;
 
   // Create session summary
@@ -343,7 +344,8 @@ export async function recordSessionCompletion(userId, sessionData) {
     classId,
     listId,
     sessionSummary,
-    newIntervention
+    newIntervention,
+    studyDaysPerWeek
   );
 
   // Optionally save full session record to sessions collection

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
-import { Activity, BookOpen, Plus, RefreshCw, Trash2, FileText, ExternalLink } from 'lucide-react'
+import { Activity, BookOpen, ChevronDown, Plus, RefreshCw, Trash2, FileText, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
 import {
@@ -9,15 +9,14 @@ import {
   deleteList,
   fetchAllWords,
   fetchDashboardStats,
-  fetchSmartStudyQueue,
   fetchStudentClasses,
   fetchTeacherClasses,
   fetchTeacherLists,
   fetchUserAttempts,
   joinClass,
+  updateUserSettings,
 } from '../services/db'
 import { getClassProgress } from '../services/progressService'
-import { getBlindSpotCount } from '../services/studyService'
 import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
 import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
@@ -32,8 +31,6 @@ import SegmentDebugPanel from '../components/dev/SegmentDebugPanel.jsx'
 
 // Show debug panel in dev mode or when VITE_SHOW_DEBUG is set
 const showDebugPanel = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === 'true'
-
-const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 
 // Helper: Calculate streak from recentSessions with weekend skip logic
 const calculateStreak = (recentSessions, studyDaysPerWeek) => {
@@ -253,40 +250,43 @@ const Dashboard = () => {
   const [hoveredBarIndex, setHoveredBarIndex] = useState(null)
   const [userAttempts, setUserAttempts] = useState([])
   const [progressData, setProgressData] = useState({}) // keyed by `${classId}_${listId}`
-  const [blindSpotCounts, setBlindSpotCounts] = useState({}) // keyed by `${classId}_${listId}`
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
   const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
   const [showReEntryModal, setShowReEntryModal] = useState(false)
   const [reEntryContext, setReEntryContext] = useState(null) // { classId, listId, score }
+  const [showListSelector, setShowListSelector] = useState(false)
 
-  const masteryTotals = useMemo(() => {
-    if (!studentClasses.length) {
-      return DEFAULT_MASTERY_TOTALS
-    }
-
-    let totalWords = 0
-    let masteredWords = 0
-
+  // Build list of all available lists for the selector dropdown
+  const availableLists = useMemo(() => {
+    const lists = []
     studentClasses.forEach((klass) => {
-      ;(klass.assignedListDetails || []).forEach((list) => {
-        totalWords += list?.stats?.totalWords ?? 0
-        masteredWords += list?.stats?.masteredWords ?? 0
+      klass.assignedListDetails?.forEach((list) => {
+        lists.push({
+          id: list.id,
+          title: list.title || 'Vocabulary List',
+          classId: klass.id,
+          className: klass.name,
+        })
       })
     })
-
-    return {
-      totalWords,
-      masteredWords,
-    }
+    return lists
   }, [studentClasses])
 
-  const masteredWordsCount = dashboardStats?.masteryCount ?? masteryTotals.masteredWords
-  const weeklyGoalTarget = userSettings?.weeklyGoal ?? 100
-  const weeklyProgress = dashboardStats?.weeklyProgress ?? 0
-  const weeklyPercent =
-    weeklyGoalTarget > 0 ? Math.min(100, Math.round((weeklyProgress / weeklyGoalTarget) * 100)) : 0
-  
+  // Handler for selecting a new primary focus list
+  const handleListSelection = async (list) => {
+    setShowListSelector(false)
+    await updateUserSettings(user.uid, {
+      primaryFocusListId: list.id,
+      primaryFocusClassId: list.classId,
+    })
+    setUserSettings((prev) => ({
+      ...prev,
+      primaryFocusListId: list.id,
+      primaryFocusClassId: list.classId,
+    }))
+  }
+
   // List title lookup - must be defined before latestTestTitle uses it
   const listTitleLookup = useMemo(() => {
     const lookup = {}
@@ -540,7 +540,7 @@ const Dashboard = () => {
     loadStudentClasses()
   }, [loadStudentClasses])
 
-  // Load progress and blind spot data for each class/list (parallelized for speed)
+  // Load progress data for each class/list (parallelized for speed)
   useEffect(() => {
     if (!user?.uid || !studentClasses.length || isTeacher) return
 
@@ -558,32 +558,26 @@ const Dashboard = () => {
         }
       }
 
-      // Fetch all progress and blind spot data in parallel
+      // Fetch all progress data in parallel
       const results = await Promise.all(
         fetchTasks.map(async ({ key, classId, listId }) => {
           try {
-            const [progress, blindSpots] = await Promise.all([
-              getClassProgress(user.uid, classId, listId),
-              getBlindSpotCount(user.uid, listId, classId),
-            ])
-            return { key, progress: progress ?? null, blindSpots }
+            const progress = await getClassProgress(user.uid, classId, listId)
+            return { key, progress: progress ?? null }
           } catch (err) {
             console.error(`Failed to load progress for ${key}:`, err)
-            return { key, progress: null, blindSpots: 0 }
+            return { key, progress: null }
           }
         })
       )
 
-      // Build maps from results
+      // Build map from results
       const progressMap = {}
-      const blindSpotMap = {}
-      for (const { key, progress, blindSpots } of results) {
+      for (const { key, progress } of results) {
         progressMap[key] = progress
-        blindSpotMap[key] = blindSpots
       }
 
       setProgressData(progressMap)
-      setBlindSpotCounts(blindSpotMap)
     }
 
     loadProgressData()
@@ -904,25 +898,49 @@ const Dashboard = () => {
     )
   }
 
-  // Helper: Get Primary Focus List (most recently assigned)
+  // Helper: Get Primary Focus List (user preference or most recently assigned)
   const getPrimaryFocus = useMemo(() => {
     if (!studentClasses.length) {
       return null
     }
 
+    // 1. Check user preference first
+    if (userSettings?.primaryFocusListId) {
+      for (const klass of studentClasses) {
+        const list = klass.assignedListDetails?.find(
+          (l) => l.id === userSettings.primaryFocusListId
+        )
+        if (list) {
+          const assignment = klass.assignments?.[list.id] || {}
+          return {
+            id: list.id,
+            title: list.title || 'Vocabulary List',
+            classId: klass.id,
+            className: klass.name,
+            pace: assignment.pace || list.pace || 7,
+            studyDaysPerWeek: assignment.studyDaysPerWeek || 5,
+            wordCount: list.wordCount || 0,
+            stats: list.stats || {},
+          }
+        }
+      }
+      // Preference no longer valid - fall through to auto-select
+    }
+
+    // 2. Fallback: most recently assigned list
     let primaryList = null
     let latestAssignedAt = null
 
     studentClasses.forEach((klass) => {
       if (klass.assignedListDetails?.length) {
         const assignments = klass.assignments || {}
-        
+
         klass.assignedListDetails.forEach((list) => {
           // Get assignment metadata (pace, assignedAt) from class's assignments map
           const assignment = assignments[list.id] || {}
           const assignedAt = assignment.assignedAt?.toDate?.() || assignment.assignedAt || list.assignedAt?.toDate?.() || list.assignedAt || null
           const pace = assignment.pace || list.pace || 7 // Default to 7 (≈50 words/week)
-          
+
           if (!latestAssignedAt || (assignedAt && assignedAt > latestAssignedAt)) {
             latestAssignedAt = assignedAt
             primaryList = {
@@ -948,7 +966,7 @@ const Dashboard = () => {
           const assignments = klass.assignments || {}
           const assignment = assignments[firstList.id] || {}
           const pace = assignment.pace || firstList.pace || 7
-          
+
           primaryList = {
             id: firstList.id,
             title: firstList.title || 'Vocabulary List',
@@ -965,15 +983,15 @@ const Dashboard = () => {
     }
 
     return primaryList
-  }, [studentClasses])
+  }, [studentClasses, userSettings])
 
   // Panel B: Vitals - calculated from progressData (new study system)
   const panelBState = useMemo(() => {
     try {
       if (!getPrimaryFocus) {
         return {
-          wordsEstimate: 0,
-          retentionPercent: null,
+          totalWordsIntroduced: 0,
+          masteryRate: 0,
           streakDays: 0,
           error: false
         }
@@ -984,42 +1002,36 @@ const Dashboard = () => {
 
       if (!progress) {
         return {
-          wordsEstimate: 0,
-          retentionPercent: null,
+          totalWordsIntroduced: 0,
+          masteryRate: 0,
           streakDays: 0,
           error: false
         }
       }
 
-      const { totalWordsIntroduced, stats, recentSessions } = progress
+      const { totalWordsIntroduced: wordsIntro, stats, recentSessions } = progress
       const avgReviewScore = stats?.avgReviewScore ?? null
 
-      // Words Mastered estimate: totalWordsIntroduced × avgReviewScore
-      // This represents our estimate of how many words the student knows
-      const wordsEstimate = avgReviewScore !== null && totalWordsIntroduced > 0
-        ? Math.round(totalWordsIntroduced * avgReviewScore)
-        : totalWordsIntroduced || 0
-
-      // Retention Rate: avgReviewScore as percentage
-      const retentionPercent = avgReviewScore !== null
+      // Mastery Rate: avgReviewScore as percentage (0-100)
+      const masteryRate = avgReviewScore !== null
         ? Math.round(avgReviewScore * 100)
-        : null
+        : 0
 
-      // Current Streak: calculated from recentSessions with weekend skip logic
-      const studyDaysPerWeek = getPrimaryFocus.studyDaysPerWeek || 5
-      const streakDays = calculateStreak(recentSessions, studyDaysPerWeek)
+      // Current Streak: read from persisted class_progress (calculated on session completion)
+      // Falls back to client-side calculation if not yet persisted
+      const streakDays = progress.streakDays ?? calculateStreak(recentSessions, getPrimaryFocus.studyDaysPerWeek || 5)
 
       return {
-        wordsEstimate,
-        retentionPercent,
+        totalWordsIntroduced: wordsIntro || 0,
+        masteryRate,
         streakDays,
         error: false
       }
     } catch (err) {
       console.error('Panel B calculation error:', err)
       return {
-        wordsEstimate: 0,
-        retentionPercent: null,
+        totalWordsIntroduced: 0,
+        masteryRate: 0,
         streakDays: 0,
         error: true
       }
@@ -1027,7 +1039,7 @@ const Dashboard = () => {
   }, [getPrimaryFocus, progressData])
 
   // Destructure for easier access
-  const { wordsEstimate: wordsMastered, retentionPercent, streakDays, error: panelBError } = panelBState
+  const { totalWordsIntroduced, masteryRate, streakDays, error: panelBError } = panelBState
 
   // Helper: Get start of current calendar week (Monday 00:00:00)
   const getStartOfWeek = () => {
@@ -1091,51 +1103,6 @@ const Dashboard = () => {
     })
   }
 
-  // Retention status messages based on intervention level
-  const RETENTION_MESSAGES = {
-    excellent: [
-      "Your retention is excellent!",
-      "Past words are sticking well!",
-      "Keep up the great work!"
-    ],
-    good: [
-      "Retention looks solid",
-      "You're remembering well",
-      "Past words are on track"
-    ],
-    moderate: [
-      "We're pacing things carefully",
-      "Taking it steady to help retention",
-      "Balancing new words and review"
-    ],
-    needsSupport: [
-      "Focusing more on review right now",
-      "Slowing down to strengthen retention",
-      "More review to help you retain"
-    ],
-    highIntervention: [
-      "Let's solidify what you've learned",
-      "Extra review time to build your foundation",
-      "Reinforcing before adding more"
-    ]
-  }
-
-  // Get retention tier from intervention level
-  const getRetentionTier = (interventionLevel) => {
-    if (interventionLevel <= 0.15) return 'excellent'
-    if (interventionLevel <= 0.3) return 'good'
-    if (interventionLevel <= 0.5) return 'moderate'
-    if (interventionLevel <= 0.75) return 'needsSupport'
-    return 'highIntervention'
-  }
-
-  // Get a consistent message for today (changes daily, not on every render)
-  const getRetentionMessage = (tier) => {
-    const messages = RETENTION_MESSAGES[tier]
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24))
-    return messages[dayOfYear % messages.length]
-  }
-
   // Panel A: Weekly progress state with error handling
   const panelAState = useMemo(() => {
     try {
@@ -1188,15 +1155,13 @@ const Dashboard = () => {
     error: panelAError
   } = panelAState
 
-  // 7-Day Activity Data - Shows wordsIntroduced per study day (last 7 study days)
+  // 7-Day Activity Data - Shows reviewScore per study day (last 7 study days)
   const dailyActivity = useMemo(() => {
     const activity = []
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
     // Get settings from primary focus
-    const primaryPace = getPrimaryFocus?.pace || 20
-    const dailyPace = primaryPace > 0 ? primaryPace : 20
     const studyDaysPerWeek = getPrimaryFocus?.studyDaysPerWeek || 5
     const skipWeekends = studyDaysPerWeek <= 5
 
@@ -1215,34 +1180,36 @@ const Dashboard = () => {
     const progress = key ? progressData[key] : null
     const recentSessions = progress?.recentSessions || []
 
-    // Create a map of session dates to wordsIntroduced
+    // Create a map of session dates to reviewScore (average if multiple sessions)
     const sessionsByDate = {}
     recentSessions.forEach(session => {
       if (!session.date) return
+      // Only include sessions that have a review score
+      if (session.reviewScore === null || session.reviewScore === undefined) return
       const sessionDate = session.date?.toDate?.() || session.date
       const normalized = new Date(sessionDate)
       normalized.setHours(0, 0, 0, 0)
       const dateKey = normalized.getTime()
-      // Sum wordsIntroduced for the same day (in case of multiple sessions)
-      sessionsByDate[dateKey] = (sessionsByDate[dateKey] || 0) + (session.wordsIntroduced || 0)
+      // Track scores and count for averaging
+      if (!sessionsByDate[dateKey]) {
+        sessionsByDate[dateKey] = { total: 0, count: 0 }
+      }
+      sessionsByDate[dateKey].total += session.reviewScore
+      sessionsByDate[dateKey].count += 1
     })
 
-    // Walk backwards through study days (skipping weekends if needed)
+    // Walk backwards through study days (starting from today)
     let currentDate = new Date(today)
-    currentDate.setDate(currentDate.getDate() - 1) // Start from yesterday
-
-    // Skip to last weekday if yesterday is weekend and we're skipping weekends
-    if (skipWeekends) {
-      while (isWeekend(currentDate)) {
-        currentDate.setDate(currentDate.getDate() - 1)
-      }
-    }
 
     // Collect 7 study days
     for (let i = 0; i < 7; i++) {
       const date = new Date(currentDate)
       const dateKey = date.getTime()
-      const wordCount = sessionsByDate[dateKey] || 0
+      const sessionData = sessionsByDate[dateKey]
+      // Average review score for the day (as percentage 0-100), null if no review
+      const reviewScore = sessionData
+        ? Math.round((sessionData.total / sessionData.count) * 100)
+        : null
 
       // Format date string (e.g., "Mon, Oct 24")
       const dayName = dayNames[date.getDay()]
@@ -1253,8 +1220,7 @@ const Dashboard = () => {
       activity.push({
         date,
         formattedDate,
-        wordCount,
-        dailyPace,
+        reviewScore, // percentage 0-100 or null
       })
 
       // Move to previous study day
@@ -1274,9 +1240,7 @@ const Dashboard = () => {
     try {
       if (!getPrimaryFocus) {
         return {
-          interventionLevel: 0,
-          retentionTier: 'good',
-          retentionMessage: "Join a class to get started",
+          currentStudyDay: 0,
           sessionCompletedToday: false,
           testCompletedToday: false,
           dailyStatus: 'noList', // 'noList' | 'needsSession' | 'needsTest' | 'completed'
@@ -1287,10 +1251,7 @@ const Dashboard = () => {
       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
       const progress = progressData[key]
 
-      const interventionLevel = progress?.interventionLevel ?? 0
-      const retentionTier = getRetentionTier(interventionLevel)
-      const retentionMessage = getRetentionMessage(retentionTier)
-
+      const currentStudyDay = progress?.currentStudyDay ?? 0
       const sessionCompletedToday = hasSessionToday(progress?.recentSessions)
       const testCompletedToday = hasTestToday(userAttempts)
 
@@ -1303,9 +1264,7 @@ const Dashboard = () => {
       }
 
       return {
-        interventionLevel,
-        retentionTier,
-        retentionMessage,
+        currentStudyDay,
         sessionCompletedToday,
         testCompletedToday,
         dailyStatus,
@@ -1314,9 +1273,7 @@ const Dashboard = () => {
     } catch (err) {
       console.error('Panel C calculation error:', err)
       return {
-        interventionLevel: 0,
-        retentionTier: 'good',
-        retentionMessage: "Unable to load",
+        currentStudyDay: 0,
         sessionCompletedToday: false,
         testCompletedToday: false,
         dailyStatus: 'needsSession',
@@ -1345,11 +1302,44 @@ const Dashboard = () => {
         )}
 
         {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-brand-text">Welcome, {displayName}</h1>
-          <p className="font-body mt-1 text-base text-text-muted">
-            Your personalized vocabulary journey starts here.
-          </p>
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-brand-text">Welcome, {displayName}</h1>
+            <p className="font-body mt-1 text-base text-text-muted">
+              Your personalized vocabulary journey starts here.
+            </p>
+          </div>
+
+          {/* List Selector - Right Side */}
+          {availableLists.length > 1 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowListSelector(!showListSelector)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm text-gray-500">Studying:</span>
+                <span className="font-medium text-gray-900">{getPrimaryFocus?.title || 'No List'}</span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+
+              {showListSelector && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50">
+                  {availableLists.map((list) => (
+                    <button
+                      key={`${list.classId}_${list.id}`}
+                      onClick={() => handleListSelection(list)}
+                      className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors ${
+                        list.id === getPrimaryFocus?.id ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="font-medium text-gray-900">{list.title}</div>
+                      <div className="text-xs text-gray-500">{list.className}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Command Deck - 3-Panel Grid */}
@@ -1415,70 +1405,30 @@ const Dashboard = () => {
           <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 h-full">
             {/* Top Row: Launchpad & Vitals */}
             <div className="grid grid-cols-2 gap-6 flex-1">
-              {/* Panel C: The Launchpad (Retention Status + Daily CTA) */}
+              {/* Panel C: The Launchpad (Day X + Start Session) */}
               <div className="col-span-1">
                 {panelCState.error ? (
                   <PanelError message="Daily status unavailable" className="h-full min-h-[280px]" />
                 ) : (
-                <div className={`py-4 px-6 min-h-[280px] flex flex-col justify-between h-full rounded-2xl border shadow-lg ${
-                  panelCState.dailyStatus === 'completed'
-                    ? 'bg-gradient-to-br from-emerald-500 to-teal-600 border-teal-600 shadow-emerald-500/20'
-                    : 'bg-gradient-to-br from-blue-500 to-brand-primary border-brand-primary shadow-blue-500/20'
-                }`}>
-                  {/* Top: Retention Status */}
-                  <div className="mb-4 pb-4 border-b border-white/20">
-                    <p className="font-body text-sm text-white/70 mb-1">Retention Status</p>
-                    <p className="font-heading text-lg font-bold text-white">
-                      {panelCState.retentionMessage}
+                <div className="py-6 px-6 min-h-[280px] flex flex-col justify-center items-center h-full rounded-2xl border shadow-lg bg-gradient-to-br from-blue-500 to-brand-primary border-brand-primary shadow-blue-500/20">
+                  {/* Prominent Day Number */}
+                  <div className="text-center mb-10">
+                    <p className="font-heading text-6xl md:text-7xl font-bold text-white">
+                      Day {panelCState.currentStudyDay + 1}
                     </p>
                   </div>
 
-                  {/* Bottom: Daily Task Status + CTA */}
-                  <div className="flex-1 flex flex-col justify-center">
-                    {panelCState.dailyStatus === 'completed' ? (
-                      <>
-                        <div className="text-center mb-4">
-                          <span className="text-4xl mb-2 block">✓</span>
-                          <h3 className="font-heading text-xl font-bold text-white">
-                            You finished today's task!
-                          </h3>
-                          <p className="font-body text-sm text-white/80 mt-1">
-                            Great work! Come back tomorrow.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setStudyModalOpen(true)}
-                          className="w-full h-12 flex items-center justify-center gap-2 rounded-button bg-white/20 text-white font-semibold border border-white/30 hover:bg-white/30 transition-all active:scale-95"
-                        >
-                          <span>Practice More</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-center mb-4">
-                          <h3 className="font-heading text-xl font-bold text-white mb-1">
-                            Start today's session
-                          </h3>
-                          <p className="font-body text-sm text-white/80">
-                            Learn new words and review past ones.
-                          </p>
-                        </div>
-                        <div className="space-y-3 max-w-[240px] mx-auto w-full">
-                          <button
-                            type="button"
-                            onClick={() => setStudyModalOpen(true)}
-                            className="w-full h-14 flex items-center justify-center gap-2 rounded-button bg-brand-accent text-white font-bold border-none shadow-sm transition hover:bg-brand-accent-hover"
-                          >
-                            <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <span>Start Session</span>
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  {/* Start Session CTA - Orange with book icon */}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/session/${getPrimaryFocus?.classId}/${getPrimaryFocus?.id}`)}
+                    className="w-full py-4 px-4 bg-brand-accent text-white font-semibold rounded-lg hover:bg-brand-accent-hover transition-colors shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Start Session
+                  </button>
                 </div>
                 )}
               </div>
@@ -1488,12 +1438,12 @@ const Dashboard = () => {
                 {panelBError ? (
                   <PanelError message="Stats unavailable" className="h-full min-h-[280px]" />
                 ) : (
-                <div className="flex flex-col gap-3 h-full">
-                  {/* Card 1: Words Mastered */}
-                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-brand-primary/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
+                <div className="flex flex-col gap-2 h-full">
+                  {/* Card 1: Words Introduced */}
+                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="rounded-lg bg-brand-primary/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-7 h-7 text-brand-text"
+                        className="w-5 h-5 text-brand-primary"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1502,23 +1452,23 @@ const Dashboard = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                         />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-body text-xs text-text-muted">Words Mastered</p>
-                      <p className="font-heading text-2xl font-bold text-brand-text">
-                        {wordsMastered.toLocaleString()}
+                      <p className="font-body text-xs text-text-muted">Words Introduced</p>
+                      <p className="font-heading text-xl font-bold text-brand-text">
+                        {totalWordsIntroduced.toLocaleString()}
                       </p>
                     </div>
                   </div>
 
-                  {/* Card 2: Retention Rate */}
-                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-brand-primary/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
+                  {/* Card 2: Mastery Rate */}
+                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="rounded-lg bg-green-500/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-7 h-7 text-brand-text"
+                        className="w-5 h-5 text-green-600"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1527,23 +1477,21 @@ const Dashboard = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-body text-xs text-text-muted">Retention Rate</p>
-                      <p className="font-heading text-2xl font-bold text-brand-text">
-                        {retentionPercent !== null ? `${retentionPercent}%` : '—'}
-                      </p>
+                      <p className="font-body text-xs text-text-muted">Mastery Rate</p>
+                      <p className="font-heading text-xl font-bold text-green-600">{masteryRate}%</p>
                     </div>
                   </div>
 
                   {/* Card 3: Current Streak */}
-                  <div className="bg-surface border border-border-default rounded-2xl flex items-center gap-4 p-4 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-brand-accent/10 w-14 h-14 flex items-center justify-center flex-shrink-0">
+                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="rounded-lg bg-brand-accent/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
                       <svg
-                        className="w-7 h-7 text-brand-accent"
+                        className="w-5 h-5 text-brand-accent"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -1564,7 +1512,7 @@ const Dashboard = () => {
                     </div>
                     <div className="flex-1">
                       <p className="font-body text-xs text-text-muted">Current Streak</p>
-                      <p className="font-heading text-2xl font-bold text-brand-accent">{streakDays} days</p>
+                      <p className="font-heading text-xl font-bold text-brand-accent">{streakDays} days</p>
                     </div>
                   </div>
                 </div>
@@ -1583,17 +1531,14 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-1 flex items-end justify-between gap-2 h-16 relative">
                   {dailyActivity.map((day, index) => {
-                    const dailyPace = day.dailyPace || 20
-                    // Calculate height percentage, ensuring it doesn't exceed 100%
-                    const heightPercent = day.wordCount > 0 && dailyPace > 0
-                      ? Math.min(100, Math.round((day.wordCount / dailyPace) * 100))
-                      : 0
-                    // For non-zero values, ensure minimum 10% height for visibility
-                    // For zero values, use 4px minimum
-                    const barHeight = day.wordCount > 0
-                      ? `${Math.max(10, heightPercent)}%`
+                    // reviewScore is already a percentage (0-100) or null
+                    const hasScore = day.reviewScore !== null
+                    // For non-null values, ensure minimum 10% height for visibility
+                    // For null values (no review that day), use 4px minimum
+                    const barHeight = hasScore
+                      ? `${Math.max(10, day.reviewScore)}%`
                       : '4px'
-                    
+
                     return (
                       <div
                         key={index}
@@ -1603,7 +1548,7 @@ const Dashboard = () => {
                       >
                         <div
                           className={`w-full rounded-t-[4px] transition-all duration-300 ${
-                            day.wordCount > 0
+                            hasScore
                               ? 'bg-brand-primary'
                               : 'bg-inset'
                           }`}
@@ -1612,12 +1557,12 @@ const Dashboard = () => {
                             minHeight: '4px',
                           }}
                         />
-                        {hoveredBarIndex === index && day.wordCount > 0 && (
+                        {hoveredBarIndex === index && hasScore && (
                           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 bg-surface text-text-primary text-xs rounded-lg py-1.5 px-3 shadow-xl w-max border border-border-default">
                             <div className="text-center">
                               <div className="font-semibold">{day.formattedDate}</div>
                               <div className="mt-0.5">
-                                <span className="font-bold">{day.wordCount}</span> of {dailyPace} words
+                                Review Score: <span className="font-bold">{day.reviewScore}%</span>
                               </div>
                             </div>
                             {/* Arrow pointer */}
@@ -1766,13 +1711,15 @@ const Dashboard = () => {
                                       </p>
                                     </div>
                                     <p className="font-body text-xs text-text-muted mb-3">
-                                      {list.wordCount ?? 0} words · Assigned by your teacher.
+                                      {list.wordCount ?? 0} words
                                     </p>
-                                    {list.stats && (() => {
-                                      const wordsLearned = list.stats.wordsLearned ?? 0
-                                      const totalWords = list.stats.totalWords ?? 0
+                                    {(() => {
+                                      const progressKey = `${klass.id}_${list.id}`
+                                      const progress = progressData[progressKey]
+                                      const wordsIntroduced = progress?.totalWordsIntroduced ?? 0
+                                      const totalWords = list.wordCount ?? 0
                                       const percentage = totalWords > 0
-                                        ? Math.min(100, Math.max(0, Math.round((wordsLearned / totalWords) * 100)))
+                                        ? Math.min(100, Math.max(0, Math.round((wordsIntroduced / totalWords) * 100)))
                                         : 0
                                       const barWidth = `${percentage}%`
                                       const isWideBar = percentage > 15
@@ -1780,7 +1727,7 @@ const Dashboard = () => {
                                       return (
                                         <div className="space-y-1.5 text-xs text-text-secondary">
                                           <div className="flex items-center justify-between">
-                                            <span>{wordsLearned} learned</span>
+                                            <span>{wordsIntroduced} introduced</span>
                                             <span>{totalWords} total</span>
                                           </div>
                                           <div className="relative h-10 w-full rounded-lg bg-inset flex items-center overflow-hidden">

@@ -33,6 +33,7 @@ const Gradebook = ({
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
   const lockedClassId = searchParams.get('classId')
+  const initialStudentName = searchParams.get('studentName')
   const [lockedClassName, setLockedClassName] = useState('')
   const [activeCategory, setActiveCategory] = useState('Class')
   const [filterInput, setFilterInput] = useState('')
@@ -65,7 +66,7 @@ const Gradebook = ({
   const [tempDateStart, setTempDateStart] = useState(null) // For two-click selection
   const [tempDateEnd, setTempDateEnd] = useState(null)
 
-  // Fetch locked class name when classId is in URL
+  // Fetch locked class name when classId is in URL and pre-fill student name filter
   useEffect(() => {
     const loadLockedClass = async () => {
       if (lockedClassId && role === 'teacher') {
@@ -94,9 +95,26 @@ const Gradebook = ({
       } else {
         setLockedClassName('')
       }
+
+      // Pre-fill Name filter if studentName is in URL (for teacher view)
+      if (initialStudentName && role === 'teacher') {
+        setActiveTags(prev => {
+          const hasNameFilter = prev.some(tag => tag.category === 'Name')
+          if (!hasNameFilter) {
+            const nameTag = {
+              id: `name_${Date.now()}`,
+              category: 'Name',
+              value: initialStudentName,
+              label: initialStudentName,
+            }
+            return [...prev, nameTag]
+          }
+          return prev
+        })
+      }
     }
     loadLockedClass()
-  }, [lockedClassId, role])
+  }, [lockedClassId, initialStudentName, role])
 
   // Prevent removing locked class filter
   const handleRemoveTag = (tagId) => {
@@ -588,6 +606,8 @@ const Gradebook = ({
         'Class': attempt.class || '',
         'List': attempt.list || '',
         'Type': attempt.testType === 'typed' ? 'Written' : 'Multiple Choice',
+        'Session': attempt.sessionType === 'new' ? 'New Words' : attempt.sessionType === 'review' ? 'Review' : '',
+        'Day': attempt.studyDay ? `Day ${attempt.studyDay}` : '',
         'Score (%)': attempt.score || 0,
         'Raw Score': `${attempt.correctAnswers || 0} / ${attempt.totalQuestions || 0}`,
         'Total Questions': attempt.totalQuestions || 0,
@@ -1042,6 +1062,12 @@ const Gradebook = ({
                         Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-heading font-bold text-text-muted uppercase tracking-wider">
+                        Session
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-heading font-bold text-text-muted uppercase tracking-wider">
+                        Day
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-heading font-bold text-text-muted uppercase tracking-wider">
                         View
                       </th>
                     </tr>
@@ -1096,6 +1122,22 @@ const Gradebook = ({
                           >
                             {attempt.testType === 'typed' ? 'Written' : 'Multiple Choice'}
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              attempt.sessionType === 'new'
+                                ? 'bg-green-100 text-green-700'
+                                : attempt.sessionType === 'review'
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {attempt.sessionType === 'new' ? 'New Words' : attempt.sessionType === 'review' ? 'Review' : '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-body text-text-primary">
+                          {attempt.studyDay ? `Day ${attempt.studyDay}` : '—'}
                         </td>
                         <td className="px-6 py-4">
                           <button

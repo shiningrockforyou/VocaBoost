@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VocaBoost Header Design Mockup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    /* Controls */
+    .controls {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      gap: 16px;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .toggle-btn {
+      padding: 8px 16px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:hover {
+      border-color: #94a3b8;
+    }
+
+    .toggle-btn.active {
+      background: #1B3A94;
+      border-color: #1B3A94;
+      color: white;
+    }
+
+    .toggle-btn.active.orange {
+      background: #F97316;
+      border-color: #F97316;
+    }
+
+    /* Navigation arrows */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      cursor: pointer;
+      font-size: 24px;
+      color: #475569;
+      transition: all 0.2s;
+      z-index: 1000;
+    }
+
+    .nav-arrow:hover {
+      background: #f8fafc;
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .nav-arrow.left { left: 24px; }
+    .nav-arrow.right { right: 24px; }
+
+    /* Design indicator */
+    .design-indicator {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+
+    .indicator-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .indicator-dot.active {
+      background: #1B3A94;
+      transform: scale(1.3);
+    }
+
+    .indicator-dot.active.orange {
+      background: #F97316;
+    }
+
+    .design-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-left: 6px;
+      min-width: 200px;
+    }
+
+    /* Header container */
+    .header-container {
+      padding-top: 100px;
+    }
+
+    /* Common header styles */
+    .demo-header {
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .demo-header .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .demo-header .header-logo {
+      height: 56px;
+      width: auto;
+      margin-bottom: 20px;
+    }
+
+    .demo-header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.025em;
+    }
+
+    .demo-header p {
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: #FEF3C7;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       Design A: Gradient + Decorative Circles
+       ======================================== */
+    .header-design-a {
+      padding: 72px 24px 56px;
+    }
+
+    .header-design-a.teacher {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 50%, #1B3A94 100%);
+    }
+
+    .header-design-a.student {
+      background: linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%);
+    }
+
+    .header-design-a::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+
+    .header-design-a::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      left: -60px;
+      width: 150px;
+      height: 150px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .header-design-a .deco-circle {
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      width: 100px;
+      height: 100px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+
+    .header-design-a .deco-circle-2 {
+      position: absolute;
+      bottom: 20%;
+      right: 15%;
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    /* ========================================
+       Design B: Gradient Only
+       ======================================== */
+    .header-design-b {
+      padding: 72px 24px 56px;
+    }
+
+    .header-design-b.teacher {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 100%);
+    }
+
+    .header-design-b.student {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    }
+
+    /* ========================================
+       Design C: Solid Color
+       ======================================== */
+    .header-design-c {
+      padding: 60px 24px;
+    }
+
+    .header-design-c.teacher {
+      background: #1B3A94;
+    }
+
+    .header-design-c.student {
+      background: #F97316;
+    }
+
+    .header-design-c .header-logo {
+      height: 48px;
+    }
+
+    .header-design-c h1 {
+      font-size: 2rem;
+    }
+
+    .header-design-c p {
+      font-size: 1rem;
+    }
+
+    /* ========================================
+       Design D: Floating Cards (Flashcards)
+       ======================================== */
+    .header-design-d {
+      padding: 72px 24px 56px;
+    }
+
+    .header-design-d.teacher {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 100%);
+    }
+
+    .header-design-d.student {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    }
+
+    .header-design-d .card {
+      position: absolute;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .header-design-d .card-1 {
+      width: 80px;
+      height: 50px;
+      top: 15%;
+      left: 8%;
+      transform: rotate(-12deg);
+    }
+
+    .header-design-d .card-2 {
+      width: 60px;
+      height: 38px;
+      top: 60%;
+      left: 5%;
+      transform: rotate(8deg);
+    }
+
+    .header-design-d .card-3 {
+      width: 70px;
+      height: 44px;
+      top: 20%;
+      right: 10%;
+      transform: rotate(15deg);
+    }
+
+    .header-design-d .card-4 {
+      width: 55px;
+      height: 35px;
+      bottom: 25%;
+      right: 6%;
+      transform: rotate(-8deg);
+    }
+
+    .header-design-d .card-5 {
+      width: 45px;
+      height: 28px;
+      top: 45%;
+      right: 18%;
+      transform: rotate(20deg);
+    }
+
+    /* ========================================
+       Design E: Stars + Diagonal Streak
+       ======================================== */
+    .header-design-e {
+      padding: 72px 24px 56px;
+    }
+
+    .header-design-e.teacher {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 100%);
+    }
+
+    .header-design-e.student {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    }
+
+    /* Diagonal streak like rocket trail */
+    .header-design-e::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      right: 5%;
+      width: 3px;
+      height: 120px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+      transform: rotate(35deg);
+    }
+
+    .header-design-e::after {
+      content: '';
+      position: absolute;
+      top: 10px;
+      right: 8%;
+      width: 2px;
+      height: 80px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+      transform: rotate(35deg);
+    }
+
+    .header-design-e .star {
+      position: absolute;
+      width: 0;
+      height: 0;
+    }
+
+    .header-design-e .star::before,
+    .header-design-e .star::after {
+      content: '';
+      position: absolute;
+      background: rgba(255,255,255,0.4);
+    }
+
+    .header-design-e .star::before {
+      width: 2px;
+      height: 10px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .header-design-e .star::after {
+      width: 10px;
+      height: 2px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .header-design-e .star-1 { top: 20%; left: 12%; }
+    .header-design-e .star-2 { top: 35%; left: 6%; }
+    .header-design-e .star-2::before { height: 6px; }
+    .header-design-e .star-2::after { width: 6px; }
+    .header-design-e .star-3 { top: 65%; left: 15%; }
+    .header-design-e .star-3::before { height: 8px; }
+    .header-design-e .star-3::after { width: 8px; }
+    .header-design-e .star-4 { top: 25%; right: 20%; }
+    .header-design-e .star-5 { bottom: 30%; right: 12%; }
+    .header-design-e .star-5::before { height: 6px; }
+    .header-design-e .star-5::after { width: 6px; }
+
+    /* ========================================
+       Design F: Scattered Dots Pattern
+       ======================================== */
+    .header-design-f {
+      padding: 72px 24px 56px;
+    }
+
+    .header-design-f.teacher {
+      background: linear-gradient(135deg, #1B3A94 0%, #2548B0 100%);
+    }
+
+    .header-design-f.student {
+      background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    }
+
+    .header-design-f .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+    }
+
+    .header-design-f .dot-1 { width: 6px; height: 6px; top: 15%; left: 8%; }
+    .header-design-f .dot-2 { width: 4px; height: 4px; top: 25%; left: 15%; }
+    .header-design-f .dot-3 { width: 8px; height: 8px; top: 45%; left: 5%; }
+    .header-design-f .dot-4 { width: 5px; height: 5px; top: 60%; left: 12%; }
+    .header-design-f .dot-5 { width: 3px; height: 3px; top: 75%; left: 8%; }
+    .header-design-f .dot-6 { width: 7px; height: 7px; top: 20%; right: 10%; }
+    .header-design-f .dot-7 { width: 4px; height: 4px; top: 35%; right: 18%; }
+    .header-design-f .dot-8 { width: 6px; height: 6px; top: 50%; right: 8%; }
+    .header-design-f .dot-9 { width: 5px; height: 5px; top: 70%; right: 15%; }
+    .header-design-f .dot-10 { width: 3px; height: 3px; top: 30%; right: 6%; }
+    .header-design-f .dot-11 { width: 4px; height: 4px; bottom: 20%; left: 20%; }
+    .header-design-f .dot-12 { width: 5px; height: 5px; bottom: 25%; right: 22%; }
+
+    /* Sample content area */
+    .sample-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .sample-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .sample-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+    }
+
+    .sample-card p {
+      color: #64748b;
+      line-height: 1.7;
+    }
+
+    /* Hidden states */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-group">
+      <span class="control-label">Version:</span>
+      <button class="toggle-btn active" id="btn-teacher" onclick="setVersion('teacher')">Teacher</button>
+      <button class="toggle-btn" id="btn-student" onclick="setVersion('student')">Student</button>
+    </div>
+  </div>
+
+  <!-- Navigation Arrows -->
+  <button class="nav-arrow left" onclick="prevDesign()">&larr;</button>
+  <button class="nav-arrow right" onclick="nextDesign()">&rarr;</button>
+
+  <!-- Design Indicator -->
+  <div class="design-indicator">
+    <div class="indicator-dot active" onclick="setDesign(0)"></div>
+    <div class="indicator-dot" onclick="setDesign(1)"></div>
+    <div class="indicator-dot" onclick="setDesign(2)"></div>
+    <div class="indicator-dot" onclick="setDesign(3)"></div>
+    <div class="indicator-dot" onclick="setDesign(4)"></div>
+    <div class="indicator-dot" onclick="setDesign(5)"></div>
+    <span class="design-name" id="design-name">A: Gradient + Circles</span>
+  </div>
+
+  <!-- Header Designs -->
+  <div class="header-container">
+    <!-- Design A: Gradient + Decorative Circles -->
+    <header class="demo-header header-design-a teacher" id="design-a">
+      <div class="deco-circle"></div>
+      <div class="deco-circle-2"></div>
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-a">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+
+    <!-- Design B: Gradient Only -->
+    <header class="demo-header header-design-b teacher hidden" id="design-b">
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-b">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+
+    <!-- Design C: Solid Color -->
+    <header class="demo-header header-design-c teacher hidden" id="design-c">
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-c">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+
+    <!-- Design D: Floating Cards -->
+    <header class="demo-header header-design-d teacher hidden" id="design-d">
+      <div class="card card-1"></div>
+      <div class="card card-2"></div>
+      <div class="card card-3"></div>
+      <div class="card card-4"></div>
+      <div class="card card-5"></div>
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-d">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+
+    <!-- Design E: Stars + Streak -->
+    <header class="demo-header header-design-e teacher hidden" id="design-e">
+      <div class="star star-1"></div>
+      <div class="star star-2"></div>
+      <div class="star star-3"></div>
+      <div class="star star-4"></div>
+      <div class="star star-5"></div>
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-e">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+
+    <!-- Design F: Scattered Dots -->
+    <header class="demo-header header-design-f teacher hidden" id="design-f">
+      <div class="dot dot-1"></div>
+      <div class="dot dot-2"></div>
+      <div class="dot dot-3"></div>
+      <div class="dot dot-4"></div>
+      <div class="dot dot-5"></div>
+      <div class="dot dot-6"></div>
+      <div class="dot dot-7"></div>
+      <div class="dot dot-8"></div>
+      <div class="dot dot-9"></div>
+      <div class="dot dot-10"></div>
+      <div class="dot dot-11"></div>
+      <div class="dot dot-12"></div>
+      <div class="header-content">
+        <img src="logo_header_blue.svg" alt="VocaBoost" class="header-logo" id="logo-f">
+        <h1>VocaBoost Teacher Guide</h1>
+        <p>From class management to grade checking, we guide you through all features.</p>
+      </div>
+    </header>
+  </div>
+
+  <!-- Sample Content -->
+  <div class="sample-content">
+    <div class="sample-card">
+      <h2>Sample Content Area</h2>
+      <p>
+        This is a sample content area to help you visualize how the header design
+        integrates with the rest of the page. The actual help documentation will
+        have navigation sections, guides, and detailed instructions here.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let currentDesign = 0;
+    let currentVersion = 'teacher';
+    const designs = ['a', 'b', 'c', 'd', 'e', 'f'];
+    const designNames = [
+      'A: Gradient + Circles',
+      'B: Gradient Only',
+      'C: Solid Color',
+      'D: Floating Cards',
+      'E: Stars + Streak',
+      'F: Scattered Dots'
+    ];
+
+    const teacherTitle = 'VocaBoost Teacher Guide';
+    const studentTitle = 'VocaBoost Student Guide';
+    const teacherSubtitle = 'From class management to grade checking, we guide you through all features.';
+    const studentSubtitle = 'Everything you need to know about learning vocabulary and taking tests.';
+
+    function updateDisplay() {
+      // Hide all designs
+      designs.forEach(d => {
+        document.getElementById('design-' + d).classList.add('hidden');
+      });
+
+      // Show current design
+      const currentEl = document.getElementById('design-' + designs[currentDesign]);
+      currentEl.classList.remove('hidden');
+
+      // Update version class
+      designs.forEach(d => {
+        const el = document.getElementById('design-' + d);
+        el.classList.remove('teacher', 'student');
+        el.classList.add(currentVersion);
+      });
+
+      // Update logos
+      const logoSrc = currentVersion === 'teacher' ? 'logo_header_blue.svg' : 'logo_header_orange.svg';
+      designs.forEach(d => {
+        document.getElementById('logo-' + d).src = logoSrc;
+      });
+
+      // Update titles
+      const title = currentVersion === 'teacher' ? teacherTitle : studentTitle;
+      const subtitle = currentVersion === 'teacher' ? teacherSubtitle : studentSubtitle;
+      document.querySelectorAll('.demo-header h1').forEach(h => h.textContent = title);
+      document.querySelectorAll('.demo-header .header-content p').forEach(p => p.textContent = subtitle);
+
+      // Update indicators
+      document.querySelectorAll('.indicator-dot').forEach((dot, i) => {
+        dot.classList.remove('active', 'orange');
+        if (i === currentDesign) {
+          dot.classList.add('active');
+          if (currentVersion === 'student') dot.classList.add('orange');
+        }
+      });
+
+      // Update design name
+      document.getElementById('design-name').textContent = designNames[currentDesign];
+
+      // Update version buttons
+      document.getElementById('btn-teacher').classList.remove('active', 'orange');
+      document.getElementById('btn-student').classList.remove('active', 'orange');
+      if (currentVersion === 'teacher') {
+        document.getElementById('btn-teacher').classList.add('active');
+      } else {
+        document.getElementById('btn-student').classList.add('active', 'orange');
+      }
+    }
+
+    function setDesign(index) {
+      currentDesign = index;
+      updateDisplay();
+    }
+
+    function setVersion(version) {
+      currentVersion = version;
+      updateDisplay();
+    }
+
+    function nextDesign() {
+      currentDesign = (currentDesign + 1) % designs.length;
+      updateDisplay();
+    }
+
+    function prevDesign() {
+      currentDesign = (currentDesign - 1 + designs.length) % designs.length;
+      updateDisplay();
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevDesign();
+      if (e.key === 'ArrowRight') nextDesign();
+      if (e.key === 't' || e.key === 'T') setVersion('teacher');
+      if (e.key === 's' || e.key === 'S') setVersion('student');
+      // Number keys 1-6 to jump to design
+      if (e.key >= '1' && e.key <= '6') setDesign(parseInt(e.key) - 1);
+    });
+
+    // Initialize
+    updateDisplay();
+  </script>
+</body>
+</html>

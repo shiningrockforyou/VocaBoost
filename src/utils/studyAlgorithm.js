@@ -26,9 +26,6 @@ export const STUDY_ALGORITHM_CONSTANTS = {
   // Blind spot threshold
   STALE_DAYS_THRESHOLD: 21,         // Words not seen in 21+ days are "blind spots"
 
-  // LEGACY: Early days threshold (no longer used - replaced by week-based segment rotation)
-  // EARLY_DAYS_THRESHOLD: 4,       // Days 1-4 use cumulative review; day 5+ uses segment rotation
-
   // Pace defaults
   DEFAULT_WEEKLY_PACE: 400,         // Default words per week (≈57/day at 7 days, ≈80/day at 5 days)
   DEFAULT_STUDY_DAYS_PER_WEEK: 5,   // Default number of study days per week
@@ -154,38 +151,6 @@ export function calculateSegment(currentStudyDay, studyDaysPerWeek, totalWordsIn
 
   return { startIndex, endIndex };
 }
-
-/* LEGACY: Old calculateSegment function (commented out for reference)
- * Used cumulative review for days 2-4, then segment rotation for days 5+.
- * Replaced with week-based segment rotation with intervention-adjusted projection.
- *
- * export function calculateSegment_LEGACY(currentStudyDay, studyDaysPerWeek, totalWordsIntroduced) {
- *   // Day 1 or totalWords = 0 → return null (no review)
- *   if (currentStudyDay === 1 || totalWordsIntroduced === 0) {
- *     return null;
- *   }
- *
- *   // Days 2-4 → cumulative: { startIndex: 0, endIndex: wordsBeforeToday - 1 }
- *   if (currentStudyDay <= STUDY_ALGORITHM_CONSTANTS.EARLY_DAYS_THRESHOLD) {
- *     const wordsBeforeToday = currentStudyDay - 1;
- *     if (wordsBeforeToday <= 0) {
- *       return null;
- *     }
- *     return {
- *       startIndex: 0,
- *       endIndex: wordsBeforeToday - 1
- *     };
- *   }
- *
- *   // Days 5+ → segment rotation
- *   const dayOfWeek = ((currentStudyDay - 1) % studyDaysPerWeek) + 1;
- *   const segmentSize = Math.ceil(totalWordsIntroduced / studyDaysPerWeek);
- *   const startIndex = (dayOfWeek - 1) * segmentSize;
- *   const endIndex = Math.min(dayOfWeek * segmentSize, totalWordsIntroduced) - 1;
- *
- *   return { startIndex, endIndex };
- * }
- */
 
 /**
  * Calculate how many words to include in review queue.

@@ -515,7 +515,10 @@ const MCQTest = () => {
           testId,
           answerArray,
           testWords.length,
-          classIdParam
+          classIdParam,
+          'mcq',
+          currentTestType,
+          sessionContext?.dayNumber || null
         )
         setAttemptId(result.id)
       }

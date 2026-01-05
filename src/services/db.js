@@ -1,6 +1,7 @@
 import {
   Timestamp,
   addDoc,
+  arrayRemove,
   arrayUnion,
   collection,
   deleteDoc,
@@ -33,7 +34,6 @@ const defaultProfile = {
 
 const defaultStats = {
   totalWordsLearned: 0,
-  streakDays: 0,
 }
 
 const defaultChallenges = {
@@ -43,6 +43,8 @@ const defaultChallenges = {
 const defaultSettings = {
   weeklyGoal: 100,
   useUnifiedQueue: false,
+  primaryFocusListId: null,
+  primaryFocusClassId: null,
 }
 
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5)
@@ -128,6 +130,11 @@ export const updateUserSettings = async (userId, settings = {}) => {
     updates['settings.useUnifiedQueue'] = Boolean(settings.useUnifiedQueue)
   }
 
+  if (settings.primaryFocusListId !== undefined) {
+    updates['settings.primaryFocusListId'] = settings.primaryFocusListId
+    updates['settings.primaryFocusClassId'] = settings.primaryFocusClassId || null
+  }
+
   if (Object.keys(updates).length === 0) {
     return
   }
@@ -158,6 +165,7 @@ export const createClass = async ({ name, ownerTeacherId }) => {
     joinCode: generateJoinCode(),
     createdAt: serverTimestamp(),
     studentCount: 0,
+    studentIds: [],
     settings: {
       allowStudentListImport: false,
     },
@@ -234,17 +242,14 @@ export const removeStudentFromClass = async (classId, studentId) => {
 
   const classRef = doc(db, 'classes', classId)
   const classDoc = await getDoc(classRef)
-  
+
   if (!classDoc.exists()) {
     throw new Error('Class not found')
   }
-  
-  const currentStudents = classDoc.data().students || []
-  const updatedStudents = currentStudents.filter(id => id !== studentId)
-  
+
   await updateDoc(classRef, {
-    students: updatedStudents,
-    studentCount: updatedStudents.length
+    studentIds: arrayRemove(studentId),
+    studentCount: increment(-1),
   })
 
   // Also remove from members subcollection
@@ -345,11 +350,9 @@ export const fetchStudentClasses = async (studentId) => {
           const listSnap = await getDoc(doc(db, 'lists', listId))
           if (!listSnap.exists()) return null
           const listData = { id: listSnap.id, ...listSnap.data() }
-          const stats = await fetchStudentStats(studentId, listId)
           const assignment = assignments[listId] || {}
           return {
             ...listData,
-            stats,
             pace: assignment.pace,
             testOptionsCount: assignment.testOptionsCount,
             testMode: assignment.testMode || 'mcq',
@@ -375,63 +378,26 @@ export const fetchStudentClasses = async (studentId) => {
 
 export const fetchDashboardStats = async (userId) => {
   if (!userId) {
-    return {
-      weeklyProgress: 0,
-      latestTest: null,
-      masteryCount: 0,
-      retention: 1,
-    }
+    return { latestTest: null }
   }
 
-  const userRef = doc(db, 'users', userId)
-  const studyStatesRef = collection(db, 'users', userId, 'study_states')
   const attemptsRef = collection(db, 'attempts')
 
-  const oneWeekMillis = 7 * 24 * 60 * 60 * 1000
-  const cutoff = Timestamp.fromMillis(Date.now() - oneWeekMillis)
-
-  const [userSnap, studyStatesSnap, attemptsSnap] = await Promise.all([
-    getDoc(userRef),
-    getDocs(studyStatesRef),
-    // Use index on attempts(studentId, submittedAt desc) to get only the latest
-    getDocs(
-      query(
-        attemptsRef,
-        where('studentId', '==', userId),
-        orderBy('submittedAt', 'desc'),
-        limit(1),
-      ),
+  // Only fetch latestTest - other metrics derived from class_progress
+  const attemptsSnap = await getDocs(
+    query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      orderBy('submittedAt', 'desc'),
+      limit(1),
     ),
-  ])
+  )
 
-  let weeklyProgress = 0
-  let masteryCount = 0
-
-  studyStatesSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data()
-    const lastReviewed = data.lastReviewed
-    if (lastReviewed?.toMillis && lastReviewed.toMillis() >= cutoff.toMillis()) {
-      weeklyProgress += 1
-    }
-    if (data.status === 'PASSED') {
-      masteryCount += 1
-    }
-  })
-
-  // Get latest attempt (query already sorted by submittedAt desc with limit 1)
   const latestTest = attemptsSnap.docs.length > 0
     ? { id: attemptsSnap.docs[0].id, ...attemptsSnap.docs[0].data() }
     : null
 
-  const userData = userSnap.exists() ? userSnap.data() : {}
-  const retention = userData.stats?.retention ?? 1
-
-  return {
-    weeklyProgress,
-    latestTest,
-    masteryCount,
-    retention,
-  }
+  return { latestTest }
 }
 
 export const addWordToList = async (listId, wordData) => {
@@ -863,10 +829,11 @@ export const joinClass = async (studentId, joinCode) => {
     { merge: true },
   )
 
-  // Increment studentCount if this is a new member
+  // Increment studentCount and add to studentIds if this is a new member
   if (isNewMember) {
     await updateDoc(doc(db, 'classes', classDoc.id), {
       studentCount: increment(1),
+      studentIds: arrayUnion(studentId),
     })
   }
 
@@ -925,100 +892,6 @@ export const fetchAllWords = async (listId) => {
   }
 
   return allWords
-}
-
-export const fetchSmartStudyQueue = async (listId, userId, classId = null, limitAmount = 100) => {
-  if (!listId || !userId) {
-    console.log('[fetchSmartStudyQueue] Missing listId or userId, returning empty array')
-    return []
-  }
-
-  console.log('[fetchSmartStudyQueue] Fetching study queue for listId:', listId, 'userId:', userId, 'classId:', classId)
-
-  const wordsRef = collection(db, 'lists', listId, 'words')
-  const snapshot = await getDocs(wordsRef)
-  const allWords = snapshot.docs.map((docSnap) => ({
-    id: docSnap.id,
-    ...docSnap.data(),
-  }))
-
-  console.log('[fetchSmartStudyQueue] Raw words from Firestore:', allWords.length, 'words')
-  console.log('[fetchSmartStudyQueue] Sample word data:', allWords[0] || 'No words found')
-
-  const userRef = doc(db, 'users', userId)
-  const userSnap = await getDoc(userRef)
-  const userData = userSnap.exists() ? userSnap.data() : {}
-  const stats = userData.stats ?? {}
-  const retention = stats.retention ?? 1.0
-
-  const queueLimit = Math.max(1, limitAmount)
-
-  if (retention < 0.6) {
-    const studyStatesRef = collection(db, 'users', userId, 'study_states')
-    const studyStatesSnap = await getDocs(studyStatesRef)
-    const wordStates = {}
-    studyStatesSnap.docs.forEach((docSnap) => {
-      wordStates[docSnap.id] = docSnap.data()
-    })
-
-    return allWords
-      .filter((word) => {
-      const wordState = wordStates[word.id]
-      const box = wordState?.box ?? 1
-      return box === 1
-      })
-      .slice(0, queueLimit)
-  }
-
-  // Calculate daily limit based on class assignment pace
-  let basePace = 20 // default
-  if (classId) {
-    const classSnap = await getDoc(doc(db, 'classes', classId))
-    if (classSnap.exists()) {
-      const classData = classSnap.data()
-      const assignments = classData.assignments || {}
-      if (assignments[listId]?.pace) {
-        basePace = assignments[listId].pace
-      }
-    }
-  }
-
-  const credibility = stats.credibility ?? 1.0
-  const dailyNewLimit = Math.round(basePace * credibility)
-
-  const studyStatesRef = collection(db, 'users', userId, 'study_states')
-  const studyStatesSnap = await getDocs(studyStatesRef)
-  const wordStates = {}
-  studyStatesSnap.docs.forEach((docSnap) => {
-    wordStates[docSnap.id] = docSnap.data()
-  })
-
-  const newWords = allWords.filter((word) => !wordStates[word.id])
-  const limitedNewWords = newWords.slice(0, dailyNewLimit)
-  const now = Timestamp.now()
-
-  const dueWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    if (!state) {
-      return false
-    }
-    const nextReview = state.nextReview
-    return nextReview && nextReview.toMillis && nextReview.toMillis() <= now.toMillis()
-  })
-
-  const reviewWords = allWords.filter((word) => {
-    const state = wordStates[word.id]
-    if (!state) {
-      return false
-    }
-    const nextReview = state.nextReview
-    return !nextReview || !nextReview.toMillis || nextReview.toMillis() > now.toMillis()
-  })
-
-  const combinedQueue = [...dueWords, ...limitedNewWords, ...reviewWords]
-  const slicedQueue = combinedQueue.slice(0, queueLimit)
-  console.log('[fetchSmartStudyQueue] Filtered result for userId:', userId, 'words:', slicedQueue.length)
-  return slicedQueue
 }
 
 export const fetchStudentStats = async (userId, listId) => {
@@ -1123,9 +996,11 @@ export const calculateCredibility = (answers, userWordStates) => {
  * @param {number} totalQuestions - Total number of questions in the test
  * @param {string|null} classId - Optional class ID (required for gradebook visibility)
  * @param {string} testType - Test type ('mcq' or 'typed'), defaults to 'mcq'
+ * @param {string|null} sessionType - Session type ('new' or 'review'), defaults to null
+ * @param {number|null} studyDay - Study day number (1-indexed), defaults to null
  * @returns {Promise<Object>} Attempt document data
  */
-export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, testType = 'mcq') => {
+export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, testType = 'mcq', sessionType = null, studyDay = null) => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
   }
@@ -1175,6 +1050,8 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
     studentId: userId,
     testId,
     testType,
+    sessionType: sessionType || null,
+    studyDay: studyDay || null,
     score: Math.round(score * 100),
     graded: true,
     answers: answeredWords,
@@ -1216,6 +1093,8 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
  * @param {Object} responses - Object mapping wordId to student response string
  * @param {Array} gradingResults - AI grading results: [{ wordId, isCorrect, reasoning }]
  * @param {string|null} classId - Optional class ID (required for gradebook visibility)
+ * @param {string|null} sessionType - Session type ('new' or 'review'), defaults to null
+ * @param {number|null} studyDay - Study day number (1-indexed), defaults to null
  * @returns {Promise<Object>} Attempt document data
  */
 export const submitTypedTestAttempt = async (
@@ -1225,6 +1104,8 @@ export const submitTypedTestAttempt = async (
   responses,
   gradingResults,
   classId = null,
+  sessionType = null,
+  studyDay = null,
 ) => {
   console.log('submitTypedTestAttempt called with:', { userId, testId, classId })
 
@@ -1307,6 +1188,8 @@ export const submitTypedTestAttempt = async (
       classId: classId || null,
       teacherId: teacherId,
       testType: 'typed',
+      sessionType: sessionType || null,
+      studyDay: studyDay || null,
       score: Math.round(score * 100),
       graded: true,
       answers: answers,
@@ -2674,15 +2557,6 @@ export function normalizeStudyState(doc) {
     ...DEFAULT_STUDY_STATE,
     ...doc
   }
-}
-
-/**
- * Check if a study state uses the new format
- * @param {Object} doc - Study state document
- * @returns {boolean} True if document has 'status' field
- */
-export function isNewFormatStudyState(doc) {
-  return doc?.status !== undefined
 }
 
 /**

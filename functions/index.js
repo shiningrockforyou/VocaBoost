@@ -104,13 +104,18 @@ exports.gradeTypedTest = onCall(
       let prompt = `You are grading vocabulary definitions. Grade each answer as correct or incorrect.
 
 GRADING RULES:
-#1 Be LENIENT - accept any response showing the student understands the core meaning
-#2 Definition does not have to be exact, but it should not be an incorrect idea.
-#3 Definitions do not have to capture the full idea. Semantic proximity is enough for a correct mark.
-#4 Spelling or grammar mistakes do not matter.
+#1 Be LENIENT. If it FEELS like the student knows the word, mark it correct.
+#2 Use the given English and Korean definitions as guidelines.
+#3 CLOSE ENOUGH is GOOD ENOUGH to be CORRECT.
+#4 Spelling or grammar errors DO NOT MATTER and CANNOT MAKE AN ANSWER INCORRECT.
 #5 When in doubt, mark CORRECT - we prefer false positives over false negatives.
-#6 It can be in either Korean, English, or a mix.
-#7 The answer cannot be self-referencing. So that means the response is wrong if it uses the word to define itself.
+#6 Answers can be in either Korean, English, or a mix.
+#7 A question is INCORRECT ONLY IF:
+      - The answer is self-referencing. So that means the response is wrong if it uses the word to define itself.
+      OR
+      - It is completely irrelevant or contradictory to the word's definition.
+      OR
+      - The answer describes the reverse meaning (e.g., "able to like" vs "able to be liked")
 #8 Provide an explanation and include it as "reasoning" in the JSON output if you said it was wrong. This should be written as if you are speaking to the student directly.
 
 OUTPUT FORMAT:
@@ -125,7 +130,7 @@ WORDS TO GRADE:
 
       // Append each non-blank word to the prompt
       for (const answer of answersToGrade) {
-        prompt += `\nwordId: ${answer.wordId} | Word: ${answer.word} | Correct: ${answer.correctDefinition} | Student: ${answer.studentResponse}`;
+        prompt += `\nwordId: ${answer.wordId} | Word: ${answer.word} | English: ${answer.correctDefinition} | Korean: ${answer.koreanDefinition || 'N/A'} | Student: ${answer.studentResponse}`;
       }
 
       const completion = await openai.chat.completions.create({
