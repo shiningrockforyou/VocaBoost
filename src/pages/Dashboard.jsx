@@ -28,6 +28,10 @@ import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../s
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
 import { Button, IconButton, CardButton } from '../components/ui'
+import SegmentDebugPanel from '../components/dev/SegmentDebugPanel.jsx'
+
+// Show debug panel in dev mode or when VITE_SHOW_DEBUG is set
+const showDebugPanel = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === 'true'
 
 const DEFAULT_MASTERY_TOTALS = { totalWords: 0, masteredWords: 0 }
 
@@ -169,8 +173,19 @@ function PanelError({ message = "Unable to load", className = "" }) {
 
 function ListProgressStats({ classId, listId, progressData, assignment }) {
   const key = `${classId}_${listId}`
-  const progress = progressData[key]
 
+  // Key doesn't exist = still loading
+  if (!(key in progressData)) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-3 py-2 min-w-[90px] h-full">
+        <div className="h-3 w-8 bg-text-muted/20 rounded animate-pulse mb-1" />
+        <div className="h-8 w-10 bg-text-muted/20 rounded animate-pulse" />
+      </div>
+    )
+  }
+
+  const progress = progressData[key]
+  // null = new user (Day 1), object = has progress
   const completedDays = progress?.currentStudyDay ?? 0
   const studyDaysPerWeek = assignment?.studyDaysPerWeek ?? 5
   const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
@@ -181,8 +196,9 @@ function ListProgressStats({ classId, listId, progressData, assignment }) {
   const isBehind = difference < 0
   const isOnTrack = difference === 0
 
-  // Display day as at least 1 if no sessions completed
-  const displayDay = Math.max(completedDays, 1)
+  // Display day = currentStudyDay + 1 (consistent with session view)
+  // currentStudyDay=0 means on Day 1, currentStudyDay=1 means on Day 2, etc.
+  const displayDay = completedDays + 1
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-3 py-2 min-w-[90px] h-full">
@@ -524,30 +540,46 @@ const Dashboard = () => {
     loadStudentClasses()
   }, [loadStudentClasses])
 
-  // Load progress and blind spot data for each class/list
+  // Load progress and blind spot data for each class/list (parallelized for speed)
   useEffect(() => {
     if (!user?.uid || !studentClasses.length || isTeacher) return
 
     const loadProgressData = async () => {
-      const progressMap = {}
-      const blindSpotMap = {}
-
+      // Build array of all class/list pairs to fetch
+      const fetchTasks = []
       for (const cls of studentClasses) {
         const assignments = cls.assignments || {}
         for (const listId of Object.keys(assignments)) {
-          const key = `${cls.id}_${listId}`
+          fetchTasks.push({
+            key: `${cls.id}_${listId}`,
+            classId: cls.id,
+            listId,
+          })
+        }
+      }
+
+      // Fetch all progress and blind spot data in parallel
+      const results = await Promise.all(
+        fetchTasks.map(async ({ key, classId, listId }) => {
           try {
-            const progress = await getClassProgress(user.uid, cls.id, listId)
-            if (progress) {
-              progressMap[key] = progress
-            }
-            const blindSpots = await getBlindSpotCount(user.uid, listId, cls.id)
-            blindSpotMap[key] = blindSpots
+            const [progress, blindSpots] = await Promise.all([
+              getClassProgress(user.uid, classId, listId),
+              getBlindSpotCount(user.uid, listId, classId),
+            ])
+            return { key, progress: progress ?? null, blindSpots }
           } catch (err) {
             console.error(`Failed to load progress for ${key}:`, err)
-            // Don't break the page, just show default state
+            return { key, progress: null, blindSpots: 0 }
           }
-        }
+        })
+      )
+
+      // Build maps from results
+      const progressMap = {}
+      const blindSpotMap = {}
+      for (const { key, progress, blindSpots } of results) {
+        progressMap[key] = progress
+        blindSpotMap[key] = blindSpots
       }
 
       setProgressData(progressMap)
@@ -1732,11 +1764,6 @@ const Dashboard = () => {
                                       <p className="font-heading text-sm font-semibold text-text-primary">
                                         {list.title || 'Vocabulary List'}
                                       </p>
-                                      {list.stats?.due > 0 && (
-                                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
-                                          {list.stats.due} due!
-                                        </span>
-                                      )}
                                     </div>
                                     <p className="font-body text-xs text-text-muted mb-3">
                                       {list.wordCount ?? 0} words · Assigned by your teacher.
@@ -1793,7 +1820,8 @@ const Dashboard = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleStartSession(klass.id, list.id)}
-                                      className="flex-1 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30"
+                                      disabled={!(`${klass.id}_${list.id}` in progressData)}
+                                      className="flex-1 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                       <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -1884,6 +1912,16 @@ const Dashboard = () => {
                                       </button>
                                   </div>
                                 </div>
+
+                                {/* Debug Panel - Dev only */}
+                                {showDebugPanel && (
+                                  <SegmentDebugPanel
+                                    classId={klass.id}
+                                    listId={list.id}
+                                    userId={user.uid}
+                                    assignment={klass.assignments?.[list.id]}
+                                  />
+                                )}
                               </div>
                             ))}
                           </div>

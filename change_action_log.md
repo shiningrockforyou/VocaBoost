@@ -67,6 +67,172 @@
 | 2026-01-03 | `src/pages/DailySessionFlow.jsx` | Added dismissed words drawer with undo functionality - stores full word data on dismiss, toggle button in header, restore individual or all |
 | 2026-01-04 | `src/pages/MCQTest.jsx` | Fixed challenge bug - capture `attemptId` from `submitTestAttempt` return value and call `setAttemptId(result.id)` |
 | 2026-01-04 | `src/pages/TypedTest.jsx` | Fixed challenge bug - capture `attemptId` from `submitTypedTestAttempt` return value and call `setAttemptId(result.id)` |
+| 2026-01-04 | `src/utils/testConfig.js` | **NEW FILE** - Centralized test configuration builder with `buildTestConfig()` function. Single source of truth for test parameters, applies testSizeNew limiting to word pools. |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | Added import for `buildTestConfig`; Updated `navigateToTest()` to build testConfig and pass as single object (words now limited by testSizeNew before navigation) |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | Refactored to consume `testConfig` from navigation state with backwards compatibility for legacy props; Added testConfig path in `loadTestWords()` |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | Refactored to consume `testConfig` from navigation state with backwards compatibility for legacy props; Added testConfig path in `loadTestWords()` |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | **Navigation Simplification** - Simplified `CompletePhase` to single "Back to Dashboard" button; Removed unused props (`onMoveOn`, `onNext`, `onRetakeReview`); Removed retake warning box |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | Removed `showMoveOnConfirm` and `showNextSessionModal` state variables; Deleted Move On Confirmation and Next Session modals |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | Removed unused `handleRetakeReviewTest` function |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | Changed quit handler to always navigate to `/` (Dashboard) instead of `returnPath` |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | Replaced "Study" button with "Dashboard" on failed new word tests |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | Added "Dashboard" button to needs-work and critical review test tiers (alongside Retake) |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | Removed unused `handleGoToStudy` function |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | Changed quit handler to always navigate to `/` (Dashboard) instead of `returnPath` |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | Replaced "Study" button with "Dashboard" on failed new word tests |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | Added "Dashboard" button to needs-work and critical review test tiers (alongside Retake) |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | Removed unused `handleGoToStudy` function |
+| 2026-01-04 | `NAVIGATION_AUDIT.md` | **NEW FILE** - Comprehensive navigation audit documenting all 68 navigation elements across 21 files, including button destinations, redirects, and 3 dead route issues |
+| 2026-01-04 | `scripts/migrateWordPositions.js` | **NEW FILE** - One-time migration script to add `position` field to existing words based on `createdAt` order |
+| 2026-01-04 | `src/services/db.js` | **Word Position Refactor** - `addWordToList()` now assigns `position: currentCount` (0-indexed) to new words |
+| 2026-01-04 | `src/services/db.js` | **Word Position Refactor** - `batchAddWords()` now assigns sequential positions starting from current wordCount |
+| 2026-01-04 | `src/services/db.js` | **Word Position Refactor** - `fetchAllWords()` changed `orderBy('createdAt', 'asc')` → `orderBy('position', 'asc')` |
+| 2026-01-04 | `src/services/studyService.js` | **Word Position Refactor** - `getSegmentWords()` uses `orderBy('position')` and filters by `w.position` instead of computed `wordIndex` |
+| 2026-01-04 | `src/services/studyService.js` | **Word Position Refactor** - `initializeNewWordStates()` uses `word.position` instead of `word.wordIndex` |
+| 2026-01-04 | `src/services/studyService.js` | **Word Position Refactor** - `getFailedFromPreviousNewWords()` uses `orderBy('position')` and filters by `w.position` |
+| 2026-01-04 | `src/services/studyService.js` | **Word Position Refactor** - `getNewWords()` uses `orderBy('position')` and filters by position range |
+| 2026-01-04 | `src/services/studyService.js` | **Word Position Refactor** - `getBlindSpotPool()` uses `orderBy('position')` instead of `createdAt` |
+| 2026-01-04 | `src/pages/ListEditor.jsx` | **Word Position Refactor** - All 3 word queries changed from `orderBy('createdAt')` to `orderBy('position')` |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | **Word Position Refactor** - Fallback query uses `orderBy('position')`, removed dynamic `wordIndex` assignment |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | **Word Position Refactor** - Fallback query uses `orderBy('position')`, removed dynamic `wordIndex` assignment |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | **Word Position Refactor** - Removed `wordIndex` mapping; words already have `position` field |
+| 2026-01-04 | `src/utils/pdfGenerator.js` | **Word Position Refactor** - Changed `word.wordIndex ?? word.index` to `word.position` for word numbering |
+| 2026-01-04 | `src/pages/Dashboard.jsx` | **Performance** - Parallelized progress data loading using `Promise.all` instead of sequential `for...await` loops (lines 543-586) |
+| 2026-01-04 | `src/components/dev/SegmentDebugPanel.jsx` | **NEW FILE** - Collapsible debug panel showing segment boundaries, session config, and word-level queue details |
+| 2026-01-04 | `src/services/studyService.js` | Added `getDebugSessionData()` export for debug panel - returns sessionConfig, reviewQueue, and segmentWords |
+| 2026-01-04 | `src/pages/Dashboard.jsx` | Added SegmentDebugPanel component to list cards (dev-only via `import.meta.env.DEV`) |
+| 2026-01-04 | `src/services/studyService.js` | **Full Segment PDF** - `getTodaysBatchForPDF()` now uses `getSegmentWords()` instead of `buildReviewQueue()` to show ALL segment words |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | **Full Segment Study** - Session initialization and `moveToReviewPhase()` now use `getSegmentWords()` for REVIEW_STUDY phase |
+| 2026-01-04 | `src/services/studyService.js` | **Bug Fix** - `getDebugSessionData()` now transforms assignment with `weeklyPace = pace * studyDaysPerWeek` (matching `getTodaysBatchForPDF` pattern) |
+| 2026-01-04 | `src/pages/DailySessionFlow.jsx` | **Bug Fix** - Fixed "No Test Content" error on review tests: `navigateToTest()` now passes `reviewQueue` instead of `null` for review test wordPool (line 1014) |
+| 2026-01-04 | `src/pages/MCQTest.jsx` | **Shuffle Fix** - Added `shuffleArray` import; Fixed biased distractor selection and option ordering to use Fisher-Yates instead of `sort(() => Math.random() - 0.5)` (lines 195, 206) |
+| 2026-01-04 | `src/pages/TypedTest.jsx` | **Shuffle Fix** - Fixed biased retake shuffle to use `shuffleArray()` instead of `sort(() => Math.random() - 0.5)` (line 650) |
+| 2026-01-04 | `src/services/studyService.js` | **Shuffle Fix** - Added `shuffleArray` import; Fixed biased graduation selection to use Fisher-Yates instead of `sort(() => Math.random() - 0.5)` (line 781) |
+| 2026-01-05 | `src/services/studyService.js` | **Bug Fix** - `graduateSegmentWords()` now writes `wordIndex` and `listId` to Firebase batch (lines 802-803). Debug panel's `getMasteredWordsInRange()` filters by `wordIndex`, so graduated words were invisible without this field. |
+
+---
+
+## Phase 4: Word Position Field Refactor
+
+**Date:** 2026-01-04
+
+### Problem Statement
+
+Word indices were computed at runtime from array position after `orderBy('createdAt', 'asc')`. This design was fragile because:
+- Timestamps can be inconsistent (imports, clock skew, simultaneous adds)
+- "#435 of List X" didn't point to anything specific - it was just the 435th item after sorting
+- Any timestamp issues would silently corrupt word order and break segment boundaries
+
+### Solution: Explicit `position` Field
+
+Added permanent `position: number` field to all word documents. Words are now:
+- Assigned sequential 0-indexed positions on creation
+- Queried by `orderBy('position', 'asc')` instead of `createdAt`
+- Filtered directly by `w.position` instead of computed array index
+
+### New Word Document Structure
+
+```javascript
+{
+  id: "abc123",
+  word: "Abate",
+  definition: "...",
+  position: 0,        // NEW: Permanent, explicit position (0-indexed)
+  createdAt: Timestamp,
+  updatedAt: Timestamp
+}
+```
+
+### CRUD Changes
+
+**`addWordToList()` (db.js):**
+```javascript
+const listDoc = await getDoc(doc(db, 'lists', listId))
+const currentCount = listDoc.exists() ? (listDoc.data()?.wordCount ?? 0) : 0
+const wordPayload = {
+  ...wordData,
+  position: currentCount,  // 0-indexed position
+  createdAt: serverTimestamp(),
+}
+```
+
+**`batchAddWords()` (db.js):**
+```javascript
+let nextPosition = listDoc.data()?.wordCount ?? 0
+// Each word in batch gets sequential position
+position: nextPosition++
+```
+
+### Query Changes
+
+All `orderBy('createdAt', 'asc')` changed to `orderBy('position', 'asc')`:
+
+| File | Function/Location |
+|------|-------------------|
+| `db.js` | `fetchAllWords()` |
+| `studyService.js` | `getSegmentWords()`, `getFailedFromPreviousNewWords()`, `getNewWords()`, `getBlindSpotPool()` |
+| `ListEditor.jsx` | `loadList()`, `reloadWords()`, `handleAddWord()` |
+| `MCQTest.jsx` | Fallback load |
+| `TypedTest.jsx` | Fallback load |
+
+### Index Pattern Removal
+
+All `.map((doc, index) => ({ wordIndex: index, ... }))` patterns changed to read `position` from document:
+
+```javascript
+// BEFORE:
+const allWords = wordsSnap.docs.map((doc, index) => ({
+  id: doc.id,
+  wordIndex: index,
+  ...doc.data()
+}))
+const segmentWords = allWords.filter(w => w.wordIndex >= startIndex)
+
+// AFTER:
+const allWords = wordsSnap.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data()
+}))
+const segmentWords = allWords.filter(w => w.position >= startIndex)
+```
+
+### Migration Script
+
+**File:** `scripts/migrateWordPositions.js`
+
+One-time script to backfill `position` field on existing words:
+1. Fetches all lists
+2. For each list, gets words ordered by `createdAt`
+3. Assigns sequential positions (0, 1, 2, ...)
+4. Batch updates all word documents
+
+Must be run once before deploying the code changes.
+
+### Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Index base | 0-indexed | Matches JavaScript array semantics, simpler math |
+| Gap handling | Allow gaps | Simpler than cascade updates on delete; filter logic handles gaps |
+| Position on delete | No change | Gaps are fine; wordCount decrements but positions stay stable |
+| Position on update | Preserved | updateDoc merges, doesn't overwrite position |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `scripts/migrateWordPositions.js` | NEW - Migration script |
+| `src/services/db.js` | `addWordToList`, `batchAddWords`, `fetchAllWords` |
+| `src/services/studyService.js` | 5 functions updated (orderBy + position field) |
+| `src/pages/ListEditor.jsx` | 3 query locations |
+| `src/pages/MCQTest.jsx` | Fallback query |
+| `src/pages/TypedTest.jsx` | Fallback query |
+| `src/pages/DailySessionFlow.jsx` | Removed wordIndex mapping |
+| `src/utils/pdfGenerator.js` | Word number from position |
+
+### Backups
+
+All modified files backed up to `vocaboost/backups/position-refactor/` before changes.
 
 ---
 

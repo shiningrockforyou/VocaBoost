@@ -230,7 +230,7 @@ export function createClassProgress(classId, listId) {
  * @returns {Object} Session summary object
  */
 export function createSessionSummary({
-  day,
+  day = 1,
   newWordScore = null,
   reviewScore = null,
   segmentStartIndex = 0,

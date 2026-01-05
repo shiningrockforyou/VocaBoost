@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
-import { submitTestAttempt } from '../services/db'
+import { submitTypedTestAttempt } from '../services/db'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -12,7 +13,6 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
-import { speak } from '../utils/tts'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -28,12 +28,15 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
 import Watermark from '../components/Watermark.jsx'
 import ConfirmModal from '../components/ConfirmModal.jsx'
-import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader.jsx'
-import SessionProgressSheet from '../components/SessionProgressSheet.jsx'
+import SessionProgressSheet from '../components/SessionProgressSheet'
+import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader'
 import { Button } from '../components/ui'
-import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle } from 'lucide-react'
 
-const MCQTest = () => {
+// Hard cap for typed tests to limit AI grading costs
+const MAX_TYPED_TEST_WORDS = 50
+
+const TypedTest = () => {
   const { classId, listId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -63,23 +66,21 @@ const MCQTest = () => {
   const classIdParam = searchParams.get('classId') || classId
 
   const [listDetails, setListDetails] = useState(null)
-  const [testWords, setTestWords] = useState([])
-  const [originalWords, setOriginalWords] = useState([])
-  const [answers, setAnswers] = useState({})
-  const answersRef = useRef({})  // Sync copy to avoid race condition on submit
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
+  const [words, setWords] = useState([])
+  const [originalWords, setOriginalWords] = useState([]) // Store original word list for retake
+  const [responses, setResponses] = useState({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [results, setResults] = useState(null)
   const [error, setError] = useState('')
-  const [testResultsData, setTestResultsData] = useState(null)
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false)
+  const inputRefs = useRef([])
+  const [focusedIndex, setFocusedIndex] = useState(0)
   const [attemptId, setAttemptId] = useState(null)
   const [currentTestType, setCurrentTestType] = useState(testTypeParam)
   const [canRetake, setCanRetake] = useState(false)
   const [retakeThreshold, setRetakeThreshold] = useState(0.95)
-  const [optionsCount, setOptionsCount] = useState(4)
   const [showResults, setShowResults] = useState(false)
-  const [configuredTestSize, setConfiguredTestSize] = useState(30)
+  const [testResultsData, setTestResultsData] = useState(null)
 
   // Modal states
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
@@ -87,6 +88,14 @@ const MCQTest = () => {
   const [savedRecoveryState, setSavedRecoveryState] = useState(null)
   const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
   const [showProgressSheet, setShowProgressSheet] = useState(false)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+
+  // Refs for scroll-based fade effect
+  const headerRef = useRef(null)
+  const contentRef = useRef(null)
+  const questionRefs = useRef([])
+  const [headerHeight, setHeaderHeight] = useState(0)
+  const [questionOpacities, setQuestionOpacities] = useState([])
 
   // Practice mode (after passing, test doesn't save)
   const [isPracticeMode] = useState(practiceMode)
@@ -98,46 +107,73 @@ const MCQTest = () => {
   const sim = useSimulationContext()
   const autoAnswerTimerRef = useRef(null)
 
-  // Auto-answer effect for simulation mode
+  // Auto-answer effect for simulation mode (typed test)
   useEffect(() => {
     if (!sim?.isAutoMode || !isSimulationEnabled()) return
-    if (loading || showResults || submitting) return
-    if (testWords.length === 0) return
+    if (isLoading || showResults || isSubmitting) return
+    if (words.length === 0) return
 
-    const currentWord = testWords[currentIndex]
-    if (!currentWord || answers[currentWord.id]) return // Already answered
+    // For typed tests, we fill in answers based on accuracy
+    // Correct answer = the actual word text
+    // Incorrect answer = a typo or wrong word
 
-    // Find the correct answer index
-    const correctIndex = currentWord.options.findIndex(opt => opt.isCorrect)
+    const unansweredWords = words.filter(word => !responses[word.id])
+    if (unansweredWords.length === 0) {
+      // All answered, auto-submit
+      setTimeout(() => {
+        handleSubmit()
+      }, sim.speed?.testDelay ?? 100)
+      return
+    }
 
-    // Get auto-answer based on simulation profile accuracy
-    const selectedIndex = sim.getAutoAnswer(correctIndex, currentWord.options.length)
-    const selectedOption = currentWord.options[selectedIndex]
-
-    // Delay based on simulation speed
     const delay = sim.speed?.testDelay ?? 100
+    let answerIndex = 0
 
-    autoAnswerTimerRef.current = setTimeout(() => {
-      // Select the answer
-      handleAnswerSelect(currentWord.id, selectedOption)
-
-      // Move to next question or submit
-      if (currentIndex < testWords.length - 1) {
-        setCurrentIndex(prev => prev + 1)
-      } else {
-        // All questions answered, auto-submit
+    const answerNextWord = () => {
+      if (answerIndex >= unansweredWords.length) {
+        // All done, submit
         setTimeout(() => {
           handleSubmit()
         }, delay)
+        return
       }
-    }, delay)
+
+      const word = unansweredWords[answerIndex]
+
+      // Decide if this answer should be correct based on profile accuracy
+      const shouldBeCorrect = Math.random() < (sim.profile?.accuracy ?? 0.75)
+
+      let answer
+      if (shouldBeCorrect) {
+        // Type the correct word
+        answer = word.text
+      } else {
+        // Type an intentionally wrong answer (add typo or use wrong word)
+        const typoChance = Math.random()
+        if (typoChance < 0.5 && word.text.length > 2) {
+          // Add a typo
+          const pos = Math.floor(Math.random() * word.text.length)
+          answer = word.text.slice(0, pos) + 'x' + word.text.slice(pos + 1)
+        } else {
+          // Use a completely wrong word
+          answer = 'wronganswer'
+        }
+      }
+
+      setResponses(prev => ({ ...prev, [word.id]: answer }))
+      answerIndex++
+
+      autoAnswerTimerRef.current = setTimeout(answerNextWord, delay)
+    }
+
+    autoAnswerTimerRef.current = setTimeout(answerNextWord, delay)
 
     return () => clearTimeout(autoAnswerTimerRef.current)
-  }, [sim?.isAutoMode, currentIndex, testWords, answers, loading, showResults, submitting])
+  }, [sim?.isAutoMode, words, responses, isLoading, showResults, isSubmitting])
 
   // Browser close warning + intentional exit tracking
   useEffect(() => {
-    const hasProgress = Object.keys(answers).length > 0 && !showResults
+    const hasProgress = Object.keys(responses).length > 0 && !showResults
 
     const handleBeforeUnload = (e) => {
       if (hasProgress) {
@@ -167,7 +203,7 @@ const MCQTest = () => {
       window.removeEventListener('click', handleInteraction)
       window.removeEventListener('keydown', handleInteraction)
     }
-  }, [answers, showResults, testId])
+  }, [responses, showResults, testId])
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -187,68 +223,84 @@ const MCQTest = () => {
     loadList()
   }, [loadList])
 
-  const generateQuestions = (words, numOptions = null) => {
-    const effectiveOptionsCount = numOptions ?? optionsCount
-    const testWordsWithOptions = words.map(word => {
-      const otherWords = originalWords.length > 0
-        ? originalWords.filter(w => w.id !== word.id)
-        : words.filter(w => w.id !== word.id)
-      const shuffledOthers = shuffleArray(otherWords)
-      // Use optionsCount from assignment (optionsCount - 1 distractors + 1 correct = optionsCount total)
-      const distractors = shuffledOthers.slice(0, effectiveOptionsCount - 1).map(w => ({
-        wordId: w.id,
-        definition: w.definition,
-        isCorrect: false
-      }))
-
-      const options = shuffleArray([
-        { wordId: word.id, definition: word.definition, isCorrect: true },
-        ...distractors
-      ])
-
-      return {
-        ...word,
-        options
-      }
-    })
-
-    setTestWords(testWordsWithOptions)
-    setCurrentIndex(0)
-    setAnswers({})
-    answersRef.current = {}
-    setShowResults(false)
-    setCanRetake(false)
-  }
-
   const loadTestWords = useCallback(async () => {
     if (!user?.uid || !listId) return
-    setLoading(true)
+    setIsLoading(true)
     setError('')
     try {
+      // Get the effective word pool (from testConfig or legacy)
+      const effectiveWordPool = testConfig?.wordsToTest || wordPool || []
+
+      // Check for recovery state FIRST - if exists, use saved wordIds to restore exact words
+      const savedState = getTestState(testId)
+      const hasValidRecovery = savedState &&
+        savedState.wordIds?.length > 0 &&
+        !wasIntentionalExit(testId)
+
+      if (hasValidRecovery && effectiveWordPool.length > 0) {
+        // Recovery mode: restore exact words from saved state
+        const wordMap = new Map(effectiveWordPool.map(w => [w.id, w]))
+        const recoveredWords = savedState.wordIds
+          .map(id => wordMap.get(id))
+          .filter(Boolean)
+
+        if (recoveredWords.length > 0) {
+          setOriginalWords(recoveredWords)
+          setWords(recoveredWords)
+          // Don't reset responses - will be restored when user confirms recovery
+          setResults(null)
+          setShowResults(false)
+          setCanRetake(false)
+          setTestResultsData(null)
+          inputRefs.current = new Array(recoveredWords.length)
+          // Trigger recovery prompt
+          setSavedRecoveryState(savedState)
+          setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+          setShowRecoveryPrompt(true)
+          setIsLoading(false)
+          return
+        }
+        // If recovery failed (words not found), fall through to normal flow
+      }
+
       // PATH A: TestConfig provided (from DailySessionFlow with new flow)
       if (testConfig) {
-        // All settings come from testConfig - no need to fetch or apply manually
-        setOptionsCount(testConfig.testOptionsCount)
+        // All settings come from testConfig - already limited by testSize
         setRetakeThreshold(testConfig.passThresholdDecimal)
         setCurrentTestType(testConfig.testType)
-        const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
-        setConfiguredTestSize(effectiveTestSize)
-        setOriginalWords(testConfig.originalWordPool)
-        generateQuestions(testConfig.wordsToTest, testConfig.testOptionsCount)
-        setLoading(false)
+        // Apply MAX_TYPED_TEST_WORDS cap on top of testConfig's limiting
+        const cappedWords = testConfig.wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
+        setOriginalWords(cappedWords)
+        setWords(shuffleArray([...cappedWords]))
+        setResponses({})
+        setResults(null)
+        setShowResults(false)
+        setCanRetake(false)
+        setTestResultsData(null)
+        setFocusedIndex(0)
+        inputRefs.current = new Array(cappedWords.length)
+        setIsLoading(false)
         return
       }
 
       // PATH B: Legacy wordPool provided (backwards compatibility)
       if (wordPool && wordPool.length > 0) {
         // Apply assignment settings if provided
-        const numOptions = assignmentSettings?.testOptionsCount || 4
-        const threshold = (assignmentSettings?.passThreshold || 95) / 100
-        setOptionsCount(numOptions)
-        setRetakeThreshold(threshold)
-        setOriginalWords(wordPool)
-        generateQuestions(wordPool, numOptions)
-        setLoading(false)
+        if (assignmentSettings) {
+          setRetakeThreshold((assignmentSettings.passThreshold || 95) / 100)
+        }
+        const shuffled = shuffleArray([...wordPool])
+        const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
+        setOriginalWords(cappedWords)
+        setWords(cappedWords)
+        setResponses({})
+        setResults(null)
+        setShowResults(false)
+        setCanRetake(false)
+        setTestResultsData(null)
+        setFocusedIndex(0)
+        inputRefs.current = new Array(cappedWords.length)
+        setIsLoading(false)
         return
       }
 
@@ -270,13 +322,10 @@ const MCQTest = () => {
 
       // Set pass threshold from assignment (stored as percentage, convert to decimal)
       setRetakeThreshold((assignment.passThreshold || 95) / 100)
-      // Set MCQ options count from assignment
-      setOptionsCount(assignment.testOptionsCount || 4)
 
       const testSize = currentTestType === 'new'
         ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)
         : (assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW)
-      setConfiguredTestSize(testSize)
 
       let wordsToTest = []
 
@@ -317,8 +366,8 @@ const MCQTest = () => {
         } else {
           // Fallback: load all words if no segment (day 1)
           const wordsRef = collection(db, 'lists', listId, 'words')
-          const snap = await getDocs(query(wordsRef, orderBy('position', 'asc')))
-          const allWords = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          const snap = await getDocs(query(wordsRef, orderBy('createdAt', 'asc')))
+          const allWords = snap.docs.map((d, i) => ({ id: d.id, wordIndex: i, ...d.data() }))
           wordsToTest = selectTestWords(allWords, testSize)
         }
       }
@@ -327,242 +376,145 @@ const MCQTest = () => {
         throw new Error('No words available for testing.')
       }
 
-      setOriginalWords(wordsToTest)
-      generateQuestions(wordsToTest)
+      // Check for recovery in standalone mode
+      if (hasValidRecovery) {
+        const wordMap = new Map(wordsToTest.map(w => [w.id, w]))
+        const recoveredWords = savedState.wordIds
+          .map(id => wordMap.get(id))
+          .filter(Boolean)
+
+        if (recoveredWords.length > 0) {
+          setOriginalWords(recoveredWords)
+          setWords(recoveredWords)
+          // Don't reset responses - will be restored when user confirms recovery
+          setResults(null)
+          setShowResults(false)
+          setCanRetake(false)
+          setTestResultsData(null)
+          inputRefs.current = new Array(recoveredWords.length)
+          // Trigger recovery prompt
+          setSavedRecoveryState(savedState)
+          setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
+          setShowRecoveryPrompt(true)
+          return
+        }
+        // If recovery failed, fall through to normal flow
+      }
+
+      // Apply hard cap for typed tests (with randomization)
+      const shuffledWords = shuffleArray([...wordsToTest])
+      const cappedWords = shuffledWords.slice(0, MAX_TYPED_TEST_WORDS)
+      setOriginalWords(cappedWords)
+      setWords(cappedWords)
+      setResponses({})
+      setResults(null)
+      setShowResults(false)
+      setCanRetake(false)
+      setTestResultsData(null)
+      setFocusedIndex(0)
+      inputRefs.current = new Array(cappedWords.length)
     } catch (err) {
-      setError(err.message || 'Failed to load test')
+      setError(err.message ?? 'Unable to load test.')
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }, [user?.uid, listId, classIdParam, currentTestType, wordPool, testConfig])
+  }, [user?.uid, listId, classIdParam, currentTestType, wordPool, testId, testConfig])
 
   useEffect(() => {
     loadTestWords()
   }, [loadTestWords])
 
-  // Check for recoverable test state on mount
-  useEffect(() => {
-    if (!testId || loading) return
 
-    const saved = getTestState(testId)
-    if (saved && Object.keys(saved.answers || {}).length > 0) {
-      // Check if user left intentionally (via beforeunload dialog)
-      if (wasIntentionalExit(testId)) {
-        // User intentionally left - clear saved state and start fresh
-        clearTestState(testId)
-        return
-      }
-      // Unintentional exit (crash/disconnect) - offer recovery
-      setSavedRecoveryState(saved)
-      setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
-      setShowRecoveryPrompt(true)
+  // Auto-focus first input when words load
+  useEffect(() => {
+    if (words.length > 0 && inputRefs.current[0] && !results) {
+      inputRefs.current[0]?.focus()
     }
-  }, [testId, loading])
+  }, [words.length, results])
+
+  // Scroll to focused input
+  useEffect(() => {
+    if (inputRefs.current[focusedIndex] && !results) {
+      inputRefs.current[focusedIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+  }, [focusedIndex, results])
+
+  // Recovery is now handled in loadTestWords to ensure words are restored before showing prompt
 
   // Save test state on each answer (for recovery)
   useEffect(() => {
-    if (!testId || testWords.length === 0 || showResults) return
+    if (!testId || words.length === 0 || showResults) return
 
-    const wordIds = testWords.map(w => w.id)
-    if (Object.keys(answers).length > 0) {
-      saveTestState(testId, answers, wordIds, currentIndex)
+    const wordIds = words.map(w => w.id)
+    if (Object.keys(responses).length > 0) {
+      saveTestState(testId, responses, wordIds, focusedIndex)
     }
-  }, [answers, testId, testWords, currentIndex, showResults])
+  }, [responses, testId, words, focusedIndex, showResults])
+
+  // Measure header height after render
+  useEffect(() => {
+    if (headerRef.current) {
+      const height = headerRef.current.getBoundingClientRect().height
+      setHeaderHeight(height)
+    }
+  }, [words.length])
+
+  // Calculate question opacities on scroll
+  useEffect(() => {
+    if (headerHeight === 0 || words.length === 0) return
+
+    const calculateOpacities = () => {
+      const newOpacities = questionRefs.current.map((ref) => {
+        if (!ref) return 1
+        const rect = ref.getBoundingClientRect()
+        const questionTop = rect.top
+
+        // Binary: visible below header, hidden at or above
+        return questionTop >= headerHeight ? 1 : 0
+      })
+      setQuestionOpacities(newOpacities)
+    }
+
+    // Calculate initially
+    calculateOpacities()
+
+    // Listen to window scroll (page scrolls at window level, not content div)
+    window.addEventListener('scroll', calculateOpacities)
+
+    return () => {
+      window.removeEventListener('scroll', calculateOpacities)
+    }
+  }, [headerHeight, words.length])
 
   // Handle recovery - restore saved answers
   const handleRecoveryResume = () => {
     // Clear any stale intentional exit flag
     clearIntentionalExitFlag(testId)
     if (savedRecoveryState?.answers) {
-      setAnswers(savedRecoveryState.answers)
-      answersRef.current = { ...savedRecoveryState.answers }
+      setResponses(savedRecoveryState.answers)
       if (savedRecoveryState.currentIndex !== undefined) {
-        setCurrentIndex(savedRecoveryState.currentIndex)
+        setFocusedIndex(savedRecoveryState.currentIndex)
       }
     }
     setShowRecoveryPrompt(false)
     setSavedRecoveryState(null)
   }
 
-  // Handle recovery - start fresh
+  // Handle recovery - start fresh (re-randomize words)
   const handleRecoveryStartFresh = () => {
     clearTestState(testId)
     setShowRecoveryPrompt(false)
     setSavedRecoveryState(null)
-  }
-
-  const handleAnswerSelect = (wordId, option) => {
-    // Update ref synchronously (for reliable submit)
-    answersRef.current[wordId] = option
-    // Update state for UI
-    setAnswers((prev) => ({
-      ...prev,
-      [wordId]: option,
-    }))
-
-    // Auto-advance to next question (unless on last question)
-    if (currentIndex < testWords.length - 1) {
-      setCurrentIndex(prev => prev + 1)
-    }
-  }
-
-  // Navigation functions
-  const goToPrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-    }
-  }
-
-  const goToNext = () => {
-    if (currentIndex < testWords.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-    }
-  }
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (showResults || submitting) return
-      if (e.key === 'ArrowLeft') {
-        goToPrev()
-      } else if (e.key === 'ArrowRight') {
-        goToNext()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex, testWords.length, showResults, submitting])
-
-  const handleSubmit = async () => {
-    if (submitting || !user?.uid || !listId) return
-
-    setSubmitting(true)
-    setError('')
-
-    try {
-      // Clear saved test state
-      clearTestState(testId)
-
-      // Build results array (read from ref for sync access)
-      const currentAnswers = answersRef.current
-      const results = testWords.map((word) => {
-        const selectedOption = currentAnswers[word.id]
-        return {
-          wordId: word.id,
-          correct: selectedOption?.isCorrect || false
-        }
-      })
-
-      // DEBUG: Log all results to find the mismatch
-      console.log('DEBUG MCQ Results:', {
-        testWordsCount: testWords.length,
-        answersCount: Object.keys(currentAnswers).length,
-        results: results.map((r, i) => ({
-          index: i + 1,
-          wordId: r.wordId,
-          correct: r.correct,
-          hasAnswer: !!currentAnswers[r.wordId],
-          answerIsCorrect: currentAnswers[r.wordId]?.isCorrect
-        }))
-      })
-
-      if (results.length === 0) {
-        setError('Please answer at least one question before submitting.')
-        setSubmitting(false)
-        return
-      }
-
-      // Process test results (updates word statuses) - skip if practice mode
-      let summary
-      if (isPracticeMode) {
-        // Calculate score locally without saving
-        const correct = results.filter(r => r.correct).length
-        summary = {
-          score: correct / results.length,
-          correct,
-          total: results.length,
-          failed: results.filter(r => !r.correct).map(r => r.wordId)
-        }
-      } else {
-        summary = await processTestResults(user.uid, results, listId)
-      }
-
-      // Calculate score
-      const score = summary.score
-      const percentage = Math.round(score * 100)
-
-      // Check if retake is available (new word test below threshold)
-      if (currentTestType === 'new' && score < retakeThreshold) {
-        setCanRetake(true)
-      }
-
-      // Store results for display
-      const answerArray = Object.entries(answers).map(([wordId, option]) => {
-        const testWord = testWords.find((w) => w.id === wordId)
-        return {
-          wordId,
-          word: testWord?.word || '',
-          correctAnswer: testWord?.definition || '',
-          studentResponse: option?.definition || '',
-          isCorrect: option?.isCorrect || false,
-        }
-      })
-
-      // Submit attempt for gradebook (non-practice mode only)
-      if (!isPracticeMode) {
-        const result = await submitTestAttempt(
-          user.uid,
-          testId,
-          answerArray,
-          testWords.length,
-          classIdParam
-        )
-        setAttemptId(result.id)
-      }
-
-      setTestResultsData({
-        score: summary.score, // Store as decimal (0-1), not percentage
-        correct: summary.correct,
-        total: summary.total,
-        failed: summary.failed,
-        testType: currentTestType,
-        answerArray
-      })
-
-      setShowResults(true)
-    } catch (err) {
-      setError(err.message || 'Failed to submit test')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleRetake = () => {
-    // Reset test state
-    setAnswers({})
-    answersRef.current = {}
-    setCurrentIndex(0)
-    setShowResults(false)
-    setCanRetake(false)
-    setTestResultsData(null)
-
-    // Re-shuffle words for retake - use configured test size, not full pool size
-    const shuffled = selectTestWords(originalWords, configuredTestSize)
-    generateQuestions(shuffled)
-  }
-
-  const handleFinish = () => {
-    if (returnPath) {
-      navigate(returnPath, {
-        state: {
-          testCompleted: true,
-          testType: currentTestType,
-          results: testResultsData
-        }
-      })
-    } else {
-      navigate('/')
-    }
+    // Re-shuffle the words for a fresh start
+    const shuffled = shuffleArray([...words])
+    setWords(shuffled)
+    setOriginalWords(shuffled)
+    setResponses({})
+    setFocusedIndex(0)
+    inputRefs.current = new Array(shuffled.length)
   }
 
   // Quit test with confirmation - always go to Dashboard
@@ -572,21 +524,141 @@ const MCQTest = () => {
     navigate('/')
   }
 
-  const handlePlayAudio = async (word) => {
-    if (!word || isPlayingAudio) return
-    setIsPlayingAudio(true)
-    try {
-      await speak(word)
-    } catch (error) {
-      console.error('Failed to play audio:', error)
-    } finally {
-      setIsPlayingAudio(false)
+  const handleKeyDown = (e, index) => {
+    if (results || isSubmitting) return
+
+    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
+      e.preventDefault()
+      const nextIndex = index + 1
+      if (nextIndex < words.length) {
+        setFocusedIndex(nextIndex)
+        inputRefs.current[nextIndex]?.focus()
+      } else {
+        // Last input - show confirmation modal
+        setShowSubmitConfirm(true)
+      }
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault()
+      const prevIndex = index - 1
+      if (prevIndex >= 0) {
+        setFocusedIndex(prevIndex)
+        inputRefs.current[prevIndex]?.focus()
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const nextIndex = Math.min(index + 1, words.length - 1)
+      setFocusedIndex(nextIndex)
+      inputRefs.current[nextIndex]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const prevIndex = Math.max(index - 1, 0)
+      setFocusedIndex(prevIndex)
+      inputRefs.current[prevIndex]?.focus()
     }
   }
 
-  if (loading) {
+  const handleSubmit = async () => {
+    if (!user?.uid || !listId || isSubmitting || showResults) return
+
+    setIsSubmitting(true)
+    setError('')
+
+    try {
+      // Clear saved test state
+      clearTestState(testId)
+
+      // Prepare answers for grading
+      const answersToGrade = words.map((word) => ({
+        wordId: word.id,
+        word: word.word,
+        correctDefinition: word.definition,
+        studentResponse: responses[word.id] || '',
+      }))
+
+      // Call Cloud Function for AI grading
+      const functions = getFunctions()
+      const gradeTypedTest = httpsCallable(functions, 'gradeTypedTest')
+
+      const gradingResult = await gradeTypedTest({ answers: answersToGrade })
+
+      // Build results array for processTestResults
+      const resultsArray = gradingResult.data.results.map(r => ({
+        wordId: r.wordId,
+        correct: r.isCorrect
+      }))
+
+      // Process test results (updates word statuses) - skip if practice mode
+      let summary
+      if (isPracticeMode) {
+        // Calculate score locally without saving
+        const correct = resultsArray.filter(r => r.correct).length
+        summary = {
+          score: correct / resultsArray.length,
+          correct,
+          total: resultsArray.length,
+          failed: resultsArray.filter(r => !r.correct).map(r => r.wordId)
+        }
+      } else {
+        summary = await processTestResults(user.uid, resultsArray, listId)
+
+        // Submit attempt for gradebook
+        const result = await submitTypedTestAttempt(
+          user.uid,
+          testId,
+          words,
+          responses,
+          gradingResult.data.results,
+          classIdParam
+        )
+        setAttemptId(result.id)
+      }
+
+      // Check if retake available
+      if (currentTestType === 'new' && summary.score < retakeThreshold) {
+        setCanRetake(true)
+      }
+
+      // Store for display
+      setTestResultsData({
+        score: Math.round(summary.score * 100),
+        correct: summary.correct,
+        total: summary.total,
+        failed: summary.failed,
+        gradedResults: gradingResult.data.results, // Include detailed grading for review
+        testType: currentTestType
+      })
+
+      setResults(gradingResult.data.results)
+      setShowResults(true)
+    } catch (err) {
+      console.error('Grading error:', err)
+      setError(err.message ?? 'Failed to grade test. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleRetake = () => {
+    setResponses({})
+    setFocusedIndex(0)
+    setShowResults(false)
+    setCanRetake(false)
+    setTestResultsData(null)
+    setResults(null)
+
+    // Regenerate from original words (shuffled, capped at MAX_TYPED_TEST_WORDS)
+    const shuffled = [...originalWords].sort(() => Math.random() - 0.5)
+    const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
+    setWords(cappedWords)
+    inputRefs.current = new Array(cappedWords.length)
+  }
+
+  const answeredCount = Object.values(responses).filter((r) => r.trim() !== '').length
+
+
+  if (isLoading) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-base">
+      <main className="relative flex min-h-screen items-center justify-center bg-muted">
         <Watermark />
         <div className="relative z-10">
           <LoadingSpinner size="lg" />
@@ -597,7 +669,7 @@ const MCQTest = () => {
 
   if (error && !showResults) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center bg-base px-4">
+      <main className="relative flex min-h-screen items-center justify-center bg-muted px-4">
         <Watermark />
         <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
           <p className="text-lg font-semibold text-text-primary">Something went wrong</p>
@@ -605,7 +677,7 @@ const MCQTest = () => {
           <Button variant="primary-blue" size="lg" onClick={loadTestWords} className="mt-6">
             Try Again
           </Button>
-          <Button variant="outline" size="lg" onClick={() => navigate(returnPath || '/')} className="mt-4">
+          <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-4">
             Go Back
           </Button>
         </div>
@@ -613,37 +685,48 @@ const MCQTest = () => {
     )
   }
 
-  if (showResults && testResultsData) {
-    // Format data for TestResults component
-    const formattedWords = testWords.map(w => ({
-      id: w.id,
-      word: w.word,
-      definition: w.definition,
-    }))
+  if (!words.length) {
+    return (
+      <main className="relative flex min-h-screen items-center justify-center bg-muted px-4">
+        <Watermark />
+        <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
+          <p className="text-lg font-semibold text-text-primary">No Test Content</p>
+          <p className="mt-3 text-sm text-text-muted">Your teacher hasn't assigned enough words yet.</p>
+          <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-6">
+            Go Back
+          </Button>
+        </div>
+      </main>
+    )
+  }
 
-    const userAnswers = {}
-    Object.entries(answers).forEach(([wordId, option]) => {
-      userAnswers[wordId] = option?.definition || ''
-    })
-
-    const resultsArray = Object.entries(answers).map(([wordId, option]) => ({
-      wordId,
-      isCorrect: option?.isCorrect || false,
-    }))
-
-    // Calculate step numbers for SessionHeader
+  // Results Mode
+  if (showResults && testResultsData && results) {
     const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
     const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
 
-    const score = testResultsData.score // Decimal 0-1
-    const scorePercent = Math.round(score * 100)
+    const handleBackToSession = () => {
+      if (returnPath) {
+        navigate(returnPath, {
+          state: {
+            testCompleted: true,
+            testType: currentTestType,
+            results: testResultsData
+          }
+        })
+      } else {
+        navigate('/')
+      }
+    }
+
+    const score = testResultsData.score
     const dayNumber = sessionContext?.dayNumber || 1
 
     // Render results card based on test type
     const renderResultsCard = () => {
       // New Word Test: Pass/Fail based on threshold
       if (currentTestType === 'new') {
-        const passed = score >= retakeThreshold
+        const passed = score >= (retakeThreshold * 100)
 
         return (
           <div className={`rounded-2xl p-8 text-center shadow-xl ${
@@ -664,7 +747,7 @@ const MCQTest = () => {
 
             {/* Header */}
             <h2 className={`text-xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
-              {passed ? 'New Words Test Passed!' : 'Did not pass'}
+              {passed ? `Completed Day ${dayNumber} session` : 'Did not pass'}
             </h2>
 
             {!passed && (
@@ -675,7 +758,7 @@ const MCQTest = () => {
 
             {/* Score */}
             <p className={`mt-4 text-4xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
-              {scorePercent}%
+              {score}%
             </p>
             <p className={passed ? 'text-text-on-success-muted' : 'text-text-on-error-muted'}>
               {testResultsData.correct} of {testResultsData.total} correct
@@ -685,13 +768,13 @@ const MCQTest = () => {
             <div className="mt-6">
               {passed ? (
                 <Button
-                  variant="primary-blue"
+                  variant="primary"
                   size="lg"
-                  onClick={handleFinish}
+                  onClick={handleBackToSession}
                   className="inline-flex items-center gap-2"
                 >
                   <LayoutGrid className="w-5 h-5" />
-                  Continue
+                  Return to Dashboard
                 </Button>
               ) : (
                 <div className="flex justify-center gap-4">
@@ -718,10 +801,10 @@ const MCQTest = () => {
         )
       }
 
-      // Review Test: 4-tier system (compare percentage values)
-      const tier = scorePercent >= 85 ? 'excellent'
-                 : scorePercent >= 70 ? 'good'
-                 : scorePercent >= 50 ? 'needs-work'
+      // Review Test: 4-tier system
+      const tier = score >= 85 ? 'excellent'
+                 : score >= 70 ? 'good'
+                 : score >= 50 ? 'needs-work'
                  : 'critical'
 
       const tierConfig = {
@@ -786,7 +869,7 @@ const MCQTest = () => {
 
           {/* Score */}
           <p className={`mt-4 text-4xl font-bold ${config.scoreColor}`}>
-            {scorePercent}%
+            {score}%
           </p>
           <p className={config.subtextColor}>
             {testResultsData.correct} of {testResultsData.total} correct
@@ -798,7 +881,7 @@ const MCQTest = () => {
               <Button
                 variant="primary"
                 size="lg"
-                onClick={handleFinish}
+                onClick={handleBackToSession}
                 className="inline-flex items-center gap-2"
               >
                 <LayoutGrid className="w-5 h-5" />
@@ -811,7 +894,7 @@ const MCQTest = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={handleFinish}
+                  onClick={handleBackToSession}
                   className="flex-1 max-w-[140px]"
                 >
                   Continue
@@ -878,13 +961,13 @@ const MCQTest = () => {
         <Watermark />
 
         <SessionHeader
-          onBack={handleFinish}
+          onBack={handleBackToSession}
           backAriaLabel="Back to session"
           stepText={`Step ${resultsStepNumber} of ${resultsTotalSteps}`}
           onStepClick={() => setShowProgressSheet(true)}
           rightSlot={<GreyedMenuIcon />}
           sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
-          dayNumber={dayNumber}
+          dayNumber={sessionContext?.dayNumber || 1}
         />
 
         {/* Scrollable content area */}
@@ -895,16 +978,17 @@ const MCQTest = () => {
 
             {/* Card 2: Detailed results */}
             <TestResults
-              testType="mcq"
+              testType="typed"
               listTitle={listDetails?.title}
-              words={formattedWords}
-              responses={userAnswers}
-              results={resultsArray}
+              words={words}
+              responses={responses}
+              results={results}
               attemptId={attemptId}
             />
           </div>
         </div>
 
+        {/* Session Progress Sheet */}
         <SessionProgressSheet
           isOpen={showProgressSheet}
           onClose={() => setShowProgressSheet(false)}
@@ -915,177 +999,124 @@ const MCQTest = () => {
     )
   }
 
-  if (!testWords.length) {
-    return (
-      <main className="relative flex min-h-screen items-center justify-center bg-base px-4">
-        <Watermark />
-        <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
-          <p className="text-lg font-semibold text-text-primary">No Test Content</p>
-          <p className="mt-3 text-sm text-text-muted">Your teacher hasn't assigned enough words yet.</p>
-          <Button variant="outline" size="lg" onClick={() => navigate(returnPath || '/')} className="mt-6">
-            Go Back
-          </Button>
-        </div>
-      </main>
-    )
+  // Calculate step info for header pill
+  const stepNumber = sessionContext?.phase === 'new' ? 2 : 4
+  const totalSteps = sessionContext?.isFirstDay ? 3 : 5
+  const progressPercent = words.length > 0 ? (answeredCount / words.length) * 100 : 0
+  const unansweredCount = words.length - answeredCount
+
+  // Handle submit button click - show confirmation if there are unanswered questions
+  const handleSubmitClick = () => {
+    if (unansweredCount > 0) {
+      setShowSubmitConfirm(true)
+    } else {
+      handleSubmit()
+    }
   }
 
-  // Active Test Screen
-  const currentWord = testWords[currentIndex]
-  const progress = ((currentIndex + 1) / testWords.length) * 100
-  const answeredCount = Object.keys(answers).length
-
+  // Test Mode
   return (
-    <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-900">
+    <main className="relative flex min-h-screen flex-col bg-muted">
       <Watermark />
-      <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Progress Bar & Quit Button */}
-        <div className="sticky top-0 z-10 border-b border-border-default bg-surface/80 px-4 py-3 backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1">
-              <div className="mb-1 flex items-center justify-between text-xs text-text-secondary">
-                <span>
-                  Question {currentIndex + 1} of {testWords.length}
-                </span>
-                <span>{answeredCount} answered</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-inset">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+
+      {/* Sticky Header with session context + progress */}
+      <SessionHeader
+        ref={headerRef}
+        onBack={() => setShowQuitConfirm(true)}
+        backAriaLabel="Quit test"
+        backDisabled={isSubmitting}
+        stepText={`Step ${stepNumber} of ${totalSteps}`}
+        onStepClick={() => setShowProgressSheet(true)}
+        rightSlot={<GreyedMenuIcon />}
+        // Session context
+        sessionTitle={sessionContext?.phase === 'new' ? 'New Words Test' : 'Review Test'}
+        dayNumber={sessionContext?.dayNumber || 1}
+        // Progress bar
+        progressPercent={progressPercent}
+        progressLabel={`${answeredCount} of ${words.length} answered`}
+      />
+
+      {/* Session Progress Sheet */}
+      <SessionProgressSheet
+        isOpen={showProgressSheet}
+        onClose={() => setShowProgressSheet(false)}
+        currentPhase={sessionContext?.phase === 'new' ? 'new_word_test' : 'review_test'}
+        isFirstDay={sessionContext?.isFirstDay}
+        dayNumber={sessionContext?.dayNumber || 1}
+        wordRangeStart={sessionContext?.wordRangeStart}
+        wordRangeEnd={sessionContext?.wordRangeEnd}
+      />
+
+      {/* Main Content Area */}
+      <div ref={contentRef} className="relative z-10 flex-1 overflow-y-auto px-4 pt-4 pb-24">
+        <div className="mx-auto max-w-4xl">
+          {/* Practice Mode Banner */}
+          {isPracticeMode && (
+            <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-4 py-2 text-center dark:bg-amber-900/20 dark:border-amber-800">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                Practice Mode — This attempt won't be recorded
+              </p>
+            </div>
+          )}
+
+          {/* Words List */}
+          <div className="space-y-4">
+            {words.map((word, index) => (
+              <div
+                key={word.id}
+                ref={(el) => (questionRefs.current[index] = el)}
+                className="flex flex-col gap-2 rounded-xl bg-surface p-4 shadow-sm ring-1 ring-border-default"
+                style={{ opacity: questionOpacities[index] ?? 1 }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex w-8 shrink-0 items-center justify-center text-sm font-semibold text-text-secondary">
+                    {index + 1}.
+                  </span>
+                  <span className="font-medium text-text-primary">{word.word}</span>
+                  {word.partOfSpeech && (
+                    <span className="text-sm italic text-text-muted">({word.partOfSpeech})</span>
+                  )}
+                </div>
+                <input
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  value={responses[word.id] || ''}
+                  onChange={(e) =>
+                    setResponses((prev) => ({
+                      ...prev,
+                      [word.id]: e.target.value,
+                    }))
+                  }
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onFocus={() => setFocusedIndex(index)}
+                  placeholder="Type your definition..."
+                  disabled={isSubmitting || results !== null}
+                  className="ml-11 rounded-lg border border-border-default bg-muted px-4 py-3 text-text-primary outline-none ring-border-strong transition focus:bg-surface focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => setShowQuitConfirm(true)} disabled={submitting}>
-              ← Quit
-            </Button>
-          </div>
-        </div>
-
-        {/* Session Context Header */}
-        {sessionContext && (
-          <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-center dark:bg-blue-900/20 dark:border-blue-800">
-            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-              {currentTestType === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext?.dayNumber}
-            </p>
-            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Practice Mode Banner */}
-        {isPracticeMode && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
-            <p className="text-sm font-medium text-amber-800">
-              Practice Mode — This attempt won't be recorded
-            </p>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-6 px-4 py-6">
-          {/* Navigation arrows + Question Card */}
-          <div className="flex items-center gap-2 w-full max-w-2xl">
-            {/* Left arrow */}
-            <button
-              onClick={goToPrev}
-              disabled={currentIndex === 0}
-              className="p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Previous question"
-            >
-              <ChevronLeft className="w-8 h-8" />
-            </button>
-
-            {/* Question Card */}
-            <div className="flex-1">
-              <div className="flex aspect-[2/1] flex-col items-center justify-center rounded-3xl border-2 border-border-default bg-surface p-8 shadow-xl">
-                <div className="text-center">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <h2 className="text-4xl font-bold text-text-primary md:text-5xl">{currentWord.word}</h2>
-                    {currentWord.partOfSpeech && (
-                      <p className="text-lg italic text-text-muted md:text-xl">({currentWord.partOfSpeech})</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePlayAudio(currentWord.word)}
-                    disabled={isPlayingAudio}
-                    className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-200 disabled:opacity-60"
-                  >
-                    {isPlayingAudio ? '🔊 Playing...' : '🔊 Play Audio'}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right arrow */}
-            <button
-              onClick={goToNext}
-              disabled={currentIndex === testWords.length - 1}
-              className="p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-              aria-label="Next question"
-            >
-              <ChevronRight className="w-8 h-8" />
-            </button>
+            ))}
           </div>
 
-          {/* Answer Grid */}
-          <div
-            className={`relative z-10 grid w-full max-w-2xl gap-3 ${
-              currentWord.options.length <= 4 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'
-            }`}
-          >
-            {currentWord.options.map((option, optIndex) => {
-              const isSelected = answers[currentWord.id]?.wordId === option.wordId
-              return (
-                <button
-                  key={optIndex}
-                  type="button"
-                  onClick={() => handleAnswerSelect(currentWord.id, option)}
-                  disabled={submitting}
-                  className={`min-h-[80px] rounded-2xl border-2 p-4 text-left transition-all ${
-                    isSelected
-                      ? 'scale-105 border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-border-default bg-surface hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-md'
-                  } disabled:opacity-60`}
-                >
-                  <span className="text-sm font-medium text-text-secondary">{option.definition}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Submit Button */}
-          <div className="w-full max-w-2xl pt-4">
-            <div className="flex justify-center">
-              <Button
-                variant="primary-blue"
-                size="lg"
-                className="w-1/2"
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : `Submit Test (${answeredCount}/${testWords.length} answered)`}
-              </Button>
-            </div>
-            {answeredCount < testWords.length && (
-              <p className="mt-2 text-center text-sm text-amber-600">
-                Unanswered questions will be marked as incorrect
-              </p>
-            )}
-          </div>
-        </div>
-
-        {error && (
-          <div className="px-4 pb-4">
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error && (
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
               {error}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </div>
+
+      {/* Sticky Bottom Footer with Submit Button */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-4">
+        <div className="mx-auto max-w-4xl flex justify-center">
+          <Button
+            variant="primary-blue"
+            size="lg"
+            onClick={handleSubmitClick}
+            disabled={isSubmitting || answeredCount === 0}
+          >
+            {isSubmitting ? 'Grading...' : 'Submit Test'}
+          </Button>
+        </div>
       </div>
 
       {/* Quit Confirmation Modal */}
@@ -1098,6 +1129,23 @@ const MCQTest = () => {
         onConfirm={handleQuitConfirm}
         onCancel={() => setShowQuitConfirm(false)}
         variant="danger"
+      />
+
+      {/* Submit Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showSubmitConfirm}
+        title="Submit Test?"
+        message={unansweredCount > 0
+          ? `Are you sure you want to submit? There ${unansweredCount === 1 ? 'is' : 'are'} ${unansweredCount} question${unansweredCount === 1 ? '' : 's'} you still have not answered.`
+          : 'Are you sure you want to submit your answers?'}
+        confirmLabel="Submit"
+        cancelLabel="Go Back"
+        onConfirm={() => {
+          setShowSubmitConfirm(false)
+          handleSubmit()
+        }}
+        onCancel={() => setShowSubmitConfirm(false)}
+        variant="warning"
       />
 
       {/* Recovery Prompt Modal */}
@@ -1115,5 +1163,5 @@ const MCQTest = () => {
   )
 }
 
-export default MCQTest
+export default TypedTest
 

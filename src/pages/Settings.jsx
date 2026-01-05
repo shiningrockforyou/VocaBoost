@@ -1,17 +1,114 @@
-import { Moon, Sun, Circle, Square, RotateCcw, ArrowLeft } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Moon, Sun, Circle, Square, RotateCcw, ArrowLeft, AlertTriangle, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 import HeaderBar from '../components/HeaderBar'
 import { Card, Button } from '../components/ui'
+import { fetchStudentClasses, resetStudentProgress } from '../services/db'
 
 const Settings = () => {
-  const { 
+  const {
     theme, setLightMode, setDarkMode,
     roundness, setRoundness,
     borderWeight, setBorderWeight,
     resetToDefaults,
   } = useTheme()
+  const { user } = useAuth()
   const navigate = useNavigate()
+
+  // Reset Progress state
+  const [studentClasses, setStudentClasses] = useState([])
+  const [classesLoading, setClassesLoading] = useState(false)
+  const [selectedClassId, setSelectedClassId] = useState('')
+  const [selectedListId, setSelectedListId] = useState('')
+  const [showConfirmModal1, setShowConfirmModal1] = useState(false)
+  const [showConfirmModal2, setShowConfirmModal2] = useState(false)
+  const [resetInput, setResetInput] = useState('')
+  const [isResetting, setIsResetting] = useState(false)
+  const [resetSuccess, setResetSuccess] = useState('')
+  const [resetError, setResetError] = useState('')
+
+  // Load student classes
+  const loadClasses = useCallback(async () => {
+    if (!user?.uid || user?.role === 'teacher') return
+    setClassesLoading(true)
+    try {
+      const classes = await fetchStudentClasses(user.uid)
+      setStudentClasses(classes)
+    } catch (err) {
+      console.error('Failed to load classes:', err)
+    } finally {
+      setClassesLoading(false)
+    }
+  }, [user?.uid, user?.role])
+
+  useEffect(() => {
+    loadClasses()
+  }, [loadClasses])
+
+  // Get lists for selected class
+  const selectedClass = studentClasses.find(c => c.id === selectedClassId)
+  const availableLists = selectedClass?.assignedListDetails || []
+  const selectedList = availableLists.find(l => l.id === selectedListId)
+
+  // Handle class selection change
+  const handleClassChange = (e) => {
+    setSelectedClassId(e.target.value)
+    setSelectedListId('') // Reset list selection when class changes
+    setResetSuccess('')
+    setResetError('')
+  }
+
+  // Handle list selection change
+  const handleListChange = (e) => {
+    setSelectedListId(e.target.value)
+    setResetSuccess('')
+    setResetError('')
+  }
+
+  // Handle reset button click - show first modal
+  const handleResetClick = () => {
+    setShowConfirmModal1(true)
+    setResetError('')
+  }
+
+  // Handle first modal continue - show second modal
+  const handleConfirm1Continue = () => {
+    setShowConfirmModal1(false)
+    setShowConfirmModal2(true)
+    setResetInput('')
+  }
+
+  // Handle final reset confirmation
+  const handleFinalReset = async () => {
+    if (resetInput !== 'RESET') return
+
+    setIsResetting(true)
+    setResetError('')
+    try {
+      await resetStudentProgress(user.uid, selectedClassId, selectedListId)
+      setResetSuccess(`Progress for "${selectedClass?.name} - ${selectedList?.title}" has been reset.`)
+      setShowConfirmModal2(false)
+      setSelectedClassId('')
+      setSelectedListId('')
+      setResetInput('')
+    } catch (err) {
+      setResetError(err.message || 'Failed to reset progress')
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
+  // Close modals
+  const closeModals = () => {
+    setShowConfirmModal1(false)
+    setShowConfirmModal2(false)
+    setResetInput('')
+  }
+
+  const isStudent = user?.role !== 'teacher'
+  const canReset = selectedClassId && selectedListId
 
   return (
     <main className="min-h-screen bg-base px-4 py-10 transition-colors">
@@ -50,7 +147,7 @@ const Settings = () => {
 
         {/* Settings Card */}
         <Card variant="section" className="space-y-8">
-          
+
           {/* Theme Section */}
           <div>
             <h2 className="text-lg font-heading font-bold text-text-primary mb-2">
@@ -158,7 +255,7 @@ const Settings = () => {
                 <p className="text-sm font-medium text-text-primary mb-2">Sample Card</p>
                 <p className="text-xs text-text-muted">This is a preview of your current settings.</p>
               </Card>
-              
+
               <div className="flex flex-col gap-2">
                 <Button variant="primary" size="md">Primary Button</Button>
                 <Button variant="outline" size="md">Outline Button</Button>
@@ -167,8 +264,197 @@ const Settings = () => {
             </div>
           </div>
 
+          {/* Reset Progress Section - Only show for students */}
+          {isStudent && (
+            <>
+              <hr className="border-border-default" />
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle size={20} className="text-red-500" />
+                  <h2 className="text-lg font-heading font-bold text-red-600">
+                    Reset Progress
+                  </h2>
+                </div>
+                <p className="text-sm text-text-muted mb-4">
+                  Reset your study progress for a specific class and list. This will delete all your study history and start fresh.
+                </p>
+
+                {classesLoading ? (
+                  <p className="text-sm text-text-muted">Loading classes...</p>
+                ) : studentClasses.length === 0 ? (
+                  <p className="text-sm text-text-muted">No classes enrolled.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Class Dropdown */}
+                    <div>
+                      <label htmlFor="reset-class" className="block text-sm font-medium text-text-primary mb-1">
+                        Select Class
+                      </label>
+                      <select
+                        id="reset-class"
+                        value={selectedClassId}
+                        onChange={handleClassChange}
+                        className="w-full max-w-xs px-3 py-2 rounded-card border border-border-default bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                      >
+                        <option value="">Choose a class...</option>
+                        {studentClasses.map(cls => (
+                          <option key={cls.id} value={cls.id}>{cls.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* List Dropdown - only show when class is selected */}
+                    {selectedClassId && (
+                      <div>
+                        <label htmlFor="reset-list" className="block text-sm font-medium text-text-primary mb-1">
+                          Select List
+                        </label>
+                        <select
+                          id="reset-list"
+                          value={selectedListId}
+                          onChange={handleListChange}
+                          className="w-full max-w-xs px-3 py-2 rounded-card border border-border-default bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                        >
+                          <option value="">Choose a list...</option>
+                          {availableLists.map(list => (
+                            <option key={list.id} value={list.id}>{list.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Success Message */}
+                    {resetSuccess && (
+                      <p className="text-sm text-green-600 font-medium">{resetSuccess}</p>
+                    )}
+
+                    {/* Error Message */}
+                    {resetError && (
+                      <p className="text-sm text-red-600 font-medium">{resetError}</p>
+                    )}
+
+                    {/* Reset Button */}
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={handleResetClick}
+                      disabled={!canReset}
+                      className="border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <AlertTriangle size={16} />
+                      Reset Progress
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
         </Card>
       </div>
+
+      {/* First Confirmation Modal */}
+      {showConfirmModal1 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-card border border-border-default max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={24} className="text-red-500" />
+                <h3 className="text-lg font-heading font-bold text-text-primary">
+                  Reset Progress?
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeModals}
+                className="text-text-muted hover:text-text-primary"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-text-secondary mb-2">
+              Are you sure you want to reset your progress for:
+            </p>
+            <p className="font-semibold text-text-primary mb-4">
+              {selectedClass?.name} — {selectedList?.title}
+            </p>
+            <p className="text-sm text-text-muted mb-6">
+              This will delete all your study history, test scores, and word mastery data for this list.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" size="md" onClick={closeModals}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleConfirm1Continue}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Second Confirmation Modal - Type RESET */}
+      {showConfirmModal2 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-card border border-border-default max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={24} className="text-red-500" />
+                <h3 className="text-lg font-heading font-bold text-text-primary">
+                  Final Confirmation
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={closeModals}
+                className="text-text-muted hover:text-text-primary"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-text-secondary mb-4">
+              This action <span className="font-bold text-red-600">cannot be undone</span>. To confirm, type <span className="font-mono font-bold">RESET</span> below:
+            </p>
+
+            <input
+              type="text"
+              value={resetInput}
+              onChange={(e) => setResetInput(e.target.value)}
+              placeholder="Type RESET"
+              className="w-full px-3 py-2 rounded-card border border-border-default bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-red-500 mb-6 font-mono"
+              autoFocus
+            />
+
+            {resetError && (
+              <p className="text-sm text-red-600 mb-4">{resetError}</p>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" size="md" onClick={closeModals}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleFinalReset}
+                disabled={resetInput !== 'RESET' || isResetting}
+                className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isResetting ? 'Resetting...' : 'Reset Progress'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
@@ -185,15 +471,15 @@ const OptionButton = ({ active, onClick, icon, label }) => (
     }`}
   >
     <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-      active 
-        ? 'bg-brand-primary text-white' 
+      active
+        ? 'bg-brand-primary text-white'
         : 'bg-muted text-text-muted'
     }`}>
       {icon}
     </div>
     <span className={`text-sm font-semibold ${
-      active 
-        ? 'text-brand-text' 
+      active
+        ? 'text-brand-text'
         : 'text-text-secondary'
     }`}>
       {label}
@@ -219,4 +505,3 @@ const BorderIcon = ({ weight }) => {
 }
 
 export default Settings
-

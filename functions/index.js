@@ -104,22 +104,18 @@ exports.gradeTypedTest = onCall(
       let prompt = `You are grading vocabulary definitions. Grade each answer as correct or incorrect.
 
 GRADING RULES:
-- Be LENIENT - accept any response showing the student understands the core meaning
-- Accept synonyms, paraphrasing, and informal explanations
-- Accept answers in ANY language (Korean, Chinese, Spanish, etc.)
-- Accept partial definitions if they capture the main concept
-- Accept colloquial or imprecise explanations that show conceptual understanding
-- Accept responses that capture the emotional tone or general sense of the word, even if not dictionary-precise
-- For example: 'precarious' answered as 'dangerous, like about to die' should be CORRECT because it captures the sense of instability/risk
-- Mark INCORRECT if: factually wrong, blank, nonsense, defines a different word, OR just repeats the word without defining it
-- Mark INCORRECT if student simply repeats the word itself without providing a definition
-- Mark INCORRECT if response is just the word with minor variations (e.g., 'aberrant' for 'aberrant')
-- When in doubt, mark CORRECT - we prefer false positives over false negatives
+#1 Be LENIENT - accept any response showing the student understands the core meaning
+#2 Definition does not have to be exact, but it should not be an incorrect idea.
+#3 Spelling or grammar mistakes do not matter.
+#4 When in doubt, mark CORRECT - we prefer false positives over false negatives.
+#5 It can be in either Korean, English, or a mix.
+#6 The answer cannot be self-referencing. So that means the response is wrong if it uses the word to define itself.
+#7 Provide an explanation and include it as "reasoning" in the JSON output if you said it was wrong. This should be written as if you are speaking to the student directly.
 
 OUTPUT FORMAT:
 Return a JSON array with one object per word:
 [
-  {"wordId": "abc123", "isCorrect": true, "reasoning": "Accurate synonym provided"},
+  {"wordId": "abc123", "isCorrect": true},
   {"wordId": "def456", "isCorrect": false, "reasoning": "Describes a different concept"}
 ]
 

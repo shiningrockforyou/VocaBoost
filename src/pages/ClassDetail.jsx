@@ -114,14 +114,19 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         const listSnap = await getDoc(doc(db, 'lists', id))
         if (!listSnap.exists()) return null
         
-        const assignment = assignments[id] || { pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5 }
+        const assignment = assignments[id] || {}
         return {
           id: listSnap.id,
           ...listSnap.data(),
-          pace: assignment.pace,
+          pace: assignment.pace ?? 20,
           testOptionsCount: assignment.testOptionsCount ?? 4,
           testMode: assignment.testMode || 'mcq',
           studyDaysPerWeek: assignment.studyDaysPerWeek ?? 5,
+          passThreshold: assignment.passThreshold ?? 95,
+          testSizeNew: assignment.testSizeNew ?? 50,
+          reviewTestType: assignment.reviewTestType || 'mcq',
+          reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
+          reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
         }
       }),
     )
@@ -789,12 +794,13 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 <input
                   type="number"
                   min="1"
-                  max="100"
+                  max="500"
                   value={settingsForm.pace}
-                  onChange={(event) =>
+                  onChange={(e) => setSettingsForm((prev) => ({ ...prev, pace: e.target.value }))}
+                  onBlur={(e) =>
                     setSettingsForm((prev) => ({
                       ...prev,
-                      pace: Math.max(1, parseInt(event.target.value, 10) || 20),
+                      pace: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 20)),
                     }))
                   }
                   className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -805,16 +811,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 Test Options (choices per question)
                 <input
                   type="number"
-                  min="4"
+                  min="1"
                   max="10"
                   value={settingsForm.testOptionsCount}
-                  onChange={(event) =>
+                  onChange={(e) => setSettingsForm((prev) => ({ ...prev, testOptionsCount: e.target.value }))}
+                  onBlur={(e) =>
                     setSettingsForm((prev) => ({
                       ...prev,
-                      testOptionsCount: Math.min(
-                        10,
-                        Math.max(4, parseInt(event.target.value, 10) || 4),
-                      ),
+                      testOptionsCount: Math.max(1, Math.min(10, parseInt(e.target.value, 10) || 4)),
                     }))
                   }
                   className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -847,10 +851,11 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                   min="1"
                   max="7"
                   value={settingsForm.studyDaysPerWeek}
-                  onChange={(event) =>
+                  onChange={(e) => setSettingsForm((prev) => ({ ...prev, studyDaysPerWeek: e.target.value }))}
+                  onBlur={(e) =>
                     setSettingsForm((prev) => ({
                       ...prev,
-                      studyDaysPerWeek: Math.min(7, Math.max(1, parseInt(event.target.value, 10) || 5)),
+                      studyDaysPerWeek: Math.max(1, Math.min(7, parseInt(e.target.value, 10) || 5)),
                     }))
                   }
                   className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -862,13 +867,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 Pass Threshold (%)
                 <input
                   type="number"
-                  min="50"
+                  min="1"
                   max="100"
                   value={settingsForm.passThreshold}
-                  onChange={(event) =>
+                  onChange={(e) => setSettingsForm((prev) => ({ ...prev, passThreshold: e.target.value }))}
+                  onBlur={(e) =>
                     setSettingsForm((prev) => ({
                       ...prev,
-                      passThreshold: Math.min(100, Math.max(50, parseInt(event.target.value, 10) || 95)),
+                      passThreshold: Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 95)),
                     }))
                   }
                   className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -880,13 +886,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 New Word Test Size
                 <input
                   type="number"
-                  min="10"
-                  max="100"
+                  min="1"
+                  max="500"
                   value={settingsForm.testSizeNew}
-                  onChange={(event) =>
+                  onChange={(e) => setSettingsForm((prev) => ({ ...prev, testSizeNew: e.target.value }))}
+                  onBlur={(e) =>
                     setSettingsForm((prev) => ({
                       ...prev,
-                      testSizeNew: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 50)),
+                      testSizeNew: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 50)),
                     }))
                   }
                   className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -922,13 +929,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                     Min Questions
                     <input
                       type="number"
-                      min="10"
-                      max="100"
+                      min="1"
+                      max="500"
                       value={settingsForm.reviewTestSizeMin}
-                      onChange={(event) =>
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, reviewTestSizeMin: e.target.value }))}
+                      onBlur={(e) =>
                         setSettingsForm((prev) => ({
                           ...prev,
-                          reviewTestSizeMin: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 30)),
+                          reviewTestSizeMin: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 30)),
                         }))
                       }
                       className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
@@ -939,13 +947,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                     Max Questions
                     <input
                       type="number"
-                      min="10"
-                      max="100"
+                      min="1"
+                      max="500"
                       value={settingsForm.reviewTestSizeMax}
-                      onChange={(event) =>
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, reviewTestSizeMax: e.target.value }))}
+                      onBlur={(e) =>
                         setSettingsForm((prev) => ({
                           ...prev,
-                          reviewTestSizeMax: Math.min(100, Math.max(10, parseInt(event.target.value, 10) || 60)),
+                          reviewTestSizeMax: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 60)),
                         }))
                       }
                       className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"

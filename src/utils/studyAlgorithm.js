@@ -281,15 +281,25 @@ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = [
     return queue;
   }
 
-  // Priority 3: Random fill from PASSED + NEVER_TESTED
+  // Priority 3: NEVER_TESTED words (need to be tested first)
   remaining = reviewCount - queue.length;
   const queueIds = new Set(queue.map(w => w.id));
-  const nonFailed = segmentWords.filter(w => 
-    (w.status === 'PASSED' || w.status === 'NEVER_TESTED') && 
-    !queueIds.has(w.id)
+  const neverTested = segmentWords.filter(w =>
+    w.status === 'NEVER_TESTED' && !queueIds.has(w.id)
   );
-  const shuffled = shuffleArray(nonFailed);
-  queue.push(...shuffled.slice(0, remaining));
+  const shuffledNeverTested = shuffleArray(neverTested);
+  const neverTestedToAdd = shuffledNeverTested.slice(0, remaining);
+  queue.push(...neverTestedToAdd);
+  remaining -= neverTestedToAdd.length;
+
+  // Priority 4: PASSED words (already proven, fill remaining slots)
+  if (remaining > 0) {
+    const passed = segmentWords.filter(w =>
+      w.status === 'PASSED' && !queueIds.has(w.id)
+    );
+    const shuffledPassed = shuffleArray(passed);
+    queue.push(...shuffledPassed.slice(0, remaining));
+  }
 
   return queue;
 }

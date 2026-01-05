@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graduation Pool Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #2563eb;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .panel h2 {
+      font-size: 1.1rem;
+      color: #374151;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .panel h3 {
+      font-size: 0.95rem;
+      color: #4b5563;
+      margin: 16px 0 12px 0;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-group label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .control-group .hint {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-container input[type="range"] {
+      flex: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      background: #e5e7eb;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .slider-container input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #2563eb;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    .slider-value {
+      min-width: 50px;
+      font-weight: 700;
+      color: #2563eb;
+      text-align: right;
+    }
+
+    input[type="number"] {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-container {
+      position: relative;
+      height: 350px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    .stat-card .label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .stat-card.highlight {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      border-color: #93c5fd;
+    }
+
+    .stat-card.green {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      border-color: #86efac;
+    }
+
+    .stat-card.green .value {
+      color: #166534;
+    }
+
+    .stat-card.amber {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-color: #fcd34d;
+    }
+
+    .stat-card.amber .value {
+      color: #92400e;
+    }
+
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+
+    th {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.7rem;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .formula-box {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+
+    .formula-box h3 {
+      font-size: 0.9rem;
+      color: #92400e;
+      margin-bottom: 8px;
+    }
+
+    .formula-box code {
+      display: block;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #78350f;
+      margin: 4px 0;
+    }
+
+    .model-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .model-toggle button {
+      padding: 8px 16px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .model-toggle button.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .model-toggle button:hover:not(.active) {
+      border-color: #9ca3af;
+    }
+
+    .model-description {
+      font-size: 0.85rem;
+      color: #6b7280;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .return-stages {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .return-stages .control-group {
+      gap: 4px;
+    }
+
+    .return-stages label {
+      font-size: 0.8rem;
+    }
+
+    .return-stages input {
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+
+    .return-stages .hint {
+      font-size: 0.7rem;
+    }
+
+    .milestone {
+      display: inline-block;
+      padding: 2px 6px;
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .milestone.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .stage-breakdown {
+      font-size: 0.65rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Graduation Pool Simulator</h1>
+    <p class="subtitle">Model how the review pool grows and stabilizes over time</p>
+
+    <div class="panel">
+      <h2>Parameters</h2>
+
+      <div class="model-toggle">
+        <button id="model-passed" class="active" onclick="setModel('passed')">PASSED-only Model</button>
+        <button id="model-segment" onclick="setModel('segment')">Segment-wide Model</button>
+      </div>
+
+      <div id="model-desc" class="model-description">
+        <strong>PASSED-only Model:</strong> Only words with PASSED status can graduate.
+        Graduation count = score × PASSED_count_in_segment
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Daily Pace (words/day)</label>
+          <input type="number" id="dailyPace" value="80" min="1" max="500" onchange="simulate()">
+          <span class="hint">New words introduced each study day</span>
+        </div>
+
+        <div class="control-group">
+          <label>Study Days per Week</label>
+          <input type="number" id="studyDays" value="5" min="1" max="7" onchange="simulate()">
+          <span class="hint">Days actively studying (1-7)</span>
+        </div>
+
+        <div class="control-group">
+          <label>Total Words in List</label>
+          <input type="number" id="totalWords" value="0" min="0" max="10000" onchange="simulate()">
+          <span class="hint">0 = unlimited (no cap)</span>
+        </div>
+
+        <div class="control-group">
+          <label>Review Test Score</label>
+          <div class="slider-container">
+            <input type="range" id="testScore" min="0" max="100" value="80" oninput="updateSlider('testScore'); simulate()">
+            <span id="testScoreValue" class="slider-value">80%</span>
+          </div>
+          <span class="hint">Determines graduation rate</span>
+        </div>
+
+        <div class="control-group">
+          <label>FAILED Rate</label>
+          <div class="slider-container">
+            <input type="range" id="failedRate" min="0" max="50" value="10" oninput="updateSlider('failedRate'); simulate()">
+            <span id="failedRateValue" class="slider-value">10%</span>
+          </div>
+          <span class="hint">Words failing tests each week</span>
+        </div>
+
+        <div class="control-group">
+          <label>Simulation Weeks</label>
+          <input type="number" id="simWeeks" value="20" min="1" max="52" onchange="simulate()">
+          <span class="hint">Duration to simulate</span>
+        </div>
+      </div>
+
+      <h3>Return Intervals (Spaced Repetition)</h3>
+      <div class="return-stages">
+        <div class="control-group">
+          <label>1st Return (days)</label>
+          <input type="number" id="return1" value="21" min="0" max="90" onchange="simulate()">
+          <span class="hint">After first graduation</span>
+        </div>
+        <div class="control-group">
+          <label>2nd Return (days)</label>
+          <input type="number" id="return2" value="30" min="0" max="180" onchange="simulate()">
+          <span class="hint">0 = permanent after 1st</span>
+        </div>
+        <div class="control-group">
+          <label>3rd Return (days)</label>
+          <input type="number" id="return3" value="0" min="0" max="365" onchange="simulate()">
+          <span class="hint">0 = permanent after 2nd</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Summary</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="value" id="weeklyInflow">400</div>
+          <div class="label">Weekly Inflow</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="value" id="finalSegment">-</div>
+          <div class="label">Daily Segment (final)</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="value" id="peakSegment">-</div>
+          <div class="label">Peak Daily Segment</div>
+        </div>
+        <div class="stat-card green">
+          <div class="value" id="permMastered">-</div>
+          <div class="label">Permanently Mastered</div>
+        </div>
+      </div>
+
+      <div class="formula-box">
+        <h3>Key Metrics</h3>
+        <code>Weekly Inflow = pace × study_days = <span id="formulaInflow">80 × 5 = 400</span></code>
+        <code>Daily Segment = Pool(start) ÷ study_days (before graduations)</code>
+        <code>Pool(start) = returns + new words (what students study from)</code>
+        <code>List completion week: <span id="formulaComplete">N/A (unlimited)</span></code>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <div class="panel">
+        <h2>Pool Size Over Time</h2>
+        <div class="chart-container">
+          <canvas id="poolChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Week-by-Week Data</h2>
+        <div class="table-container">
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th>Week</th>
+                <th>Daily Seg</th>
+                <th>Pool (start)</th>
+                <th>+New</th>
+                <th>-Grad</th>
+                <th>+Ret</th>
+                <th>Wait</th>
+                <th>Perm</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Score Comparison</h2>
+      <div class="chart-container">
+        <canvas id="comparisonChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let currentModel = 'passed';
+    let poolChart = null;
+    let comparisonChart = null;
+
+    function setModel(model) {
+      currentModel = model;
+      document.getElementById('model-passed').classList.toggle('active', model === 'passed');
+      document.getElementById('model-segment').classList.toggle('active', model === 'segment');
+
+      const desc = document.getElementById('model-desc');
+      if (model === 'passed') {
+        desc.innerHTML = '<strong>PASSED-only Model:</strong> Only words with PASSED status can graduate. Graduation count = score × PASSED_count_in_segment';
+      } else {
+        desc.innerHTML = '<strong>Segment-wide Model:</strong> Infer mastery from test score over entire eligible segment. Graduation count = score × (PASSED + NEVER_TESTED)_count_in_segment';
+      }
+
+      simulate();
+    }
+
+    function updateSlider(id) {
+      const value = document.getElementById(id).value;
+      document.getElementById(id + 'Value').textContent = value + '%';
+    }
+
+    function getParams() {
+      return {
+        dailyPace: parseInt(document.getElementById('dailyPace').value) || 80,
+        studyDays: parseInt(document.getElementById('studyDays').value) || 5,
+        totalWords: parseInt(document.getElementById('totalWords').value) || 0,
+        testScore: parseInt(document.getElementById('testScore').value) / 100,
+        failedRate: parseInt(document.getElementById('failedRate').value) / 100,
+        simWeeks: parseInt(document.getElementById('simWeeks').value) || 20,
+        return1: parseInt(document.getElementById('return1').value) || 0,
+        return2: parseInt(document.getElementById('return2').value) || 0,
+        return3: parseInt(document.getElementById('return3').value) || 0,
+      };
+    }
+
+    /**
+     * Cohort-based simulation model
+     *
+     * Words progress through stages:
+     * - Stage 0: In active pool (being tested)
+     * - Stage 1: Waiting after first graduation (return1 days)
+     * - Stage 2: Waiting after second graduation (return2 days)
+     * - Stage 3: Waiting after third graduation (return3 days)
+     * - Permanent: Fully mastered
+     *
+     * The pool contains words at different "mastery levels" (0, 1, 2, 3).
+     * When a word graduates, it advances one level.
+     * If it's already at max level, it becomes permanent.
+     */
+    function simulateWeeks(params, scoreOverride = null) {
+      const { dailyPace, studyDays, totalWords, failedRate, simWeeks, return1, return2, return3 } = params;
+      const score = scoreOverride !== null ? scoreOverride : params.testScore;
+
+      const weeklyInflow = dailyPace * studyDays;
+      const hasCap = totalWords > 0;
+
+      // Convert return days to weeks (0 means no return needed = immediate permanent)
+      const return1Weeks = return1 > 0 ? Math.ceil(return1 / 7) : 0;
+      const return2Weeks = return2 > 0 ? Math.ceil(return2 / 7) : 0;
+      const return3Weeks = return3 > 0 ? Math.ceil(return3 / 7) : 0;
+
+      // Determine max level (how many returns before permanent)
+      let maxLevel = 0;
+      if (return1Weeks > 0) maxLevel = 1;
+      if (return2Weeks > 0) maxLevel = 2;
+      if (return3Weeks > 0) maxLevel = 3;
+
+      const results = [];
+      let totalIntroduced = 0;
+      let permanentlyMastered = 0;
+
+      // Pool tracks words by their current mastery level
+      // poolByLevel[0] = words that have never graduated
+      // poolByLevel[1] = words that graduated once and returned
+      // poolByLevel[2] = words that graduated twice and returned
+      // poolByLevel[3] = words that graduated three times and returned
+      let poolByLevel = [0, 0, 0, 0];
+
+      // Waiting queues: waiting[level][weekIndex] = words graduating from level, waiting to return
+      // waiting[0] = first-time graduates waiting for return1
+      // waiting[1] = second-time graduates waiting for return2
+      // waiting[2] = third-time graduates waiting for return3
+      const waiting = [[], [], []];
+
+      for (let week = 1; week <= simWeeks; week++) {
+        // 1. Calculate returns from waiting queues
+        let totalReturns = 0;
+
+        // Returns from waiting[0] after return1Weeks → go to poolByLevel[1]
+        if (return1Weeks > 0 && week > return1Weeks) {
+          const returningFromLevel0 = waiting[0][week - return1Weeks - 1] || 0;
+          poolByLevel[1] += returningFromLevel0;
+          totalReturns += returningFromLevel0;
+        }
+
+        // Returns from waiting[1] after return2Weeks → go to poolByLevel[2]
+        if (return2Weeks > 0 && week > return2Weeks) {
+          const returningFromLevel1 = waiting[1][week - return2Weeks - 1] || 0;
+          poolByLevel[2] += returningFromLevel1;
+          totalReturns += returningFromLevel1;
+        }
+
+        // Returns from waiting[2] after return3Weeks → go to poolByLevel[3]
+        if (return3Weeks > 0 && week > return3Weeks) {
+          const returningFromLevel2 = waiting[2][week - return3Weeks - 1] || 0;
+          poolByLevel[3] += returningFromLevel2;
+          totalReturns += returningFromLevel2;
+        }
+
+        // 2. Add new words (respecting cap)
+        let newWords = weeklyInflow;
+        if (hasCap) {
+          const remaining = totalWords - totalIntroduced;
+          newWords = Math.min(weeklyInflow, Math.max(0, remaining));
+        }
+        totalIntroduced += newWords;
+        poolByLevel[0] += newWords; // New words start at level 0
+
+        // 3. Calculate total pool (this is what students study from THIS week)
+        const poolBeforeGrad = poolByLevel.reduce((sum, count) => sum + count, 0);
+
+        // Daily segment = what students study each day THIS week (before graduations)
+        const segmentSize = Math.ceil(poolBeforeGrad / studyDays);
+
+        // 4. Calculate graduation from pool
+        const effectiveFailedRate = score >= 1.0 ? 0 : failedRate;
+        const eligible = poolBeforeGrad * (1 - effectiveFailedRate);
+        const totalGraduated = Math.floor(eligible * score);
+
+        // 5. Distribute graduations proportionally across levels
+        let graduated = 0;
+        let newPermanent = 0;
+        const graduatedByLevel = [0, 0, 0, 0];
+
+        if (poolBeforeGrad > 0 && totalGraduated > 0) {
+          let remainingToGraduate = totalGraduated;
+
+          for (let level = 0; level <= 3; level++) {
+            if (poolByLevel[level] > 0) {
+              // Proportional graduation from this level
+              const proportion = poolByLevel[level] / poolBeforeGrad;
+              let fromThisLevel = Math.floor(totalGraduated * proportion);
+              // Don't graduate more than available
+              fromThisLevel = Math.min(fromThisLevel, poolByLevel[level], remainingToGraduate);
+
+              graduatedByLevel[level] = fromThisLevel;
+              poolByLevel[level] -= fromThisLevel;
+              remainingToGraduate -= fromThisLevel;
+              graduated += fromThisLevel;
+            }
+          }
+
+          // Handle rounding remainder - assign to lowest level with words
+          while (remainingToGraduate > 0) {
+            for (let level = 0; level <= 3; level++) {
+              if (poolByLevel[level] > 0 && remainingToGraduate > 0) {
+                poolByLevel[level]--;
+                graduatedByLevel[level]++;
+                graduated++;
+                remainingToGraduate--;
+                break;
+              }
+            }
+            if (poolByLevel.every(p => p === 0)) break;
+          }
+        }
+
+        // 6. Send graduates to appropriate waiting queues or permanent
+        // Level 0 graduates → waiting[0] (if return1 exists) or permanent
+        if (graduatedByLevel[0] > 0) {
+          if (return1Weeks > 0) {
+            waiting[0].push(graduatedByLevel[0]);
+          } else {
+            permanentlyMastered += graduatedByLevel[0];
+          }
+        } else {
+          waiting[0].push(0);
+        }
+
+        // Level 1 graduates → waiting[1] (if return2 exists) or permanent
+        if (graduatedByLevel[1] > 0) {
+          if (return2Weeks > 0) {
+            waiting[1].push(graduatedByLevel[1]);
+          } else {
+            permanentlyMastered += graduatedByLevel[1];
+          }
+        } else {
+          waiting[1].push(0);
+        }
+
+        // Level 2 graduates → waiting[2] (if return3 exists) or permanent
+        if (graduatedByLevel[2] > 0) {
+          if (return3Weeks > 0) {
+            waiting[2].push(graduatedByLevel[2]);
+          } else {
+            permanentlyMastered += graduatedByLevel[2];
+          }
+        } else {
+          waiting[2].push(0);
+        }
+
+        // Level 3 graduates → always permanent (max level)
+        if (graduatedByLevel[3] > 0) {
+          permanentlyMastered += graduatedByLevel[3];
+        }
+
+        // Calculate total waiting
+        const totalWaiting = waiting.reduce((sum, queue) => {
+          return sum + queue.reduce((qsum, count) => qsum + count, 0);
+        }, 0) - permanentlyMastered; // Subtract permanent since they left waiting
+
+        // More accurate: sum recent entries that haven't returned yet
+        let inWaiting = 0;
+        if (return1Weeks > 0) {
+          for (let i = Math.max(0, week - return1Weeks); i < week; i++) {
+            inWaiting += waiting[0][i] || 0;
+          }
+        }
+        if (return2Weeks > 0) {
+          for (let i = Math.max(0, week - return2Weeks); i < week; i++) {
+            inWaiting += waiting[1][i] || 0;
+          }
+        }
+        if (return3Weeks > 0) {
+          for (let i = Math.max(0, week - return3Weeks); i < week; i++) {
+            inWaiting += waiting[2][i] || 0;
+          }
+        }
+
+        const poolAfterGrad = poolByLevel.reduce((sum, count) => sum + count, 0);
+
+        // Active = all words not yet permanently mastered (pool + waiting)
+        const activeCount = poolAfterGrad + inWaiting;
+
+        // segmentSize was already calculated above from poolBeforeGrad
+
+        results.push({
+          week,
+          totalIntroduced,
+          segmentSize,
+          poolStart: poolBeforeGrad,  // Pool at start of week (what students studied from)
+          poolEnd: poolAfterGrad,     // Pool at end of week (after graduations)
+          newWords,
+          graduated,
+          returns: totalReturns,
+          inWaiting,
+          permanentlyMastered,
+          listComplete: hasCap && totalIntroduced >= totalWords,
+          poolByLevel: [...poolByLevel]
+        });
+      }
+
+      return results;
+    }
+
+    function updateSummary(params, results) {
+      const weeklyInflow = params.dailyPace * params.studyDays;
+      const lastResult = results[results.length - 1];
+      const peakSegment = Math.max(...results.map(r => r.segmentSize));
+
+      // Find completion week
+      let completionWeek = null;
+      if (params.totalWords > 0) {
+        const completeResult = results.find(r => r.listComplete);
+        if (completeResult) completionWeek = completeResult.week;
+      }
+
+      document.getElementById('weeklyInflow').textContent = weeklyInflow;
+      document.getElementById('finalSegment').textContent = lastResult.segmentSize.toLocaleString();
+      document.getElementById('peakSegment').textContent = peakSegment.toLocaleString();
+      document.getElementById('permMastered').textContent = lastResult.permanentlyMastered.toLocaleString();
+
+      document.getElementById('formulaInflow').textContent =
+        `${params.dailyPace} × ${params.studyDays} = ${weeklyInflow}`;
+      document.getElementById('formulaComplete').textContent =
+        completionWeek ? `Week ${completionWeek}` : (params.totalWords > 0 ? `After week ${params.simWeeks}` : 'N/A (unlimited)');
+    }
+
+    function updateTable(results) {
+      const tbody = document.querySelector('#resultsTable tbody');
+      tbody.innerHTML = results.map(r => `
+        <tr>
+          <td>W${r.week} ${r.listComplete ? '<span class="milestone complete">DONE</span>' : ''}</td>
+          <td>${r.segmentSize.toLocaleString()}</td>
+          <td>${r.poolStart.toLocaleString()}</td>
+          <td>${r.newWords > 0 ? '+' + r.newWords : '—'}</td>
+          <td>${r.graduated > 0 ? '-' + r.graduated : '—'}</td>
+          <td>${r.returns > 0 ? '+' + r.returns : '—'}</td>
+          <td>${r.inWaiting.toLocaleString()}</td>
+          <td>${r.permanentlyMastered.toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    function updatePoolChart(results) {
+      const ctx = document.getElementById('poolChart').getContext('2d');
+
+      if (poolChart) {
+        poolChart.destroy();
+      }
+
+      poolChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: results.map(r => `W${r.week}`),
+          datasets: [{
+            label: 'Daily Segment (per session)',
+            data: results.map(r => r.segmentSize),
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }, {
+            label: 'Pool (start of week)',
+            data: results.map(r => r.poolStart),
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }, {
+            label: 'Permanently Mastered',
+            data: results.map(r => r.permanentlyMastered),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function updateComparisonChart(params) {
+      const ctx = document.getElementById('comparisonChart').getContext('2d');
+      const scores = [0.4, 0.6, 0.8, 0.9, 1.0];
+      const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#2563eb'];
+
+      if (comparisonChart) {
+        comparisonChart.destroy();
+      }
+
+      const datasets = scores.map((score, i) => {
+        const results = simulateWeeks(params, score);
+        return {
+          label: `${Math.round(score * 100)}% score`,
+          data: results.map(r => r.poolStart),
+          borderColor: colors[i],
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          borderWidth: 2
+        };
+      });
+
+      comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({length: params.simWeeks}, (_, i) => `W${i + 1}`),
+          datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            title: {
+              display: true,
+              text: 'Pool Size by Score Level'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Pool Size' }
+            }
+          }
+        }
+      });
+    }
+
+    function simulate() {
+      const params = getParams();
+      const results = simulateWeeks(params);
+
+      updateSummary(params, results);
+      updateTable(results);
+      updatePoolChart(results);
+      updateComparisonChart(params);
+    }
+
+    // Initial simulation
+    simulate();
+  </script>
+</body>
+</html>

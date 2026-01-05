@@ -12,6 +12,7 @@ const Signup = () => {
     password: '',
     gradYear: '',
     gradMonth: '',
+    role: 'student',
   })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -34,6 +35,7 @@ const Signup = () => {
         {
           gradYear: formState.gradYear ? Number(formState.gradYear) : null,
           gradMonth: formState.gradMonth ? Number(formState.gradMonth) : null,
+          role: formState.role,
         },
       )
       navigate('/')
@@ -72,9 +74,6 @@ const Signup = () => {
             Get Started
           </p>
           <h1 className="text-2xl font-bold text-text-primary">Create your VocaBoost account</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Students receive the default role per the VocaBoost spec.
-          </p>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -122,6 +121,35 @@ const Signup = () => {
             />
           </label>
 
+          <div className="space-y-2">
+            <span className="block text-sm font-medium text-slate-700">I am a</span>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="student"
+                  checked={formState.role === 'student'}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-text-primary">Student</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="teacher"
+                  checked={formState.role === 'teacher'}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-text-primary">Teacher</span>
+              </label>
+            </div>
+          </div>
+
+          {formState.role === 'student' && (
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-sm font-medium text-slate-700">
               Graduation Year
@@ -151,6 +179,7 @@ const Signup = () => {
               />
             </label>
           </div>
+          )}
 
           <Button variant="primary-blue" size="lg" type="submit" disabled={isSubmitting || isGoogleLoading} className="w-full">
             {isSubmitting ? 'Creating Account...' : 'Create Account'}

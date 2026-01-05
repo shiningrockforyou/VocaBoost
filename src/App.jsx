@@ -16,12 +16,17 @@ import Settings from './pages/Settings.jsx'
 import { queryStudentAttempts } from './services/db'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
+import { SimulationProvider, isSimulationEnabled } from './hooks/useSimulation.jsx'
+import SimulationPanel from './components/dev/SimulationPanel.jsx'
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <SimulationProvider>
         <BrowserRouter>
+        {/* Simulation Panel - only renders when VITE_SIMULATION_MODE=true */}
+        {isSimulationEnabled() && <SimulationPanel />}
         <Routes>
           <Route
             path="/"
@@ -147,6 +152,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+        </SimulationProvider>
     </AuthProvider>
     </ThemeProvider>
   )

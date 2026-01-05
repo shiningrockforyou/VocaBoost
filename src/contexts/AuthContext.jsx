@@ -73,11 +73,25 @@ export const AuthProvider = ({ children }) => {
     }
 
     await createUserDocument(userCredential.user, {
+      role: gradData.role,
       profile: {
         displayName: name,
         gradYear: gradData.gradYear ?? null,
         gradMonth: gradData.gradMonth ?? null,
       },
+    })
+
+    // Force update user state with correct role (fixes race condition with onAuthStateChanged)
+    setUser({
+      ...userCredential.user,
+      role: gradData.role ?? 'student',
+      profile: {
+        displayName: name,
+        gradYear: gradData.gradYear ?? null,
+        gradMonth: gradData.gradMonth ?? null,
+      },
+      stats: null,
+      settings: null,
     })
 
     return userCredential.user

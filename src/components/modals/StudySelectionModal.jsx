@@ -89,11 +89,6 @@ const StudySelectionModal = ({ isOpen, onClose, classes, mode = 'study' }) => {
                         <span>
                           {list.stats.wordsLearned ?? 0} / {list.wordCount} words learned
                         </span>
-                        {list.stats.due > 0 && (
-                          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
-                            {list.stats.due} due
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>

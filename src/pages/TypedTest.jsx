@@ -5,6 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTypedTestAttempt } from '../services/db'
+import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
   getNewWords,
@@ -43,12 +44,21 @@ const TypedTest = () => {
   
   // Get navigation state
   const {
-    testType = 'review',
-    wordPool = null,
+    testConfig = null,
     returnPath = '/',
-    sessionContext = null,
-    practiceMode = false
+    practiceMode = false,
+    // Legacy props for backwards compatibility
+    testType: legacyTestType = 'review',
+    wordPool: legacyWordPool = null,
+    sessionContext: legacySessionContext = null,
+    assignmentSettings: legacyAssignmentSettings = null
   } = location.state || {}
+
+  // Derive values from testConfig or legacy props
+  const testType = testConfig?.testType || legacyTestType
+  const wordPool = testConfig?.wordsToTest || legacyWordPool
+  const sessionContext = testConfig || legacySessionContext
+  const assignmentSettings = legacyAssignmentSettings
 
   // Also check query params for backwards compatibility
   const searchParams = new URLSearchParams(location.search)
@@ -71,6 +81,7 @@ const TypedTest = () => {
   const [retakeThreshold, setRetakeThreshold] = useState(0.95)
   const [showResults, setShowResults] = useState(false)
   const [testResultsData, setTestResultsData] = useState(null)
+  const [configuredTestSize, setConfiguredTestSize] = useState(30)
 
   // Modal states
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
@@ -92,6 +103,74 @@ const TypedTest = () => {
 
   // Test ID for recovery
   const testId = getTestId(classIdParam || classId, listId, currentTestType)
+
+  // Simulation mode integration
+  const sim = useSimulationContext()
+  const autoAnswerTimerRef = useRef(null)
+
+  // Auto-answer effect for simulation mode (typed test)
+  useEffect(() => {
+    if (!sim?.isAutoMode || !isSimulationEnabled()) return
+    if (isLoading || showResults || isSubmitting) return
+    if (words.length === 0) return
+
+    // For typed tests, we fill in answers based on accuracy
+    // Correct answer = the actual word text
+    // Incorrect answer = a typo or wrong word
+
+    const unansweredWords = words.filter(word => !responses[word.id])
+    if (unansweredWords.length === 0) {
+      // All answered, auto-submit
+      setTimeout(() => {
+        handleSubmit()
+      }, sim.speed?.testDelay ?? 100)
+      return
+    }
+
+    const delay = sim.speed?.testDelay ?? 100
+    let answerIndex = 0
+
+    const answerNextWord = () => {
+      if (answerIndex >= unansweredWords.length) {
+        // All done, submit
+        setTimeout(() => {
+          handleSubmit()
+        }, delay)
+        return
+      }
+
+      const word = unansweredWords[answerIndex]
+
+      // Decide if this answer should be correct based on profile accuracy
+      const shouldBeCorrect = Math.random() < (sim.profile?.accuracy ?? 0.75)
+
+      let answer
+      if (shouldBeCorrect) {
+        // Type the correct word
+        answer = word.text
+      } else {
+        // Type an intentionally wrong answer (add typo or use wrong word)
+        const typoChance = Math.random()
+        if (typoChance < 0.5 && word.text.length > 2) {
+          // Add a typo
+          const pos = Math.floor(Math.random() * word.text.length)
+          answer = word.text.slice(0, pos) + 'x' + word.text.slice(pos + 1)
+        } else {
+          // Use a completely wrong word
+          answer = 'wronganswer'
+        }
+      }
+
+      setResponses(prev => ({ ...prev, [word.id]: answer }))
+      answerIndex++
+
+      autoAnswerTimerRef.current = setTimeout(answerNextWord, delay)
+    }
+
+    autoAnswerTimerRef.current = setTimeout(answerNextWord, delay)
+
+    return () => clearTimeout(autoAnswerTimerRef.current)
+  }, [sim?.isAutoMode, words, responses, isLoading, showResults, isSubmitting])
 
   // Browser close warning + intentional exit tracking
   useEffect(() => {
@@ -150,15 +229,18 @@ const TypedTest = () => {
     setIsLoading(true)
     setError('')
     try {
+      // Get the effective word pool (from testConfig or legacy)
+      const effectiveWordPool = testConfig?.wordsToTest || wordPool || []
+
       // Check for recovery state FIRST - if exists, use saved wordIds to restore exact words
       const savedState = getTestState(testId)
       const hasValidRecovery = savedState &&
         savedState.wordIds?.length > 0 &&
         !wasIntentionalExit(testId)
 
-      if (hasValidRecovery && wordPool && wordPool.length > 0) {
+      if (hasValidRecovery && effectiveWordPool.length > 0) {
         // Recovery mode: restore exact words from saved state
-        const wordMap = new Map(wordPool.map(w => [w.id, w]))
+        const wordMap = new Map(effectiveWordPool.map(w => [w.id, w]))
         const recoveredWords = savedState.wordIds
           .map(id => wordMap.get(id))
           .filter(Boolean)
@@ -182,8 +264,34 @@ const TypedTest = () => {
         // If recovery failed (words not found), fall through to normal flow
       }
 
-      // If word pool provided (from DailySessionFlow), use it (capped at MAX_TYPED_TEST_WORDS)
+      // PATH A: TestConfig provided (from DailySessionFlow with new flow)
+      if (testConfig) {
+        // All settings come from testConfig - already limited by testSize
+        setRetakeThreshold(testConfig.passThresholdDecimal)
+        setCurrentTestType(testConfig.testType)
+        const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
+        setConfiguredTestSize(effectiveTestSize)
+        // Apply MAX_TYPED_TEST_WORDS cap on top of testConfig's limiting
+        const cappedWords = testConfig.wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
+        setOriginalWords(cappedWords)
+        setWords(shuffleArray([...cappedWords]))
+        setResponses({})
+        setResults(null)
+        setShowResults(false)
+        setCanRetake(false)
+        setTestResultsData(null)
+        setFocusedIndex(0)
+        inputRefs.current = new Array(cappedWords.length)
+        setIsLoading(false)
+        return
+      }
+
+      // PATH B: Legacy wordPool provided (backwards compatibility)
       if (wordPool && wordPool.length > 0) {
+        // Apply assignment settings if provided
+        if (assignmentSettings) {
+          setRetakeThreshold((assignmentSettings.passThreshold || 95) / 100)
+        }
         const shuffled = shuffleArray([...wordPool])
         const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
         setOriginalWords(cappedWords)
@@ -221,6 +329,7 @@ const TypedTest = () => {
       const testSize = currentTestType === 'new'
         ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)
         : (assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW)
+      setConfiguredTestSize(testSize)
 
       let wordsToTest = []
 
@@ -261,8 +370,8 @@ const TypedTest = () => {
         } else {
           // Fallback: load all words if no segment (day 1)
           const wordsRef = collection(db, 'lists', listId, 'words')
-          const snap = await getDocs(query(wordsRef, orderBy('createdAt', 'asc')))
-          const allWords = snap.docs.map((d, i) => ({ id: d.id, wordIndex: i, ...d.data() }))
+          const snap = await getDocs(query(wordsRef, orderBy('position', 'asc')))
+          const allWords = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
           wordsToTest = selectTestWords(allWords, testSize)
         }
       }
@@ -313,7 +422,7 @@ const TypedTest = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [user?.uid, listId, classIdParam, currentTestType, wordPool, testId])
+  }, [user?.uid, listId, classIdParam, currentTestType, wordPool, testId, testConfig])
 
   useEffect(() => {
     loadTestWords()
@@ -412,11 +521,11 @@ const TypedTest = () => {
     inputRefs.current = new Array(shuffled.length)
   }
 
-  // Quit test with confirmation
+  // Quit test with confirmation - always go to Dashboard
   const handleQuitConfirm = () => {
     clearTestState(testId)
     setShowQuitConfirm(false)
-    navigate(returnPath || '/')
+    navigate('/')
   }
 
   const handleKeyDown = (e, index) => {
@@ -515,7 +624,7 @@ const TypedTest = () => {
 
       // Store for display
       setTestResultsData({
-        score: Math.round(summary.score * 100),
+        score: summary.score, // Store as decimal (0-1), not percentage
         correct: summary.correct,
         total: summary.total,
         failed: summary.failed,
@@ -541,8 +650,8 @@ const TypedTest = () => {
     setTestResultsData(null)
     setResults(null)
 
-    // Regenerate from original words (shuffled, capped at MAX_TYPED_TEST_WORDS)
-    const shuffled = [...originalWords].sort(() => Math.random() - 0.5)
+    // Regenerate from original words - use configured test size, capped at MAX_TYPED_TEST_WORDS
+    const shuffled = selectTestWords(originalWords, configuredTestSize)
     const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
     setWords(cappedWords)
     inputRefs.current = new Array(cappedWords.length)
@@ -614,25 +723,15 @@ const TypedTest = () => {
       }
     }
 
-    // Go back to study phase (for failed new word tests)
-    const handleGoToStudy = () => {
-      navigate(returnPath || '/', {
-        state: {
-          testCompleted: false,
-          goToStudy: true,
-          testType: currentTestType
-        }
-      })
-    }
-
-    const score = testResultsData.score
+    const score = testResultsData.score // Decimal 0-1
+    const scorePercent = Math.round(score * 100) // For display
     const dayNumber = sessionContext?.dayNumber || 1
 
     // Render results card based on test type
     const renderResultsCard = () => {
       // New Word Test: Pass/Fail based on threshold
       if (currentTestType === 'new') {
-        const passed = score >= (retakeThreshold * 100)
+        const passed = score >= retakeThreshold
 
         return (
           <div className={`rounded-2xl p-8 text-center shadow-xl ${
@@ -664,7 +763,7 @@ const TypedTest = () => {
 
             {/* Score */}
             <p className={`mt-4 text-4xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
-              {score}%
+              {scorePercent}%
             </p>
             <p className={passed ? 'text-text-on-success-muted' : 'text-text-on-error-muted'}>
               {testResultsData.correct} of {testResultsData.total} correct
@@ -674,13 +773,13 @@ const TypedTest = () => {
             <div className="mt-6">
               {passed ? (
                 <Button
-                  variant="primary"
+                  variant="primary-blue"
                   size="lg"
                   onClick={handleBackToSession}
                   className="inline-flex items-center gap-2"
                 >
                   <LayoutGrid className="w-5 h-5" />
-                  Return to Dashboard
+                  Continue
                 </Button>
               ) : (
                 <div className="flex justify-center gap-4">
@@ -695,10 +794,10 @@ const TypedTest = () => {
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={handleGoToStudy}
+                    onClick={() => navigate('/')}
                     className="flex-1 max-w-[140px]"
                   >
-                    Study
+                    Dashboard
                   </Button>
                 </div>
               )}
@@ -708,9 +807,9 @@ const TypedTest = () => {
       }
 
       // Review Test: 4-tier system
-      const tier = score >= 85 ? 'excellent'
-                 : score >= 70 ? 'good'
-                 : score >= 50 ? 'needs-work'
+      const tier = scorePercent >= 85 ? 'excellent'
+                 : scorePercent >= 70 ? 'good'
+                 : scorePercent >= 50 ? 'needs-work'
                  : 'critical'
 
       const tierConfig = {
@@ -775,7 +874,7 @@ const TypedTest = () => {
 
           {/* Score */}
           <p className={`mt-4 text-4xl font-bold ${config.scoreColor}`}>
-            {score}%
+            {scorePercent}%
           </p>
           <p className={config.subtextColor}>
             {testResultsData.correct} of {testResultsData.total} correct
@@ -826,18 +925,34 @@ const TypedTest = () => {
                 >
                   Retake Test
                 </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate('/')}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Dashboard
+                </Button>
               </div>
             )}
 
             {tier === 'critical' && (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex justify-center gap-4">
                 <Button
                   variant="danger"
                   size="lg"
                   onClick={handleRetake}
-                  className="w-full max-w-[200px]"
+                  className="flex-1 max-w-[160px]"
                 >
                   Retake Test
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate('/')}
+                  className="flex-1 max-w-[160px]"
+                >
+                  Dashboard
                 </Button>
               </div>
             )}

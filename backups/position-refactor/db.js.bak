@@ -442,10 +442,6 @@ export const addWordToList = async (listId, wordData) => {
     throw new Error('Word and definition are required.')
   }
 
-  // Get current word count to determine position
-  const listDoc = await getDoc(doc(db, 'lists', listId))
-  const currentCount = listDoc.exists() ? (listDoc.data()?.wordCount ?? 0) : 0
-
   const definitions = wordData.definitions || {}
   if (wordData.definition && !definitions.en) {
     definitions.en = wordData.definition.trim()
@@ -457,7 +453,6 @@ export const addWordToList = async (listId, wordData) => {
     definitions,
     partOfSpeech: wordData.partOfSpeech?.trim() || '',
     samples: wordData.sampleSentence ? [wordData.sampleSentence.trim()] : [],
-    position: currentCount,  // 0-indexed position in list
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   }
@@ -551,11 +546,6 @@ export const batchAddWords = async (listId, wordsArray) => {
 
   const BATCH_LIMIT = 500
   const listRef = doc(db, 'lists', listId)
-
-  // Get current word count to determine starting position
-  const listDoc = await getDoc(listRef)
-  let nextPosition = listDoc.exists() ? (listDoc.data()?.wordCount ?? 0) : 0
-
   let totalAdded = 0
 
   for (let i = 0; i < wordsArray.length; i += BATCH_LIMIT) {
@@ -568,7 +558,7 @@ export const batchAddWords = async (listId, wordsArray) => {
       }
 
       const wordRef = doc(collection(db, 'lists', listId, 'words'))
-
+      
       const definitions = {}
       if (wordData.definitions) {
         Object.assign(definitions, wordData.definitions)
@@ -587,7 +577,6 @@ export const batchAddWords = async (listId, wordsArray) => {
           : wordData.sample
             ? [wordData.sample.trim()]
             : [],
-        position: nextPosition++,  // Sequential 0-indexed position
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }
@@ -909,7 +898,7 @@ export const fetchAllWords = async (listId) => {
   console.log('[fetchAllWords] Fetching all words for listId:', listId)
 
   const wordsRef = collection(db, 'lists', listId, 'words')
-  const wordsQuery = query(wordsRef, orderBy('position', 'asc'))
+  const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'))
   const snapshot = await getDocs(wordsQuery)
   const allWords = snapshot.docs.map((docSnap) => ({
     id: docSnap.id,

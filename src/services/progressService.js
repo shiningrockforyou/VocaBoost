@@ -118,7 +118,7 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
     lastSessionAt: Timestamp.now(),
     updatedAt: Timestamp.now()
   };
-  
+
   if (snapshot.exists()) {
     await updateDoc(progressRef, updates);
   } else {

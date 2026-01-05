@@ -70,7 +70,7 @@ const ListEditor = ({ mode }) => {
         })
 
         const wordsRef = collection(db, 'lists', listId, 'words')
-        const wordsQuery = query(wordsRef, orderBy('position', 'asc'))
+        const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'))
         const wordsSnap = await getDocs(wordsQuery)
         setWords(wordsSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })))
       } catch (err) {
@@ -88,7 +88,7 @@ const ListEditor = ({ mode }) => {
     setWordsLoading(true)
     try {
       const wordsRef = collection(db, 'lists', listId, 'words')
-      const wordsQuery = query(wordsRef, orderBy('position', 'asc'))
+      const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'))
       const wordsSnap = await getDocs(wordsQuery)
       setWords(wordsSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })))
     } catch (err) {
@@ -242,7 +242,7 @@ const ListEditor = ({ mode }) => {
       setEditingId(null)
 
       const wordsRef = collection(db, 'lists', listId, 'words')
-      const wordsQuery = query(wordsRef, orderBy('position', 'asc'))
+      const wordsQuery = query(wordsRef, orderBy('createdAt', 'asc'))
       const wordsSnap = await getDocs(wordsQuery)
       setWords(wordsSnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })))
     } catch (err) {

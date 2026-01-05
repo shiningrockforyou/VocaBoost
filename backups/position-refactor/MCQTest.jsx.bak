@@ -13,7 +13,7 @@ import {
   selectTestWords
 } from '../services/studyService'
 import { speak } from '../utils/tts'
-import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
+import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 import {
   getTestId,
   saveTestState,
@@ -79,7 +79,6 @@ const MCQTest = () => {
   const [retakeThreshold, setRetakeThreshold] = useState(0.95)
   const [optionsCount, setOptionsCount] = useState(4)
   const [showResults, setShowResults] = useState(false)
-  const [configuredTestSize, setConfiguredTestSize] = useState(30)
 
   // Modal states
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
@@ -193,18 +192,18 @@ const MCQTest = () => {
       const otherWords = originalWords.length > 0
         ? originalWords.filter(w => w.id !== word.id)
         : words.filter(w => w.id !== word.id)
-      const shuffledOthers = shuffleArray(otherWords)
+      const shuffledOthers = [...otherWords].sort(() => Math.random() - 0.5)
       // Use optionsCount from assignment (optionsCount - 1 distractors + 1 correct = optionsCount total)
       const distractors = shuffledOthers.slice(0, effectiveOptionsCount - 1).map(w => ({
         wordId: w.id,
         definition: w.definition,
         isCorrect: false
       }))
-
-      const options = shuffleArray([
+      
+      const options = [
         { wordId: word.id, definition: word.definition, isCorrect: true },
         ...distractors
-      ])
+      ].sort(() => Math.random() - 0.5)
 
       return {
         ...word,
@@ -231,8 +230,6 @@ const MCQTest = () => {
         setOptionsCount(testConfig.testOptionsCount)
         setRetakeThreshold(testConfig.passThresholdDecimal)
         setCurrentTestType(testConfig.testType)
-        const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
-        setConfiguredTestSize(effectiveTestSize)
         setOriginalWords(testConfig.originalWordPool)
         generateQuestions(testConfig.wordsToTest, testConfig.testOptionsCount)
         setLoading(false)
@@ -276,7 +273,6 @@ const MCQTest = () => {
       const testSize = currentTestType === 'new'
         ? (assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW)
         : (assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW)
-      setConfiguredTestSize(testSize)
 
       let wordsToTest = []
 
@@ -317,8 +313,8 @@ const MCQTest = () => {
         } else {
           // Fallback: load all words if no segment (day 1)
           const wordsRef = collection(db, 'lists', listId, 'words')
-          const snap = await getDocs(query(wordsRef, orderBy('position', 'asc')))
-          const allWords = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          const snap = await getDocs(query(wordsRef, orderBy('createdAt', 'asc')))
+          const allWords = snap.docs.map((d, i) => ({ id: d.id, wordIndex: i, ...d.data() }))
           wordsToTest = selectTestWords(allWords, testSize)
         }
       }
@@ -521,7 +517,7 @@ const MCQTest = () => {
       }
 
       setTestResultsData({
-        score: summary.score, // Store as decimal (0-1), not percentage
+        score: percentage,
         correct: summary.correct,
         total: summary.total,
         failed: summary.failed,
@@ -546,8 +542,8 @@ const MCQTest = () => {
     setCanRetake(false)
     setTestResultsData(null)
 
-    // Re-shuffle words for retake - use configured test size, not full pool size
-    const shuffled = selectTestWords(originalWords, configuredTestSize)
+    // Re-shuffle words for retake to avoid identical test order
+    const shuffled = selectTestWords(originalWords, originalWords.length)
     generateQuestions(shuffled)
   }
 
@@ -635,15 +631,14 @@ const MCQTest = () => {
     const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
     const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
 
-    const score = testResultsData.score // Decimal 0-1
-    const scorePercent = Math.round(score * 100)
+    const score = testResultsData.score
     const dayNumber = sessionContext?.dayNumber || 1
 
     // Render results card based on test type
     const renderResultsCard = () => {
       // New Word Test: Pass/Fail based on threshold
       if (currentTestType === 'new') {
-        const passed = score >= retakeThreshold
+        const passed = score >= (retakeThreshold * 100)
 
         return (
           <div className={`rounded-2xl p-8 text-center shadow-xl ${
@@ -675,7 +670,7 @@ const MCQTest = () => {
 
             {/* Score */}
             <p className={`mt-4 text-4xl font-bold ${passed ? 'text-text-on-success' : 'text-text-on-error'}`}>
-              {scorePercent}%
+              {score}%
             </p>
             <p className={passed ? 'text-text-on-success-muted' : 'text-text-on-error-muted'}>
               {testResultsData.correct} of {testResultsData.total} correct
@@ -685,13 +680,13 @@ const MCQTest = () => {
             <div className="mt-6">
               {passed ? (
                 <Button
-                  variant="primary-blue"
+                  variant="primary"
                   size="lg"
                   onClick={handleFinish}
                   className="inline-flex items-center gap-2"
                 >
                   <LayoutGrid className="w-5 h-5" />
-                  Continue
+                  {sessionContext?.segment ? 'Continue to Review' : 'Complete Today\'s Session'}
                 </Button>
               ) : (
                 <div className="flex justify-center gap-4">
@@ -718,10 +713,10 @@ const MCQTest = () => {
         )
       }
 
-      // Review Test: 4-tier system (compare percentage values)
-      const tier = scorePercent >= 85 ? 'excellent'
-                 : scorePercent >= 70 ? 'good'
-                 : scorePercent >= 50 ? 'needs-work'
+      // Review Test: 4-tier system
+      const tier = score >= 85 ? 'excellent'
+                 : score >= 70 ? 'good'
+                 : score >= 50 ? 'needs-work'
                  : 'critical'
 
       const tierConfig = {
@@ -786,7 +781,7 @@ const MCQTest = () => {
 
           {/* Score */}
           <p className={`mt-4 text-4xl font-bold ${config.scoreColor}`}>
-            {scorePercent}%
+            {score}%
           </p>
           <p className={config.subtextColor}>
             {testResultsData.correct} of {testResultsData.total} correct

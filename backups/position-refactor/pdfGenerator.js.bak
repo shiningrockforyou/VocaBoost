@@ -135,7 +135,7 @@ const buildSampleCell = (word) => {
 const wordsToTableBody = (words) => {
   return (Array.isArray(words) ? words : Object.values(words || {})).map((word, idx) => {
     const definitionText = (word.definition || '') + (word.definitions?.ko ? `\n[KR] ${word.definitions.ko}` : '')
-    const wordNumber = (word.position ?? idx) + 1 // 1-indexed position in master list
+    const wordNumber = (word.wordIndex ?? word.index ?? idx) + 1 // 1-indexed position in master list
     return [
       wordNumber.toString(),
       word.word || word.term || '—',
