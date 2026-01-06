@@ -2490,13 +2490,12 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
         { merge: true },
       )
 
-      // Check if challenge acceptance should trigger day progression
-      // Only for 'new' word tests that cross the pass threshold
+      // Check if challenge acceptance should trigger day progression or session phase change
       const testId = attemptData.testId || ''
       const testIdParts = testId.split('_')
       const phase = testIdParts[testIdParts.length - 1] // 'new' or 'review'
 
-      if (phase === 'new' && attemptData.classId) {
+      if ((phase === 'new' || phase === 'review') && attemptData.classId) {
         // Extract listId from testId (format: test_recovery_classId_listId_phase)
         const listId = testIdParts.length >= 4 ? testIdParts[testIdParts.length - 2] : null
 
@@ -2521,20 +2520,36 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
               if (progressSnap.exists()) {
                 const progress = progressSnap.data()
                 const currentDay = progress.currentStudyDay || 0
-                const interventionLevel = progress.interventionLevel || 0
+                const isFirstDay = currentDay === 0
 
-                // Calculate newWordCount with intervention (same as calculateDailyAllocation)
-                // Assignment stores 'pace' as daily pace directly
-                const dailyPace = assignment?.pace || 20
-                const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
+                if (phase === 'new' && !isFirstDay) {
+                  // Day 2+ New Word Test pass: Advance to Review Study phase (don't increment day)
+                  // The student still needs to complete the Review Test
+                  const sessionDocId = `${attemptData.classId}_${listId}`
+                  const sessionRef = doc(db, `users/${studentId}/session_states`, sessionDocId)
+                  await setDoc(sessionRef, {
+                    phase: 'review-study',
+                    newWordsTestPassed: true,
+                    newWordsTestScore: newScore / 100,
+                    lastUpdated: serverTimestamp()
+                  }, { merge: true })
+                } else {
+                  // Day 1 New Word Test pass OR Review Test pass: Complete session
+                  // Increment day and totalWordsIntroduced
+                  const interventionLevel = progress.interventionLevel || 0
 
-                // Increment day AND update totalWordsIntroduced
-                await updateDoc(progressRef, {
-                  currentStudyDay: currentDay + 1,
-                  totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
-                  lastSessionAt: serverTimestamp(),
-                  updatedAt: serverTimestamp(),
-                })
+                  // Calculate newWordCount with intervention (same as calculateDailyAllocation)
+                  // Assignment stores 'pace' as daily pace directly
+                  const dailyPace = assignment?.pace || 20
+                  const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
+
+                  await updateDoc(progressRef, {
+                    currentStudyDay: currentDay + 1,
+                    totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
+                    lastSessionAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                  })
+                }
               }
             }
           } catch (err) {
