@@ -12,6 +12,7 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
+import { getOrCreateClassProgress } from '../services/progressService'
 import { speak } from '../utils/tts'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
@@ -510,6 +511,17 @@ const MCQTest = () => {
 
       // Submit attempt for gradebook (non-practice mode only)
       if (!isPracticeMode) {
+        // Get studyDay from sessionContext, or fetch from progress if standalone test
+        let studyDay = sessionContext?.dayNumber
+        if (!studyDay && user?.uid && classIdParam && listId) {
+          try {
+            const progress = await getOrCreateClassProgress(user.uid, classIdParam, listId)
+            studyDay = (progress.currentStudyDay || 0) + 1
+          } catch (err) {
+            console.error('Failed to fetch studyDay from progress:', err)
+          }
+        }
+
         const result = await submitTestAttempt(
           user.uid,
           testId,
@@ -518,7 +530,7 @@ const MCQTest = () => {
           classIdParam,
           'mcq',
           currentTestType,
-          sessionContext?.dayNumber || null
+          studyDay || null
         )
         setAttemptId(result.id)
       }
@@ -843,7 +855,7 @@ const MCQTest = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => navigate('/')}
+                  onClick={handleFinish}
                   className="flex-1 max-w-[160px]"
                 >
                   Dashboard
@@ -864,7 +876,7 @@ const MCQTest = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => navigate('/')}
+                  onClick={handleFinish}
                   className="flex-1 max-w-[160px]"
                 >
                   Dashboard

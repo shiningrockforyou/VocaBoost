@@ -1836,6 +1836,8 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
       listId: listId,
       testId: testId,
       testType: attemptData.testType || 'mcq',
+      sessionType: attemptData.sessionType || null,
+      studyDay: attemptData.studyDay || null,
       submittedAt: attemptData.submittedAt,
     })
   }
@@ -2011,6 +2013,8 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
       listId: listId,
       testId: testId,
       testType: attemptData.testType || 'mcq',
+      sessionType: attemptData.sessionType || null,
+      studyDay: attemptData.studyDay || null,
       submittedAt: attemptData.submittedAt,
     })
   }

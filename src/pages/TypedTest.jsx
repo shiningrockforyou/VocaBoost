@@ -13,6 +13,7 @@ import {
   processTestResults,
   selectTestWords
 } from '../services/studyService'
+import { getOrCreateClassProgress } from '../services/progressService'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -606,6 +607,17 @@ const TypedTest = () => {
       } else {
         summary = await processTestResults(user.uid, resultsArray, listId)
 
+        // Get studyDay from sessionContext, or fetch from progress if standalone test
+        let studyDay = sessionContext?.dayNumber
+        if (!studyDay && user?.uid && classIdParam && listId) {
+          try {
+            const progress = await getOrCreateClassProgress(user.uid, classIdParam, listId)
+            studyDay = (progress.currentStudyDay || 0) + 1
+          } catch (err) {
+            console.error('Failed to fetch studyDay from progress:', err)
+          }
+        }
+
         // Submit attempt for gradebook
         const result = await submitTypedTestAttempt(
           user.uid,
@@ -615,7 +627,7 @@ const TypedTest = () => {
           gradingResult.data.results,
           classIdParam,
           currentTestType,
-          sessionContext?.dayNumber || null
+          studyDay || null
         )
         setAttemptId(result.id)
       }
