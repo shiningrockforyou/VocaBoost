@@ -2502,10 +2502,10 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
 
         if (listId) {
           try {
-            // Get pass threshold from assignment
+            // Get pass threshold from assignment (stored in assignments map, not assignedLists array)
             const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
             const assignment = classDoc.exists()
-              ? classDoc.data().assignedLists?.find((a) => a.listId === listId)
+              ? classDoc.data().assignments?.[listId]
               : null
             const passThreshold = assignment?.passThreshold || 95
 
@@ -2524,9 +2524,8 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
                 const interventionLevel = progress.interventionLevel || 0
 
                 // Calculate newWordCount with intervention (same as calculateDailyAllocation)
-                const weeklyPace = assignment?.weeklyPace || 100
-                const studyDaysPerWeek = assignment?.studyDaysPerWeek || 5
-                const dailyPace = Math.ceil(weeklyPace / studyDaysPerWeek)
+                // Assignment stores 'pace' as daily pace directly
+                const dailyPace = assignment?.pace || 20
                 const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
 
                 // Increment day AND update totalWordsIntroduced
