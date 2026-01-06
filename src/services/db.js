@@ -2521,10 +2521,18 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
               if (progressSnap.exists()) {
                 const progress = progressSnap.data()
                 const currentDay = progress.currentStudyDay || 0
+                const interventionLevel = progress.interventionLevel || 0
 
-                // Increment day (challenge review = minimal update, no session summary)
+                // Calculate newWordCount with intervention (same as calculateDailyAllocation)
+                const weeklyPace = assignment?.weeklyPace || 100
+                const studyDaysPerWeek = assignment?.studyDaysPerWeek || 5
+                const dailyPace = Math.ceil(weeklyPace / studyDaysPerWeek)
+                const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
+
+                // Increment day AND update totalWordsIntroduced
                 await updateDoc(progressRef, {
                   currentStudyDay: currentDay + 1,
+                  totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
                   lastSessionAt: serverTimestamp(),
                   updatedAt: serverTimestamp(),
                 })
