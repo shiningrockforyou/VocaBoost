@@ -2667,3 +2667,44 @@ export async function resetStudentProgress(userId, classId, listId) {
 
   return { success: true, deletedCount }
 }
+
+/**
+ * Get the new word test attempt for a specific study day.
+ * Used by completeSessionFromTest() to fetch the new word score when completing from a review test.
+ *
+ * @param {string} userId - Student user ID
+ * @param {string} classId - Class ID
+ * @param {number} studyDay - The study day number to find the attempt for
+ * @returns {Promise<Object|null>} The attempt data or null if not found
+ */
+export const getNewWordAttemptForDay = async (userId, classId, studyDay) => {
+  if (!userId || !classId || studyDay === undefined) {
+    console.warn('getNewWordAttemptForDay: Missing required parameters')
+    return null
+  }
+
+  try {
+    const attemptsRef = collection(db, 'attempts')
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('sessionType', '==', 'new'),
+      where('studyDay', '==', studyDay),
+      orderBy('submittedAt', 'desc'),
+      limit(1)
+    )
+
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      console.warn(`getNewWordAttemptForDay: No new word attempt found for day ${studyDay}`)
+      return null
+    }
+
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() }
+  } catch (err) {
+    console.error('getNewWordAttemptForDay error:', err)
+    return null
+  }
+}

@@ -10,7 +10,8 @@ import {
   getNewWords,
   getSegmentWords,
   processTestResults,
-  selectTestWords
+  selectTestWords,
+  completeSessionFromTest
 } from '../services/studyService'
 import { getOrCreateClassProgress } from '../services/progressService'
 import { speak } from '../utils/tts'
@@ -533,6 +534,38 @@ const MCQTest = () => {
           studyDay || null
         )
         setAttemptId(result.id)
+
+        // Determine if this is the final test of the session and test passed
+        const passed = summary.score >= retakeThreshold
+        const isSessionFinalTest = sessionContext?.isFirstDay
+          ? currentTestType === 'new'      // Day 1: new test is only test
+          : currentTestType === 'review'   // Day 2+: review test is last
+
+        // Complete session at submission time (before navigation) to prevent state loss
+        if (passed && isSessionFinalTest && sessionContext?.dayNumber) {
+          try {
+            await completeSessionFromTest({
+              userId: user.uid,
+              classId: classIdParam,
+              listId,
+              dayNumber: sessionContext.dayNumber,
+              isFirstDay: sessionContext.isFirstDay,
+              testType: currentTestType,
+              testResults: {
+                score: summary.score,
+                correct: summary.correct,
+                total: summary.total,
+                failed: summary.failed
+              }
+              // segment, interventionLevel, wordsIntroduced, wordsReviewed
+              // are now read from sessionStorage in completeSessionFromTest
+            })
+            console.log('Session completed successfully from MCQTest')
+          } catch (completionErr) {
+            console.error('Failed to complete session from test:', completionErr)
+            // Don't fail the whole submit - attempt is already saved
+          }
+        }
       }
 
       setTestResultsData({

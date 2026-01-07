@@ -18,8 +18,10 @@ function SummaryRow({ label, value, highlight = false, icon = null }) {
 }
 
 function SessionSummaryCard({ summary, sessionConfig }) {
+  // Use fresh TWI from progress (updated by completeSessionFromTest) with fallback to sessionConfig
+  const totalWordsIntroduced = summary?.progress?.totalWordsIntroduced ?? sessionConfig?.totalWordsIntroduced ?? 0
   const progressPercent = sessionConfig?.totalListWords > 0
-    ? Math.min(100, (sessionConfig.totalWordsIntroduced / sessionConfig.totalListWords) * 100)
+    ? Math.min(100, (totalWordsIntroduced / sessionConfig.totalListWords) * 100)
     : 0
 
   return (
@@ -76,7 +78,7 @@ function SessionSummaryCard({ summary, sessionConfig }) {
         <div className="flex justify-between text-sm mb-1">
           <span className="text-text-muted">Total Progress</span>
           <span className="font-medium text-text-primary">
-            {sessionConfig?.totalWordsIntroduced ?? 0} / {sessionConfig?.totalListWords ?? 0}
+            {totalWordsIntroduced} / {sessionConfig?.totalListWords ?? 0}
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">

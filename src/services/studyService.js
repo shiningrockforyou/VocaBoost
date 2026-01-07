@@ -20,6 +20,7 @@ import {
   increment
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { getNewWordAttemptForDay } from './db';
 import {
   calculateInterventionLevel,
   calculateDailyAllocation,
@@ -950,6 +951,127 @@ export async function getDebugSessionData(userId, classId, listId, assignment) {
     reviewQueue,
     segmentWords,
     masteredWords
+  };
+}
+
+/**
+ * Complete a session from within a test component.
+ *
+ * Called at test submission time (before navigation) to ensure session completion
+ * happens atomically with the test attempt, preventing state loss on navigation failures.
+ *
+ * Reads segment, interventionLevel, wordsIntroduced, wordsReviewed from sessionStorage
+ * (same data source as the original completeSession in DailySessionFlow).
+ *
+ * For Day 1: Only new word test results needed.
+ * For Day 2+: Queries the new word attempt from Firestore to get newWordScore.
+ *
+ * @param {Object} params - Completion parameters
+ * @param {string} params.userId - User ID
+ * @param {string} params.classId - Class ID
+ * @param {string} params.listId - List ID
+ * @param {number} params.dayNumber - Study day number
+ * @param {boolean} params.isFirstDay - Whether this is Day 1 (no review test)
+ * @param {string} params.testType - 'new' or 'review'
+ * @param {Object} params.testResults - { score, correct, total, failed }
+ * @returns {Promise<Object>} Result with sessionId and progress
+ */
+export async function completeSessionFromTest({
+  userId,
+  classId,
+  listId,
+  dayNumber,
+  isFirstDay,
+  testType,
+  testResults
+}) {
+  // Read session data from sessionStorage (same source as original completeSession)
+  let sessionState = null;
+  try {
+    const savedState = sessionStorage.getItem('dailySessionState');
+    if (savedState) {
+      sessionState = JSON.parse(savedState);
+    }
+  } catch (err) {
+    console.warn('completeSessionFromTest: Could not read sessionStorage', err);
+  }
+
+  // Extract values from sessionStorage (with fallbacks)
+  const segment = sessionState?.sessionConfig?.segment || null;
+  const interventionLevel = sessionState?.sessionConfig?.interventionLevel || 0;
+  const wordsIntroduced = sessionState?.newWords?.length || 0;
+  const wordsReviewed = sessionState?.reviewQueue?.length || 0;
+
+  console.log('completeSessionFromTest called:', {
+    userId,
+    classId,
+    listId,
+    dayNumber,
+    isFirstDay,
+    testType,
+    score: testResults?.score,
+    wordsIntroduced,
+    segment: segment ? `${segment.startIndex}-${segment.endIndex}` : null
+  });
+
+  let newWordScore = null;
+  let reviewScore = null;
+  let reviewFailed = [];
+
+  if (isFirstDay) {
+    // Day 1: Only new word test, no review
+    newWordScore = testResults.score;
+  } else {
+    // Day 2+: This is a review test - need to get new word score from earlier attempt
+    reviewScore = testResults.score;
+    reviewFailed = testResults.failed || [];
+
+    // Query the new word attempt for this day
+    const newWordAttempt = await getNewWordAttemptForDay(userId, classId, dayNumber);
+    if (newWordAttempt) {
+      // Convert score from 0-100 to 0-1 if needed
+      newWordScore = newWordAttempt.score <= 1
+        ? newWordAttempt.score
+        : newWordAttempt.score / 100;
+    } else {
+      console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
+    }
+  }
+
+  // Build session summary
+  const summary = {
+    classId,
+    listId,
+    dayNumber,
+    interventionLevel,
+    newWordScore,
+    reviewScore,
+    segment,
+    wordsIntroduced,
+    wordsReviewed,
+    wordsTested: testResults.total || 0
+  };
+
+  // Record session completion (updates CSD, recentSessions, etc.)
+  const result = await recordSessionCompletion(userId, summary);
+
+  // Graduate words if this was a review test with a score
+  let graduationResult = null;
+  if (segment && reviewScore != null) {
+    graduationResult = await graduateSegmentWords(
+      userId,
+      listId,
+      segment,
+      reviewScore,
+      reviewFailed
+    );
+    console.log(`Graduated ${graduationResult.graduated} words to MASTERED`);
+  }
+
+  return {
+    sessionId: result.sessionId,
+    progress: result.progress,
+    graduated: graduationResult?.graduated || 0
   };
 }
 

@@ -85,6 +85,25 @@ export async function getSessionState(userId, classId, listId) {
 }
 
 /**
+ * Batch fetch session states for multiple students
+ * @param {string[]} studentIds - Array of student user IDs
+ * @param {string} classId - Class ID
+ * @param {string} listId - List ID
+ * @returns {Promise<Object>} Map of { [studentId]: sessionState | null }
+ */
+export async function fetchStudentsSessionStates(studentIds, classId, listId) {
+  const docId = getSessionDocId(classId, listId);
+  const results = await Promise.all(
+    studentIds.map(id =>
+      getDoc(doc(db, `users/${id}/session_states`, docId))
+        .then(snap => [id, snap.exists() ? snap.data() : null])
+        .catch(() => [id, null])
+    )
+  );
+  return Object.fromEntries(results);
+}
+
+/**
  * Save the current session state
  *
  * @param {string} userId - User ID

@@ -870,8 +870,9 @@ export default function DailySessionFlow() {
     const config = configOverride || sessionConfig
 
     if (!config?.segment) {
-      // No review (day 1), go to complete
-      await completeSession()
+      // No segment - either Day 1 (no review) or missing config
+      // Day 1 completion is now handled by test component, so just return
+      console.warn('moveToReviewPhase: No segment available, skipping review phase')
       return
     }
 
@@ -1049,10 +1050,23 @@ export default function DailySessionFlow() {
         wordRangeStart,
         wordRangeEnd,
         listTitle,
+        // Required for session completion from test component
+        segment: sessionConfig?.segment,
+        interventionLevel: sessionConfig?.interventionLevel || 0,
+        wordsIntroduced: newWords?.length || 0,
+        wordsReviewed: reviewQueue?.length || 0,
       }
     })
 
     const route = mode === 'typed' ? '/typedtest' : '/mcqtest'
+
+    // DEBUG: Check sessionConfig before saving
+    console.log('DEBUG navigateToTest sessionConfig:', {
+      hasSessionConfig: !!sessionConfig,
+      segment: sessionConfig?.segment,
+      dayNumber: sessionConfig?.dayNumber,
+      isFirstDay: sessionConfig?.isFirstDay
+    })
 
     // Store session state in sessionStorage for return
     sessionStorage.setItem('dailySessionState', JSON.stringify({
@@ -1127,6 +1141,8 @@ export default function DailySessionFlow() {
   }, [location.state?.goToStudy, location.state?.testType, classId, listId, navigate])
 
   // Handle return from test (completion)
+  // NOTE: Session completion (CSD increment, graduation) now happens in the test component
+  // (MCQTest/TypedTest) at submit time. This effect handles UI transitions and state cleanup.
   useEffect(() => {
     if (!location.state?.testCompleted) return
 
@@ -1154,25 +1170,65 @@ export default function DailySessionFlow() {
           setNewWordTestResults(results)
           setNewWordFailedIds(results?.failed || [])
 
-          // Proceed to next phase - results page already showed pass/fail and had retake option
           if (state.sessionConfig?.isFirstDay) {
-            // Day 1: Complete session (only new word test)
-            await completeSession(state.sessionConfig, state.newWords, state.reviewQueue, {
-              newWordResults: results,
-              reviewResults: null
+            // Day 1: Session was already completed by test component
+            // Just update UI to show completion (fetch fresh progress for display)
+            const progress = await getClassProgress(user.uid, classId, listId)
+            const completedDays = progress?.currentStudyDay ?? 0
+            const studyDaysPerWeek = state.assignmentSettings?.studyDaysPerWeek ?? 5
+            const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
+            const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+            const difference = completedDays - expectedDay
+            setProgressInfo({
+              completedDays,
+              expectedDay,
+              difference,
+              isOnTrack: difference >= 0
             })
+            setSessionSummary({
+              classId,
+              listId,
+              dayNumber: state.sessionConfig?.dayNumber,
+              newWordScore: results?.score,
+              reviewScore: null,
+              wordsIntroduced: state.newWords?.length || 0,
+              wordsReviewed: 0,
+              progress
+            })
+            setPhase(PHASES.COMPLETE)
           } else {
-            // Day 2+: Move to review phase
+            // Day 2+: Move to review phase (session not complete yet)
             await moveToReviewPhase(state.sessionConfig)
           }
         } else {
+          // Review test completed - session was already completed by test component
           setReviewTestResults(results)
           setReviewTestAttempts(prev => prev + 1)
-          // Pass both test results directly to avoid async state race
-          await completeSession(state.sessionConfig, state.newWords, state.reviewQueue, {
-            newWordResults: state.newWordTestResults,
-            reviewResults: results
+
+          // Just update UI to show completion (fetch fresh progress for display)
+          const progress = await getClassProgress(user.uid, classId, listId)
+          const completedDays = progress?.currentStudyDay ?? 0
+          const studyDaysPerWeek = state.assignmentSettings?.studyDaysPerWeek ?? 5
+          const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
+          const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+          const difference = completedDays - expectedDay
+          setProgressInfo({
+            completedDays,
+            expectedDay,
+            difference,
+            isOnTrack: difference >= 0
           })
+          setSessionSummary({
+            classId,
+            listId,
+            dayNumber: state.sessionConfig?.dayNumber,
+            newWordScore: state.newWordTestResults?.score,
+            reviewScore: results?.score,
+            wordsIntroduced: state.newWords?.length || 0,
+            wordsReviewed: state.reviewQueue?.length || 0,
+            progress
+          })
+          setPhase(PHASES.COMPLETE)
         }
 
         sessionStorage.removeItem('dailySessionState')

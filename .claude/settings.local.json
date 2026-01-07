@@ -9,7 +9,10 @@
       "Bash(wc:*)",
       "Bash(dir:*)",
       "Bash(copy:*)",
-      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" status --porcelain)"
+      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" status --porcelain)",
+      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" log --oneline --date=short --format=\"%h %ad %s\" -30)",
+      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" log --stat --date=short -10)",
+      "Bash(git -C \"c:\\\\Users\\\\dmchw\\\\vocaboost\" log --format=\"%h %ai %s\" -30)"
     ]
   }
 }

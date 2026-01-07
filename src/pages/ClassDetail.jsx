@@ -23,12 +23,44 @@ import {
   updateAssignmentSettings,
 } from '../services/db'
 import { fetchStudentsProgressForClass } from '../services/progressService'
+import { fetchStudentsSessionStates } from '../services/sessionService'
 import AssignListModal from '../components/AssignListModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import { Button, IconButton, TabButton, LinkButton } from '../components/ui'
 import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download } from 'lucide-react'
+
+// Component to display previous session info
+const PreviousSessionCell = ({ sessions }) => {
+  const last = sessions?.slice(-1)[0]
+  if (!last) return <span className="text-text-muted text-xs">No History</span>
+  return (
+    <div className="text-xs">
+      <div className="font-medium">Day {last.day}</div>
+      <div className="text-text-muted">New: {last.newWordScore != null ? `${Math.round(last.newWordScore * 100)}%` : '-'}</div>
+      <div className="text-text-muted">Review: {last.reviewScore != null ? `${Math.round(last.reviewScore * 100)}%` : '-'}</div>
+    </div>
+  )
+}
+
+// Component to display current session info
+const CurrentSessionCell = ({ data }) => {
+  if (!data) return <span className="text-text-muted text-xs">Not Started</span>
+  const newTaken = data.newWordsTestScore != null
+  const reviewTaken = data.reviewTestScore != null
+  return (
+    <div className="text-xs">
+      <div className="font-medium">Day {data.currentStudyDay}</div>
+      <div className={newTaken ? 'text-green-600' : 'text-text-muted'}>
+        New: {newTaken ? `✓ ${Math.round(data.newWordsTestScore * 100)}%` : '✗ -'}
+      </div>
+      <div className={reviewTaken ? 'text-green-600' : 'text-text-muted'}>
+        Review: {reviewTaken ? `✓ ${Math.round(data.reviewTestScore * 100)}%` : '✗ -'}
+      </div>
+    </div>
+  )
+}
 
 // Component to display student progress for each assigned list
 const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
@@ -105,6 +137,9 @@ const [unassigningListId, setUnassigningListId] = useState(null)
   const [classSwitcherOpen, setClassSwitcherOpen] = useState(false)
   const [studentProgressMap, setStudentProgressMap] = useState({})
   const [progressLoading, setProgressLoading] = useState(false)
+  const [selectedListId, setSelectedListId] = useState(null)
+  const [studentSessionMap, setStudentSessionMap] = useState({})
+  const [sessionLoading, setSessionLoading] = useState(false)
 
   const isOwner = useMemo(
     () => classInfo?.ownerTeacherId === user?.uid,
@@ -230,6 +265,30 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     }
     loadAllClasses()
   }, [user?.uid])
+
+  // Fetch session states for students
+  const fetchSessionData = useCallback(async (listId) => {
+    if (!listId || !members?.length || !classId) return
+
+    setSessionLoading(true)
+    try {
+      const data = await fetchStudentsSessionStates(members.map(m => m.id), classId, listId)
+      setStudentSessionMap(data)
+    } catch (err) {
+      console.error('Failed to fetch session states:', err)
+    } finally {
+      setSessionLoading(false)
+    }
+  }, [members, classId])
+
+  useEffect(() => {
+    // Auto-select first list if needed
+    const listId = selectedListId && assignedLists.find(l => l.id === selectedListId)
+      ? selectedListId : assignedLists[0]?.id || null
+    if (listId !== selectedListId) { setSelectedListId(listId); return }
+
+    fetchSessionData(listId)
+  }, [assignedLists, selectedListId, fetchSessionData])
 
   const loadAttempts = useCallback(async () => {
     if (!classId) return
@@ -724,6 +783,28 @@ const [unassigningListId, setUnassigningListId] = useState(null)
               </div>
             </div>
 
+            {/* List selector for session data */}
+            {assignedLists.length > 0 && (
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-sm text-text-secondary">Session data for:</span>
+                <select
+                  value={selectedListId || ''}
+                  onChange={(e) => setSelectedListId(e.target.value)}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-border-default bg-surface"
+                >
+                  {assignedLists.map(l => <option key={l.id} value={l.id}>{l.title}</option>)}
+                </select>
+                <button
+                  onClick={() => fetchSessionData(selectedListId)}
+                  disabled={sessionLoading}
+                  className="p-1.5 text-text-muted hover:text-text-primary disabled:opacity-50"
+                  title="Refresh session data"
+                >
+                  <RefreshCw size={16} className={sessionLoading ? 'animate-spin' : ''} />
+                </button>
+              </div>
+            )}
+
             {/* Students table */}
             {!members ? (
               <div className="flex justify-center py-8">
@@ -745,6 +826,8 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                       <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">Email</th>
                       <th className="px-4 py-3 min-w-[220px]">Progress</th>
+                      <th className="px-4 py-3">Previous Session</th>
+                      <th className="px-4 py-3">Current Session</th>
                       <th className="px-4 py-3">Joined</th>
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
@@ -781,6 +864,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                               progressMap={studentProgressMap}
                             />
                           )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <PreviousSessionCell sessions={studentProgressMap[member.id]?.[selectedListId]?.recentSessions} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <CurrentSessionCell data={studentSessionMap[member.id]} />
                         </td>
                         <td className="px-4 py-3 text-text-muted">
                           {member.joinedAt
