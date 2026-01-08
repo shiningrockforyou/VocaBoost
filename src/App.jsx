@@ -13,6 +13,7 @@ import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
 import MCQTest from './pages/MCQTest.jsx'
 import TypedTest from './pages/TypedTest.jsx'
 import Settings from './pages/Settings.jsx'
+import AdminProgressDashboard from './pages/AdminProgressDashboard.jsx'
 import { queryStudentAttempts } from './services/db'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
@@ -149,6 +150,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/turkey-gravy" element={<AdminProgressDashboard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
