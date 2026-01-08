@@ -58,7 +58,8 @@ export default function AdminProgressDashboard() {
         data.progressRecords,
         data.usersMap,
         data.classesMap,
-        data.listsMap
+        data.listsMap,
+        data.sessionStatesMap
       )
       setDisplayData(formatted)
     } catch (err) {
@@ -231,7 +232,7 @@ export default function AdminProgressDashboard() {
   // Export functions
   function exportToCSV() {
     const headers = [
-      'Student Name', 'Email', 'Class', 'List', 'Study Day', 'Words Introduced',
+      'Student Name', 'Email', 'Class', 'List', 'Study Day', 'Session Stage', 'Words Introduced',
       'Streak', 'Intervention', 'Avg New Score', 'Avg Review Score', 'Last Study', 'Last Session'
     ]
 
@@ -241,6 +242,7 @@ export default function AdminProgressDashboard() {
       r.className,
       r.listName,
       r.currentStudyDay,
+      r.sessionPhaseLabel,
       r.totalWordsIntroduced,
       r.streakDays,
       r.interventionLevel,
@@ -264,6 +266,7 @@ export default function AdminProgressDashboard() {
       'Class': r.className,
       'List': r.listName,
       'Study Day': r.currentStudyDay,
+      'Session Stage': r.sessionPhaseLabel,
       'Words Introduced': r.totalWordsIntroduced,
       'Streak': r.streakDays,
       'Intervention': r.interventionLevel,
@@ -450,6 +453,7 @@ export default function AdminProgressDashboard() {
                   <SortableHeader field="className" label="Class" onSort={handleSort} currentField={sortField} direction={sortDirection} />
                   <SortableHeader field="listName" label="List" onSort={handleSort} currentField={sortField} direction={sortDirection} />
                   <SortableHeader field="currentStudyDay" label="Day" onSort={handleSort} currentField={sortField} direction={sortDirection} />
+                  <SortableHeader field="sessionPhase" label="Stage" onSort={handleSort} currentField={sortField} direction={sortDirection} />
                   <SortableHeader field="totalWordsIntroduced" label="Words" onSort={handleSort} currentField={sortField} direction={sortDirection} />
                   <SortableHeader field="streakDays" label="Streak" onSort={handleSort} currentField={sortField} direction={sortDirection} />
                   <SortableHeader field="interventionLevel" label="Intervention" onSort={handleSort} currentField={sortField} direction={sortDirection} />
@@ -472,6 +476,15 @@ export default function AdminProgressDashboard() {
                     <td className="px-3 py-3 text-text-secondary">{record.className}</td>
                     <td className="px-3 py-3 text-text-secondary">{record.listName}</td>
                     <td className="px-3 py-3 text-center">{record.currentStudyDay}</td>
+                    <td className="px-3 py-3">
+                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                        record.sessionPhase === 'complete' ? 'bg-emerald-100 text-emerald-700' :
+                        record.sessionPhase === 'not-started' ? 'bg-slate-100 text-slate-600' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {record.sessionPhaseLabel}
+                      </span>
+                    </td>
                     <td className="px-3 py-3 text-center">{record.totalWordsIntroduced}</td>
                     <td className="px-3 py-3 text-center">{record.streakDays}</td>
                     <td className="px-3 py-3 text-center">
@@ -500,7 +513,7 @@ export default function AdminProgressDashboard() {
                 ))}
                 {paginatedData.length === 0 && (
                   <tr>
-                    <td colSpan={12} className="px-3 py-8 text-center text-text-secondary">
+                    <td colSpan={13} className="px-3 py-8 text-center text-text-secondary">
                       No records found matching your filters.
                     </td>
                   </tr>

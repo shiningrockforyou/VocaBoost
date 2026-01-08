@@ -94,18 +94,47 @@ export async function fetchAllLists() {
 }
 
 /**
+ * Fetch all session_states documents across all users
+ * Uses collection group query for efficiency
+ * @returns {Promise<Object>} Map of "{userId}_{classId}_{listId}" -> session state
+ */
+export async function fetchAllSessionStates() {
+  const sessionRef = collectionGroup(db, 'session_states');
+  const snapshot = await getDocs(sessionRef);
+
+  const sessionMap = {};
+  snapshot.forEach((docSnap) => {
+    // Extract userId from path: users/{userId}/session_states/{docId}
+    const pathParts = docSnap.ref.path.split('/');
+    const userId = pathParts[1];
+    const docId = docSnap.id; // format: {classId}_{listId}
+
+    // Create compound key for lookup
+    const key = `${userId}_${docId}`;
+    sessionMap[key] = {
+      id: docSnap.id,
+      userId,
+      ...docSnap.data()
+    };
+  });
+
+  return sessionMap;
+}
+
+/**
  * Fetch all admin data in parallel
- * @returns {Promise<Object>} Combined data { progressRecords, usersMap, classesMap, listsMap }
+ * @returns {Promise<Object>} Combined data { progressRecords, usersMap, classesMap, listsMap, sessionStatesMap }
  */
 export async function fetchAllAdminData() {
-  const [progressRecords, usersMap, classesMap, listsMap] = await Promise.all([
+  const [progressRecords, usersMap, classesMap, listsMap, sessionStatesMap] = await Promise.all([
     fetchAllClassProgress(),
     fetchAllUsers(),
     fetchAllClasses(),
-    fetchAllLists()
+    fetchAllLists(),
+    fetchAllSessionStates()
   ]);
 
-  return { progressRecords, usersMap, classesMap, listsMap };
+  return { progressRecords, usersMap, classesMap, listsMap, sessionStatesMap };
 }
 
 /**
@@ -151,18 +180,35 @@ export async function updateClassProgressAdmin(userId, classId, listId, updates)
 }
 
 /**
+ * Session phase display names
+ */
+export const SESSION_PHASE_LABELS = {
+  'new-words-study': 'Studying New Words',
+  'new-words-test': 'New Words Test',
+  'review-study': 'Reviewing',
+  'review-test': 'Review Test',
+  'complete': 'Complete',
+  'not-started': 'Not Started'
+};
+
+/**
  * Format progress data for table display
  * @param {Array} progressRecords - Raw progress records
  * @param {Object} usersMap - Users lookup map
  * @param {Object} classesMap - Classes lookup map
  * @param {Object} listsMap - Lists lookup map
+ * @param {Object} sessionStatesMap - Session states lookup map
  * @returns {Array} Formatted records for display
  */
-export function formatProgressForDisplay(progressRecords, usersMap, classesMap, listsMap) {
+export function formatProgressForDisplay(progressRecords, usersMap, classesMap, listsMap, sessionStatesMap = {}) {
   return progressRecords.map(record => {
     const user = usersMap[record.userId] || {};
     const classData = classesMap[record.classId] || {};
     const listData = listsMap[record.listId] || {};
+
+    // Look up session state using compound key
+    const sessionKey = `${record.userId}_${record.classId}_${record.listId}`;
+    const sessionState = sessionStatesMap[sessionKey] || {};
 
     // Convert Timestamps to Date objects for display
     const lastStudyDate = record.lastStudyDate?.toDate?.() || record.lastStudyDate || null;
@@ -181,6 +227,10 @@ export function formatProgressForDisplay(progressRecords, usersMap, classesMap, 
       studentEmail: user.email || 'Unknown',
       className: classData.name || record.classId || 'Unknown',
       listName: listData.name || record.listId || 'Unknown',
+
+      // Session phase
+      sessionPhase: sessionState.phase || 'not-started',
+      sessionPhaseLabel: SESSION_PHASE_LABELS[sessionState.phase] || 'Not Started',
 
       // Progress fields (editable)
       currentStudyDay: record.currentStudyDay || 0,

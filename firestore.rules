@@ -19,9 +19,13 @@ service cloud.firestore {
       return getUserData().role == 'teacher';
     }
 
-    // ADMIN: Collection group rule for class_progress (enables admin dashboard)
+    // ADMIN: Collection group rules for admin dashboard
     match /{path=**}/class_progress/{docId} {
       allow read, write: if isAuthenticated();
+    }
+
+    match /{path=**}/session_states/{docId} {
+      allow read: if isAuthenticated();
     }
 
     // USERS
