@@ -162,6 +162,9 @@
 | 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Updated submission overlay to show retry status on attempts 2-3 with yellow warning and attempt counter (lines 1287-1314) |
 | 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Added separate grading error modal with manual "Try Again" button after 3 failed attempts, preserves student answers (lines 1332-1355) |
 | 2026-01-12 | `src/services/db.js` | **Challenge Bug Fix** - `reviewChallenge()` now updates `passed` field when challenge is accepted. Previously only `score` was updated, leaving `passed: false` even when score crossed threshold. This caused reconciliation to not advance days. (lines 2606-2628) |
+| 2026-01-12 | `CLAUDE.md` | Fixed filename reference from `changes_action_log.md` to `change_action_log.md` and added table format hint |
+| 2026-01-12 | `CLAUDE.md` | Added apBoost rule to log changes to `change_action_log_ap.md` instead of main log |
+| 2026-01-12 | `change_action_log_ap.md` | **NEW FILE** - Separate change log for apBoost development |
 
 ---
 
