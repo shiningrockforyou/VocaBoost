@@ -61,11 +61,7 @@ export function buildTestConfig(options) {
     reviewTestSizeMin,
     reviewTestSizeMax,
 
-    // Session context
-    dayNumber: sessionContext.dayNumber,
-    isFirstDay: sessionContext.isFirstDay,
-    wordRangeStart: sessionContext.wordRangeStart,
-    wordRangeEnd: sessionContext.wordRangeEnd,
-    listTitle: sessionContext.listTitle,
+    // Session context (all fields preserved for attempt tracking)
+    ...sessionContext,
   }
 }

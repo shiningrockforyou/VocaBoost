@@ -380,9 +380,24 @@ const Settings = () => {
             <p className="font-semibold text-text-primary mb-4">
               {selectedClass?.name} — {selectedList?.title}
             </p>
-            <p className="text-sm text-text-muted mb-6">
-              This will delete all your study history, test scores, and word mastery data for this list.
-            </p>
+
+            <div className="text-sm text-text-secondary mb-4">
+              <p className="mb-2">
+                This will <strong>permanently delete</strong>:
+              </p>
+              <ul className="list-disc list-inside space-y-1 mb-3">
+                <li>Your current study progress for this list</li>
+                <li>All vocabulary mastery records</li>
+                <li className="text-red-600 font-medium">All test submissions and scores</li>
+                <li className="text-red-600 font-medium">Your records in the teacher's gradebook</li>
+              </ul>
+              <p className="mb-2">
+                You will start completely fresh from <strong>Day 0</strong>.
+              </p>
+              <p className="text-red-600 font-semibold">
+                This action cannot be undone.
+              </p>
+            </div>
 
             <div className="flex gap-3 justify-end">
               <Button variant="outline" size="md" onClick={closeModals}>

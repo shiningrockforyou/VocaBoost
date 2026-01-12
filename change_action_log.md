@@ -109,6 +109,59 @@
 | 2026-01-04 | `src/pages/TypedTest.jsx` | **Shuffle Fix** - Fixed biased retake shuffle to use `shuffleArray()` instead of `sort(() => Math.random() - 0.5)` (line 650) |
 | 2026-01-04 | `src/services/studyService.js` | **Shuffle Fix** - Added `shuffleArray` import; Fixed biased graduation selection to use Fisher-Yates instead of `sort(() => Math.random() - 0.5)` (line 781) |
 | 2026-01-05 | `src/services/studyService.js` | **Bug Fix** - `graduateSegmentWords()` now writes `wordIndex` and `listId` to Firebase batch (lines 802-803). Debug panel's `getMasteredWordsInRange()` filters by `wordIndex`, so graduated words were invisible without this field. |
+| 2026-01-09 | `src/pages/DailySessionFlow.jsx` | Added `newWordStartIndex` and `newWordEndIndex` to sessionContext (lines 1062-1063) |
+| 2026-01-09 | `src/services/db.js` | Added `sessionContext` parameter to `submitTestAttempt` function (line 1003) |
+| 2026-01-09 | `src/services/db.js` | Added 9 flattened session context fields to `submitTestAttempt` attemptData: `isFirstDay`, `listTitle`, `segmentStartIndex`, `segmentEndIndex`, `interventionLevel`, `wordsIntroduced`, `wordsReviewed`, `newWordStartIndex`, `newWordEndIndex` (lines 1064-1073) |
+| 2026-01-12 | `src/utils/sessionStepTracker.js` | **NEW FILE** - Centralized step calculation utility with `getSessionStep()` function. Returns `{ stepNumber, totalSteps, stepText }` based on phase or testType. |
+| 2026-01-12 | `src/utils/sessionStepTracker.js` | Fixed switch cases to use lowercase phase constants (`'new_words'`, `'review_study'`, `'complete'`) instead of uppercase |
+| 2026-01-12 | `src/pages/MCQTest.jsx` | Replaced custom header (lines 1037-1072) with SessionHeader component on active test screen; Added step tracker import and usage |
+| 2026-01-12 | `src/pages/MCQTest.jsx` | Updated results screen to use `getSessionStep()` utility instead of inline calculation (lines 730-731) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | Updated active test screen and results screen to use `getSessionStep()` utility instead of inline calculation (lines 780-781, 1079-1080, 1122-1124) |
+| 2026-01-12 | `src/pages/DailySessionFlow.jsx` | Updated to use `getSessionStep()` utility instead of inline calculation (lines 1558-1567) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **Review Test UX** - Updated button labels for all 4 tiers: Excellent → "Continue" (was "Return to Dashboard"); Good → swapped button order; Needs Work & Critical → "Review Again" + "Continue" (was "Retake Test" + "Dashboard") |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **Review Test UX** - "Review Again" button now navigates with `goToStudy: true` state to return user to review study flashcards instead of retaking test |
+| 2026-01-12 | `src/pages/MCQTest.jsx` | **Review Test UX** - Updated button labels for all 4 tiers: Excellent → "Continue"; Good → swapped button order; Needs Work & Critical → "Review Again" + "Continue" |
+| 2026-01-12 | `src/pages/MCQTest.jsx` | **Review Test UX** - "Review Again" button now navigates with `goToStudy: true` state to return user to review study flashcards instead of retaking test |
+| 2026-01-09 | `src/services/db.js` | Added `sessionContext` parameter to `submitTypedTestAttempt` function (line 1121) |
+| 2026-01-09 | `src/services/db.js` | Added 9 flattened session context fields to `submitTypedTestAttempt` attemptData (lines 1215-1224) |
+| 2026-01-09 | `src/pages/MCQTest.jsx` | Pass `sessionContext` to `submitTestAttempt` call (line 539) |
+| 2026-01-09 | `src/pages/TypedTest.jsx` | Pass `sessionContext` to `submitTypedTestAttempt` call (line 636) |
+| 2026-01-09 | `src/services/db.js` | **Solution #3** - Added `isTransientError()` helper to identify retryable Firebase errors (lines 44-55) |
+| 2026-01-09 | `src/services/db.js` | **Solution #3** - Added `addJitter()` helper for exponential backoff randomization (lines 57-61) |
+| 2026-01-09 | `src/services/db.js` | **Solution #3** - Added `withRetry()` generic retry wrapper with exponential backoff and logging (lines 63-109) |
+| 2026-01-09 | `src/services/db.js` | **Solution #3** - Added `logSystemEvent()` for anomaly logging to `system_logs` collection (lines 111-125) |
+| 2026-01-09 | `src/services/db.js` | **Solution #3** - Added `listId` parameter to `submitTestAttempt()` and `submitTypedTestAttempt()` |
+| 2026-01-09 | `src/pages/MCQTest.jsx` | **Solution #3** - Wrapped `submitTestAttempt()` with `withRetry()` for transient failure recovery |
+| 2026-01-09 | `src/pages/MCQTest.jsx` | **Solution #3** - Added `submitError` state and error UI with "Try Again" button |
+| 2026-01-09 | `src/pages/MCQTest.jsx` | **Solution #3** - Added `beforeunload` handler to warn before leaving with unsaved answers |
+| 2026-01-09 | `src/pages/TypedTest.jsx` | **Solution #3** - Wrapped `submitTypedTestAttempt()` with `withRetry()` for transient failure recovery |
+| 2026-01-09 | `src/pages/TypedTest.jsx` | **Solution #3** - Added `submitError` state and error UI with "Try Again" button |
+| 2026-01-09 | `src/pages/TypedTest.jsx` | **Solution #3** - Added `beforeunload` handler to warn before leaving with unsaved answers |
+| 2026-01-09 | `src/services/db.js` | **Solution #1** - Added `getRecentAttemptsForClassList()` to query recent attempts by studentId/classId/listId |
+| 2026-01-09 | `src/services/progressService.js` | **Solution #1** - Added `calculateCSDAndTWIFromAttempts()` to derive CSD/TWI from attempt history |
+| 2026-01-09 | `src/services/progressService.js` | **Solution #1** - Modified `getOrCreateClassProgress()` to reconcile CSD/TWI and return `{ progress, attempts }` |
+| 2026-01-09 | `src/services/progressService.js` | **Solution #1** - Added `logSystemEvent('csd_twi_reconciled', ...)` when mismatch detected |
+| 2026-01-09 | `src/services/studyService.js` | **Solution #1** - Updated `initializeDailySession()` to destructure `{ progress, attempts }` |
+| 2026-01-09 | `src/pages/MCQTest.jsx` | **Solution #1** - Updated `getOrCreateClassProgress()` call to destructure `{ progress }` (line 525) |
+| 2026-01-09 | `src/pages/TypedTest.jsx` | **Solution #1** - Updated `getOrCreateClassProgress()` call to destructure `{ progress }` (line 621) |
+| 2026-01-09 | `src/services/studyService.js` | **Solution #2** - Added `determineStartingPhase()` to detect mid-session or complete states from attempts (lines 57-95) |
+| 2026-01-09 | `src/services/studyService.js` | **Solution #2** - Added `logSystemEvent('impossible_phase_detected', ...)` for Day 1 anomaly |
+| 2026-01-09 | `src/services/studyService.js` | **Solution #2** - Updated `initializeDailySession()` to return `startPhase`, `recoveredNewWordScore`, `recoveredReviewScore` |
+| 2026-01-09 | `src/pages/DailySessionFlow.jsx` | **Solution #2** - Added startPhase handling in init: COMPLETE skips to completion, REVIEW_STUDY loads segment words and skips new word phase (lines 604-639) |
+| 2026-01-09 | `src/services/progressService.js` | **Bug Fix #4** - Added Math.max safeguard to prevent CSD/TWI regression if query returns empty/incomplete data (lines 117-119) |
+| 2026-01-09 | `src/pages/DailySessionFlow.jsx` | **Bug Fix #6** - Fixed undefined `combinedWords` variable in test recovery - now uses `testRecovery.localState?.wordPool` (lines 696, 713) |
+| 2026-01-09 | `src/pages/DailySessionFlow.jsx` | **Bug Fix #7** - Added `setCardsReviewed(0)` to REVIEW_STUDY recovery to reset card count (line 633) |
+| 2026-01-09 | `src/pages/DailySessionFlow.jsx` | **Bug Fix #8** - Wrapped `getSegmentWords` in try-catch for REVIEW_STUDY recovery with error UI fallback (lines 620-645) |
+| 2026-01-11 | `src/pages/MCQTest.jsx` | **Rollback** - Removed all pending submission localStorage recovery work (Steps R1-R8): removed `isResumingSubmission` and `showConnectionWarning` states, removed `resumePendingSubmission` function, restored simple testRecovery useEffect, removed all pending submission save/clear logic in handleSubmit, removed resuming submission UI, simplified submission overlay to show only "Submitting Your Test..." with retry button on error |
+| 2026-01-11 | `src/pages/TypedTest.jsx` | Added simple submission overlay modal (lines 1259-1288) matching MCQTest's simplified approach - full-screen modal with "Submitting Your Test..." message, spinner, and retry button on error |
+| 2026-01-11 | `src/pages/TypedTest.jsx` | Removed inline `submitError` display (previously lines 1182-1200) - error handling now centralized in submission overlay modal |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Added retry state variables `retryAttempt` and `gradingError` (lines 97-99) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Added `gradeWithRetry()` function with 3 max retries, 10s delay between retries, 90s timeout per attempt (lines 572-603) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Updated `handleSubmit()` to use `gradeWithRetry()` instead of direct API call, added retry state initialization (lines 605-628) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Added `handleRetryGrading()` for manual retry after all attempts fail (lines 753-757) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Updated submission overlay to show retry status on attempts 2-3 with yellow warning and attempt counter (lines 1287-1314) |
+| 2026-01-12 | `src/pages/TypedTest.jsx` | **AI Grading Retry Logic** - Added separate grading error modal with manual "Try Again" button after 3 failed attempts, preserves student answers (lines 1332-1355) |
+| 2026-01-12 | `src/services/db.js` | **Challenge Bug Fix** - `reviewChallenge()` now updates `passed` field when challenge is accepted. Previously only `score` was updated, leaving `passed: false` even when score crossed threshold. This caused reconciliation to not advance days. (lines 2606-2628) |
 
 ---
 
@@ -392,3 +445,386 @@ With 400 inflow and ~256 graduation, pool grows slowly then stabilizes when retu
 1. **Graduation Feedback UI** - Show user how many words graduated after review test
 2. **Dashboard Mastered Count** - Add mastered word count alongside "Learned" count
 3. **Progress Visualization** - Progress ring showing New → Active → Mastered percentages
+
+---
+
+## Phase 5: Session Fragility Fixes
+
+**Date:** 2026-01-09
+
+### Problem Statement
+
+Sessions were fragile due to three interrelated issues:
+
+1. **Attempt writes could fail silently** - Network failures during test submission could lose student work
+2. **CSD/TWI could drift from reality** - `class_progress` fields could become inconsistent with actual attempt history
+3. **Mid-session crashes lost progress** - If a student completed the new word test but crashed before review, they'd restart from scratch
+
+### Solution Overview
+
+Implemented three fixes from `session_fragility_fix_proposal.md`:
+
+| Solution | Purpose | Key Mechanism |
+|----------|---------|---------------|
+| #3: Bulletproof Attempt Writing | Prevent data loss on network failures | Retry with exponential backoff |
+| #1: CSD/TWI Reconciliation | Self-healing progress tracking | Derive CSD/TWI from attempts on load |
+| #2: Init-Based Phase Detection | Resume mid-session | Check attempts to determine starting phase |
+
+---
+
+### Solution #3: Bulletproof Attempt Writing
+
+#### Problem
+Firebase writes can fail due to transient network issues. Without retry logic, a student could complete a test, have the submission fail, and lose all their work.
+
+#### Implementation
+
+**New helpers in `db.js`:**
+
+```javascript
+// Identify retryable errors (network, unavailable, etc.)
+function isTransientError(error) {
+  const transientCodes = [
+    'unavailable', 'resource-exhausted', 'deadline-exceeded',
+    'cancelled', 'unknown', 'internal', 'aborted'
+  ];
+  return transientCodes.includes(error?.code);
+}
+
+// Add ±25% jitter to prevent thundering herd
+function addJitter(baseDelayMs) {
+  const jitter = baseDelayMs * 0.25 * (Math.random() * 2 - 1);
+  return Math.max(0, baseDelayMs + jitter);
+}
+
+// Generic retry wrapper with exponential backoff
+async function withRetry(fn, options = {}, loggingContext = {}) {
+  const { maxRetries = 3, totalTimeoutMs = 15000 } = options;
+  // Retries with 1s, 2s, 4s delays (with jitter)
+  // Logs success after retry or final failure to system_logs
+}
+```
+
+**System logging helper:**
+
+```javascript
+export async function logSystemEvent(eventType, data, severity = 'warning') {
+  // Writes to system_logs collection for anomaly monitoring
+  // Fire-and-forget (doesn't block on errors)
+}
+```
+
+**Test component changes (MCQTest.jsx, TypedTest.jsx):**
+
+1. Wrap `submitTestAttempt()` / `submitTypedTestAttempt()` with `withRetry()`
+2. Add `submitError` state for error UI display
+3. Show "Try Again" button when submission fails after all retries
+4. Add `beforeunload` handler to warn before leaving with unsaved answers
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `src/services/db.js` | Added `isTransientError()`, `addJitter()`, `withRetry()`, `logSystemEvent()` |
+| `src/services/db.js` | Added `listId` parameter to submit functions |
+| `src/pages/MCQTest.jsx` | Retry wrapper, error UI, exit confirmation |
+| `src/pages/TypedTest.jsx` | Retry wrapper, error UI, exit confirmation |
+
+---
+
+### Solution #1: CSD/TWI Reconciliation
+
+#### Problem
+`class_progress` stores `currentStudyDay` (CSD) and `totalWordsIntroduced` (TWI). These could drift from reality if:
+- Session completion failed mid-write
+- Race conditions between concurrent requests
+- Bugs in progression logic
+
+#### Implementation
+
+**New query in `db.js`:**
+
+```javascript
+export async function getRecentAttemptsForClassList(userId, classId, listId, maxResults = 8) {
+  // Query attempts collection by studentId, classId, listId
+  // Order by submittedAt desc, limit to maxResults
+  // Returns array of attempt documents
+}
+```
+
+**New reconciliation logic in `progressService.js`:**
+
+```javascript
+function calculateCSDAndTWIFromAttempts(attempts) {
+  // Find highest studyDay among attempts
+  const highestStudyDay = Math.max(...attempts.map(a => a.studyDay || 0));
+
+  // Day 1: CSD = 1 if new test passed, else 0
+  // Day 2+: CSD = studyDay if review test exists, else studyDay - 1
+
+  // TWI = newWordEndIndex + 1 from new test where studyDay === CSD
+  // (endIndex is 0-based, TWI is count)
+
+  return { csd, twi };
+}
+```
+
+**Modified `getOrCreateClassProgress()`:**
+
+```javascript
+export async function getOrCreateClassProgress(userId, classId, listId) {
+  // Get or create progress document (existing logic)
+
+  // NEW: Always verify against attempts
+  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+  const { csd, twi } = calculateCSDAndTWIFromAttempts(attempts);
+
+  // If mismatch, reconcile and log
+  if (csd !== storedCSD || twi !== storedTWI) {
+    logSystemEvent('csd_twi_reconciled', { stored, calculated, attemptCount });
+    await updateDoc(progressRef, { currentStudyDay: csd, totalWordsIntroduced: twi });
+  }
+
+  // Return both progress and attempts (attempts reused by Solution #2)
+  return { progress, attempts };
+}
+```
+
+#### Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Query limit | 8 attempts | Covers 4 days of new+review pairs |
+| TWI calculation | `newWordEndIndex + 1` | endIndex is 0-based, TWI is count |
+| Reconciliation timing | On every progress load | Self-healing without manual intervention |
+| Return format | `{ progress, attempts }` | Allows Solution #2 to reuse attempts |
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `src/services/db.js` | Added `getRecentAttemptsForClassList()` |
+| `src/services/progressService.js` | Added `calculateCSDAndTWIFromAttempts()`, modified `getOrCreateClassProgress()` |
+| `src/services/studyService.js` | Updated caller to destructure `{ progress, attempts }` |
+| `src/pages/MCQTest.jsx` | Updated caller to destructure `{ progress }` |
+| `src/pages/TypedTest.jsx` | Updated caller to destructure `{ progress }` |
+
+---
+
+### Solution #2: Init-Based Phase Detection
+
+#### Problem
+If a student completes the new word test on Day 2+ but crashes/closes browser before review:
+- CSD hasn't incremented yet (review test completes the day)
+- On return, `initializeDailySession()` treats it as a fresh start
+- Student sees new word study phase again instead of resuming at review
+
+#### Implementation
+
+**New phase detection in `studyService.js`:**
+
+```javascript
+function determineStartingPhase(attempts, dayNumber) {
+  const dayAttempts = attempts.filter(a => a.studyDay === dayNumber);
+  const newTest = dayAttempts.find(a => a.sessionType === 'new');
+  const reviewTest = dayAttempts.find(a => a.sessionType === 'review');
+
+  // Day 2+: mid-session (new passed, no review) -> resume at review
+  if (dayNumber > 1 && newTest?.passed && !reviewTest) {
+    return { phase: SESSION_PHASE.REVIEW_STUDY, newWordScore: newTest.score };
+  }
+
+  // Day 1 with passed new test -> complete (impossible after reconciliation, log it)
+  if (dayNumber === 1 && newTest?.passed) {
+    logSystemEvent('impossible_phase_detected', { dayNumber, reason: 'day1_with_passed_new_test' });
+    return { phase: SESSION_PHASE.COMPLETE, newWordScore: newTest.score };
+  }
+
+  // Day 2+ with both tests -> complete
+  if (dayNumber > 1 && newTest?.passed && reviewTest) {
+    return { phase: SESSION_PHASE.COMPLETE, newWordScore: newTest.score, reviewScore: reviewTest.score };
+  }
+
+  // Normal: fresh start
+  return { phase: SESSION_PHASE.NEW_WORDS_STUDY };
+}
+```
+
+**Updated `initializeDailySession()` return:**
+
+```javascript
+return {
+  // ... existing fields ...
+
+  // Phase detection for session recovery
+  startPhase: phaseInfo.phase,
+  recoveredNewWordScore: phaseInfo.newWordScore,
+  recoveredReviewScore: phaseInfo.reviewScore
+};
+```
+
+**Updated `DailySessionFlow.jsx` init effect:**
+
+```javascript
+// Handle session recovery based on startPhase from attempt history
+if (config.startPhase === SESSION_PHASE.COMPLETE) {
+  // Session already complete - show completion screen
+  setNewWordTestResults({ score: config.recoveredNewWordScore });
+  setReviewTestResults({ score: config.recoveredReviewScore });
+  setPhase(PHASES.COMPLETE);
+  return;
+}
+
+if (config.startPhase === SESSION_PHASE.REVIEW_STUDY) {
+  // Mid-session recovery: new word test passed, need to do review
+  const segmentWords = await getSegmentWords(user.uid, listId, config.segment.startIndex, config.segment.endIndex);
+  setReviewQueue(segmentWords);
+  setReviewQueueCurrent(segmentWords);
+  setNewWordTestResults({ score: config.recoveredNewWordScore });
+  setPhase(PHASES.REVIEW_STUDY);
+  return;
+}
+
+// Normal flow continues...
+```
+
+#### Phase Detection Logic
+
+| Day | New Test | Review Test | Result |
+|-----|----------|-------------|--------|
+| 1 | None | N/A | `NEW_WORDS_STUDY` (fresh start) |
+| 1 | Passed | N/A | `COMPLETE` (impossible, log it) |
+| 2+ | None | None | `NEW_WORDS_STUDY` (fresh start) |
+| 2+ | Passed | None | `REVIEW_STUDY` (mid-session resume) |
+| 2+ | Passed | Exists | `COMPLETE` (already done) |
+
+#### Files Modified
+
+| File | Changes |
+|------|---------|
+| `src/services/studyService.js` | Added `determineStartingPhase()`, updated `initializeDailySession()` return |
+| `src/pages/DailySessionFlow.jsx` | Added startPhase handling in init effect |
+
+---
+
+### Solution #4: System Logging
+
+System logging was implemented as part of Solutions #1-3:
+
+| Event Type | Location | Trigger |
+|------------|----------|---------|
+| `attempt_retry_succeeded` | `withRetry()` | First attempt failed, retry succeeded |
+| `attempt_write_failed` | `withRetry()` | All retries exhausted |
+| `csd_twi_reconciled` | `getOrCreateClassProgress()` | CSD/TWI mismatch detected and fixed |
+| `impossible_phase_detected` | `determineStartingPhase()` | Day 1 with passed new test found |
+
+All events written to `system_logs` collection with timestamp and severity.
+
+---
+
+### Testing Checklist
+
+**Solution #3:**
+- [ ] Submit test normally - should succeed without retry
+- [ ] Simulate network failure (offline mode) - should retry and show error UI
+- [ ] Check answers preserved after failure - retry should work
+- [ ] Try to navigate away with error - should show warning
+
+**Solution #1:**
+- [ ] Check console for reconciliation logs
+- [ ] Manually corrupt CSD in Firestore - should auto-fix on next load
+- [ ] Verify TWI matches after reconciliation
+
+**Solution #2:**
+- [ ] Complete new word test on Day 2+, close browser mid-session
+- [ ] Reopen - should resume at REVIEW_STUDY phase
+- [ ] Complete Day 1 - refresh should show COMPLETE
+
+**Solution #4:**
+- [ ] Check `system_logs` collection in Firebase Console
+- [ ] Verify logs only appear for anomalies, not normal operations
+
+---
+
+## Bug Fixes: Session Fragility Code Review
+
+**Date:** 2026-01-09
+
+### Bug #4: CSD/TWI Regression on Empty Query Results
+
+**Problem:** If `getRecentAttemptsForClassList()` fails or returns an empty array, `calculateCSDAndTWIFromAttempts()` returns `{csd: 0, twi: 0}`. The reconciliation logic would then overwrite valid stored values with zeros.
+
+**Fix:** Added Math.max safeguard in `progressService.js`:
+
+```javascript
+// Use Math.max to prevent regression if query fails or returns incomplete data
+const safeCSD = Math.max(storedCSD, csd);
+const safeTWI = Math.max(storedTWI, twi);
+```
+
+This ensures CSD/TWI can only ever increase through reconciliation, never decrease. If the query fails, stored values are preserved.
+
+**File:** `src/services/progressService.js` (lines 117-119)
+
+---
+
+### Bug #6: Undefined `combinedWords` in Test Recovery
+
+**Problem:** The test crash recovery code in `DailySessionFlow.jsx` referenced `combinedWords` variable which was never defined in that scope. This would silently evaluate to `undefined`, then `combinedWords || []` would return an empty array - effectively breaking word recovery.
+
+**Fix:** Changed to use `testRecovery.localState?.wordPool` which contains the word pool saved to localStorage when the test started:
+
+```javascript
+// Before (broken):
+newWords: combinedWords || [],
+wordPool: testRecovery.phaseType === 'new' ? (combinedWords || []) : null,
+
+// After (fixed):
+const recoveredWordPool = testRecovery.localState?.wordPool || []
+newWords: recoveredWordPool,
+wordPool: testRecovery.phaseType === 'new' ? recoveredWordPool : null,
+```
+
+**File:** `src/pages/DailySessionFlow.jsx` (lines 696, 713)
+
+---
+
+### Bug #7: `cardsReviewed` Not Reset on REVIEW_STUDY Recovery
+
+**Problem:** When recovering to REVIEW_STUDY phase, the `cardsReviewed` state was not reset. If the student had reviewed cards in a previous session, the count would persist and show incorrect progress.
+
+**Fix:** Added `setCardsReviewed(0)` to the REVIEW_STUDY recovery block:
+
+```javascript
+setReviewQueue(segmentWords)
+setReviewQueueCurrent(segmentWords)
+setReviewDismissed(new Set())
+setCurrentIndex(0)
+setIsFlipped(false)
+setCardsReviewed(0)  // NEW: Reset card count for fresh recovery
+```
+
+**File:** `src/pages/DailySessionFlow.jsx` (line 633)
+
+---
+
+### Bug #8: No Error Handling for `getSegmentWords` in REVIEW_STUDY Recovery
+
+**Problem:** If `getSegmentWords()` throws an error during REVIEW_STUDY recovery, the error would bubble up unhandled, potentially leaving the user stuck on a loading screen.
+
+**Fix:** Wrapped the `getSegmentWords()` call in try-catch with user-friendly error display:
+
+```javascript
+if (config.startPhase === SESSION_PHASE.REVIEW_STUDY) {
+  try {
+    const segmentWords = await getSegmentWords(/* ... */);
+    // ... recovery logic ...
+  } catch (err) {
+    console.error('Failed to load segment words for REVIEW_STUDY recovery:', err)
+    setError('Failed to load review words. Please refresh and try again.')
+    return
+  }
+}
+```
+
+**File:** `src/pages/DailySessionFlow.jsx` (lines 620-645)

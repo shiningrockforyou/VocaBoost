@@ -53,6 +53,7 @@ import {
 import { downloadListAsPDF } from '../utils/pdfGenerator'
 import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
 import { buildTestConfig } from '../utils/testConfig'
+import { getSessionStep } from '../utils/sessionStepTracker'
 import {
   getSessionId as getLocalSessionId,
   saveSessionState as saveLocalSessionState,
@@ -299,8 +300,11 @@ export default function DailySessionFlow() {
       await saveSessionState(user.uid, classId, listId, {
         phase: currentPhaseMap[phase] || SESSION_PHASE.NEW_WORDS_STUDY,
         currentStudyDay: sessionConfig?.dayNumber || 1,
-        newWordsTestPassed: !!newWordTestResults && newWordTestResults.score >= (sessionConfig?.retakeThreshold || 0.95),
-        newWordsTestScore: newWordTestResults?.score || null,
+        // Only update newWordsTestPassed if we have actual results (prevents overwriting true with false)
+        ...(newWordTestResults && {
+          newWordsTestPassed: newWordTestResults.score >= (sessionConfig?.retakeThreshold || 0.95),
+          newWordsTestScore: newWordTestResults.score,
+        }),
         reviewTestScore: reviewTestResults?.score || null,
         reviewTestAttempts,
         newWordsDismissedIds: [...newWordsDismissed],
@@ -594,8 +598,53 @@ export default function DailySessionFlow() {
         console.log('DEBUG setSessionConfig:', {
           dayNumber: config.dayNumber,
           newWordStartIndex: config.newWordStartIndex,
-          newWordCount: config.newWordCount
+          newWordCount: config.newWordCount,
+          startPhase: config.startPhase
         })
+
+        // Handle session recovery based on startPhase from attempt history
+        if (config.startPhase === SESSION_PHASE.COMPLETE) {
+          // Session already complete - show completion screen
+          if (config.recoveredNewWordScore !== undefined) {
+            setNewWordTestResults({ score: config.recoveredNewWordScore })
+          }
+          if (config.recoveredReviewScore !== undefined) {
+            setReviewTestResults({ score: config.recoveredReviewScore })
+          }
+          setPhase(PHASES.COMPLETE)
+          return
+        }
+
+        if (config.startPhase === SESSION_PHASE.REVIEW_STUDY) {
+          // Mid-session recovery: new word test passed, need to do review
+          // Load segment words for review study (reusing same logic as moveToReviewPhase)
+          try {
+            const segmentWords = await getSegmentWords(
+              user.uid,
+              listId,
+              config.segment.startIndex,
+              config.segment.endIndex
+            )
+
+            setReviewQueue(segmentWords)
+            setReviewQueueCurrent(segmentWords)
+            setReviewDismissed(new Set())
+            setCurrentIndex(0)
+            setIsFlipped(false)
+            setCardsReviewed(0)
+
+            if (config.recoveredNewWordScore !== undefined) {
+              setNewWordTestResults({ score: config.recoveredNewWordScore })
+            }
+
+            setPhase(PHASES.REVIEW_STUDY)
+            return
+          } catch (err) {
+            console.error('Failed to load segment words for REVIEW_STUDY recovery:', err)
+            setError('Failed to load review words. Please refresh and try again.')
+            return
+          }
+        }
 
         // Load new words (failed carryover words are now handled via segment review priority)
         if (config.newWordCount > 0) {
@@ -651,12 +700,14 @@ export default function DailySessionFlow() {
           const route = testMode === 'typed' ? '/typedtest' : '/mcqtest'
 
           // Store session state for return
+          // Use wordPool from localStorage test state (saved when test started)
+          const recoveredWordPool = testRecovery.localState?.wordPool || []
           sessionStorage.setItem('dailySessionState', JSON.stringify({
             classId,
             listId,
             dayNumber: config.dayNumber,
             phase: testRecovery.phaseType === 'new' ? PHASES.NEW_WORD_TEST : PHASES.REVIEW_TEST,
-            newWords: combinedWords || [],
+            newWords: recoveredWordPool,
             newWordTestResults: null,
             reviewQueue: [],
             sessionConfig: config,
@@ -667,7 +718,7 @@ export default function DailySessionFlow() {
           navigate(`${route}/${classId}/${listId}`, {
             state: {
               testType: testRecovery.phaseType,
-              wordPool: testRecovery.phaseType === 'new' ? (combinedWords || []) : null,
+              wordPool: testRecovery.phaseType === 'new' ? recoveredWordPool : null,
               returnPath: `/session/${classId}/${listId}`,
               sessionContext: {
                 dayNumber: config.dayNumber,
@@ -1055,6 +1106,9 @@ export default function DailySessionFlow() {
         interventionLevel: sessionConfig?.interventionLevel || 0,
         wordsIntroduced: newWords?.length || 0,
         wordsReviewed: reviewQueue?.length || 0,
+        // Raw indices for attempt tracking
+        newWordStartIndex: sessionConfig?.newWordStartIndex ?? null,
+        newWordEndIndex: sessionConfig?.newWordEndIndex ?? null,
       }
     })
 
@@ -1502,16 +1556,10 @@ export default function DailySessionFlow() {
       <SessionHeader
         onBack={() => setShowQuitConfirm(true)}
         backAriaLabel="Quit session"
-        stepText={(() => {
-          const stepNum =
-            phase === PHASES.NEW_WORDS ? 1 :
-            phase === PHASES.NEW_WORD_TEST ? 2 :
-            phase === PHASES.REVIEW_STUDY ? (sessionConfig?.isFirstDay ? 2 : 3) :
-            phase === PHASES.REVIEW_TEST ? 4 :
-            phase === PHASES.COMPLETE ? (sessionConfig?.isFirstDay ? 3 : 5) : 1
-          const totalSteps = sessionConfig?.isFirstDay ? 3 : 5
-          return `Step ${stepNum} of ${totalSteps}`
-        })()}
+        stepText={getSessionStep({
+          phase,
+          isFirstDay: sessionConfig?.isFirstDay
+        }).stepText}
         onStepClick={() => setShowProgressSheet(true)}
         rightSlot={
           (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) ? (

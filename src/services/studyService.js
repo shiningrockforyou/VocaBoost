@@ -42,6 +42,83 @@ import {
   getOrCreateClassProgress,
   updateClassProgress
 } from './progressService';
+import { saveSessionState, SESSION_PHASE } from './sessionService';
+import { logSystemEvent } from './db';
+
+/**
+ * Determine starting phase based on attempt history for the current day.
+ *
+ * Used for session recovery when a user returns mid-session or after completion.
+ *
+ * @param {Array} attempts - Recent attempts for this class/list
+ * @param {number} dayNumber - The study day number we're initializing
+ * @returns {{ phase: string, newWordScore?: number, reviewScore?: number }}
+ */
+function determineStartingPhase(attempts, dayNumber) {
+  console.log('[PHASE] ═══════════════════════════════════════');
+  console.log('[PHASE] determineStartingPhase called');
+  console.log('[PHASE] Day Number:', dayNumber);
+  console.log('[PHASE] Total attempts provided:', attempts?.length || 0);
+
+  const dayAttempts = attempts.filter(a => a.studyDay === dayNumber);
+  const newTest = dayAttempts.find(a => a.sessionType === 'new');
+  const reviewTest = dayAttempts.find(a => a.sessionType === 'review');
+
+  console.log('[PHASE] Attempts for day', dayNumber + ':', {
+    totalForDay: dayAttempts.length,
+    hasNewTest: !!newTest,
+    newTestPassed: newTest?.passed,
+    newTestScore: newTest?.score,
+    hasReviewTest: !!reviewTest,
+    reviewTestScore: reviewTest?.score
+  });
+
+  // Day 2+: mid-session (new passed, no review) -> resume at review
+  if (dayNumber > 1 && newTest?.passed && !reviewTest) {
+    console.log('[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)');
+    console.log('[PHASE] Reason: Day 2+, new test passed, no review test yet');
+    console.log('[PHASE] ═══════════════════════════════════════');
+    return {
+      phase: SESSION_PHASE.REVIEW_STUDY,
+      newWordScore: newTest.score
+    };
+  }
+
+  // "Impossible" states after reconciliation -> treat as complete
+  if (dayNumber === 1 && newTest?.passed) {
+    console.warn('[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)');
+    console.warn('[PHASE] Reason: Day 1 should never have passed new test');
+    console.log('[PHASE] ═══════════════════════════════════════');
+    // Log impossible state for monitoring
+    logSystemEvent('impossible_phase_detected', {
+      dayNumber,
+      reason: 'day1_with_passed_new_test',
+      newTestId: newTest.id
+    });
+    return {
+      phase: SESSION_PHASE.COMPLETE,
+      newWordScore: newTest.score
+    };
+  }
+
+  if (dayNumber > 1 && newTest?.passed && reviewTest) {
+    console.log('[PHASE] ✓ DECISION: COMPLETE (both tests done)');
+    console.log('[PHASE] Reason: Day 2+, both new and review tests completed');
+    console.log('[PHASE] ═══════════════════════════════════════');
+    // This is actually a normal completed state, not impossible
+    return {
+      phase: SESSION_PHASE.COMPLETE,
+      newWordScore: newTest.score,
+      reviewScore: reviewTest.score
+    };
+  }
+
+  // Normal: fresh start
+  console.log('[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)');
+  console.log('[PHASE] Reason: No completed tests found for this day');
+  console.log('[PHASE] ═══════════════════════════════════════');
+  return { phase: SESSION_PHASE.NEW_WORDS_STUDY };
+}
 
 /**
  * B1: Initialize a daily study session
@@ -60,8 +137,8 @@ import {
  * @returns {Promise<Object>} Session initialization data
  */
 export async function initializeDailySession(userId, classId, listId, assignmentSettings) {
-  // Get or create progress
-  const progress = await getOrCreateClassProgress(userId, classId, listId);
+  // Get or create progress (includes CSD/TWI reconciliation against attempts)
+  const { progress, attempts } = await getOrCreateClassProgress(userId, classId, listId);
 
   // Calculate intervention from recent sessions
   const interventionLevel = calculateInterventionLevel(progress.recentSessions || []);
@@ -111,6 +188,9 @@ export async function initializeDailySession(userId, classId, listId, assignment
   const wordsRemaining = totalListWords - totalWordsIntroduced;
   const newWordCount = Math.min(allocation.newWords, wordsRemaining);
 
+  // Determine starting phase based on attempt history
+  const phaseInfo = determineStartingPhase(attempts, currentStudyDay);
+
   return {
     // Session metadata
     classId,
@@ -143,7 +223,12 @@ export async function initializeDailySession(userId, classId, listId, assignment
 
     // Status
     isFirstDay: currentStudyDay === 1,
-    isListComplete: wordsRemaining <= 0
+    isListComplete: wordsRemaining <= 0,
+
+    // Phase detection for session recovery
+    startPhase: phaseInfo.phase,
+    recoveredNewWordScore: phaseInfo.newWordScore,
+    recoveredReviewScore: phaseInfo.reviewScore
   };
 }
 
@@ -1018,9 +1103,19 @@ export async function completeSessionFromTest({
   let reviewScore = null;
   let reviewFailed = [];
 
+  // Get threshold from sessionStorage config, fallback to constant
+  const threshold = sessionState?.sessionConfig?.retakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD;
+
   if (isFirstDay) {
     // Day 1: Only new word test, no review
     newWordScore = testResults.score;
+
+    // Update session_states with pass status immediately (prevents race condition)
+    await saveSessionState(userId, classId, listId, {
+      newWordsTestScore: newWordScore,
+      newWordsTestPassed: newWordScore >= threshold,
+      phase: SESSION_PHASE.COMPLETE
+    });
   } else {
     // Day 2+: This is a review test - need to get new word score from earlier attempt
     reviewScore = testResults.score;
@@ -1036,6 +1131,14 @@ export async function completeSessionFromTest({
     } else {
       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
     }
+
+    // Update session_states with final status (prevents race condition)
+    await saveSessionState(userId, classId, listId, {
+      newWordsTestScore: newWordScore,
+      newWordsTestPassed: newWordScore >= threshold,
+      reviewTestScore: reviewScore,
+      phase: SESSION_PHASE.COMPLETE
+    });
   }
 
   // Build session summary

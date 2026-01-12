@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, Timestamp, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
-import { submitTestAttempt } from '../services/db'
+import { submitTestAttempt, withRetry } from '../services/db'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -34,6 +34,7 @@ import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader.jsx'
 import SessionProgressSheet from '../components/SessionProgressSheet.jsx'
 import { Button } from '../components/ui'
 import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { getSessionStep } from '../utils/sessionStepTracker'
 
 const MCQTest = () => {
   const { classId, listId } = useParams()
@@ -73,12 +74,14 @@ const MCQTest = () => {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [submitError, setSubmitError] = useState(null)
   const [testResultsData, setTestResultsData] = useState(null)
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [attemptId, setAttemptId] = useState(null)
   const [currentTestType, setCurrentTestType] = useState(testTypeParam)
   const [canRetake, setCanRetake] = useState(false)
   const [retakeThreshold, setRetakeThreshold] = useState(0.95)
+  const [retakeError, setRetakeError] = useState(null)
   const [optionsCount, setOptionsCount] = useState(4)
   const [showResults, setShowResults] = useState(false)
   const [configuredTestSize, setConfiguredTestSize] = useState(30)
@@ -139,7 +142,8 @@ const MCQTest = () => {
 
   // Browser close warning + intentional exit tracking
   useEffect(() => {
-    const hasProgress = Object.keys(answers).length > 0 && !showResults
+    // Warn if: answers exist AND (not submitted OR submit failed)
+    const hasProgress = Object.keys(answers).length > 0 && (!showResults || submitError)
 
     const handleBeforeUnload = (e) => {
       if (hasProgress) {
@@ -169,7 +173,7 @@ const MCQTest = () => {
       window.removeEventListener('click', handleInteraction)
       window.removeEventListener('keydown', handleInteraction)
     }
-  }, [answers, showResults, testId])
+  }, [answers, showResults, submitError, testId])
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -342,19 +346,16 @@ const MCQTest = () => {
     loadTestWords()
   }, [loadTestWords])
 
-  // Check for recoverable test state on mount
+  // Check for recoverable state on mount
   useEffect(() => {
     if (!testId || loading) return
 
     const saved = getTestState(testId)
     if (saved && Object.keys(saved.answers || {}).length > 0) {
-      // Check if user left intentionally (via beforeunload dialog)
       if (wasIntentionalExit(testId)) {
-        // User intentionally left - clear saved state and start fresh
         clearTestState(testId)
         return
       }
-      // Unintentional exit (crash/disconnect) - offer recovery
       setSavedRecoveryState(saved)
       setRecoveryTimeRemaining(getRecoveryTimeRemaining(testId))
       setShowRecoveryPrompt(true)
@@ -440,6 +441,7 @@ const MCQTest = () => {
 
     setSubmitting(true)
     setError('')
+    setSubmitError(null)
 
     try {
       // Clear saved test state
@@ -510,33 +512,94 @@ const MCQTest = () => {
         }
       })
 
+      // Determine if student passed (review tests always pass)
+      const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+
       // Submit attempt for gradebook (non-practice mode only)
       if (!isPracticeMode) {
         // Get studyDay from sessionContext, or fetch from progress if standalone test
+        console.log('[DEBUG STUDYDAY] Before determining studyDay:', {
+          sessionContextExists: !!sessionContext,
+          sessionContextDayNumber: sessionContext?.dayNumber,
+          currentStudyDay: 'will fetch if needed'
+        });
+
         let studyDay = sessionContext?.dayNumber
         if (!studyDay && user?.uid && classIdParam && listId) {
           try {
-            const progress = await getOrCreateClassProgress(user.uid, classIdParam, listId)
-            studyDay = (progress.currentStudyDay || 0) + 1
+            const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
+            // For standalone tests (retakes, direct navigation), use currentStudyDay as-is
+            // DO NOT increment - only DailySessionFlow increments via sessionContext
+            studyDay = progress.currentStudyDay || 0
+            console.log('[DEBUG STUDYDAY] Using fallback:', {
+              progressCurrentStudyDay: progress.currentStudyDay,
+              calculatedStudyDay: studyDay
+            });
           } catch (err) {
             console.error('Failed to fetch studyDay from progress:', err)
           }
+        } else {
+          console.log('[DEBUG STUDYDAY] Using sessionContext:', {
+            studyDay
+          });
         }
 
-        const result = await submitTestAttempt(
-          user.uid,
-          testId,
-          answerArray,
-          testWords.length,
-          classIdParam,
-          'mcq',
-          currentTestType,
-          studyDay || null
-        )
-        setAttemptId(result.id)
+        console.log('[DEBUG STUDYDAY] Final studyDay for attempt:', studyDay);
 
-        // Determine if this is the final test of the session and test passed
-        const passed = summary.score >= retakeThreshold
+        // GATE: Attempt MUST succeed before any progression
+        // Uses retry with exponential backoff for transient failures
+        console.log('[SUBMIT] ═══════════════════════════════════════')
+        console.log('[SUBMIT] Starting test submission with retry logic')
+        console.log('[SUBMIT] Test data:', {
+          userId: user.uid,
+          testId,
+          answerCount: answerArray.length,
+          totalQuestions: testWords.length,
+          studyDay,
+          sessionType: currentTestType,
+          passed
+        })
+
+        let result
+        try {
+          result = await withRetry(
+            () => submitTestAttempt(
+              user.uid,
+              testId,
+              answerArray,
+              testWords.length,
+              classIdParam,
+              listId,
+              'mcq',
+              currentTestType,
+              studyDay || null,
+              passed,
+              sessionContext
+            ),
+            { maxRetries: 3, totalTimeoutMs: 15000 },
+            { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+          )
+
+          console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
+        } catch (submitErr) {
+          // Attempt failed after retries - block progression, stay on page
+          console.error('[SUBMIT] ✗ Submission failed after all retries:', submitErr)
+          console.log('[SUBMIT] Error details:', {
+            message: submitErr.message,
+            code: submitErr.code,
+            name: submitErr.name
+          })
+
+          setSubmitError('Failed to save your test results. Please try again.')
+          setSubmitting(false)
+          console.log('[SUBMIT] ═══════════════════════════════════════')
+          return // Don't proceed - answers preserved in state
+        }
+
+        setAttemptId(result.id)
+        console.log('[SUBMIT] Set attempt ID:', result.id)
+
+        // Determine if this is the final test of the session
         const isSessionFinalTest = sessionContext?.isFirstDay
           ? currentTestType === 'new'      // Day 1: new test is only test
           : currentTestType === 'review'   // Day 2+: review test is last
@@ -544,6 +607,43 @@ const MCQTest = () => {
         // Complete session at submission time (before navigation) to prevent state loss
         if (passed && isSessionFinalTest && sessionContext?.dayNumber) {
           try {
+            // [1] Fetch current progress
+            const { progress } = await getOrCreateClassProgress(
+              user.uid,
+              classIdParam,
+              listId
+            );
+
+            // [2] Take snapshot BEFORE completion
+            const progressRef = doc(
+              db,
+              `users/${user.uid}/class_progress`,
+              `${classIdParam}_${listId}`
+            );
+
+            const snapshot = {
+              currentStudyDay: progress.currentStudyDay,
+              totalWordsIntroduced: progress.totalWordsIntroduced,
+              recentSessions: progress.recentSessions,
+              stats: progress.stats,
+              streakDays: progress.streakDays,
+              lastStudyDate: progress.lastStudyDate,
+              interventionLevel: progress.interventionLevel,
+              snapshotCreatedAt: Timestamp.now(),
+              snapshotDayNumber: sessionContext.dayNumber
+            };
+
+            await updateDoc(progressRef, {
+              progressSnapshot: snapshot
+            });
+
+            console.log('[SNAPSHOT] Saved before completion:', {
+              dayNumber: sessionContext.dayNumber,
+              currentCSD: progress.currentStudyDay,
+              currentTWI: progress.totalWordsIntroduced
+            });
+
+            // [3] Complete session (CSD will increment)
             await completeSessionFromTest({
               userId: user.uid,
               classId: classIdParam,
@@ -577,26 +677,108 @@ const MCQTest = () => {
         answerArray
       })
 
+      console.log('[SUBMIT] Showing test results to user')
+      console.log('[SUBMIT] ═══════════════════════════════════════')
       setShowResults(true)
     } catch (err) {
+      console.error('[SUBMIT] ✗ Error in handleSubmit:', err)
       setError(err.message || 'Failed to submit test')
     } finally {
       setSubmitting(false)
+      console.log('[SUBMIT] Submission flow completed (submitting=false)')
     }
   }
 
-  const handleRetake = () => {
-    // Reset test state
-    setAnswers({})
-    answersRef.current = {}
-    setCurrentIndex(0)
-    setShowResults(false)
-    setCanRetake(false)
-    setTestResultsData(null)
+  const handleRetake = async () => {
+    // For new word test retakes (below threshold), use existing logic
+    if (currentTestType === 'new') {
+      // Reset test state
+      setAnswers({})
+      answersRef.current = {}
+      setCurrentIndex(0)
+      setShowResults(false)
+      setCanRetake(false)
+      setTestResultsData(null)
 
-    // Re-shuffle words for retake - use configured test size, not full pool size
-    const shuffled = selectTestWords(originalWords, configuredTestSize)
-    generateQuestions(shuffled)
+      // Re-shuffle words for retake - use configured test size, not full pool size
+      const shuffled = selectTestWords(originalWords, configuredTestSize)
+      generateQuestions(shuffled)
+      return
+    }
+
+    // For review test retakes, restore from snapshot
+    try {
+      setRetakeError(null)
+
+      const progressRef = doc(
+        db,
+        `users/${user.uid}/class_progress`,
+        `${classIdParam}_${listId}`
+      )
+
+      // [1] Fetch current progress
+      const progressSnap = await getDoc(progressRef)
+      if (!progressSnap.exists()) {
+        throw new Error('Progress document not found')
+      }
+
+      const progress = progressSnap.data()
+
+      // [2] Validate snapshot exists
+      if (!progress.progressSnapshot) {
+        throw new Error('No snapshot found')
+      }
+
+      // [3] Validate correct day
+      const expectedDay = sessionContext?.dayNumber
+      if (progress.progressSnapshot.snapshotDayNumber !== expectedDay) {
+        throw new Error(`Snapshot mismatch: expected day ${expectedDay}, got ${progress.progressSnapshot.snapshotDayNumber}`)
+      }
+
+      // [4] Validate recent (within 1 hour)
+      const snapshotAge = Date.now() - progress.progressSnapshot.snapshotCreatedAt.toMillis()
+      const ONE_HOUR = 3600000 // 1 hour in ms
+      if (snapshotAge > ONE_HOUR) {
+        throw new Error('Snapshot too old (>1 hour)')
+      }
+
+      console.log('[RETAKE] Snapshot validation passed:', {
+        dayNumber: progress.progressSnapshot.snapshotDayNumber,
+        age: `${Math.floor(snapshotAge / 1000)}s`,
+        restoringCSD: progress.progressSnapshot.currentStudyDay,
+        restoringTWI: progress.progressSnapshot.totalWordsIntroduced
+      })
+
+      // [5] Restore from snapshot
+      const { snapshotCreatedAt, snapshotDayNumber, ...restoreData } = progress.progressSnapshot
+
+      await updateDoc(progressRef, {
+        currentStudyDay: restoreData.currentStudyDay,
+        totalWordsIntroduced: restoreData.totalWordsIntroduced,
+        recentSessions: restoreData.recentSessions,
+        stats: restoreData.stats,
+        streakDays: restoreData.streakDays,
+        lastStudyDate: restoreData.lastStudyDate,
+        interventionLevel: restoreData.interventionLevel,
+        progressSnapshot: null, // Clear snapshot after restore
+        updatedAt: Timestamp.now()
+      })
+
+      console.log('[RETAKE] Restored progress from snapshot')
+
+      // [6] Navigate to retake (same test)
+      navigate(`/mcq-test/${classIdParam}/${listId}?type=review`, {
+        state: {
+          testConfig: sessionContext,
+          returnPath
+        }
+      })
+
+    } catch (error) {
+      console.error('[RETAKE] Failed:', error)
+      setRetakeError('Sorry, there has been an error. You cannot retake the review test.')
+      setCanRetake(false)
+    }
   }
 
   const handleFinish = () => {
@@ -610,6 +792,31 @@ const MCQTest = () => {
       })
     } else {
       navigate('/')
+    }
+  }
+
+  const handleContinue = async () => {
+    try {
+      const progressRef = doc(
+        db,
+        `users/${user.uid}/class_progress`,
+        `${classIdParam}_${listId}`
+      )
+
+      // Clear snapshot when student proceeds
+      await updateDoc(progressRef, {
+        progressSnapshot: null
+      })
+
+      console.log('[CONTINUE] Cleared snapshot')
+
+      // Navigate to next session
+      handleFinish()
+
+    } catch (error) {
+      console.error('[CONTINUE] Failed to clear snapshot:', error)
+      // Non-critical - proceed anyway
+      handleFinish()
     }
   }
 
@@ -680,8 +887,10 @@ const MCQTest = () => {
     }))
 
     // Calculate step numbers for SessionHeader
-    const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
-    const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
+    const { stepNumber: resultsStepNumber, totalSteps: resultsTotalSteps, stepText: resultsStepText } = getSessionStep({
+      testType: currentTestType,
+      isFirstDay: sessionContext?.isFirstDay
+    })
 
     const score = testResultsData.score // Decimal 0-1
     const scorePercent = Math.round(score * 100)
@@ -735,31 +944,20 @@ const MCQTest = () => {
                 <Button
                   variant="primary-blue"
                   size="lg"
-                  onClick={handleFinish}
+                  onClick={handleContinue}
                   className="inline-flex items-center gap-2"
                 >
                   <LayoutGrid className="w-5 h-5" />
                   Continue
                 </Button>
               ) : (
-                <div className="flex justify-center gap-4">
-                  <Button
-                    variant="primary-blue"
-                    size="lg"
-                    onClick={handleRetake}
-                    className="flex-1 max-w-[140px]"
-                  >
-                    Retake
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => navigate('/')}
-                    className="flex-1 max-w-[140px]"
-                  >
-                    Dashboard
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate('/')}
+                >
+                  Go to Dashboard
+                </Button>
               )}
             </div>
           </div>
@@ -842,80 +1040,15 @@ const MCQTest = () => {
 
           {/* Buttons based on tier */}
           <div className="mt-6">
-            {tier === 'excellent' && (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleFinish}
-                className="inline-flex items-center gap-2"
-              >
-                <LayoutGrid className="w-5 h-5" />
-                Return to Dashboard
-              </Button>
-            )}
-
-            {tier === 'good' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleFinish}
-                  className="flex-1 max-w-[140px]"
-                >
-                  Continue
-                </Button>
-                <Button
-                  variant="warning"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Review Again
-                </Button>
-              </div>
-            )}
-
-            {tier === 'needs-work' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Retake Test
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleFinish}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Dashboard
-                </Button>
-              </div>
-            )}
-
-            {tier === 'critical' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Retake Test
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleFinish}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Dashboard
-                </Button>
-              </div>
-            )}
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleContinue}
+              className="inline-flex items-center gap-2"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              Continue
+            </Button>
           </div>
         </div>
       )
@@ -928,7 +1061,7 @@ const MCQTest = () => {
         <SessionHeader
           onBack={handleFinish}
           backAriaLabel="Back to session"
-          stepText={`Step ${resultsStepNumber} of ${resultsTotalSteps}`}
+          stepText={resultsStepText}
           onStepClick={() => setShowProgressSheet(true)}
           rightSlot={<GreyedMenuIcon />}
           sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
@@ -983,46 +1116,29 @@ const MCQTest = () => {
   const progress = ((currentIndex + 1) / testWords.length) * 100
   const answeredCount = Object.keys(answers).length
 
+  // Calculate step number for SessionHeader
+  const { stepText } = getSessionStep({
+    testType: currentTestType,
+    isFirstDay: sessionContext?.isFirstDay
+  })
+
   return (
     <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-900">
       <Watermark />
       <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Progress Bar & Quit Button */}
-        <div className="sticky top-0 z-10 border-b border-border-default bg-surface/80 px-4 py-3 backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1">
-              <div className="mb-1 flex items-center justify-between text-xs text-text-secondary">
-                <span>
-                  Question {currentIndex + 1} of {testWords.length}
-                </span>
-                <span>{answeredCount} answered</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-inset">
-                <div
-                  className="h-full bg-blue-600 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => setShowQuitConfirm(true)} disabled={submitting}>
-              ← Quit
-            </Button>
-          </div>
-        </div>
-
-        {/* Session Context Header */}
-        {sessionContext && (
-          <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-center dark:bg-blue-900/20 dark:border-blue-800">
-            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
-              {currentTestType === 'new' ? 'New Words Test' : 'Review Test'} — Day {sessionContext?.dayNumber}
-            </p>
-            {sessionContext.wordRangeStart && sessionContext.wordRangeEnd && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                Words #{sessionContext.wordRangeStart}–{sessionContext.wordRangeEnd}
-              </p>
-            )}
-          </div>
-        )}
+        {/* SessionHeader with step indicator and progress */}
+        <SessionHeader
+          onBack={() => setShowQuitConfirm(true)}
+          backAriaLabel="Quit test"
+          backDisabled={submitting}
+          stepText={stepText}
+          onStepClick={() => setShowProgressSheet(true)}
+          rightSlot={<GreyedMenuIcon />}
+          sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
+          dayNumber={sessionContext?.dayNumber || 1}
+          progressPercent={progress}
+          progressLabel={`${answeredCount} of ${testWords.length} answered`}
+        />
 
         {/* Practice Mode Banner */}
         {isPracticeMode && (
@@ -1134,6 +1250,28 @@ const MCQTest = () => {
             </div>
           </div>
         )}
+
+        {submitError && (
+          <div className="px-4 pb-4">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800">{submitError}</p>
+                  <p className="text-xs text-red-600 mt-1">Your answers are saved locally. Please try again.</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="mt-3 w-full"
+                variant="primary"
+              >
+                {submitting ? 'Saving...' : 'Try Again'}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quit Confirmation Modal */}
@@ -1159,6 +1297,37 @@ const MCQTest = () => {
         onCancel={handleRecoveryStartFresh}
         variant="info"
       />
+
+      {/* Submission Overlay */}
+      {submitting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Submitting Your Test...
+              </h3>
+              <div className="flex justify-center mb-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Please wait while we save your results.
+              </p>
+
+              {submitError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 font-semibold mb-3">{submitError}</p>
+                  <button
+                    onClick={handleSubmit}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Retry Submission
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

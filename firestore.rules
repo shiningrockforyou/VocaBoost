@@ -1,8 +1,108 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    function isAuthenticated() {
+      return request.auth != null;
     }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isTeacher() {
+      return getUserData().role == 'teacher';
+    }
+
+    // ADMIN: Collection group rule for class_progress (enables admin dashboard)
+    match /{path=**}/class_progress/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // USERS
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (
+        isOwner(userId) ||
+        (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
+      );
+
+      match /{subcollection}/{docId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isTeacher());
+        allow write: if isAuthenticated() && (isOwner(userId) || isTeacher());
+      }
+    }
+
+    // CLASSES
+    match /classes/{classId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isTeacher();
+      allow update: if isAuthenticated() && (
+        resource.data.ownerTeacherId == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentCount'])
+      );
+      allow delete: if isAuthenticated()
+        && resource.data.ownerTeacherId == request.auth.uid;
+
+      match /members/{memberId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated() && isOwner(memberId);
+        allow delete: if isAuthenticated() && (
+          isOwner(memberId) ||
+          get(/databases/$(database)/documents/classes/$(classId)).data.ownerTeacherId == request.auth.uid
+        );
+      }
+
+      match /words/{wordId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated()
+          && get(/databases/$(database)/documents/classes/$(classId)).data.ownerTeacherId == request.auth.uid;
+      }
+    }
+
+    // LISTS
+    match /lists/{listId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isTeacher();
+      allow update, delete: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid;
+
+      match /words/{wordId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated()
+          && get(/databases/$(database)/documents/lists/$(listId)).data.ownerId == request.auth.uid;
+      }
+    }
+
+    // ATTEMPTS
+    match /attempts/{attemptId} {
+      allow read: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid
+      );
+      allow create: if isAuthenticated()
+        && request.resource.data.studentId == request.auth.uid;
+
+      allow update: if isAuthenticated() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid
+      );
+
+      // Allow students to delete their own attempts (for progress reset)
+      allow delete: if isAuthenticated()
+        && resource.data.studentId == request.auth.uid;
+    }
+
+    // SYSTEM LOGS (for reconciliation events)
+    match /system_logs/{logId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && isTeacher();
+    }
+
   }
 }

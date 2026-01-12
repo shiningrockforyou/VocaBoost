@@ -1,17 +1,18 @@
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
+import {
+  doc,
+  getDoc,
+  setDoc,
   updateDoc,
   Timestamp,
   arrayUnion
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { 
-  DEFAULT_CLASS_PROGRESS, 
+import {
+  DEFAULT_CLASS_PROGRESS,
   createClassProgress,
-  MAX_RECENT_SESSIONS 
+  MAX_RECENT_SESSIONS
 } from '../types/studyTypes';
+import { getRecentAttemptsForClassList, logSystemEvent } from './db';
 
 /**
  * Get the document ID for a class progress record
@@ -24,32 +25,190 @@ export function getProgressDocId(classId, listId) {
 }
 
 /**
- * Get or create class progress for a student
+ * Calculate CSD (currentStudyDay) and TWI (totalWordsIntroduced) from attempts.
+ * Used for reconciliation to verify progress matches actual attempt history.
+ *
+ * Algorithm:
+ * - Find highest studyDay among attempts
+ * - Day 1: CSD = 1 if new test passed, else 0
+ * - Day 2+: CSD = studyDay if review test exists, else studyDay - 1
+ * - TWI = newWordEndIndex + 1 from new test where studyDay === CSD
+ *
+ * @param {Array} attempts - Array of attempt documents
+ * @returns {{ csd: number, twi: number }}
+ */
+function calculateCSDAndTWIFromAttempts(attempts) {
+  console.log('[RECONCILIATION] calculateCSDAndTWIFromAttempts called with:', {
+    attemptCount: attempts?.length || 0,
+    studyDays: attempts?.map(a => a.studyDay) || []
+  });
+
+  if (!attempts || attempts.length === 0) {
+    console.log('[RECONCILIATION] No attempts found, returning { csd: 0, twi: 0 }');
+    return { csd: 0, twi: 0 };
+  }
+
+  // Find highest studyDay
+  const highestStudyDay = Math.max(...attempts.map(a => a.studyDay || 0));
+  console.log('[RECONCILIATION] Highest studyDay found:', highestStudyDay);
+
+  if (highestStudyDay === 0) {
+    console.log('[RECONCILIATION] Highest studyDay is 0, returning { csd: 0, twi: 0 }');
+    return { csd: 0, twi: 0 };
+  }
+
+  // Get attempts for the highest studyDay
+  const highestDayAttempts = attempts.filter(a => a.studyDay === highestStudyDay);
+  const newTestForHighestDay = highestDayAttempts.find(a => a.sessionType === 'new');
+  const reviewTestForHighestDay = highestDayAttempts.find(a => a.sessionType === 'review');
+
+  console.log('[RECONCILIATION] Highest day attempts:', {
+    studyDay: highestStudyDay,
+    hasNewTest: !!newTestForHighestDay,
+    newTestPassed: newTestForHighestDay?.passed,
+    hasReviewTest: !!reviewTestForHighestDay
+  });
+
+  let csd;
+
+  if (highestStudyDay === 1) {
+    // Day 1: CSD = 1 if new test passed, else 0
+    csd = (newTestForHighestDay?.passed === true) ? 1 : 0;
+    console.log('[RECONCILIATION] Day 1 logic: CSD =', csd);
+  } else {
+    // Day 2+: CSD = studyDay if review test exists, else studyDay - 1
+    csd = reviewTestForHighestDay ? highestStudyDay : highestStudyDay - 1;
+    console.log('[RECONCILIATION] Day 2+ logic: CSD =', csd, '(reviewTest exists:', !!reviewTestForHighestDay, ')');
+  }
+
+  // Determine TWI
+  let twi = 0;
+  if (csd > 0) {
+    // Find new test attempt where studyDay === CSD
+    const newTestForCSD = attempts.find(a => a.studyDay === csd && a.sessionType === 'new');
+    // TWI = newWordEndIndex + 1 (endIndex is 0-based, TWI is count)
+    twi = newTestForCSD?.newWordEndIndex != null ? newTestForCSD.newWordEndIndex + 1 : 0;
+    console.log('[RECONCILIATION] TWI calculation:', {
+      csd,
+      foundNewTest: !!newTestForCSD,
+      newWordEndIndex: newTestForCSD?.newWordEndIndex,
+      calculatedTWI: twi
+    });
+  }
+
+  console.log('[RECONCILIATION] Final calculated values:', { csd, twi });
+  return { csd, twi };
+}
+
+/**
+ * Get or create class progress for a student.
+ * Includes reconciliation against actual attempts to fix any CSD/TWI mismatches.
+ *
  * @param {string} userId - User document ID
  * @param {string} classId - Class document ID
  * @param {string} listId - List document ID
- * @returns {Promise<Object>} Class progress document
+ * @returns {Promise<{ progress: Object, attempts: Array }>} Progress document and recent attempts
  */
 export async function getOrCreateClassProgress(userId, classId, listId) {
+  console.log('[RECONCILIATION] ═══════════════════════════════════════');
+  console.log('[RECONCILIATION] getOrCreateClassProgress START');
+  console.log('[RECONCILIATION] Params:', { userId, classId, listId });
+
   const docId = getProgressDocId(classId, listId);
   const progressRef = doc(db, `users/${userId}/class_progress`, docId);
-  
+
   const snapshot = await getDoc(progressRef);
-  
+  let progress;
+
   if (snapshot.exists()) {
-    return { id: snapshot.id, ...snapshot.data() };
+    progress = { id: snapshot.id, ...snapshot.data() };
+    console.log('[RECONCILIATION] Found existing progress document');
+  } else {
+    // Create new progress document
+    console.log('[RECONCILIATION] No progress document found, creating new one');
+    const newProgress = createClassProgress(classId, listId);
+    await setDoc(progressRef, {
+      ...newProgress,
+      programStartDate: Timestamp.now(),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    progress = { id: docId, ...newProgress };
   }
-  
-  // Create new progress document
-  const newProgress = createClassProgress(classId, listId);
-  await setDoc(progressRef, {
-    ...newProgress,
-    programStartDate: Timestamp.now(),
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
+
+  // Check for mismatch and reconcile
+  const storedCSD = progress.currentStudyDay || 0;
+  const storedTWI = progress.totalWordsIntroduced || 0;
+  console.log('[RECONCILIATION] Stored values from Firestore:', { storedCSD, storedTWI });
+
+  // Always verify against attempts for reconciliation
+  console.log('[RECONCILIATION] Fetching recent attempts...');
+  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+
+  console.log('[RECONCILIATION] Calculating CSD/TWI from attempts...');
+  const { csd, twi } = calculateCSDAndTWIFromAttempts(attempts);
+
+  // Validate that attempts contain trustworthy data
+  // Check for valid integer types and reasonable values
+  const hasValidData = attempts.some(a =>
+    Number.isInteger(a.studyDay) && a.studyDay > 0 &&
+    Number.isInteger(a.newWordEndIndex) && a.newWordEndIndex >= 0
+  );
+
+  console.log('[RECONCILIATION] Data validation:', {
+    hasValidData,
+    validationReason: hasValidData
+      ? 'At least one attempt has valid studyDay and newWordEndIndex'
+      : 'No attempts with valid data - will use Math.max for safety'
   });
-  
-  return { id: docId, ...newProgress };
+
+  // Trust attempts as source of truth when data is valid
+  // Otherwise use Math.max to protect against query failures or corrupt data
+  const safeCSD = hasValidData ? csd : Math.max(storedCSD, csd);
+  const safeTWI = hasValidData ? twi : Math.max(storedTWI, twi);
+
+  console.log('[RECONCILIATION] Comparison:', {
+    stored: { csd: storedCSD, twi: storedTWI },
+    calculated: { csd, twi },
+    safe: { csd: safeCSD, twi: safeTWI },
+    reconciliationMode: hasValidData ? 'bidirectional' : 'one-way (Math.max protection)',
+    needsUpdate: safeCSD !== storedCSD || safeTWI !== storedTWI
+  });
+
+  if (safeCSD !== storedCSD || safeTWI !== storedTWI) {
+    console.warn('[RECONCILIATION] 🔄 RECONCILING - Mismatch detected!');
+    console.warn('[RECONCILIATION] Updating Firestore document...');
+
+    // Log the reconciliation event
+    logSystemEvent('csd_twi_reconciled', {
+      userId,
+      classId,
+      listId,
+      stored: { csd: storedCSD, twi: storedTWI },
+      calculated: { csd, twi },
+      applied: { csd: safeCSD, twi: safeTWI },
+      attemptCount: attempts.length
+    });
+
+    // Update progress document
+    const updates = {
+      currentStudyDay: safeCSD,
+      totalWordsIntroduced: safeTWI,
+      updatedAt: Timestamp.now()
+    };
+
+    await updateDoc(progressRef, updates);
+    progress = { ...progress, ...updates };
+
+    console.log('[RECONCILIATION] ✅ Update complete');
+  } else {
+    console.log('[RECONCILIATION] ✓ No reconciliation needed - values match');
+  }
+
+  console.log('[RECONCILIATION] getOrCreateClassProgress END');
+  console.log('[RECONCILIATION] ═══════════════════════════════════════');
+
+  return { progress, attempts };
 }
 
 /**

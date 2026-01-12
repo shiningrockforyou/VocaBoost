@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, Timestamp, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
-import { submitTypedTestAttempt } from '../services/db'
+import { submitTypedTestAttempt, withRetry } from '../services/db'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -34,6 +34,7 @@ import SessionProgressSheet from '../components/SessionProgressSheet'
 import SessionHeader, { GreyedMenuIcon } from '../components/SessionHeader'
 import { Button } from '../components/ui'
 import { Trophy, X, LayoutGrid, TrendingUp, AlertTriangle } from 'lucide-react'
+import { getSessionStep } from '../utils/sessionStepTracker'
 
 // Hard cap for typed tests to limit AI grading costs
 const MAX_TYPED_TEST_WORDS = 50
@@ -75,12 +76,14 @@ const TypedTest = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
+  const [submitError, setSubmitError] = useState(null)
   const inputRefs = useRef([])
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [attemptId, setAttemptId] = useState(null)
   const [currentTestType, setCurrentTestType] = useState(testTypeParam)
   const [canRetake, setCanRetake] = useState(false)
   const [retakeThreshold, setRetakeThreshold] = useState(0.95)
+  const [retakeError, setRetakeError] = useState(null)
   const [showResults, setShowResults] = useState(false)
   const [testResultsData, setTestResultsData] = useState(null)
   const [configuredTestSize, setConfiguredTestSize] = useState(30)
@@ -92,6 +95,10 @@ const TypedTest = () => {
   const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
   const [showProgressSheet, setShowProgressSheet] = useState(false)
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+
+  // AI grading retry state
+  const [retryAttempt, setRetryAttempt] = useState(0)
+  const [gradingError, setGradingError] = useState(null)
 
   // Refs for scroll-based fade effect
   const headerRef = useRef(null)
@@ -176,7 +183,8 @@ const TypedTest = () => {
 
   // Browser close warning + intentional exit tracking
   useEffect(() => {
-    const hasProgress = Object.keys(responses).length > 0 && !showResults
+    // Warn if: responses exist AND (not submitted OR submit failed)
+    const hasProgress = Object.keys(responses).length > 0 && (!showResults || submitError)
 
     const handleBeforeUnload = (e) => {
       if (hasProgress) {
@@ -206,7 +214,7 @@ const TypedTest = () => {
       window.removeEventListener('click', handleInteraction)
       window.removeEventListener('keydown', handleInteraction)
     }
-  }, [responses, showResults, testId])
+  }, [responses, showResults, submitError, testId])
 
   const loadList = useCallback(async () => {
     if (!listId) return
@@ -563,11 +571,47 @@ const TypedTest = () => {
     }
   }
 
+  // AI grading with retry logic
+  const gradeWithRetry = async (answersToGrade) => {
+    const MAX_RETRIES = 3
+    const RETRY_DELAY_MS = 10000  // 10 seconds
+    const TIMEOUT_MS = 90000      // 90 seconds per attempt
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const functions = getFunctions()
+        const gradeTypedTest = httpsCallable(functions, 'gradeTypedTest', {
+          timeout: TIMEOUT_MS
+        })
+
+        const result = await gradeTypedTest({ answers: answersToGrade })
+        return result  // Success!
+
+      } catch (error) {
+        console.error(`Grading attempt ${attempt}/${MAX_RETRIES} failed:`, error)
+
+        // Last attempt - throw error
+        if (attempt === MAX_RETRIES) {
+          throw error
+        }
+
+        // Update UI to show we're retrying
+        setRetryAttempt(attempt)
+
+        // Wait 10s before retry
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS))
+      }
+    }
+  }
+
   const handleSubmit = async () => {
     if (!user?.uid || !listId || isSubmitting || showResults) return
 
     setIsSubmitting(true)
     setError('')
+    setSubmitError(null)
+    setGradingError(null)
+    setRetryAttempt(0)
 
     try {
       // Clear saved test state
@@ -582,11 +626,8 @@ const TypedTest = () => {
         studentResponse: responses[word.id] || '',
       }))
 
-      // Call Cloud Function for AI grading
-      const functions = getFunctions()
-      const gradeTypedTest = httpsCallable(functions, 'gradeTypedTest')
-
-      const gradingResult = await gradeTypedTest({ answers: answersToGrade })
+      // Call Cloud Function for AI grading with retry logic
+      const gradingResult = await gradeWithRetry(answersToGrade)
 
       // Build results array for processTestResults
       const resultsArray = gradingResult.data.results.map(r => ({
@@ -608,32 +649,54 @@ const TypedTest = () => {
       } else {
         summary = await processTestResults(user.uid, resultsArray, listId)
 
+        // Determine if student passed (review tests always pass)
+        const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+
         // Get studyDay from sessionContext, or fetch from progress if standalone test
         let studyDay = sessionContext?.dayNumber
         if (!studyDay && user?.uid && classIdParam && listId) {
           try {
-            const progress = await getOrCreateClassProgress(user.uid, classIdParam, listId)
-            studyDay = (progress.currentStudyDay || 0) + 1
+            const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
+            // For standalone tests (retakes, direct navigation), use currentStudyDay as-is
+            // DO NOT increment - only DailySessionFlow increments via sessionContext
+            studyDay = progress.currentStudyDay || 0
           } catch (err) {
             console.error('Failed to fetch studyDay from progress:', err)
           }
         }
 
-        // Submit attempt for gradebook
-        const result = await submitTypedTestAttempt(
-          user.uid,
-          testId,
-          words,
-          responses,
-          gradingResult.data.results,
-          classIdParam,
-          currentTestType,
-          studyDay || null
-        )
+        // GATE: Attempt MUST succeed before any progression
+        // Uses retry with exponential backoff for transient failures
+        let result
+        try {
+          result = await withRetry(
+            () => submitTypedTestAttempt(
+              user.uid,
+              testId,
+              words,
+              responses,
+              gradingResult.data.results,
+              classIdParam,
+              listId,
+              currentTestType,
+              studyDay || null,
+              passed,
+              sessionContext
+            ),
+            { maxRetries: 3, totalTimeoutMs: 15000 },
+            { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+          )
+        } catch (submitErr) {
+          // Attempt failed after retries - block progression, stay on page
+          console.error('Failed to save test attempt:', submitErr)
+          setSubmitError('Failed to save your test results. Please try again.')
+          setIsSubmitting(false)
+          return // Don't proceed - answers preserved in state
+        }
+
         setAttemptId(result.id)
 
-        // Determine if this is the final test of the session and test passed
-        const passed = summary.score >= retakeThreshold
+        // Determine if this is the final test of the session
         const isSessionFinalTest = sessionContext?.isFirstDay
           ? currentTestType === 'new'      // Day 1: new test is only test
           : currentTestType === 'review'   // Day 2+: review test is last
@@ -641,6 +704,43 @@ const TypedTest = () => {
         // Complete session at submission time (before navigation) to prevent state loss
         if (passed && isSessionFinalTest && sessionContext?.dayNumber) {
           try {
+            // [1] Fetch current progress
+            const { progress } = await getOrCreateClassProgress(
+              user.uid,
+              classIdParam,
+              listId
+            );
+
+            // [2] Take snapshot BEFORE completion
+            const progressRef = doc(
+              db,
+              `users/${user.uid}/class_progress`,
+              `${classIdParam}_${listId}`
+            );
+
+            const snapshot = {
+              currentStudyDay: progress.currentStudyDay,
+              totalWordsIntroduced: progress.totalWordsIntroduced,
+              recentSessions: progress.recentSessions,
+              stats: progress.stats,
+              streakDays: progress.streakDays,
+              lastStudyDate: progress.lastStudyDate,
+              interventionLevel: progress.interventionLevel,
+              snapshotCreatedAt: Timestamp.now(),
+              snapshotDayNumber: sessionContext.dayNumber
+            };
+
+            await updateDoc(progressRef, {
+              progressSnapshot: snapshot
+            });
+
+            console.log('[SNAPSHOT] Saved before completion:', {
+              dayNumber: sessionContext.dayNumber,
+              currentCSD: progress.currentStudyDay,
+              currentTWI: progress.totalWordsIntroduced
+            });
+
+            // [3] Complete session (CSD will increment)
             await completeSessionFromTest({
               userId: user.uid,
               classId: classIdParam,
@@ -683,26 +783,111 @@ const TypedTest = () => {
       setResults(gradingResult.data.results)
       setShowResults(true)
     } catch (err) {
-      console.error('Grading error:', err)
-      setError(err.message ?? 'Failed to grade test. Please try again.')
+      console.error('All grading attempts failed:', err)
+      setGradingError('Failed to grade test after 3 attempts. Your answers are saved.')
+      // Don't clear responses or words - they're preserved for manual retry
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleRetake = () => {
-    setResponses({})
-    setFocusedIndex(0)
-    setShowResults(false)
-    setCanRetake(false)
-    setTestResultsData(null)
-    setResults(null)
+  // Manual retry function
+  const handleRetryGrading = () => {
+    setGradingError(null)
+    handleSubmit() // Retry with preserved state
+  }
 
-    // Regenerate from original words - use configured test size, capped at MAX_TYPED_TEST_WORDS
-    const shuffled = selectTestWords(originalWords, configuredTestSize)
-    const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
-    setWords(cappedWords)
-    inputRefs.current = new Array(cappedWords.length)
+  const handleRetake = async () => {
+    // For new word test retakes (below threshold), use existing logic
+    if (currentTestType === 'new') {
+      setResponses({})
+      setFocusedIndex(0)
+      setShowResults(false)
+      setCanRetake(false)
+      setTestResultsData(null)
+      setResults(null)
+
+      // Regenerate from original words - use configured test size, capped at MAX_TYPED_TEST_WORDS
+      const shuffled = selectTestWords(originalWords, configuredTestSize)
+      const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
+      setWords(cappedWords)
+      inputRefs.current = new Array(cappedWords.length)
+      return
+    }
+
+    // For review test retakes, restore from snapshot
+    try {
+      setRetakeError(null)
+
+      const progressRef = doc(
+        db,
+        `users/${user.uid}/class_progress`,
+        `${classIdParam}_${listId}`
+      )
+
+      // [1] Fetch current progress
+      const progressSnap = await getDoc(progressRef)
+      if (!progressSnap.exists()) {
+        throw new Error('Progress document not found')
+      }
+
+      const progress = progressSnap.data()
+
+      // [2] Validate snapshot exists
+      if (!progress.progressSnapshot) {
+        throw new Error('No snapshot found')
+      }
+
+      // [3] Validate correct day
+      const expectedDay = sessionContext?.dayNumber
+      if (progress.progressSnapshot.snapshotDayNumber !== expectedDay) {
+        throw new Error(`Snapshot mismatch: expected day ${expectedDay}, got ${progress.progressSnapshot.snapshotDayNumber}`)
+      }
+
+      // [4] Validate recent (within 1 hour)
+      const snapshotAge = Date.now() - progress.progressSnapshot.snapshotCreatedAt.toMillis()
+      const ONE_HOUR = 3600000 // 1 hour in ms
+      if (snapshotAge > ONE_HOUR) {
+        throw new Error('Snapshot too old (>1 hour)')
+      }
+
+      console.log('[RETAKE] Snapshot validation passed:', {
+        dayNumber: progress.progressSnapshot.snapshotDayNumber,
+        age: `${Math.floor(snapshotAge / 1000)}s`,
+        restoringCSD: progress.progressSnapshot.currentStudyDay,
+        restoringTWI: progress.progressSnapshot.totalWordsIntroduced
+      })
+
+      // [5] Restore from snapshot
+      const { snapshotCreatedAt, snapshotDayNumber, ...restoreData } = progress.progressSnapshot
+
+      await updateDoc(progressRef, {
+        currentStudyDay: restoreData.currentStudyDay,
+        totalWordsIntroduced: restoreData.totalWordsIntroduced,
+        recentSessions: restoreData.recentSessions,
+        stats: restoreData.stats,
+        streakDays: restoreData.streakDays,
+        lastStudyDate: restoreData.lastStudyDate,
+        interventionLevel: restoreData.interventionLevel,
+        progressSnapshot: null, // Clear snapshot after restore
+        updatedAt: Timestamp.now()
+      })
+
+      console.log('[RETAKE] Restored progress from snapshot')
+
+      // [6] Navigate to retake (same test)
+      navigate(`/typed-test/${classIdParam}/${listId}?type=review`, {
+        state: {
+          testConfig: sessionContext,
+          returnPath
+        }
+      })
+
+    } catch (error) {
+      console.error('[RETAKE] Failed:', error)
+      setRetakeError('Sorry, there has been an error. You cannot retake the review test.')
+      setCanRetake(false)
+    }
   }
 
   const answeredCount = Object.values(responses).filter((r) => r.trim() !== '').length
@@ -754,8 +939,10 @@ const TypedTest = () => {
 
   // Results Mode
   if (showResults && testResultsData && results) {
-    const resultsStepNumber = sessionContext?.phase === 'new' ? 2 : 4
-    const resultsTotalSteps = sessionContext?.isFirstDay ? 3 : 5
+    const { stepNumber: resultsStepNumber, totalSteps: resultsTotalSteps, stepText: resultsStepText } = getSessionStep({
+      testType: currentTestType,
+      isFirstDay: sessionContext?.isFirstDay
+    })
 
     const handleBackToSession = () => {
       if (returnPath) {
@@ -768,6 +955,31 @@ const TypedTest = () => {
         })
       } else {
         navigate('/')
+      }
+    }
+
+    const handleContinue = async () => {
+      try {
+        const progressRef = doc(
+          db,
+          `users/${user.uid}/class_progress`,
+          `${classIdParam}_${listId}`
+        )
+
+        // Clear snapshot when student proceeds
+        await updateDoc(progressRef, {
+          progressSnapshot: null
+        })
+
+        console.log('[CONTINUE] Cleared snapshot')
+
+        // Navigate to next session
+        handleBackToSession()
+
+      } catch (error) {
+        console.error('[CONTINUE] Failed to clear snapshot:', error)
+        // Non-critical - proceed anyway
+        handleBackToSession()
       }
     }
 
@@ -823,31 +1035,20 @@ const TypedTest = () => {
                 <Button
                   variant="primary-blue"
                   size="lg"
-                  onClick={handleBackToSession}
+                  onClick={handleContinue}
                   className="inline-flex items-center gap-2"
                 >
                   <LayoutGrid className="w-5 h-5" />
                   Continue
                 </Button>
               ) : (
-                <div className="flex justify-center gap-4">
-                  <Button
-                    variant="primary-blue"
-                    size="lg"
-                    onClick={handleRetake}
-                    className="flex-1 max-w-[140px]"
-                  >
-                    Retake
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => navigate('/')}
-                    className="flex-1 max-w-[140px]"
-                  >
-                    Dashboard
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => navigate('/')}
+                >
+                  Go to Dashboard
+                </Button>
               )}
             </div>
           </div>
@@ -930,80 +1131,15 @@ const TypedTest = () => {
 
           {/* Buttons based on tier */}
           <div className="mt-6">
-            {tier === 'excellent' && (
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleBackToSession}
-                className="inline-flex items-center gap-2"
-              >
-                <LayoutGrid className="w-5 h-5" />
-                Return to Dashboard
-              </Button>
-            )}
-
-            {tier === 'good' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleBackToSession}
-                  className="flex-1 max-w-[140px]"
-                >
-                  Continue
-                </Button>
-                <Button
-                  variant="warning"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Review Again
-                </Button>
-              </div>
-            )}
-
-            {tier === 'needs-work' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Retake Test
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleBackToSession}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Dashboard
-                </Button>
-              </div>
-            )}
-
-            {tier === 'critical' && (
-              <div className="flex justify-center gap-4">
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleRetake}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Retake Test
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleBackToSession}
-                  className="flex-1 max-w-[160px]"
-                >
-                  Dashboard
-                </Button>
-              </div>
-            )}
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleContinue}
+              className="inline-flex items-center gap-2"
+            >
+              <LayoutGrid className="w-5 h-5" />
+              Continue
+            </Button>
           </div>
         </div>
       )
@@ -1016,7 +1152,7 @@ const TypedTest = () => {
         <SessionHeader
           onBack={handleBackToSession}
           backAriaLabel="Back to session"
-          stepText={`Step ${resultsStepNumber} of ${resultsTotalSteps}`}
+          stepText={resultsStepText}
           onStepClick={() => setShowProgressSheet(true)}
           rightSlot={<GreyedMenuIcon />}
           sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
@@ -1053,8 +1189,10 @@ const TypedTest = () => {
   }
 
   // Calculate step info for header pill
-  const stepNumber = sessionContext?.phase === 'new' ? 2 : 4
-  const totalSteps = sessionContext?.isFirstDay ? 3 : 5
+  const { stepText } = getSessionStep({
+    testType: currentTestType,
+    isFirstDay: sessionContext?.isFirstDay
+  })
   const progressPercent = words.length > 0 ? (answeredCount / words.length) * 100 : 0
   const unansweredCount = words.length - answeredCount
 
@@ -1078,11 +1216,11 @@ const TypedTest = () => {
         onBack={() => setShowQuitConfirm(true)}
         backAriaLabel="Quit test"
         backDisabled={isSubmitting}
-        stepText={`Step ${stepNumber} of ${totalSteps}`}
+        stepText={stepText}
         onStepClick={() => setShowProgressSheet(true)}
         rightSlot={<GreyedMenuIcon />}
         // Session context
-        sessionTitle={sessionContext?.phase === 'new' ? 'New Words Test' : 'Review Test'}
+        sessionTitle={currentTestType === 'new' ? 'New Words Test' : 'Review Test'}
         dayNumber={sessionContext?.dayNumber || 1}
         // Progress bar
         progressPercent={progressPercent}
@@ -1212,6 +1350,81 @@ const TypedTest = () => {
         onCancel={handleRecoveryStartFresh}
         variant="info"
       />
+
+      {/* Submission Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="text-center">
+              {retryAttempt === 0 ? (
+                <>
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">
+                    Grading Your Test...
+                  </h3>
+                  <div className="flex justify-center mb-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Please wait while we grade your answers with AI.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-center mb-4">
+                    <AlertTriangle className="text-yellow-500 h-12 w-12" />
+                  </div>
+                  <h3 className="text-xl font-bold text-yellow-700 mb-4">
+                    Connection Issue
+                  </h3>
+                  <p className="text-sm text-yellow-600 mb-2">
+                    Retrying in 10 seconds...
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    (Attempt {retryAttempt}/3)
+                  </p>
+                </>
+              )}
+
+              {submitError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 font-semibold mb-3">{submitError}</p>
+                  <button
+                    onClick={handleSubmit}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Retry Submission
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grading Error with Manual Retry */}
+      {gradingError && !isSubmitting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <AlertTriangle className="text-red-500 h-12 w-12" />
+              </div>
+              <h3 className="text-xl font-bold text-red-700 mb-4">
+                Grading Failed
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                {gradingError}
+              </p>
+              <button
+                onClick={handleRetryGrading}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }

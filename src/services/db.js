@@ -48,6 +48,125 @@ const defaultSettings = {
 }
 
 const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5)
+
+// =============================================================================
+// Retry Infrastructure for Critical Operations
+// =============================================================================
+
+/**
+ * Check if an error is transient (worth retrying)
+ */
+function isTransientError(error) {
+  const transientCodes = [
+    'unavailable',
+    'deadline-exceeded',
+    'resource-exhausted',
+    'cancelled',
+    'unknown',
+    'internal',
+    'aborted'
+  ]
+  return transientCodes.includes(error?.code) ||
+         error?.message?.includes('network') ||
+         error?.message?.includes('timeout')
+}
+
+/**
+ * Add jitter to prevent thundering herd (+/- 25%)
+ */
+function addJitter(baseDelayMs) {
+  const jitter = baseDelayMs * 0.25
+  return baseDelayMs + (Math.random() * jitter * 2 - jitter)
+}
+
+/**
+ * Log system events for monitoring anomalies
+ * @param {string} eventType - Event type identifier
+ * @param {Object} data - Event data
+ * @param {string} severity - 'warning' or 'error'
+ */
+export async function logSystemEvent(eventType, data, severity = 'warning') {
+  try {
+    await addDoc(collection(db, 'system_logs'), {
+      type: eventType,
+      severity,
+      ...data,
+      timestamp: serverTimestamp()
+    })
+  } catch (err) {
+    // Don't let logging failure break the app
+    console.error('Failed to write system log:', err)
+  }
+}
+
+/**
+ * Generic retry wrapper for critical operations
+ * @param {Function} fn - Async function to execute
+ * @param {Object} options - { maxRetries, totalTimeoutMs }
+ * @param {Object} loggingContext - Context for logging (userId, classId, listId, etc.)
+ * @returns {Promise<any>} Result of fn()
+ */
+export async function withRetry(fn, options = {}, loggingContext = {}) {
+  const { maxRetries = 3, totalTimeoutMs = 15000 } = options
+  const startTime = Date.now()
+  const errorCodes = []
+  let lastError
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    // Check total timeout
+    if (Date.now() - startTime > totalTimeoutMs) {
+      break
+    }
+
+    try {
+      const result = await fn()
+
+      // Log if retries were needed (anomaly)
+      if (attempt > 0) {
+        logSystemEvent('attempt_retry_succeeded', {
+          ...loggingContext,
+          retriesNeeded: attempt,
+          totalDurationMs: Date.now() - startTime,
+          errorCodes
+        })
+      }
+      return result
+    } catch (error) {
+      lastError = error
+      errorCodes.push(error?.code || 'unknown')
+
+      // Don't retry non-transient errors (auth, permission)
+      if (!isTransientError(error)) {
+        throw error
+      }
+
+      // Exponential backoff with jitter: ~1s, ~2s, ~4s
+      if (attempt < maxRetries - 1) {
+        const baseDelay = Math.pow(2, attempt) * 1000
+        const delayWithJitter = addJitter(baseDelay)
+        const remainingTime = totalTimeoutMs - (Date.now() - startTime)
+        const actualDelay = Math.min(delayWithJitter, remainingTime)
+
+        if (actualDelay > 0) {
+          await new Promise(resolve => setTimeout(resolve, actualDelay))
+        }
+      }
+    }
+  }
+
+  // All retries failed - log and throw
+  logSystemEvent('attempt_write_failed', {
+    ...loggingContext,
+    retries: maxRetries,
+    totalDurationMs: Date.now() - startTime,
+    errorCodes,
+    lastError: lastError?.code || lastError?.message,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null
+  }, 'error')
+
+  throw new Error(`Operation failed after ${maxRetries} retries: ${lastError?.message}`)
+}
+
 const normalizePOS = (value) => (value || '').toString().trim().toLowerCase()
 
 /**
@@ -995,12 +1114,13 @@ export const calculateCredibility = (answers, userWordStates) => {
  * @param {Array} answers - Array of { wordId, word, correctAnswer, studentResponse, isCorrect }
  * @param {number} totalQuestions - Total number of questions in the test
  * @param {string|null} classId - Optional class ID (required for gradebook visibility)
+ * @param {string|null} listId - Optional list ID for reconciliation queries
  * @param {string} testType - Test type ('mcq' or 'typed'), defaults to 'mcq'
  * @param {string|null} sessionType - Session type ('new' or 'review'), defaults to null
  * @param {number|null} studyDay - Study day number (1-indexed), defaults to null
  * @returns {Promise<Object>} Attempt document data
  */
-export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, testType = 'mcq', sessionType = null, studyDay = null) => {
+export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, listId = null, testType = 'mcq', sessionType = null, studyDay = null, passed = null, sessionContext = null) => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
   }
@@ -1059,12 +1179,26 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
     totalQuestions,
     credibility,
     retention,
+    passed: passed,
     submittedAt: serverTimestamp(),
+    // Flattened session context
+    isFirstDay: sessionContext?.isFirstDay ?? null,
+    listTitle: sessionContext?.listTitle ?? null,
+    segmentStartIndex: sessionContext?.segment?.startIndex ?? null,
+    segmentEndIndex: sessionContext?.segment?.endIndex ?? null,
+    interventionLevel: sessionContext?.interventionLevel ?? null,
+    wordsIntroduced: sessionContext?.wordsIntroduced ?? null,
+    wordsReviewed: sessionContext?.wordsReviewed ?? null,
+    newWordStartIndex: sessionContext?.newWordStartIndex ?? null,
+    newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
   }
 
-  // Add classId and teacherId if provided (for new attempts)
+  // Add classId, listId, and teacherId if provided (for new attempts)
   if (classId) {
     attemptData.classId = classId
+  }
+  if (listId) {
+    attemptData.listId = listId
   }
   if (teacherId) {
     attemptData.teacherId = teacherId
@@ -1093,6 +1227,7 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
  * @param {Object} responses - Object mapping wordId to student response string
  * @param {Array} gradingResults - AI grading results: [{ wordId, isCorrect, reasoning }]
  * @param {string|null} classId - Optional class ID (required for gradebook visibility)
+ * @param {string|null} listId - Optional list ID for reconciliation queries
  * @param {string|null} sessionType - Session type ('new' or 'review'), defaults to null
  * @param {number|null} studyDay - Study day number (1-indexed), defaults to null
  * @returns {Promise<Object>} Attempt document data
@@ -1104,8 +1239,11 @@ export const submitTypedTestAttempt = async (
   responses,
   gradingResults,
   classId = null,
+  listId = null,
   sessionType = null,
   studyDay = null,
+  passed = null,
+  sessionContext = null,
 ) => {
   console.log('submitTypedTestAttempt called with:', { userId, testId, classId })
 
@@ -1186,6 +1324,7 @@ export const submitTypedTestAttempt = async (
       studentId: userId,
       testId,
       classId: classId || null,
+      listId: listId || null,
       teacherId: teacherId,
       testType: 'typed',
       sessionType: sessionType || null,
@@ -1197,7 +1336,18 @@ export const submitTypedTestAttempt = async (
       totalQuestions: words.length,
       credibility,
       retention,
+      passed: passed,
       submittedAt: serverTimestamp(),
+      // Flattened session context
+      isFirstDay: sessionContext?.isFirstDay ?? null,
+      listTitle: sessionContext?.listTitle ?? null,
+      segmentStartIndex: sessionContext?.segment?.startIndex ?? null,
+      segmentEndIndex: sessionContext?.segment?.endIndex ?? null,
+      interventionLevel: sessionContext?.interventionLevel ?? null,
+      wordsIntroduced: sessionContext?.wordsIntroduced ?? null,
+      wordsReviewed: sessionContext?.wordsReviewed ?? null,
+      newWordStartIndex: sessionContext?.newWordStartIndex ?? null,
+      newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
     }
 
     console.log('Saving attempt document:', attemptData)
@@ -2453,10 +2603,29 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
   const correctCount = updatedAnswers.filter((a) => a.isCorrect).length
   const newScore = Math.round((correctCount / updatedAnswers.length) * 100)
 
+  // Fetch pass threshold to recalculate passed status
+  let passThreshold = 95 // Default
+  if (attemptData.classId && attemptData.listId) {
+    try {
+      const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
+      const assignment = classDoc.exists()
+        ? classDoc.data().assignments?.[attemptData.listId]
+        : null
+      passThreshold = assignment?.passThreshold || 95
+    } catch (err) {
+      console.error('Error fetching pass threshold:', err)
+    }
+  }
+
+  // Recalculate passed based on new score
+  const sessionType = attemptData.sessionType
+  const newPassed = sessionType === 'review' ? true : newScore >= passThreshold
+
   // Update attempt document
   await updateDoc(attemptRef, {
     answers: updatedAnswers,
     score: newScore,
+    passed: newPassed,
   })
 
   // Get studentId and update their challenges.history
@@ -2587,12 +2756,20 @@ export function normalizeStudyState(doc) {
 
 /**
  * Reset a student's progress for a specific class/list back to initial state.
- * Deletes class_progress, session_states, and all study_states for that list.
  *
- * @param {string} userId - User ID
- * @param {string} classId - Class ID
- * @param {string} listId - List ID
+ * Deletes:
+ * - class_progress document
+ * - session_states document
+ * - All study_states for the list
+ * - All attempts for the class/list combination
+ *
+ * This is a complete reset - the student will start from day 0.
+ *
+ * @param {string} userId - The student's user ID
+ * @param {string} classId - The class ID
+ * @param {string} listId - The list ID
  * @returns {Promise<{ success: boolean, deletedCount: number }>}
+ * @throws {Error} If user is not authenticated or parameters are missing
  */
 export async function resetStudentProgress(userId, classId, listId) {
   // Safety check: verify userId matches current authenticated user
@@ -2665,6 +2842,66 @@ export async function resetStudentProgress(userId, classId, listId) {
     throw new Error('Failed to delete word study states')
   }
 
+  // 4. Query and batch delete all attempts for this class/list
+  // Note: attempts don't have listId as a field, it's embedded in testId
+  const attemptsRef = collection(db, 'attempts')
+  const attemptsQuery = query(
+    attemptsRef,
+    where('studentId', '==', userId),
+    where('classId', '==', classId)
+  )
+
+  try {
+    const attemptsSnapshot = await getDocs(attemptsQuery)
+
+    if (attemptsSnapshot.size > 0) {
+      // Filter attempts by parsing testId to match listId
+      // testId format: vocaboost_test_{classId}_{listId}_{sessionType}
+      const attemptsToDelete = attemptsSnapshot.docs.filter(doc => {
+        const testId = doc.data().testId
+        if (!testId) return false
+
+        const parts = testId.split('_')
+        // parts: ['vocaboost', 'test', classId, listId, sessionType]
+        if (parts.length >= 5) {
+          const attemptListId = parts[3]
+          return attemptListId === listId
+        }
+        return false
+      })
+
+      console.log(`[RESET] Found ${attemptsToDelete.length} attempts to delete for list ${listId}`)
+
+      if (attemptsToDelete.length > 0) {
+        // Use batched writes (max 500 per batch)
+        const batchSize = 500
+        let batch = writeBatch(db)
+        let batchCount = 0
+
+        for (const docSnap of attemptsToDelete) {
+          batch.delete(docSnap.ref)
+          batchCount++
+          deletedCount++
+
+          // Commit batch when it reaches the limit
+          if (batchCount >= batchSize) {
+            await batch.commit()
+            batch = writeBatch(db)
+            batchCount = 0
+          }
+        }
+
+        // Commit any remaining deletions
+        if (batchCount > 0) {
+          await batch.commit()
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error deleting attempts:', err)
+    throw new Error('Failed to delete attempt records')
+  }
+
   return { success: true, deletedCount }
 }
 
@@ -2706,5 +2943,72 @@ export const getNewWordAttemptForDay = async (userId, classId, studyDay) => {
   } catch (err) {
     console.error('getNewWordAttemptForDay error:', err)
     return null
+  }
+}
+
+/**
+ * Get recent attempts for a specific class/list combination.
+ * Used for CSD/TWI reconciliation to verify progress against actual attempts.
+ *
+ * @param {string} userId - Student user ID
+ * @param {string} classId - Class ID
+ * @param {string} listId - List ID
+ * @param {number} maxResults - Maximum number of attempts to return (default 8)
+ * @returns {Promise<Array>} Array of attempt documents, newest first
+ */
+export async function getRecentAttemptsForClassList(userId, classId, listId, maxResults = 8) {
+  console.log('[RECONCILIATION] getRecentAttemptsForClassList called:', { userId, classId, listId, maxResults })
+
+  if (!userId || !classId || !listId) {
+    console.warn('[RECONCILIATION] Missing required parameters')
+    return []
+  }
+
+  try {
+    const attemptsRef = collection(db, 'attempts')
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('listId', '==', listId),
+      orderBy('submittedAt', 'desc'),
+      limit(maxResults)
+    )
+
+    console.log('[RECONCILIATION] Executing Firestore query...')
+    const snapshot = await getDocs(q)
+    const attempts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+    console.log('[RECONCILIATION] Query returned:', {
+      attemptCount: attempts.length,
+      studyDays: attempts.map(a => a.studyDay),
+      sessionTypes: attempts.map(a => a.sessionType)
+    })
+
+    return attempts
+  } catch (err) {
+    console.error('[RECONCILIATION] ❌ Query failed!')
+    console.error('[RECONCILIATION] Error code:', err.code)
+    console.error('[RECONCILIATION] Error message:', err.message)
+
+    // Check if this is a missing index error
+    if (err.code === 'failed-precondition' || err.message?.includes('index')) {
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.error('🔴 FIRESTORE INDEX MISSING - RECONCILIATION DISABLED')
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.error('The CSD reconciliation query requires a composite index.')
+      console.error('Required index: studentId + classId + listId + submittedAt')
+      console.error('')
+      console.error('Full error:', err)
+      console.error('')
+      console.error('Check the error above for a Firebase Console link to create the index.')
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    } else {
+      console.error('[RECONCILIATION] Unexpected error type. Reconciliation will be skipped.')
+      console.error('[RECONCILIATION] Full error:', err)
+    }
+
+    // Return empty array to prevent crashes (Math.max will keep existing values)
+    return []
   }
 }
