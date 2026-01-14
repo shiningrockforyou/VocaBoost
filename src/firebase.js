@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getStorage, connectStorageEmulator } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -39,6 +40,7 @@ const app = initializeApp(firebaseConfig)
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+export const storage = getStorage(app)
 export const googleProvider = new GoogleAuthProvider()
 
 // Connect to Firebase Emulators in simulation mode
@@ -47,7 +49,8 @@ if (import.meta.env.VITE_USE_EMULATOR === 'true') {
   try {
     connectFirestoreEmulator(db, 'localhost', 8080)
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
-    console.log('🔧 Firebase Emulators connected (Firestore: 8080, Auth: 9099)')
+    connectStorageEmulator(storage, 'localhost', 9199)
+    console.log('🔧 Firebase Emulators connected (Firestore: 8080, Auth: 9099, Storage: 9199)')
   } catch (error) {
     // Emulators may already be connected (hot reload)
     console.warn('Firebase emulator connection skipped:', error.message)

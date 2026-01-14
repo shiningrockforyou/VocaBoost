@@ -724,7 +724,13 @@ export default function DailySessionFlow() {
                 dayNumber: config.dayNumber,
                 phase: testRecovery.phaseType,
                 isFirstDay: config?.isFirstDay,
-                listTitle
+                listTitle,
+                segment: config?.segment,
+                interventionLevel: config?.interventionLevel || 0,
+                wordsIntroduced: config?.newWordCount || 0,
+                wordsReviewed: 0,
+                newWordStartIndex: config?.newWordStartIndex ?? null,
+                newWordEndIndex: config?.newWordEndIndex ?? null,
               }
             }
           })

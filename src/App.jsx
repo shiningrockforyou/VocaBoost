@@ -18,6 +18,7 @@ import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
 import { SimulationProvider, isSimulationEnabled } from './hooks/useSimulation.jsx'
 import SimulationPanel from './components/dev/SimulationPanel.jsx'
+import { apBoostRoutes } from './apBoost'
 
 function App() {
   return (
@@ -149,6 +150,8 @@ function App() {
               </PrivateRoute>
             }
           />
+          {/* AP Boost Routes */}
+          {apBoostRoutes}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

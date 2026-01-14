@@ -28,6 +28,9 @@
 | 2026-01-03 | `src/services/db.js` | Fixed words learned count in `fetchStudentAggregateStats` to use status instead of box |
 | 2026-01-03 | `src/services/db.js` | Removed box updates from `submitTestAttempt` and `submitTypedTestAttempt` - status updates handled by processTestResults |
 | 2026-01-03 | `src/services/db.js` | Fixed challenge bug in `reviewChallenge` - now updates status to PASSED instead of box |
+| 2026-01-14 | `src/pages/DailySessionFlow.jsx` | Fixed test recovery sessionContext - added missing fields (segment, interventionLevel, wordsIntroduced, wordsReviewed, newWordStartIndex, newWordEndIndex) to prevent TWI reconciliation failures |
+| 2026-01-14 | `scripts/export-attempts.js` | Created script to export all Firestore attempts to flattened JSON |
+| 2026-01-14 | `scripts/export-users.js` | Created script to export all Firestore users to flattened JSON |
 | 2026-01-03 | `src/services/db.js` | Deleted unused box functions: `computeNextReview`, `nextBoxValue`, `saveStudyResult` |
 | 2026-01-03 | `src/services/db.js` | Deleted unused legacy test generators: `generateTest`, `generateTypedTest` |
 | 2026-01-03 | `src/services/db.js` | Simplified `normalizeStudyState` to just merge defaults with document |
@@ -165,6 +168,7 @@
 | 2026-01-12 | `CLAUDE.md` | Fixed filename reference from `changes_action_log.md` to `change_action_log.md` and added table format hint |
 | 2026-01-12 | `CLAUDE.md` | Added apBoost rule to log changes to `change_action_log_ap.md` instead of main log |
 | 2026-01-12 | `change_action_log_ap.md` | **NEW FILE** - Separate change log for apBoost development |
+| 2026-01-13 | `updated_tech_spec_vocaboost.md` | **NEW FILE** - Complete technical specification document with 15 sections covering architecture, routing, pages, components, design system, state management, services, data models, algorithms, study flow, utilities, dev tools, and security |
 
 ---
 
