@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { COLLECTIONS, SESSION_STATUS } from '../utils/apTypes'
+import { canAccessTest } from './apTestService'
 
 /**
  * Generate a unique session token
@@ -29,6 +30,15 @@ function generateSessionToken() {
  */
 export async function createOrResumeSession(testId, userId, assignmentId = null) {
   try {
+    // Verify user has access to this test
+    const access = await canAccessTest(testId, userId)
+    if (!access.allowed) {
+      throw new Error('Access denied: You are not authorized to take this test')
+    }
+
+    // Use assignment ID from access check if not provided
+    const resolvedAssignmentId = assignmentId || access.assignmentId || null
+
     // Check for existing active session
     const existingSession = await getActiveSession(testId, userId)
     if (existingSession) {
@@ -49,7 +59,7 @@ export async function createOrResumeSession(testId, userId, assignmentId = null)
     const sessionData = {
       userId,
       testId,
-      assignmentId,
+      assignmentId: resolvedAssignmentId,
       sessionToken: generateSessionToken(),
       status: SESSION_STATUS.IN_PROGRESS,
       attemptNumber,
@@ -87,7 +97,7 @@ export async function getActiveSession(testId, userId) {
       collection(db, COLLECTIONS.SESSION_STATE),
       where('testId', '==', testId),
       where('userId', '==', userId),
-      where('status', '==', SESSION_STATUS.IN_PROGRESS)
+      where('status', 'in', [SESSION_STATUS.IN_PROGRESS, SESSION_STATUS.PAUSED])
     )
     const sessionsSnap = await getDocs(sessionsQuery)
 

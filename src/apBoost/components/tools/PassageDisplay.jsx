@@ -13,7 +13,7 @@ import { STIMULUS_TYPE } from '../../utils/apTypes'
  * - Toolbar for tool controls
  *
  * Props:
- * - stimulus: Stimulus object { type, content, source, imageAlt }
+ * - stimulus: Stimulus object { type, content, source, imageAlt, title }
  * - highlights: Array of highlight ranges
  * - onHighlight: Callback when text is highlighted
  * - onRemoveHighlight: Callback when highlight is removed
@@ -50,15 +50,15 @@ export default function PassageDisplay({
 
   if (!stimulus) return null
 
-  const { type, content, source, imageAlt } = stimulus
+  const { type, content, source, imageAlt, title } = stimulus
   const isImage = type === STIMULUS_TYPE.IMAGE || type === STIMULUS_TYPE.CHART
   const isText = !isImage
 
   return (
     <div className="flex flex-col h-full">
-      {/* Toolbar */}
+      {/* Toolbar - sticky within scroll container */}
       {showToolbar && isText && (
-        <div className="shrink-0 pb-3 mb-3 border-b border-border-default">
+        <div className="sticky top-0 z-10 bg-surface shrink-0 pb-3 mb-3 border-b border-border-default">
           <ToolsToolbar
             highlightColor={highlightColor}
             onHighlightColorChange={onHighlightColorChange}
@@ -77,6 +77,9 @@ export default function PassageDisplay({
         {/* Image stimulus */}
         {isImage && (
           <div className="prose prose-sm max-w-none">
+            {title && (
+              <h3 className="text-base font-semibold text-text-primary mb-3">{title}</h3>
+            )}
             <img
               src={content}
               alt={imageAlt || 'Stimulus image'}
@@ -91,6 +94,9 @@ export default function PassageDisplay({
         {/* Text stimulus with highlighter */}
         {isText && (
           <div className="relative">
+            {title && (
+              <h3 className="text-base font-semibold text-text-primary mb-3">{title}</h3>
+            )}
             <Highlighter
               content={content}
               highlights={highlights}

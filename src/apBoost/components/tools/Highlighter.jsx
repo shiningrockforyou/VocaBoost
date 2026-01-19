@@ -35,45 +35,87 @@ function ColorPicker({ position, onSelect, onClose }) {
 }
 
 /**
- * Render text with highlights applied
+ * Render text with highlights applied using boundary-sweep algorithm
+ * This handles overlapping highlights correctly without truncating text
  */
 function HighlightedText({ content, highlights, onHighlightClick }) {
   if (!highlights || highlights.length === 0) {
     return <span>{content}</span>
   }
 
-  // Sort highlights by start position
-  const sortedHighlights = [...highlights].sort((a, b) => a.start - b.start)
-
-  // Build segments
-  const segments = []
-  let lastEnd = 0
-
-  sortedHighlights.forEach((highlight, idx) => {
-    // Add non-highlighted text before this highlight
-    if (highlight.start > lastEnd) {
-      segments.push({
-        type: 'normal',
-        text: content.slice(lastEnd, highlight.start),
-      })
-    }
-
-    // Add highlighted text
-    segments.push({
-      type: 'highlight',
-      text: content.slice(highlight.start, highlight.end),
+  // Create boundaries for each highlight (start and end points)
+  const boundaries = []
+  highlights.forEach((highlight, idx) => {
+    boundaries.push({
+      position: highlight.start,
+      type: 'start',
+      highlightIndex: idx,
       color: highlight.color,
-      index: idx,
     })
-
-    lastEnd = Math.max(lastEnd, highlight.end)
+    boundaries.push({
+      position: highlight.end,
+      type: 'end',
+      highlightIndex: idx,
+      color: highlight.color,
+    })
   })
 
-  // Add remaining text
-  if (lastEnd < content.length) {
+  // Sort boundaries by position, with 'start' before 'end' at same position
+  boundaries.sort((a, b) => {
+    if (a.position !== b.position) return a.position - b.position
+    // At same position: 'start' comes before 'end'
+    if (a.type === 'start' && b.type === 'end') return -1
+    if (a.type === 'end' && b.type === 'start') return 1
+    return 0
+  })
+
+  // Build segments using boundary sweep
+  const segments = []
+  const activeHighlights = [] // Stack of active highlight indices (most recent = top)
+  let lastPosition = 0
+
+  boundaries.forEach((boundary) => {
+    const { position, type, highlightIndex } = boundary
+
+    // Add segment from lastPosition to this position
+    if (position > lastPosition) {
+      if (activeHighlights.length > 0) {
+        // Use the most recent (top of stack) highlight for this segment
+        const topHighlightIdx = activeHighlights[activeHighlights.length - 1]
+        const topHighlight = highlights[topHighlightIdx]
+        segments.push({
+          type: 'highlight',
+          text: content.slice(lastPosition, position),
+          color: topHighlight.color,
+          index: topHighlightIdx, // For removal, target the top-most highlight
+        })
+      } else {
+        segments.push({
+          type: 'normal',
+          text: content.slice(lastPosition, position),
+        })
+      }
+    }
+
+    // Update active highlights stack
+    if (type === 'start') {
+      activeHighlights.push(highlightIndex)
+    } else {
+      // Remove this highlight from stack
+      const stackIdx = activeHighlights.indexOf(highlightIndex)
+      if (stackIdx !== -1) {
+        activeHighlights.splice(stackIdx, 1)
+      }
+    }
+
+    lastPosition = position
+  })
+
+  // Add remaining text after all highlights
+  if (lastPosition < content.length) {
     segments.push({
       type: 'normal',
-      text: content.slice(lastEnd),
+      text: content.slice(lastPosition),
     })
   }
 

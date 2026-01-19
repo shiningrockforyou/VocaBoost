@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, updateDoc, serverTimestamp, getDoc, runTransaction } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { COLLECTIONS } from '../utils/apTypes'
 import { logError, logDebug } from '../utils/logError'
@@ -121,6 +121,58 @@ export function useOfflineQueue(sessionId) {
     }
   }, [sessionId])
 
+  // Get pending items from queue (optionally filtered by action type)
+  const getPendingItems = useCallback(async (actionFilter = null) => {
+    if (!dbRef.current || !sessionId) return []
+
+    try {
+      const tx = dbRef.current.transaction(STORE_NAME, 'readonly')
+      const store = tx.objectStore(STORE_NAME)
+      const index = store.index('sessionId')
+      const request = index.getAll(IDBKeyRange.only(sessionId))
+
+      const items = await new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+      })
+
+      let pendingItems = items.filter(item => item.status === 'PENDING')
+
+      // Filter by action type if specified
+      if (actionFilter) {
+        pendingItems = pendingItems.filter(item => item.action === actionFilter)
+      }
+
+      return pendingItems
+    } catch (error) {
+      logError('useOfflineQueue.getPendingItems', { sessionId, actionFilter }, error)
+      return []
+    }
+  }, [sessionId])
+
+  // Delete specific items from queue by IDs
+  const deleteItems = useCallback(async (itemIds) => {
+    if (!dbRef.current || !sessionId || itemIds.length === 0) return
+
+    try {
+      const tx = dbRef.current.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+
+      for (const id of itemIds) {
+        store.delete(id)
+      }
+
+      await new Promise((resolve, reject) => {
+        tx.oncomplete = resolve
+        tx.onerror = () => reject(tx.error)
+      })
+
+      await updateQueueLength()
+    } catch (error) {
+      logError('useOfflineQueue.deleteItems', { sessionId, itemIds }, error)
+    }
+  }, [sessionId, updateQueueLength])
+
   // Add action to queue
   const addToQueue = useCallback(async (action) => {
     if (!dbRef.current || !sessionId) {
@@ -198,16 +250,37 @@ export function useOfflineQueue(sessionId) {
 
       logDebug('useOfflineQueue.flushQueue', `Flushing ${pendingItems.length} items`)
 
-      // Build update object from queued actions
+      // Separate FLAG_TOGGLE items for special handling
+      const flagToggleItems = pendingItems.filter(item => item.action === 'FLAG_TOGGLE')
+      const otherItems = pendingItems.filter(item => item.action !== 'FLAG_TOGGLE')
+
+      // Dedupe ANSWER_CHANGE items: last-write-wins per (questionId, subQuestionLabel)
+      const answerChangeItems = otherItems.filter(item => item.action === 'ANSWER_CHANGE')
+      const nonAnswerItems = otherItems.filter(item => item.action !== 'ANSWER_CHANGE')
+      const answerByKey = new Map()
+      for (const item of answerChangeItems) {
+        const key = `${item.payload.questionId}:${item.payload.subQuestionLabel || '__single__'}`
+        answerByKey.set(key, item) // Later items overwrite earlier (last-write-wins)
+      }
+
+      // Build update object from non-flag actions
       const updates = {}
-      for (const item of pendingItems) {
+
+      // Process deduped ANSWER_CHANGE items with nested paths for sub-questions
+      for (const item of answerByKey.values()) {
+        const { questionId, value, subQuestionLabel } = item.payload
+        if (subQuestionLabel) {
+          // FRQ with sub-questions: write to nested field path
+          updates[`answers.${questionId}.${subQuestionLabel}`] = value
+        } else {
+          // MCQ or FRQ without sub-questions: write directly
+          updates[`answers.${questionId}`] = value
+        }
+      }
+
+      // Process other non-flag actions
+      for (const item of nonAnswerItems) {
         switch (item.action) {
-          case 'ANSWER_CHANGE':
-            updates[`answers.${item.payload.questionId}`] = item.payload.value
-            break
-          case 'FLAG_TOGGLE':
-            // Flags need special handling - we'd need to maintain the array
-            break
           case 'NAVIGATION':
             updates.currentSectionIndex = item.payload.currentSectionIndex
             updates.currentQuestionIndex = item.payload.currentQuestionIndex
@@ -233,6 +306,129 @@ export function useOfflineQueue(sessionId) {
           TIMEOUTS.FIRESTORE_WRITE,
           'Queue flush'
         )
+      }
+
+      // Handle FLAG_TOGGLE with idempotent set-membership (last-write-wins per questionId)
+      if (flagToggleItems.length > 0) {
+        // Dedupe: keep only the last action per questionId (last-write-wins)
+        const flagsByQuestionId = new Map()
+        for (const item of flagToggleItems) {
+          flagsByQuestionId.set(item.payload.questionId, item.payload.markedForReview)
+        }
+
+        const sessionRef = doc(db, COLLECTIONS.SESSION_STATE, sessionId)
+
+        await withTimeout(
+          runTransaction(db, async (transaction) => {
+            const sessionSnap = await transaction.get(sessionRef)
+            if (!sessionSnap.exists()) {
+              throw new Error('Session not found')
+            }
+
+            // Get current flaggedQuestions array
+            const currentFlags = new Set(sessionSnap.data().flaggedQuestions || [])
+
+            // Apply each flag change as SET operation (not toggle)
+            for (const [questionId, markedForReview] of flagsByQuestionId) {
+              if (markedForReview) {
+                currentFlags.add(questionId)
+              } else {
+                currentFlags.delete(questionId)
+              }
+            }
+
+            // Write back the updated array
+            transaction.update(sessionRef, {
+              flaggedQuestions: Array.from(currentFlags),
+              lastAction: serverTimestamp()
+            })
+          }),
+          TIMEOUTS.FIRESTORE_WRITE,
+          'Flag toggle flush'
+        )
+
+        logDebug('useOfflineQueue.flushQueue', `Flushed ${flagsByQuestionId.size} flag changes`)
+      }
+
+      // Handle ANNOTATION_UPDATE with transaction (in-order processing for index stability)
+      const annotationItems = pendingItems.filter(item => item.action === 'ANNOTATION_UPDATE')
+      if (annotationItems.length > 0) {
+        const sessionRef = doc(db, COLLECTIONS.SESSION_STATE, sessionId)
+
+        await withTimeout(
+          runTransaction(db, async (transaction) => {
+            const sessionSnap = await transaction.get(sessionRef)
+            if (!sessionSnap.exists()) {
+              throw new Error('Session not found')
+            }
+
+            const data = sessionSnap.data()
+            // Deep clone to avoid mutating Firestore data
+            const annotations = JSON.parse(JSON.stringify(data.annotations || {}))
+            const strikethroughs = JSON.parse(JSON.stringify(data.strikethroughs || {}))
+
+            // Process each annotation update in order (important for index-based operations)
+            for (const item of annotationItems) {
+              const { type, questionId, choiceId, range, color, index } = item.payload
+
+              switch (type) {
+                case 'ADD_HIGHLIGHT':
+                  if (!annotations[questionId]) {
+                    annotations[questionId] = []
+                  }
+                  annotations[questionId].push({ ...range, color })
+                  break
+
+                case 'REMOVE_HIGHLIGHT':
+                  if (annotations[questionId] && annotations[questionId][index] !== undefined) {
+                    annotations[questionId].splice(index, 1)
+                  }
+                  break
+
+                case 'CLEAR_HIGHLIGHTS':
+                  annotations[questionId] = []
+                  break
+
+                case 'TOGGLE_STRIKETHROUGH':
+                  if (!strikethroughs[questionId]) {
+                    strikethroughs[questionId] = []
+                  }
+                  const strikeArr = strikethroughs[questionId]
+                  const strikeIndex = strikeArr.indexOf(choiceId)
+                  if (strikeIndex === -1) {
+                    strikeArr.push(choiceId)
+                  } else {
+                    strikeArr.splice(strikeIndex, 1)
+                  }
+                  break
+
+                case 'CLEAR_STRIKETHROUGHS':
+                  strikethroughs[questionId] = []
+                  break
+
+                case 'CLEAR_ALL':
+                  // Clear all annotations and strikethroughs
+                  Object.keys(annotations).forEach(key => delete annotations[key])
+                  Object.keys(strikethroughs).forEach(key => delete strikethroughs[key])
+                  break
+
+                default:
+                  break
+              }
+            }
+
+            // Write back the updated annotations
+            transaction.update(sessionRef, {
+              annotations,
+              strikethroughs,
+              lastAction: serverTimestamp()
+            })
+          }),
+          TIMEOUTS.FIRESTORE_WRITE,
+          'Annotation flush'
+        )
+
+        logDebug('useOfflineQueue.flushQueue', `Flushed ${annotationItems.length} annotation changes`)
       }
 
       // Mark items as confirmed and delete
@@ -280,6 +476,8 @@ export function useOfflineQueue(sessionId) {
     queueLength,
     isOnline,
     isFlushing,
+    getPendingItems,
+    deleteItems,
   }
 }
 

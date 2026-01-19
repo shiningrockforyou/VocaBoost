@@ -236,7 +236,7 @@ export async function createAssignment(assignmentData) {
       classIds: assignmentData.classIds || [],
       studentIds: assignmentData.studentIds || [],
       dueDate: assignmentData.dueDate || null,
-      maxAttempts: assignmentData.maxAttempts || 1,
+      maxAttempts: assignmentData.maxAttempts ?? 3,
       frqSubmissionType: assignmentData.frqSubmissionType || 'TYPED',
       assignedBy: assignmentData.assignedBy,
       assignedAt: serverTimestamp(),

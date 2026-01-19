@@ -122,8 +122,10 @@ export async function seedAPTestData() {
         questionText: 'Based on the passage above, which of the following best describes the author\'s view of early American manufacturing?',
         stimulus: {
           type: 'PASSAGE',
+          title: 'Document A: Observations on American Manufacturing',
           content: '"The factory system, as introduced into this country, has been more humane and beneficial than it was in England. The hours of labor are shorter, the wages higher, and the operatives are better educated and more intelligent..."',
           source: 'Harriet Martineau, Society in America, 1837',
+          tags: ['primary-source', 'industrial-revolution', 'market-revolution'],
         },
         choiceA: { text: 'American factories were worse than their English counterparts' },
         choiceB: { text: 'American factories offered better conditions than English factories' },

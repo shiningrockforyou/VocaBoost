@@ -169,6 +169,13 @@
 | 2026-01-12 | `CLAUDE.md` | Added apBoost rule to log changes to `change_action_log_ap.md` instead of main log |
 | 2026-01-12 | `change_action_log_ap.md` | **NEW FILE** - Separate change log for apBoost development |
 | 2026-01-13 | `updated_tech_spec_vocaboost.md` | **NEW FILE** - Complete technical specification document with 15 sections covering architecture, routing, pages, components, design system, state management, services, data models, algorithms, study flow, utilities, dev tools, and security |
+| 2026-01-19 | `src/services/progressService.js` | **TWI Bug Fix** - Changed reconciliation TWI calculation to use most recent new test instead of exact CSD-level match (lines 86-97). Previous logic failed when no new test existed at exact CSD level. |
+| 2026-01-19 | `src/services/progressService.js` | **TWI Bug Fix** - Added fallback TWI fetch: if TWI=0 with CSD>0, calls `getMostRecentNewTest()` to recover TWI from any new test (lines 167-176) |
+| 2026-01-19 | `src/services/db.js` | **NEW FUNCTION** - Added `getMostRecentNewTest()` helper for fallback TWI reconciliation - queries only new tests with sessionType filter (lines 3016-3060) |
+| 2026-01-19 | `src/services/studyService.js` | **TWI Bug Fix** - Changed `wordsIntroduced` to use `sessionConfig.newWordCount` as primary source instead of `newWords.length` which was often 0 (line 1087) |
+| 2026-01-19 | `src/services/progressService.js` | **Anchor-Based Reconciliation** - Rewrote `calculateCSDAndTWIFromAttempts()` to use NEW TEST as anchor for both CSD and TWI (lines 40-102). CSD and TWI now derived from same source to prevent mismatch. |
+| 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Added `cleanupOrphanedReviews()` function to delete review tests where `studyDay > anchorDay`. Logs full attempt data to `system_logs` before deletion (lines 115-155). |
+| 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Updated `getOrCreateClassProgress()` to call `cleanupOrphanedReviews()` after calculating anchor day (lines 212-215) |
 
 ---
 

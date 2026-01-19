@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { getTestWithQuestions, getQuestion } from '../services/apTestService'
+import { getTestWithQuestions, getQuestion, canAccessTest } from '../services/apTestService'
 import {
   createOrResumeSession,
   getActiveSession,
@@ -8,6 +8,7 @@ import {
   toggleQuestionFlag,
   updatePosition,
   updateTimer,
+  updateSession,
 } from '../services/apSessionService'
 import { createTestResult } from '../services/apScoringService'
 import { useTimer } from './useTimer'
@@ -31,6 +32,12 @@ export function useTestSession(testId, assignmentId = null) {
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Submission retry state
+  const [submitError, setSubmitError] = useState(null)
+  const [isSubmitTimedOut, setIsSubmitTimedOut] = useState(false)
+  const submitStartTimeRef = useRef(null)
+  const pendingFrqDataRef = useRef(null)
+
   // Position state
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -46,8 +53,16 @@ export function useTestSession(testId, assignmentId = null) {
   const saveTimeoutRef = useRef(null)
   const timerSaveRef = useRef(null)
 
+  // Auto-submit state (for timer expiry)
+  const autoSubmitTriggeredRef = useRef(false)
+  const [autoSubmitTriggered, setAutoSubmitTriggered] = useState(false)
+  const [autoSubmitResultId, setAutoSubmitResultId] = useState(null)
+
+  // Ref to hold submit functions (avoids circular dependency with timer)
+  const submitFunctionsRef = useRef({ submitTest: null, submitSection: null })
+
   // Resilience hooks
-  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing } = useOfflineQueue(session?.id)
+  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, getPendingItems, deleteItems } = useOfflineQueue(session?.id)
   const { instanceToken, isInvalidated, takeControl } = useDuplicateTabGuard(session?.id)
   const { isConnected, failureCount, sessionTakenOver } = useHeartbeat(session?.id, instanceToken)
 
@@ -133,11 +148,39 @@ export function useTestSession(testId, assignmentId = null) {
     return (currentSection.timeLimit || 45) * 60
   }, [currentSection, session])
 
-  const handleTimerExpire = useCallback(() => {
-    // Auto-submit when timer expires
+  const handleTimerExpire = useCallback(async () => {
+    // Single-flight guard - prevent race with manual submit
+    if (isSubmitting || autoSubmitTriggeredRef.current) return
+    autoSubmitTriggeredRef.current = true
+    setAutoSubmitTriggered(true)
+
     console.log('Timer expired, auto-submitting...')
-    // Could trigger auto-submit here
-  }, [])
+
+    const isLastSection = currentSectionIndex >= (test?.sections?.length || 1) - 1
+
+    // Queue AUTO_SUBMIT action for offline persistence
+    addToQueue({
+      action: 'AUTO_SUBMIT',
+      payload: {
+        isLastSection,
+        sectionIndex: currentSectionIndex,
+        expiredAt: Date.now()
+      }
+    })
+
+    // If online, submit immediately
+    if (isOnline) {
+      if (isLastSection) {
+        const resultId = await submitFunctionsRef.current.submitTest?.()
+        if (resultId) {
+          setAutoSubmitResultId(resultId)
+        }
+      } else {
+        await submitFunctionsRef.current.submitSection?.()
+      }
+    }
+    // If offline, the AUTO_SUBMIT action will be processed on reconnect
+  }, [isSubmitting, currentSectionIndex, test?.sections?.length, isOnline, addToQueue])
 
   const handleTimerTick = useCallback((newTime) => {
     // Save timer every 30 seconds via queue
@@ -164,6 +207,14 @@ export function useTestSession(testId, assignmentId = null) {
       try {
         setLoading(true)
         setError(null)
+
+        // Verify user has access to this test before loading content
+        const access = await canAccessTest(testId, user.uid)
+        if (!access.allowed) {
+          setError('You are not authorized to access this test')
+          setLoading(false)
+          return
+        }
 
         // Load test with questions
         const testData = await getTestWithQuestions(testId)
@@ -193,6 +244,35 @@ export function useTestSession(testId, assignmentId = null) {
           // Restore flags
           const flagsSet = new Set(existingSession.flaggedQuestions || [])
           setFlags(flagsSet)
+
+          // Check for pause marker (indicates tab was closed mid-session)
+          // Apply PAUSED status if marker exists and session isn't completed
+          try {
+            const pauseMarker = localStorage.getItem(`ap_session_pause_${existingSession.id}`)
+            if (pauseMarker && existingSession.status !== SESSION_STATUS.COMPLETED) {
+              // Update session status to PAUSED (best effort)
+              await updateSession(existingSession.id, {
+                status: SESSION_STATUS.PAUSED,
+                pausedAt: new Date(Number(pauseMarker))
+              })
+              // Clear the marker after applying
+              localStorage.removeItem(`ap_session_pause_${existingSession.id}`)
+            }
+          } catch (e) {
+            // Non-critical - don't fail session load if pause marker handling fails
+            console.warn('Failed to process pause marker:', e)
+          }
+
+          // Set session back to IN_PROGRESS on resume (user is actively viewing)
+          if (existingSession.status === SESSION_STATUS.PAUSED) {
+            try {
+              await updateSession(existingSession.id, {
+                status: SESSION_STATUS.IN_PROGRESS
+              })
+            } catch (e) {
+              console.warn('Failed to update session status to IN_PROGRESS:', e)
+            }
+          }
         }
       } catch (err) {
         logError('useTestSession.loadTestAndSession', { testId, userId: user?.uid }, err)
@@ -392,33 +472,198 @@ export function useTestSession(testId, assignmentId = null) {
     }
   }, [currentSectionIndex, test?.sections?.length])
 
-  // Submit test
+  // Submit test with retry logic
   const submitTest = useCallback(async (frqData = null) => {
     if (!session?.id || isSubmitting) return null
 
-    try {
-      setIsSubmitting(true)
+    // Store frqData for potential retry
+    pendingFrqDataRef.current = frqData
 
-      // Stop timer
-      timer.pause()
+    setIsSubmitting(true)
+    setSubmitError(null)
+    setIsSubmitTimedOut(false)
+    submitStartTimeRef.current = Date.now()
 
-      // Flush any pending changes first
-      if (queueLength > 0) {
+    // Stop timer
+    timer.pause()
+
+    // Attempt submission with 2s retry interval, max 30s
+    const attemptSubmission = async () => {
+      // 1. Flush queue if needed (guard: don't call if already flushing)
+      if (queueLength > 0 && !isFlushing) {
         await flushQueue()
       }
 
-      // Create test result (pass frqData for handwritten submission info)
-      const resultId = await createTestResult(session.id, frqData)
-
-      return resultId
-    } catch (err) {
-      logError('useTestSession.submitTest', { sessionId: session?.id }, err)
-      setError(err.message || 'Failed to submit test')
-      return null
-    } finally {
-      setIsSubmitting(false)
+      // 2. Create result (idempotent via deterministic ID)
+      return await createTestResult(session.id, frqData)
     }
-  }, [session?.id, isSubmitting, timer, queueLength, flushQueue])
+
+    // Retry loop
+    while (true) {
+      try {
+        const resultId = await attemptSubmission()
+        setIsSubmitting(false)
+        setSubmitError(null)
+        return resultId
+      } catch (err) {
+        const errorMessage = err.message || 'Failed to submit test'
+        setSubmitError(errorMessage)
+        logError('useTestSession.submitTest', { sessionId: session?.id, elapsed: Date.now() - submitStartTimeRef.current }, err)
+
+        const elapsed = Date.now() - submitStartTimeRef.current
+        if (elapsed >= 30000) {
+          // 30s timeout reached - stop auto-retry
+          setIsSubmitTimedOut(true)
+          // Keep isSubmitting true so modal stays visible
+          return null
+        }
+
+        // Wait 2s before retry
+        await new Promise(r => setTimeout(r, 2000))
+      }
+    }
+  }, [session?.id, isSubmitting, timer, queueLength, isFlushing, flushQueue])
+
+  // Manual retry function (for "Keep Trying" button)
+  const retrySubmit = useCallback(async () => {
+    // Reset timeout state and restart the submission loop
+    setIsSubmitTimedOut(false)
+    setSubmitError(null)
+    submitStartTimeRef.current = Date.now()
+
+    const frqData = pendingFrqDataRef.current
+
+    // Retry loop (same as submitTest but without the initial setup)
+    const attemptSubmission = async () => {
+      if (queueLength > 0 && !isFlushing) {
+        await flushQueue()
+      }
+      return await createTestResult(session.id, frqData)
+    }
+
+    while (true) {
+      try {
+        const resultId = await attemptSubmission()
+        setIsSubmitting(false)
+        setSubmitError(null)
+        return resultId
+      } catch (err) {
+        const errorMessage = err.message || 'Failed to submit test'
+        setSubmitError(errorMessage)
+        logError('useTestSession.retrySubmit', { sessionId: session?.id, elapsed: Date.now() - submitStartTimeRef.current }, err)
+
+        const elapsed = Date.now() - submitStartTimeRef.current
+        if (elapsed >= 30000) {
+          setIsSubmitTimedOut(true)
+          return null
+        }
+
+        await new Promise(r => setTimeout(r, 2000))
+      }
+    }
+  }, [session?.id, queueLength, isFlushing, flushQueue])
+
+  // Keep submitFunctionsRef updated to avoid circular dependency with timer
+  useEffect(() => {
+    submitFunctionsRef.current = { submitTest, submitSection }
+  }, [submitTest, submitSection])
+
+  // Check for pending AUTO_SUBMIT on reconnect (offline timer expiry)
+  useEffect(() => {
+    const checkPendingAutoSubmit = async () => {
+      if (!isOnline || !session?.id || autoSubmitTriggeredRef.current) return
+
+      const pendingAutoSubmit = await getPendingItems('AUTO_SUBMIT')
+      if (pendingAutoSubmit.length > 0) {
+        // Found pending auto-submit from offline timer expiry
+        autoSubmitTriggeredRef.current = true
+        setAutoSubmitTriggered(true)
+
+        const item = pendingAutoSubmit[0]
+        const { isLastSection } = item.payload
+
+        if (isLastSection) {
+          const resultId = await submitTest()
+          if (resultId) {
+            setAutoSubmitResultId(resultId)
+          }
+        } else {
+          await submitSection()
+        }
+
+        // Delete processed AUTO_SUBMIT items
+        await deleteItems(pendingAutoSubmit.map(i => i.id))
+      }
+    }
+
+    checkPendingAutoSubmit()
+  }, [isOnline, session?.id, getPendingItems, deleteItems, submitTest, submitSection])
+
+  // Visibility change handler - pause timer if backgrounded >30s on mobile
+  useEffect(() => {
+    let backgroundedAt = null
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        backgroundedAt = Date.now()
+        // Write pause marker when tab becomes hidden (for tab close detection)
+        if (session?.id) {
+          try {
+            localStorage.setItem(`ap_session_pause_${session.id}`, Date.now().toString())
+          } catch (e) {
+            // localStorage might be unavailable
+          }
+        }
+      } else if (backgroundedAt) {
+        const elapsed = Date.now() - backgroundedAt
+        // Clear pause marker since we're back (tab wasn't closed)
+        if (session?.id) {
+          try {
+            localStorage.removeItem(`ap_session_pause_${session.id}`)
+          } catch (e) {
+            // localStorage might be unavailable
+          }
+        }
+        if (elapsed > 30000) {
+          // Backgrounded for >30s, pause timer and sync
+          timer.pause()
+          if (session?.id && currentSection?.id) {
+            addToQueue({
+              action: 'TIMER_SYNC',
+              payload: { sectionTimeRemaining: { [currentSection.id]: timer.timeRemaining } }
+            })
+          }
+        }
+        backgroundedAt = null
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [timer, session?.id, currentSection?.id, addToQueue])
+
+  // Pagehide handler - reliable timer sync on mobile Safari + pause marker
+  useEffect(() => {
+    const handlePageHide = () => {
+      if (session?.id && currentSection?.id) {
+        // Sync timer state
+        addToQueue({
+          action: 'TIMER_SYNC',
+          payload: { sectionTimeRemaining: { [currentSection.id]: timer.timeRemaining } }
+        })
+        // Write pause marker for reliable PAUSED status detection on next load
+        // This survives tab close even if Firestore write fails
+        try {
+          localStorage.setItem(`ap_session_pause_${session.id}`, Date.now().toString())
+        } catch (e) {
+          // localStorage might be unavailable in some contexts
+        }
+      }
+    }
+
+    window.addEventListener('pagehide', handlePageHide)
+    return () => window.removeEventListener('pagehide', handlePageHide)
+  }, [timer, session?.id, currentSection?.id, addToQueue])
 
   // Handle take control (from duplicate tab modal)
   const handleTakeControl = useCallback(async () => {
@@ -484,10 +729,13 @@ export function useTestSession(testId, assignmentId = null) {
     startTest,
     submitSection,
     submitTest,
+    retrySubmit,
 
     // Status
     status,
     isSubmitting,
+    submitError,
+    isSubmitTimedOut,
 
     // Timer
     timeRemaining: timer.timeRemaining,
@@ -506,6 +754,10 @@ export function useTestSession(testId, assignmentId = null) {
 
     // Queue access for annotations
     addToQueue,
+
+    // Auto-submit state (for timer expiry navigation)
+    autoSubmitTriggered,
+    autoSubmitResultId,
   }
 }
 

@@ -1,4 +1,4 @@
-import { CHOICE_LETTERS } from '../utils/apTypes'
+import { CHOICE_LETTERS, QUESTION_TYPE } from '../utils/apTypes'
 
 /**
  * Get choice text from question
@@ -26,6 +26,26 @@ export default function AnswerInput({
 
   const choiceCount = question.choiceCount || 4
   const choices = CHOICE_LETTERS.slice(0, choiceCount)
+  const isMulti = question?.questionType === QUESTION_TYPE.MCQ_MULTI
+
+  // Handle click for single-select (MCQ) vs multi-select (MCQ_MULTI)
+  const handleSelect = (letter) => {
+    if (disabled) return
+
+    if (isMulti) {
+      // Multi-select: toggle letter in array
+      const current = Array.isArray(selectedAnswer) ? selectedAnswer : []
+      const next = current.includes(letter)
+        ? current.filter((l) => l !== letter)
+        : [...current, letter]
+      // Sort and dedupe
+      const sorted = [...new Set(next)].sort()
+      onSelect(sorted)
+    } else {
+      // Single-select: just pass the letter
+      onSelect(letter)
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -33,7 +53,10 @@ export default function AnswerInput({
         const choiceText = getChoiceText(question, letter)
         if (!choiceText) return null
 
-        const isSelected = selectedAnswer === letter
+        // Selection check differs for MCQ vs MCQ_MULTI
+        const isSelected = isMulti
+          ? Array.isArray(selectedAnswer) && selectedAnswer.includes(letter)
+          : selectedAnswer === letter
         const isStruckThrough = strikethroughs.has(letter)
         const choiceData = question[`choice${letter}`]
         const hasImage = choiceData?.imageUrl
@@ -42,7 +65,7 @@ export default function AnswerInput({
           <div key={letter} className="flex items-start gap-2">
             <button
               type="button"
-              onClick={() => !disabled && onSelect(letter)}
+              onClick={() => handleSelect(letter)}
               disabled={disabled}
               className={`
                 flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all text-left
@@ -50,10 +73,29 @@ export default function AnswerInput({
                   ? 'bg-brand-primary border-brand-primary text-white'
                   : 'bg-surface border-border-default hover:border-border-strong text-text-primary'
                 }
-                ${isStruckThrough ? 'opacity-50' : ''}
+                ${isStruckThrough ? 'opacity-[0.6]' : ''}
                 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
               `}
             >
+              {/* Checkbox for MCQ_MULTI */}
+              {isMulti && (
+                <span
+                  className={`
+                    inline-flex items-center justify-center w-5 h-5 rounded-[--radius-button-sm] border-2 shrink-0
+                    ${isSelected
+                      ? 'bg-white border-white text-brand-primary'
+                      : 'border-current opacity-60'
+                    }
+                  `}
+                >
+                  {isSelected && (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </span>
+              )}
+
               {/* Choice letter badge */}
               <span
                 className={`
@@ -66,7 +108,7 @@ export default function AnswerInput({
 
               {/* Choice content */}
               <div className="flex-1">
-                <span className={isStruckThrough ? 'line-through' : ''}>
+                <span className={isStruckThrough ? 'line-through text-text-muted' : ''}>
                   {choiceText}
                 </span>
                 {hasImage && (
@@ -95,7 +137,7 @@ export default function AnswerInput({
                 title={isStruckThrough ? 'Remove strikethrough' : 'Strike through'}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-3-3v6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}

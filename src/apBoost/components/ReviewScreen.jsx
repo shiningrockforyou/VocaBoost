@@ -54,6 +54,12 @@ export default function ReviewScreen({
     .filter(({ q }) => !answers.has(q.id || q))
     .map(({ idx }) => idx + 1)
 
+  // Get flagged question numbers
+  const flaggedQuestions = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(({ q }) => flags.has(q.id || q))
+    .map(({ idx }) => idx + 1)
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="bg-surface rounded-[--radius-card] shadow-theme-md p-6">
@@ -92,7 +98,11 @@ export default function ReviewScreen({
                 • Unanswered: {unansweredCount} (Q{unansweredQuestions.join(', Q')})
               </li>
             )}
-            <li>• Flagged: {flaggedCount}</li>
+            {flaggedCount > 0 ? (
+              <li>• Flagged: {flaggedCount} (Q{flaggedQuestions.join(', Q')})</li>
+            ) : (
+              <li>• Flagged: 0</li>
+            )}
           </ul>
         </div>
 

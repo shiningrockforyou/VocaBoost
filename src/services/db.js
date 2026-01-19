@@ -3012,3 +3012,53 @@ export async function getRecentAttemptsForClassList(userId, classId, listId, max
     return []
   }
 }
+
+/**
+ * Get the most recent new word test for a specific class/list combination.
+ * Used as a fallback in reconciliation when the initial 8 attempts don't contain a new test.
+ *
+ * @param {string} userId - Student user ID
+ * @param {string} classId - Class ID
+ * @param {string} listId - List ID
+ * @returns {Promise<Object|null>} The most recent new test attempt or null if not found
+ */
+export async function getMostRecentNewTest(userId, classId, listId) {
+  console.log('[RECONCILIATION] getMostRecentNewTest fallback query:', { userId, classId, listId })
+
+  if (!userId || !classId || !listId) {
+    console.warn('[RECONCILIATION] getMostRecentNewTest: Missing required parameters')
+    return null
+  }
+
+  try {
+    const attemptsRef = collection(db, 'attempts')
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('listId', '==', listId),
+      where('sessionType', '==', 'new'),
+      orderBy('submittedAt', 'desc'),
+      limit(1)
+    )
+
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      console.log('[RECONCILIATION] getMostRecentNewTest: No new tests found')
+      return null
+    }
+
+    const doc = snapshot.docs[0]
+    const data = { id: doc.id, ...doc.data() }
+    console.log('[RECONCILIATION] getMostRecentNewTest found:', {
+      attemptId: doc.id,
+      studyDay: data.studyDay,
+      newWordEndIndex: data.newWordEndIndex
+    })
+    return data
+  } catch (err) {
+    console.error('[RECONCILIATION] getMostRecentNewTest query failed:', err)
+    return null
+  }
+}

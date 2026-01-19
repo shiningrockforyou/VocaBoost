@@ -6,18 +6,20 @@ import { useRef, useEffect } from 'react'
  * - Auto-resize as user types
  * - Character count (optional)
  * - Min/max height constraints
- * - Save on blur or debounced
+ * - Save on blur (with dedupe guard)
  */
 export default function FRQTextInput({
   subQuestion,
   value = '',
   onChange,
+  onBlur = null,
   disabled = false,
   maxLength = 10000,
   showCharCount = true,
   placeholder = 'Type your response here...',
 }) {
   const textareaRef = useRef(null)
+  const lastBlurValueRef = useRef(value)
 
   // Auto-resize textarea
   useEffect(() => {
@@ -35,6 +37,14 @@ export default function FRQTextInput({
     const newValue = e.target.value
     if (newValue.length <= maxLength) {
       onChange(newValue)
+    }
+  }
+
+  // Blur handler with dedupe guard to avoid duplicate saves
+  const handleBlur = () => {
+    if (onBlur && value !== lastBlurValueRef.current) {
+      onBlur(value)
+      lastBlurValueRef.current = value
     }
   }
 
@@ -65,6 +75,7 @@ export default function FRQTextInput({
         ref={textareaRef}
         value={value}
         onChange={handleChange}
+        onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder}
         className={`

@@ -167,8 +167,11 @@ export async function generateReportPdf(result, test, student) {
       }
 
       const r = mcqResults[i]
+      const formattedAnswer = Array.isArray(r.studentAnswer)
+        ? r.studentAnswer.slice().sort().join(', ')
+        : r.studentAnswer || '—'
       doc.text(String(i + 1), margin, yPos)
-      doc.text(r.studentAnswer || '—', margin + 20, yPos)
+      doc.text(formattedAnswer, margin + 20, yPos)
       doc.text(r.correctAnswer || '—', margin + 55, yPos)
       doc.text(r.correct ? '✓' : '✗', margin + 85, yPos)
       yPos += 6

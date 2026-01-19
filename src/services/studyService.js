@@ -1084,7 +1084,9 @@ export async function completeSessionFromTest({
   // Extract values from sessionStorage (with fallbacks)
   const segment = sessionState?.sessionConfig?.segment || null;
   const interventionLevel = sessionState?.sessionConfig?.interventionLevel || 0;
-  const wordsIntroduced = sessionState?.newWords?.length || 0;
+  // Use sessionConfig.newWordCount as source of truth (calculated at session init)
+  // Fall back to newWords array length if sessionConfig not available
+  const wordsIntroduced = sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0;
   const wordsReviewed = sessionState?.reviewQueue?.length || 0;
 
   console.log('completeSessionFromTest called:', {

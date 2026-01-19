@@ -9,9 +9,48 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '../../firebase'
-import { COLLECTIONS, GRADING_STATUS, SECTION_TYPE, DEFAULT_SCORE_RANGES } from '../utils/apTypes'
+import { COLLECTIONS, GRADING_STATUS, SECTION_TYPE, DEFAULT_SCORE_RANGES, QUESTION_TYPE } from '../utils/apTypes'
 import { getTestWithQuestions } from './apTestService'
 import { getSession, completeSession } from './apSessionService'
+
+/**
+ * Calculate score for MCQ_MULTI question
+ * @param {string|string[]|null} studentAnswer - Student's answer (string for legacy, array for multi)
+ * @param {string[]} correctAnswers - Array of correct answers
+ * @param {boolean} partialCredit - Whether to award partial credit
+ * @returns {number} Score (0-1)
+ */
+function calculateMCQMultiScore(studentAnswer, correctAnswers, partialCredit = false) {
+  // Normalize student answer to array
+  let studentSet = []
+  if (Array.isArray(studentAnswer)) {
+    studentSet = [...new Set(studentAnswer)].sort()
+  } else if (typeof studentAnswer === 'string' && studentAnswer) {
+    studentSet = [studentAnswer]
+  }
+
+  // Normalize correct answers
+  const correctSet = [...new Set(correctAnswers)].sort()
+
+  if (correctSet.length === 0) return 0
+
+  // Count correct and incorrect selections
+  const correctSelected = studentSet.filter((a) => correctSet.includes(a)).length
+  const incorrectSelected = studentSet.filter((a) => !correctSet.includes(a)).length
+  const totalCorrect = correctSet.length
+
+  if (partialCredit) {
+    // Partial credit: (correct - incorrect) / total, clamped at 0
+    const raw = (correctSelected - incorrectSelected) / totalCorrect
+    return Math.max(0, raw)
+  } else {
+    // All-or-nothing: exact set match required
+    const isExactMatch =
+      studentSet.length === correctSet.length &&
+      studentSet.every((a, i) => a === correctSet[i])
+    return isExactMatch ? 1 : 0
+  }
+}
 
 /**
  * Calculate MCQ score for a section
@@ -32,8 +71,19 @@ export function calculateMCQScore(answers, questions, section) {
     const studentAnswer = answers[questionId]
     const correctAnswers = question.correctAnswers || []
 
-    if (correctAnswers.includes(studentAnswer)) {
-      correct++
+    if (question.questionType === QUESTION_TYPE.MCQ_MULTI) {
+      // MCQ_MULTI: use multi-select scoring
+      const score = calculateMCQMultiScore(
+        studentAnswer,
+        correctAnswers,
+        question.partialCredit ?? false
+      )
+      correct += score
+    } else {
+      // Regular MCQ: single answer check
+      if (correctAnswers.includes(studentAnswer)) {
+        correct++
+      }
     }
   }
 
@@ -101,17 +151,63 @@ export async function createTestResult(sessionId, frqData = null) {
 
           const studentAnswer = answers[questionId] || null
           const correctAnswers = question.correctAnswers || []
-          const isCorrect = correctAnswers.includes(studentAnswer)
+
+          // Calculate correctness based on question type
+          let isCorrect
+          let score = 0
+          if (question.questionType === QUESTION_TYPE.MCQ_MULTI) {
+            score = calculateMCQMultiScore(
+              studentAnswer,
+              correctAnswers,
+              question.partialCredit ?? false
+            )
+            isCorrect = score === 1
+          } else {
+            isCorrect = correctAnswers.includes(studentAnswer)
+            score = isCorrect ? 1 : 0
+          }
 
           mcqResults.push({
             questionId,
             studentAnswer,
-            correctAnswer: correctAnswers[0] || 'N/A',
+            correctAnswer: correctAnswers.length > 1
+              ? correctAnswers.slice().sort().join(', ')
+              : correctAnswers[0] || 'N/A',
             correct: isCorrect,
+            score, // Include score for partial credit visibility
+            questionType: question.questionType || QUESTION_TYPE.MCQ,
           })
         }
       }
       // FRQ scoring would be handled separately after teacher grading
+    }
+
+    // Calculate FRQ max points with multipliers
+    let frqMaxPoints = 0
+    for (const section of test.sections) {
+      if (section.sectionType === SECTION_TYPE.FRQ || section.sectionType === SECTION_TYPE.MIXED) {
+        for (const questionId of section.questionIds || []) {
+          const question = test.questions[questionId]
+          if (!question) continue
+
+          // Only count FRQ-type questions
+          const isFRQType = question.questionType === QUESTION_TYPE.FRQ ||
+                           question.questionType === QUESTION_TYPE.SAQ ||
+                           question.questionType === QUESTION_TYPE.DBQ
+          if (!isFRQType) continue
+
+          // Get multiplier for this question (default to 1)
+          const multiplier = section.frqMultipliers?.[questionId] || 1
+
+          // Sum max points from sub-questions
+          const questionMaxPoints = (question.subQuestions || []).reduce(
+            (sum, sq) => sum + (sq.maxPoints || 0),
+            0
+          )
+
+          frqMaxPoints += questionMaxPoints * multiplier
+        }
+      }
     }
 
     // Calculate percentage and AP score
@@ -142,10 +238,12 @@ export async function createTestResult(sessionId, frqData = null) {
       // FRQ submission data
       frqSubmissionType: frqData?.frqSubmissionType || null,
       frqUploadedFiles: frqData?.frqUploadedFiles || null,
+      frqUploadUrl: frqData?.frqUploadedFiles?.[0]?.url || null, // Alias for spec compatibility
       frqAnswers: session.answers || {}, // Typed FRQ answers from session
-      frqMaxPoints: 0, // Will be calculated from FRQ section questions
+      frqMaxPoints, // Calculated from FRQ section questions with multipliers
       frqScore: null, // Set after grading
       annotatedPdfUrl: null, // Teacher's annotated PDF
+      frqGradedPdfUrl: null, // Alias for spec compatibility
       frqGrades: null,
       gradingStatus,
       startedAt: session.startedAt,

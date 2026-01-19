@@ -1,10 +1,11 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 
 /**
  * LineReader - Focus line reader overlay for long passages
  *
  * Creates a darkened overlay with a clear "window" that follows
  * the current reading position, helping focus on specific lines.
+ * Supports scroll tracking and drag interaction.
  *
  * Props:
  * - contentRef: Ref to the content element being read
@@ -23,10 +24,36 @@ export default function LineReader({
   visibleLines = 2,
 }) {
   const overlayRef = useRef(null)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartRef = useRef({ y: 0, position: 0 })
+
+  // Calculate max position based on content
+  const contentScrollHeight = contentRef.current?.scrollHeight || 0
+  const maxPosition = Math.max(0, Math.floor(contentScrollHeight / lineHeight) - visibleLines)
 
   // Calculate visible window dimensions
   const windowHeight = lineHeight * visibleLines
-  const windowTop = position * lineHeight
+  // Scroll-relative position for rendering
+  const windowTopRelative = position * lineHeight - scrollTop
+
+  // Track scroll position
+  useEffect(() => {
+    if (!enabled || !contentRef.current) return
+
+    const handleScroll = () => {
+      if (contentRef.current) {
+        setScrollTop(contentRef.current.scrollTop)
+      }
+    }
+
+    const content = contentRef.current
+    // Initial scroll position
+    setScrollTop(content.scrollTop)
+
+    content.addEventListener('scroll', handleScroll, { passive: true })
+    return () => content.removeEventListener('scroll', handleScroll)
+  }, [enabled, contentRef])
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -38,56 +65,98 @@ export default function LineReader({
         onPositionChange(Math.max(0, position - 1))
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
-        onPositionChange(position + 1)
+        onPositionChange(Math.min(maxPosition, position + 1))
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [enabled, position, onPositionChange])
+  }, [enabled, position, onPositionChange, maxPosition])
 
-  // Handle click on overlay to reposition
+  // Drag handlers using Pointer Events
+  const handlePointerDown = useCallback((e) => {
+    // Only start drag on the clear window area (not dark overlays)
+    const rect = overlayRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const clickY = e.clientY - rect.top
+    const windowStart = windowTopRelative
+    const windowEnd = windowTopRelative + windowHeight
+
+    // Check if click is on the clear window
+    if (clickY >= windowStart && clickY <= windowEnd) {
+      setIsDragging(true)
+      dragStartRef.current = { y: e.clientY, position }
+      e.currentTarget.setPointerCapture(e.pointerId)
+      e.preventDefault()
+    }
+  }, [windowTopRelative, windowHeight, position])
+
+  const handlePointerMove = useCallback((e) => {
+    if (!isDragging) return
+
+    const deltaY = e.clientY - dragStartRef.current.y
+    const deltaLines = Math.round(deltaY / lineHeight)
+    const newPosition = dragStartRef.current.position + deltaLines
+    const clampedPosition = Math.max(0, Math.min(maxPosition, newPosition))
+
+    onPositionChange(clampedPosition)
+  }, [isDragging, lineHeight, maxPosition, onPositionChange])
+
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
+  // Handle click on overlay to reposition (only if not dragging)
   const handleOverlayClick = useCallback((e) => {
+    if (isDragging) return
     if (!contentRef.current || !overlayRef.current) return
 
     const rect = overlayRef.current.getBoundingClientRect()
     const clickY = e.clientY - rect.top
-    const newPosition = Math.floor(clickY / lineHeight)
+    // Account for scroll when calculating line position
+    const newPosition = Math.floor((clickY + scrollTop) / lineHeight)
+    const clampedPosition = Math.max(0, Math.min(maxPosition, newPosition))
 
-    onPositionChange(Math.max(0, newPosition))
-  }, [lineHeight, onPositionChange, contentRef])
+    onPositionChange(clampedPosition)
+  }, [lineHeight, onPositionChange, contentRef, isDragging, scrollTop, maxPosition])
 
   if (!enabled) return null
 
-  // Get content dimensions
-  const contentRect = contentRef.current?.getBoundingClientRect()
-  const contentHeight = contentRef.current?.scrollHeight || 0
+  // Clamp overlay heights to prevent negative values when scrolled
+  const topHeight = Math.max(0, windowTopRelative)
+  const bottomTop = Math.max(0, windowTopRelative + windowHeight)
 
   return (
     <div
       ref={overlayRef}
       className="absolute inset-0 pointer-events-auto"
       onClick={handleOverlayClick}
-      style={{ cursor: 'pointer' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      style={{ cursor: isDragging ? 'grabbing' : 'pointer', touchAction: 'none' }}
     >
       {/* Top dark overlay */}
       <div
         className="absolute left-0 right-0 bg-black/60 transition-all duration-150"
         style={{
           top: 0,
-          height: Math.max(0, windowTop),
+          height: topHeight,
           pointerEvents: 'none',
         }}
       />
 
-      {/* Clear reading window */}
+      {/* Clear reading window - draggable */}
       <div
         className="absolute left-0 right-0 border-y-2 border-brand-primary/50 transition-all duration-150"
         style={{
-          top: windowTop,
+          top: Math.max(0, windowTopRelative),
           height: windowHeight,
           pointerEvents: 'none',
           boxShadow: '0 0 10px rgba(var(--brand-primary-rgb), 0.3)',
+          cursor: 'grab',
         }}
       />
 
@@ -95,7 +164,7 @@ export default function LineReader({
       <div
         className="absolute left-0 right-0 bg-black/60 transition-all duration-150"
         style={{
-          top: windowTop + windowHeight,
+          top: bottomTop,
           bottom: 0,
           pointerEvents: 'none',
         }}
@@ -104,7 +173,7 @@ export default function LineReader({
       {/* Position indicator */}
       <div
         className="absolute right-2 text-white/70 text-xs font-mono bg-black/50 px-2 py-1 rounded-[--radius-button-sm] pointer-events-none"
-        style={{ top: windowTop + 4 }}
+        style={{ top: Math.max(4, windowTopRelative + 4) }}
       >
         Line {position + 1}
       </div>

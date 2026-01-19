@@ -45,7 +45,7 @@ export default function AssignTestModal({ test, teacherId, onClose, onSuccess })
 
   // Assignment settings
   const [dueDate, setDueDate] = useState('')
-  const [maxAttempts, setMaxAttempts] = useState(1)
+  const [maxAttempts, setMaxAttempts] = useState(3)
   const [frqSubmissionType, setFrqSubmissionType] = useState(FRQ_SUBMISSION_TYPE.TYPED)
 
   // Load classes

@@ -34,6 +34,7 @@ export const SECTION_TYPE = {
 export const SESSION_STATUS = {
   NOT_STARTED: 'NOT_STARTED',
   IN_PROGRESS: 'IN_PROGRESS',
+  ACTIVE: 'IN_PROGRESS', // Alias for spec compatibility
   PAUSED: 'PAUSED',
   COMPLETED: 'COMPLETED',
 }

@@ -75,8 +75,15 @@ export default function QuestionNavigator({
   onGoToReview,
   canGoBack,
   canGoNext,
+  // Controlled mode (optional)
+  isOpen: controlledOpen,
+  onOpenChange,
 }) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+
+  // Use controlled mode if props provided, else internal state
+  const isModalOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setIsModalOpen = onOpenChange || setInternalOpen
 
   // Use flat navigation items if provided (FRQ support)
   const useFlatNav = flatNavigationItems && flatNavigationItems.length > 0

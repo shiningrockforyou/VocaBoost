@@ -119,6 +119,10 @@ export default function APQuestionEditor() {
 
   // FRQ state
   const [subQuestions, setSubQuestions] = useState([])
+  const [rubric, setRubric] = useState('')
+
+  // Tags (stored as array, edited as comma-separated string)
+  const [tagsInput, setTagsInput] = useState('')
 
   // UI state
   const [loading, setLoading] = useState(!isNew)
@@ -161,6 +165,10 @@ export default function APQuestionEditor() {
 
         // FRQ data
         setSubQuestions(question.subQuestions || [])
+        setRubric(question.rubric || '')
+
+        // Tags (array to comma-separated string)
+        setTagsInput(Array.isArray(question.tags) ? question.tags.join(', ') : '')
       } catch (err) {
         logError('APQuestionEditor.loadQuestion', { questionId }, err)
         setError(err.message || 'Failed to load question')
@@ -224,6 +232,12 @@ export default function APQuestionEditor() {
       setSaving(true)
       setError(null)
 
+      // Parse tags from comma-separated input
+      const tags = tagsInput
+        .split(',')
+        .map(t => t.trim().toLowerCase())
+        .filter(t => t.length > 0)
+
       const questionData = {
         questionText: questionText.trim(),
         questionType,
@@ -233,6 +247,7 @@ export default function APQuestionEditor() {
         questionTopic,
         difficulty,
         explanation,
+        tags,
         createdBy: user?.uid,
       }
 
@@ -251,6 +266,7 @@ export default function APQuestionEditor() {
       // FRQ data
       if (questionType === QUESTION_TYPE.FRQ || questionType === QUESTION_TYPE.SAQ || questionType === QUESTION_TYPE.DBQ) {
         questionData.subQuestions = subQuestions.length > 0 ? subQuestions : null
+        questionData.rubric = rubric.trim() || null
       }
 
       if (isNew) {
@@ -368,7 +384,7 @@ export default function APQuestionEditor() {
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-text-muted text-xs mb-1">Domain/Unit</label>
               <input
@@ -389,6 +405,16 @@ export default function APQuestionEditor() {
                 className="w-full px-2 py-1.5 text-sm rounded-[--radius-input] border border-border-default bg-surface text-text-primary"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-text-muted text-xs mb-1">Tags (comma-separated)</label>
+            <input
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="e.g., primary-source, revolution, colonial"
+              className="w-full px-2 py-1.5 text-sm rounded-[--radius-input] border border-border-default bg-surface text-text-primary"
+            />
           </div>
         </div>
 
@@ -456,6 +482,25 @@ export default function APQuestionEditor() {
             >
               + Add Sub-Question
             </button>
+          </div>
+        )}
+
+        {/* Rubric (FRQ types only) */}
+        {isFRQ && (
+          <div className="bg-surface rounded-[--radius-card] border border-border-default p-4 mb-6">
+            <label className="block text-text-secondary text-sm font-medium mb-2">
+              Grading Rubric (optional)
+            </label>
+            <p className="text-text-muted text-xs mb-2">
+              Define the criteria for grading this question. This will be shown to graders.
+            </p>
+            <textarea
+              value={rubric}
+              onChange={(e) => setRubric(e.target.value)}
+              placeholder="e.g., Award 1 point for identifying the main argument. Award 2 points for providing supporting evidence..."
+              rows={4}
+              className="w-full px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary resize-none"
+            />
           </div>
         )}
 

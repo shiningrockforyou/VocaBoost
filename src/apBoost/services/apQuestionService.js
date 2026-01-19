@@ -29,6 +29,7 @@ import { logError } from '../utils/logError'
  * @param {string} filters.domain - Question domain/unit
  * @param {string} filters.search - Search text
  * @param {string} filters.createdBy - Filter by creator
+ * @param {string} filters.tag - Filter by tag (array-contains)
  * @param {number} filters.limit - Max results
  * @returns {Promise<Array>} Array of question objects
  */
@@ -60,6 +61,11 @@ export async function searchQuestions(filters = {}) {
     // Filter by creator
     if (filters.createdBy) {
       constraints.push(where('createdBy', '==', filters.createdBy))
+    }
+
+    // Filter by tag (uses array-contains for tags array)
+    if (filters.tag) {
+      constraints.push(where('tags', 'array-contains', filters.tag))
     }
 
     // Order by creation date
@@ -181,6 +187,10 @@ export async function createQuestion(questionData) {
       explanation: questionData.explanation || '',
       // Scoring
       partialCredit: questionData.partialCredit || false,
+      // Grading criteria (for FRQ/SAQ/DBQ)
+      rubric: questionData.rubric || null,
+      // Tags for organization/filtering
+      tags: questionData.tags || [],
       // Metadata
       createdBy: questionData.createdBy,
       createdAt: serverTimestamp(),

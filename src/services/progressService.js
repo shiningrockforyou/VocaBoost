@@ -3,7 +3,11 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
+  collection,
+  addDoc,
   Timestamp,
+  serverTimestamp,
   arrayUnion
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -12,7 +16,7 @@ import {
   createClassProgress,
   MAX_RECENT_SESSIONS
 } from '../types/studyTypes';
-import { getRecentAttemptsForClassList, logSystemEvent } from './db';
+import { getRecentAttemptsForClassList, getMostRecentNewTest, logSystemEvent } from './db';
 
 /**
  * Get the document ID for a class progress record
@@ -26,16 +30,17 @@ export function getProgressDocId(classId, listId) {
 
 /**
  * Calculate CSD (currentStudyDay) and TWI (totalWordsIntroduced) from attempts.
- * Used for reconciliation to verify progress matches actual attempt history.
+ * Uses NEW TEST as the anchor for both values to ensure consistency.
  *
  * Algorithm:
- * - Find highest studyDay among attempts
- * - Day 1: CSD = 1 if new test passed, else 0
- * - Day 2+: CSD = studyDay if review test exists, else studyDay - 1
- * - TWI = newWordEndIndex + 1 from new test where studyDay === CSD
+ * 1. Find highest day with a NEW test → "anchor"
+ * 2. TWI = anchor.newWordEndIndex + 1
+ * 3. CSD:
+ *    - Day 1: CSD = 1 if new test passed, else 0
+ *    - Day 2+: CSD = anchorDay if review exists for anchorDay, else anchorDay - 1
  *
- * @param {Array} attempts - Array of attempt documents
- * @returns {{ csd: number, twi: number }}
+ * @param {Array} attempts - Array of attempt documents (sorted by submittedAt desc)
+ * @returns {{ csd: number, twi: number, anchorDay: number }}
  */
 function calculateCSDAndTWIFromAttempts(attempts) {
   console.log('[RECONCILIATION] calculateCSDAndTWIFromAttempts called with:', {
@@ -44,60 +49,107 @@ function calculateCSDAndTWIFromAttempts(attempts) {
   });
 
   if (!attempts || attempts.length === 0) {
-    console.log('[RECONCILIATION] No attempts found, returning { csd: 0, twi: 0 }');
-    return { csd: 0, twi: 0 };
+    console.log('[RECONCILIATION] No attempts found, returning { csd: 0, twi: 0, anchorDay: 0 }');
+    return { csd: 0, twi: 0, anchorDay: 0 };
   }
 
-  // Find highest studyDay
-  const highestStudyDay = Math.max(...attempts.map(a => a.studyDay || 0));
-  console.log('[RECONCILIATION] Highest studyDay found:', highestStudyDay);
+  // Step 1: Find anchor - highest day with a NEW test
+  let anchorNewTest = null;
+  let anchorDay = 0;
 
-  if (highestStudyDay === 0) {
-    console.log('[RECONCILIATION] Highest studyDay is 0, returning { csd: 0, twi: 0 }');
-    return { csd: 0, twi: 0 };
+  for (const attempt of attempts) {
+    if (attempt.sessionType === 'new' && attempt.newWordEndIndex != null) {
+      if (attempt.studyDay > anchorDay) {
+        anchorDay = attempt.studyDay;
+        anchorNewTest = attempt;
+      }
+    }
   }
 
-  // Get attempts for the highest studyDay
-  const highestDayAttempts = attempts.filter(a => a.studyDay === highestStudyDay);
-  const newTestForHighestDay = highestDayAttempts.find(a => a.sessionType === 'new');
-  const reviewTestForHighestDay = highestDayAttempts.find(a => a.sessionType === 'review');
+  // No new test found - student hasn't completed any new word tests
+  if (!anchorNewTest || anchorDay === 0) {
+    console.log('[RECONCILIATION] No new test found, returning { csd: 0, twi: 0, anchorDay: 0 }');
+    return { csd: 0, twi: 0, anchorDay: 0 };
+  }
 
-  console.log('[RECONCILIATION] Highest day attempts:', {
-    studyDay: highestStudyDay,
-    hasNewTest: !!newTestForHighestDay,
-    newTestPassed: newTestForHighestDay?.passed,
-    hasReviewTest: !!reviewTestForHighestDay
+  // Step 2: TWI comes directly from anchor
+  const twi = anchorNewTest.newWordEndIndex + 1;
+
+  // Step 3: Calculate CSD based on anchor day
+  let csd;
+  if (anchorDay === 1) {
+    // Day 1: CSD = 1 if new test passed, else 0
+    csd = anchorNewTest.passed === true ? 1 : 0;
+    console.log('[RECONCILIATION] Day 1 anchor: CSD =', csd, '(passed:', anchorNewTest.passed, ')');
+  } else {
+    // Day 2+: Check if review test exists for anchor day
+    const reviewForAnchorDay = attempts.find(
+      a => a.studyDay === anchorDay && a.sessionType === 'review'
+    );
+    csd = reviewForAnchorDay ? anchorDay : anchorDay - 1;
+    console.log('[RECONCILIATION] Day 2+ anchor: CSD =', csd, '(reviewExists:', !!reviewForAnchorDay, ')');
+  }
+
+  console.log('[RECONCILIATION] Anchor-based calculation:', {
+    anchorDay,
+    anchorTestId: anchorNewTest.id,
+    newWordEndIndex: anchorNewTest.newWordEndIndex,
+    twi,
+    csd
   });
 
-  let csd;
+  return { csd, twi, anchorDay };
+}
 
-  if (highestStudyDay === 1) {
-    // Day 1: CSD = 1 if new test passed, else 0
-    csd = (newTestForHighestDay?.passed === true) ? 1 : 0;
-    console.log('[RECONCILIATION] Day 1 logic: CSD =', csd);
-  } else {
-    // Day 2+: CSD = studyDay if review test exists, else studyDay - 1
-    csd = reviewTestForHighestDay ? highestStudyDay : highestStudyDay - 1;
-    console.log('[RECONCILIATION] Day 2+ logic: CSD =', csd, '(reviewTest exists:', !!reviewTestForHighestDay, ')');
+/**
+ * Clean up orphaned review tests - reviews for days beyond the anchor day.
+ * These occur when race conditions cause review tests to be submitted without
+ * a corresponding new test. Orphaned reviews are logged to system_logs before deletion.
+ *
+ * @param {string} userId - User document ID
+ * @param {string} classId - Class document ID
+ * @param {string} listId - List document ID
+ * @param {number} anchorDay - The anchor day (highest day with a new test)
+ * @param {Array} attempts - Array of attempt documents
+ */
+async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts) {
+  // Find orphaned reviews: review tests for days beyond the anchor
+  const orphanedReviews = attempts.filter(
+    a => a.sessionType === 'review' && a.studyDay > anchorDay
+  );
+
+  if (orphanedReviews.length === 0) {
+    return;
   }
 
-  // Determine TWI
-  let twi = 0;
-  if (csd > 0) {
-    // Find new test attempt where studyDay === CSD
-    const newTestForCSD = attempts.find(a => a.studyDay === csd && a.sessionType === 'new');
-    // TWI = newWordEndIndex + 1 (endIndex is 0-based, TWI is count)
-    twi = newTestForCSD?.newWordEndIndex != null ? newTestForCSD.newWordEndIndex + 1 : 0;
-    console.log('[RECONCILIATION] TWI calculation:', {
-      csd,
-      foundNewTest: !!newTestForCSD,
-      newWordEndIndex: newTestForCSD?.newWordEndIndex,
-      calculatedTWI: twi
-    });
-  }
+  console.log(`[RECONCILIATION] Found ${orphanedReviews.length} orphaned review(s) to clean up`);
 
-  console.log('[RECONCILIATION] Final calculated values:', { csd, twi });
-  return { csd, twi };
+  for (const orphan of orphanedReviews) {
+    try {
+      // 1. Save to system_logs as string before deletion
+      const logEntry = {
+        type: 'orphaned_attempt_deleted',
+        userId,
+        classId,
+        listId,
+        attemptId: orphan.id,
+        attemptData: JSON.stringify(orphan), // Full attempt as string
+        anchorDay,
+        reason: `Review for Day ${orphan.studyDay} deleted - no matching new test exists`,
+        deletedAt: serverTimestamp()
+      };
+
+      await addDoc(collection(db, 'system_logs'), logEntry);
+
+      // 2. Delete the orphaned attempt
+      await deleteDoc(doc(db, 'attempts', orphan.id));
+
+      console.log(`[RECONCILIATION] Deleted orphaned review: Day ${orphan.studyDay}, attemptId: ${orphan.id}`);
+    } catch (err) {
+      console.error(`[RECONCILIATION] Failed to clean up orphaned review ${orphan.id}:`, err);
+      // Continue with other orphans even if one fails
+    }
+  }
 }
 
 /**
@@ -146,7 +198,12 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
 
   console.log('[RECONCILIATION] Calculating CSD/TWI from attempts...');
-  const { csd, twi } = calculateCSDAndTWIFromAttempts(attempts);
+  const { csd, twi, anchorDay } = calculateCSDAndTWIFromAttempts(attempts);
+
+  // Clean up orphaned reviews (reviews for days beyond anchor)
+  if (anchorDay > 0) {
+    await cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts);
+  }
 
   // Validate that attempts contain trustworthy data
   // Check for valid integer types and reasonable values
@@ -162,10 +219,24 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
       : 'No attempts with valid data - will use Math.max for safety'
   });
 
+  // Fallback: If TWI is 0 but CSD > 0, try a dedicated query for new tests
+  // This handles edge cases where the initial 8 attempts are all review tests
+  let finalTWI = twi;
+  if (csd > 0 && twi === 0) {
+    console.log('[RECONCILIATION] TWI is 0 with CSD > 0 - trying fallback query...');
+    const fallbackNewTest = await getMostRecentNewTest(userId, classId, listId);
+    if (fallbackNewTest?.newWordEndIndex != null) {
+      finalTWI = fallbackNewTest.newWordEndIndex + 1;
+      console.log('[RECONCILIATION] TWI recovered from fallback query:', finalTWI);
+    } else {
+      console.log('[RECONCILIATION] Fallback query found no new tests');
+    }
+  }
+
   // Trust attempts as source of truth when data is valid
   // Otherwise use Math.max to protect against query failures or corrupt data
   const safeCSD = hasValidData ? csd : Math.max(storedCSD, csd);
-  const safeTWI = hasValidData ? twi : Math.max(storedTWI, twi);
+  const safeTWI = hasValidData ? finalTWI : Math.max(storedTWI, finalTWI);
 
   console.log('[RECONCILIATION] Comparison:', {
     stored: { csd: storedCSD, twi: storedTWI },
@@ -312,8 +383,8 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
 
   // Guard: Check if this is the expected next day (prevents duplicate completions)
   const expectedDay = (current.currentStudyDay || 0) + 1;
-  if (sessionSummary.dayNumber && sessionSummary.dayNumber !== expectedDay) {
-    console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionSummary.dayNumber}`);
+  if (sessionSummary.day && sessionSummary.day !== expectedDay) {
+    console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionSummary.day}`);
     return { id: docId, ...current }; // Return existing progress unchanged
   }
 

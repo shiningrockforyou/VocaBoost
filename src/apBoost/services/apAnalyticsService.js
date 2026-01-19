@@ -141,7 +141,10 @@ export function calculateResponseDistribution(results, questionId) {
 
     if (mcqResult) {
       total++
-      const answer = mcqResult.studentAnswer || 'No Answer'
+      // Canonicalize array answers for stable bucketing (e.g., "AC" not "[object Object]")
+      const answer = Array.isArray(mcqResult.studentAnswer)
+        ? mcqResult.studentAnswer.slice().sort().join('')
+        : mcqResult.studentAnswer || 'No Answer'
       if (!distribution[answer]) {
         distribution[answer] = { count: 0, percentage: 0 }
       }

@@ -130,6 +130,11 @@ export default function QuestionDisplay({
             <p className="text-text-primary mt-2 whitespace-pre-wrap">
               {question.questionText}
             </p>
+            {question.questionType === QUESTION_TYPE.MCQ_MULTI && (
+              <p className="text-sm text-text-secondary italic mt-2">
+                Select all that apply
+              </p>
+            )}
           </div>
           {children}
         </div>
@@ -153,12 +158,19 @@ export default function QuestionDisplay({
       )}
 
       {/* Question text */}
-      <p className="text-text-primary mb-6 whitespace-pre-wrap">
+      <p className="text-text-primary whitespace-pre-wrap">
         {question.questionText}
       </p>
+      {question.questionType === QUESTION_TYPE.MCQ_MULTI && (
+        <p className="text-sm text-text-secondary italic mt-2">
+          Select all that apply
+        </p>
+      )}
 
       {/* Answer input slot */}
-      {children}
+      <div className="mt-6">
+        {children}
+      </div>
     </div>
   )
 }

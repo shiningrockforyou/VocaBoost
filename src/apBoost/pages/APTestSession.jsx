@@ -12,6 +12,8 @@ import FRQTextInput from '../components/FRQTextInput'
 import QuestionNavigator from '../components/QuestionNavigator'
 import ReviewScreen from '../components/ReviewScreen'
 import TestTimer from '../components/TestTimer'
+import TestSessionMenu from '../components/TestSessionMenu'
+import SubmitProgressModal from '../components/SubmitProgressModal'
 import FRQHandwrittenMode from '../components/FRQHandwrittenMode'
 import { useTestSession } from '../hooks/useTestSession'
 import { useAnnotations } from '../hooks/useAnnotations'
@@ -43,6 +45,10 @@ function APTestSessionInner() {
 
   // View state: 'instruction' | 'testing' | 'review' | 'frqChoice' | 'frqHandwritten'
   const [view, setView] = useState('instruction')
+
+  // Menu and navigator state
+  const [showMenu, setShowMenu] = useState(false)
+  const [isNavigatorOpen, setIsNavigatorOpen] = useState(false)
 
   // FRQ submission type and handwritten files
   const [frqSubmissionType, setFrqSubmissionType] = useState(null)
@@ -77,15 +83,22 @@ function APTestSessionInner() {
     startTest,
     submitSection,
     submitTest,
+    retrySubmit,
     status,
     isSubmitting,
+    submitError,
+    isSubmitTimedOut,
     timeRemaining,
     // Resilience
     isConnected,
     isSyncing,
+    queueLength,
     isInvalidated,
     takeControl,
     addToQueue,
+    // Auto-submit
+    autoSubmitTriggered,
+    autoSubmitResultId,
   } = useTestSession(testId, assignmentId)
 
   // Annotation tools (highlights, strikethroughs, line reader)
@@ -108,7 +121,18 @@ function APTestSessionInner() {
     setVisibleLines,
     // General
     clearAllAnnotations,
+    loadAnnotations,
   } = useAnnotations(session?.id, addToQueue)
+
+  // Load annotations from session when resuming
+  useEffect(() => {
+    if (session?.annotations || session?.strikethroughs) {
+      loadAnnotations({
+        highlights: session.annotations,
+        strikethroughs: session.strikethroughs,
+      })
+    }
+  }, [session?.id, session?.annotations, session?.strikethroughs, loadAnnotations])
 
   // Get highlights for current question
   const currentHighlights = currentQuestion?.id ? getHighlights(currentQuestion.id) : []
@@ -146,6 +170,13 @@ function APTestSessionInner() {
       setView('testing')
     }
   }, [session, status])
+
+  // Navigate to results when timer auto-submit completes
+  useEffect(() => {
+    if (autoSubmitTriggered && autoSubmitResultId) {
+      navigate(`/ap/results/${autoSubmitResultId}`)
+    }
+  }, [autoSubmitTriggered, autoSubmitResultId, navigate])
 
   // Check if current section is FRQ and show choice modal
   const isFRQSection = currentSection?.type === 'frq' || currentSection?.isFRQ
@@ -186,6 +217,14 @@ function APTestSessionInner() {
       : { frqSubmissionType: FRQ_SUBMISSION_TYPE.TYPED }
 
     const resultId = await submitTest(frqData)
+    if (resultId) {
+      navigate(`/ap/results/${resultId}`)
+    }
+  }
+
+  // Handle retry submission (for "Keep Trying" button in modal)
+  const handleRetry = async () => {
+    const resultId = await retrySubmit()
     if (resultId) {
       navigate(`/ap/results/${resultId}`)
     }
@@ -399,9 +438,37 @@ function APTestSessionInner() {
         />
       )}
 
+      {/* Submission progress modal */}
+      <SubmitProgressModal
+        isVisible={isSubmitting}
+        queueLength={queueLength}
+        isSyncing={isSyncing}
+        isTimedOut={isSubmitTimedOut}
+        onRetry={handleRetry}
+      />
+
       {/* Header with timer */}
       <header className="bg-surface border-b border-border-default px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          {/* Hamburger menu button */}
+          <button
+            onClick={() => setShowMenu(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-[--radius-button] text-text-primary hover:bg-hover transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          {/* Section lock indicator - shows when in section 2+ */}
+          {position.sectionIndex > 0 && (
+            <span className="text-text-muted text-xs flex items-center gap-1" title="Previous sections are locked">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              <span className="hidden sm:inline">Locked</span>
+            </span>
+          )}
           <span className="text-text-secondary text-sm">
             Section {position.sectionIndex + 1} of {test?.sections?.length || 1}:{' '}
             {currentSection?.title || 'Multiple Choice'}
@@ -409,6 +476,23 @@ function APTestSessionInner() {
         </div>
         <TestTimer timeRemaining={timeRemaining} />
       </header>
+
+      {/* Session menu */}
+      <TestSessionMenu
+        isOpen={showMenu}
+        onClose={() => setShowMenu(false)}
+        onOpenNavigator={() => setIsNavigatorOpen(true)}
+        onExit={handleCancel}
+      />
+
+      {/* Submit progress modal */}
+      <SubmitProgressModal
+        isVisible={isSubmitting}
+        queueLength={queueLength}
+        isSyncing={isSyncing}
+        isTimedOut={isSubmitTimedOut}
+        onRetry={handleRetry}
+      />
 
       {/* Question content */}
       <main className="flex-1 overflow-auto p-4">
@@ -441,6 +525,7 @@ function APTestSessionInner() {
                 subQuestion={currentQuestion?.subQuestions?.find(sq => sq.label === subQuestionLabel)}
                 value={currentAnswer || ''}
                 onChange={setAnswer}
+                onBlur={setAnswer}
                 disabled={isSubmitting || isInvalidated}
               />
             ) : (
@@ -491,6 +576,9 @@ function APTestSessionInner() {
         onGoToReview={handleGoToReview}
         canGoBack={canGoPrevious}
         canGoNext={canGoNext}
+        // Controlled mode for menu integration
+        isOpen={isNavigatorOpen}
+        onOpenChange={setIsNavigatorOpen}
       />
     </div>
   )

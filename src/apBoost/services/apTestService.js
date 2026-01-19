@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { COLLECTIONS } from '../utils/apTypes'
+import { getStimuliByIds } from './apStimuliService'
 
 /**
  * Fetch tests available to current user
@@ -24,7 +25,7 @@ export async function getAvailableTests(userId, role) {
     // 1. Get public tests (available to everyone)
     const publicTestsQuery = query(
       collection(db, COLLECTIONS.TESTS),
-      where('isPublic', '==', true)
+      where('isPublished', '==', true)
     )
     const publicTestsSnap = await getDocs(publicTestsQuery)
 
@@ -113,6 +114,22 @@ export async function getTestWithQuestions(testId) {
       questionsMap[doc.id] = { id: doc.id, ...doc.data() }
     })
 
+    // Resolve stimulus references for questions that have stimulusId but no inline stimulus
+    const stimulusIds = Object.values(questionsMap)
+      .filter((q) => q.stimulusId && !q.stimulus)
+      .map((q) => q.stimulusId)
+
+    if (stimulusIds.length > 0) {
+      const stimuli = await getStimuliByIds(stimulusIds)
+
+      // Attach resolved stimuli to questions
+      for (const question of Object.values(questionsMap)) {
+        if (question.stimulusId && !question.stimulus && stimuli[question.stimulusId]) {
+          question.stimulus = stimuli[question.stimulusId]
+        }
+      }
+    }
+
     // Attach questions to test
     test.questions = questionsMap
 
@@ -183,5 +200,33 @@ export async function getQuestion(questionId) {
   } catch (error) {
     console.error('Error fetching question:', error)
     throw error
+  }
+}
+
+/**
+ * Check if a user can access a test
+ * Returns access info including assignment ID if applicable
+ * @param {string} testId - Test ID to check access for
+ * @param {string} userId - User ID checking access
+ * @returns {Promise<{allowed: boolean, reason: string, assignmentId?: string}>}
+ */
+export async function canAccessTest(testId, userId) {
+  try {
+    // Check if test is published (publicly available)
+    const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, testId))
+    if (testDoc.exists() && testDoc.data().isPublished) {
+      return { allowed: true, reason: 'public' }
+    }
+
+    // Check if user is assigned to this test
+    const assignment = await getAssignment(testId, userId)
+    if (assignment) {
+      return { allowed: true, reason: 'assigned', assignmentId: assignment.id }
+    }
+
+    return { allowed: false, reason: 'unauthorized' }
+  } catch (error) {
+    console.error('Error checking test access:', error)
+    return { allowed: false, reason: 'error' }
   }
 }

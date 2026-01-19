@@ -14,8 +14,25 @@ import {
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
-import { COLLECTIONS, GRADING_STATUS } from '../utils/apTypes'
+import { COLLECTIONS, GRADING_STATUS, SECTION_TYPE } from '../utils/apTypes'
 import { logError } from '../utils/logError'
+
+/**
+ * Build a flattened frqMultipliers map from test sections
+ * @param {Array} sections - Test sections array
+ * @returns {Object} Map of questionId -> multiplier
+ */
+function buildFrqMultipliersMap(sections) {
+  const multipliers = {}
+  for (const section of sections || []) {
+    if (section.sectionType === SECTION_TYPE.FRQ || section.sectionType === SECTION_TYPE.MIXED) {
+      if (section.frqMultipliers) {
+        Object.assign(multipliers, section.frqMultipliers)
+      }
+    }
+  }
+  return multipliers
+}
 
 /**
  * Get all results pending grading for a teacher
@@ -29,6 +46,10 @@ export async function getPendingGrades(teacherId, filters = {}) {
 
     // Build query constraints
     let constraints = []
+
+    // CRITICAL: Filter by teacherId first for teacher isolation
+    // Only show results for this teacher's tests/assignments
+    constraints.push(where('teacherId', '==', teacherId))
 
     // Filter by grading status (pending by default)
     if (filters.status) {
@@ -173,20 +194,33 @@ export async function saveGrade(resultId, grades, status, teacherId, annotatedPd
       gradedAt: serverTimestamp(),
     }
 
-    // Include annotated PDF URL if provided
+    // Include annotated PDF URL if provided (with alias for API compatibility)
     if (annotatedPdfUrl) {
       updateData.annotatedPdfUrl = annotatedPdfUrl
+      updateData.frqGradedPdfUrl = annotatedPdfUrl // Alias for spec compatibility
     }
 
     // If complete, calculate FRQ score and update totals
     if (status === GRADING_STATUS.COMPLETE) {
-      const frqScore = calculateFRQScore(grades)
-      updateData.frqScore = frqScore
-
-      // Get current result to update totals
+      // Get current result to access testId and scores
       const resultSnap = await getDoc(resultRef)
       if (resultSnap.exists()) {
         const resultData = resultSnap.data()
+
+        // Fetch test to get frqMultipliers from sections
+        let frqMultipliers = {}
+        if (resultData.testId) {
+          const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, resultData.testId))
+          if (testDoc.exists()) {
+            const test = testDoc.data()
+            frqMultipliers = buildFrqMultipliersMap(test.sections)
+          }
+        }
+
+        // Calculate FRQ score with multipliers
+        const frqScore = calculateFRQScore(grades, frqMultipliers)
+        updateData.frqScore = frqScore
+
         const mcqScore = resultData.mcqScore || 0
         const mcqMaxPoints = resultData.mcqMaxPoints || 0
         const frqMaxPoints = resultData.frqMaxPoints || 0
@@ -211,19 +245,27 @@ export async function saveGrade(resultId, grades, status, teacherId, annotatedPd
 }
 
 /**
- * Calculate total FRQ score from sub-scores
- * @param {Object} grades - FRQ grades object
- * @returns {number} Total FRQ points
+ * Calculate total FRQ score from sub-scores with optional multipliers
+ * @param {Object} grades - FRQ grades object { [questionId]: { subScores: { a: 2, b: 3 }, comment: "..." } }
+ * @param {Object} frqMultipliers - Optional multipliers by questionId { [questionId]: number }
+ * @returns {number} Total FRQ points (weighted by multipliers)
  */
-export function calculateFRQScore(grades) {
+export function calculateFRQScore(grades, frqMultipliers = {}) {
   if (!grades) return 0
 
   let total = 0
-  for (const questionGrade of Object.values(grades)) {
+  for (const [questionId, questionGrade] of Object.entries(grades)) {
     if (questionGrade.subScores) {
+      // Get multiplier for this question (default to 1)
+      const multiplier = frqMultipliers[questionId] || 1
+
+      // Sum sub-scores and apply multiplier
+      let questionTotal = 0
       for (const score of Object.values(questionGrade.subScores)) {
-        total += Number(score) || 0
+        questionTotal += Number(score) || 0
       }
+
+      total += questionTotal * multiplier
     }
   }
 

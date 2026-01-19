@@ -90,7 +90,9 @@ function MCQResultsTable({ results }) {
                 <td className="py-2 px-3 text-text-primary">{idx + 1}</td>
                 <td className="py-2 px-3 text-text-primary font-mono">{result.correctAnswer}</td>
                 <td className="py-2 px-3 text-text-primary font-mono">
-                  {result.studentAnswer || '—'}
+                  {Array.isArray(result.studentAnswer)
+                    ? result.studentAnswer.slice().sort().join(', ')
+                    : result.studentAnswer || '—'}
                 </td>
                 <td className="py-2 px-3">
                   {isCorrect ? (
