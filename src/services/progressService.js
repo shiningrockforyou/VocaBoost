@@ -152,9 +152,11 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
   const current = snapshot.exists() ? snapshot.data() : DEFAULT_CLASS_PROGRESS;
 
   // Guard: Check if this is the expected next day (prevents duplicate completions)
+  // Note: sessionSummary uses 'day' property, not 'dayNumber' (from createSessionSummary)
   const expectedDay = (current.currentStudyDay || 0) + 1;
-  if (sessionSummary.dayNumber && sessionSummary.dayNumber !== expectedDay) {
-    console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionSummary.dayNumber}`);
+  const sessionDay = sessionSummary.day || sessionSummary.dayNumber; // Support both for backwards compatibility
+  if (sessionDay && sessionDay !== expectedDay) {
+    console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionDay}`);
     return { id: docId, ...current }; // Return existing progress unchanged
   }
 

@@ -739,11 +739,16 @@ export default function DailySessionFlow() {
         }
 
         // Determine starting phase
-        // Only restore to review phase if saved state is from the SAME day (prevents stale state from previous day)
+        // Only restore to review phase if:
+        // 1. Saved state is from the SAME day (prevents stale state from previous day)
+        // 2. AND new word test was actually passed (prevents skipping new words)
         const isSameDay = existingState?.currentStudyDay === config.dayNumber
+        const newWordTestCompleted = existingState?.newWordsTestPassed === true
 
-        if (isSameDay && (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)) {
-          // Resume at review phase (same day only)
+        // BUG FIX: Also require newWordsTestPassed to be true before restoring to review phase
+        // This prevents students from getting stuck in review phase without completing new words
+        if (isSameDay && newWordTestCompleted && (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)) {
+          // Resume at review phase (same day only, new word test completed)
           // Use full segment for study flashcards
           if (config.segment) {
             const allWords = await getSegmentWords(
