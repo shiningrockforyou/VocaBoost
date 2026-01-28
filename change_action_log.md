@@ -176,6 +176,7 @@
 | 2026-01-19 | `src/services/progressService.js` | **Anchor-Based Reconciliation** - Rewrote `calculateCSDAndTWIFromAttempts()` to use NEW TEST as anchor for both CSD and TWI (lines 40-102). CSD and TWI now derived from same source to prevent mismatch. |
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Added `cleanupOrphanedReviews()` function to delete review tests where `studyDay > anchorDay`. Logs full attempt data to `system_logs` before deletion (lines 115-155). |
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Updated `getOrCreateClassProgress()` to call `cleanupOrphanedReviews()` after calculating anchor day (lines 212-215) |
+| 2026-01-28 | `src/services/progressService.js` | **Reconciliation Bug Fix** - Added `attempt.passed === true` check to anchor selection in `calculateCSDAndTWIFromAttempts()` (line 61). Previously, failed new tests could be used as anchor, causing TWI to advance incorrectly and retakes to test wrong words. |
 
 ---
 

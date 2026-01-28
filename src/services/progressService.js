@@ -58,7 +58,7 @@ function calculateCSDAndTWIFromAttempts(attempts) {
   let anchorDay = 0;
 
   for (const attempt of attempts) {
-    if (attempt.sessionType === 'new' && attempt.newWordEndIndex != null) {
+    if (attempt.sessionType === 'new' && attempt.newWordEndIndex != null && attempt.passed === true) {
       if (attempt.studyDay > anchorDay) {
         anchorDay = attempt.studyDay;
         anchorNewTest = attempt;
