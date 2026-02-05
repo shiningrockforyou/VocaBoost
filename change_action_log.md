@@ -177,6 +177,8 @@
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Added `cleanupOrphanedReviews()` function to delete review tests where `studyDay > anchorDay`. Logs full attempt data to `system_logs` before deletion (lines 115-155). |
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Updated `getOrCreateClassProgress()` to call `cleanupOrphanedReviews()` after calculating anchor day (lines 212-215) |
 | 2026-01-28 | `src/services/progressService.js` | **Reconciliation Bug Fix** - Added `attempt.passed === true` check to anchor selection in `calculateCSDAndTWIFromAttempts()` (line 61). Previously, failed new tests could be used as anchor, causing TWI to advance incorrectly and retakes to test wrong words. |
+| 2026-02-05 | Firestore: `attempts/BKNKR8BZamEmAF0l0gHs` | **Data Fix (김수아)** - Fixed retake segment shift: `newWordStartIndex` 904→831, `newWordEndIndex` 976→903. Day 12 retake tested wrong word range due to reconciliation using failed attempt as TWI anchor. |
+| 2026-02-05 | Firestore: `users/bJyKnshtHzZqzLP8ZP07d1pQFDF2/class_progress` | **Data Fix (김수아)** - Updated `currentStudyDay` 11→12 to match session state and corrected attempt history. |
 
 ---
 
