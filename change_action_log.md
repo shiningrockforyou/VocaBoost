@@ -176,6 +176,12 @@
 | 2026-01-19 | `src/services/progressService.js` | **Anchor-Based Reconciliation** - Rewrote `calculateCSDAndTWIFromAttempts()` to use NEW TEST as anchor for both CSD and TWI (lines 40-102). CSD and TWI now derived from same source to prevent mismatch. |
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Added `cleanupOrphanedReviews()` function to delete review tests where `studyDay > anchorDay`. Logs full attempt data to `system_logs` before deletion (lines 115-155). |
 | 2026-01-19 | `src/services/progressService.js` | **Orphan Cleanup** - Updated `getOrCreateClassProgress()` to call `cleanupOrphanedReviews()` after calculating anchor day (lines 212-215) |
+| 2026-01-26 | `scripts/advance-student-to-day.js` | **NEW SCRIPT** - Admin script to advance a student's progress when transferring between classes (CORE→TOP). Inserts synthetic NEW + REVIEW attempts and resets class_progress/session_states so reconciliation sets correct CSD/TWI. Used to advance Sarang Min (love0609m@gmail.com) to Day 11 in TOP OFFLINE class. |
+| 2026-02-03 | `src/services/db.js` | **NEW FUNCTION** - Added `getMostRecentPassedNewTest()` to query only PASSED new tests for reconciliation anchor (lines 3066-3111). Fixes bug where failed new tests incorrectly advanced TWI. |
+| 2026-02-03 | `src/services/db.js` | **NEW FUNCTION** - Added `getReviewForDay()` to check if review exists for specific study day (lines 3113-3153). Used by reconciliation to determine CSD. |
+| 2026-02-03 | `src/services/progressService.js` | **CRITICAL BUG FIX** - Rewrote reconciliation to use two-query approach: (1) find anchor from PASSED new tests only, (2) check if review exists for anchor day. Previously, failed new tests were used as anchors, causing TWI to advance and students to skip word ranges on retry. |
+| 2026-02-03 | `src/services/progressService.js` | Removed old `calculateCSDAndTWIFromAttempts()` function, replaced with direct calls to new db.js query helpers. |
+| 2026-02-03 | `scripts/check-single-student.js` | Updated reconciliation analysis to only consider PASSED new tests as anchors, matching new app logic. |
 
 ---
 

@@ -16,7 +16,7 @@ import {
   createClassProgress,
   MAX_RECENT_SESSIONS
 } from '../types/studyTypes';
-import { getRecentAttemptsForClassList, getMostRecentNewTest, logSystemEvent } from './db';
+import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
 
 /**
  * Get the document ID for a class progress record
@@ -26,79 +26,6 @@ import { getRecentAttemptsForClassList, getMostRecentNewTest, logSystemEvent } f
  */
 export function getProgressDocId(classId, listId) {
   return `${classId}_${listId}`;
-}
-
-/**
- * Calculate CSD (currentStudyDay) and TWI (totalWordsIntroduced) from attempts.
- * Uses NEW TEST as the anchor for both values to ensure consistency.
- *
- * Algorithm:
- * 1. Find highest day with a NEW test → "anchor"
- * 2. TWI = anchor.newWordEndIndex + 1
- * 3. CSD:
- *    - Day 1: CSD = 1 if new test passed, else 0
- *    - Day 2+: CSD = anchorDay if review exists for anchorDay, else anchorDay - 1
- *
- * @param {Array} attempts - Array of attempt documents (sorted by submittedAt desc)
- * @returns {{ csd: number, twi: number, anchorDay: number }}
- */
-function calculateCSDAndTWIFromAttempts(attempts) {
-  console.log('[RECONCILIATION] calculateCSDAndTWIFromAttempts called with:', {
-    attemptCount: attempts?.length || 0,
-    studyDays: attempts?.map(a => a.studyDay) || []
-  });
-
-  if (!attempts || attempts.length === 0) {
-    console.log('[RECONCILIATION] No attempts found, returning { csd: 0, twi: 0, anchorDay: 0 }');
-    return { csd: 0, twi: 0, anchorDay: 0 };
-  }
-
-  // Step 1: Find anchor - highest day with a NEW test
-  let anchorNewTest = null;
-  let anchorDay = 0;
-
-  for (const attempt of attempts) {
-    if (attempt.sessionType === 'new' && attempt.newWordEndIndex != null) {
-      if (attempt.studyDay > anchorDay) {
-        anchorDay = attempt.studyDay;
-        anchorNewTest = attempt;
-      }
-    }
-  }
-
-  // No new test found - student hasn't completed any new word tests
-  if (!anchorNewTest || anchorDay === 0) {
-    console.log('[RECONCILIATION] No new test found, returning { csd: 0, twi: 0, anchorDay: 0 }');
-    return { csd: 0, twi: 0, anchorDay: 0 };
-  }
-
-  // Step 2: TWI comes directly from anchor
-  const twi = anchorNewTest.newWordEndIndex + 1;
-
-  // Step 3: Calculate CSD based on anchor day
-  let csd;
-  if (anchorDay === 1) {
-    // Day 1: CSD = 1 if new test passed, else 0
-    csd = anchorNewTest.passed === true ? 1 : 0;
-    console.log('[RECONCILIATION] Day 1 anchor: CSD =', csd, '(passed:', anchorNewTest.passed, ')');
-  } else {
-    // Day 2+: Check if review test exists for anchor day
-    const reviewForAnchorDay = attempts.find(
-      a => a.studyDay === anchorDay && a.sessionType === 'review'
-    );
-    csd = reviewForAnchorDay ? anchorDay : anchorDay - 1;
-    console.log('[RECONCILIATION] Day 2+ anchor: CSD =', csd, '(reviewExists:', !!reviewForAnchorDay, ')');
-  }
-
-  console.log('[RECONCILIATION] Anchor-based calculation:', {
-    anchorDay,
-    anchorTestId: anchorNewTest.id,
-    newWordEndIndex: anchorNewTest.newWordEndIndex,
-    twi,
-    csd
-  });
-
-  return { csd, twi, anchorDay };
 }
 
 /**
@@ -193,50 +120,69 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   const storedTWI = progress.totalWordsIntroduced || 0;
   console.log('[RECONCILIATION] Stored values from Firestore:', { storedCSD, storedTWI });
 
-  // Always verify against attempts for reconciliation
-  console.log('[RECONCILIATION] Fetching recent attempts...');
-  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+  // === TWO-QUERY RECONCILIATION ===
+  // Query 1: Find anchor from PASSED new tests only (fixes bug where failed tests advanced TWI)
+  console.log('[RECONCILIATION] Query 1: Finding most recent PASSED new test...');
+  const anchorTest = await getMostRecentPassedNewTest(userId, classId, listId);
 
-  console.log('[RECONCILIATION] Calculating CSD/TWI from attempts...');
-  const { csd, twi, anchorDay } = calculateCSDAndTWIFromAttempts(attempts);
+  let anchorDay = 0;
+  let twi = 0;
+  let csd = 0;
+
+  if (anchorTest && anchorTest.newWordEndIndex != null) {
+    anchorDay = anchorTest.studyDay;
+    twi = anchorTest.newWordEndIndex + 1;
+
+    // Query 2: Check if review exists for anchor day
+    console.log('[RECONCILIATION] Query 2: Checking for review on day', anchorDay);
+
+    if (anchorDay === 1) {
+      // Day 1: CSD = 1 (already passed since we only query passed tests)
+      csd = 1;
+      console.log('[RECONCILIATION] Day 1 anchor: CSD = 1');
+    } else {
+      // Day 2+: Check if review exists
+      const reviewForAnchorDay = await getReviewForDay(userId, classId, listId, anchorDay);
+      csd = reviewForAnchorDay ? anchorDay : anchorDay - 1;
+      console.log('[RECONCILIATION] Day 2+ anchor: CSD =', csd, '(reviewExists:', !!reviewForAnchorDay, ')');
+    }
+
+    console.log('[RECONCILIATION] Anchor-based calculation:', {
+      anchorDay,
+      anchorTestId: anchorTest.id,
+      newWordEndIndex: anchorTest.newWordEndIndex,
+      twi,
+      csd
+    });
+  } else {
+    console.log('[RECONCILIATION] No passed new tests found, using defaults: CSD=0, TWI=0');
+  }
+
+  // Fetch recent attempts for orphan cleanup and validation
+  console.log('[RECONCILIATION] Fetching recent attempts for orphan cleanup...');
+  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
 
   // Clean up orphaned reviews (reviews for days beyond anchor)
   if (anchorDay > 0) {
     await cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts);
   }
 
-  // Validate that attempts contain trustworthy data
-  // Check for valid integer types and reasonable values
-  const hasValidData = attempts.some(a =>
-    Number.isInteger(a.studyDay) && a.studyDay > 0 &&
-    Number.isInteger(a.newWordEndIndex) && a.newWordEndIndex >= 0
-  );
+  // Validate that we have trustworthy anchor data
+  const hasValidData = anchorTest != null &&
+    Number.isInteger(anchorTest.studyDay) && anchorTest.studyDay > 0 &&
+    Number.isInteger(anchorTest.newWordEndIndex) && anchorTest.newWordEndIndex >= 0;
 
   console.log('[RECONCILIATION] Data validation:', {
     hasValidData,
     validationReason: hasValidData
-      ? 'At least one attempt has valid studyDay and newWordEndIndex'
-      : 'No attempts with valid data - will use Math.max for safety'
+      ? 'Anchor test has valid studyDay and newWordEndIndex'
+      : 'No valid anchor - will use Math.max for safety'
   });
 
-  // Fallback: If TWI is 0 but CSD > 0, try a dedicated query for new tests
-  // This handles edge cases where the initial 8 attempts are all review tests
-  let finalTWI = twi;
-  if (csd > 0 && twi === 0) {
-    console.log('[RECONCILIATION] TWI is 0 with CSD > 0 - trying fallback query...');
-    const fallbackNewTest = await getMostRecentNewTest(userId, classId, listId);
-    if (fallbackNewTest?.newWordEndIndex != null) {
-      finalTWI = fallbackNewTest.newWordEndIndex + 1;
-      console.log('[RECONCILIATION] TWI recovered from fallback query:', finalTWI);
-    } else {
-      console.log('[RECONCILIATION] Fallback query found no new tests');
-    }
-  }
-
-  // Trust attempts as source of truth when data is valid
-  // Otherwise use Math.max to protect against query failures or corrupt data
+  // Trust anchor as source of truth when data is valid
+  // Otherwise use Math.max to protect against query failures
   const safeCSD = hasValidData ? csd : Math.max(storedCSD, csd);
-  const safeTWI = hasValidData ? finalTWI : Math.max(storedTWI, finalTWI);
+  const safeTWI = hasValidData ? twi : Math.max(storedTWI, twi);
 
   console.log('[RECONCILIATION] Comparison:', {
     stored: { csd: storedCSD, twi: storedTWI },

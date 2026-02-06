@@ -3062,3 +3062,99 @@ export async function getMostRecentNewTest(userId, classId, listId) {
     return null
   }
 }
+
+/**
+ * Get the most recent PASSED new test for reconciliation anchor
+ * Only considers tests where passed === true
+ * @param {string} userId - User document ID
+ * @param {string} classId - Class document ID
+ * @param {string} listId - List document ID
+ * @returns {Promise<Object|null>} Most recent passed new test attempt or null
+ */
+export async function getMostRecentPassedNewTest(userId, classId, listId) {
+  console.log('[RECONCILIATION] getMostRecentPassedNewTest:', { userId, classId, listId })
+
+  if (!userId || !classId || !listId) {
+    console.warn('[RECONCILIATION] getMostRecentPassedNewTest: Missing required parameters')
+    return null
+  }
+
+  try {
+    const attemptsRef = collection(db, 'attempts')
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('listId', '==', listId),
+      where('sessionType', '==', 'new'),
+      where('passed', '==', true),
+      orderBy('studyDay', 'desc'),
+      limit(1)
+    )
+
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      console.log('[RECONCILIATION] getMostRecentPassedNewTest: No passed new tests found')
+      return null
+    }
+
+    const doc = snapshot.docs[0]
+    const data = { id: doc.id, ...doc.data() }
+    console.log('[RECONCILIATION] getMostRecentPassedNewTest found:', {
+      attemptId: doc.id,
+      studyDay: data.studyDay,
+      newWordEndIndex: data.newWordEndIndex,
+      passed: data.passed
+    })
+    return data
+  } catch (err) {
+    console.error('[RECONCILIATION] getMostRecentPassedNewTest query failed:', err)
+    return null
+  }
+}
+
+/**
+ * Check if a review test exists for a specific study day
+ * @param {string} userId - User document ID
+ * @param {string} classId - Class document ID
+ * @param {string} listId - List document ID
+ * @param {number} studyDay - Study day number to check
+ * @returns {Promise<Object|null>} Review attempt or null if none exists
+ */
+export async function getReviewForDay(userId, classId, listId, studyDay) {
+  console.log('[RECONCILIATION] getReviewForDay:', { userId, classId, listId, studyDay })
+
+  if (!userId || !classId || !listId || !studyDay) {
+    console.warn('[RECONCILIATION] getReviewForDay: Missing required parameters')
+    return null
+  }
+
+  try {
+    const attemptsRef = collection(db, 'attempts')
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('listId', '==', listId),
+      where('sessionType', '==', 'review'),
+      where('studyDay', '==', studyDay),
+      limit(1)
+    )
+
+    const snapshot = await getDocs(q)
+
+    if (snapshot.empty) {
+      console.log('[RECONCILIATION] getReviewForDay: No review found for day', studyDay)
+      return null
+    }
+
+    const doc = snapshot.docs[0]
+    const data = { id: doc.id, ...doc.data() }
+    console.log('[RECONCILIATION] getReviewForDay found review for day', studyDay)
+    return data
+  } catch (err) {
+    console.error('[RECONCILIATION] getReviewForDay query failed:', err)
+    return null
+  }
+}
