@@ -179,6 +179,8 @@
 | 2026-01-28 | `src/services/progressService.js` | **Reconciliation Bug Fix** - Added `attempt.passed === true` check to anchor selection in `calculateCSDAndTWIFromAttempts()` (line 61). Previously, failed new tests could be used as anchor, causing TWI to advance incorrectly and retakes to test wrong words. |
 | 2026-02-05 | Firestore: `attempts/BKNKR8BZamEmAF0l0gHs` | **Data Fix (김수아)** - Fixed retake segment shift: `newWordStartIndex` 904→831, `newWordEndIndex` 976→903. Day 12 retake tested wrong word range due to reconciliation using failed attempt as TWI anchor. |
 | 2026-02-05 | Firestore: `users/bJyKnshtHzZqzLP8ZP07d1pQFDF2/class_progress` | **Data Fix (김수아)** - Updated `currentStudyDay` 11→12 to match session state and corrected attempt history. |
+| 2026-02-11 | Firestore: `attempts/rmTYwOhrAJqveKZdIOfV`, `attempts/iQ2pj92GjYemumXie96y` | **Data Fix (김윤현)** - Deleted 2 day 3 failed attempts to allow retake. Without code fix deployed, reconciliation was using failed attempts as anchor. |
+| 2026-02-11 | Firestore: `users/tzuskgfAuocFasNAa6AqRcHIPow2/class_progress` | **Data Fix (김윤현)** - Updated `totalWordsIntroduced` 240→160 so day 3 new test uses correct range (160-239). |
 
 ---
 
