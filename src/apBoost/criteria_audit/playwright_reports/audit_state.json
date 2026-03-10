@@ -1,0 +1,147 @@
+{
+  "seeded": "complete",
+  "loginCredentials": {
+    "note": "See src/apBoost/TEST_ACCOUNTS.md for full account details.",
+    "loginUrl": "http://localhost:5173/login",
+    "teacher": { "email": "teacher@apboost.test", "password": "Teacher123!" },
+    "student": { "email": "student@apboost.test", "password": "Student123!" }
+  },
+  "testIds": {
+    "micro": "test_micro_full_1",
+    "macro": "test_macro_full_1",
+    "calc": "test_calc_ab_full_1"
+  },
+  "seedResultIds": [
+    "result_micro_student1",
+    "result_micro_student2",
+    "result_micro_student3",
+    "result_micro_student4",
+    "result_micro_student5",
+    "result_macro_student1",
+    "result_macro_student2",
+    "result_macro_student3",
+    "result_macro_student4",
+    "result_calc_student1",
+    "result_calc_student2",
+    "result_calc_student3",
+    "result_calc_student4"
+  ],
+  "seedStudentIds": [
+    "student_seed_001",
+    "student_seed_002",
+    "student_seed_003",
+    "student_seed_004",
+    "student_seed_005"
+  ],
+  "seedClassIds": [
+    "class_econ_p1",
+    "class_calc_p3"
+  ],
+  "batchResults": {
+    "B0": {
+      "status": "complete",
+      "completedAt": "2026-03-09",
+      "notes": "All 5 P0 scenarios PASS. Seed succeeds with 13 results, correct IDs. APReportCard hook fix verified. B0-001 (pending grading undercount) FIXED via apTeacherService.js rewrite. See findings_B0.md.",
+      "openFindings": []
+    },
+    "B1": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "notes": "LIVE Playwright re-run 2026-03-10. ALL 7 SCENARIOS PASS. DuplicateTabModal 32s suppression fix CONFIRMED WORKING. MCQ selection, flagging, strikethrough, navigator all verified interactively. B1-001 (bg-warning visibility) FIXED — bumped to amber-200. See findings_B1.md.",
+      "openFindings": []
+    },
+    "B2": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "resultId": "3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_4",
+      "notes": "LIVE RE-RUN 2026-03-10. B2-001 (Submit Section called submitTest) CONFIRMED FIXED — FRQ Choice Screen appeared correctly. S-08 PASS, S-10 PASS, S-11 PASS, S-12 PARTIAL (nav shows Q0 of 7 — new B2-005), S-13 PARTIAL (frqMaxPoints=0 — new B2-006, frqAnswers stores all — B2-002 still open). 0 Blockers, 0 High, 4 Medium. See findings_B2.md.",
+      "openFindings": [
+        "B2-002 (Medium — frqAnswers stores all session answers not just FRQ)",
+        "B2-004 (Medium — MCQ_MULTI absent from seed data)",
+        "B2-005 (Medium — FRQ nav shows Question 0 of 7 on section entry)",
+        "B2-006 (Medium — frqMaxPoints=0 due to points vs maxPoints key mismatch)"
+      ]
+    },
+    "B3": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "resultId": "7gKfDsJTtSMocVH9oggUCf4ys6K2_test_micro_full_1_1",
+      "notes": "LIVE run 2026-03-10. S-14 PASS (MCQ table all 6 cols, 15 rows, MCQ Summary, Performance by Domain). S-15 FAIL — Flagged for Review section always empty (B3-001 High: flaggedQuestions never saved to result doc in createTestResult). S-16 PARTIAL — FRQ pending section correct but B3-002 (Medium: FRQ answers in wrong question order and wrong sub-question order). S-17 PASS (PDF button present, 0 errors, blob URL download). S-18 PASS (Back to Dashboard, Completed badge). 0 console errors. B3-003 (Medium: domain performance bar uses bg-success-text instead of bg-success). See findings_B3.md.",
+      "openFindings": [
+        "B3-001 (High — flaggedQuestions not saved to result document, Flagged for Review section always empty)",
+        "B3-002 (Medium — FRQ submitted answers display wrong question mapping and wrong sub-question order)",
+        "B3-003 (Medium — Performance by Domain bars use wrong CSS token: bg-success-text instead of bg-success)"
+      ]
+    },
+    "B4": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "notes": "LIVE Playwright re-run 2026-03-10. Prior fixes B4-001 through B4-005 ALL CONFIRMED WORKING via live tests. S-19 PASS (review screen counts, FRQ choice screen, section lock). S-20 PASS (hamburger menu, ARIA, Escape, exit confirmation). S-21 PARTIAL — 3 new findings: B4-006 (Medium: student login redirects to vocaBoost / not /ap), B4-007 (High: answers+flags NOT restored after refresh — IndexedDB queue items never applied to UI on resume), B4-008 (Medium: timer shows stale value after resume, ~5s off due to 30s sync interval). See findings_B4.md.",
+      "openFindings": [
+        "B4-006 (Medium — student@apboost.test redirects to / not /ap after login)",
+        "B4-007 (High — IndexedDB queue items not applied to UI state during reconcileQueue on resume)",
+        "B4-008 (Medium — timer correction not applied on resume, shows stale sectionTimeRemaining)"
+      ]
+    },
+    "B5": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "notes": "LIVE Playwright audit 2026-03-10. S-22/S-23 SKIP (no text stimulus in Calc seed data). S-24 PARTIAL: timer format/countdown PASS, but B5-001 (High) — text-warning-text/text-error-text resolve to text-text-primary (slate-900) — Tailwind v4 @theme naming mismatch affects 30+ files. S-25 PASS: lock icon, 'Locked' text, title attr, back-btn disabled all confirmed in Section 2. S-26 PASS (MCQ) / FAIL (FRQ): MathJax renders for MCQ, but FRQ vertical layout missing MathText wrapper (B5-002 High). See findings_B5.md.",
+      "openFindings": [
+        "B5-001 (High — text-warning-text/text-error-text CSS tokens broken — Tailwind v4 @theme naming mismatch, affects 30+ components)",
+        "B5-002 (High — FRQ question text renders raw LaTeX in vertical layout — missing MathText wrapper in FRQQuestionDisplay.jsx line 221)",
+        "B5-003 (Medium — no text stimulus questions in seed data, annotation tools S-22/S-23 untestable)"
+      ]
+    },
+    "B6": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "notes": "LIVE Playwright run 2026-03-10. S-27 PARTIAL: Duplicate tab detection WORKS (BroadcastChannel fires) but modal appears on wrong tab — Tab 2 silently takes over, Tab 1 gets blocked. Spec requires Tab 2 to be blocked first (B6-001 High). S-28 PARTIAL: Disconnected banner PASS (45s/3 failures), Reconnected PASS (2s auto-dismiss), but Syncing banner imperceptible in practice — isFlushing too brief when queue is small (B6-004 Medium). S-29 PARTIAL: Report card loads, AP scores correct (5→green, 4→blue, 3→yellow, 2→light-red, 1→red), but 'Total: / pts' missing score values (B6-002 Medium: totalPossible vs maxScore field mismatch in seed) and 'Your Answer' shows — (B6-003 Medium: selectedAnswer vs studentAnswer mismatch in seed). E-05 PASS: beforeunload dialog fires correctly. 0 console errors outside expected offline failures. See findings_B6.md.",
+      "openFindings": [
+        "B6-001 (High — duplicate tab modal appears on wrong tab; Tab 2 takes over without warning instead of being blocked)",
+        "B6-002 (Medium — seed result 'Total: / pts' missing numerator/denominator; totalPossible vs maxScore field name mismatch)",
+        "B6-003 (Medium — seed result MCQ 'Your Answer' column shows — for all questions; selectedAnswer vs studentAnswer field mismatch)",
+        "B6-004 (Medium — Syncing banner imperceptible in practice; isFlushing state duration too brief for small queues)"
+      ]
+    },
+    "B7": {
+      "status": "complete",
+      "completedAt": "2026-03-09",
+      "notes": "RE-RUN confirmed B7-001 through B7-005 FIXED. B7-006 (class filter) FIXED: classId added to seed results + 2 composite indexes added. Needs re-run to verify class filter. See findings_B7.md.",
+      "openFindings": ["B7-006 fix applied but not re-verified by audit"]
+    },
+    "B8": {
+      "status": "complete",
+      "completedAt": "2026-03-10",
+      "notes": "RE-RUN v3 confirmed all 5 original findings FIXED. Firestore indexes deployed. 3 NEW Medium-Priority: B8-006 (FRQ score input no clamp), B8-007 (PDF MCQ choices lowercase mismatch), B8-008 (analytics pending status lowercase). See findings_B8.md.",
+      "openFindings": ["B8-006 (Medium)", "B8-007 (Medium)", "B8-008 (Medium)"]
+    },
+    "B9": {
+      "status": "complete",
+      "completedAt": "2026-03-09",
+      "notes": "All 6 scenarios PASS. B9-001 through B9-005 FIXED. B9-006 (View All link) FIXED. B9-007 (assignment feedback) FIXED. B9-008 (student names) FIXED. All fixes applied per change log. See findings_B9.md.",
+      "openFindings": []
+    },
+    "B10": {
+      "status": "complete",
+      "completedAt": "2026-03-09",
+      "notes": "E-01 PASS, E-02 PASS. B10-001 (SubmitProgressModal) FIXED in review + frqHandwritten branches. B10-002 (error messages) FIXED. B10-003 (logError dupe) FIXED. See findings_B10.md.",
+      "openFindings": []
+    },
+    "B11": {
+      "status": "complete",
+      "completedAt": "2026-03-09",
+      "notes": "X-01 PASS (0 runtime violations). B11-001 (raw Tailwind) FIXED. B11-002 (AnswerInput bg-white) FIXED. B11-003 (gradebook mobile) FIXED: hidden columns on mobile + StatusBadge inline. Highlight colors documented as intentional exception. See findings_B11.md.",
+      "openFindings": ["Gradebook Grade button mobile reachability (fix applied, needs re-verify)"]
+    }
+  },
+  "lastUpdated": "2026-03-10 (B6 complete)",
+  "summary": {
+    "complete": ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"],
+    "fixesApplied": [],
+    "pending": [],
+    "openHighPriority": 5,
+    "openMediumPriority": 16,
+    "note": "B6 live run COMPLETE 2026-03-10. 1 new High: B6-001 (duplicate tab modal on wrong tab — Tab 2 takes over silently). 3 new Medium: B6-002 (seed result total score missing — totalPossible vs maxScore), B6-003 (seed result Your Answer shows dashes — selectedAnswer vs studentAnswer), B6-004 (Syncing banner imperceptible). ALL BATCHES NOW COMPLETE. Total open High: 5 (B3-001, B4-007, B5-001, B5-002, B6-001). Total open Medium: 16 (B2-002, B2-004, B2-005, B2-006, B3-002, B3-003, B4-006, B4-008, B5-003, B6-002, B6-003, B6-004, B8-006, B8-007, B8-008, B11 gradebook)."
+  }
+}

@@ -132,14 +132,17 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
     }
 
-    // AP TEST RESULTS - Owner or teacher can read, owner can create
+    // AP TEST RESULTS - Owner or teacher can read, owner or teacher can create
     // Teachers can only update results for their own students (teacherId check)
     match /ap_test_results/{resultId} {
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         isTeacher()
       );
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        isTeacher()
+      );
       allow update: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         (isTeacher() && resource.data.teacherId == request.auth.uid)

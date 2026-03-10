@@ -1,0 +1,30 @@
+{
+  "login": {
+    "status": "pass"
+  },
+  "x01": {
+    "violations": {
+      "Student Dashboard": [],
+      "Teacher Dashboard": [],
+      "Gradebook": [],
+      "Class Manager": [],
+      "Test Session": [],
+      "Report Card": []
+    },
+    "status": "pass"
+  },
+  "x02": {
+    "issues": {
+      "Student Dashboard": [],
+      "Teacher Dashboard": [],
+      "Gradebook": [],
+      "Report Card": [],
+      "Test Session": []
+    },
+    "status": "pass"
+  },
+  "x03": {
+    "consoleMessages": [],
+    "status": "pass"
+  }
+}

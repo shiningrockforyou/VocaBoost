@@ -129,19 +129,21 @@ export default function QuestionNavigator({
           <span className="text-xs">▲</span>
         </button>
 
-        <button
-          onClick={onNext}
-          disabled={!canGoNext}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm
-            ${canGoNext
-              ? 'bg-surface border border-border-default text-text-primary hover:bg-hover'
-              : 'bg-muted text-text-muted cursor-not-allowed'
-            }
-          `}
-        >
-          Next →
-        </button>
+        {canGoNext ? (
+          <button
+            onClick={onNext}
+            className="flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm bg-surface border border-border-default text-text-primary hover:bg-hover"
+          >
+            Next →
+          </button>
+        ) : (
+          <button
+            onClick={onGoToReview}
+            className="flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm bg-brand-primary text-white hover:opacity-90"
+          >
+            Review →
+          </button>
+        )}
       </div>
 
       {/* Slide-up Modal */}

@@ -1,0 +1,60 @@
+{
+  "login": "SUCCESS - at /ap dashboard",
+  "s22": {
+    "status": "SKIP",
+    "notes": [
+      "No HORIZONTAL format questions with text stimulus found in Calc test seed data. Seed data (seedFullData.js) does not include stimulus content for any Calc questions - all questions use VERTICAL format. ToolsToolbar not rendered."
+    ],
+    "evidence": [
+      "No Highlight button found in DOM after checking Calc test Q1-Q5"
+    ]
+  },
+  "s23": {
+    "status": "SKIP",
+    "notes": [
+      "No text stimulus questions with ToolsToolbar found in Calc test seed data. Same root cause as S-22: seedFullData.js Calc questions have no stimulus field."
+    ],
+    "evidence": [
+      "No Reader button found in DOM after checking Calc test Q1-Q5"
+    ]
+  },
+  "s24": {
+    "status": "PARTIAL",
+    "notes": [
+      "Timer found: true",
+      "Timer text: \"44:58\"",
+      "Timer format MM:SS: true",
+      "Clock emoji present: true",
+      "Default color (>5min): true",
+      "Timer is counting down: true (44:57 → 44:54)",
+      "PARTIAL: Timer format correct (MM:SS), counting down, default color text-text-primary confirmed at >5min. Warning/error thresholds not directly observed (timer too high). Source code confirmed: text-warning-text at ≤300s, text-error-text at ≤60s."
+    ],
+    "evidence": [
+      "Timer initial state: {\"found\":true,\"timerText\":\"44:58\",\"parentClass\":\"font-mono text-lg font-medium\",\"hasErrorColor\":null,\"hasWarningColor\":null,\"hasDefaultColor\":true,\"hasClockEmoji\":true,\"format\":\"MM:SS\"}",
+      "Timer container: {\"found\":true,\"containerClass\":\"flex items-center gap-2 text-text-primary\",\"monoClass\":\"font-mono text-lg font-medium\",\"text\":\"44:57\"}",
+      "Timer countdown: 44:57 → 44:54",
+      "Final timer class: {\"containerClass\":\"flex items-center gap-2 text-text-primary\",\"hasTextPrimary\":true,\"hasWarning\":false,\"hasError\":false}"
+    ]
+  },
+  "s25": {
+    "status": "PARTIAL",
+    "notes": [
+      "Current section: Section 1 of 2",
+      "PARTIAL: Could not reach review screen to submit Section 1 and test lock indicator"
+    ],
+    "evidence": []
+  },
+  "s26": {
+    "status": "PASS",
+    "notes": [
+      "Math content found and rendered by MathJax/KaTeX"
+    ],
+    "evidence": [
+      "Q1 DOM: hasMathJax=true, hasRawLatex=false, mathCount=4",
+      "Q1 text: Question 1Find lim𝑥→3⁡𝑥2−9𝑥−3.A0B3C6DDNE⚐Flag for Review",
+      "Math rendering: {\"mjxContainerCount\":4,\"mathElementCount\":0,\"svgMathCount\":0,\"rawLatexFound\":[],\"katexElements\":0}",
+      "Question texts: [{\"num\":\"1\",\"text\":\"\",\"rawLatex\":false,\"katex\":false,\"mjx\":true}]"
+    ]
+  },
+  "consoleErrors": []
+}

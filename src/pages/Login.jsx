@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Button } from '../components/ui'
 
 const Login = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, user, signInWithGoogle } = useAuth()
-  
+
+  // Determine where to redirect after login (from PrivateRoute state or default /)
+  const redirectTo = location.state?.from || '/'
+
   // Auto-redirect when user becomes authenticated
   useEffect(() => {
     if (user) {
-      navigate('/')
+      navigate(redirectTo, { replace: true })
     }
-  }, [user, navigate])
+  }, [user, navigate, redirectTo])
   const [formState, setFormState] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,7 +33,7 @@ const Login = () => {
     setIsSubmitting(true)
     try {
       await login(formState.email, formState.password)
-      navigate('/')
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       setError(err.message ?? 'Unable to sign you in.')
     } finally {

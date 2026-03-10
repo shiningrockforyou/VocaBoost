@@ -1,4 +1,4 @@
-import { Route } from 'react-router-dom'
+import { Route, Outlet } from 'react-router-dom'
 import APDashboard from './pages/APDashboard'
 import APTestSession from './pages/APTestSession'
 import APReportCard from './pages/APReportCard'
@@ -9,10 +9,25 @@ import APQuestionBank from './pages/APQuestionBank'
 import APQuestionEditor from './pages/APQuestionEditor'
 import APAssignTest from './pages/APAssignTest'
 import APExamAnalytics from './pages/APExamAnalytics'
+import APClassManager from './pages/APClassManager'
+import APStudentProfile from './pages/APStudentProfile'
 import PrivateRoute from '../components/PrivateRoute'
+import TeacherRoute from './components/TeacherRoute'
+import APMathProvider from './components/APMathProvider'
+
+/**
+ * Layout wrapper that provides MathJax context to all AP routes
+ */
+function APLayout() {
+  return (
+    <APMathProvider>
+      <Outlet />
+    </APMathProvider>
+  )
+}
 
 export const apBoostRoutes = (
-  <>
+  <Route element={<APLayout />}>
     {/* Student Routes */}
     <Route
       path="/ap"
@@ -52,7 +67,19 @@ export const apBoostRoutes = (
       path="/ap/teacher"
       element={
         <PrivateRoute>
-          <APTeacherDashboard />
+          <TeacherRoute>
+            <APTeacherDashboard />
+          </TeacherRoute>
+        </PrivateRoute>
+      }
+    />
+    <Route
+      path="/ap/teacher/test/new"
+      element={
+        <PrivateRoute>
+          <TeacherRoute>
+            <APTestEditor />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -60,7 +87,9 @@ export const apBoostRoutes = (
       path="/ap/teacher/test/:testId/edit"
       element={
         <PrivateRoute>
-          <APTestEditor />
+          <TeacherRoute>
+            <APTestEditor />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -68,7 +97,9 @@ export const apBoostRoutes = (
       path="/ap/teacher/test/:testId/assign"
       element={
         <PrivateRoute>
-          <APAssignTest />
+          <TeacherRoute>
+            <APAssignTest />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -76,7 +107,9 @@ export const apBoostRoutes = (
       path="/ap/teacher/questions"
       element={
         <PrivateRoute>
-          <APQuestionBank />
+          <TeacherRoute>
+            <APQuestionBank />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -84,7 +117,9 @@ export const apBoostRoutes = (
       path="/ap/teacher/question/:questionId/edit"
       element={
         <PrivateRoute>
-          <APQuestionEditor />
+          <TeacherRoute>
+            <APQuestionEditor />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -92,7 +127,9 @@ export const apBoostRoutes = (
       path="/ap/gradebook"
       element={
         <PrivateRoute>
-          <APGradebook />
+          <TeacherRoute>
+            <APGradebook />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
@@ -100,9 +137,31 @@ export const apBoostRoutes = (
       path="/ap/teacher/analytics/:testId"
       element={
         <PrivateRoute>
-          <APExamAnalytics />
+          <TeacherRoute>
+            <APExamAnalytics />
+          </TeacherRoute>
         </PrivateRoute>
       }
     />
-  </>
+    <Route
+      path="/ap/teacher/classes"
+      element={
+        <PrivateRoute>
+          <TeacherRoute>
+            <APClassManager />
+          </TeacherRoute>
+        </PrivateRoute>
+      }
+    />
+    <Route
+      path="/ap/teacher/student/:userId"
+      element={
+        <PrivateRoute>
+          <TeacherRoute>
+            <APStudentProfile />
+          </TeacherRoute>
+        </PrivateRoute>
+      }
+    />
+  </Route>
 )

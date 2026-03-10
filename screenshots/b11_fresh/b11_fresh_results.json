@@ -1,0 +1,319 @@
+{
+  "timestamp": "2026-03-09T10:47:06.198Z",
+  "login": "PASS",
+  "x01": {
+    "status": "PASS",
+    "violations": {
+      "Student Dashboard": [],
+      "Teacher Dashboard": [],
+      "Gradebook": [],
+      "Class Manager": [],
+      "Analytics": [],
+      "Question Bank": [],
+      "Report Card": [],
+      "Test Editor": []
+    }
+  },
+  "x02": {
+    "status": "PASS",
+    "responsive": {
+      "mobile_375": {
+        "Student Dashboard": {
+          "viewportWidth": 375,
+          "bodyScrollWidth": 375,
+          "htmlScrollWidth": 375,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Teacher Dashboard": {
+          "viewportWidth": 375,
+          "bodyScrollWidth": 375,
+          "htmlScrollWidth": 375,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Gradebook": {
+          "viewportWidth": 375,
+          "bodyScrollWidth": 375,
+          "htmlScrollWidth": 375,
+          "hasOverflow": false,
+          "overflowingElements": [
+            {
+              "tag": "table",
+              "classes": "w-full",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "thead",
+              "classes": "",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "tr",
+              "classes": "border-b border-border-default bg-muted",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "th",
+              "classes": "text-left py-3 px-4 text-text-secondary",
+              "right": 489,
+              "left": 366,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "th",
+              "classes": "text-right py-3 px-4 text-text-secondary",
+              "right": 591,
+              "left": 489,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "tbody",
+              "classes": "",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "tr",
+              "classes": "border-b border-border-muted hover:bg-hover transition-colors",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "td",
+              "classes": "py-3 px-4",
+              "right": 489,
+              "left": 366,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "span",
+              "classes": "inline-flex items-center gap-1 px-2",
+              "right": 473,
+              "left": 382,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "span",
+              "classes": "",
+              "right": 409,
+              "left": 390,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "td",
+              "classes": "py-3 px-4 text-right",
+              "right": 591,
+              "left": 489,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "button",
+              "classes": "px-4 py-1 rounded-[--radius-button] bg-brand-primary",
+              "right": 575,
+              "left": 505,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "tr",
+              "classes": "border-b border-border-muted hover:bg-hover transition-colors",
+              "right": 591,
+              "left": 16,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "td",
+              "classes": "py-3 px-4",
+              "right": 489,
+              "left": 366,
+              "viewportWidth": 375
+            },
+            {
+              "tag": "span",
+              "classes": "inline-flex items-center gap-1 px-2",
+              "right": 473,
+              "left": 382,
+              "viewportWidth": 375
+            }
+          ],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 575,
+              "clientWidth": 343,
+              "isScrollable": true,
+              "tableCount": 1
+            }
+          ]
+        },
+        "Class Manager": {
+          "viewportWidth": 375,
+          "bodyScrollWidth": 375,
+          "htmlScrollWidth": 375,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Report Card": {
+          "viewportWidth": 375,
+          "bodyScrollWidth": 375,
+          "htmlScrollWidth": 375,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 295,
+              "clientWidth": 295,
+              "isScrollable": false,
+              "tableCount": 1
+            }
+          ]
+        }
+      },
+      "tablet_768": {
+        "Student Dashboard": {
+          "viewportWidth": 768,
+          "bodyScrollWidth": 768,
+          "htmlScrollWidth": 768,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Teacher Dashboard": {
+          "viewportWidth": 768,
+          "bodyScrollWidth": 768,
+          "htmlScrollWidth": 768,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Gradebook": {
+          "viewportWidth": 768,
+          "bodyScrollWidth": 768,
+          "htmlScrollWidth": 768,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 736,
+              "clientWidth": 736,
+              "isScrollable": false,
+              "tableCount": 1
+            }
+          ]
+        },
+        "Class Manager": {
+          "viewportWidth": 768,
+          "bodyScrollWidth": 768,
+          "htmlScrollWidth": 768,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Report Card": {
+          "viewportWidth": 768,
+          "bodyScrollWidth": 768,
+          "htmlScrollWidth": 768,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 688,
+              "clientWidth": 688,
+              "isScrollable": false,
+              "tableCount": 1
+            }
+          ]
+        }
+      },
+      "desktop_1440": {
+        "Student Dashboard": {
+          "viewportWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "htmlScrollWidth": 1440,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Teacher Dashboard": {
+          "viewportWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "htmlScrollWidth": 1440,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Gradebook": {
+          "viewportWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "htmlScrollWidth": 1440,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 1120,
+              "clientWidth": 1120,
+              "isScrollable": false,
+              "tableCount": 1
+            }
+          ]
+        },
+        "Class Manager": {
+          "viewportWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "htmlScrollWidth": 1440,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": []
+        },
+        "Report Card": {
+          "viewportWidth": 1440,
+          "bodyScrollWidth": 1440,
+          "htmlScrollWidth": 1440,
+          "hasOverflow": false,
+          "overflowingElements": [],
+          "tableScrollInfo": [
+            {
+              "containerClasses": "overflow-x-auto",
+              "scrollWidth": 816,
+              "clientWidth": 816,
+              "isScrollable": false,
+              "tableCount": 1
+            }
+          ]
+        }
+      }
+    }
+  },
+  "x03": {
+    "status": "FAIL",
+    "consoleMessages": [
+      {
+        "type": "warning",
+        "text": "[2026-03-09T10:47:09.779Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x1485768b transport errored. Name: undefined Message: undefined",
+        "url": "http://localhost:5173/login",
+        "timestamp": "2026-03-09T10:47:09.780Z"
+      },
+      {
+        "type": "error",
+        "text": "[2026-03-09T10:47:09.780Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+        "url": "http://localhost:5173/login",
+        "timestamp": "2026-03-09T10:47:09.780Z"
+      }
+    ]
+  }
+}

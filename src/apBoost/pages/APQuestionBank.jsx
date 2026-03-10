@@ -377,7 +377,7 @@ export default function APQuestionBank() {
   ]
 
   // Subject options
-  const subjectOptions = AP_SUBJECTS.map(s => ({ value: s.id, label: s.name }))
+  const subjectOptions = Object.values(AP_SUBJECTS).map(s => ({ value: s.id, label: s.name }))
 
   // Domain options
   const domainOptions = domains.map(d => ({ value: d, label: d }))

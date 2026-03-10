@@ -17,7 +17,7 @@ import SubmitProgressModal from '../components/SubmitProgressModal'
 import FRQHandwrittenMode from '../components/FRQHandwrittenMode'
 import { useTestSession } from '../hooks/useTestSession'
 import { useAnnotations } from '../hooks/useAnnotations'
-import { SESSION_STATUS, QUESTION_FORMAT, FRQ_SUBMISSION_TYPE } from '../utils/apTypes'
+import { SESSION_STATUS, QUESTION_FORMAT, FRQ_SUBMISSION_TYPE, SECTION_TYPE, QUESTION_TYPE } from '../utils/apTypes'
 
 /**
  * Loading skeleton for test session
@@ -92,6 +92,7 @@ function APTestSessionInner() {
     // Resilience
     isConnected,
     isSyncing,
+    isStorageFull,
     queueLength,
     isInvalidated,
     takeControl,
@@ -164,13 +165,6 @@ function APTestSessionInner() {
     clearAllAnnotations()
   }, [clearAllAnnotations])
 
-  // Determine if we should show instruction or resume
-  useEffect(() => {
-    if (session && status === SESSION_STATUS.IN_PROGRESS) {
-      setView('testing')
-    }
-  }, [session, status])
-
   // Navigate to results when timer auto-submit completes
   useEffect(() => {
     if (autoSubmitTriggered && autoSubmitResultId) {
@@ -179,10 +173,12 @@ function APTestSessionInner() {
   }, [autoSubmitTriggered, autoSubmitResultId, navigate])
 
   // Check if current section is FRQ and show choice modal
-  const isFRQSection = currentSection?.type === 'frq' || currentSection?.isFRQ
+  const isFRQSection = currentSection?.sectionType === SECTION_TYPE.FRQ || currentSection?.sectionType === SECTION_TYPE.MIXED
   const frqQuestions = test?.questions
     ? Object.fromEntries(
-        Object.entries(test.questions).filter(([_, q]) => q.type === 'frq')
+        Object.entries(test.questions).filter(([_, q]) =>
+          [QUESTION_TYPE.FRQ, QUESTION_TYPE.SAQ, QUESTION_TYPE.DBQ].includes(q.questionType)
+        )
       )
     : {}
 
@@ -206,6 +202,12 @@ function APTestSessionInner() {
 
   // Handle return from review
   const handleReturnFromReview = () => {
+    setView('testing')
+  }
+
+  // Handle section submission (non-final sections only)
+  const handleSubmitSection = async () => {
+    await submitSection()
     setView('testing')
   }
 
@@ -236,6 +238,7 @@ function APTestSessionInner() {
     if (type === FRQ_SUBMISSION_TYPE.HANDWRITTEN) {
       setView('frqHandwritten')
     } else {
+      goToQuestion(0)
       setView('testing')
     }
   }
@@ -313,7 +316,7 @@ function APTestSessionInner() {
     return (
       <div className="min-h-screen bg-base">
         <APHeader />
-        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} />
+        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} isStorageFull={isStorageFull} />
         <div className="max-w-2xl mx-auto px-4 py-12">
           <div className="bg-surface rounded-[--radius-card] border border-border-default p-6">
             <h2 className="text-xl font-bold text-text-primary text-center mb-2">
@@ -369,7 +372,14 @@ function APTestSessionInner() {
     return (
       <div className="min-h-screen bg-base">
         <APHeader />
-        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} />
+        <SubmitProgressModal
+          isVisible={isSubmitting}
+          queueLength={queueLength}
+          isSyncing={isSyncing}
+          isTimedOut={isSubmitTimedOut}
+          onRetry={handleRetry}
+        />
+        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} isStorageFull={isStorageFull} />
         <div className="max-w-2xl mx-auto px-4 py-8">
           <FRQHandwrittenMode
             test={test}
@@ -397,13 +407,20 @@ function APTestSessionInner() {
     return (
       <div className="min-h-screen bg-base">
         <APHeader />
-        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} />
+        <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} isStorageFull={isStorageFull} />
         {isInvalidated && (
           <DuplicateTabModal
             onTakeControl={handleTakeControl}
             onGoToDashboard={handleGoToDashboard}
           />
         )}
+        <SubmitProgressModal
+          isVisible={isSubmitting}
+          queueLength={queueLength}
+          isSyncing={isSyncing}
+          isTimedOut={isSubmitTimedOut}
+          onRetry={handleRetry}
+        />
         <ReviewScreen
           section={currentSection}
           questions={sectionQuestions}
@@ -413,7 +430,7 @@ function APTestSessionInner() {
             goToQuestion(idx)
             setView('testing')
           }}
-          onSubmit={handleSubmit}
+          onSubmit={position.sectionIndex === (test?.sections?.length || 1) - 1 ? handleSubmit : handleSubmitSection}
           onCancel={handleReturnFromReview}
           isSubmitting={isSubmitting}
           isFinalSection={position.sectionIndex === (test?.sections?.length || 1) - 1}
@@ -428,7 +445,7 @@ function APTestSessionInner() {
   return (
     <div className="min-h-screen bg-base flex flex-col">
       {/* Connection status banner */}
-      <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} />
+      <ConnectionStatus isConnected={isConnected} isSyncing={isSyncing} isStorageFull={isStorageFull} />
 
       {/* Duplicate tab modal */}
       {isInvalidated && (
@@ -485,15 +502,6 @@ function APTestSessionInner() {
         onExit={handleCancel}
       />
 
-      {/* Submit progress modal */}
-      <SubmitProgressModal
-        isVisible={isSubmitting}
-        queueLength={queueLength}
-        isSyncing={isSyncing}
-        isTimedOut={isSubmitTimedOut}
-        onRetry={handleRetry}
-      />
-
       {/* Question content */}
       <main className="flex-1 overflow-auto p-4">
         <div className="max-w-4xl mx-auto">
@@ -547,7 +555,7 @@ function APTestSessionInner() {
               disabled={isInvalidated}
               className={`flex items-center gap-2 px-3 py-2 rounded-[--radius-button] text-sm transition-colors ${
                 flags.has(currentQuestion?.id)
-                  ? 'bg-warning text-warning-text-strong'
+                  ? 'bg-warning text-warning-text-strong border-2 border-warning-text-strong font-semibold'
                   : 'bg-surface text-text-secondary border border-border-default hover:bg-hover'
               } ${isInvalidated ? 'opacity-50 cursor-not-allowed' : ''}`}
             >

@@ -1,0 +1,321 @@
+{
+  "loginSuccess": true,
+  "gradingPanelDetails": {
+    "selectOptions": [
+      {
+        "name": "unnamed",
+        "value": "pending",
+        "options": [
+          {
+            "value": "pending",
+            "text": "Pending"
+          },
+          {
+            "value": "IN_PROGRESS",
+            "text": "In Progress"
+          },
+          {
+            "value": "COMPLETE",
+            "text": "Complete"
+          },
+          {
+            "value": "all",
+            "text": "All"
+          }
+        ]
+      },
+      {
+        "name": "unnamed",
+        "value": "all",
+        "options": [
+          {
+            "value": "all",
+            "text": "All Tests"
+          }
+        ]
+      },
+      {
+        "name": "unnamed",
+        "value": "all",
+        "options": [
+          {
+            "value": "all",
+            "text": "All Classes"
+          }
+        ]
+      }
+    ],
+    "panelHTML": "\n    <div id=\"root\"><div class=\"min-h-screen bg-base\"><header class=\"bg-surface border-b border-border-default px-4 py-3\"><div class=\"max-w-6xl mx-auto flex items-center justify-between\"><a class=\"flex items-center gap-3\" href=\"/ap\" data-discover=\"true\"><img alt=\"AP Logo\" class=\"h-8 w-auto\" src=\"/apBoost/ap_logo.png\"><span class=\"text-lg font-semibold text-text-primary\">AP Practice</span></a><div class=\"flex items-center gap-4\"><span class=\"text-text-secondary text-sm hidden sm:inline\">Ms. Thompson</span><a class=\"text-text-muted text-sm hover:text-text-secondary transition-colors\" href=\"/\" data-discover=\"true\">VocaBoost</a></div></div></header><main class=\"max-w-6xl mx-auto px-4 py-8\"><div class=\"mb-6\"><h1 class=\"text-2xl font-bold text-text-primary mb-2\">Gradebook</h1><p class=\"text-text-secondary\">Review and grade student FRQ submissions</p></div><div class=\"bg-surface rounded-[--radius-card] shadow-theme-sm p-4 mb-6\"><div class=\"flex flex-wrap items-center gap-4\"><div class=\"flex items-center gap-2\"><label class=\"text-text-secondary text-sm\">Status:</label><select class=\"px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary\"><option value=\"pending\">Pending</option><option value=\"IN_PROGRESS\">In Progress</option><option value=\"COMPLETE\">Complete</option><option value=\"all\">All</option></select></div><div class=\"flex items-center gap-2\"><label class=\"text-text-secondary text-sm\">Test:</label><select class=\"px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary\"><option value=\"all\">All Tests</option></select></div><div class=\"flex items-center gap-2\"><label class=\"text-text-secondary text-sm\">Class:</label><select class=\"px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring",
+    "inputs": [],
+    "scrollablePanels": [
+      {
+        "tag": "DIV",
+        "class": "flex-1 overflow-auto p-6",
+        "scrollHeight": 744,
+        "clientHeight": 744,
+        "innerText": "Total FRQ Score:\n0 / 20"
+      }
+    ]
+  },
+  "t05Details": {
+    "pageTextWithPanel": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nMaria Garcia\tAP Calculus AB Practice Exam\t2026. 3. 7.\t\n✏️\nIn Progress\tGrade\nAlex Johnson\tAP Calculus AB Practice Exam\t2026. 3. 6.\t\n⏳\nPending\tGrade\nEthan Williams\tAP Microeconomics Practice Exam\t2026. 2. 27.\t\n⏳\nPending\tGrade\nShowing 3 submissions\nGrading: Maria Garcia\n\nAP Calculus AB Practice Exam\n\n✕\nTotal FRQ Score:\n0 / 20\nSave Draft\nMark Complete",
+    "panelInnerText": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nMaria Garcia\tAP Calculus AB Practice Exam\t2026. 3. 7.\t\n✏️\nIn Progress\tGrade\nAlex Johnson\tAP Calculus AB Practice Exam\t2026. 3. 6.\t\n⏳\nPending\tGrade\nEthan Williams\tAP Microeconomics Practice Exam\t2026. 2. 27.\t\n⏳\nPending\tGrade\nShowing 3 submissions\nGrading: Maria Garcia\n\nAP Calculus AB Practice Exam\n\n✕\nTotal FRQ Score:\n0 / 20\nSave Draft\nMark Complete",
+    "saveDraftVisible": true,
+    "textAfterSave": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nUnknown Student\tAP Calculus AB Practice Exam\t2026. 3. 7.\t\n✏️\nIn Progress\tGrade\nUnknown Student\tAP Calculus AB Practice Exam\t2026. 3. 6.\t\n⏳\nPending\tGrade\nUnknown Student\tAP Microeconomics Practice Exam\t2026. 2. 27.\t\n⏳\nPending\tGrade\nShowing 3 submissions\nGrading: Maria Garcia\n\nAP Calculus AB Practice Exam\n\n✕\nTotal FRQ Score:\n0 / 20\nSave Draft\nMark Complete",
+    "statusChangedToInProgress": true
+  },
+  "t06Details": {
+    "inProgressFilterText": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nMaria Garcia\tAP Calculus AB Practice Exam\t2026. 3. 7.\t\n✏️\nIn Progress\tGrade\nShowing 1 submission",
+    "inProgressRowVisible": true,
+    "markCompleteVisible": true,
+    "textAfterComplete": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\n\nNo submissions found matching your filters.",
+    "completeStatusShown": true,
+    "viewButtonCount": 0
+  },
+  "t07Details": {
+    "pageText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n10\nAverage Score\n70%\n0 pts\nHighest Score\n0 pts\nLowest Score\n0 pts\nAP Score Distribution\n5\n2 (20%)\n4\n3 (30%)\n3\n3 (30%)\n2\n2 (20%)\n1\n0 (0%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\n\nNo MCQ performance data available\n\nStudent Results (10 students)\nName ↑\tEmail\tMCQ\tFRQ\tTotal\tAP Score\tActions\nAlex Johnson\talex.j@school.edu\t13/15\t15/18\t85%\t5\t\n\nAlex Johnson\talex.j@school.edu\t11/15\t15/18\t79%\t4\t\n\nEthan Williams\tethan.w@school.edu\t15/15\t16/18\t94%\t5\t\n\nEthan Williams\tethan.w@school.edu\t12/15\t13/18\t76%\t4\t\n\nJames Chen\tjames.c@school.edu\t10/15\t10/18\t61%\t3\t\n\nJames Chen\tjames.c@school.edu\t10/15\t11/18\t64%\t3\t\n\nMaria Garcia\tmaria.g@school.edu\t13/15\t13/18\t79%\t4\t\n\nMaria Garcia\tmaria.g@school.edu\t8/15\t13/18\t64%\t3\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t6/15\t9/18\t45%\t2\t\nShowing 10 students",
+    "checks": {
+      "heading": true,
+      "testTitle": true,
+      "exportQuestions": true,
+      "exportAnswers": true,
+      "backButton": true,
+      "totalStudents": true,
+      "avgScore": true,
+      "highScore": true,
+      "lowScore": true,
+      "apScoreDistribution": true,
+      "mcqSection": true,
+      "gridToggle": true,
+      "studentResultsTable": true
+    },
+    "buttons": [
+      "Export Questions PDF",
+      "Export with Answers",
+      "← Back",
+      "Select classes...▼",
+      "Select students...▼",
+      "Apply Filters",
+      "Grid",
+      "Detailed",
+      "Alex Johnson",
+      "Alex Johnson",
+      "Ethan Williams",
+      "Ethan Williams",
+      "James Chen",
+      "James Chen",
+      "Maria Garcia",
+      "Maria Garcia",
+      "Priya Patel",
+      "Priya Patel"
+    ],
+    "links": [
+      {
+        "href": "http://localhost:5173/ap",
+        "text": "AP Practice"
+      },
+      {
+        "href": "http://localhost:5173/",
+        "text": "VocaBoost"
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student1",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student_seed_001",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student5",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student_seed_005",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student3",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student_seed_003",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student2",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student_seed_002",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student4",
+        "text": ""
+      },
+      {
+        "href": "http://localhost:5173/ap/results/result_micro_student_seed_004",
+        "text": ""
+      }
+    ],
+    "questionModalText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nSelect All\nClear\nNo options available\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n10\nAverage Score\n70%\n0 pts\nHighest Score\n0 pts\nLowest Score\n0 pts\nAP Score Distribution\n5\n2 (20%)\n4\n3 (30%)\n3\n3 (30%)\n2\n2 (20%)\n1\n0 (0%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\n\nNo MCQ performance data available\n\nStudent ",
+    "bottomText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nSelect All\nClear\nNo options available\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n10\nAverage Score\n70%\n0 pts\nHighest Score\n0 pts\nLowest Score\n0 pts\nAP Score Distribution\n5\n2 (20%)\n4\n3 (30%)\n3\n3 (30%)\n2\n2 (20%)\n1\n0 (0%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\n\nNo MCQ performance data available\n\nStudent Results (10 students)\nName ↑\tEmail\tMCQ\tFRQ\tTotal\tAP Score\tActions\nAlex Johnson\talex.j@school.edu\t13/15\t15/18\t85%\t5\t\n\nAlex Johnson\talex.j@school.edu\t11/15\t15/18\t79%\t4\t\n\nEthan Williams\tethan.w@school.edu\t15/15\t16/18\t94%\t5\t\n\nEthan Williams\tethan.w@school.edu\t12/15\t13/18\t76%\t4\t\n\nJames Chen\tjames.c@school.edu\t10/15\t10/18\t61%\t3\t\n\nJames Chen\tjames.c@school.edu\t10/15\t11/18\t64%\t3\t\n\nMaria Garcia\tmaria.g@school.edu\t13/15\t13/18\t79%\t4\t\n\nMaria Garcia\tmaria.g@school.edu\t8/15\t13/18\t64%\t3\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t6/15\t9/18\t45%\t2\t\nShowing 10 students"
+  },
+  "t08Details": {
+    "studentCellCount": 10,
+    "urlAfterClick": "http://localhost:5173/ap/teacher/analytics/test_micro_full_1",
+    "profileText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n10\nAverage Score\n70%\n0 pts\nHighest Score\n0 pts\nLowest Score\n0 pts\nAP Score Distribution\n5\n2 (20%)\n4\n3 (30%)\n3\n3 (30%)\n2\n2 (20%)\n1\n0 (0%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\n\nNo MCQ performance data available\n\nStudent Results (10 students)\nName ↑\tEmail\tMCQ\tFRQ\tTotal\tAP Score\tActions\nAlex Johnson\talex.j@school.edu\t13/15\t15/18\t85%\t5\t\n\nAlex Johnson\talex.j@school.edu\t11/15\t15/18\t79%\t4\t\n\nEthan Williams\tethan.w@school.edu\t15/15\t16/18\t94%\t5\t\n\nEthan Williams\tethan.w@school.edu\t12/15\t13/18\t76%\t4\t\n\nJames Chen\tjames.c@school.edu\t10/15\t10/18\t61%\t3\t\n\nJames Chen\tjames.c@school.edu\t10/15\t11/18\t64%\t3\t\n\nMaria Garcia\tmaria.g@school.edu\t13/15\t13/18\t79%\t4\t\n\nMaria Garcia\tmaria.g@school.edu\t8/15\t13/18\t64%\t3\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t6/15\t9/18\t45%\t2\t\nShowing 10 students",
+    "navigatedToProfile": false
+  },
+  "t09Details": {
+    "allButtons": [
+      {
+        "text": "Export Questions PDF",
+        "class": "px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Export with Answers",
+        "class": "px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "← Back",
+        "class": "text-text-muted hover:text-text-primary",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Select classes...▼",
+        "class": "w-full px-3 py-2 rounded-[--radius-input] border border-border-default bg-surfac",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Select students...▼",
+        "class": "w-full px-3 py-2 rounded-[--radius-input] border border-border-default bg-surfac",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Apply Filters",
+        "class": "px-4 py-2 bg-brand-primary text-white rounded-[--radius-button] font-medium hove",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Grid",
+        "class": "px-3 py-1 text-sm rounded-[--radius-button] bg-brand-primary text-white",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Detailed",
+        "class": "px-3 py-1 text-sm rounded-[--radius-button] bg-muted text-text-secondary hover:b",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Alex Johnson",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Alex Johnson",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Ethan Williams",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Ethan Williams",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "James Chen",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "James Chen",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Maria Garcia",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Maria Garcia",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Priya Patel",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Priya Patel",
+        "class": "text-brand-primary hover:underline text-left",
+        "disabled": false,
+        "onclick": "has onclick"
+      }
+    ],
+    "pdfButtons": [
+      {
+        "text": "Export Questions PDF",
+        "class": "px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-",
+        "disabled": false,
+        "onclick": "has onclick"
+      },
+      {
+        "text": "Export with Answers",
+        "class": "px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-",
+        "disabled": false,
+        "onclick": "has onclick"
+      }
+    ],
+    "Export Questions PDF": {
+      "clicked": true,
+      "hasErrors": false,
+      "errors": []
+    },
+    "Export with Answers": {
+      "clicked": true,
+      "hasErrors": false,
+      "errors": []
+    }
+  },
+  "consoleErrors": [
+    {
+      "type": "warning",
+      "text": "[2026-03-09T11:23:48.156Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x4c04514e transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/",
+      "timestamp": "2026-03-09T11:23:48.158Z"
+    },
+    {
+      "type": "error",
+      "text": "[2026-03-09T11:23:48.157Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Intern",
+      "url": "http://localhost:5173/",
+      "timestamp": "2026-03-09T11:23:48.160Z"
+    }
+  ]
+}

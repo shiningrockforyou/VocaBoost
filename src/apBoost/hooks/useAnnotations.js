@@ -2,7 +2,11 @@ import { useState, useCallback, useEffect } from 'react'
 import { logError } from '../utils/logError'
 
 /**
- * Highlight colors available
+ * Highlight colors available.
+ * These use literal Tailwind color classes intentionally — they represent
+ * physical highlighter pen colors (yellow marker, green marker, etc.) and
+ * do not map to semantic design tokens. This is a documented exception to
+ * the design-token-only rule per B11-001 audit (Option C — pragmatic exception).
  */
 export const HIGHLIGHT_COLORS = {
   yellow: 'bg-yellow-200',
@@ -34,6 +38,11 @@ export function useAnnotations(sessionId, addToQueue = null) {
 
   // Add a highlight to a question's text
   const addHighlight = useCallback((questionId, range, color = 'yellow') => {
+    // Validate range has required fields
+    if (!range || typeof range.start !== 'number' || typeof range.end !== 'number' || range.start >= range.end) {
+      return
+    }
+
     setHighlights(prev => {
       const next = new Map(prev)
       const existing = next.get(questionId) || []
@@ -252,6 +261,7 @@ export function useAnnotations(sessionId, addToQueue = null) {
     clearAllAnnotations,
     loadAnnotations,
     exportAnnotations,
+    saveAnnotations: exportAnnotations,
   }
 }
 

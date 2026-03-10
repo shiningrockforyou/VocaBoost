@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { COLLECTIONS } from '../utils/apTypes'
+import { logError } from '../utils/logError'
 import { getStimuliByIds } from './apStimuliService'
 
 /**
@@ -83,7 +84,7 @@ export async function getAvailableTests(userId, role) {
 
     return results
   } catch (error) {
-    console.error('Error fetching available tests:', error)
+    logError('apTestService.getAvailableTests', { userId }, error)
     throw error
   }
 }
@@ -135,7 +136,7 @@ export async function getTestWithQuestions(testId) {
 
     return test
   } catch (error) {
-    console.error('Error fetching test with questions:', error)
+    logError('apTestService.getTestWithQuestions', { testId }, error)
     throw error
   }
 }
@@ -153,7 +154,7 @@ export async function getTestMeta(testId) {
     }
     return { id: testDoc.id, ...testDoc.data() }
   } catch (error) {
-    console.error('Error fetching test meta:', error)
+    logError('apTestService.getTestMeta', { testId }, error)
     throw error
   }
 }
@@ -180,7 +181,7 @@ export async function getAssignment(testId, userId) {
     const doc = assignmentsSnap.docs[0]
     return { id: doc.id, ...doc.data() }
   } catch (error) {
-    console.error('Error fetching assignment:', error)
+    logError('apTestService.getAssignment', { testId, userId }, error)
     throw error
   }
 }
@@ -198,7 +199,7 @@ export async function getQuestion(questionId) {
     }
     return { id: questionDoc.id, ...questionDoc.data() }
   } catch (error) {
-    console.error('Error fetching question:', error)
+    logError('apTestService.getQuestion', { questionId }, error)
     throw error
   }
 }
@@ -214,7 +215,11 @@ export async function canAccessTest(testId, userId) {
   try {
     // Check if test is published (publicly available)
     const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, testId))
-    if (testDoc.exists() && testDoc.data().isPublished) {
+    if (!testDoc.exists()) {
+      return { allowed: false, reason: 'not_found' }
+    }
+
+    if (testDoc.data().isPublished) {
       return { allowed: true, reason: 'public' }
     }
 
@@ -226,7 +231,7 @@ export async function canAccessTest(testId, userId) {
 
     return { allowed: false, reason: 'unauthorized' }
   } catch (error) {
-    console.error('Error checking test access:', error)
+    logError('apTestService.canAccessTest', { testId, userId }, error)
     return { allowed: false, reason: 'error' }
   }
 }

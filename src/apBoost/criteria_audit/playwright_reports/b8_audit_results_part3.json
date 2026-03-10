@@ -1,0 +1,60 @@
+{
+  "t08": {
+    "buttonCount": 10,
+    "urlAfterButtonClick": "http://localhost:5173/ap/teacher/student/student_seed_001",
+    "navigated": true,
+    "profileText": "",
+    "hasTestHistory": false,
+    "hasDomainAnalysis": false,
+    "hasStudentName": false,
+    "returnedToAnalytics": true
+  },
+  "t07": {
+    "mcqSectionText": "Multiple Choice Performance\nGrid\nDetailed\n\nNo MCQ performance data available\n\n",
+    "noMCQDataMessage": true,
+    "gridHTML": "<div class=\"relative\"><label class=\"block text-text-secondary text-sm font-medium mb-1\">Classes</label><button class=\"w-full px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-left flex items-center justify-between hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-brand-primary\"><span class=\"text-text-muted\">Select classes...</span><span class=\"text-text-muted\">▼</span></button></div><div class=\"relative\"><label class=\"block text",
+    "filterSection": "Filters:\nClasses\nSelect classes...\n▼\nStudents\nSelect students...\n▼\nApply Filters\n",
+    "statsSection": "Total Students\n10\nAverage Score\n70%\n0 pts\nHighest Score\n0 pts\nLowest Score\n0 pts\n"
+  },
+  "t05": {
+    "panelHTML": "",
+    "numInputs": 0
+  },
+  "t06": {
+    "viewButtonCountWithAll": 11
+  },
+  "t09": {},
+  "consoleErrors": [
+    {
+      "type": "warning",
+      "text": "[2026-03-09T11:27:16.029Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x6ff69d89 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/"
+    },
+    {
+      "type": "error",
+      "text": "[2026-03-09T11:27:16.030Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Intern",
+      "url": "http://localhost:5173/"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APStudentProfile.load] {function: APStudentProfile.load, context: Object, type: unknown, message: The query requires an index. You can create it her…VySWQQARoPCgtjb21wbGV0ZWRBdBACGgwKCF9fbmFtZV9fEAI, code: failed-precondition}",
+      "url": "http://localhost:5173/ap/teacher/student/student_seed_001"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APStudentProfile.load] {function: APStudentProfile.load, context: Object, type: unknown, message: The query requires an index. You can create it her…VySWQQARoPCgtjb21wbGV0ZWRBdBACGgwKCF9fbmFtZV9fEAI, code: failed-precondition}",
+      "url": "http://localhost:5173/ap/teacher/student/student_seed_001"
+    },
+    {
+      "type": "error",
+      "text": "React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks\n\n   Previous render            Next render\n   ------------------------------------------------------\n%s",
+      "url": "http://localhost:5173/ap/teacher/student/student_seed_001"
+    },
+    {
+      "type": "warning",
+      "text": "%s\n\n%s\n An error occurred in the <APStudentProfile> component. Consider adding an error boundary to your tree to customize error handling behavior.\nVisit https://react.dev/link/error-boundaries to learn more about error boundaries.",
+      "url": "http://localhost:5173/ap/teacher/student/student_seed_001"
+    }
+  ],
+  "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"View\")').first()\u001b[22m\n\u001b[2m    - locator resolved to <button class=\"px-4 py-1 rounded-[--radius-button] border border-border-default text-text-secondary text-sm hover:bg-hover\">View</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex-1 overflow-auto p-6\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"flex-1 overflow-auto p-6\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"flex items-center justify-between\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  14 × retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"flex-1 overflow-auto p-6\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"flex-1 overflow-auto p-6\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"flex items-center justify-between\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m       - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"flex items-center justify-between\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div class=\"flex-1 overflow-auto p-6\">…</div> from <div class=\"fixed inset-y-0 right-0 w-full max-w-2xl bg-surface shadow-theme-xl z-50 flex flex-col\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+}

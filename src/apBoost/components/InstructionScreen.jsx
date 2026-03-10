@@ -1,5 +1,5 @@
 import { getSubjectConfig, formatTimeMinutes, calculateTotalTime } from '../utils/apTestConfig'
-import { SESSION_STATUS } from '../utils/apTypes'
+import { SESSION_STATUS, SECTION_TYPE, FRQ_SUBMISSION_TYPE } from '../utils/apTypes'
 
 /**
  * InstructionScreen - Displayed before test starts
@@ -17,6 +17,8 @@ export default function InstructionScreen({
   const subjectConfig = getSubjectConfig(test.subject)
   const totalTime = calculateTotalTime(test.sections || [])
   const isResuming = existingSession?.status === SESSION_STATUS.IN_PROGRESS
+  const hasFRQ = test.sections?.some(s => s.sectionType === SECTION_TYPE.FRQ || s.sectionType === SECTION_TYPE.MIXED)
+  const frqSubmissionType = test.frqSubmissionType || FRQ_SUBMISSION_TYPE.TYPED
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -53,6 +55,18 @@ export default function InstructionScreen({
             Total time: {formatTimeMinutes(totalTime)}
           </p>
         </div>
+
+        {/* FRQ mode info */}
+        {hasFRQ && (
+          <div className="bg-info rounded-[--radius-alert] p-4 mb-6">
+            <h3 className="text-info-text-strong text-sm font-medium mb-1">Free Response Section</h3>
+            <p className="text-info-text text-sm">
+              {frqSubmissionType === FRQ_SUBMISSION_TYPE.HANDWRITTEN
+                ? 'You will upload photos of your handwritten responses. Have paper and a camera ready.'
+                : 'You will type your responses directly in the test interface.'}
+            </p>
+          </div>
+        )}
 
         {/* Warnings */}
         <div className="bg-warning rounded-[--radius-alert] p-4 mb-6">

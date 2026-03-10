@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf'
+import { loadLogoForPdf } from './pdfLogo'
 
 /**
  * Generate printable PDF answer sheet for handwritten FRQ responses
@@ -60,6 +61,12 @@ export async function generateAnswerSheetPdf(test, student, frqQuestions) {
   }
 
   // ===== PAGE 1: Header =====
+
+  // Logo
+  const logo = await loadLogoForPdf()
+  if (logo) {
+    doc.addImage(logo, 'PNG', margin, yPos - 5, 12, 12)
+  }
 
   // Title
   doc.setFontSize(18)

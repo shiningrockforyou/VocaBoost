@@ -1,0 +1,159 @@
+{
+  "login": "PASS",
+  "T-10": {
+    "status": "PASS",
+    "details": "Class manager at http://localhost:5173/ap/teacher/classes. Classes: Econ=true, Calc=true. Create: true. Students: visible=false, email-add=false, remove=false",
+    "headings": [
+      "Manage Classes",
+      "Your Classes (2)"
+    ],
+    "hasEcon": true,
+    "hasCalc": true,
+    "createBtnCount": 1,
+    "studentListVisible": false,
+    "emailInputs": 0,
+    "removeButtons": 0,
+    "clickedClass": false
+  },
+  "T-11": {
+    "status": "PASS",
+    "details": "Developer Tools + Seed button both present at /ap/teacher"
+  },
+  "T-12": {
+    "status": "PASS",
+    "details": "Editor at http://localhost:5173/ap/teacher/test/test_micro_full_1/edit. Title=\"AP Microeconomics Practice Exam\", selects=3, sections=2, MCQ=0, FRQ=0. Reorder Up/Down: 19/19. Save/Publish: 1/1",
+    "headings": [
+      "Edit Test",
+      "Sections",
+      "Score Ranges"
+    ],
+    "titleValue": "AP Microeconomics Practice Exam",
+    "subjectSelects": 3,
+    "sectionText": 2,
+    "mcqTexts": 0,
+    "frqTexts": 0,
+    "moveUpBtns": 19,
+    "moveDownBtns": 19,
+    "saveDraft": 1,
+    "publishBtn": 1
+  },
+  "T-13": {
+    "status": "PASS",
+    "details": "New test editor at http://localhost:5173/ap/teacher/test/new. Inputs: 11, selects: 1, section btns: 1",
+    "headings": [
+      "Create New Test",
+      "Sections",
+      "Score Ranges"
+    ],
+    "inputDetails": [
+      {
+        "val": "",
+        "placeholder": "Enter test name...",
+        "type": "text"
+      },
+      {
+        "val": "80",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "100",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "65",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "79",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "50",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "64",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "35",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "49",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "0",
+        "placeholder": null,
+        "type": "number"
+      },
+      {
+        "val": "34",
+        "placeholder": null,
+        "type": "number"
+      }
+    ],
+    "subjectSelects": 1,
+    "addSectionBtns": 1,
+    "finalUrl": "http://localhost:5173/ap/teacher/test/new"
+  },
+  "T-14": {
+    "status": "PASS",
+    "details": "Questions: MCQ=46, FRQ=6, rows=0. Filters: 4 selects, 1 search. Create: true. Preview: 51. Nav: true",
+    "headings": [
+      "Question Bank"
+    ],
+    "mcqCount": 46,
+    "frqCount": 6,
+    "tbodyTrCount": 0,
+    "allSelects": 4,
+    "searchInput": 1,
+    "createLinks": 1,
+    "createBtns": 1,
+    "previewBtns": 51,
+    "editLinks": 52,
+    "filterChanged": false,
+    "questionEditNavWorks": true
+  },
+  "T-15": {
+    "status": "PASS",
+    "details": "Assign page at http://localhost:5173/ap/teacher/test/test_micro_full_1/assign. Test: true, Classes: true, Due: true, Attempts: true, FRQ mode: false. Form: 2 checkboxes, 1 date, 1 selects, 1 submit. MaxAttempts default: null",
+    "headings": [
+      "Assign Test: AP Microeconomics Practice Exam",
+      "Select Classes",
+      "Settings"
+    ],
+    "hasTestTitle": true,
+    "hasClassSection": true,
+    "hasDueDate": true,
+    "hasAttempts": true,
+    "hasFrqMode": false,
+    "checkboxes": 2,
+    "dateInputs": 1,
+    "allSelects": 1,
+    "submitBtns": 1,
+    "defaultMaxAttempts": null,
+    "assignBtnDisabled": false
+  },
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "[APBoost:apQuestionService.searchQuestions] {function: apQuestionService.searchQuestions, context: Object, type: unknown, message: The query requires an index. You can create it her…WJqZWN0EAEaDQoJY3J",
+      "url": "http://localhost:5173/ap/teacher/questions"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APQuestionBank.loadQuestions] {function: APQuestionBank.loadQuestions, context: Object, type: unknown, message: The query requires an index. You can create it her…WJqZWN0EAEaDQoJY3JlYXRlZEF0E",
+      "url": "http://localhost:5173/ap/teacher/questions"
+    }
+  ]
+}

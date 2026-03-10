@@ -1,0 +1,67 @@
+{
+  "loginSuccess": true,
+  "scenarios": {
+    "T05": {
+      "status": "PASS",
+      "notes": [
+        "Gradebook heading found: true",
+        "Status filter value: pending",
+        "Grade buttons found: 3",
+        "Grading panel opened: true",
+        "Score summary bar: true",
+        "Student responses shown: false",
+        "Score input fields: 0",
+        "Feedback textarea: false",
+        "Save Draft button: true",
+        "Saving feedback: false",
+        "Status changed to In Progress: true"
+      ],
+      "findings": []
+    },
+    "T06": {
+      "status": "PENDING",
+      "notes": [],
+      "findings": []
+    },
+    "T07": {
+      "status": "PENDING",
+      "notes": [],
+      "findings": []
+    },
+    "T08": {
+      "status": "PENDING",
+      "notes": [],
+      "findings": []
+    },
+    "T09": {
+      "status": "PENDING",
+      "notes": [],
+      "findings": []
+    }
+  },
+  "consoleErrors": [
+    {
+      "type": "warning",
+      "text": "[2026-03-09T11:20:56.901Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x379cd32a transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/login",
+      "timestamp": "2026-03-09T11:20:56.903Z"
+    },
+    {
+      "type": "error",
+      "text": "[2026-03-09T11:20:56.902Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "url": "http://localhost:5173/login",
+      "timestamp": "2026-03-09T11:20:56.904Z"
+    }
+  ],
+  "screenshots": [
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\00_login_page.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\01_post_login.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\02_gradebook_initial.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\03_gradebook_pending_filter.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\04_grading_panel_opened.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\06_after_save_draft.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\07_after_panel_close.png",
+    "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B8\\ERROR_state.png"
+  ],
+  "error": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('select').first()\u001b[22m\n\u001b[2m    - locator resolved to <select class=\"px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    59 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - did not find some options\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+}

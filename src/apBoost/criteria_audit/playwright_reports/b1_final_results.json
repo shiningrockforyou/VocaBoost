@@ -1,0 +1,19 @@
+{
+  "results": {
+    "S-01": {
+      "status": "PASS",
+      "h1": "AP Practice Tests",
+      "microCard": 1,
+      "macroCard": 1,
+      "calcCard": 1,
+      "statusBadges": 3,
+      "sectionText": 3,
+      "timeText": 1,
+      "errorBanner": 0,
+      "apHeaderLink": 1,
+      "skeletonVisible": 0,
+      "issues": []
+    }
+  },
+  "runAt": "2026-03-09T11:49:10.935Z"
+}

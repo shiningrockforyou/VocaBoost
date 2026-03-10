@@ -52,6 +52,8 @@ export function useOfflineQueue(sessionId) {
   const [queueLength, setQueueLength] = useState(0)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [isFlushing, setIsFlushing] = useState(false)
+  const [isOpportunistic, setIsOpportunistic] = useState(false)
+  const [isStorageFull, setIsStorageFull] = useState(false)
   const dbRef = useRef(null)
   const flushTimeoutRef = useRef(null)
   const retryCountRef = useRef(0)
@@ -202,14 +204,26 @@ export function useOfflineQueue(sessionId) {
       await updateQueueLength()
       logDebug('useOfflineQueue.addToQueue', 'Added to queue', queueItem)
 
-      // Schedule flush if online
-      if (isOnline) {
-        scheduleFlush(1000) // 1 second debounce
+      // Schedule flush if online (or retry if in opportunistic mode)
+      if (isOnline || isOpportunistic) {
+        if (isOpportunistic) {
+          logDebug('useOfflineQueue.addToQueue', 'Opportunistic retry triggered by user action')
+          retryCountRef.current = 0
+          setIsOpportunistic(false)
+        }
+        const isHighPriority = ['ANSWER_CHANGE', 'FLAG_TOGGLE'].includes(action.action)
+        scheduleFlush(isHighPriority ? 300 : 2500)
       }
     } catch (error) {
-      logError('useOfflineQueue.addToQueue', { sessionId, action }, error)
+      // Detect QuotaExceededError
+      if (error?.name === 'QuotaExceededError' || error?.message?.includes('quota')) {
+        logError('useOfflineQueue.addToQueue', { sessionId }, new Error('IndexedDB storage full'))
+        setIsStorageFull(true)
+      } else {
+        logError('useOfflineQueue.addToQueue', { sessionId, action }, error)
+      }
     }
-  }, [sessionId, isOnline, updateQueueLength])
+  }, [sessionId, isOnline, isOpportunistic, updateQueueLength])
 
   // Schedule a flush with debounce
   const scheduleFlush = useCallback((delay) => {
@@ -291,6 +305,16 @@ export function useOfflineQueue(sessionId) {
                 updates[`sectionTimeRemaining.${sectionId}`] = time
               })
             }
+            break
+          case 'SECTION_COMPLETE':
+            updates.currentSectionIndex = item.payload.nextSectionIndex
+            updates.currentQuestionIndex = 0
+            if (item.payload.completedSectionId) {
+              updates[`sectionTimeRemaining.${item.payload.completedSectionId}`] = 0
+            }
+            break
+          case 'SESSION_PAUSE':
+            updates.status = 'PAUSED'
             break
           default:
             break
@@ -445,6 +469,8 @@ export function useOfflineQueue(sessionId) {
       })
 
       retryCountRef.current = 0
+      setIsOpportunistic(false)
+      setIsStorageFull(false)
       await updateQueueLength()
       logDebug('useOfflineQueue.flushQueue', 'Flush complete')
     } catch (error) {
@@ -455,11 +481,28 @@ export function useOfflineQueue(sessionId) {
       if (retryCountRef.current < 5) {
         const delay = Math.pow(2, retryCountRef.current) * 1000 // 2s, 4s, 8s, 16s
         scheduleFlush(delay)
+      } else {
+        // Enter opportunistic mode — retry on next user action
+        logDebug('useOfflineQueue.flushQueue', 'Backoff exhausted, entering opportunistic mode')
+        setIsOpportunistic(true)
       }
     } finally {
       setIsFlushing(false)
     }
   }, [sessionId, isFlushing, isOnline, updateQueueLength, scheduleFlush])
+
+  // Flush queue when tab regains focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && sessionId) {
+        logDebug('useOfflineQueue', 'Tab visible, scheduling flush')
+        scheduleFlush(500)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [sessionId, scheduleFlush])
 
   // Cleanup
   useEffect(() => {
@@ -476,6 +519,8 @@ export function useOfflineQueue(sessionId) {
     queueLength,
     isOnline,
     isFlushing,
+    isOpportunistic,
+    isStorageFull,
     getPendingItems,
     deleteItems,
   }

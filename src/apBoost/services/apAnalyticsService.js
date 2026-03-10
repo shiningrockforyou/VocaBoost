@@ -90,7 +90,8 @@ export function calculateQuestionPerformance(results, questions) {
 
   // Initialize performance for each MCQ question
   for (const [questionId, question] of Object.entries(questions)) {
-    if (question.questionType === 'mcq' || !question.questionType) {
+    const qType = (question.questionType || '').toUpperCase()
+    if (qType === 'MCQ' || qType === 'MCQ_MULTI' || !question.questionType) {
       performance[questionId] = {
         questionId,
         questionNumber: question.questionNumber || 0,
@@ -176,7 +177,8 @@ export function calculateFRQPerformance(results, questions) {
 
   // Find FRQ questions
   for (const [questionId, question] of Object.entries(questions)) {
-    if (question.questionType === 'frq' || question.questionType === 'saq' || question.questionType === 'dbq') {
+    const qType = (question.questionType || '').toUpperCase()
+    if (qType === 'FRQ' || qType === 'SAQ' || qType === 'DBQ') {
       performance[questionId] = {
         questionId,
         questionText: question.questionText,
@@ -261,7 +263,11 @@ export function calculateSummaryStats(results) {
     }
   }
 
-  const scores = results.map(r => r.score || 0)
+  const scores = results.map(r => {
+    if (r.score != null) return r.score
+    // Fall back to mcqCorrect + frqScore for seed/legacy results
+    return (r.mcqCorrect || 0) + (r.frqScore || 0)
+  })
   const percentages = results.map(r => r.percentage || 0)
   const apScores = results.map(r => r.apScore || 1)
 

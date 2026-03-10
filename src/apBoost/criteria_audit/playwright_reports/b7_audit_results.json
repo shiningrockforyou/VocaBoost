@@ -1,0 +1,305 @@
+{
+  "scenarioResults": {
+    "T-01": {
+      "status": "PASS",
+      "notes": [
+        "10/10 critical checks passed"
+      ],
+      "checks": {
+        "hasHeading": true,
+        "hasCreateNewTest": true,
+        "hasQuestionBank": true,
+        "hasGradebook": true,
+        "hasManageClasses": true,
+        "createTestLinkHref": "/ap/teacher/test/new",
+        "questionBankLinkHref": "/ap/teacher/questions",
+        "gradebookLinkHref": "/ap/gradebook",
+        "classesLinkHref": "/ap/teacher/classes",
+        "hasMyTests": true,
+        "testsVisible": {
+          "micro": true,
+          "macro": true,
+          "calc": true
+        },
+        "testCount": 3,
+        "hasEditLink": true,
+        "hasAssignButton": true,
+        "hasViewAll": true,
+        "hasMCQSummary": true,
+        "hasFRQSummary": true,
+        "hasPendingGrading": true,
+        "hasGoToGradebook": true,
+        "hasMyClasses": true,
+        "hasClassesList": true,
+        "hasAccurateQuestionCounts": true,
+        "pendingGradingCount": 7,
+        "hasStudentCounts": true,
+        "viewAllLinkHref": "/ap/teacher/tests"
+      },
+      "domStructure": {
+        "h1": "Teacher Dashboard",
+        "headings": [
+          "My Tests (3)",
+          "AP Calculus AB Practice Exam",
+          "AP Macroeconomics Practice Exam",
+          "AP Microeconomics Practice Exam",
+          "Pending Grading (7)",
+          "My Classes (2)",
+          "Developer Tools"
+        ],
+        "links": [
+          {
+            "text": "AP Practice",
+            "href": "/ap"
+          },
+          {
+            "text": "VocaBoost",
+            "href": "/"
+          },
+          {
+            "text": "+Create New Test",
+            "href": "/ap/teacher/test/new"
+          },
+          {
+            "text": "QQuestion Bank",
+            "href": "/ap/teacher/questions"
+          },
+          {
+            "text": "GGradebook",
+            "href": "/ap/gradebook"
+          },
+          {
+            "text": "CManage Classes",
+            "href": "/ap/teacher/classes"
+          },
+          {
+            "text": "View All",
+            "href": "/ap/teacher/tests"
+          },
+          {
+            "text": "Edit",
+            "href": "/ap/teacher/test/test_calc_ab_full_1/edit"
+          },
+          {
+            "text": "Edit",
+            "href": "/ap/teacher/test/test_macro_full_1/edit"
+          },
+          {
+            "text": "Edit",
+            "href": "/ap/teacher/test/test_micro_full_1/edit"
+          },
+          {
+            "text": "Go to Gradebook",
+            "href": "/ap/gradebook"
+          }
+        ]
+      }
+    },
+    "T-02": {
+      "status": "PASS",
+      "notes": [
+        "All teacher routes (including /ap/teacher, /ap/teacher/test/new, /ap/gradebook) blocked for student"
+      ],
+      "checks": {
+        "studentLandingUrl": "http://localhost:5173/",
+        "teacherDashboardUrl": "http://localhost:5173/ap",
+        "teacherDashboardBlocked": true,
+        "teacherDashboardShowsAccessDenied": false,
+        "teacherDashboardRedirectedToStudentDashboard": true,
+        "testNewUrl": "http://localhost:5173/ap",
+        "testNewBlocked": true,
+        "gradebookUrl": "http://localhost:5173/ap",
+        "gradebookBlocked": true,
+        "gradebookAccessibleWithStudentRole": false
+      }
+    },
+    "T-03": {
+      "status": "PASS",
+      "notes": [
+        "6/6 critical checks passed"
+      ],
+      "checks": {
+        "hasGradebookHeading": true,
+        "hasSubtitle": true,
+        "hasStatusFilter": true,
+        "hasTestFilter": true,
+        "hasClassFilter": true,
+        "selectElements": [
+          {
+            "name": "",
+            "value": "pending",
+            "options": [
+              {
+                "value": "pending",
+                "text": "Pending"
+              },
+              {
+                "value": "IN_PROGRESS",
+                "text": "In Progress"
+              },
+              {
+                "value": "COMPLETE",
+                "text": "Complete"
+              },
+              {
+                "value": "all",
+                "text": "All"
+              }
+            ]
+          },
+          {
+            "name": "",
+            "value": "all",
+            "options": [
+              {
+                "value": "all",
+                "text": "All Tests"
+              }
+            ]
+          },
+          {
+            "name": "",
+            "value": "all",
+            "options": [
+              {
+                "value": "all",
+                "text": "All Classes"
+              },
+              {
+                "value": "class_calc_p3",
+                "text": "AP Calculus AB Period 3"
+              },
+              {
+                "value": "class_econ_p1",
+                "text": "AP Economics Period 1"
+              }
+            ]
+          }
+        ],
+        "defaultStatusIsPending": true,
+        "tableData": {
+          "headers": [
+            "Student",
+            "Test",
+            "Submitted",
+            "Status",
+            "Action"
+          ],
+          "rowCount": 7,
+          "rows": [
+            [
+              "maria.g@school.edu",
+              "test_calc_ab_full_1",
+              "2026. 3. 7.",
+              "⏳Pending",
+              "Grade"
+            ],
+            [
+              "priya.p@school.edu",
+              "test_macro_full_1",
+              "2026. 3. 5.",
+              "⏳Pending",
+              "Grade"
+            ],
+            [
+              "james.c@school.edu",
+              "test_macro_full_1",
+              "2026. 3. 4.",
+              "⏳Pending",
+              "Grade"
+            ],
+            [
+              "alex.j@school.edu",
+              "test_macro_full_1",
+              "2026. 3. 2.",
+              "⏳Pending",
+              "Grade"
+            ],
+            [
+              "ethan.w@school.edu",
+              "test_micro_full_1",
+              "2026. 2. 27.",
+              "⏳Pending",
+              "Grade"
+            ]
+          ]
+        },
+        "hasStudentColumn": true,
+        "hasTestColumn": true,
+        "hasSubmittedColumn": true,
+        "hasStatusColumn": true,
+        "hasActionColumn": true,
+        "rowCount": 7,
+        "gradeButtonCount": 7,
+        "hasPendingBadge": true,
+        "showingText": "Showing 7 submission",
+        "hasStudentNames": true,
+        "hasTestNames": true,
+        "pendingBadgeCount": 7
+      }
+    },
+    "T-04": {
+      "status": "PARTIAL",
+      "notes": [
+        "3/4 filter checks passed"
+      ],
+      "checks": {
+        "initialRowCount": 7,
+        "initialShowingText": "Showing 7 submission",
+        "allStatusRowCount": 0,
+        "statusFilterWorked": false,
+        "hasCompleteStatus": true,
+        "hasInProgressStatus": true,
+        "testFilterOptions": [
+          {
+            "value": "all",
+            "text": "All Classes"
+          },
+          {
+            "value": "class_calc_p3",
+            "text": "AP Calculus AB Period 3"
+          },
+          {
+            "value": "class_econ_p1",
+            "text": "AP Economics Period 1"
+          }
+        ],
+        "testFilterRowCount": 0,
+        "testFilterWorked": true,
+        "classFilterOptions": [
+          {
+            "value": "all",
+            "text": "All Classes"
+          },
+          {
+            "value": "class_calc_p3",
+            "text": "AP Calculus AB Period 3"
+          },
+          {
+            "value": "class_econ_p1",
+            "text": "AP Economics Period 1"
+          }
+        ],
+        "classFilterRowCount": 0,
+        "classFilterWorked": true,
+        "resetRowCount": 7,
+        "resetWorked": true
+      }
+    }
+  },
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "[APBoost:APGradebook.onSnapshot] {function: APGradebook.onSnapshot, context: Object, type: unknown, message: The query requires an index. You can create it her…VySWQQARoPCgtjb21wbGV0ZWRBdBACGgwKCF9fbmFtZV9fEAI, code: failed-precondition}",
+      "url": "http://localhost:5173/ap/gradebook",
+      "scenario": "T-03/T-04"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APGradebook.onSnapshot] {function: APGradebook.onSnapshot, context: Object, type: unknown, message: The query requires an index. You can create it her…lcklkEAEaDwoLY29tcGxldGVkQXQQAhoMCghfX25hbWVfXxAC, code: failed-precondition}",
+      "url": "http://localhost:5173/ap/gradebook",
+      "scenario": "T-03/T-04"
+    }
+  ],
+  "screenshotsDir": "C:\\Users\\dmchw\\vocaboost\\src\\apBoost\\criteria_audit\\playwright_reports\\screenshots_B7"
+}

@@ -1,0 +1,2046 @@
+{
+  "tooLenient": [
+    {
+      "word": "solicitous",
+      "correctEN": "eager and attentive, often to the point of hovering; anxiously caring or attentive",
+      "correctKO": "간절히 ...하려 하는, 갈망하는; 염려하는, 걱정하는",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Unable to grade - please challenge if you believe this is correct"
+    },
+    {
+      "word": "farcical",
+      "correctEN": "absurd; ludicrous",
+      "correctKO": "익살극의, 익살맞은, 바보스런",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "apropos",
+      "correctEN": "appropriate; coming at the right time",
+      "correctKO": "때마침, 시기 적절하게, 적절히",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "sly",
+      "correctEN": "clever in a dishonest way",
+      "correctKO": "교활한",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "deem",
+      "correctEN": "to think of (someone or something) in a particular way",
+      "correctKO": "간주하다",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "ratiocination",
+      "correctEN": "logical reasoning",
+      "correctKO": "논리적 추론",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "disobedient",
+      "correctEN": "not doing what someone or something with authority tells you to do",
+      "correctKO": "복종하지 않는",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "somnolent",
+      "correctEN": "sleepy or drowsy",
+      "correctKO": "졸린",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Response too short to be a valid definition"
+    },
+    {
+      "word": "malady",
+      "correctEN": "a disease or illness",
+      "correctKO": "병",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "compulsion",
+      "correctEN": "a strong urge or desire to do something",
+      "correctKO": "강박, 강한 충동",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "triad",
+      "correctEN": "a group of three related things or people",
+      "correctKO": "삼인조",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "equitable",
+      "correctEN": "fair and just in the distribution of resources or opportunities",
+      "correctKO": "공정한",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "Your answer is missing. Please provide a definition."
+    },
+    {
+      "word": "adumbrate",
+      "correctEN": "to sketch out in a vague way",
+      "correctKO": "어둡게 그리다, 예고하다",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "fiat",
+      "correctEN": "an arbitrary decree or order",
+      "correctKO": "법령, 명령, 엄명, 인가",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "harry",
+      "correctEN": "to harass; to annoy",
+      "correctKO": "[남]을 괴롭히다, 고통을 주다; 약탈하다, 침략하다.",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "cull",
+      "correctEN": "to pick out from among many; to select; to collect",
+      "correctKO": "고르다, 선택; 선발하다",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "trivial",
+      "correctEN": "small, insignificant",
+      "correctKO": "사소한, 중요하지 않은",
+      "studentResponse": "자명한",
+      "haikuReasoning": "'자명한' (self-evident) is close enough to 'trivial' (insignificant) - both describe something that is obvious or not complex.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "conciliatory",
+      "correctEN": "intended to reconcile or pacify",
+      "correctKO": "타협적인",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "compulsion",
+      "correctEN": "a strong urge or desire to do something",
+      "correctKO": "강박, 강한 충동",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "emaciate",
+      "correctEN": "to make extremely thin through starvation or illness",
+      "correctKO": "...을 여위게 만들다, 쇠약하게 하다",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "parity",
+      "correctEN": "equality in value, status, or rank",
+      "correctKO": "동등성",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    },
+    {
+      "word": "farcical",
+      "correctEN": "absurd; ludicrous",
+      "correctKO": "익살극의, 익살맞은, 바보스런",
+      "studentResponse": "?",
+      "haikuReasoning": "",
+      "gptReasoning": "The answer is missing and does not provide any definition."
+    }
+  ],
+  "tooStrict": [
+    {
+      "word": "delegate",
+      "correctEN": "to hand over responsibility for something",
+      "correctKO": "대표자, 대리인",
+      "studentResponse": "대표자",
+      "haikuReasoning": "You provided the noun form (representative/delegate), but the word 'delegate' in this context means the verb form - to hand over responsibility. While 'delegate' can be a noun, your answer doesn't capture the action of delegating or handing over responsibility.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "indoctrinated",
+      "correctEN": "taught to accept a set of beliefs uncritically",
+      "correctKO": "가담된",
+      "studentResponse": "가담된",
+      "haikuReasoning": "Your answer '가담된' means 'participated in' or 'joined,' which doesn't capture the meaning of indoctrinated. Indoctrination is about being taught to accept beliefs uncritically, not about participating in something. A better answer would be something like '세뇌된' (brainwashed) or '주입된' (instilled with beliefs).",
+      "gptReasoning": "The term '가담된' does not accurately reflect the meaning of 'taught to accept a set of beliefs uncritically'."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "balm",
+      "correctEN": "something that heals or soothes",
+      "correctKO": "향유, 방향, (신경)안정제, 진통제",
+      "studentResponse": "방향",
+      "haikuReasoning": "You answered 'fragrance/scent' but balm means something that heals or soothes (like a soothing ointment or comfort). While balm can have a pleasant scent, the core meaning is about healing or soothing, not fragrance.",
+      "gptReasoning": "Your answer '방향' means 'direction', which does not relate to the concept of something that heals or soothes."
+    },
+    {
+      "word": "formidable",
+      "correctEN": "causing fear or apprehension, difficult to overcome",
+      "correctKO": "굳세다",
+      "studentResponse": "굳세다",
+      "haikuReasoning": "'Formidable' means causing fear or apprehension, and difficult to overcome. '굳세다' means 'strong' or 'firm,' which doesn't capture the sense of fear, apprehension, or being difficult to overcome. A better answer would include the idea of something being intimidating or hard to deal with.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "mawkish",
+      "correctEN": "characterized by sick sentimentality",
+      "correctKO": "지루한, 촌스러운",
+      "studentResponse": "지루한",
+      "haikuReasoning": "You answered '지루한' (boring/tedious), but mawkish means characterized by sick sentimentality or overly sentimental in a way that is unpleasant. The correct answer should relate to sentimentality or excessive emotion, not boredom. '촌스러운' (tacky/corny) from the given definition would be closer, but ideally something like '감상적인' (sentimental) would be better.",
+      "gptReasoning": "Your answer describes the opposite meaning of the word."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "mawkish",
+      "correctEN": "characterized by sick sentimentality",
+      "correctKO": "지루한, 촌스러운",
+      "studentResponse": "지루한",
+      "haikuReasoning": "You answered '지루한' (boring/tedious), but mawkish means characterized by sick sentimentality or overly sentimental in a way that is unpleasant. The correct answer should relate to sentimentality or excessive emotion, not boredom. '촌스러운' (tacky/corny) from the given definition would be closer, but ideally something like '감상적인' (sentimental) would be better.",
+      "gptReasoning": "Your answer describes the opposite meaning of the word."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "mawkish",
+      "correctEN": "characterized by sick sentimentality",
+      "correctKO": "지루한, 촌스러운",
+      "studentResponse": "지루한",
+      "haikuReasoning": "You answered '지루한' (boring/tedious), but mawkish means characterized by sick sentimentality or overly sentimental in a way that is unpleasant. The correct answer should relate to sentimentality or excessive emotion, not boredom. '촌스러운' (tacky/corny) from the given definition would be closer, but ideally something like '감상적인' (sentimental) would be better.",
+      "gptReasoning": "Your answer describes the opposite meaning of the word."
+    },
+    {
+      "word": "insouciant",
+      "correctEN": "nonchalant; lighthearted; carefree",
+      "correctKO": "무관심, 부주의, 태평한",
+      "studentResponse": "무관심",
+      "haikuReasoning": "You answered '무관심' (indifference/apathy), but insouciant means carefree and lighthearted, not indifferent. The word has a positive connotation of being unbothered in a relaxed way, not a negative one of being uncaring.",
+      "gptReasoning": "Your answer '무관심' describes a lack of concern, which is not the same as being carefree or lighthearted."
+    },
+    {
+      "word": "formidable",
+      "correctEN": "causing fear or apprehension, difficult to overcome",
+      "correctKO": "굳세다",
+      "studentResponse": "굳세다",
+      "haikuReasoning": "'Formidable' means causing fear or apprehension, and difficult to overcome. '굳세다' means 'strong' or 'firm,' which doesn't capture the sense of fear, apprehension, or being difficult to overcome. A better answer would include the idea of something being intimidating or hard to deal with.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "thorny",
+      "correctEN": "full of difficulties; tough; painful",
+      "correctKO": "",
+      "studentResponse": "가시처럼 날카로운",
+      "haikuReasoning": "You gave only one meaning (sharp like a thorn), but thorny primarily means 'full of difficulties' or 'tough/painful.' While thorny can describe something physically sharp, the main definition here refers to difficult or problematic situations.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "scrupulous",
+      "correctEN": "diligent, thorough, and extremely attentive to details",
+      "correctKO": "세심한",
+      "studentResponse": "양심적인",
+      "haikuReasoning": "While '양심적인' (conscientious) is related, scrupulous specifically means diligent and thorough with attention to details, not just morally conscientious.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "inflammatory",
+      "correctEN": "arousing anger or strong emotion",
+      "correctKO": "염려를 불러일으키는",
+      "studentResponse": "염려를 불러일으키는",
+      "haikuReasoning": "The definition you provided is about 'causing concern or worry,' but inflammatory means 'arousing anger or strong emotion.' While these are related, they're not quite the same thing. Inflammatory is more about anger and passion, not just worry.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "insouciant",
+      "correctEN": "nonchalant; lighthearted; carefree",
+      "correctKO": "무관심, 부주의, 태평한",
+      "studentResponse": "무관심",
+      "haikuReasoning": "You answered '무관심' (indifference/apathy), but insouciant means carefree and lighthearted, not indifferent. The word has a positive connotation of being unbothered in a relaxed way, not a negative one of being uncaring.",
+      "gptReasoning": "Your answer '무관심' describes a lack of concern, which is not the same as being carefree or lighthearted."
+    },
+    {
+      "word": "insouciant",
+      "correctEN": "nonchalant; lighthearted; carefree",
+      "correctKO": "무관심, 부주의, 태평한",
+      "studentResponse": "무관심",
+      "haikuReasoning": "You answered '무관심' (indifference/apathy), but insouciant means carefree and lighthearted, not indifferent. The word has a positive connotation of being unbothered in a relaxed way, not a negative one of being uncaring.",
+      "gptReasoning": "Your answer '무관심' describes a lack of concern, which is not the same as being carefree or lighthearted."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "agreeable",
+      "correctEN": "pleasing, pleasant; readily agreeing",
+      "correctKO": "호전적이지 않은, 편안한; 잘 동의하는",
+      "studentResponse": "호전적이지 않은",
+      "haikuReasoning": "You provided only one meaning ('not warlike'), but 'agreeable' has two main meanings: pleasing/pleasant AND readily agreeing. Your answer captures only part of the definition. A complete answer should include both aspects.",
+      "gptReasoning": "Your answer '호전적이지 않은' means non-aggressive, which does not align with the meaning of 'agreeable'."
+    },
+    {
+      "word": "ethos",
+      "correctEN": "the fundamental character or spirit",
+      "correctKO": "윤리",
+      "studentResponse": "윤리",
+      "haikuReasoning": "You defined ethos as 'ethics' (윤리), but ethos actually means the fundamental character or spirit of something. While ethics can be related, ethos is broader and refers to the characteristic spirit or values of a culture, group, or individual, not just ethics as a moral system.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "outlaw",
+      "correctEN": "to make (something) illegal",
+      "correctKO": "불법화하다",
+      "studentResponse": "불법의",
+      "haikuReasoning": "You answered with the adjective form 'illegal,' but 'outlaw' as a verb means 'to make illegal' (the action), not 'to be illegal' (the state). Your answer describes the result, not the action itself.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "plainly",
+      "correctEN": "obviously, evidently, perceived easily",
+      "correctKO": "당연히, 명백히",
+      "studentResponse": "솔직히",
+      "haikuReasoning": "You answered '솔직히' (honestly/frankly), but 'plainly' means 'obviously' or 'evidently' - it's about something being clear and easy to perceive, not about being honest or straightforward in speech.",
+      "gptReasoning": "The answer means 'honestly' rather than 'obviously'."
+    },
+    {
+      "word": "outsmart",
+      "correctEN": "to beat through cleverness and wit; to defeat by more skillful maneuvering",
+      "correctKO": "(머리를 써서) ~를 이기다",
+      "studentResponse": "이기다",
+      "haikuReasoning": "You answered '이기다' (to win/beat), but 'outsmart' specifically means to beat through cleverness and wit. Your answer is too general and misses the key element of using intelligence or skillful maneuvering. The answer should emphasize the 'cleverness' or 'wit' aspect.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "ruse",
+      "correctEN": "a trick",
+      "correctKO": "계략, 속임수",
+      "studentResponse": "음모, 책략",
+      "haikuReasoning": "You defined 'ruse' as '음모, 책략' (conspiracy, scheme), but a ruse is specifically a trick or deceptive stratagem. While these concepts are related, 'ruse' is more about deception through trickery rather than scheming or plotting. The definition should focus on the deceptive trick aspect.",
+      "gptReasoning": "The term '음모, 책략' implies a more complex scheme rather than just a trick."
+    },
+    {
+      "word": "determinant",
+      "correctEN": "a factor or element that determines an outcome",
+      "correctKO": "결정적인 요소",
+      "studentResponse": "중요한",
+      "haikuReasoning": "You said 'determinant' means '중요한' (important), but that's too vague. A determinant is specifically a factor or element that determines or decides an outcome. It's not just about being important—it's about being the deciding factor. Your answer is too general.",
+      "gptReasoning": "The term '중요한' does not capture the specific meaning of a determining factor."
+    },
+    {
+      "word": "renaissance",
+      "correctEN": "a rebirth or revival",
+      "correctKO": "부활, 신생, 부흥",
+      "studentResponse": "르네상스",
+      "haikuReasoning": "You provided the historical period name 'Renaissance' rather than the definition of the word. The word 'renaissance' means a rebirth or revival, not the specific historical period. Show that you understand the meaning of the word itself.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "infamous",
+      "correctEN": "a shamefully wicked; having an extremely bad reputation; disgraceful",
+      "correctKO": "수치스러운, 파렴치한, 악명 높은; 지독한; 형편없는",
+      "studentResponse": "형편없는",
+      "haikuReasoning": "While 형편없는 (terrible/poor quality) is one meaning listed, it's the weakest definition. Infamous primarily means having an extremely bad reputation or being shamefully wicked - it's about notoriety and moral disgrace, not just general poor quality. Your answer captures only a minor aspect of the word's meaning.",
+      "gptReasoning": "The answer '형편없는' means terrible or poor, which does not capture the meaning of 'infamous'."
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "애정",
+      "haikuReasoning": "You answered 'affection/emotion' but affectation means artificial or unnatural behavior intended to impress. These are different concepts - affection is a genuine feeling, while affectation is fake behavior.",
+      "gptReasoning": "Your answer '애정' refers to 'affection' rather than 'affectation', which is about unnatural behavior."
+    },
+    {
+      "word": "projected",
+      "correctEN": "estimated or predicted based on current trends or data",
+      "correctKO": "예상된",
+      "studentResponse": "예상되다ㅠ예ㅛㅏㅇ괸",
+      "haikuReasoning": "Your answer appears to have typing errors and is unclear. While you seem to be attempting to write '예상된' (predicted), the garbled text makes it impossible to confirm you understand the word. Please write more clearly.",
+      "gptReasoning": "The response is self-referencing and does not provide a definition."
+    },
+    {
+      "word": "ad-lib",
+      "correctEN": "to improvise; speak or act spontaneously",
+      "correctKO": "즉흥적으로 ...하다",
+      "studentResponse": "즉흥적으로 하려고 허다",
+      "haikuReasoning": "You wrote '즉흥적으로 하려고 허다' but the correct form should be '즉흥적으로 하다' (to do spontaneously). Your answer changes the meaning slightly by adding '하려고' (trying to) which isn't quite right.",
+      "gptReasoning": "The response is self-referencing and does not provide a definition."
+    },
+    {
+      "word": "impoverish",
+      "correctEN": "to make (someone) poor",
+      "correctKO": "가난하게 하다",
+      "studentResponse": "가난한",
+      "haikuReasoning": "You wrote '가난한' (poor/adjective) but the word means 'to make poor' (verb). The definition requires an action verb like '가난하게 하다' to show you understand it's about making someone poor, not just being poor.",
+      "gptReasoning": "Describes a different concept."
+    },
+    {
+      "word": "discord",
+      "correctEN": "lack of harmony or peace",
+      "correctKO": "불화, 불일치",
+      "studentResponse": "불협화음",
+      "haikuReasoning": "You answered '불협화음' (dissonance/discord in music), but the word 'discord' in this context refers to lack of harmony or peace in general relationships or situations, not specifically musical discord. While related, your answer is too narrow and specific to the musical definition.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "calibrate",
+      "correctEN": "to adjust (a measuring tool) in order to make it more accurate",
+      "correctKO": "(더 정확하게 측정하도록) 도구를 조정하다",
+      "studentResponse": "정확히 측정하다",
+      "haikuReasoning": "You said '정확히 측정하다' (measure accurately), but calibrate means to adjust a tool to make it accurate, not just to measure accurately. The focus should be on the adjustment/tuning process, not the measurement itself.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "compendium",
+      "correctEN": "a summary; an abridgment",
+      "correctKO": "개략, 요약, 일람표",
+      "studentResponse": "계략",
+      "haikuReasoning": "계략 means 'scheme' or 'plan', which is not the same as 개략 (summary/outline). You may have confused similar-sounding words. Compendium is a summary or abridgment, not a scheme.",
+      "gptReasoning": "The answer describes a different concept."
+    },
+    {
+      "word": "chameleon",
+      "correctEN": "a highly changeable person",
+      "correctKO": "변덕스러운 사람",
+      "studentResponse": "변덕",
+      "haikuReasoning": "You answered '변덕' (fickleness/whimsy), but the word 'chameleon' refers to a person who is highly changeable, not just someone who is fickle. While related, your answer is too narrow and doesn't capture the full meaning of someone who changes their behavior or appearance to adapt to different situations.",
+      "gptReasoning": "'변덕' means capriciousness, which does not accurately capture the meaning of 'a highly changeable person'."
+    },
+    {
+      "word": "colossus",
+      "correctEN": "a gigantic statue or thing",
+      "correctKO": "거대한 것, 거상",
+      "studentResponse": "큰 것",
+      "haikuReasoning": "큰 것 (big thing) is too vague and generic. 'Colossus' specifically refers to something gigantic or enormous, not just something 'big.' Your answer lacks the sense of something being extraordinarily large or impressive.",
+      "gptReasoning": "The answer '큰 것' means big thing, which does not capture the specific meaning of a gigantic statue."
+    },
+    {
+      "word": "forge",
+      "correctEN": "",
+      "correctKO": "",
+      "studentResponse": "단조하다",
+      "haikuReasoning": "You answered '단조하다' (to forge metal/blacksmith work), but the word 'forge' in this context means to create/make something through effort, or to fraudulently imitate. While '단조' is a valid meaning of forge, it's the metalworking sense. The primary definitions here are about making/creating or fraudulent imitation, not the metalworking process.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "censorious",
+      "correctEN": "critical of others",
+      "correctKO": "다른 사람들을 비판하는",
+      "studentResponse": "비판하는",
+      "haikuReasoning": "You answered '비판하는' (criticizing), but the word means someone who is critical of others in a judgmental way. Your answer is missing the key aspect that censorious refers to a person's tendency to be overly critical or fault-finding, not just the act of criticizing itself.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "delegate",
+      "correctEN": "to hand over responsibility for something",
+      "correctKO": "대표자, 대리인",
+      "studentResponse": "대표자",
+      "haikuReasoning": "You provided the noun form (representative/delegate), but the word 'delegate' in this context means the verb form - to hand over responsibility. While 'delegate' can be a noun, your answer doesn't capture the action of delegating or handing over responsibility.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "odyssey",
+      "correctEN": "a long, difficult journey, usually marked by many changes of fortune",
+      "correctKO": "장기간의 어려운 여정, 주로 많은 운명의 변화와 함께 이루어지는.",
+      "studentResponse": "오디세이",
+      "haikuReasoning": "You answered with the proper noun 'Odyssey' (the ancient Greek epic), but the word 'odyssey' means a long, difficult journey. While related, just naming the source material doesn't show you understand the actual definition of the word.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "itinerant",
+      "correctEN": "a moving from place to place",
+      "correctKO": "순회하는, 이동하는, 방랑하는",
+      "studentResponse": "걸어다니는",
+      "haikuReasoning": "You answered '걸어다니는' (walking around), but 'itinerant' means moving from place to place or traveling. While related, your answer is too narrow and doesn't capture the full meaning of traveling/moving between locations.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "champion",
+      "correctEN": "to fight for or defend publicly",
+      "correctKO": "~을 옹호하다, 대변하다",
+      "studentResponse": "Won the first prize in a competition contest or fight",
+      "haikuReasoning": "You described winning a competition, but 'champion' as a verb means to publicly support or defend something, not to win a contest. Those are different meanings.",
+      "gptReasoning": "Your answer describes winning a competition, which is not the same as defending or advocating for something."
+    },
+    {
+      "word": "qualify",
+      "correctEN": "to limit (a claim); to specify a condition to make a claim narrower",
+      "correctKO": "(어떤 주장을) 제한하다, 더 구체적으로 만들다",
+      "studentResponse": "자격을 갖추다",
+      "haikuReasoning": "You answered '자격을 갖추다' (to be qualified), but 'qualify' in this context means to limit or narrow a claim, not to gain qualifications. These are opposite meanings.",
+      "gptReasoning": "Your answer means 'to qualify' in terms of having a qualification, which is not the same as limiting or specifying a claim."
+    },
+    {
+      "word": "rectify",
+      "correctEN": "to fix (a mistake or error); to make straight (or right) again",
+      "correctKO": "~을 바로잡다, 올바로 수습하다",
+      "studentResponse": "to make someone moral again",
+      "haikuReasoning": "You defined rectify as 'to make someone moral again,' but the word means to fix or correct a mistake or error, or to make something straight/right again. It's not specifically about making someone moral. The definition should focus on correcting or fixing something, not on morality.",
+      "gptReasoning": "The definition provided describes making someone moral again, which is not the same as fixing a mistake or making something straight."
+    },
+    {
+      "word": "elocution",
+      "correctEN": "the art of public speaking",
+      "correctKO": "연설술, 웅변술",
+      "studentResponse": "과장된 말",
+      "haikuReasoning": "Elocution is the art of public speaking or eloquent speech, not exaggerated speech. While exaggeration might be part of some speaking styles, it's not the definition of elocution itself.",
+      "gptReasoning": "The answer describes exaggerated speech rather than the art of public speaking."
+    },
+    {
+      "word": "impeach",
+      "correctEN": "to charge (a public official) with a crime done while in office",
+      "correctKO": "탄핵하다",
+      "studentResponse": "비난하다 깎아내리다",
+      "haikuReasoning": "Impeach means to formally charge a public official with a crime while in office, not simply to criticize or diminish someone's reputation. Your answer describes general criticism rather than the specific legal process.",
+      "gptReasoning": "The answer describes criticism rather than the act of formally charging someone with a crime."
+    },
+    {
+      "word": "plethora",
+      "correctEN": "a large or excessive amount of something",
+      "correctKO": "과다",
+      "studentResponse": "과다 혈증",
+      "haikuReasoning": "You answered '과다 혈증' (polycythemia, a medical condition), but plethora means a large or excessive amount of something in general. While '과다' (excess) is part of the definition, '혈증' (blood condition) is too specific and changes the meaning to a medical term rather than the general concept.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "invincible",
+      "correctEN": "impossible to defeat or overcome",
+      "correctKO": "정복할 수 없는",
+      "studentResponse": "unable to defeat",
+      "haikuReasoning": "You described the reverse meaning. 'Invincible' means impossible to defeat, not unable to defeat. It describes something that cannot be defeated, not something that cannot defeat others.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "endemic",
+      "correctEN": "a native; restricted to a particular region or era; indigenous",
+      "correctKO": "한 지방의 고유한, 풍토의, 풍토병의.",
+      "studentResponse": "when a disease is spread across a small village or community",
+      "haikuReasoning": "Your answer is too narrow. 'Endemic' refers to something restricted to a particular region or era in general, not just diseases spread in small villages. It can apply to plants, animals, customs, or any phenomenon native to a specific area.",
+      "gptReasoning": "The answer describes a situation that is too specific and does not capture the broader meaning of being native or restricted to a region."
+    },
+    {
+      "word": "indomitable",
+      "correctEN": "impossible to defeat or subdue",
+      "correctKO": "굴하지 않는",
+      "studentResponse": "unable to defeat",
+      "haikuReasoning": "You described the reverse meaning. 'Indomitable' means impossible to defeat or subdue, not unable to defeat. It describes something that cannot be conquered, not something that cannot conquer others.",
+      "gptReasoning": "The answer is self-referencing and does not provide a definition."
+    },
+    {
+      "word": "monetize",
+      "correctEN": "to earn revenue from (something)",
+      "correctKO": "수익화하다",
+      "studentResponse": "to involve money in a situation",
+      "haikuReasoning": "Your answer is too vague. 'Monetize' specifically means to earn revenue or profit from something, not just to involve money in a situation. It's about converting something into a source of income.",
+      "gptReasoning": "The answer describes a different concept related to money rather than the act of earning revenue."
+    },
+    {
+      "word": "nourish",
+      "correctEN": "to provide (someone or something) with food, care, or affection during a period of growth",
+      "correctKO": "영양분, 애정등을 주며 성장을 돕다.",
+      "studentResponse": "영양분",
+      "haikuReasoning": "You answered '영양분' (nutrition/nutrients), but 'nourish' means to provide food, care, and affection to help someone grow. Your answer is only a partial definition and misses the broader meaning of caring for growth.",
+      "gptReasoning": "Describes a different concept."
+    },
+    {
+      "word": "hereditary",
+      "correctEN": "passed down from parent to child",
+      "correctKO": "유전적인",
+      "studentResponse": "유전",
+      "haikuReasoning": "You answered '유전' (heredity/genetics), but 'hereditary' is an adjective meaning 'passed down from parent to child.' Your answer is a noun form and doesn't capture the adjectival meaning of the word.",
+      "gptReasoning": "Describes a different concept."
+    },
+    {
+      "word": "retort",
+      "correctEN": "to reply quickly and sharply in response to a comment or accusation",
+      "correctKO": "날카로운 대답을 하다",
+      "studentResponse": "rely quickly",
+      "haikuReasoning": "You wrote 'rely quickly' but the word means to 'reply quickly and sharply.' These are different words - 'rely' means to depend on something, while 'reply' means to respond. Make sure you're capturing the idea of responding sharply to a comment.",
+      "gptReasoning": "You wrote 'rely quickly', which seems to be a typo for 'reply quickly'. Please check your spelling."
+    },
+    {
+      "word": "sneak",
+      "correctEN": "to move quietly and secretly in order to avoid being noticed",
+      "correctKO": "몰래 움직이다",
+      "studentResponse": "조용히 하다",
+      "haikuReasoning": "Your answer 'to be quiet' doesn't capture the key meaning of 'sneak.' The word means to move secretly and avoid being noticed, not just to be quiet. Being quiet is a method, but sneaking involves the action of moving stealthily.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "arrangement",
+      "correctEN": "a deal or agreement",
+      "correctKO": "계획, 약속, 계약",
+      "studentResponse": "a set of events assigned for someone",
+      "haikuReasoning": "Your answer describes assigning events to someone, but 'arrangement' as a deal or agreement refers to a mutual understanding or contract between parties, not assigning tasks.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "pedantic",
+      "correctEN": "overly concerned with minute details or formalisms, especially in teaching",
+      "correctKO": "현학적인, 세세한 사항이나 형식에 지나치게 신경 쓰는",
+      "studentResponse": "extremely careful",
+      "haikuReasoning": "Being 'extremely careful' is not the same as being pedantic. Pedantic specifically means being overly concerned with minute details or formalities in a way that is often annoying or excessive, not just being careful.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "pregnant",
+      "correctEN": "carrying a developing embryo or fetus",
+      "correctKO": "",
+      "studentResponse": "to bear a baby",
+      "haikuReasoning": "'Pregnant' is an adjective describing the state of carrying a developing embryo, not a verb meaning 'to bear a baby.' Your answer uses the wrong part of speech.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "chortle",
+      "correctEN": "to chuckle with glee",
+      "correctKO": "혼자서 킬킬거리다, 신이 나서 웃다, 기뻐하다",
+      "studentResponse": "기뻐하다",
+      "haikuReasoning": "Your answer 'to be happy' is too vague and doesn't capture the specific meaning of chortle. Chortle means to chuckle or laugh with glee - it's about a specific type of laughter, not just general happiness.",
+      "gptReasoning": "Your answer describes a feeling of happiness but does not capture the action of chuckling with glee."
+    },
+    {
+      "word": "enact",
+      "correctEN": "to put into action (a wish or law)",
+      "correctKO": "(법, 소망 등을) 진행시키다, 실현시키다",
+      "studentResponse": "put into words",
+      "haikuReasoning": "You said 'put into words,' but enact means 'to put into action.' While both involve 'putting,' enact is about making something happen or implementing it (like a law), not about expressing it in words.",
+      "gptReasoning": "Your definition does not capture the action aspect of putting something into effect."
+    },
+    {
+      "word": "stature",
+      "correctEN": "the level of respect that people have for a successful person; organization",
+      "correctKO": "위엄",
+      "studentResponse": "위엄",
+      "haikuReasoning": "You answered '위엄' (dignity/majesty), but 'stature' refers to the level of respect or reputation someone has achieved, not just dignity. While related, stature is more about earned respect and standing in society rather than inherent dignity.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "mystifying",
+      "correctEN": "confusing or puzzling",
+      "correctKO": "신비로운",
+      "studentResponse": "신비로운",
+      "haikuReasoning": "The word 'mystifying' means confusing or puzzling, not mysterious or mystical. While 신비로운 can mean mysterious, it doesn't capture the sense of confusion that is central to 'mystifying.' A better answer would be something like 혼란스럽게 하는 or 당혹스럽게 하는.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "circumnavigate",
+      "correctEN": "to sail or travel all the way around",
+      "correctKO": "...을 두루 항해하다, [특히]세계를 배로 일주하다",
+      "studentResponse": "항해하다",
+      "haikuReasoning": "You answered '항해하다' (to sail/navigate), but circumnavigate specifically means to sail or travel all the way around something. Your answer is too general and misses the key 'around' component that defines the word.",
+      "gptReasoning": "Your answer is too vague; it doesn't specify the action of traveling around something."
+    },
+    {
+      "word": "embark",
+      "correctEN": "",
+      "correctKO": "",
+      "studentResponse": "태우다",
+      "haikuReasoning": "The word 'embark' means to begin a journey or make a start, not simply to load or put someone on a vehicle. While '태우다' (to put on/load) is related to boarding, it doesn't capture the meaning of beginning a journey or undertaking.",
+      "gptReasoning": "The answer '태우다' does not accurately reflect the meaning of 'embark', which is more about starting a journey rather than just boarding."
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "애정",
+      "haikuReasoning": "You answered 'affection/emotion' but affectation means artificial or unnatural behavior intended to impress. These are different concepts - affection is a genuine feeling, while affectation is fake behavior.",
+      "gptReasoning": "Your answer '애정' refers to 'affection' rather than 'affectation', which is about unnatural behavior."
+    },
+    {
+      "word": "disinformation",
+      "correctEN": "false information purposely disseminated, usually by a government, for the purpose of creating a false impression",
+      "correctKO": "잘못된 정보, 특히 정부가 의도적으로 퍼뜨리는 것.",
+      "studentResponse": "잘못된 정보",
+      "haikuReasoning": "Your answer 'false information' is missing the key element that disinformation is INTENTIONALLY spread, usually by a government. The definition requires that purposeful, deliberate aspect - that's what makes it disinformation rather than just misinformation.",
+      "gptReasoning": "Your answer is too vague and does not capture the intentional aspect of disinformation."
+    },
+    {
+      "word": "theology",
+      "correctEN": "the study of god or religion",
+      "correctKO": "신학, 종교심리학",
+      "studentResponse": "종교심리학",
+      "haikuReasoning": "Theology is the study of God or religion, not religious psychology (종교심리학). While related, these are different fields of study.",
+      "gptReasoning": "The answer describes a related concept but does not accurately define 'theology'."
+    },
+    {
+      "word": "unremitting",
+      "correctEN": "unceasing; unabated; relentless",
+      "correctKO": "끊임없는, 무자비한",
+      "studentResponse": "무자비한",
+      "haikuReasoning": "Unremitting means unceasing and relentless, but 무자비한 (merciless/ruthless) describes a quality of being without mercy. While these can overlap, unremitting is more about continuity without stopping, not about lacking mercy.",
+      "gptReasoning": "The answer describes a different concept and does not accurately define 'unremitting'."
+    },
+    {
+      "word": "colossus",
+      "correctEN": "a gigantic statue or thing",
+      "correctKO": "거대한 것, 거상",
+      "studentResponse": "가상",
+      "haikuReasoning": "You wrote '가상' (imaginary/virtual), but the word means '거대한 것' (something gigantic). These are completely different concepts.",
+      "gptReasoning": "Your answer describes something unrelated to 'colossus', which refers to a gigantic statue or thing."
+    },
+    {
+      "word": "warrant",
+      "correctEN": "to justify; to show to be reasonable or provide adequate ground for",
+      "correctKO": "~을 정당화하다",
+      "studentResponse": "영장",
+      "haikuReasoning": "You answered '영장' (warrant as in a legal document), but the word here means to justify or provide adequate ground for something. These are different meanings of 'warrant.'",
+      "gptReasoning": "Your answer '영장' refers to a warrant in a legal context, but it does not capture the meaning of 'to justify' or 'to show to be reasonable'."
+    },
+    {
+      "word": "deign",
+      "correctEN": "to condescend; to think it in accordance with one's dignity (to do something)",
+      "correctKO": "황송하게 ~을 하다.",
+      "studentResponse": "to do something one considers to be beneath one's dignity",
+      "haikuReasoning": "You have the meaning backwards. Deign means to condescend to do something you consider beneath your dignity - meaning you DO it despite thinking it's beneath you. Your answer suggests you wouldn't do it, which is the opposite.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "disclaim",
+      "correctEN": "to deny any claim to; to renounce",
+      "correctKO": "포기하다, 기권하다, 거절하다",
+      "studentResponse": "논박하다",
+      "haikuReasoning": "You answered '논박하다' (to refute/argue against), but 'disclaim' means to deny a claim or renounce something. These are different concepts - refuting is not the same as denying a claim to something.",
+      "gptReasoning": "The answer describes a different action (to refute) rather than the act of denying a claim."
+    },
+    {
+      "word": "scrupulous",
+      "correctEN": "diligent, thorough, and extremely attentive to details",
+      "correctKO": "세심한",
+      "studentResponse": "양심적인",
+      "haikuReasoning": "While '양심적인' (conscientious) is related, scrupulous specifically means diligent and thorough with attention to details, not just morally conscientious.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "opulent",
+      "correctEN": "wealthy, luxurious, or lavish",
+      "correctKO": "호화로운",
+      "studentResponse": "풍부한",
+      "haikuReasoning": "풍부한 means 'abundant' or 'plentiful,' but opulent specifically refers to wealth, luxury, and lavishness. While related, these are different concepts. Opulent is about expensive luxury, not just abundance.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "appalling",
+      "correctEN": "inspiring shock, horror, disgust",
+      "correctKO": "충격적인, 혐오스러운",
+      "studentResponse": "질리는",
+      "haikuReasoning": "질리는 means 'tiresome' or 'boring.' Appalling means inspiring shock, horror, or disgust. These are different emotions and concepts.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "infusion",
+      "correctEN": "an injection of one substance into another; the permeation of one substance by another",
+      "correctKO": "주입, 첨가물",
+      "studentResponse": "an injection of own substance into another",
+      "haikuReasoning": "You said 'an injection of own substance into another' but the definition is about injecting one substance into another, not specifically 'own' substance. The wording changes the meaning slightly, but more importantly, infusion is about the permeation or blending of substances, not just any injection.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "indoctrinated",
+      "correctEN": "taught to accept a set of beliefs uncritically",
+      "correctKO": "가담된",
+      "studentResponse": "가담된",
+      "haikuReasoning": "Your answer '가담된' means 'participated in' or 'joined,' which doesn't capture the meaning of indoctrinated. Indoctrination is about being taught to accept beliefs uncritically, not about participating in something. A better answer would be something like '세뇌된' (brainwashed) or '주입된' (instilled with beliefs).",
+      "gptReasoning": "The term '가담된' does not accurately reflect the meaning of 'taught to accept a set of beliefs uncritically'."
+    },
+    {
+      "word": "concord",
+      "correctEN": "a state in which people or things agree with each other and exist together in a peaceful way, harmony",
+      "correctKO": "합의",
+      "studentResponse": "합의",
+      "haikuReasoning": "You answered '합의' (agreement/consensus), but the word means harmony or peaceful coexistence. While agreement is related, 'concord' emphasizes the peaceful, harmonious state rather than just an agreement. A better answer would be '조화' or '화합' (harmony).",
+      "gptReasoning": ""
+    },
+    {
+      "word": "rarefied",
+      "correctEN": "esoteric; interesting to a select group only; exalted",
+      "correctKO": "희박한; 소수 그룹에만 흥미로운; 고귀한",
+      "studentResponse": "희박한",
+      "haikuReasoning": "You only provided the literal meaning '희박한' (sparse/thin). However, 'rarefied' in the context of this definition refers to something esoteric or exclusive to a select group, not the physical property of being sparse. Your answer misses the intended meaning.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "instability",
+      "correctEN": "the quality or attribute of being unstable and irresolute",
+      "correctKO": "정서 불안정",
+      "studentResponse": "불안정한",
+      "haikuReasoning": "'Instability' is a noun meaning the quality of being unstable. Your answer '불안정한' is an adjective. While related, you should provide the noun form to match the word's part of speech. The concept is close, but the grammatical form doesn't match.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "fabricate",
+      "correctEN": "to invent, create falsely",
+      "correctKO": "조작하다, 날조하다",
+      "studentResponse": "To create",
+      "haikuReasoning": "You said 'to create' but fabricate specifically means to invent or create falsely/dishonestly. Your answer is missing the key element of deception or falsehood.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "demanding",
+      "correctEN": "requiring more than usually expected or thought due, especially great patience and effort and skill",
+      "correctKO": "까다로운, 엄격한",
+      "studentResponse": "요구하는",
+      "haikuReasoning": "요구하는 means 'demanding' in the sense of 'asking for', but the word demanding here means requiring great effort/patience. You've given the wrong sense of the word.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "coddle",
+      "correctEN": "to treat with excessive indulgence",
+      "correctKO": "...을 지나치게 관대하게 대하다, 응석부리다; 응석부리는 사람, 허약하게 자란 사람",
+      "studentResponse": "허약하게 자란 사람, 응석부리다",
+      "haikuReasoning": "Your answer describes a result or type of person rather than the action itself. 'Coddle' means to treat someone with excessive indulgence or pampering—it's about the action of being overly lenient or caring, not about describing a weak or spoiled person.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "enigmatic",
+      "correctEN": "mysterious, puzzling",
+      "correctKO": "수수께끼 같은",
+      "studentResponse": "암호화된",
+      "haikuReasoning": "암호화된 means 'encrypted' or 'coded,' which is not the same as enigmatic. Enigmatic means mysterious or puzzling, not encrypted. These are different concepts.",
+      "gptReasoning": "The answer describes a different concept."
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "감정, 애정",
+      "haikuReasoning": "You answered '감정, 애정' (emotion, affection), but affectation means unnatural or artificial behavior intended to impress. While the Korean definition includes these words, they refer to genuine emotions, not the artificial behavior that affectation describes.",
+      "gptReasoning": "Your answer '감정, 애정' does not accurately reflect the meaning of 'affectation', which refers to unnatural or artificial behavior."
+    },
+    {
+      "word": "promote",
+      "correctEN": "to encourage; to make easier or more likely to happen",
+      "correctKO": "~를 장려하다, ~가 더 잘 발생하도록 하다",
+      "studentResponse": "advance or raise",
+      "haikuReasoning": "Promote means to encourage or make something more likely to happen. 'Advance or raise' focuses on moving someone up in position, which is only one narrow use of promote. The definition should emphasize encouraging or facilitating something.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "derisive",
+      "correctEN": "mocking, ridiculing",
+      "correctKO": "조롱하는",
+      "studentResponse": "조롱하다",
+      "haikuReasoning": "You answered with a verb form (조롱하다 - to mock), but the word 'derisive' is an adjective meaning 'mocking' or 'ridiculing.' Your answer should describe the quality or state of being mocking, not the action of mocking. The correct form would be '조롱하는' (mocking/ridiculing).",
+      "gptReasoning": ""
+    },
+    {
+      "word": "insular",
+      "correctEN": "narrowly restricted in outlook or scope; suggestive of the isolated life of an island; relating to or characteristic of or situated on an island",
+      "correctKO": "뇌·췌장의 섬과 관련된",
+      "studentResponse": "뇌와 관련된",
+      "haikuReasoning": "Your answer only captures one specific medical meaning of 'insular' (relating to the pancreas), but the word has a broader primary meaning about being narrowly restricted in outlook or isolated. You missed the main definition about having a limited perspective.",
+      "gptReasoning": "Your answer '뇌와 관련된' refers specifically to the brain and does not capture the broader meaning of 'insular' which relates to being isolated or having a narrow outlook."
+    },
+    {
+      "word": "thrifty",
+      "correctEN": "careful use of money so that it is not wasted",
+      "correctKO": "검소한",
+      "studentResponse": "싼",
+      "haikuReasoning": "Your answer '싼' (cheap/inexpensive) is not the same as 'thrifty.' Thrifty means being careful and wise with money to avoid waste, not just buying cheap things. Someone can be thrifty without things being cheap, and someone can buy cheap things without being thrifty.",
+      "gptReasoning": "Your answer '싼' means 'cheap' and does not accurately reflect the meaning of 'thrifty', which implies careful use of money rather than just low cost."
+    },
+    {
+      "word": "attendant",
+      "correctEN": "accompanying or following as a consequence",
+      "correctKO": "동반하는, 따르는",
+      "studentResponse": "수행원",
+      "haikuReasoning": "You answered '수행원' (attendant/escort person), but the word 'attendant' as an adjective means 'accompanying or following as a consequence.' Your answer describes a noun (a person), not the adjective meaning of the word.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "duplicity",
+      "correctEN": "deceitfulness; double-dealing",
+      "correctKO": "이중성",
+      "studentResponse": "the quality of having two sides",
+      "haikuReasoning": "While 'two sides' relates to the concept of duplicity, your answer doesn't capture the key meaning of deceitfulness and double-dealing. The definition should emphasize the deceptive nature, not just the duality.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "tremulous",
+      "correctEN": "fearful",
+      "correctKO": "떨리는, 불안한",
+      "studentResponse": "vibrating",
+      "haikuReasoning": "Tremulous means fearful or anxious, not vibrating. While tremulous can describe a shaking voice caused by fear, the primary meaning is about fear itself, not physical vibration.",
+      "gptReasoning": "Describes a physical state rather than the emotional aspect."
+    },
+    {
+      "word": "convention",
+      "correctEN": "an assembly of people",
+      "correctKO": "회의, 모임",
+      "studentResponse": "관행",
+      "haikuReasoning": "You answered '관행' (custom/practice), but the word means an assembly of people (회의, 모임). While both can relate to gatherings, '관행' specifically refers to established practices or customs, not an assembly itself.",
+      "gptReasoning": "Your answer '관행' refers to a practice or custom, which is not the same as an assembly of people."
+    },
+    {
+      "word": "conspicuous",
+      "correctEN": "easily seen, noticeable",
+      "correctKO": "눈에 띄는",
+      "studentResponse": "명확한",
+      "haikuReasoning": "명확한 means 'clear' or 'obvious,' but conspicuous specifically means 'easily seen or noticeable.' While related, 명확한 focuses on clarity of understanding rather than visibility or noticeability. The correct answer would be 눈에 띄는.",
+      "gptReasoning": "The answer '명확한' means 'clear' but does not capture the meaning of 'easily seen or noticeable'."
+    },
+    {
+      "word": "turbid",
+      "correctEN": "murky; opaque; unclear",
+      "correctKO": "불투명한, 흐린, 탁한",
+      "studentResponse": "dull",
+      "haikuReasoning": "You answered 'dull,' but turbid means 'murky, opaque, or unclear' - typically referring to liquids or visibility. 'Dull' refers to lack of brightness or sharpness, which is a different concept. The correct answer would be 탁한 or 흐린.",
+      "gptReasoning": "The answer 'dull' does not relate to 'murky' or 'opaque'."
+    },
+    {
+      "word": "weigh",
+      "correctEN": "to take into account; to consider (especially in comparison to another factor)",
+      "correctKO": "~을 고려하다",
+      "studentResponse": "무게를  재다",
+      "haikuReasoning": "You answered '무게를 재다' which means 'to measure weight.' However, weigh in this context means 'to take into account or consider,' not the literal physical act of measuring weight. The correct answer would be ~을 고려하다.",
+      "gptReasoning": "The answer '무게를 재다' means 'to weigh' but does not capture the meaning of 'to consider'."
+    },
+    {
+      "word": "nuance",
+      "correctEN": "a subtle difference or distinction",
+      "correctKO": "색조, 음영, 농담; 말뜻의 미묘한 차이",
+      "studentResponse": "차이",
+      "haikuReasoning": "You answered '차이' which means 'difference,' but nuance specifically refers to a subtle difference or distinction - it's more refined and specific than just any difference. While close, nuance emphasizes the subtle nature of the distinction. A better answer would be 미묘한 차이 or 음영.",
+      "gptReasoning": "The answer '차이' means 'difference' but does not capture the subtlety implied in 'nuance'."
+    },
+    {
+      "word": "debase",
+      "correctEN": "to lower the quality or esteem of something",
+      "correctKO": "타락시키다, 저하시키다",
+      "studentResponse": "타락하다",
+      "haikuReasoning": "You answered '타락하다' (to become corrupted), but 'debase' means to lower the quality or esteem of something - it's about making something worse, not necessarily about moral corruption. The correct answer should be closer to '저하시키다' (to lower/reduce) or '타락시키다' (to cause to deteriorate). Your answer describes a related but slightly different concept.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "engage",
+      "correctEN": "to become involved; to begin interacting with",
+      "correctKO": "~을 하다; ~와 무언가를 시작하다",
+      "studentResponse": "약혼하다, 계약하다",
+      "haikuReasoning": "Your answer describes different meanings of 'engage' (to become engaged/betrothed, to contract). The word here means to become involved or begin interacting with something. While 'engage' can have multiple meanings, your answer focuses on the romantic/contractual sense rather than the primary definition of involvement or interaction.",
+      "gptReasoning": "The answer describes a specific type of engagement (getting engaged or signing a contract) rather than the general meaning of becoming involved."
+    },
+    {
+      "word": "turbid",
+      "correctEN": "murky; opaque; unclear",
+      "correctKO": "불투명한, 흐린, 탁한",
+      "studentResponse": "혼란스러운",
+      "haikuReasoning": "혼란스러운 means 'confusing' or 'chaotic,' which describes a mental state. Turbid refers to physical opacity or murkiness (like cloudy water). These are different concepts.",
+      "gptReasoning": "The answer '혼란스러운' describes confusion, which is not aligned with the meaning of 'turbid'."
+    },
+    {
+      "word": "carouse",
+      "correctEN": "to drink and party in a lively way",
+      "correctKO": "술을 마시며 떠들다",
+      "studentResponse": "술을 마신",
+      "haikuReasoning": "술을 마신 just means 'drank alcohol,' but carouse means to drink AND party in a lively, boisterous way. Your answer is missing the celebratory, lively partying aspect.",
+      "gptReasoning": "The answer '술을 마신' does not capture the lively aspect of 'carouse'."
+    },
+    {
+      "word": "hover",
+      "correctEN": "to float, linger",
+      "correctKO": "맴돌다",
+      "studentResponse": "방황하다",
+      "haikuReasoning": "방황하다 means 'to wander aimlessly,' but hover means to float or linger in one place. These describe opposite movements.",
+      "gptReasoning": "The answer '방황하다' means to wander, which is not related to the meaning of 'hover'."
+    },
+    {
+      "word": "convention",
+      "correctEN": "an assembly of people",
+      "correctKO": "회의, 모임",
+      "studentResponse": "관행",
+      "haikuReasoning": "You answered '관행' (custom/practice), but the word means an assembly of people (회의, 모임). While both can relate to gatherings, '관행' specifically refers to established practices or customs, not an assembly itself.",
+      "gptReasoning": "Your answer '관행' refers to a practice or custom, which is not the same as an assembly of people."
+    },
+    {
+      "word": "appreciate",
+      "correctEN": "to recognize the full worth of",
+      "correctKO": "가치를 인정하다, 감사하다",
+      "studentResponse": "인지하다 이해하다",
+      "haikuReasoning": "Your answer 'to recognize/understand' doesn't capture the full meaning of 'appreciate.' The word means to recognize the full worth or value of something, which includes gratitude and valuation, not just recognition or understanding.",
+      "gptReasoning": "Your answer describes recognizing value, but it doesn't fully capture the idea of appreciating something in terms of worth."
+    },
+    {
+      "word": "demur",
+      "correctEN": "to disagree politely with another person's statement or suggestion",
+      "correctKO": "반대하다",
+      "studentResponse": "disagree politically",
+      "haikuReasoning": "You said 'disagree politically' but the word means to disagree politely in general, not specifically in a political context. The 'politically' changes the meaning.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "analgesic",
+      "correctEN": "something that reduces pain",
+      "correctKO": "진통제, 통증을 완화하는",
+      "studentResponse": "진정제",
+      "haikuReasoning": "You said '진정제' (sedative) but the word means '진통제' (pain reliever/analgesic). These are different types of medicine with different purposes.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "sneak",
+      "correctEN": "to move quietly and secretly in order to avoid being noticed",
+      "correctKO": "몰래 움직이다",
+      "studentResponse": "조용히 움직이다",
+      "haikuReasoning": "You said '조용히 움직이다' (move quietly), but 'sneak' specifically means to move quietly AND secretly to avoid being noticed. The secretive/hidden aspect is essential to the meaning.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "indignation",
+      "correctEN": "anger due to injustice",
+      "correctKO": "불공정에 대한 분노, 분개",
+      "studentResponse": "분개하다",
+      "haikuReasoning": "You said '분개하다' (to feel indignant/to resent), but 'indignation' is a noun meaning the feeling of anger itself, not the verb form. You should have answered with the noun form like '분개' or '분노'.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "agnostic",
+      "correctEN": "one who believes that the existence of a god can be neither proven nor disproven",
+      "correctKO": "불가지론자",
+      "studentResponse": "신을 않 믿는 사람",
+      "haikuReasoning": "An agnostic doesn't believe God's existence can be proven or disproven - they're uncertain. Your answer says 'one who doesn't believe in God,' which describes an atheist instead. These are different concepts.",
+      "gptReasoning": "The definition describes someone who does not believe in God, which is not the same as being agnostic."
+    },
+    {
+      "word": "placate",
+      "correctEN": "to make someone less angry or hostile",
+      "correctKO": "달래다",
+      "studentResponse": "위로하다",
+      "haikuReasoning": "Placate means to make someone less angry or hostile. Your answer 'to comfort' (위로하다) is close but describes a different action. Placating is specifically about calming anger, not general comfort.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "fervor",
+      "correctEN": "a strong feeling of excitement and enthusiasm",
+      "correctKO": "열망",
+      "studentResponse": "열련한",
+      "haikuReasoning": "Fervor means strong excitement and enthusiasm. Your answer '열련한' (ardent/passionate) is close in spirit, but fervor specifically refers to the intensity of feeling/enthusiasm, not just being passionate. The spelling also appears to have a typo.",
+      "gptReasoning": "The definition describes a strong desire rather than a strong feeling of excitement and enthusiasm."
+    },
+    {
+      "word": "credit",
+      "correctEN": "to acknowledge contributions of someone or something",
+      "correctKO": "~의 기여도를 인정하다",
+      "studentResponse": "신용하다",
+      "haikuReasoning": "Credit (as a verb) means to acknowledge someone's contributions. Your answer '신용하다' (to trust/have confidence in) describes a different meaning of credit. You need the sense of 'acknowledging' or 'giving credit to.'",
+      "gptReasoning": "The definition does not accurately reflect the meaning of acknowledging contributions."
+    },
+    {
+      "word": "arraign",
+      "correctEN": "to bring to court to answer an indictment; to accuse",
+      "correctKO": "[법] 공소 사실을 심리하다; 힐책하다, 규탄하다, 심문, 규탄, 비난",
+      "studentResponse": "규탄하다, 안부를 묻다",
+      "haikuReasoning": "Arraign means to bring to court or accuse. Your second answer '안부를 묻다' (to ask how someone is) is completely irrelevant to the definition. While '규탄하다' is acceptable, the second part contradicts the word's meaning.",
+      "gptReasoning": "The definition describes an action of accusing rather than the act of bringing someone to court."
+    },
+    {
+      "word": "ballyhoo",
+      "correctEN": "sensational advertising or promotion; uproar",
+      "correctKO": "야단스럽고 저속한 선전, 광고; 소란",
+      "studentResponse": "소란",
+      "haikuReasoning": "You provided only part of the definition. 'Ballyhoo' means sensational advertising or promotion AND uproar/commotion. Your answer only captures the 'uproar' aspect and misses the key advertising/promotion component.",
+      "gptReasoning": "Your answer describes only part of the definition and misses the advertising aspect."
+    },
+    {
+      "word": "dynamic",
+      "correctEN": "factor that controls, influences a process of growth, change, interaction, or activity",
+      "correctKO": "변화, 상호작용 등에 영향을 주는 요소",
+      "studentResponse": "변화",
+      "haikuReasoning": "Your answer is too narrow. 'Dynamic' refers to a factor that controls or influences processes like growth, change, and interaction. Just saying '변화' (change) misses the broader meaning of being a controlling or influential factor.",
+      "gptReasoning": "Your answer is too vague and does not capture the full meaning of the word."
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "애정",
+      "haikuReasoning": "You answered 'affection/emotion' but affectation means artificial or unnatural behavior intended to impress. These are different concepts - affection is a genuine feeling, while affectation is fake behavior.",
+      "gptReasoning": "Your answer '애정' refers to 'affection' rather than 'affectation', which is about unnatural behavior."
+    },
+    {
+      "word": "more",
+      "correctEN": "additional, extra",
+      "correctKO": "추가, 더 많은",
+      "studentResponse": "더하다",
+      "haikuReasoning": "You answered '더하다' (to add), but 'more' means additional or extra - it's a descriptor of quantity, not an action verb. Your answer describes an action rather than the meaning of the word itself.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "resume",
+      "correctEN": "to begin again after stopping",
+      "correctKO": "재개하다",
+      "studentResponse": "진행하다",
+      "haikuReasoning": "진행하다 means 'to proceed' or 'to progress,' which is not the same as 'to resume' (재개하다). Resuming means starting again after stopping, while proceeding just means continuing forward.",
+      "gptReasoning": "The answer '진행하다' means 'to proceed' which does not capture the meaning of 'to begin again after stopping.'"
+    },
+    {
+      "word": "oracle",
+      "correctEN": "a person or thing regarded as a source of wise counsel or prophetic predictions",
+      "correctKO": "신탁",
+      "studentResponse": "a person that is told by the god to do something",
+      "haikuReasoning": "Your answer describes someone who receives a message from a god, but an oracle is actually the person or source that gives the wise counsel or prophecy, not someone who is told what to do. You've reversed the direction of the definition.",
+      "gptReasoning": "The answer suggests a different concept by implying a directive from a god rather than being a source of counsel."
+    },
+    {
+      "word": "insouciant",
+      "correctEN": "nonchalant; lighthearted; carefree",
+      "correctKO": "무관심, 부주의, 태평한",
+      "studentResponse": "무관심",
+      "haikuReasoning": "You answered '무관심' (indifference/apathy), but insouciant means carefree and lighthearted, not indifferent. The word has a positive connotation of being unbothered in a relaxed way, not a negative one of being uncaring.",
+      "gptReasoning": "Your answer '무관심' describes a lack of concern, which is not the same as being carefree or lighthearted."
+    },
+    {
+      "word": "circumnavigate",
+      "correctEN": "to sail or travel all the way around",
+      "correctKO": "...을 두루 항해하다, [특히]세계를 배로 일주하다",
+      "studentResponse": "to sail",
+      "haikuReasoning": "Your answer 'to sail' is incomplete. Circumnavigate means to sail or travel all the way AROUND something (like the world). You need to include the 'around' part to show you understand the full meaning of the word.",
+      "gptReasoning": "Unable to grade - please challenge if you believe this is correct"
+    },
+    {
+      "word": "pigment",
+      "correctEN": "substance that creates color in clothes, paint, etc",
+      "correctKO": "색을 내는 물질",
+      "studentResponse": "색",
+      "haikuReasoning": "Your answer is too vague. While 'pigment' does create color, your answer of just '색' (color) doesn't capture that it's a substance or material. The definition emphasizes that pigment is a substance that creates color, not just the color itself.",
+      "gptReasoning": "The answer is too vague and does not capture the essence of the word, which refers specifically to a substance that creates color."
+    },
+    {
+      "word": "assuage",
+      "correctEN": "to ease or alleviate",
+      "correctKO": "완화시키다",
+      "studentResponse": "약화시키다",
+      "haikuReasoning": "You wrote '약화시키다' (to weaken), but assuage means to ease or alleviate pain/distress. While these are related, weakening is not quite the same as alleviating. Assuage is more about soothing or calming, not just reducing intensity.",
+      "gptReasoning": "The answer '약화시키다' means to weaken, which is the opposite of 'to ease or alleviate'."
+    },
+    {
+      "word": "petulance",
+      "correctEN": "rudeness, irritability",
+      "correctKO": "발뺌, 성마름",
+      "studentResponse": "the quality of being childish and petulant",
+      "haikuReasoning": "You defined petulance using the word 'petulant' itself, which is self-referencing. While you're on the right track with the meaning, you need to describe the quality without using the word or its direct form. Petulance means rudeness or irritability, especially in a childish way.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "estrange",
+      "correctEN": "to make unfriendly or hostile; to cause to feel removed from",
+      "correctKO": "남의 기분, 애정을 멀어지게 하다, 남의 사이를 가르다, ...을 멀리하다",
+      "studentResponse": "to make something feel strange and foreign",
+      "haikuReasoning": "Your definition describes the opposite meaning. Estrange means to make someone feel removed or unfriendly, not to make something feel strange. The word is about creating distance in relationships, not about making things seem odd or foreign.",
+      "gptReasoning": "Your definition does not fully capture the meaning of making someone feel unfriendly or hostile."
+    },
+    {
+      "word": "self-made",
+      "correctEN": "having succeeded in life without help from others",
+      "correctKO": "",
+      "studentResponse": "자기가 만든",
+      "haikuReasoning": "You provided only one definition of 'self-made,' but the word primarily means 'having succeeded in life without help from others.' Your answer focuses on the literal meaning 'made by oneself' rather than the main definition about achieving success through one's own efforts.",
+      "gptReasoning": "The answer is self-referencing and does not provide a clear definition."
+    },
+    {
+      "word": "osmosis",
+      "correctEN": "gradual or subtle absorption",
+      "correctKO": "삼투, 삼투성",
+      "studentResponse": "a process by which water particles move from an area of high concentration to that of a lower concentration",
+      "haikuReasoning": "Your answer describes the scientific process of osmosis (water particle movement), but the definition we're using refers to osmosis in a more general, metaphorical sense—meaning gradual or subtle absorption of ideas, knowledge, or influence. You've given a technically correct scientific definition, but it's too specific for what we're looking for here.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "boor",
+      "correctEN": "a rude or churlish person",
+      "correctKO": "시골 뜨기",
+      "studentResponse": "무례한 사",
+      "haikuReasoning": "Your answer '무례한 사' appears incomplete, but more importantly, '무례한' means 'rude' which is only part of the definition. 'Boor' specifically refers to a rude or churlish person—someone uncouth or lacking manners. Your answer captures the 'rude' aspect but seems cut off. A complete answer like '무례한 사람' or '시골뜨기' would be better.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "cite",
+      "correctEN": "to reference or quote",
+      "correctKO": "~를 인용하다",
+      "studentResponse": "a reference or quote",
+      "haikuReasoning": "You defined 'cite' as a noun (a reference or quote), but the word is a verb meaning to reference or quote something. You need to describe the action, not the object.",
+      "gptReasoning": "Your answer 'a reference or quote' does not define the action of citing."
+    },
+    {
+      "word": "augur",
+      "correctEN": "to serve as an omen or be a sign; to predict or foretell",
+      "correctKO": "점치다, 예언하다",
+      "studentResponse": "예언가",
+      "haikuReasoning": "You answered '예언가' (prophet/fortune teller - a noun), but 'augur' is a verb meaning to predict or foretell. Your answer describes a person who does the action, not the action itself. The correct answer should be '예언하다' or '점치다'.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "fabricate",
+      "correctEN": "to invent, create falsely",
+      "correctKO": "조작하다, 날조하다",
+      "studentResponse": "to create",
+      "haikuReasoning": "Fabricate means to invent or create falsely - it implies deception or dishonesty. Simply saying 'to create' misses the key meaning of creating something false or fake.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "delegate",
+      "correctEN": "to hand over responsibility for something",
+      "correctKO": "대표자, 대리인",
+      "studentResponse": "대표자",
+      "haikuReasoning": "You provided the noun form (representative/delegate), but the word 'delegate' in this context means the verb form - to hand over responsibility. While 'delegate' can be a noun, your answer doesn't capture the action of delegating or handing over responsibility.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "rarefied",
+      "correctEN": "esoteric; interesting to a select group only; exalted",
+      "correctKO": "희박한; 소수 그룹에만 흥미로운; 고귀한",
+      "studentResponse": "희박한",
+      "haikuReasoning": "You only provided the literal meaning '희박한' (sparse/thin). However, 'rarefied' in the context of this definition refers to something esoteric or exclusive to a select group, not the physical property of being sparse. Your answer misses the intended meaning.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "engender",
+      "correctEN": "to cause, produce",
+      "correctKO": "야기하다",
+      "studentResponse": "야기하다",
+      "haikuReasoning": "야기하다 means 'to talk about' or 'to mention,' but 'engender' means 'to cause or produce.' These are different concepts. You should have answered with something like '야기하다' is not correct - try '야기하다' or '일으키다' (to cause/produce).",
+      "gptReasoning": ""
+    },
+    {
+      "word": "acquainted",
+      "correctEN": "familiarized, used to",
+      "correctKO": "(~~에) 익숙해진",
+      "studentResponse": "지식이 있는",
+      "haikuReasoning": "You answered '지식이 있는' (having knowledge), but 'acquainted' means 'familiarized' or 'used to' something. While they're related concepts, your answer is too broad and doesn't capture the specific meaning of being familiar or accustomed to something.",
+      "gptReasoning": "Your answer '지식이 있는' describes being knowledgeable but does not capture the idea of being familiarized."
+    },
+    {
+      "word": "atheism",
+      "correctEN": "a disbelief in the existence of deity",
+      "correctKO": "무신론",
+      "studentResponse": "무신론자",
+      "haikuReasoning": "You answered '무신론자' (atheist - a person), but the word 'atheism' refers to the belief system or disbelief itself, not the person who holds that belief. These are related but different concepts.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "애정",
+      "haikuReasoning": "You answered 'affection/emotion' but affectation means artificial or unnatural behavior intended to impress. These are different concepts - affection is a genuine feeling, while affectation is fake behavior.",
+      "gptReasoning": "Your answer '애정' refers to 'affection' rather than 'affectation', which is about unnatural behavior."
+    },
+    {
+      "word": "tractable",
+      "correctEN": "easily controlled",
+      "correctKO": "다루기 쉬운, 유순한",
+      "studentResponse": "속이기 쉬운",
+      "haikuReasoning": "You answered 'easy to deceive' but tractable means 'easily controlled' or 'obedient.' These are opposite meanings - being easy to deceive is not the same as being easy to control.",
+      "gptReasoning": "Your answer '속이기 쉬운' means 'easily deceived', which is the opposite of 'easily controlled'."
+    },
+    {
+      "word": "balm",
+      "correctEN": "something that heals or soothes",
+      "correctKO": "향유, 방향, (신경)안정제, 진통제",
+      "studentResponse": "방향",
+      "haikuReasoning": "You answered 'fragrance/scent' but balm means something that heals or soothes (like a soothing ointment or comfort). While balm can have a pleasant scent, the core meaning is about healing or soothing, not fragrance.",
+      "gptReasoning": "Your answer '방향' means 'direction', which does not relate to the concept of something that heals or soothes."
+    },
+    {
+      "word": "wonder",
+      "correctEN": "something that arouses awe or that is very impressive",
+      "correctKO": "놀라움이나 감탄을 자아내는 것",
+      "studentResponse": "놀라움을 자아내다",
+      "haikuReasoning": "The word 'wonder' refers to a noun (something that arouses awe), but you defined it as a verb (to arouse awe). These are different parts of speech and meanings.",
+      "gptReasoning": "The answer '놀라움을 자아내다' describes an action rather than the noun 'wonder' itself."
+    },
+    {
+      "word": "apocalypse",
+      "correctEN": "a prophetic revelation, especially one concerning the end of the world",
+      "correctKO": "종말론, 세계의 종말에 관한 예언",
+      "studentResponse": "아포칼립스",
+      "haikuReasoning": "You answered '아포칼립스' which is just the transliteration of the English word 'apocalypse.' This is self-referencing and doesn't show you understand the actual meaning. The word means 'a prophetic revelation, especially concerning the end of the world' - try explaining it in your own words.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "threadbare",
+      "correctEN": "worn away so that threads show",
+      "correctKO": "닳아빠진, 초라한, 너덜너덜한",
+      "studentResponse": "진부한",
+      "haikuReasoning": "While 'threadbare' can mean worn and shabby, the primary definition refers to fabric worn so thin that threads show through. Your answer of '진부한' (outdated/trite) describes a different meaning. The word is about physical wear, not being old-fashioned.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "acute",
+      "correctEN": "sharp, severe",
+      "correctKO": "날카로운, 심한",
+      "studentResponse": "에리한",
+      "haikuReasoning": "Your spelling '에리한' doesn't match the word. The correct answer should be something like '날카로운' or '심한' (sharp or severe). Please check your spelling.",
+      "gptReasoning": "The term '에리한' is not a recognized word in this context."
+    },
+    {
+      "word": "mystifying",
+      "correctEN": "confusing or puzzling",
+      "correctKO": "신비로운",
+      "studentResponse": "신비로운",
+      "haikuReasoning": "The word 'mystifying' means confusing or puzzling, not mysterious or mystical. While 신비로운 can mean mysterious, it doesn't capture the sense of confusion that is central to 'mystifying.' A better answer would be something like 혼란스럽게 하는 or 당혹스럽게 하는.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "redolent",
+      "correctEN": "strongly reminiscent or suggestive of something",
+      "correctKO": "(향기가) 가득한",
+      "studentResponse": "많은, 풍부한",
+      "haikuReasoning": "Your answer 'many, abundant' doesn't capture the core meaning of redolent. The word means 'strongly reminiscent or suggestive of something,' often related to smell or memory. While redolent can mean 'full of fragrance,' it's primarily about evoking memories or associations, not just being abundant or plentiful.",
+      "gptReasoning": "The term '많은, 풍부한' suggests abundance rather than being strongly reminiscent or suggestive."
+    },
+    {
+      "word": "ruse",
+      "correctEN": "a trick",
+      "correctKO": "계략, 속임수",
+      "studentResponse": "음모",
+      "haikuReasoning": "Your answer 'conspiracy' doesn't match the definition of ruse. A ruse is a trick or stratagem used to deceive someone, while a conspiracy is a secret plan made by a group. These are different concepts—a ruse is about deception through trickery, not a group plot.",
+      "gptReasoning": "The term '음모' implies a conspiracy, which is not the same as a trick."
+    },
+    {
+      "word": "insular",
+      "correctEN": "narrowly restricted in outlook or scope; suggestive of the isolated life of an island; relating to or characteristic of or situated on an island",
+      "correctKO": "뇌·췌장의 섬과 관련된",
+      "studentResponse": "뇌 및 췌장의 섬과 관련된",
+      "haikuReasoning": "Your answer describes only the medical/anatomical meaning of insular (relating to pancreatic islands), but the main definition refers to being narrowly restricted in outlook or isolated. You've given a specialized definition that doesn't capture the primary meaning of the word.",
+      "gptReasoning": "The answer '뇌 및 췌장의 섬과 관련된' is too specific and does not capture the broader meaning of 'insular'."
+    },
+    {
+      "word": "badger",
+      "correctEN": "to bother or annoy (someone) with many comments or questions",
+      "correctKO": "성가시게 하다",
+      "studentResponse": "산만하게 하다",
+      "haikuReasoning": "Your answer 'to make scattered/disorganized' doesn't match the definition. Badger means to bother or annoy someone with repeated comments or questions, not to make something scattered or unfocused.",
+      "gptReasoning": "The answer '산만하게 하다' does not accurately reflect the meaning of 'badger', which is about bothering or annoying someone."
+    },
+    {
+      "word": "arguably",
+      "correctEN": "used to indicate that something is open to debate or discussion",
+      "correctKO": "논쟁의 여지가 있는",
+      "studentResponse": "아마 틀림없이",
+      "haikuReasoning": "Your answer 'probably definitely' describes certainty, but 'arguably' means something is open to debate or discussion - the opposite of being certain.",
+      "gptReasoning": "The answer suggests certainty rather than indicating something is open to debate."
+    },
+    {
+      "word": "ratiocination",
+      "correctEN": "logical reasoning",
+      "correctKO": "논리적 추론",
+      "studentResponse": "합리화",
+      "haikuReasoning": "'Rationalization' is not the same as 'logical reasoning.' Rationalization means justifying something with reasons that may not be true, while ratiocination means actual logical reasoning.",
+      "gptReasoning": "The answer '합리화' refers to rationalization, which is not the same as logical reasoning."
+    },
+    {
+      "word": "qualify",
+      "correctEN": "to limit (a claim); to specify a condition to make a claim narrower",
+      "correctKO": "(어떤 주장을) 제한하다, 더 구체적으로 만들다",
+      "studentResponse": "자격이 있는 얻다",
+      "haikuReasoning": "You answered 'to have/obtain qualifications,' but 'qualify' in this context means to limit or narrow a claim, not to gain qualifications.",
+      "gptReasoning": "The answer '자격이 있는 얻다' does not accurately reflect the meaning of 'qualify'."
+    },
+    {
+      "word": "deteriorate",
+      "correctEN": "to worsen, decline",
+      "correctKO": "악화되다",
+      "studentResponse": "악화시키다",
+      "haikuReasoning": "You answered '악화시키다' (to worsen/make worse), but the word 'deteriorate' means to become worse or decline on its own. Your answer describes making something worse, which is the active form, not the passive/reflexive meaning of the word.",
+      "gptReasoning": "You described the action of making something worse, rather than the state of being worse."
+    },
+    {
+      "word": "augur",
+      "correctEN": "to serve as an omen or be a sign; to predict or foretell",
+      "correctKO": "점치다, 예언하다",
+      "studentResponse": "예언자",
+      "haikuReasoning": "You answered '예언자' (prophet/one who prophesies), but 'augur' is a verb meaning to predict or foretell, not a noun for a person. Your answer describes a person, not the action itself.",
+      "gptReasoning": "You defined a person who predicts rather than the action of predicting."
+    },
+    {
+      "word": "equitable",
+      "correctEN": "fair and just in the distribution of resources or opportunities",
+      "correctKO": "공정한",
+      "studentResponse": "동등한",
+      "haikuReasoning": "You answered '동등한' (equal/equivalent), but 'equitable' means fair and just in distribution, not simply equal. These are different concepts - something can be equal but not fair, or fair but not equal.",
+      "gptReasoning": "The answer describes equality rather than fairness."
+    },
+    {
+      "word": "estate",
+      "correctEN": "a large area of land with a large house or mansion on it",
+      "correctKO": "부동산",
+      "studentResponse": "부동산",
+      "haikuReasoning": "부동산 means real estate/property in general, but 'estate' specifically refers to a large area of land with a mansion. Your answer is too broad and doesn't capture the specific meaning of a grand property.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "rarefied",
+      "correctEN": "esoteric; interesting to a select group only; exalted",
+      "correctKO": "희박한; 소수 그룹에만 흥미로운; 고귀한",
+      "studentResponse": "희박한",
+      "haikuReasoning": "You only provided the literal meaning '희박한' (sparse/thin). However, 'rarefied' in the context of this definition refers to something esoteric or exclusive to a select group, not the physical property of being sparse. Your answer misses the intended meaning.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "misleading",
+      "correctEN": "designed to deceive or mislead",
+      "correctKO": "잘못 안내하는, 잘못 인도하는",
+      "studentResponse": "속임수",
+      "haikuReasoning": "You answered '속임수' (deception/trick), but 'misleading' means something that is designed to deceive or mislead - it's the quality or characteristic of being deceptive, not the act of deception itself. A closer answer would be '잘못 안내하는' or '잘못 인도하는' as given in the definition.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "agnostic",
+      "correctEN": "one who believes that the existence of a god can be neither proven nor disproven",
+      "correctKO": "불가지론자",
+      "studentResponse": "someone who does not believe in the existence of god",
+      "haikuReasoning": "You said 'someone who does not believe in the existence of god,' but an agnostic is someone who believes the existence of god can NEITHER be proven NOR disproven. That's different from not believing in god. An agnostic is uncertain, not a disbeliever.",
+      "gptReasoning": "The answer describes a different concept (non-belief) rather than the agnostic position of uncertainty regarding the existence of a god."
+    },
+    {
+      "word": "balm",
+      "correctEN": "something that heals or soothes",
+      "correctKO": "향유, 방향, (신경)안정제, 진통제",
+      "studentResponse": "방향",
+      "haikuReasoning": "You answered 'fragrance/scent' but balm means something that heals or soothes (like a soothing ointment or comfort). While balm can have a pleasant scent, the core meaning is about healing or soothing, not fragrance.",
+      "gptReasoning": "Your answer '방향' means 'direction', which does not relate to the concept of something that heals or soothes."
+    },
+    {
+      "word": "saccharine",
+      "correctEN": "sickeningly sweet",
+      "correctKO": "달콤한",
+      "studentResponse": "달콤한",
+      "haikuReasoning": "The word 'saccharine' means sickeningly sweet - overly sweet in a way that is unpleasant or excessive. Your answer '달콤한' (sweet) is too general and misses the negative connotation of being excessively or unpleasantly sweet.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "mystifying",
+      "correctEN": "confusing or puzzling",
+      "correctKO": "신비로운",
+      "studentResponse": "신비로운의 것",
+      "haikuReasoning": "You wrote '신비로운의 것' which doesn't make grammatical sense. The word 신비로운 means 'mysterious' but mystifying means 'confusing or puzzling' - these are different concepts. Mystifying should relate to confusion, not mystery.",
+      "gptReasoning": "The answer '신비로운의 것' is self-referencing and does not provide a clear definition of 'mystifying'."
+    },
+    {
+      "word": "solace",
+      "correctEN": "comfort or consolation in a time of distress or sadness",
+      "correctKO": "위로",
+      "studentResponse": "위로하다",
+      "haikuReasoning": "You answered '위로하다' (to comfort), but the word 'solace' is a noun meaning comfort itself, not the verb 'to comfort.' The definition asks for the comfort or consolation, not the action of comforting. Your answer describes the verb form rather than the noun.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "fabricate",
+      "correctEN": "to invent, create falsely",
+      "correctKO": "조작하다, 날조하다",
+      "studentResponse": "만들다",
+      "haikuReasoning": "The word 'fabricate' specifically means to invent or create something falsely (with deception), not just to make or create something in general. '만들다' (to make) is too broad and doesn't capture the false/deceptive aspect of fabrication.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "emaciate",
+      "correctEN": "to make extremely thin through starvation or illness",
+      "correctKO": "...을 여위게 만들다, 쇠약하게 하다",
+      "studentResponse": "약화시키다",
+      "haikuReasoning": "The word 'emaciate' means to make extremely thin through starvation or illness, not to weaken in general. '약화시키다' (to weaken) describes a different concept than becoming extremely thin.",
+      "gptReasoning": "The answer '약화시키다' does not match the meaning of making extremely thin."
+    },
+    {
+      "word": "revamp",
+      "correctEN": "to revise; to renovate",
+      "correctKO": "(연극이나 서적을) 개작하다, 개정하다",
+      "studentResponse": "시작하다, 개정하다",
+      "haikuReasoning": "You wrote '시작하다' (to start/begin), but the word 'revamp' means to revise or renovate. '시작하다' is completely unrelated to the definition. You got the second part '개정하다' correct, but the first part contradicts the meaning.",
+      "gptReasoning": "The answer describes starting something rather than revising or renovating."
+    },
+    {
+      "word": "malign",
+      "correctEN": "to cause or intend to cause harm",
+      "correctKO": "비방하다",
+      "studentResponse": "해로운",
+      "haikuReasoning": "You answered '해로운' (harmful), but malign means to speak badly of or defame someone. While both can relate to negativity, malign specifically means to slander or speak ill of, not just to be harmful in general.",
+      "gptReasoning": "Describes a different concept."
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "thorny",
+      "correctEN": "full of difficulties; tough; painful",
+      "correctKO": "",
+      "studentResponse": "가시처럼 날카로운",
+      "haikuReasoning": "You gave only one meaning (sharp like a thorn), but thorny primarily means 'full of difficulties' or 'tough/painful.' While thorny can describe something physically sharp, the main definition here refers to difficult or problematic situations.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "enlighten",
+      "correctEN": "to inform, educate",
+      "correctKO": "깨우치다",
+      "studentResponse": "계몽되다",
+      "haikuReasoning": "You answered '계몽되다' (to be enlightened/passive form), but the word 'enlighten' means to actively inform or educate someone. Your answer describes receiving enlightenment rather than providing it. The correct form should be active, like '계몽하다' or '깨우치다'.",
+      "gptReasoning": "Your answer describes a different concept. 'Enlighten' means to inform or educate, while '계몽되다' implies being enlightened rather than the act of enlightening."
+    },
+    {
+      "word": "embark",
+      "correctEN": "",
+      "correctKO": "",
+      "studentResponse": "태우다",
+      "haikuReasoning": "The word 'embark' means to begin a journey or make a start, not simply to load or put someone on a vehicle. While '태우다' (to put on/load) is related to boarding, it doesn't capture the meaning of beginning a journey or undertaking.",
+      "gptReasoning": "The answer '태우다' does not accurately reflect the meaning of 'embark', which is more about starting a journey rather than just boarding."
+    },
+    {
+      "word": "wonder",
+      "correctEN": "something that arouses awe or that is very impressive",
+      "correctKO": "놀라움이나 감탄을 자아내는 것",
+      "studentResponse": "궁금해하다",
+      "haikuReasoning": "The word 'wonder' as a noun means something that arouses awe or is impressive, not the verb 'to wonder' (궁금해하다 - to be curious or question). You've given the definition of the verb form, not the noun form requested.",
+      "gptReasoning": "The answer '궁금해하다' describes curiosity rather than something that arouses awe or is impressive."
+    },
+    {
+      "word": "insular",
+      "correctEN": "narrowly restricted in outlook or scope; suggestive of the isolated life of an island; relating to or characteristic of or situated on an island",
+      "correctKO": "뇌·췌장의 섬과 관련된",
+      "studentResponse": "뇌의 섬과 관련된",
+      "haikuReasoning": "The word 'insular' has multiple meanings. While your answer about the brain's island is technically one definition, it's a very specialized anatomical term. The primary definition in this context refers to being narrowly restricted in outlook or relating to islands. Your answer captures only the medical/anatomical sense, which is incomplete for a general vocabulary assessment.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "augur",
+      "correctEN": "to serve as an omen or be a sign; to predict or foretell",
+      "correctKO": "점치다, 예언하다",
+      "studentResponse": "점쟁이",
+      "haikuReasoning": "점쟁이 means 'fortune teller' (a person), but 'augur' is a verb meaning 'to predict or foretell' or a noun meaning 'an omen/sign.' You've identified the person who augurs, not the action or meaning of the word itself.",
+      "gptReasoning": "The term '점쟁이' refers to a fortune teller, which is not the same as 'to predict or foretell'."
+    },
+    {
+      "word": "tirade",
+      "correctEN": "prolonged, bitter speech",
+      "correctKO": "장광설, 신랄한 연설",
+      "studentResponse": "신랄한 역설",
+      "haikuReasoning": "You said '신랄한 역설' (sharp paradox), but a tirade is a prolonged bitter speech, not a paradox. The word '역설' (paradox) doesn't match the definition of tirade. You should have just said '신랄한 연설' or '장광설' (prolonged speech).",
+      "gptReasoning": "Your answer describes a speech but does not capture the idea of it being prolonged and bitter."
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "병",
+      "haikuReasoning": "You answered '병' (illness/condition), but affectation means unnatural or artificial behavior intended to impress. While one Korean definition lists '성질' (quality/nature), '병' alone doesn't capture the meaning of artificial behavior.",
+      "gptReasoning": "The answer describes a medical condition rather than the intended meaning of artificial behavior."
+    },
+    {
+      "word": "formidable",
+      "correctEN": "causing fear or apprehension, difficult to overcome",
+      "correctKO": "굳세다",
+      "studentResponse": "굳세다",
+      "haikuReasoning": "'Formidable' means causing fear or apprehension, and difficult to overcome. '굳세다' means 'strong' or 'firm,' which doesn't capture the sense of fear, apprehension, or being difficult to overcome. A better answer would include the idea of something being intimidating or hard to deal with.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "rebut",
+      "correctEN": "to contradict; to argue in opposition to; to prove to be false",
+      "correctKO": "논박하다, 반증하다",
+      "studentResponse": "반대하다",
+      "haikuReasoning": "You answered '반대하다' (to oppose/contradict in general), but 'rebut' specifically means to argue against with evidence or proof, not just to contradict. The word carries the sense of proving something false with counter-evidence, which is more specific than simple opposition.",
+      "gptReasoning": "The answer '반대하다' means 'to oppose' but does not capture the specific meaning of 'rebut', which involves proving something to be false."
+    },
+    {
+      "word": "audacity",
+      "correctEN": "boldness or daring",
+      "correctKO": "대담함",
+      "studentResponse": "대담한",
+      "haikuReasoning": "You answered '대담한' (an adjective meaning 'bold'), but the definition asks for 'boldness or daring' which should be a noun. The correct answer should be '대담함' (the noun form). While you captured the meaning, the part of speech doesn't match.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "delegate",
+      "correctEN": "to hand over responsibility for something",
+      "correctKO": "대표자, 대리인",
+      "studentResponse": "대표자",
+      "haikuReasoning": "You provided the noun form (representative/delegate), but the word 'delegate' in this context means the verb form - to hand over responsibility. While 'delegate' can be a noun, your answer doesn't capture the action of delegating or handing over responsibility.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "reflective",
+      "correctEN": "in deep thoguht",
+      "correctKO": "생각에 잠긴",
+      "studentResponse": "반사적인",
+      "haikuReasoning": "You answered '반사적인' (reflective in the physical sense, like reflecting light), but 'reflective' in this context means being in deep thought or contemplative. The correct answer should relate to thinking deeply, like '생각에 잠긴' or '명상적인'.",
+      "gptReasoning": "Your answer '반사적인' means 'reflective' in a physical sense, while the word 'reflective' in this context refers to deep thought."
+    },
+    {
+      "word": "deflate",
+      "correctEN": "to release air or gas from (something, such as a tire or balloon) and make it smaller",
+      "correctKO": "붕괴하다",
+      "studentResponse": "붕괴하다",
+      "haikuReasoning": "The definition of 'deflate' is about releasing air or gas to make something smaller. '붕괴하다' (collapse) describes a different concept. You should have answered something like '공기를 빼다' or '바람을 빼다'.",
+      "gptReasoning": "The answer describes a collapse rather than the act of releasing air or gas."
+    },
+    {
+      "word": "self-made",
+      "correctEN": "having succeeded in life without help from others",
+      "correctKO": "",
+      "studentResponse": "자기가 만든",
+      "haikuReasoning": "You provided only one definition of 'self-made,' but the word primarily means 'having succeeded in life without help from others.' Your answer focuses on the literal meaning 'made by oneself' rather than the main definition about achieving success through one's own efforts.",
+      "gptReasoning": "The answer is self-referencing and does not provide a clear definition."
+    },
+    {
+      "word": "insular",
+      "correctEN": "narrowly restricted in outlook or scope; suggestive of the isolated life of an island; relating to or characteristic of or situated on an island",
+      "correctKO": "뇌·췌장의 섬과 관련된",
+      "studentResponse": "섬과 관련된",
+      "haikuReasoning": "You gave a definition related to islands and pancreas, but the word 'insular' means narrowly restricted in outlook or scope. While 'island' is etymologically related, your answer doesn't capture the main meaning of the word.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "denomination",
+      "correctEN": "a name; a unit; a category or group within a larger one",
+      "correctKO": "명명; 단위; 더 큰 집단 내의 어떤 파 혹은 그룹",
+      "studentResponse": "name ; a smaller group within a group",
+      "haikuReasoning": "You said 'a smaller group within a group,' but denomination actually refers to a category or group within a larger one - meaning the group itself, not necessarily smaller. The definition should describe the group/category, not its size relationship.",
+      "gptReasoning": "Describes a smaller group within a group, which is not the same as a name or category."
+    },
+    {
+      "word": "ethos",
+      "correctEN": "the fundamental character or spirit",
+      "correctKO": "윤리",
+      "studentResponse": "윤리",
+      "haikuReasoning": "You defined ethos as 'ethics' (윤리), but ethos actually means the fundamental character or spirit of something. While ethics can be related, ethos is broader and refers to the characteristic spirit or values of a culture, group, or individual, not just ethics as a moral system.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "insular",
+      "correctEN": "narrowly restricted in outlook or scope; suggestive of the isolated life of an island; relating to or characteristic of or situated on an island",
+      "correctKO": "뇌·췌장의 섬과 관련된",
+      "studentResponse": "섬과 관련된",
+      "haikuReasoning": "You gave a definition related to islands and pancreas, but the word 'insular' means narrowly restricted in outlook or scope. While 'island' is etymologically related, your answer doesn't capture the main meaning of the word.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "exhilarate",
+      "correctEN": "to cause someone to feel very happy and excited",
+      "correctKO": "활력을 주다",
+      "studentResponse": "to cause something to feel happy",
+      "haikuReasoning": "You said 'to cause something to feel happy,' but the word means to cause a person (someone) to feel happy and excited. The subject should be a person, not a thing.",
+      "gptReasoning": "Your answer is incorrect because it suggests causing something else to feel happy, rather than causing a person to feel happy."
+    },
+    {
+      "word": "colossus",
+      "correctEN": "a gigantic statue or thing",
+      "correctKO": "거대한 것, 거상",
+      "studentResponse": "거인",
+      "haikuReasoning": "거인 means 'giant person,' but colossus refers to a gigantic statue or thing, not necessarily a person. Your answer is too narrow.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "carouse",
+      "correctEN": "to drink and party in a lively way",
+      "correctKO": "술을 마시며 떠들다",
+      "studentResponse": "떠들썩한",
+      "haikuReasoning": "떠들썩한 means 'noisy/boisterous' (an adjective describing a state), but carouse is a verb meaning 'to drink and party.' You described the atmosphere rather than the action itself.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "lavish",
+      "correctEN": "luxurious and expensive",
+      "correctKO": "사치스러운",
+      "studentResponse": "낭비하는",
+      "haikuReasoning": "낭비하는 means 'wasteful/squandering,' but lavish means 'luxurious and expensive.' These are opposite concepts - lavish is about indulgence, not waste.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "disinformation",
+      "correctEN": "false information purposely disseminated, usually by a government, for the purpose of creating a false impression",
+      "correctKO": "잘못된 정보, 특히 정부가 의도적으로 퍼뜨리는 것.",
+      "studentResponse": "잘못된 정보",
+      "haikuReasoning": "Your answer 'false information' is missing the key element that disinformation is INTENTIONALLY spread, usually by a government. The definition requires that purposeful, deliberate aspect - that's what makes it disinformation rather than just misinformation.",
+      "gptReasoning": "Your answer is too vague and does not capture the intentional aspect of disinformation."
+    },
+    {
+      "word": "plaudit",
+      "correctEN": "expression of praise",
+      "correctKO": "갈채, 박수, 칭찬",
+      "studentResponse": "to praise",
+      "haikuReasoning": "You said 'to praise,' but plaudit is a noun meaning an expression of praise, not a verb. The word describes praise itself, not the action of praising.",
+      "gptReasoning": "Describes an action rather than an expression"
+    },
+    {
+      "word": "demarcation",
+      "correctEN": "boundary, division",
+      "correctKO": "경계, 구분",
+      "studentResponse": "to set boundaries around something",
+      "haikuReasoning": "You described the action of setting boundaries, but demarcation is a noun meaning the boundary or division itself, not the act of creating it.",
+      "gptReasoning": "Describes an action rather than a concept"
+    },
+    {
+      "word": "prohibitive",
+      "correctEN": "preventing or hindering something",
+      "correctKO": "막는, 방해하는",
+      "studentResponse": "방어하는",
+      "haikuReasoning": "You answered '방어하는' (defending), but prohibitive means preventing or hindering something. These are opposite concepts - defending is not the same as preventing or blocking.",
+      "gptReasoning": "Your answer means 'defensive' rather than 'preventing or hindering'."
+    },
+    {
+      "word": "maternal",
+      "correctEN": "of or relating to a mother",
+      "correctKO": "어머니의",
+      "studentResponse": "모성",
+      "haikuReasoning": "You answered '모성' (motherhood/maternal instinct), but the word means 'relating to a mother' or 'of a mother.' Your answer describes a quality or feeling associated with motherhood, not the relationship itself. It's close, but describes a different concept.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "stalemate",
+      "correctEN": "a contest, dispute, competition, etc., in which neither side can gain an advantage or win",
+      "correctKO": "교착상태",
+      "studentResponse": "막다른 길",
+      "haikuReasoning": "You answered '막다른 길' (a dead end), but stalemate means a situation where neither side can win or gain advantage. A dead end is different from a deadlock or standstill where both parties are stuck.",
+      "gptReasoning": "Your answer '막다른 길' describes a dead end, which is not related to the concept of a stalemate."
+    },
+    {
+      "word": "inflammatory",
+      "correctEN": "arousing anger or strong emotion",
+      "correctKO": "염려를 불러일으키는",
+      "studentResponse": "염려를 불러일으키는",
+      "haikuReasoning": "The definition you provided is about 'causing concern or worry,' but inflammatory means 'arousing anger or strong emotion.' While these are related, they're not quite the same thing. Inflammatory is more about anger and passion, not just worry.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "repressed",
+      "correctEN": "showing the suppression of impulses or emotions",
+      "correctKO": "억압받는",
+      "studentResponse": "억압하는",
+      "haikuReasoning": "You answered '억압하는' (suppressing/oppressing), but the word 'repressed' means '억압받는' (being suppressed/oppressed). These are opposite directions - one is the action of suppressing, the other is the state of being suppressed.",
+      "gptReasoning": "Describes the opposite meaning"
+    },
+    {
+      "word": "infrastructure",
+      "correctEN": "the basic framework of a system; foundation",
+      "correctKO": "하부조직, 하부구조, (경제)기반",
+      "studentResponse": "재정기반",
+      "haikuReasoning": "You answered '재정기반' (financial foundation), but infrastructure refers to the basic physical and organizational framework of a system, not just financial aspects. While related, your answer is too narrow and specific to finance.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "bombastic",
+      "correctEN": "pompous, inflated",
+      "correctKO": "과장된",
+      "studentResponse": "강조된",
+      "haikuReasoning": "You answered '강조된' (emphasized/stressed), but bombastic means '과장된' (exaggerated/inflated). While related, these have different meanings - bombastic is about pompous exaggeration, not just emphasis.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "rebuff",
+      "correctEN": "to refuse",
+      "correctKO": "퇴짜 놓다",
+      "studentResponse": "to refute, refute",
+      "haikuReasoning": "You answered 'to refute/refute', but rebuff means 'to refuse' or '퇴짜 놓다'. To refute means to prove something wrong, which is different from refusing or rejecting someone.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "beget",
+      "correctEN": "to give birth to; to create; to lead to; to cause",
+      "correctKO": "아이를 낳다; 만들다; 야기하다",
+      "studentResponse": "시작하다",
+      "haikuReasoning": "Your answer 'to start' doesn't capture the core meaning of 'beget.' The word means to give birth to, create, or cause something to happen—not simply to start something. While 'beget' can lead to something, it's more about producing or generating, not initiating.",
+      "gptReasoning": "Your answer describes starting something, but 'beget' is more about giving birth or creating."
+    },
+    {
+      "word": "determinant",
+      "correctEN": "a factor or element that determines an outcome",
+      "correctKO": "결정적인 요소",
+      "studentResponse": "결정적인",
+      "haikuReasoning": "You answered with just '결정적인' (decisive/critical), but the word 'determinant' is a noun referring to a factor or element. Your answer is incomplete—it should include the noun form like '결정적인 요소' (determining factor) or '결정 요소' to fully capture the meaning.",
+      "gptReasoning": "The answer describes something that is decisive but does not fully capture the idea of a determining factor."
+    },
+    {
+      "word": "bane",
+      "correctEN": "a burden",
+      "correctKO": "근원, 해악",
+      "studentResponse": "to burden",
+      "haikuReasoning": "You said 'to burden' but 'bane' is a noun meaning a burden or source of harm, not a verb. The word describes something that is a burden, not the action of burdening.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "cryptic",
+      "correctEN": "mysterious, puzzling",
+      "correctKO": "수수께끼 같은",
+      "studentResponse": "숨은, 비밀의",
+      "haikuReasoning": "숨은 and 비밀의 mean 'hidden' or 'secret,' but cryptic means 'mysterious or puzzling.' While there's some overlap, cryptic emphasizes the puzzling quality rather than just being hidden or secret.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "exceptional",
+      "correctEN": "surpassing a common or expected level; excellent",
+      "correctKO": "우수한",
+      "studentResponse": "예외적인",
+      "haikuReasoning": "예외적인 means 'exceptional' in the sense of 'being an exception,' but the word exceptional here means 'surpassing common level' or 'excellent.' Your answer describes the literal meaning of exception rather than the quality of being excellent.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "affectation",
+      "correctEN": "unnatural or artificial behavior, usually intended to impress",
+      "correctKO": "애정, 감정; 병, 성질",
+      "studentResponse": "성질",
+      "haikuReasoning": "The word 'affectation' means unnatural or artificial behavior intended to impress, but you answered '성질' which means a quality or characteristic. While '성질' can mean a trait, it doesn't capture the key meaning of affectation, which is about artificial or pretentious behavior. The correct answer should relate to artificial or unnatural behavior.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "detract",
+      "correctEN": "to speak ill of, to take away",
+      "correctKO": "(가치) 떨어뜨리다",
+      "studentResponse": "떨어지다",
+      "haikuReasoning": "You answered '떨어지다' (to fall/drop), but detract means to take away or diminish value. Your answer describes the result but misses the active meaning of 'taking away' or 'detracting from.' The correct form would be '떨어뜨리다' (to cause to fall/diminish).",
+      "gptReasoning": "Your answer '떨어지다' describes a different action and does not align with the meaning of 'detract'."
+    },
+    {
+      "word": "grandiose",
+      "correctEN": "absurdly exaggerated",
+      "correctKO": "웅장한, 장엄한, 젠체하는",
+      "studentResponse": "웅장한",
+      "haikuReasoning": "웅장한 (grand/majestic) is only one aspect of grandiose. The key meaning of grandiose is 'absurdly exaggerated' - it's about being over-the-top and ridiculous, not genuinely grand. You missed the 'absurdly' part.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "virtuous",
+      "correctEN": "morally excellent",
+      "correctKO": "도덕적으로 우수한",
+      "studentResponse": "도덕적으로",
+      "haikuReasoning": "Your answer is incomplete. You wrote '도덕적으로' (morally), but the definition requires describing what kind of person or character is morally excellent. The word 'virtuous' means having excellent moral character, not just being 'morally.' You need to include the full concept of moral excellence or virtue.",
+      "gptReasoning": "The answer '도덕적으로' is incomplete as it does not convey the full meaning of 'virtuous', which is 'morally excellent'."
+    },
+    {
+      "word": "disinformation",
+      "correctEN": "false information purposely disseminated, usually by a government, for the purpose of creating a false impression",
+      "correctKO": "잘못된 정보, 특히 정부가 의도적으로 퍼뜨리는 것.",
+      "studentResponse": "잘못된 정보",
+      "haikuReasoning": "Your answer 'false information' is missing the key element that disinformation is INTENTIONALLY spread, usually by a government. The definition requires that purposeful, deliberate aspect - that's what makes it disinformation rather than just misinformation.",
+      "gptReasoning": "Your answer is too vague and does not capture the intentional aspect of disinformation."
+    },
+    {
+      "word": "discourage",
+      "correctEN": "to prevent or obstruct; to dishearten",
+      "correctKO": "~가 잘 안되도록 하다; ~을 기죽이다, ~을 낙담시키다",
+      "studentResponse": "낙담하다",
+      "haikuReasoning": "You answered '낙담하다' (to be disheartened), but 'discourage' means to cause someone to be disheartened or to prevent/obstruct. Your answer describes the result rather than the action of discouraging someone else. The correct form should be '낙담시키다' or '기죽이다' (to make someone disheartened).",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "intimate",
+      "correctEN": "having a very close relationship",
+      "correctKO": "친한",
+      "studentResponse": "친민한",
+      "haikuReasoning": "You wrote '친민한' but this isn't a standard Korean word. The correct answer is '친한' (close/intimate). It appears to be a spelling error, but since spelling matters for actual word validity, this is incorrect.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "swarthy",
+      "correctEN": "of dark color or complexion",
+      "correctKO": "검어진, 어두운",
+      "studentResponse": "어두어지는",
+      "haikuReasoning": "You said '어두어지는' (becoming dark), but the word means something that IS dark or has a dark complexion, not something that is becoming dark. The definition describes a state or quality, not a process of change.",
+      "gptReasoning": "The term '어두어지는' implies becoming dark, which does not accurately reflect the meaning of having a dark complexion."
+    },
+    {
+      "word": "stalemate",
+      "correctEN": "a contest, dispute, competition, etc., in which neither side can gain an advantage or win",
+      "correctKO": "교착상태",
+      "studentResponse": "a contest",
+      "haikuReasoning": "Your answer is incomplete. While 'a contest' is part of the definition, stalemate specifically refers to a situation where neither side can gain an advantage or win. You need to capture that key element of deadlock or no winner.",
+      "gptReasoning": "Your answer is too vague; it doesn't capture the full meaning of a contest where neither side can gain an advantage."
+    },
+    {
+      "word": "charisma",
+      "correctEN": "a magical-seeming ability to attract followers or inspire loyalty",
+      "correctKO": "재능, 권능; 권위, 비상한 매력.",
+      "studentResponse": "재능",
+      "haikuReasoning": "You answered '재능' (talent/ability), but charisma specifically refers to a magnetic, attractive quality that inspires loyalty and attracts followers. While '재능' can mean talent or ability, it doesn't capture the essence of charisma as that special, compelling charm. A better answer would be '매력' (charm/appeal) or '비상한 매력' (extraordinary charm).",
+      "gptReasoning": "Your answer describes a part of the meaning but does not capture the full essence of the word."
+    },
+    {
+      "word": "mawkish",
+      "correctEN": "characterized by sick sentimentality",
+      "correctKO": "지루한, 촌스러운",
+      "studentResponse": "지루한",
+      "haikuReasoning": "You answered '지루한' (boring/tedious), but mawkish means characterized by sick sentimentality or overly sentimental in a way that is unpleasant. The correct answer should relate to sentimentality or excessive emotion, not boredom. '촌스러운' (tacky/corny) from the given definition would be closer, but ideally something like '감상적인' (sentimental) would be better.",
+      "gptReasoning": "Your answer describes the opposite meaning of the word."
+    },
+    {
+      "word": "chortle",
+      "correctEN": "to chuckle with glee",
+      "correctKO": "혼자서 킬킬거리다, 신이 나서 웃다, 기뻐하다",
+      "studentResponse": "기뻐하다",
+      "haikuReasoning": "Your answer 'to be happy' is too vague and doesn't capture the specific meaning of chortle. Chortle means to chuckle or laugh with glee - it's about a specific type of laughter, not just general happiness.",
+      "gptReasoning": "Your answer describes a feeling of happiness but does not capture the action of chuckling with glee."
+    },
+    {
+      "word": "neglect",
+      "correctEN": "to overlook; to not give proper attention or care towards",
+      "correctKO": "~를 간과하다; ~를 (돌보지 않고) 방치하다; ~를 소홀히 관리하다",
+      "studentResponse": "무시하다",
+      "haikuReasoning": "While 무시하다 (to ignore/disregard) is related, it doesn't fully capture the meaning of 'neglect,' which specifically means to fail to give proper attention or care. Neglect implies a failure of responsibility, whereas 무시하다 is more about deliberately ignoring something. The Korean definitions provided (간과하다, 방치하다, 소홀히 관리하다) better capture this distinction.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "attribute",
+      "correctEN": "a quality or characteristic belonging to or associated with someone or something",
+      "correctKO": "속성",
+      "studentResponse": "To give effect on something",
+      "haikuReasoning": "Your answer describes an action or effect, but 'attribute' as a noun means a quality or characteristic. Your definition doesn't capture what an attribute actually is.",
+      "gptReasoning": "Describes a different concept"
+    },
+    {
+      "word": "discord",
+      "correctEN": "lack of harmony or peace",
+      "correctKO": "불화, 불일치",
+      "studentResponse": "불협화음",
+      "haikuReasoning": "You answered '불협화음' (dissonance/discord in music), but the word 'discord' in this context refers to lack of harmony or peace in general relationships or situations, not specifically musical discord. While related, your answer is too narrow and specific to the musical definition.",
+      "gptReasoning": ""
+    },
+    {
+      "word": "self-made",
+      "correctEN": "having succeeded in life without help from others",
+      "correctKO": "",
+      "studentResponse": "자기가 만든",
+      "haikuReasoning": "You provided only one definition of 'self-made,' but the word primarily means 'having succeeded in life without help from others.' Your answer focuses on the literal meaning 'made by oneself' rather than the main definition about achieving success through one's own efforts.",
+      "gptReasoning": "The answer is self-referencing and does not provide a clear definition."
+    },
+    {
+      "word": "elicit",
+      "correctEN": "to evoke, draw out",
+      "correctKO": "끌어내다",
+      "studentResponse": "내보내다",
+      "haikuReasoning": "You said '내보내다' (to send out), but 'elicit' means to draw out or evoke something from someone. Your answer describes the opposite direction - putting something out rather than pulling it out.",
+      "gptReasoning": "The answer '내보내다' translates to 'to release' which does not accurately reflect 'to evoke'."
+    },
+    {
+      "word": "consist",
+      "correctEN": "to be composed or made up of",
+      "correctKO": "구성되다",
+      "studentResponse": "구성하다",
+      "haikuReasoning": "You said '구성하다' (to compose/make up), but 'consist' means to be composed or made up of something. The word describes the passive state of being composed, not the active action of composing. The correct form should be '구성되다' (to be composed of).",
+      "gptReasoning": "The answer '구성하다' translates to 'to constitute' which is not the same as 'to be composed of'."
+    },
+    {
+      "word": "self-made",
+      "correctEN": "having succeeded in life without help from others",
+      "correctKO": "",
+      "studentResponse": "자기가 만든",
+      "haikuReasoning": "You provided only one definition of 'self-made,' but the word primarily means 'having succeeded in life without help from others.' Your answer focuses on the literal meaning 'made by oneself' rather than the main definition about achieving success through one's own efforts.",
+      "gptReasoning": "The answer is self-referencing and does not provide a clear definition."
+    }
+  ]
+}

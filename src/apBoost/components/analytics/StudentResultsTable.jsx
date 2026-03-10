@@ -168,7 +168,7 @@ export default function StudentResultsTable({
                   <td className="py-3 px-4 text-text-primary">
                     {result.frqScore != null
                       ? `${result.frqScore}/${result.frqMaxPoints || '?'}`
-                      : result.gradingStatus === 'pending'
+                      : result.gradingStatus === 'PENDING'
                         ? <span className="text-warning-text">Pending</span>
                         : '—'
                     }
@@ -182,10 +182,12 @@ export default function StudentResultsTable({
                   <td className="py-3 px-4">
                     <Link
                       to={`/ap/results/${result.id}`}
-                      className="text-brand-primary hover:underline text-sm"
+                      className="text-brand-primary hover:text-brand-accent inline-flex items-center"
                       title="View Report Card"
                     >
-                      View Report
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
                     </Link>
                   </td>
                 </tr>

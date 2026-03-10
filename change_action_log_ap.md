@@ -4,6 +4,94 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-10 | src/apBoost/hooks/useDuplicateTabGuard.js | B6-001: Rewrote with two-phase protocol (SESSION_QUERY → SESSION_ACTIVE) so new tabs get blocked, not the original |
+| 2026-03-10 | src/apBoost/utils/seedFullData.js | B6-002: Renamed `totalPossible` to `maxScore` in generateTestResult to match APReportCard field name |
+| 2026-03-10 | src/apBoost/utils/seedFullData.js | B6-003: Added `studentAnswer` field (alongside `selectedAnswer` alias) in generateMCQResults |
+| 2026-03-10 | src/apBoost/components/ConnectionStatus.jsx | B6-004: Added minimum 1s display time for syncing banner via showSyncing state + timer |
+| 2026-03-10 | src/apBoost/services/apScoringService.js | B3-001: Added `flaggedQuestions: session.flaggedQuestions || []` to resultData in createTestResult(); also reordered frqAnswers to follow section definition order (B3-002) |
+| 2026-03-10 | src/apBoost/pages/APReportCard.jsx | B3-002: Sort FRQ sub-question entries alphabetically in FRQSubmittedAnswers component |
+| 2026-03-10 | src/apBoost/pages/APReportCard.jsx | B3-003: Fixed progress bar tokens — replaced bg-success-text/bg-warning-text-strong/bg-error-text with bg-success/bg-warning/bg-error |
+| 2026-03-10 | src/index.css | B5-001: Added alias entries in `@theme` block — `--color-error-text` → `--color-text-error`, same for success/warning/info + strong variants. Fixes `text-error-text` etc. resolving to wrong color |
+| 2026-03-10 | src/apBoost/components/FRQQuestionDisplay.jsx | B5-002: Wrapped `question.questionText` and `currentSubQuestion.prompt` with `<MathText>` component for LaTeX rendering in FRQ vertical layout |
+| 2026-03-10 | src/apBoost/utils/seedFullData.js | B5-003: Added 2 text stimulus MCQ questions (macro_q16, macro_q17) to Macro test for testing annotation tools (Highlighter, Line Reader) |
+| 2026-03-10 | src/apBoost/services/apScoringService.js | B2-002: Filter frqAnswers to only FRQ question IDs (exclude MCQ answers from report card FRQ section) |
+| 2026-03-10 | src/apBoost/pages/APTestSession.jsx | B2-005: Call goToQuestion(0) in handleFRQChoice to fix "Question 0 of 7" on FRQ section entry |
+| 2026-03-10 | src/apBoost/services/apScoringService.js | B2-006: Fall back to sq.points when sq.maxPoints is undefined for FRQ max points calculation |
+| 2026-03-10 | src/apBoost/hooks/useTestSession.js | B4-007: reconcileQueue now applies fresh IndexedDB items (ANSWER_CHANGE, FLAG_TOGGLE) to React state on resume, then flushes to Firestore |
+| 2026-03-10 | src/apBoost/hooks/useOfflineQueue.js | B4-007: Reduced debounce for ANSWER_CHANGE and FLAG_TOGGLE from 2500ms to 300ms to minimize data-loss window |
+| 2026-03-10 | src/components/PrivateRoute.jsx | B4-006: Pass `location.pathname` as `state.from` when redirecting to /login so post-login redirect returns to intended URL |
+| 2026-03-10 | src/pages/Login.jsx | B4-006: Read `location.state.from` for post-login redirect instead of hardcoded `/` — students navigating to /ap now return there after login |
+| 2026-03-10 | src/apBoost/hooks/useTestSession.js | B4-008: Timer initialTime corrects for elapsed time since last Firestore sync using lastAction timestamp — prevents stale timer on resume |
+| 2026-03-10 | src/index.css | B1-001: Bumped `--color-warning-bg` from amber-50 to amber-200 for better flag button visibility in light mode |
+| 2026-03-10 | functions/index.js | B4-004: Added `pauseStaleSessions` scheduled Cloud Function — queries IN_PROGRESS sessions with stale heartbeat (>60s), batch-updates to PAUSED. Runs every 60s. Added firebase-admin init. |
+| 2026-03-10 | src/apBoost/components/grading/GradingPanel.jsx | B8-006: Clamped ScoreInput onChange to `Math.min(maxPoints, Math.max(0, value))` — prevents entering scores above maximum points |
+| 2026-03-10 | src/apBoost/utils/generateQuestionsPdf.js | B8-007: Fixed case mismatch — PDF export now uses `.toUpperCase()` for questionType check so MCQ answer choices render in exported PDFs |
+| 2026-03-10 | src/apBoost/components/analytics/StudentResultsTable.jsx | B8-008: Fixed `gradingStatus === 'pending'` → `'PENDING'` to match GRADING_STATUS constant — ungraded FRQ now shows "Pending" instead of "—" |
+| 2026-03-10 | firestore.indexes.json | B4-004: Added composite index for ap_session_state (status + lastHeartbeat) to support stale session query |
+| 2026-03-10 | src/apBoost/ARCHITECTURE.md | Updated Key Design Decisions table: replaced localStorage-only entry with server-side heartbeat detection + localStorage fallback |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B1-002: Enhanced flagged button contrast with border-2, border-warning-text-strong, and font-semibold |
+| 2026-03-09 | src/apBoost/hooks/useTestSession.js | B2-003: Added 800ms minimum display time for SubmitProgressModal on fast submissions |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B2-004: Added 2 MCQ_MULTI questions to Micro test seed data with 5 choices each |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B2-004: Updated buildQuestionDoc to support explicit questionType and choiceE fields |
+| 2026-03-09 | src/apBoost/pages/APGradebook.jsx | B8-005: Added isReadOnly state; "View" button opens GradingPanel in read-only mode |
+| 2026-03-09 | src/apBoost/components/grading/GradingPanel.jsx | B8-005: Added readOnly prop; when true, disables editing and shows "Review" header |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | Updated seed success message to reflect 53 questions with MCQ_MULTI |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B8-004: Added combined `score` and `totalPossible` fields to generated test results so analytics shows correct highest/lowest scores |
+| 2026-03-09 | src/apBoost/components/grading/GradingPanel.jsx | B8-005: Hide annotated PDF upload section when grading is complete (view-only mode) |
+| 2026-03-09 | src/apBoost/hooks/useHeartbeat.js | B1-001: Extended suppressTakeoverRef window from 16s to 32s (HEARTBEAT_INTERVAL * 2 + 2000) to prevent modal re-appearing during session transitions |
+| 2026-03-09 | src/apBoost/hooks/useTestSession.js | B1-001: Call clearSessionTakenOver() at start of startTest() to suppress heartbeat takeover detection during session start/resume |
+| 2026-03-09 | src/apBoost/hooks/useDuplicateTabGuard.js | B1-001: Fixed takeControl() to optimistically clear isInvalidated before Firestore write — prevents permanent lockout when offline |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B2-001: Added `handleSubmitSection` for non-final sections; ReviewScreen `onSubmit` now conditionally calls `handleSubmitSection` vs `handleSubmit` based on `isFinalSection` — FRQ section no longer skipped |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B4-001: Removed auto-transition useEffect that bypassed InstructionScreen resume prompt — users now see "Resume from Section X, Question Y" on refresh |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B4-005: Fixed `isFRQSection` to check `sectionType === SECTION_TYPE.FRQ` (was `type === 'frq'`); fixed `frqQuestions` filter to use `questionType` with QUESTION_TYPE constants |
+| 2026-03-09 | src/apBoost/components/TestSessionMenu.jsx | B4-002: Replaced lowercase "x" icons with SVG icons (X close, list for Go to Question, door-exit for Exit Test) |
+| 2026-03-09 | src/apBoost/components/TestSessionMenu.jsx | B4-003: Added `role="dialog"`, `aria-modal="true"`, `aria-label`, Escape key handler, and focus management on open |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B8-001: Added `frqAnswers` field to `generateTestResult()` — generates sample FRQ responses for each sub-question so GradingPanel renders content |
+| 2026-03-09 | src/apBoost/components/grading/GradingPanel.jsx | B8-001: Added defensive empty state ("No FRQ answer data available") when `frqAnswers` is missing |
+| 2026-03-09 | src/apBoost/services/apAnalyticsService.js | B8-002: Fixed case mismatch — `questionType` checks now use `.toUpperCase()` to match `'MCQ'`/`'FRQ'` constants (was lowercase `'mcq'`/`'frq'`) |
+| 2026-03-09 | src/apBoost/pages/APStudentProfile.jsx | B8-003: Fixed React hooks order — moved `useMemo` calls (scoreTrend, domainAnalysis) above early `loading` return; added `displayName` root-level fallback |
+| 2026-03-09 | firestore.indexes.json | B8-003: Added composite index for `ap_test_results` (userId ASC + completedAt DESC) for student profile queries; deployed |
+| 2026-03-09 | src/apBoost/services/apAnalyticsService.js | B8-004: Fixed `calculateSummaryStats` to compute score from `mcqCorrect + frqScore` when `score` field is absent |
+| 2026-03-09 | src/apBoost/components/grading/GradingPanel.jsx | B8-005: Added read-only mode for completed results — score inputs disabled, footer shows "Grading Complete" + Close button instead of Save Draft/Mark Complete |
+| 2026-03-09 | src/apBoost/hooks/useHeartbeat.js | B1-001: Added `clearSessionTakenOver()` callback + `suppressTakeoverRef` to skip takeover detection for one heartbeat cycle after takeControl — fixes modal reappearing immediately |
+| 2026-03-09 | src/apBoost/hooks/useTestSession.js | B1-001: `handleTakeControl` now calls `clearSessionTakenOver()` before `takeControl()` to clear both invalidation sources (`isInvalidated` + `sessionTakenOver`) |
+| 2026-03-09 | src/apBoost/components/InstructionScreen.jsx | B1-003: Changed FRQ info box "Free Response Section" from `<p>` to `<h3>` for semantic correctness |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B7-006: Added `classId` field to all 13 seed test result documents (Micro/Macro → class_econ_p1, Calc → class_calc_p3) |
+| 2026-03-09 | firestore.indexes.json | B7-006: Added 2 composite indexes for class filter queries (teacherId+classId+completedAt, teacherId+classId+gradingStatus+completedAt) |
+| 2026-03-09 | src/apBoost/services/apTeacherService.js | B0-001: Fixed pending grading undercount — replaced dual `in` query (testId+gradingStatus) with `teacherId ==` + single `in` on gradingStatus |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | B0-002/B9-003: Updated seed success message to include "5 students" count |
+| 2026-03-09 | src/apBoost/services/apTeacherService.js | B9-001: `createTest` now computes `hasFRQ` from sections instead of hardcoding false |
+| 2026-03-09 | src/apBoost/services/apQuestionService.js | B9-002: Removed `orderBy` from filtered queries to avoid composite index errors; sort client-side instead |
+| 2026-03-09 | src/apBoost/pages/APTestEditor.jsx | B9-004: Added question type badge (MCQ/FRQ/MCQ-M) to each question row in section editor |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | B9-005: Replaced Assign `<button>` with `<Link>` for proper browser link semantics; removed unused `handleAssign`/`navigate` |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B10-001: Moved SubmitProgressModal to review branch; removed duplicate instance from testing branch |
+| 2026-03-09 | src/apBoost/services/apTestService.js | B10-002: `canAccessTest` now returns `reason: 'not_found'` for nonexistent tests (was 'unauthorized') |
+| 2026-03-09 | src/apBoost/hooks/useTestSession.js | B10-002: Error message now distinguishes "test not found" from "not authorized" based on `access.reason` |
+| 2026-03-09 | src/apBoost/pages/APReportCard.jsx | B10-003: Added cancellation guard to loadResult useEffect to prevent duplicate logError in StrictMode |
+| 2026-03-09 | src/apBoost/components/analytics/MCQDetailedView.jsx | B11-001: Replaced raw `text-green-600` with design token `text-success-text` |
+| 2026-03-09 | src/apBoost/components/AnswerInput.jsx | B11-002: Replaced raw `bg-white border-white` with design tokens `bg-surface border-surface` |
+| 2026-03-09 | src/apBoost/pages/APGradebook.jsx | B11-003: Added scroll affordance gradient overlay for mobile (sm:hidden) on table container |
+| 2026-03-09 | src/apBoost/pages/APReportCard.jsx | B11-004: Added scroll affordance gradient + hidden Domain/Topic columns on mobile for MCQ results table |
+| 2026-03-09 | src/apBoost/pages/APGradebook.jsx | B7-001: Fixed student name resolution — prefer stored `data.studentName` over user doc lookup; also check root `displayName` not just `profile.displayName` |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B7-002: Added `testTitle` field to all 13 seed test result documents (Micro/Macro/Calc) |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B7-003: Added `hasFRQ: true` to all 3 seed test documents so gradebook test filter populates |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | B7-004: Fixed `gradingStatus: 'GRADED'` → `'COMPLETE'` to match GRADING_STATUS enum |
+| 2026-03-09 | firestore.indexes.json | B7-004: Added missing composite index for `ap_test_results` (teacherId ASC + completedAt DESC) for Status=All filter |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | B7-005: Replaced ASCII letter icons (+, Q, G, C) with inline SVG icons (plus, list, chart, users) |
+| 2026-03-09 | src/apBoost/pages/APReportCard.jsx | Fixed Rules of Hooks violation: moved useMemo + derived variables above early returns (loading/error) to prevent blank page crash |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | Removed misleading "5 students" from seed success message (student profiles can't be created due to Firestore rules) |
+| 2026-03-09 | firestore.rules | Allow teachers to create `ap_test_results` docs (needed for seed data); deployed updated rules |
+| 2026-03-09 | src/apBoost/utils/seedFullData.js | Wrapped student profile writes in try/catch (Firestore rules block writing other users' docs); fixed result IDs to use `result_micro_student1` format matching audit_state.json; added `teacherId` field to all seeded results |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | Show friendly error message on seed failure instead of raw Firebase error |
+| 2026-03-09 | src/apBoost/pages/APTeacherDashboard.jsx | B9-006: Changed "View All" link from non-existent `/ap/teacher/tests` to `/ap/teacher/questions` |
+| 2026-03-09 | src/apBoost/components/teacher/AssignTestModal.jsx | B9-007: Added success state with checkmark + "Test assigned successfully!" feedback before redirect; removed double navigation (onSuccess OR onClose, not both) |
+| 2026-03-09 | src/apBoost/pages/APClassManager.jsx | B9-008: Added fallback to `student.displayName` (root-level) when `student.profile?.displayName` is undefined — seed data stores displayName at root |
+| 2026-03-09 | src/apBoost/pages/APTestSession.jsx | B10-001: Added SubmitProgressModal to frqHandwritten branch (was missing — only review and testing branches had it) |
+| 2026-03-09 | src/apBoost/hooks/useAnnotations.js | B11-001: Documented HIGHLIGHT_COLORS raw Tailwind classes as intentional exception (physical highlighter pen colors don't map to semantic tokens) |
+| 2026-03-09 | src/apBoost/pages/APGradebook.jsx | B11-002: Hide Submitted and Status columns on mobile (`hidden sm:table-cell`); show StatusBadge inline below student name on mobile — Grade button now reachable at 375px |
+| 2026-03-07 | src/apBoost/pages/APQuestionBank.jsx, APTestEditor.jsx, APQuestionEditor.jsx | Fixed blank page crash: `AP_SUBJECTS` is an object not array — changed `.map()` calls to `Object.values(AP_SUBJECTS).map()` |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | Fixed TDZ crash: moved `const status` declaration above `useEffect` that references it in dependency array — was causing "Cannot access 'status' before initialization" |
+| 2026-03-07 | scripts/create-auth-accounts.js | Created script to create Firebase Auth accounts (teacher + student) via Admin SDK and update all seed data to use real UIDs |
 | 2026-01-14 | src/apBoost/hooks/useOfflineQueue.js | Fixed FRQ sub-answer data loss: ANSWER_CHANGE now uses nested Firestore paths (`answers.${questionId}.${subQuestionLabel}`) when subQuestionLabel exists, added deduplication by (questionId, subQuestionLabel) for last-write-wins safety |
 | 2026-01-14 | src/apBoost/components/FRQTextInput.jsx | Added onBlur handler with dedupe guard: new `onBlur` prop, `lastBlurValueRef` to avoid duplicate saves, `handleBlur` triggers save only when value changed |
 | 2026-01-14 | src/apBoost/pages/APTestSession.jsx | Wired FRQTextInput onBlur prop to setAnswer for blur-save safety net |
@@ -254,3 +342,79 @@
 | 2026-01-14 | src/apBoost/services/apTeacherService.js | Fixed maxAttempts fallback from \|\|1 to ??3 for safer handling and spec compliance |
 | 2026-01-14 | src/apBoost/services/apScoringService.js | Added frqUploadUrl and frqGradedPdfUrl alias fields in createTestResult() for spec compatibility |
 | 2026-01-14 | firestore.rules | Tightened ap_test_results update rule: teachers can only update results where resource.data.teacherId == request.auth.uid |
+| 2026-03-07 | src/apBoost/components/TeacherRoute.jsx | Created TeacherRoute component - role-based guard that redirects non-teachers to /ap dashboard |
+| 2026-03-07 | src/apBoost/routes.jsx | Wrapped all teacher routes (/ap/teacher/*, /ap/gradebook) with TeacherRoute for role-based protection |
+| 2026-03-07 | src/apBoost/routes.jsx | Added /ap/teacher/test/new route pointing to APTestEditor (was linked from dashboard but had no route) |
+| 2026-03-07 | src/apBoost/pages/APTestEditor.jsx | Fixed isNew detection: `!testId || testId === 'new'` to support both /ap/teacher/test/new and /ap/teacher/test/new/edit |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | Added queue reconciliation on resume: discards stale IndexedDB queue items older than Firestore lastAction timestamp |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | Added logDebug import for reconciliation logging |
+| 2026-03-07 | src/apBoost/pages/APReportCard.jsx | Wired downloadReportPdf button in report card actions |
+| 2026-03-07 | src/apBoost/services/apScoringService.js | Added questionDomain and questionTopic to mcqResults in createTestResult() |
+| 2026-03-07 | src/apBoost/pages/APReportCard.jsx | Added Domain/Topic columns to MCQResultsTable (shown when data exists) |
+| 2026-03-07 | src/apBoost/pages/APReportCard.jsx | Added class name fetch and display in report header when result has classId |
+| 2026-03-07 | src/apBoost/components/QuestionNavigator.jsx | Changed Next button to "Review →" on last question (links to review screen) |
+| 2026-03-07 | src/apBoost/components/ConnectionStatus.jsx | Added reconnection auto-dismiss: "Reconnected" banner shows for 2s then fades |
+| 2026-03-07 | src/apBoost/components/InstructionScreen.jsx | Added FRQ mode info box showing typed vs handwritten instructions when test has FRQ sections |
+| 2026-03-07 | src/apBoost/components/ReviewScreen.jsx | Added annotation/strikethrough indicators (blue dot) on question boxes in review grid |
+| 2026-03-07 | src/apBoost/components/ReviewScreen.jsx | Added "Annotated" to review legend |
+| 2026-03-07 | src/apBoost/utils/seedTestData.js | Added FRQ questions (frq1 with 3 sub-questions, frq2 SAQ with 2 sub-questions) |
+| 2026-03-07 | src/apBoost/utils/seedTestData.js | Added FRQ-only test (test_apush_frq_1) and mixed MCQ+FRQ test (test_apush_mixed_1) |
+| 2026-03-07 | src/apBoost/utils/seedTestData.js | Added sample class (class_apush_period1) and sample assignment |
+| 2026-03-07 | src/apBoost/pages/APExamAnalytics.jsx | Added "Export Questions PDF" and "Export with Answers" buttons using downloadQuestionsPdf |
+| 2026-03-07 | src/apBoost/pages/APTestEditor.jsx | Added question reorder (▲/▼) buttons with handleMoveQuestion handler and reorderSectionQuestions call |
+| 2026-03-07 | src/apBoost/services/apTeacherService.js | Added class CRUD functions: createClass, updateClass, deleteClass, addStudentToClass, removeStudentFromClass |
+| 2026-03-07 | src/apBoost/pages/APClassManager.jsx | Created class management page with class list, create form, student add/remove, class detail panel |
+| 2026-03-07 | src/apBoost/routes.jsx | Added routes for /ap/teacher/classes (APClassManager) and /ap/teacher/student/:userId (APStudentProfile) |
+| 2026-03-07 | src/apBoost/pages/APTeacherDashboard.jsx | Added "Manage Classes" QuickActionButton linking to /ap/teacher/classes |
+| 2026-03-07 | src/apBoost/pages/APStudentProfile.jsx | Created student profile page with test history table, average score, and links to results |
+| 2026-03-07 | src/apBoost/utils/performanceColors.js | Replaced all raw Tailwind colors (bg-green-500, bg-red-500, etc.) with design tokens (bg-success, bg-error, etc.) |
+| 2026-03-07 | src/apBoost/components/analytics/QuestionDetailModal.jsx | Replaced raw Tailwind colors (bg-green-50, text-green-700, etc.) with design tokens (bg-success, text-success-text-strong, etc.) |
+| 2026-03-07 | src/apBoost/hooks/useHeartbeat.js | Added onRecovery callback param, failureCountRef tracking, calls onRecovery when connection restores after failures |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | Passed flushQueue as onRecovery to useHeartbeat for heartbeat-triggered queue flush |
+| 2026-03-07 | src/apBoost/hooks/useOfflineQueue.js | Added opportunistic retry mode: isOpportunistic state, enters after 5 failures, retries on next addToQueue call |
+| 2026-03-07 | src/apBoost/hooks/useOfflineQueue.js | Added visibilitychange listener to flush queue when tab regains focus |
+| 2026-03-07 | src/apBoost/hooks/useOfflineQueue.js | Added QuotaExceededError detection in addToQueue, exposed isStorageFull state |
+| 2026-03-07 | src/apBoost/components/ConnectionStatus.jsx | Added isStorageFull prop with error banner warning when local storage is full |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | Exposed isStorageFull from useOfflineQueue in return object |
+| 2026-03-07 | src/apBoost/pages/APTestSession.jsx | Wired isStorageFull through to all ConnectionStatus instances |
+| 2026-03-07 | src/apBoost/utils/imageProcessing.js | Created image processing utility: compressImage (canvas-based), convertHeicToJpeg (dynamic heic2any import), processImageFile (combined pipeline) |
+| 2026-03-07 | src/apBoost/components/FileUpload.jsx | Integrated processImageFile before upload for automatic image compression and HEIC conversion |
+| 2026-03-07 | src/apBoost/utils/pdfLogo.js | Created shared PDF logo loader with caching (fetches /apBoost/ap_logo_small.png as base64) |
+| 2026-03-07 | src/apBoost/utils/generateAnswerSheetPdf.js | Added AP logo to answer sheet header via loadLogoForPdf() |
+| 2026-03-07 | src/apBoost/utils/generateReportPdf.js | Added AP logo to report header; changed return type from jsPDF to Blob |
+| 2026-03-07 | src/apBoost/utils/generateReportPdf.js | Updated downloadReportPdf to use Blob-based download (createObjectURL) |
+| 2026-03-07 | src/apBoost/utils/generateQuestionsPdf.js | Added AP logo to title page; changed return type from jsPDF to Blob |
+| 2026-03-07 | src/apBoost/utils/generateQuestionsPdf.js | Updated downloadQuestionsPdf to use Blob-based download (createObjectURL) |
+| 2026-03-07 | src/apBoost/hooks/useOfflineQueue.js | Changed debounce from 1s to 2.5s per spec |
+| 2026-03-07 | src/apBoost/hooks/useOfflineQueue.js | Added SECTION_COMPLETE and SESSION_PAUSE action handlers in flushQueue |
+| 2026-03-07 | src/apBoost/hooks/useTestSession.js | beforeunload now warns on IN_PROGRESS status (not just queueLength > 0) |
+| 2026-03-07 | src/apBoost/components/ConnectionStatus.jsx | Added extended offline warning (5+ min) with error banner |
+| 2026-03-07 | src/apBoost/services/apSessionService.js | Replaced all console.error with logError (10 instances) |
+| 2026-03-07 | src/apBoost/services/apTestService.js | Replaced all console.error with logError (6 instances) |
+| 2026-03-07 | src/apBoost/pages/APReportCard.jsx | Replaced console.error with logError |
+| 2026-03-07 | src/apBoost/utils/logError.js | Added classifyError() for error type differentiation + getUserMessage() for user-facing messages |
+| 2026-03-07 | src/apBoost/pages/APReportCard.jsx | Added FRQ weighted score display (raw + weighted), flagged questions list with correct/incorrect indicators, domain performance analysis |
+| 2026-03-07 | src/apBoost/pages/APStudentProfile.jsx | Added score trend bar chart and domain analysis (strengths/weaknesses) sections |
+| 2026-03-07 | src/apBoost/components/analytics/StudentResultsTable.jsx | Changed "View Report" text to document icon |
+| 2026-03-07 | src/apBoost/components/teacher/AssignTestModal.jsx | Added class search filter input for class list |
+| 2026-03-07 | firestore.indexes.json | Added 5 composite indexes: ap_test_results(testId+completedAt), ap_questions(subject+type), ap_questions(subject+difficulty), ap_questions(createdBy+createdAt), ap_stimuli(type+createdAt) |
+| 2026-03-07 | src/apBoost/utils/apTestConfig.js | Added defaultTimeLimits per subject, 4 new subjects (Micro, Macro, Calc AB, Calc BC), SECTION_TYPE_CONFIG constant |
+| 2026-03-07 | src/apBoost/hooks/useAnnotations.js | Added HighlightRange validation (start/end number check), saveAnnotations alias for exportAnnotations |
+| 2026-03-07 | src/apBoost/pages/APGradebook.jsx | Converted results loading from getDocs to onSnapshot for real-time updates |
+| 2026-03-07 | package.json | Added better-react-mathjax dependency for LaTeX math rendering |
+| 2026-03-07 | src/apBoost/components/MathText.jsx | Created MathText component — renders LaTeX delimiters ($...$, $$...$$) via MathJax 3, skips overhead for plain text |
+| 2026-03-07 | src/apBoost/components/APMathProvider.jsx | Created MathJaxContext wrapper with tex config (inline/display math delimiters) |
+| 2026-03-07 | src/apBoost/routes.jsx | Wrapped all AP routes in APLayout with MathJaxContext via layout route pattern |
+| 2026-03-07 | src/apBoost/components/QuestionDisplay.jsx | Integrated MathText for question text and stimulus content rendering |
+| 2026-03-07 | src/apBoost/components/AnswerInput.jsx | Integrated MathText for MCQ choice text rendering |
+| 2026-03-07 | src/apBoost/components/FRQQuestionDisplay.jsx | Integrated MathText for question text, stimulus content, and sub-question prompts |
+| 2026-03-07 | src/apBoost/components/tools/PassageDisplay.jsx | Integrated MathText for stimulus title rendering |
+| 2026-03-07 | src/apBoost/utils/seedFullData.js | Created full seed data script: 3 tests (Micro 15MCQ+2FRQ, Macro 15MCQ+2FRQ, Calc AB 15MCQ+2FRQ with LaTeX), 5 students, 1 teacher, 2 classes, 3 assignments, 13 test results |
+| 2026-03-09 | `.claude/agents/apboost-audit-agent.md` | Created Playwright audit agent: 8-phase methodology (prep, interaction, responsiveness, visual polish, a11y, criteria verification, robustness, console), triage matrix, structured report format |
+| 2026-03-09 | `.claude/commands/apboost-audit.md` | Created `/apboost-audit` slash command to invoke the audit agent with criteria file targeting |
+| 2026-03-09 | `CLAUDE.md` | Added Visual Development & Testing section: quick visual check, comprehensive audit, Playwright MCP commands, design compliance checklist, when-to-use guidelines |
+| 2026-03-09 | `src/apBoost/criteria_audit/playwright_reports/` | Created directory for Playwright audit report output |
+| 2026-03-09 | `src/apBoost/criteria_audit/playwright_reports/BATCH_ORCHESTRATION.md` | Created batch orchestration plan: 12 batches (B0-B11), dependency graph, per-batch flows, token estimates |
+| 2026-03-09 | `src/apBoost/criteria_audit/playwright_reports/audit_state.json` | Created shared state file with test IDs, seed result IDs, batch status tracking |
+| 2026-03-09 | `src/apBoost/criteria_audit/playwright_reports/FINDINGS_TEMPLATE.md` | Created findings template with severity, fix instructions, acceptance test fields |
+| 2026-03-09 | `.claude/agents/apboost-audit-agent.md` | Rewrote agent for batch-based execution: reads batch from BATCH_ORCHESTRATION.md, scenarios from AUDIT_PLAN.md, writes findings per batch |

@@ -1,0 +1,169 @@
+{
+  "t01": {
+    "heading": "Teacher Dashboard",
+    "hasCreateTest": true,
+    "hasQuestionBank": true,
+    "hasGradebook": true,
+    "hasManageClasses": true,
+    "quickActionSVGs": [
+      {
+        "href": "/ap/teacher/test/new",
+        "text": "Create New Test",
+        "hasSvg": true
+      },
+      {
+        "href": "/ap/teacher/questions",
+        "text": "Question Bank",
+        "hasSvg": true
+      },
+      {
+        "href": "/ap/gradebook",
+        "text": "Gradebook",
+        "hasSvg": true
+      },
+      {
+        "href": "/ap/teacher/classes",
+        "text": "Manage Classes",
+        "hasSvg": true
+      },
+      {
+        "href": "/ap/gradebook",
+        "text": "Go to Gradebook",
+        "hasSvg": false
+      }
+    ],
+    "myTestsText": "My Tests (3)",
+    "questionSummaries": [
+      "15 MCQ",
+      "15 MCQ",
+      "15 MCQ"
+    ],
+    "editLinkCount": 3,
+    "pendingGradingText": "Pending Grading (3)",
+    "pendingCount": 3,
+    "pendingCountCorrect": false,
+    "myClassesText": "My Classes (2)",
+    "hasGoToGradebook": true,
+    "hasStudentCount": true,
+    "hasAssignButton": true
+  },
+  "t02": {
+    "studentLoginWorks": true,
+    "teacherRouteDenied": true,
+    "teacherRouteUrl": "http://localhost:5173/ap",
+    "testNewDenied": true,
+    "testNewUrl": "http://localhost:5173/ap",
+    "gradebookDenied": true,
+    "gradebookUrl": "http://localhost:5173/ap"
+  },
+  "t03": {
+    "heading": "Gradebook",
+    "hasSubtitle": true,
+    "hasStatusFilter": true,
+    "hasTestFilter": true,
+    "hasClassFilter": true,
+    "filterDetails": [
+      {
+        "name": "unknown",
+        "value": "pending",
+        "options": [
+          "Pending",
+          "In Progress",
+          "Complete",
+          "All"
+        ]
+      },
+      {
+        "name": "unknown",
+        "value": "all",
+        "options": [
+          "All Tests",
+          "AP Calculus AB Practice Exam",
+          "AP Macroeconomics Practice Exam",
+          "AP Microeconomics Practice Exam"
+        ]
+      },
+      {
+        "name": "unknown",
+        "value": "all",
+        "options": [
+          "All Classes",
+          "AP Calculus AB Period 3",
+          "AP Economics Period 1"
+        ]
+      }
+    ],
+    "defaultFilterIsPending": true,
+    "hasStudentColumn": true,
+    "hasTestColumn": true,
+    "hasSubmittedColumn": true,
+    "hasStatusColumn": true,
+    "hasActionColumn": true,
+    "tableRows": [
+      "Maria Garcia\tAP Calculus AB Practice Exam\t2026. 3. 7.\t\n⏳\nPending\tGrade",
+      "Alex Johnson\tAP Calculus AB Practice Exam\t2026. 3. 6.\t\n⏳\nPending\tGrade",
+      "Ethan Williams\tAP Microeconomics Practice Exam\t2026. 2. 27.\t\n⏳\nPending\tGrade"
+    ],
+    "studentColumnShowsEmail": false,
+    "studentColumnShowsName": true,
+    "testColumnShowsId": false,
+    "testColumnShowsTitle": true,
+    "hasGradeButton": true,
+    "gradeButtonCount": 3,
+    "showingText": "Showing 3 submissions"
+  },
+  "t04": {
+    "initialRowCount": 3,
+    "allStatusRowCount": 13,
+    "allStatusHasComplete": true,
+    "testFilterOptions": [
+      {
+        "value": "all",
+        "text": "All Tests"
+      },
+      {
+        "value": "test_calc_ab_full_1",
+        "text": "AP Calculus AB Practice Exam"
+      },
+      {
+        "value": "test_macro_full_1",
+        "text": "AP Macroeconomics Practice Exam"
+      },
+      {
+        "value": "test_micro_full_1",
+        "text": "AP Microeconomics Practice Exam"
+      }
+    ],
+    "testFilterHasTitles": true,
+    "afterTestFilterRows": 5,
+    "testFilterRows": [
+      "Ethan Williams\tAP Microeconomics Practice Exam\t2026. 2. 27.\t\n⏳\nPending\tGrade",
+      "Priya Patel\tAP Microeconomics Practice Exam\t2026. 2. 26.\t\n✓\nComplete\tView",
+      "James Chen\tAP Microeconomics Practice Exam\t2026. 2. 25.\t\n✓\nComplete\tView"
+    ],
+    "testFilterCorrect": true,
+    "classFilterOptions": [
+      {
+        "value": "all",
+        "text": "All Classes"
+      },
+      {
+        "value": "class_calc_p3",
+        "text": "AP Calculus AB Period 3"
+      },
+      {
+        "value": "class_econ_p1",
+        "text": "AP Economics Period 1"
+      }
+    ],
+    "classFilterHasClasses": true,
+    "afterClassFilterRows": 0,
+    "afterResetRows": 3
+  },
+  "consoleErrors": [
+    {
+      "route": "http://localhost:5173/ap/gradebook",
+      "text": "[APBoost:APGradebook.onSnapshot] {function: APGradebook.onSnapshot, context: Object, type: unknown, message: The query requires an index. You can create it her…zdElkEAEaDwoLY29tcGxldGVkQXQQAhoMCghfX25hbWVfXxAC, code: failed-precondition}"
+    }
+  ]
+}

@@ -5,23 +5,23 @@ import { useEffect } from 'react'
  */
 function ResponseBar({ choice, percentage, count, isCorrect }) {
   return (
-    <div className={`p-3 rounded-[--radius-input] ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
+    <div className={`p-3 rounded-[--radius-input] ${isCorrect ? 'bg-success' : 'bg-error'}`}>
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <span className={`font-medium ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+          <span className={`font-medium ${isCorrect ? 'text-success-text-strong' : 'text-error-text'}`}>
             ({choice})
           </span>
           {isCorrect && (
-            <span className="text-green-600 text-sm">✓ Correct</span>
+            <span className="text-success-text text-sm">✓ Correct</span>
           )}
         </div>
         <span className="text-text-secondary text-sm">
           {count} student{count !== 1 ? 's' : ''} ({percentage}%)
         </span>
       </div>
-      <div className="h-4 bg-white rounded-full overflow-hidden">
+      <div className="h-4 bg-surface rounded-full overflow-hidden">
         <div
-          className={`h-full transition-all ${isCorrect ? 'bg-green-500' : 'bg-red-400'}`}
+          className={`h-full transition-all ${isCorrect ? 'bg-success-text' : 'bg-error-text'}`}
           style={{ width: `${percentage}%` }}
         />
       </div>

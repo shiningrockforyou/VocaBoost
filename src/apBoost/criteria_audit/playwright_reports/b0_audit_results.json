@@ -1,0 +1,184 @@
+{
+  "login": "SUCCESS - at /ap/teacher",
+  "teacherDashboard": "Teacher Dashboard",
+  "developerToolsVisible": "YES - Developer Tools section found",
+  "seedButtonFound": "FOUND",
+  "seedButtonText": "Seed Full Test Data (Micro, Macro, Calc AB)",
+  "seedClicked": true,
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "Seeding full AP Boost data..."
+    },
+    {
+      "type": "log",
+      "text": "Teacher ID: 7gKfDsJTtSMocVH9oggUCf4ys6K2"
+    },
+    {
+      "type": "log",
+      "text": "Created teacher profile"
+    },
+    {
+      "type": "warning",
+      "text": "Skipped student profile student_seed_001 (permissions): Missing or insufficient permissions."
+    },
+    {
+      "type": "warning",
+      "text": "Skipped student profile student_seed_002 (permissions): Missing or insufficient permissions."
+    },
+    {
+      "type": "warning",
+      "text": "Skipped student profile student_seed_003 (permissions): Missing or insufficient permissions."
+    },
+    {
+      "type": "warning",
+      "text": "Skipped student profile student_seed_004 (permissions): Missing or insufficient permissions."
+    },
+    {
+      "type": "warning",
+      "text": "Skipped student profile student_seed_005 (permissions): Missing or insufficient permissions."
+    },
+    {
+      "type": "log",
+      "text": "Created 0 / 5 student profiles (others skipped due to permissions)"
+    },
+    {
+      "type": "log",
+      "text": "Created 2 classes"
+    },
+    {
+      "type": "log",
+      "text": "Created AP Micro test with 15 MCQ + 2 FRQ"
+    },
+    {
+      "type": "log",
+      "text": "Created AP Macro test with 15 MCQ + 2 FRQ"
+    },
+    {
+      "type": "log",
+      "text": "Created AP Calc AB test with 15 MCQ + 2 FRQ"
+    },
+    {
+      "type": "log",
+      "text": "Created 3 assignments"
+    },
+    {
+      "type": "log",
+      "text": "Created 13 test results"
+    },
+    {
+      "type": "log",
+      "text": "\n=== SEED COMPLETE ==="
+    },
+    {
+      "type": "log",
+      "text": "3 tests (Micro, Macro, Calc AB)"
+    },
+    {
+      "type": "log",
+      "text": "51 questions (45 MCQ + 6 FRQ)"
+    },
+    {
+      "type": "log",
+      "text": "1 teacher + 5 students"
+    },
+    {
+      "type": "log",
+      "text": "2 classes"
+    },
+    {
+      "type": "log",
+      "text": "3 assignments"
+    },
+    {
+      "type": "log",
+      "text": "13 test results"
+    },
+    {
+      "type": "log",
+      "text": "\nTeacher ID: 7gKfDsJTtSMocVH9oggUCf4ys6K2"
+    },
+    {
+      "type": "log",
+      "text": "To use your own account as teacher, run: seedFullData(yourUid)"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "error",
+      "text": "React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks\n\n   Previous render            Next render\n   ------------------------------------------------------\n%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n APReportCard 1. useContext                 useContext\n2. useContext                 useContext\n3. useContext                 useContext\n4. useContext                 useContext\n5. useContext                 useContext\n6. useContext                 useContext\n7. useContext                 useContext\n8. useContext                 useContext\n9. useRef                     useRef\n10. useContext                useContext\n11. useLayoutEffect           useLayoutEffect\n12. useCallback               useCallback\n13. useContext                useContext\n14. useState                  useState\n15. useState                  useState\n16. useState                  useState\n17. useState                  useState\n18. useState                  useState\n19. useEffect                 useEffect\n20. undefined                 useMemo\n"
+    },
+    {
+      "type": "warning",
+      "text": "%s\n\n%s\n An error occurred in the <APReportCard> component. Consider adding an error boundary to your tree to customize error handling behavior.\nVisit https://react.dev/link/error-boundaries to learn more about error boundaries."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    }
+  ],
+  "seedResultMessage": "SUCCESS: Found \"Seeded 3 tests\" in page",
+  "seedSuccess": true,
+  "testCardsAfterSeed": {
+    "microVisible": true,
+    "macroVisible": true,
+    "calcVisible": true,
+    "pendingGrading": 2
+  },
+  "resultPageCheck": "UNKNOWN: ",
+  "gradebookCheck": "PASS: Found 2 rows"
+}

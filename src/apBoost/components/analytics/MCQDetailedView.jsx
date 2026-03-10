@@ -17,7 +17,7 @@ function InlineDistribution({ distribution = {}, correctAnswers = [] }) {
         return (
           <span
             key={choice}
-            className={`${isCorrect ? 'text-green-600 font-medium' : 'text-text-muted'}`}
+            className={`${isCorrect ? 'text-success-text font-medium' : 'text-text-muted'}`}
           >
             {choice}: {data.percentage}%{isCorrect && ' ✓'}
           </span>

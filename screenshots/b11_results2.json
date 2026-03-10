@@ -1,0 +1,81 @@
+{
+  "gradebookTable": [
+    {
+      "tableWidth": 675,
+      "tableClientWidth": 675,
+      "parentOverflow": "auto",
+      "grandparentOverflow": "hidden",
+      "parentTag": "DIV",
+      "grandparentTag": "DIV",
+      "parentClasses": "overflow-x-auto",
+      "headers": [
+        "Student",
+        "Test",
+        "Submitted",
+        "Status",
+        "Action"
+      ]
+    }
+  ],
+  "gradebookActionColumnVisible": {
+    "exists": true,
+    "visible": false,
+    "rect": {
+      "left": 588.359375,
+      "right": 691.234375
+    }
+  },
+  "gradeButtonVisible": {
+    "exists": true,
+    "visible": false,
+    "rect": {
+      "left": 604.359375,
+      "right": 675.234375,
+      "width": 70.875
+    }
+  },
+  "reportCardTable": [
+    {
+      "tableScrollWidth": 434,
+      "tableClientWidth": 434,
+      "parentOverflow": "auto",
+      "parentClasses": "overflow-x-auto",
+      "headers": [
+        "Q#",
+        "Domain",
+        "Topic",
+        "Correct",
+        "Your Answer",
+        "Result"
+      ]
+    }
+  ],
+  "reportCardColumnVisibility": {
+    "Your Answer": {
+      "exists": true,
+      "visible": false,
+      "rect": {
+        "left": 337.625,
+        "right": 409.890625,
+        "viewWidth": 375
+      }
+    },
+    "Result": {
+      "exists": true,
+      "visible": false,
+      "rect": {
+        "left": 409.890625,
+        "right": 473.5,
+        "viewWidth": 375
+      }
+    }
+  },
+  "tableScrollContainer": {
+    "parentTag": "DIV",
+    "parentClasses": "overflow-x-auto",
+    "parentOverflowX": "auto",
+    "parentScrollWidth": 434,
+    "parentClientWidth": 295,
+    "canScroll": true
+  }
+}

@@ -8,12 +8,17 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "seed": "node scripts/seedEmulator.js"
+    "seed": "node scripts/seedEmulator.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@tailwindcss/postcss": "^4.1.17",
     "autoprefixer": "^10.4.22",
+    "better-react-mathjax": "^3.0.0",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
     "jspdf": "^3.0.4",
@@ -28,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.58.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

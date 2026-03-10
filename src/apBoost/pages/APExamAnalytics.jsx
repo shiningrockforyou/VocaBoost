@@ -15,6 +15,7 @@ import {
   getStudentsForFilter,
   calculateResponseDistribution,
 } from '../services/apAnalyticsService'
+import { downloadQuestionsPdf } from '../utils/generateQuestionsPdf'
 import { logError } from '../utils/logError'
 
 /**
@@ -251,12 +252,28 @@ export default function APExamAnalytics() {
               {test?.title || 'Practice Test'}
             </p>
           </div>
-          <button
-            onClick={() => navigate('/ap/teacher')}
-            className="text-text-muted hover:text-text-primary"
-          >
-            ← Back to Dashboard
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => downloadQuestionsPdf(test, questions, { includeAnswers: false })}
+              disabled={!test || !questions}
+              className="px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-text-secondary hover:bg-hover disabled:opacity-50"
+            >
+              Export Questions PDF
+            </button>
+            <button
+              onClick={() => downloadQuestionsPdf(test, questions, { includeAnswers: true })}
+              disabled={!test || !questions}
+              className="px-3 py-1.5 text-sm rounded-[--radius-button] border border-border-default text-text-secondary hover:bg-hover disabled:opacity-50"
+            >
+              Export with Answers
+            </button>
+            <button
+              onClick={() => navigate('/ap/teacher')}
+              className="text-text-muted hover:text-text-primary"
+            >
+              ← Back
+            </button>
+          </div>
         </div>
 
         {/* Filters */}

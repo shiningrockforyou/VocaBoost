@@ -1,0 +1,67 @@
+{
+  "T10_classDetail": "AP Practice\nMs. Thompson\nVocaBoost\nManage Classes\n+ New Class\nYour Classes (2)\nAP Calculus AB Period 3\nPeriod 3\n5 students\nAP Economics Period 1\nPeriod 1\n5 students\nAP Calculus AB Period 3\n\nPeriod 3\n\nDelete Class\nAdd\nStudents (5)\nalex.j@school.edu\nRemove\nmaria.g@school.edu\nRemove\njames.c@school.edu\nRemove\npriya.p@school.edu\nRemove\nethan.w@school.edu\nRemove",
+  "T10_studentManagement": {
+    "addStudentInputs": 1,
+    "removeButtons": 6,
+    "studentRows": 0,
+    "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nManage Classes\n+ New Class\nYour Classes (2)\nAP Calculus AB Period 3\nPeriod 3\n5 students\nAP Economics Period 1\nPeriod 1\n5 students\nAP Calculus AB Period 3\n\nPeriod 3\n\nDelete Class\nAdd\nStudents (5)\nalex.j@school.edu\nRemove\nmaria.g@school.edu\nRemove\njames.c@school.edu\nRemove\npriya.p@school.edu\nRemove\nethan.w@school.edu\nRemove"
+  },
+  "T10_newClassForm": {
+    "nameInput": 1,
+    "periodInput": 1,
+    "formText": "AP Practice\nMs. Thompson\nVocaBoost\nManage Classes\n+ New Class\nCreate New Class\nSubject (optional)\nAPUSH\nWorld\nEuro\nLang\nLit\nGov\nPsych\nBio\nChem\nPhysics\nMicro\nMacro\nCalc AB\nCalc BC\nCreate\nCancel\nYour Classes (2)\nAP Calculus AB Period 3\nPeriod 3\n5 students\nAP Economics Period 1\nPeriod 1\n5 students\nAP Calculus AB Period 3\n\nPeriod 3\n\nDelete Class\nAdd\nStudents (5)\nalex.j@school.edu\nRemove\nmaria.g@school"
+  },
+  "T12_enabledUpBtns": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    18
+  ],
+  "T12_reorderWorks": true,
+  "T15_frqMode": {
+    "hasFrqMode": false,
+    "maxAttemptsDefault": "3",
+    "fullText": "AP Practice\nMs. Thompson\nVocaBoost\nAssign Test: AP Microeconomics Practice Exam\nX\nSelect Classes\nAP Calculus AB Period 3Period 3\n5 students\nAP Economics Period 1Period 1\n5 students\nSettings\nDue Date (optional)\nMax Attempts\n1\n2\n3\n5\nUnlimited\nCancel\nAssign to 0 students"
+  },
+  "T14_editLinks": [
+    {
+      "href": "/ap/teacher/question/new",
+      "text": "+ Create Question"
+    },
+    {
+      "href": "/ap/teacher/question/calc_frq2/edit",
+      "text": "Edit"
+    },
+    {
+      "href": "/ap/teacher/question/calc_frq1/edit",
+      "text": "Edit"
+    },
+    {
+      "href": "/ap/teacher/question/calc_q15/edit",
+      "text": "Edit"
+    },
+    {
+      "href": "/ap/teacher/question/calc_q14/edit",
+      "text": "Edit"
+    }
+  ],
+  "T14_questionEditorNav": {
+    "url": "http://localhost:5173/ap/teacher/question/calc_frq2/edit",
+    "textSnippet": "AP Practice\nMs. Thompson\nVocaBoost\nBack\nEdit Question\nType\nMultiple Choice\nMCQ (Multi-Select)\nFree Response\nShort Answer\nDocument-Based\nSubject\nSelect...\nAP United States History\nAP World History\nAP European History\nAP English Language\nAP English Literature\nAP Government\nAP Psychology\nAP Biology\nAP Chemistry\nAP Physics\nAP Microeconomics\nAP Macroeconomics\nAP Calculus AB\nAP Calculus BC\nDifficulty\nEa"
+  },
+  "T14_previewModal": "AP Practice\nMs. Thompson\nVocaBoost\nQuestion Bank\n+ Create Question\nSubject\nAll\nAP United States History\nAP World History\nAP European History\nAP English Language\nAP English Literature\nAP Government\nAP Psychology\nAP Biology\nAP Chemistry\nAP Physics\nAP Microeconomics\nAP Macroeconomics\nAP Calculus AB\nAP Calculus BC\nType\nAll\nMultiple Choice\nMCQ (Multiple Select)\nFree Response\nShort Answer\nDocument-Based",
+  "consoleErrors": [],
+  "consoleWarnings": []
+}

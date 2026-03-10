@@ -19,6 +19,7 @@ function SectionEditor({
   onDelete,
   onAddQuestions,
   onRemoveQuestion,
+  onMoveQuestion,
   onMoveSection,
   canMoveUp,
   canMoveDown,
@@ -116,12 +117,33 @@ function SectionEditor({
           >
             <div className="flex-1 min-w-0">
               <span className="text-text-muted text-sm mr-2">{idx + 1}.</span>
+              {question.questionType && (
+                <span className="px-1.5 py-0.5 text-xs rounded bg-muted text-text-secondary mr-1">
+                  {question.questionType === 'MCQ_MULTI' ? 'MCQ-M' : question.questionType}
+                </span>
+              )}
               <span className="text-text-primary text-sm truncate">
                 {question.questionText?.substring(0, 60)}
                 {question.questionText?.length > 60 ? '...' : ''}
               </span>
             </div>
             <div className="flex items-center gap-2 ml-2">
+              <button
+                onClick={() => onMoveQuestion(idx, idx - 1)}
+                disabled={idx === 0}
+                className="text-text-muted hover:text-text-primary text-xs disabled:opacity-30"
+                title="Move up"
+              >
+                ▲
+              </button>
+              <button
+                onClick={() => onMoveQuestion(idx, idx + 1)}
+                disabled={idx === questions.length - 1}
+                className="text-text-muted hover:text-text-primary text-xs disabled:opacity-30"
+                title="Move down"
+              >
+                ▼
+              </button>
               <Link
                 to={`/ap/teacher/question/${question.id}/edit`}
                 className="text-brand-primary text-xs hover:underline"
@@ -204,7 +226,7 @@ export default function APTestEditor() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const isNew = testId === 'new'
+  const isNew = !testId || testId === 'new'
 
   // Test state
   const [title, setTitle] = useState('')
@@ -337,6 +359,28 @@ export default function APTestEditor() {
     }
   }
 
+  // Move question within section
+  const handleMoveQuestion = async (sectionIndex, fromIdx, toIdx) => {
+    const section = sections[sectionIndex]
+    const ids = [...(section.questionIds || [])]
+    if (toIdx < 0 || toIdx >= ids.length) return
+
+    const [moved] = ids.splice(fromIdx, 1)
+    ids.splice(toIdx, 0, moved)
+
+    const newSections = [...sections]
+    newSections[sectionIndex] = { ...section, questionIds: ids }
+    setSections(newSections)
+
+    if (!isNew && testId) {
+      try {
+        await reorderSectionQuestions(testId, sectionIndex, ids)
+      } catch (err) {
+        logError('APTestEditor.moveQuestion', { testId, sectionIndex, fromIdx, toIdx }, err)
+      }
+    }
+  }
+
   // Get questions for a section
   const getSectionQuestions = (section) => {
     return (section.questionIds || [])
@@ -456,7 +500,7 @@ export default function APTestEditor() {
                 className="w-full px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary"
               >
                 <option value="">Select subject...</option>
-                {AP_SUBJECTS.map(s => (
+                {Object.values(AP_SUBJECTS).map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
@@ -478,6 +522,7 @@ export default function APTestEditor() {
               onDelete={() => handleDeleteSection(index)}
               onAddQuestions={() => handleAddQuestions(index)}
               onRemoveQuestion={(qId) => handleRemoveQuestion(index, qId)}
+              onMoveQuestion={(from, to) => handleMoveQuestion(index, from, to)}
               onMoveSection={(dir) => handleMoveSection(index, dir)}
               canMoveUp={index > 0}
               canMoveDown={index < sections.length - 1}

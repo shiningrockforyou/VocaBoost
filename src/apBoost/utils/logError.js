@@ -6,15 +6,51 @@
  */
 
 /**
+ * Classify error type for differentiated handling
+ */
+function classifyError(error) {
+  if (!error) return 'unknown'
+  const code = error?.code || ''
+  const message = (error?.message || '').toLowerCase()
+
+  if (code.startsWith('auth/') || message.includes('auth')) return 'auth'
+  if (code === 'permission-denied' || message.includes('permission')) return 'permission'
+  if (code === 'not-found' || message.includes('not found')) return 'not_found'
+  if (code === 'unavailable' || code === 'deadline-exceeded' || message.includes('network') || message.includes('timeout') || message.includes('failed to fetch')) return 'network'
+  if (code === 'resource-exhausted' || message.includes('quota') || message.includes('quotaexceeded')) return 'quota'
+  if (code === 'invalid-argument' || message.includes('validation') || message.includes('required')) return 'validation'
+  return 'unknown'
+}
+
+/**
+ * Get a user-friendly message for an error type
+ */
+export function getUserMessage(errorType) {
+  const messages = {
+    auth: 'Authentication error. Please sign in again.',
+    permission: 'You do not have permission to perform this action.',
+    not_found: 'The requested resource was not found.',
+    network: 'Network error. Please check your connection and try again.',
+    quota: 'Service limit reached. Please try again later.',
+    validation: 'Invalid input. Please check your data and try again.',
+    unknown: 'Something went wrong. Please try again.',
+  }
+  return messages[errorType] || messages.unknown
+}
+
+/**
  * Log an error with context information
  * @param {string} functionName - Name of the function where error occurred
  * @param {Object} context - Additional context (userId, sessionId, etc.)
  * @param {Error|string} error - The error object or message
+ * @returns {Object} errorInfo with type classification
  */
 export function logError(functionName, context = {}, error = null) {
+  const errorType = classifyError(error)
   const errorInfo = {
     function: functionName,
     context,
+    type: errorType,
     message: error?.message || String(error || 'Unknown error'),
     code: error?.code || null,
     stack: error?.stack || null,

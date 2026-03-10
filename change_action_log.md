@@ -848,3 +848,12 @@ if (config.startPhase === SESSION_PHASE.REVIEW_STUDY) {
 ```
 
 **File:** `src/pages/DailySessionFlow.jsx` (lines 620-645)
+| 2026-03-06 | `scripts/export-typed-test-answers.js` | Created script to export all typed test attempts with full answers array (including AI reasoning, challenge data) for accuracy analysis |
+| 2026-03-06 | `scripts/build-ai-benchmark.js` | Created script to build AI grading benchmark dataset - enriches exported attempts with Korean definitions from Firestore, outputs in Cloud Function input format with current AI grades as baseline |
+| 2026-03-07 | `functions/index.js` | Switched AI grader from GPT-4o-mini to Claude Haiku (3.55% → 0.96% error rate); added `?` to blank filter; added 3 prompt rules (#9 Korean def matching, #10 part-of-speech tolerance, #11 partial answers) |
+| 2026-03-07 | `functions/package.json` | Replaced `openai` dependency with `@anthropic-ai/sdk` |
+| 2026-03-07 | `functions/index.js` | Refactored grading prompt: replaced 11-rule prompt with 3 failure conditions + 8 few-shot examples from audit data; added `isSelfReferencing()` pre-filter; switched to JSON input format with explicit count instruction; moved grading philosophy to system message |
+| 2026-03-09 | `package.json` | Added `@playwright/test` dev dependency and `test:e2e` / `test:e2e:ui` scripts |
+| 2026-03-09 | `playwright.config.js` | Created Playwright config with Chromium, Vite dev server integration, HTML reporter |
+| 2026-03-09 | `e2e/app.spec.js` | Created sample e2e test that verifies app loads |
+| 2026-03-09 | `.gitignore` | Added Playwright artifact directories |

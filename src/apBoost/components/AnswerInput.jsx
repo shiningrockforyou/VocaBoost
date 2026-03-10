@@ -1,4 +1,5 @@
 import { CHOICE_LETTERS, QUESTION_TYPE } from '../utils/apTypes'
+import MathText from './MathText'
 
 /**
  * Get choice text from question
@@ -83,7 +84,7 @@ export default function AnswerInput({
                   className={`
                     inline-flex items-center justify-center w-5 h-5 rounded-[--radius-button-sm] border-2 shrink-0
                     ${isSelected
-                      ? 'bg-white border-white text-brand-primary'
+                      ? 'bg-surface border-surface text-brand-primary'
                       : 'border-current opacity-60'
                     }
                   `}
@@ -109,7 +110,7 @@ export default function AnswerInput({
               {/* Choice content */}
               <div className="flex-1">
                 <span className={isStruckThrough ? 'line-through text-text-muted' : ''}>
-                  {choiceText}
+                  <MathText>{choiceText}</MathText>
                 </span>
                 {hasImage && (
                   <img

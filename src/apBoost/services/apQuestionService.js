@@ -68,8 +68,11 @@ export async function searchQuestions(filters = {}) {
       constraints.push(where('tags', 'array-contains', filters.tag))
     }
 
-    // Order by creation date
-    constraints.push(orderBy('createdAt', 'desc'))
+    // Only add orderBy if no compound where filters to avoid composite index requirements
+    const hasFilters = constraints.length > 0
+    if (!hasFilters) {
+      constraints.push(orderBy('createdAt', 'desc'))
+    }
 
     // Limit results
     if (filters.limit) {
@@ -85,6 +88,11 @@ export async function searchQuestions(filters = {}) {
       id: doc.id,
       ...doc.data()
     }))
+
+    // Sort client-side when orderBy was skipped (due to filters)
+    if (hasFilters) {
+      results.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+    }
 
     // Client-side text search (Firestore doesn't support full-text search)
     if (filters.search) {

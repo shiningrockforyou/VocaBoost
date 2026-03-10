@@ -43,6 +43,96 @@
 - Import existing components/services from parent directories, don't copy them
 - All AP routes must be under the `/ap/*` path
 - Use `ap_` prefix for Firestore collections (e.g., `ap_classes`, `ap_lists`)
+- **Always read** `src/apBoost/ARCHITECTURE.md` before making apBoost changes (system design, data flow, hook composition, design decisions)
+- **Read** `src/apBoost/AP_BOOST_TRACKER.md` when working on apBoost fixes/improvements (progress tracker, sprint plan, remaining work items)
+
+## Visual Development & Testing
+
+### Quick Visual Check
+**IMMEDIATELY after implementing any front-end change:**
+1. **Identify what changed** - Review the modified components/pages
+2. **Navigate to affected pages** - Use `mcp__playwright__browser_navigate` to visit each changed view
+3. **Verify design compliance** - Compare against design tokens in `/src/index.css`
+4. **Validate feature implementation** - Ensure the change fulfills the user's specific request
+5. **Check acceptance criteria** - Review any provided context files or requirements
+6. **Capture evidence** - Take full page screenshot at desktop viewport (1440px) of each changed view
+7. **Check for errors** - Run `mcp__playwright__browser_console_messages`
+
+This verification ensures changes meet design standards and user requirements.
+
+### Comprehensive apBoost Audit
+For acceptance criteria verification or before merging PRs with apBoost changes, use the audit agent:
+
+```bash
+# Option 1: Use the slash command
+/apboost-audit
+
+# Option 2: Invoke the agent directly
+@agent-apboost-audit
+```
+
+The audit agent will:
+- Test all interactive states and user flows against criteria audit files
+- Verify responsiveness (desktop/tablet/mobile)
+- Check accessibility (WCAG 2.1 AA compliance)
+- Validate visual polish, design token usage, and consistency
+- Test edge cases and error states
+- Provide categorized feedback (Blockers/High/Medium/Nitpicks)
+- Save reports to `src/apBoost/criteria_audit/playwright_reports/`
+
+### Playwright MCP Integration
+
+#### Essential Commands for UI Testing
+
+```javascript
+// Navigation & Screenshots
+mcp__playwright__browser_navigate(url)          // Navigate to page
+mcp__playwright__browser_take_screenshot()      // Capture visual evidence
+mcp__playwright__browser_resize(width, height)  // Test responsiveness
+
+// Interaction Testing
+mcp__playwright__browser_click(element)         // Test clicks
+mcp__playwright__browser_type(element, text)    // Test input
+mcp__playwright__browser_hover(element)         // Test hover states
+mcp__playwright__browser_select_option(element) // Test dropdowns
+
+// Validation
+mcp__playwright__browser_console_messages()     // Check for errors
+mcp__playwright__browser_snapshot()             // DOM/accessibility check
+mcp__playwright__browser_wait_for(text/element) // Ensure loading complete
+```
+
+### Design Compliance Checklist
+When implementing UI features, verify:
+- [ ] **Visual Hierarchy**: Clear focus flow, appropriate spacing
+- [ ] **Consistency**: Uses design tokens, follows patterns
+- [ ] **Responsiveness**: Works on mobile (375px), tablet (768px), desktop (1440px)
+- [ ] **Accessibility**: Keyboard navigable, proper contrast, semantic HTML
+- [ ] **Performance**: Fast load times, smooth animations (150-300ms)
+- [ ] **Error Handling**: Clear error states, helpful messages
+- [ ] **Polish**: Micro-interactions, loading states, empty states
+
+### When to Use Automated Visual Testing
+
+#### Use Quick Visual Check for:
+- Every front-end change, no matter how small
+- After implementing new components or features
+- When modifying existing UI elements
+- After fixing visual bugs
+
+#### Use Comprehensive Audit for:
+- Verifying acceptance criteria from `src/apBoost/criteria_audit/`
+- Before creating pull requests with UI changes
+- When refactoring component architecture
+- After significant design system updates
+- When accessibility compliance is critical
+
+#### Skip Visual Testing for:
+- Backend-only changes (services, Cloud Functions)
+- Configuration file updates
+- Documentation changes
+- Test file modifications
+- Non-visual utility functions
 
 ## Safety
 - Never commit `.env` files or Firebase credentials

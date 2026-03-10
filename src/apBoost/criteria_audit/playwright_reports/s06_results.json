@@ -1,0 +1,13 @@
+{
+  "results": {
+    "S-06": {
+      "status": "SKIP",
+      "notes": "Begin button not found",
+      "role": "student"
+    }
+  },
+  "findings": {
+    "high": [],
+    "medium": []
+  }
+}

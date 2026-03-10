@@ -16,7 +16,7 @@ import { useOfflineQueue } from './useOfflineQueue'
 import { useHeartbeat } from './useHeartbeat'
 import { useDuplicateTabGuard } from './useDuplicateTabGuard'
 import { SESSION_STATUS, QUESTION_TYPE } from '../utils/apTypes'
-import { logError } from '../utils/logError'
+import { logError, logDebug } from '../utils/logError'
 
 /**
  * useTestSession - Core session state management hook
@@ -62,9 +62,9 @@ export function useTestSession(testId, assignmentId = null) {
   const submitFunctionsRef = useRef({ submitTest: null, submitSection: null })
 
   // Resilience hooks
-  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, getPendingItems, deleteItems } = useOfflineQueue(session?.id)
+  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, isStorageFull, getPendingItems, deleteItems } = useOfflineQueue(session?.id)
   const { instanceToken, isInvalidated, takeControl } = useDuplicateTabGuard(session?.id)
-  const { isConnected, failureCount, sessionTakenOver } = useHeartbeat(session?.id, instanceToken)
+  const { isConnected, failureCount, sessionTakenOver, clearSessionTakenOver } = useHeartbeat(session?.id, instanceToken, { onRecovery: flushQueue })
 
   // Combined invalidation check
   const isSessionInvalidated = isInvalidated || sessionTakenOver
@@ -138,12 +138,30 @@ export function useTestSession(testId, assignmentId = null) {
     )
   }, [flatNavigationItems, currentQuestionIndex, currentSubQuestionLabel])
 
-  // Timer setup
+  // Timer setup — correct for elapsed time since last sync on resume
   const initialTime = useMemo(() => {
     if (!currentSection) return 0
     // Check if we have saved time remaining
     const savedTime = session?.sectionTimeRemaining?.[currentSection.id]
-    if (savedTime != null) return savedTime
+    if (savedTime != null) {
+      // Correct for time elapsed since the timer was last synced to Firestore
+      // lastAction timestamp approximates when the timer value was saved
+      const lastAction = session?.lastAction
+      if (lastAction) {
+        const lastActionMs = lastAction.toMillis ? lastAction.toMillis()
+          : lastAction.seconds ? lastAction.seconds * 1000
+          : typeof lastAction === 'number' ? lastAction
+          : null
+        if (lastActionMs) {
+          const elapsedSinceSync = Math.floor((Date.now() - lastActionMs) / 1000)
+          // Only correct if elapsed time is positive and reasonable (< 1 hour)
+          if (elapsedSinceSync > 0 && elapsedSinceSync < 3600) {
+            return Math.max(0, savedTime - elapsedSinceSync)
+          }
+        }
+      }
+      return savedTime
+    }
     // Otherwise use section time limit (minutes to seconds)
     return (currentSection.timeLimit || 45) * 60
   }, [currentSection, session])
@@ -211,7 +229,9 @@ export function useTestSession(testId, assignmentId = null) {
         // Verify user has access to this test before loading content
         const access = await canAccessTest(testId, user.uid)
         if (!access.allowed) {
-          setError('You are not authorized to access this test')
+          setError(access.reason === 'not_found'
+            ? 'This test does not exist or is no longer available.'
+            : 'You are not authorized to access this test.')
           setLoading(false)
           return
         }
@@ -285,10 +305,13 @@ export function useTestSession(testId, assignmentId = null) {
     loadTestAndSession()
   }, [testId, user])
 
-  // beforeunload handler - warn if unsaved changes
+  // Status (must be declared before effects that reference it)
+  const status = session?.status || SESSION_STATUS.NOT_STARTED
+
+  // beforeunload handler - warn if unsaved changes or test is in progress
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      if (queueLength > 0) {
+      if (queueLength > 0 || status === SESSION_STATUS.IN_PROGRESS) {
         e.preventDefault()
         e.returnValue = 'You have unsaved changes. Are you sure you want to leave?'
         return e.returnValue
@@ -297,11 +320,15 @@ export function useTestSession(testId, assignmentId = null) {
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [queueLength])
+  }, [queueLength, status])
 
   // Start test
   const startTest = useCallback(async () => {
     if (!user || !testId) return
+
+    // Suppress heartbeat takeover detection during session start/resume transition
+    // (creating/resuming a session writes a new sessionToken which could mismatch briefly)
+    clearSessionTakenOver()
 
     try {
       setLoading(true)
@@ -316,7 +343,7 @@ export function useTestSession(testId, assignmentId = null) {
     } finally {
       setLoading(false)
     }
-  }, [user, testId, assignmentId, timer])
+  }, [user, testId, assignmentId, timer, clearSessionTakenOver])
 
   // Navigation - go to specific flat index (handles sub-questions)
   const goToFlatIndex = useCallback((flatIndex) => {
@@ -502,6 +529,11 @@ export function useTestSession(testId, assignmentId = null) {
     while (true) {
       try {
         const resultId = await attemptSubmission()
+        // Ensure modal is visible for at least 800ms so users see the progress
+        const elapsed = Date.now() - submitStartTimeRef.current
+        if (elapsed < 800) {
+          await new Promise(r => setTimeout(r, 800 - elapsed))
+        }
         setIsSubmitting(false)
         setSubmitError(null)
         return resultId
@@ -599,6 +631,69 @@ export function useTestSession(testId, assignmentId = null) {
     checkPendingAutoSubmit()
   }, [isOnline, session?.id, getPendingItems, deleteItems, submitTest, submitSection])
 
+  // Queue reconciliation on resume - discard stale items already flushed by another tab/device
+  const reconciledRef = useRef(false)
+  useEffect(() => {
+    const reconcileQueue = async () => {
+      if (!session?.id || reconciledRef.current) return
+      reconciledRef.current = true
+
+      // Get the Firestore lastAction timestamp as epoch ms
+      const lastAction = session.lastAction
+      if (!lastAction) return
+      const lastActionMs = lastAction.toMillis ? lastAction.toMillis()
+        : lastAction.seconds ? lastAction.seconds * 1000
+        : typeof lastAction === 'number' ? lastAction
+        : null
+      if (!lastActionMs) return
+
+      const pendingItems = await getPendingItems()
+      if (pendingItems.length === 0) return
+
+      // Items whose localTimestamp is older than lastAction were already applied
+      const staleItems = pendingItems.filter(item => item.localTimestamp && item.localTimestamp < lastActionMs)
+      const freshItems = pendingItems.filter(item => !item.localTimestamp || item.localTimestamp >= lastActionMs)
+
+      if (staleItems.length > 0) {
+        logDebug('useTestSession.reconcileQueue', `Discarding ${staleItems.length} stale queue items`)
+        await deleteItems(staleItems.map(item => item.id))
+      }
+
+      // Apply fresh items to UI state (these were queued but not flushed before refresh)
+      if (freshItems.length > 0) {
+        logDebug('useTestSession.reconcileQueue', `Applying ${freshItems.length} fresh queue items to UI`)
+
+        for (const item of freshItems) {
+          if (item.action === 'ANSWER_CHANGE') {
+            const { questionId, value, subQuestionLabel } = item.payload
+            setAnswers(prev => {
+              const next = new Map(prev)
+              if (subQuestionLabel) {
+                const existing = next.get(questionId) || {}
+                next.set(questionId, { ...existing, [subQuestionLabel]: value })
+              } else {
+                next.set(questionId, value)
+              }
+              return next
+            })
+          } else if (item.action === 'FLAG_TOGGLE') {
+            const { questionId, markedForReview } = item.payload
+            setFlags(prev => {
+              const next = new Set(prev)
+              if (markedForReview) { next.add(questionId) } else { next.delete(questionId) }
+              return next
+            })
+          }
+        }
+
+        // Flush the fresh items to Firestore now
+        flushQueue()
+      }
+    }
+
+    reconcileQueue()
+  }, [session?.id, getPendingItems, deleteItems, flushQueue])
+
   // Visibility change handler - pause timer if backgrounded >30s on mobile
   useEffect(() => {
     let backgroundedAt = null
@@ -666,14 +761,12 @@ export function useTestSession(testId, assignmentId = null) {
   }, [timer, session?.id, currentSection?.id, addToQueue])
 
   // Handle take control (from duplicate tab modal)
+  // Must clear BOTH invalidation sources: isInvalidated (useDuplicateTabGuard) AND sessionTakenOver (useHeartbeat)
   const handleTakeControl = useCallback(async () => {
-    const success = await takeControl()
-    if (success) {
-      // Re-claim was successful
-      // Could refresh session state here if needed
-    }
+    clearSessionTakenOver() // Reset useHeartbeat's sessionTakenOver + suppress next heartbeat cycle
+    const success = await takeControl() // Reset useDuplicateTabGuard's isInvalidated (already optimistic)
     return success
-  }, [takeControl])
+  }, [takeControl, clearSessionTakenOver])
 
   // Cleanup
   useEffect(() => {
@@ -686,9 +779,6 @@ export function useTestSession(testId, assignmentId = null) {
       }
     }
   }, [])
-
-  // Status
-  const status = session?.status || SESSION_STATUS.NOT_STARTED
 
   return {
     // State
@@ -746,6 +836,7 @@ export function useTestSession(testId, assignmentId = null) {
     isConnected,
     isOnline,
     isSyncing: isFlushing,
+    isStorageFull,
     queueLength,
 
     // Resilience - duplicate tab

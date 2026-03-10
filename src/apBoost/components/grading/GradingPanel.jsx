@@ -121,7 +121,7 @@ function ScoreInput({ label, maxPoints, value, onChange, disabled }) {
         min="0"
         max={maxPoints}
         value={value ?? ''}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        onChange={(e) => onChange(Math.min(maxPoints, Math.max(0, Number(e.target.value) || 0)))}
         disabled={disabled}
         className="w-20 px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-center focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-50"
       />
@@ -241,6 +241,7 @@ export default function GradingPanel({
   onClose,
   onSave,
   teacherId,
+  readOnly = false,
 }) {
   const [result, setResult] = useState(null)
   const [grades, setGrades] = useState({})
@@ -340,6 +341,9 @@ export default function GradingPanel({
   const totalScore = calculateFRQScore(grades)
   const maxScore = result?.frqMaxPoints || 0
 
+  // Check if grading is already complete (view-only mode)
+  const isComplete = readOnly || result?.gradingStatus === GRADING_STATUS.COMPLETE
+
   // Check if this is a handwritten submission
   const isHandwritten = result?.frqSubmissionType === FRQ_SUBMISSION_TYPE.HANDWRITTEN
   const uploadedFiles = result?.frqUploadedFiles || []
@@ -378,7 +382,7 @@ export default function GradingPanel({
       <div className="px-6 py-4 border-b border-border-default flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-xl font-bold text-text-primary">
-            Grading: {result?.studentName}
+            {readOnly ? 'Review' : 'Grading'}: {result?.studentName}
           </h2>
           <p className="text-text-secondary text-sm">
             {result?.test?.title || 'Practice Test'}
@@ -415,7 +419,7 @@ export default function GradingPanel({
         )}
 
         {/* Annotated PDF upload (for handwritten submissions) */}
-        {isHandwritten && (
+        {isHandwritten && !isComplete && (
           <div className="mb-6 border border-border-default rounded-[--radius-card] p-4">
             <h3 className="text-text-primary font-medium mb-2">
               Upload Annotated Feedback PDF
@@ -458,35 +462,57 @@ export default function GradingPanel({
         )}
 
         {/* Question grading cards */}
-        {result?.frqAnswers && result?.frqQuestions && Object.entries(result.frqAnswers).map(([questionId, answer]) => (
-          <QuestionGradingCard
-            key={questionId}
-            questionId={questionId}
-            question={result.frqQuestions[questionId]}
-            studentAnswer={answer}
-            grade={grades[questionId]}
-            onGradeChange={handleGradeChange}
-            disabled={saving}
-          />
-        ))}
+        {result?.frqAnswers && result?.frqQuestions
+          ? Object.entries(result.frqAnswers).map(([questionId, answer]) => (
+              <QuestionGradingCard
+                key={questionId}
+                questionId={questionId}
+                question={result.frqQuestions[questionId]}
+                studentAnswer={answer}
+                grade={grades[questionId]}
+                onGradeChange={handleGradeChange}
+                disabled={saving || isComplete}
+              />
+            ))
+          : (
+              <div className="bg-muted rounded-[--radius-card] p-6 text-center">
+                <p className="text-text-muted">No FRQ answer data available for this submission.</p>
+                <p className="text-text-muted text-sm mt-1">This may be a handwritten submission or legacy result.</p>
+              </div>
+            )
+        }
       </div>
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-border-default flex items-center justify-between shrink-0">
-        <button
-          onClick={handleSaveDraft}
-          disabled={saving}
-          className="px-4 py-2 rounded-[--radius-button] border border-border-default text-text-secondary hover:bg-hover disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Save Draft'}
-        </button>
-        <button
-          onClick={handleMarkComplete}
-          disabled={saving}
-          className="px-6 py-2 rounded-[--radius-button] bg-brand-primary text-white font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? 'Saving...' : 'Mark Complete'}
-        </button>
+        {isComplete ? (
+          <>
+            <span className="text-success-text text-sm font-medium">Grading Complete</span>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 rounded-[--radius-button] border border-border-default text-text-secondary hover:bg-hover"
+            >
+              Close
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="px-4 py-2 rounded-[--radius-button] border border-border-default text-text-secondary hover:bg-hover disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Draft'}
+            </button>
+            <button
+              onClick={handleMarkComplete}
+              disabled={saving}
+              className="px-6 py-2 rounded-[--radius-button] bg-brand-primary text-white font-medium hover:opacity-90 disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Mark Complete'}
+            </button>
+          </>
+        )}
       </div>
 
       {/* Animation styles */}

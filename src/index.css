@@ -56,7 +56,7 @@
   --color-error-text-strong: 153 27 27;   /* red-800 */
 
   /* WARNING (amber) */
-  --color-warning-bg: 255 251 235;        /* amber-50 */
+  --color-warning-bg: 253 230 138;        /* amber-200 — bumped from amber-50 for better visibility on flag buttons */
   --color-warning-bg-subtle: 254 243 199; /* amber-100 */
   --color-warning-border: 253 230 138;    /* amber-200 */
   --color-warning-ring: 245 158 11;       /* amber-500 */
@@ -413,6 +413,16 @@
   --color-ring-info: rgb(var(--color-info-ring));
   --color-text-info: rgb(var(--color-info-text));
   --color-text-info-strong: rgb(var(--color-info-text-strong));
+
+  /* Aliases: code uses text-error-text (→ --color-error-text) but @theme defines --color-text-error */
+  --color-success-text: var(--color-text-success);
+  --color-error-text: var(--color-text-error);
+  --color-warning-text: var(--color-text-warning);
+  --color-info-text: var(--color-text-info);
+  --color-success-text-strong: var(--color-text-success-strong);
+  --color-error-text-strong: var(--color-text-error-strong);
+  --color-warning-text-strong: var(--color-text-warning-strong);
+  --color-info-text-strong: var(--color-text-info-strong);
 
   /* Text colors for use ON semantic backgrounds */
   --color-text-on-success: rgb(var(--text-on-success-rgb));

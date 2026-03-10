@@ -7,13 +7,21 @@ import { withTimeout, TIMEOUTS } from '../utils/withTimeout'
 
 /**
  * useDuplicateTabGuard - Detect duplicate tabs using BroadcastChannel + Firestore
+ *
+ * Two-phase protocol:
+ * 1. New tab sends SESSION_QUERY to ask if any tab is already active
+ * 2. Existing active tab responds with SESSION_ACTIVE
+ * 3. New tab sees the response and shows the DuplicateTabModal (isInvalidated=true)
+ * 4. If user clicks "Use This Tab", takeControl() broadcasts SESSION_CLAIMED to invalidate others
+ *
+ * If no response within 1s, the new tab assumes it's the only one and claims silently.
+ *
  * @param {string} sessionId - Current session ID
  * @returns {Object} Guard state and methods
  */
 export function useDuplicateTabGuard(sessionId) {
   // Generate unique instance token for this tab
   const instanceToken = useMemo(() => {
-    // Use crypto.randomUUID if available, fallback to custom
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
       return crypto.randomUUID()
     }
@@ -23,6 +31,7 @@ export function useDuplicateTabGuard(sessionId) {
   const [isInvalidated, setIsInvalidated] = useState(false)
   const channelRef = useRef(null)
   const claimTimeoutRef = useRef(null)
+  const isActiveRef = useRef(false) // Whether this tab has claimed the session
 
   // Claim session in Firestore
   const claimSession = useCallback(async () => {
@@ -39,6 +48,7 @@ export function useDuplicateTabGuard(sessionId) {
       )
 
       logDebug('useDuplicateTabGuard.claimSession', 'Session claimed', { instanceToken })
+      isActiveRef.current = true
       return true
     } catch (error) {
       logError('useDuplicateTabGuard.claimSession', { sessionId }, error)
@@ -46,53 +56,83 @@ export function useDuplicateTabGuard(sessionId) {
     }
   }, [sessionId, instanceToken])
 
-  // Take control of the session (from modal)
+  // Take control of the session (from modal — user explicitly chose "Use This Tab")
   const takeControl = useCallback(async () => {
-    const success = await claimSession()
-    if (success) {
-      setIsInvalidated(false)
+    setIsInvalidated(false)
 
-      // Notify other tabs
-      if (channelRef.current) {
-        channelRef.current.postMessage({
-          type: 'SESSION_CLAIMED',
-          token: instanceToken,
-        })
-      }
+    // Notify other tabs they are now invalidated
+    if (channelRef.current) {
+      channelRef.current.postMessage({
+        type: 'SESSION_CLAIMED',
+        token: instanceToken,
+      })
     }
-    return success
-  }, [claimSession, instanceToken])
+
+    // Claim in Firestore (best-effort, non-blocking)
+    claimSession().catch(err => {
+      logError('useDuplicateTabGuard.takeControl', { sessionId }, err)
+    })
+
+    return true
+  }, [claimSession, instanceToken, sessionId])
 
   // Set up BroadcastChannel for same-browser detection
   useEffect(() => {
     if (!sessionId) return
 
-    // BroadcastChannel for instant same-browser detection
     if (typeof BroadcastChannel !== 'undefined') {
       try {
         channelRef.current = new BroadcastChannel(`ap_session_${sessionId}`)
 
-        // Listen for other tabs claiming the session
         channelRef.current.onmessage = (event) => {
-          if (event.data.type === 'SESSION_CLAIMED' && event.data.token !== instanceToken) {
+          const { type, token } = event.data
+
+          if (type === 'SESSION_CLAIMED' && token !== instanceToken) {
+            // Another tab has taken control — we are invalidated
             logDebug('useDuplicateTabGuard', 'Another tab claimed session', event.data)
+            isActiveRef.current = false
+            setIsInvalidated(true)
+          }
+
+          if (type === 'SESSION_QUERY' && token !== instanceToken && isActiveRef.current) {
+            // A new tab is asking if anyone is active — respond to block it
+            logDebug('useDuplicateTabGuard', 'Responding to query from new tab')
+            channelRef.current.postMessage({
+              type: 'SESSION_ACTIVE',
+              token: instanceToken,
+            })
+          }
+
+          if (type === 'SESSION_ACTIVE' && token !== instanceToken && !isActiveRef.current) {
+            // An existing tab responded — we (the new tab) should be blocked
+            logDebug('useDuplicateTabGuard', 'Existing tab is active, blocking this tab')
+            if (claimTimeoutRef.current) {
+              clearTimeout(claimTimeoutRef.current)
+              claimTimeoutRef.current = null
+            }
             setIsInvalidated(true)
           }
         }
 
-        // Claim session on mount (delayed slightly to let existing tabs react)
+        // Phase 1: Ask if any tab is already active
+        channelRef.current.postMessage({
+          type: 'SESSION_QUERY',
+          token: instanceToken,
+        })
+
+        // Phase 2: If no response within 1s, assume we're the only tab and claim
         claimTimeoutRef.current = setTimeout(() => {
-          // Announce our presence
-          channelRef.current.postMessage({
-            type: 'SESSION_CLAIMED',
-            token: instanceToken,
-          })
-          // Claim in Firestore
-          claimSession()
-        }, 500)
+          if (!isActiveRef.current) {
+            logDebug('useDuplicateTabGuard', 'No other tab responded, claiming session')
+            channelRef.current.postMessage({
+              type: 'SESSION_CLAIMED',
+              token: instanceToken,
+            })
+            claimSession()
+          }
+        }, 1000)
       } catch (error) {
         logError('useDuplicateTabGuard.broadcastChannel', { sessionId }, error)
-        // Fallback to just Firestore claim
         claimSession()
       }
     } else {
@@ -111,18 +151,11 @@ export function useDuplicateTabGuard(sessionId) {
     }
   }, [sessionId, instanceToken, claimSession])
 
-  // Handle beforeunload - mark session as released
+  // beforeunload — no-op (keep session token for refresh resume)
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      // We don't clear the session token here because the user might
-      // just be refreshing, and we want them to be able to resume
-    }
-
+    const handleBeforeUnload = () => {}
     window.addEventListener('beforeunload', handleBeforeUnload)
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [sessionId])
 
   return {

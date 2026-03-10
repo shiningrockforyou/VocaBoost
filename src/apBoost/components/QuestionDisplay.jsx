@@ -1,5 +1,6 @@
 import { QUESTION_FORMAT, QUESTION_TYPE, STIMULUS_TYPE } from '../utils/apTypes'
 import FRQQuestionDisplay from './FRQQuestionDisplay'
+import MathText from './MathText'
 import PassageDisplay from './tools/PassageDisplay'
 
 /**
@@ -25,7 +26,7 @@ function StimulusDisplay({ stimulus }) {
         </div>
       ) : (
         <div>
-          <div className="text-text-secondary whitespace-pre-wrap">{content}</div>
+          <div className="text-text-secondary whitespace-pre-wrap"><MathText>{content}</MathText></div>
           {source && (
             <p className="text-text-muted text-xs mt-2 italic">— {source}</p>
           )}
@@ -128,7 +129,7 @@ export default function QuestionDisplay({
           <div className="mb-4">
             <span className="text-text-muted text-sm">Question {questionNumber}</span>
             <p className="text-text-primary mt-2 whitespace-pre-wrap">
-              {question.questionText}
+              <MathText>{question.questionText}</MathText>
             </p>
             {question.questionType === QUESTION_TYPE.MCQ_MULTI && (
               <p className="text-sm text-text-secondary italic mt-2">
@@ -159,7 +160,7 @@ export default function QuestionDisplay({
 
       {/* Question text */}
       <p className="text-text-primary whitespace-pre-wrap">
-        {question.questionText}
+        <MathText>{question.questionText}</MathText>
       </p>
       {question.questionType === QUESTION_TYPE.MCQ_MULTI && (
         <p className="text-sm text-text-secondary italic mt-2">

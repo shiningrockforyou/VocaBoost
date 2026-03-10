@@ -39,9 +39,11 @@ export default function AssignTestModal({ test, teacherId, onClose, onSuccess })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
 
   // Selection state
   const [selectedClassIds, setSelectedClassIds] = useState(new Set())
+  const [classSearch, setClassSearch] = useState('')
 
   // Assignment settings
   const [dueDate, setDueDate] = useState('')
@@ -119,10 +121,15 @@ export default function AssignTestModal({ test, teacherId, onClose, onSuccess })
 
       await createAssignment(assignmentData)
 
-      if (onSuccess) {
-        onSuccess()
-      }
-      onClose()
+      setSuccess(true)
+      // Brief delay so teacher sees confirmation before modal closes
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          onClose()
+        }
+      }, 1200)
     } catch (err) {
       logError('AssignTestModal.assign', { testId: test.id }, err)
       setError(err.message || 'Failed to create assignment')
@@ -159,7 +166,17 @@ export default function AssignTestModal({ test, teacherId, onClose, onSuccess })
 
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
-          {loading ? (
+          {success ? (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <div className="w-12 h-12 rounded-full bg-success flex items-center justify-center">
+                <svg className="w-6 h-6 text-success-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-text-primary font-medium">Test assigned successfully!</p>
+              <p className="text-text-muted text-sm">{totalStudents} student{totalStudents !== 1 ? 's' : ''} assigned</p>
+            </div>
+          ) : loading ? (
             <div className="animate-pulse space-y-3">
               <div className="h-10 bg-muted rounded" />
               <div className="h-10 bg-muted rounded" />
@@ -174,11 +191,22 @@ export default function AssignTestModal({ test, teacherId, onClose, onSuccess })
               {/* Class selection */}
               <div className="mb-6">
                 <h3 className="font-medium text-text-primary mb-3">Select Classes</h3>
+                {classes.length > 3 && (
+                  <input
+                    type="text"
+                    value={classSearch}
+                    onChange={(e) => setClassSearch(e.target.value)}
+                    placeholder="Search classes..."
+                    className="w-full mb-2 px-3 py-2 rounded-[--radius-input] border border-border-default bg-surface text-text-primary text-sm"
+                  />
+                )}
                 {classes.length === 0 ? (
                   <p className="text-text-muted text-sm">No classes found.</p>
                 ) : (
-                  <div className="border border-border-default rounded-[--radius-card] divide-y divide-border-muted">
-                    {classes.map(cls => (
+                  <div className="border border-border-default rounded-[--radius-card] divide-y divide-border-muted max-h-48 overflow-auto">
+                    {classes
+                      .filter(cls => !classSearch || cls.name?.toLowerCase().includes(classSearch.toLowerCase()) || cls.period?.toLowerCase().includes(classSearch.toLowerCase()))
+                      .map(cls => (
                       <ClassCheckbox
                         key={cls.id}
                         cls={cls}

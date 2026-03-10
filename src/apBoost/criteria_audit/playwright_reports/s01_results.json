@@ -1,0 +1,23 @@
+{
+  "results": {
+    "S-01": {
+      "status": "PASS",
+      "role": "student",
+      "h1": "AP Practice Tests",
+      "cards": [
+        "AP Calculus AB Practice Exam",
+        "AP Macroeconomics Practice Exam",
+        "AP Microeconomics Practice Exam"
+      ],
+      "statusBadges": 3,
+      "sectionCountText": 3,
+      "timeText": 1,
+      "errorBanner": false
+    }
+  },
+  "findings": {
+    "high": [],
+    "medium": [],
+    "nitpick": []
+  }
+}

@@ -176,6 +176,8 @@ export async function createTestResult(sessionId, frqData = null) {
             correct: isCorrect,
             score, // Include score for partial credit visibility
             questionType: question.questionType || QUESTION_TYPE.MCQ,
+            questionDomain: question.questionDomain || null,
+            questionTopic: question.questionTopic || null,
           })
         }
       }
@@ -201,7 +203,7 @@ export async function createTestResult(sessionId, frqData = null) {
 
           // Sum max points from sub-questions
           const questionMaxPoints = (question.subQuestions || []).reduce(
-            (sum, sq) => sum + (sq.maxPoints || 0),
+            (sum, sq) => sum + (sq.maxPoints || sq.points || 0),
             0
           )
 
@@ -239,7 +241,25 @@ export async function createTestResult(sessionId, frqData = null) {
       frqSubmissionType: frqData?.frqSubmissionType || null,
       frqUploadedFiles: frqData?.frqUploadedFiles || null,
       frqUploadUrl: frqData?.frqUploadedFiles?.[0]?.url || null, // Alias for spec compatibility
-      frqAnswers: session.answers || {}, // Typed FRQ answers from session
+      flaggedQuestions: session.flaggedQuestions || [],
+      frqAnswers: (() => {
+        // Filter to only FRQ question answers, ordered by section definition
+        const allAnswers = session.answers || {}
+        const filtered = {}
+        for (const section of test.sections) {
+          if (section.sectionType === SECTION_TYPE.FRQ || section.sectionType === SECTION_TYPE.MIXED) {
+            for (const qId of section.questionIds || []) {
+              const q = test.questions[qId]
+              if (q && (q.questionType === QUESTION_TYPE.FRQ || q.questionType === QUESTION_TYPE.SAQ || q.questionType === QUESTION_TYPE.DBQ)) {
+                if (allAnswers[qId] !== undefined) {
+                  filtered[qId] = allAnswers[qId]
+                }
+              }
+            }
+          }
+        }
+        return filtered
+      })(),
       frqMaxPoints, // Calculated from FRQ section questions with multipliers
       frqScore: null, // Set after grading
       annotatedPdfUrl: null, // Teacher's annotated PDF

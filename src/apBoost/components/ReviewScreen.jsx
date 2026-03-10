@@ -1,7 +1,7 @@
 /**
  * QuestionBox - Individual question indicator in the review grid
  */
-function QuestionBox({ number, questionId, isAnswered, isFlagged, onClick }) {
+function QuestionBox({ number, questionId, isAnswered, isFlagged, hasAnnotation, onClick }) {
   let bgClass = 'bg-surface'
   let borderClass = 'border-border-default'
 
@@ -16,13 +16,16 @@ function QuestionBox({ number, questionId, isAnswered, isFlagged, onClick }) {
     <button
       onClick={onClick}
       className={`
-        w-10 h-10 rounded-[--radius-button-sm] border flex items-center justify-center
+        relative w-10 h-10 rounded-[--radius-button-sm] border flex items-center justify-center
         text-sm font-medium transition-all hover:opacity-80
         ${bgClass} ${borderClass}
         ${isAnswered ? 'text-white' : 'text-text-primary'}
       `}
     >
       {isFlagged ? '🚩' : number}
+      {hasAnnotation && (
+        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-info-ring rounded-full" />
+      )}
     </button>
   )
 }
@@ -36,6 +39,8 @@ export default function ReviewScreen({
   questions,
   answers,
   flags,
+  annotations = null,
+  strikethroughs = null,
   onGoToQuestion,
   onSubmit,
   onCancel,
@@ -74,6 +79,10 @@ export default function ReviewScreen({
             const questionId = q.id || q
             const isAnswered = answers.has(questionId)
             const isFlagged = flags.has(questionId)
+            const hasAnnotation = !!(
+              (annotations && annotations[questionId]?.length > 0) ||
+              (strikethroughs && strikethroughs[questionId]?.length > 0)
+            )
 
             return (
               <QuestionBox
@@ -82,6 +91,7 @@ export default function ReviewScreen({
                 questionId={questionId}
                 isAnswered={isAnswered}
                 isFlagged={isFlagged}
+                hasAnnotation={hasAnnotation}
                 onClick={() => onGoToQuestion(idx)}
               />
             )
@@ -128,6 +138,12 @@ export default function ReviewScreen({
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-surface border-2 border-warning-ring rounded" />
             <span>Flagged</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative w-4 h-4 bg-surface border border-border-default rounded">
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-info-ring rounded-full" />
+            </div>
+            <span>Annotated</span>
           </div>
         </div>
 

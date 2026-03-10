@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import APHeader from '../components/APHeader'
 import GradingPanel from '../components/grading/GradingPanel'
 import { getPendingGrades, getTestsForGrading, getTeacherClasses } from '../services/apGradingService'
-import { GRADING_STATUS } from '../utils/apTypes'
+import { GRADING_STATUS, COLLECTIONS } from '../utils/apTypes'
 import { logError } from '../utils/logError'
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from 'firebase/firestore'
+import { db } from '../../firebase'
 
 /**
  * Status badge component
@@ -72,10 +74,13 @@ function GradebookRow({ result, onGrade, onView }) {
 
   return (
     <tr className="border-b border-border-muted hover:bg-hover transition-colors">
-      <td className="py-3 px-4 text-text-primary">{result.studentName}</td>
+      <td className="py-3 px-4 text-text-primary">
+        {result.studentName}
+        <span className="sm:hidden block mt-1"><StatusBadge status={result.gradingStatus} /></span>
+      </td>
       <td className="py-3 px-4 text-text-secondary">{result.testTitle}</td>
-      <td className="py-3 px-4 text-text-muted text-sm">{completedDate}</td>
-      <td className="py-3 px-4">
+      <td className="py-3 px-4 text-text-muted text-sm hidden sm:table-cell">{completedDate}</td>
+      <td className="py-3 px-4 hidden sm:table-cell">
         <StatusBadge status={result.gradingStatus} />
       </td>
       <td className="py-3 px-4 text-right">
@@ -120,6 +125,7 @@ export default function APGradebook() {
   // Panel state
   const [selectedResultId, setSelectedResultId] = useState(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [isReadOnly, setIsReadOnly] = useState(false)
 
   // Load filter options
   useEffect(() => {
@@ -141,41 +147,70 @@ export default function APGradebook() {
     loadFilters()
   }, [user])
 
-  // Load results based on filters
+  // Real-time results via onSnapshot
   useEffect(() => {
-    async function loadResults() {
-      if (!user) return
+    if (!user) return
 
-      try {
-        setLoading(true)
-        setError(null)
+    setLoading(true)
+    setError(null)
 
-        const filters = {}
-        if (statusFilter !== 'all') {
-          if (statusFilter === 'pending') {
-            filters.status = null // Will use default pending filter
-          } else {
-            filters.status = statusFilter
-          }
-        }
-        if (testFilter !== 'all') {
-          filters.testId = testFilter
-        }
-        if (classFilter !== 'all') {
-          filters.classId = classFilter
-        }
+    const constraints = [where('teacherId', '==', user.uid)]
 
-        const data = await getPendingGrades(user.uid, filters)
-        setResults(data)
-      } catch (err) {
-        logError('APGradebook.loadResults', { userId: user?.uid }, err)
-        setError(err.message || 'Failed to load gradebook')
-      } finally {
-        setLoading(false)
-      }
+    if (statusFilter === 'pending') {
+      constraints.push(where('gradingStatus', 'in', [GRADING_STATUS.PENDING, GRADING_STATUS.IN_PROGRESS]))
+    } else if (statusFilter !== 'all') {
+      constraints.push(where('gradingStatus', '==', statusFilter))
     }
 
-    loadResults()
+    if (testFilter !== 'all') {
+      constraints.push(where('testId', '==', testFilter))
+    }
+    if (classFilter !== 'all') {
+      constraints.push(where('classId', '==', classFilter))
+    }
+
+    constraints.push(orderBy('completedAt', 'desc'))
+
+    const q = query(collection(db, COLLECTIONS.TEST_RESULTS), ...constraints)
+
+    const unsubscribe = onSnapshot(q,
+      async (snapshot) => {
+        const resultsList = []
+        for (const docSnap of snapshot.docs) {
+          const data = docSnap.data()
+          let studentName = data.studentName || 'Unknown Student'
+          let studentEmail = data.studentEmail || ''
+          if (!data.studentName) {
+            try {
+              const userSnap = await getDoc(doc(db, 'users', data.userId))
+              if (userSnap.exists()) {
+                const userData = userSnap.data()
+                studentName = userData.profile?.displayName || userData.displayName || userData.email || 'Student'
+                studentEmail = userData.email || ''
+              }
+            } catch {
+              // non-critical
+            }
+          }
+          resultsList.push({
+            id: docSnap.id,
+            ...data,
+            studentName,
+            studentEmail,
+            testTitle: data.testTitle || data.testId,
+          })
+        }
+        setResults(resultsList)
+        setLoading(false)
+      },
+      (err) => {
+        logError('APGradebook.onSnapshot', { userId: user?.uid }, err)
+        setError(err.message || 'Failed to load gradebook')
+        setLoading(false)
+      }
+    )
+
+    return () => unsubscribe()
   }, [user, statusFilter, testFilter, classFilter])
 
   // Handle grade action
@@ -184,9 +219,10 @@ export default function APGradebook() {
     setIsPanelOpen(true)
   }
 
-  // Handle view action (same as grade for now)
+  // Handle view action (read-only mode)
   const handleView = (resultId) => {
     setSelectedResultId(resultId)
+    setIsReadOnly(true)
     setIsPanelOpen(true)
   }
 
@@ -194,6 +230,7 @@ export default function APGradebook() {
   const handleClosePanel = () => {
     setIsPanelOpen(false)
     setSelectedResultId(null)
+    setIsReadOnly(false)
   }
 
   // Handle save (refresh list)
@@ -293,14 +330,15 @@ export default function APGradebook() {
               <p className="text-text-muted">No submissions found matching your filters.</p>
             </div>
           ) : (
+            <div className="relative">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border-default bg-muted">
                     <th className="text-left py-3 px-4 text-text-secondary font-medium">Student</th>
                     <th className="text-left py-3 px-4 text-text-secondary font-medium">Test</th>
-                    <th className="text-left py-3 px-4 text-text-secondary font-medium">Submitted</th>
-                    <th className="text-left py-3 px-4 text-text-secondary font-medium">Status</th>
+                    <th className="text-left py-3 px-4 text-text-secondary font-medium hidden sm:table-cell">Submitted</th>
+                    <th className="text-left py-3 px-4 text-text-secondary font-medium hidden sm:table-cell">Status</th>
                     <th className="text-right py-3 px-4 text-text-secondary font-medium">Action</th>
                   </tr>
                 </thead>
@@ -315,6 +353,8 @@ export default function APGradebook() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-surface to-transparent pointer-events-none sm:hidden" />
             </div>
           )}
         </div>
@@ -340,6 +380,7 @@ export default function APGradebook() {
             onClose={handleClosePanel}
             onSave={handleSave}
             teacherId={user?.uid}
+            readOnly={isReadOnly}
           />
         </>
       )}

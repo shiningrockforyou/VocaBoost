@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import { COLLECTIONS, SESSION_STATUS } from '../utils/apTypes'
+import { logError } from '../utils/logError'
 import { canAccessTest } from './apTestService'
 
 /**
@@ -80,7 +81,7 @@ export async function createOrResumeSession(testId, userId, assignmentId = null)
 
     return { id: sessionId, ...sessionData }
   } catch (error) {
-    console.error('Error creating/resuming session:', error)
+    logError('apSessionService.createOrResumeSession', { testId, userId }, error)
     throw error
   }
 }
@@ -108,7 +109,7 @@ export async function getActiveSession(testId, userId) {
     const doc = sessionsSnap.docs[0]
     return { id: doc.id, ...doc.data() }
   } catch (error) {
-    console.error('Error getting active session:', error)
+    logError('apSessionService.getActiveSession', { testId, userId }, error)
     return null
   }
 }
@@ -126,7 +127,7 @@ export async function updateSession(sessionId, updates) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error updating session:', error)
+    logError('apSessionService.updateSession', { sessionId }, error)
     throw error
   }
 }
@@ -145,7 +146,7 @@ export async function saveAnswer(sessionId, questionId, answer) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error saving answer:', error)
+    logError('apSessionService.saveAnswer', { sessionId, questionId }, error)
     throw error
   }
 }
@@ -180,7 +181,7 @@ export async function toggleQuestionFlag(sessionId, questionId, flagged) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error toggling flag:', error)
+    logError('apSessionService.toggleQuestionFlag', { sessionId, questionId }, error)
     throw error
   }
 }
@@ -200,7 +201,7 @@ export async function updatePosition(sessionId, sectionIndex, questionIndex) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error updating position:', error)
+    logError('apSessionService.updatePosition', { sessionId }, error)
     throw error
   }
 }
@@ -219,7 +220,7 @@ export async function updateTimer(sessionId, sectionId, timeRemaining) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error updating timer:', error)
+    logError('apSessionService.updateTimer', { sessionId, sectionId }, error)
     throw error
   }
 }
@@ -237,7 +238,7 @@ export async function completeSession(sessionId) {
       lastAction: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error completing session:', error)
+    logError('apSessionService.completeSession', { sessionId }, error)
     throw error
   }
 }
@@ -255,7 +256,7 @@ export async function getSession(sessionId) {
     }
     return { id: sessionDoc.id, ...sessionDoc.data() }
   } catch (error) {
-    console.error('Error getting session:', error)
+    logError('apSessionService.getSession', { sessionId }, error)
     throw error
   }
 }
@@ -271,7 +272,7 @@ export async function updateHeartbeat(sessionId) {
       lastHeartbeat: serverTimestamp(),
     })
   } catch (error) {
-    console.error('Error updating heartbeat:', error)
+    logError('apSessionService.updateHeartbeat', { sessionId }, error)
     // Don't throw - heartbeat failures shouldn't break the app
   }
 }

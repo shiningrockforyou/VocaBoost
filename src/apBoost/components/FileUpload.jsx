@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { formatFileSize, validateFile } from '../services/apStorageService'
+import { processImageFile } from '../utils/imageProcessing'
 
 /**
  * FileUpload - Drag-and-drop file upload component
@@ -73,7 +74,7 @@ export default function FileUpload({
   }, [files, maxFiles, onUpload])
 
   // Process selected files
-  const processFiles = (newFiles) => {
+  const processFiles = async (newFiles) => {
     setError(null)
 
     // Check max files
@@ -95,7 +96,11 @@ export default function FileUpload({
     }
 
     if (validFiles.length > 0 && onUpload) {
-      onUpload(validFiles)
+      // Compress images before upload
+      const processed = await Promise.all(
+        validFiles.map(f => f.type.startsWith('image/') ? processImageFile(f) : f)
+      )
+      onUpload(processed)
     }
   }
 

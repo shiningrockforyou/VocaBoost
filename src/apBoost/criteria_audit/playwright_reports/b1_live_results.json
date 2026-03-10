@@ -1,0 +1,126 @@
+{
+  "results": {
+    "S-01": {
+      "status": "PASS",
+      "h1": "AP Practice Tests",
+      "microCard": 1,
+      "macroCard": 1,
+      "calcCard": 1,
+      "statusBadges": 3,
+      "sectionText": 3,
+      "timeText": 3,
+      "errorBanner": 0,
+      "apHeaderLink": 1,
+      "issues": []
+    },
+    "S-02": {
+      "status": "PASS",
+      "autoResumed": false,
+      "instrH1": "AP Microeconomics Practice Exam",
+      "beginBtn": true,
+      "beginBtnText": "Begin Test",
+      "cancelBtn": true,
+      "cancelWorks": true,
+      "sectionBreakdown": 1,
+      "totalTimeText": 1,
+      "frqInfoBox": 1,
+      "freeResponseH3": 1,
+      "warningBox": 1,
+      "cannotPause": 1,
+      "cannotReturn": 1,
+      "issues": []
+    },
+    "S-03": {
+      "status": "PASS",
+      "dupModal": false,
+      "modalPersisted": false,
+      "timerCounts": true,
+      "timerTexts": "34:55->34:52",
+      "hamburger": true,
+      "sectionLabel": "Section 1 of 2: Section I: Multiple Choice",
+      "q1Label": 2,
+      "allChoiceBtns": 4,
+      "strikeBtns": 4,
+      "nextVisible": true,
+      "backVisible": true,
+      "backDisabled": true,
+      "centerNavText": "Question 1 of 15▲",
+      "centerNavVisible": true,
+      "flagVisible": true,
+      "issues": []
+    },
+    "S-04": {
+      "status": "PASS",
+      "bSelected": true,
+      "q2ASelected": true,
+      "bPersists": true,
+      "cSelected": true,
+      "bDeselected": true,
+      "q2APersists": true,
+      "issues": []
+    },
+    "S-05": {
+      "status": "PARTIAL",
+      "flagBtnVisible": true,
+      "initiallyFlagged": false,
+      "flaggedVisible": true,
+      "hasBgWarning": true,
+      "navOpens": true,
+      "navBoxCount": 15,
+      "answeredCount": 2,
+      "flagsInNav": 3,
+      "legendOk": true,
+      "q1StillFlagged": true,
+      "unflagWorks": false,
+      "issues": [
+        "Unflag does not revert to \"Flag for Review\""
+      ]
+    },
+    "S-06": {
+      "status": "PASS",
+      "strikeBtnsFound": 4,
+      "strikeApplied": true,
+      "lineThrough1": 1,
+      "opacity1": 1,
+      "hasBgMuted": true,
+      "dStruck": true,
+      "bSelectedWithStrikes": true,
+      "persistedAfterNav": true,
+      "issues": []
+    },
+    "S-07": {
+      "status": "PASS",
+      "navH3": true,
+      "qBoxes": 15,
+      "answeredBoxes": 3,
+      "flagBoxes": 2,
+      "ringBoxes": 1,
+      "legendOk": true,
+      "jumpedQ7": true,
+      "q7Visible": true,
+      "reviewBtnOk": true,
+      "reviewScreenOk": true,
+      "returnBtnOk": true,
+      "issues": []
+    }
+  },
+  "findings": {
+    "blocker": [],
+    "high": [],
+    "medium": [],
+    "nitpick": []
+  },
+  "consoleErrors": [
+    {
+      "url": "http://localhost:5173/login",
+      "msg": "[2026-03-09T14:57:40.358Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The opera"
+    },
+    {
+      "url": "http://localhost:5173/",
+      "msg": "[2026-03-09T15:13:27.258Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The opera"
+    }
+  ],
+  "accountType": "student",
+  "runAt": "2026-03-09T15:15:45.259Z",
+  "note": "S-01/S-02/S-03/S-04 from b1_live_audit.spec.js; S-05/S-06/S-07 from b1_s05_s07.spec.js"
+}

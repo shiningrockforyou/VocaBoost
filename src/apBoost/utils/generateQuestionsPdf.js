@@ -3,13 +3,14 @@
  * Creates a PDF of test questions for teacher reference
  */
 import jsPDF from 'jspdf'
+import { loadLogoForPdf } from './pdfLogo'
 
 /**
  * Generate a PDF of test questions
  * @param {Object} test - Test object with sections and questions
  * @param {Object} questions - Questions map
  * @param {Object} options - { includeAnswers: boolean, includeStimuli: boolean }
- * @returns {jsPDF} PDF document
+ * @returns {Blob} PDF blob
  */
 export async function generateQuestionsPdf(test, questions, options = {}) {
   const { includeAnswers = false, includeStimuli = true } = options
@@ -61,8 +62,14 @@ export async function generateQuestionsPdf(test, questions, options = {}) {
     return false
   }
 
-  // Title page
-  yPos = 60
+  // Title page — logo
+  const logo = await loadLogoForPdf()
+  if (logo) {
+    doc.addImage(logo, 'PNG', pageWidth / 2 - 10, yPos, 20, 20)
+    yPos += 25
+  }
+
+  yPos = Math.max(yPos, 60)
   addText(test?.title || 'AP Practice Test', 0, yPos, { fontSize: 24, fontStyle: 'bold' })
   doc.text(test?.title || 'AP Practice Test', pageWidth / 2, yPos, { align: 'center' })
 
@@ -150,7 +157,8 @@ export async function generateQuestionsPdf(test, questions, options = {}) {
       yPos += 5
 
       // Answer choices (for MCQ)
-      if (question.questionType === 'mcq' || !question.questionType) {
+      const qType = (question.questionType || '').toUpperCase()
+      if (qType === 'MCQ' || qType === 'MCQ_MULTI' || !question.questionType) {
         const choices = ['A', 'B', 'C', 'D', 'E'].slice(0, question.choiceCount || 4)
 
         for (const choice of choices) {
@@ -259,7 +267,7 @@ export async function generateQuestionsPdf(test, questions, options = {}) {
     }
   }
 
-  return doc
+  return doc.output('blob')
 }
 
 /**
@@ -269,7 +277,14 @@ export async function generateQuestionsPdf(test, questions, options = {}) {
  * @param {Object} options - Generation options
  */
 export async function downloadQuestionsPdf(test, questions, options = {}) {
-  const doc = await generateQuestionsPdf(test, questions, options)
+  const blob = await generateQuestionsPdf(test, questions, options)
   const filename = `${test?.title?.replace(/\s+/g, '_') || 'Questions'}_${options.includeAnswers ? 'Teacher' : 'Student'}.pdf`
-  doc.save(filename)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }

@@ -1,0 +1,24 @@
+{
+  "results": {
+    "S-03": {
+      "status": "FAIL",
+      "notes": "Begin button not found",
+      "role": "student"
+    }
+  },
+  "findings": {
+    "blocker": [
+      {
+        "id": "B1-BL01",
+        "scenario": "S-03",
+        "title": "Begin Test button missing",
+        "criteriaRef": "1.1"
+      }
+    ],
+    "high": [],
+    "medium": []
+  },
+  "consoleErrors": [
+    "[2026-03-09T09:52:12.937Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend."
+  ]
+}

@@ -355,7 +355,7 @@ export default function APQuestionEditor() {
                 className="w-full px-2 py-1.5 text-sm rounded-[--radius-input] border border-border-default bg-surface text-text-primary"
               >
                 <option value="">Select...</option>
-                {AP_SUBJECTS.map(s => (
+                {Object.values(AP_SUBJECTS).map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>

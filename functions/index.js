@@ -9,9 +9,13 @@
 
 const {setGlobalOptions} = require("firebase-functions");
 const {onCall} = require("firebase-functions/v2/https");
+const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
-const OpenAI = require("openai");
+const admin = require("firebase-admin");
+const Anthropic = require("@anthropic-ai/sdk").default;
+
+admin.initializeApp();
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -25,19 +29,46 @@ const OpenAI = require("openai");
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 10 });
 
-// Define secret for OpenAI API key
-const openaiApiKey = defineSecret("OPENAI_API_KEY");
+// Define secret for Anthropic API key
+const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
 /**
- * Cloud Function to grade typed vocabulary definitions using OpenAI GPT-4o-mini
- * 
+ * Checks if a student response is effectively blank (no real answer).
+ */
+function isBlankResponse(response) {
+  if (!response) return true;
+  const trimmed = response.trim();
+  if (trimmed === "") return true;
+  if (/^[?.!,\-]+$/.test(trimmed)) return true;
+  return false;
+}
+
+/**
+ * Checks if a student response is self-referencing (just repeating the word).
+ */
+function isSelfReferencing(studentResponse, word) {
+  const response = (studentResponse || "").trim().toLowerCase();
+  const w = (word || "").trim().toLowerCase();
+  if (!response || !w) return false;
+  return (
+    response === w ||
+    response === w + "s" ||
+    response === w + "ed" ||
+    response === w + "ing" ||
+    response === w + "ly"
+  );
+}
+
+/**
+ * Cloud Function to grade typed vocabulary definitions using Claude Haiku
+ *
  * @param {Object} data - Request data containing answers array
  * @param {Object} context - Request context (includes auth)
  * @returns {Promise<Object>} Grading results with isCorrect and reasoning
  */
 exports.gradeTypedTest = onCall(
   {
-    secrets: [openaiApiKey],
+    secrets: [anthropicApiKey],
     enforceAppCheck: false,
   },
   async (request) => {
@@ -69,12 +100,18 @@ exports.gradeTypedTest = onCall(
     }
 
     try {
-      // Separate blank and non-blank answers
+      // Separate into blank, self-referencing, and answers to grade
       const blankAnswers = answers.filter(
-        (a) => !a.studentResponse || a.studentResponse.trim() === "",
+        (a) => isBlankResponse(a.studentResponse),
       );
-      const answersToGrade = answers.filter(
-        (a) => a.studentResponse && a.studentResponse.trim() !== "",
+      const nonBlank = answers.filter(
+        (a) => !isBlankResponse(a.studentResponse),
+      );
+      const selfRefAnswers = nonBlank.filter(
+        (a) => isSelfReferencing(a.studentResponse, a.word),
+      );
+      const answersToGrade = nonBlank.filter(
+        (a) => !isSelfReferencing(a.studentResponse, a.word),
       );
 
       // Auto-mark blank answers as incorrect
@@ -84,74 +121,114 @@ exports.gradeTypedTest = onCall(
         reasoning: "No answer provided",
       }));
 
+      // Auto-mark self-referencing answers as incorrect
+      const selfRefResults = selfRefAnswers.map((a) => ({
+        wordId: a.wordId,
+        isCorrect: false,
+        reasoning: "You wrote the word itself rather than its meaning. Try defining what the word means.",
+      }));
+
       logger.info(
-        `Grading ${answersToGrade.length} answers, ${blankAnswers.length} blank for user ${request.auth.uid}`,
+        `Grading ${answersToGrade.length} answers, ${blankAnswers.length} blank, ${selfRefAnswers.length} self-ref for user ${request.auth.uid}`,
       );
 
-      // If all answers are blank, skip OpenAI call and return all as incorrect
+      // If no answers need AI grading, skip API call
       if (answersToGrade.length === 0) {
         return {
-          results: blankResults,
+          results: [...blankResults, ...selfRefResults],
         };
       }
 
-      // Initialize OpenAI client
-      const openai = new OpenAI({
-        apiKey: openaiApiKey.value(),
+      // Initialize Anthropic client
+      const client = new Anthropic({
+        apiKey: anthropicApiKey.value(),
       });
 
-      // Build prompt
-      let prompt = `You are grading vocabulary definitions. Grade each answer as correct or incorrect.
+      // Build JSON input for the AI
+      const wordsJson = answersToGrade.map((a) => ({
+        wordId: a.wordId,
+        word: a.word,
+        english: a.correctDefinition,
+        korean: a.koreanDefinition || "N/A",
+        student: a.studentResponse,
+      }));
 
-GRADING RULES:
-#1 Be LENIENT. If it FEELS like the student knows the word, mark it correct.
-#2 Use the given English and Korean definitions as guidelines.
-#3 CLOSE ENOUGH is GOOD ENOUGH to be CORRECT.
-#4 Spelling or grammar errors DO NOT MATTER and CANNOT MAKE AN ANSWER INCORRECT.
-#5 When in doubt, mark CORRECT - we prefer false positives over false negatives.
-#6 Answers can be in either Korean, English, or a mix.
-#7 A question is INCORRECT ONLY IF:
-      - The answer is self-referencing. So that means the response is wrong if it uses the word to define itself.
-      OR
-      - It is completely irrelevant or contradictory to the word's definition.
-      OR
-      - The answer describes the reverse meaning (e.g., "able to like" vs "able to be liked")
-#8 Provide an explanation and include it as "reasoning" in the JSON output if you said it was wrong. This should be written as if you are speaking to the student directly.
+      const systemMessage = `You are a lenient vocabulary grading assistant for Korean ESL students. Students are tested on English vocabulary words and may answer in Korean, English, or a mix.
 
-OUTPUT FORMAT:
-Return a JSON array with one object per word:
-[
-  {"wordId": "abc123", "isCorrect": true},
-  {"wordId": "def456", "isCorrect": false, "reasoning": "Describes a different concept"}
-]
+<rules>
+Default to CORRECT. Mark WRONG only if one of these is true:
+1. Self-referencing: the response uses the target word or a direct transliteration to define itself
+2. Irrelevant or contradictory: the response has nothing to do with the word's meaning
+3. Reversed meaning: the response describes the opposite direction (e.g., "to like" for "likable")
 
-WORDS TO GRADE:
-`;
+Everything else is CORRECT — including partial definitions, different parts of speech, Korean near-synonyms, answers with typos, and answers matching the provided Korean definition.
+</rules>
 
-      // Append each non-blank word to the prompt
-      for (const answer of answersToGrade) {
-        prompt += `\nwordId: ${answer.wordId} | Word: ${answer.word} | English: ${answer.correctDefinition} | Korean: ${answer.koreanDefinition || 'N/A'} | Student: ${answer.studentResponse}`;
-      }
+<examples>
+Word: formidable | English: inspiring fear or respect | Korean: 굳세다
+Student: 굳세다
+→ CORRECT (matches the Korean definition provided)
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+Word: impoverish | English: to make poor | Korean: 가난하게 하다
+Student: 가난한
+→ CORRECT (adjective form instead of verb — student clearly knows the meaning)
+
+Word: dynamic | English: factor that controls, influences a process of growth, change, interaction, or activity | Korean: 변화, 상호작용 등에 영향을 주는 요소
+Student: 변화
+→ CORRECT (partial but captures a core element of the definition)
+
+Word: projected | English: estimated or forecast | Korean: 예상된
+Student: 예상되다ㅠ예ㅛㅏㅇ괸
+→ CORRECT (typing errors but intent is clearly 예상되다)
+
+Word: placate | English: to make someone less angry or hostile | Korean: 달래다
+Student: make something less angry
+→ CORRECT (imprecise but demonstrates understanding)
+
+Word: renaissance | English: a rebirth or revival | Korean: 부활, 신생, 부흥
+Student: 르네상스
+→ WRONG — {"reasoning": "You wrote the transliterated name rather than the meaning. Renaissance means a rebirth or revival."}
+
+Word: appalling | English: inspiring shock, horror, disgust | Korean: 충격적인
+Student: 질리는
+→ WRONG — {"reasoning": "질리는 means tiresome or boring, but appalling means inspiring shock or horror — these are different emotions."}
+
+Word: enigmatic | English: mysterious, puzzling | Korean: 신비한
+Student: 암호화된
+→ WRONG — {"reasoning": "암호화된 means encrypted, which is different from enigmatic (mysterious/puzzling)."}
+</examples>
+
+<output_format>
+Return ONLY a JSON array. No markdown, no commentary, no text outside the array.
+
+For correct answers:
+{"wordId": "...", "isCorrect": true}
+
+For incorrect answers, include reasoning addressed to the student in 1-2 sentences:
+{"wordId": "...", "isCorrect": false, "reasoning": "..."}
+
+Do not include "reasoning" for correct answers.
+</output_format>`;
+
+      const userMessage = `Grade exactly ${wordsJson.length} words. Return exactly ${wordsJson.length} results.\n\n<words>\n${JSON.stringify(wordsJson, null, 2)}\n</words>`;
+
+      const response = await client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
+        temperature: 0.1,
+        system: systemMessage,
         messages: [
           {
-            role: "system",
-            content: "You are a lenient vocabulary grading assistant. Return only valid JSON arrays. Do not include any text before or after the JSON array.",
-          },
-          {
             role: "user",
-            content: prompt,
+            content: userMessage,
           },
         ],
-        temperature: 0.1,
       });
 
-      const responseContent = completion.choices[0]?.message?.content;
+      const responseContent = response.content[0]?.text;
 
       if (!responseContent) {
-        throw new Error("OpenAI returned empty response");
+        throw new Error("Anthropic returned empty response");
       }
 
       // Parse JSON response - try to extract JSON array from response
@@ -166,7 +243,7 @@ WORDS TO GRADE:
           parsedResponse = JSON.parse(responseContent);
         }
       } catch (parseError) {
-        logger.error("Failed to parse OpenAI response", {responseContent, parseError});
+        logger.error("Failed to parse AI response", {responseContent, parseError});
         throw new Error("Failed to parse grading results");
       }
 
@@ -184,7 +261,7 @@ WORDS TO GRADE:
         if (arrayKeys.length > 0) {
           results = parsedResponse[arrayKeys[0]];
         } else {
-          throw new Error("OpenAI response does not contain a results array");
+          throw new Error("AI response does not contain a results array");
         }
       }
 
@@ -212,8 +289,8 @@ WORDS TO GRADE:
         };
       });
 
-      // Combine AI results with blank results
-      const combinedResults = [...aiResults, ...blankResults];
+      // Combine AI results with pre-filtered results
+      const combinedResults = [...aiResults, ...blankResults, ...selfRefResults];
 
       // Normalize results by wordId to ensure correct order (matching original answers array)
       const resultsMapFinal = new Map(
@@ -307,6 +384,77 @@ WORDS TO GRADE:
 
       // Return generic error for unknown errors
       throw new Error(`Failed to grade test: ${error.message}`);
+    }
+  }
+);
+
+/**
+ * Scheduled Cloud Function to pause stale test sessions.
+ *
+ * Runs every 60 seconds. Queries ap_session_state for sessions that are
+ * IN_PROGRESS but have not sent a heartbeat in over 60 seconds. Sets their
+ * status to PAUSED so that:
+ *  - Cross-device resume works correctly (Firestore reflects reality)
+ *  - Teacher dashboard accurately shows session states
+ *  - No client cooperation is needed (handles crash, power loss, tab close)
+ */
+exports.pauseStaleSessions = onSchedule(
+  {
+    schedule: "every 1 minutes",
+    timeoutSeconds: 30,
+    maxInstances: 1,
+  },
+  async () => {
+    const firestore = admin.firestore();
+    const now = admin.firestore.Timestamp.now();
+    const staleThreshold = new admin.firestore.Timestamp(
+      now.seconds - 60,
+      now.nanoseconds
+    );
+
+    try {
+      const staleQuery = firestore
+        .collection("ap_session_state")
+        .where("status", "==", "IN_PROGRESS")
+        .where("lastHeartbeat", "<", staleThreshold);
+
+      const snapshot = await staleQuery.get();
+
+      if (snapshot.empty) {
+        return;
+      }
+
+      // Batch update all stale sessions (max 500 per batch)
+      const batches = [];
+      let batch = firestore.batch();
+      let count = 0;
+
+      snapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, {
+          status: "PAUSED",
+          pausedAt: now,
+          pausedBy: "server_heartbeat_check",
+        });
+        count++;
+
+        if (count % 500 === 0) {
+          batches.push(batch);
+          batch = firestore.batch();
+        }
+      });
+
+      if (count % 500 !== 0) {
+        batches.push(batch);
+      }
+
+      await Promise.all(batches.map((b) => b.commit()));
+
+      logger.info(`Paused ${count} stale session(s)`);
+    } catch (error) {
+      logger.error("pauseStaleSessions failed", {
+        error: error.message,
+        stack: error.stack,
+      });
     }
   }
 );

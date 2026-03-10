@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import Highlighter from './Highlighter'
 import LineReader from './LineReader'
 import ToolsToolbar from './ToolsToolbar'
+import MathText from '../MathText'
 import { STIMULUS_TYPE } from '../../utils/apTypes'
 
 /**
@@ -78,7 +79,7 @@ export default function PassageDisplay({
         {isImage && (
           <div className="prose prose-sm max-w-none">
             {title && (
-              <h3 className="text-base font-semibold text-text-primary mb-3">{title}</h3>
+              <h3 className="text-base font-semibold text-text-primary mb-3"><MathText>{title}</MathText></h3>
             )}
             <img
               src={content}
@@ -95,7 +96,7 @@ export default function PassageDisplay({
         {isText && (
           <div className="relative">
             {title && (
-              <h3 className="text-base font-semibold text-text-primary mb-3">{title}</h3>
+              <h3 className="text-base font-semibold text-text-primary mb-3"><MathText>{title}</MathText></h3>
             )}
             <Highlighter
               content={content}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { STIMULUS_TYPE } from '../utils/apTypes'
+import MathText from './MathText'
 
 /**
  * Document selector for multi-stimulus DBQ
@@ -50,7 +51,7 @@ function StimulusDisplay({ stimulus }) {
         </div>
       ) : (
         <div>
-          <div className="text-text-secondary whitespace-pre-wrap">{content}</div>
+          <div className="text-text-secondary whitespace-pre-wrap"><MathText>{content}</MathText></div>
           {source && (
             <p className="text-text-muted text-xs mt-2 italic">— {source}</p>
           )}
@@ -85,7 +86,7 @@ function SubQuestionList({ subQuestions, currentLabel }) {
             </span>
             {sq.prompt && (
               <span className={`ml-2 ${isCurrent ? 'text-text-primary' : 'text-text-secondary'}`}>
-                {sq.prompt}
+                <MathText>{sq.prompt}</MathText>
               </span>
             )}
             {sq.points && (
@@ -165,7 +166,7 @@ export default function FRQQuestionDisplay({
               )}
             </div>
             <p className="text-text-primary whitespace-pre-wrap">
-              {question.questionText}
+              <MathText>{question.questionText}</MathText>
             </p>
           </div>
 
@@ -184,7 +185,7 @@ export default function FRQQuestionDisplay({
                 ({currentSubQuestion.label})
               </span>
               {currentSubQuestion.prompt && (
-                <p className="text-text-primary mt-1">{currentSubQuestion.prompt}</p>
+                <p className="text-text-primary mt-1"><MathText>{currentSubQuestion.prompt}</MathText></p>
               )}
               {currentSubQuestion.points && (
                 <span className="text-text-muted text-sm block mt-1">
@@ -217,9 +218,9 @@ export default function FRQQuestionDisplay({
             </span>
           )}
         </div>
-        <p className="text-text-primary whitespace-pre-wrap">
-          {question.questionText}
-        </p>
+        <div className="text-text-primary whitespace-pre-wrap">
+          <MathText text={question.questionText} />
+        </div>
       </div>
 
       {/* Sub-questions overview */}
@@ -237,7 +238,7 @@ export default function FRQQuestionDisplay({
             ({currentSubQuestion.label})
           </span>
           {currentSubQuestion.prompt && (
-            <p className="text-text-primary mt-1">{currentSubQuestion.prompt}</p>
+            <div className="text-text-primary mt-1"><MathText text={currentSubQuestion.prompt} /></div>
           )}
           {currentSubQuestion.points && (
             <span className="text-text-muted text-sm block mt-1">

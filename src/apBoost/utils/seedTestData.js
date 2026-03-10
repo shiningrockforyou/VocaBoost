@@ -169,8 +169,147 @@ export async function seedAPTestData() {
       console.log('Created question:', id)
     }
 
-    console.log('Seed data complete!')
-    return { testId, questionIds: questions.map(q => q.id) }
+    // --- FRQ Questions ---
+    const frqQuestions = [
+      {
+        id: 'frq1',
+        testId: 'test_apush_frq_1',
+        subject: 'AP_US_HISTORY',
+        questionType: QUESTION_TYPE.FRQ,
+        format: QUESTION_FORMAT.HORIZONTAL,
+        questionDomain: 'Unit 5: Early Republic',
+        questionTopic: 'Jacksonian Democracy',
+        difficulty: 'HARD',
+        questionText: 'Evaluate the extent to which the presidency of Andrew Jackson represented a turning point in American democracy.',
+        subQuestions: [
+          { label: 'a', text: 'Describe ONE way Jackson expanded democratic participation.', maxPoints: 3 },
+          { label: 'b', text: 'Explain ONE way Jackson\'s policies contradicted democratic ideals.', maxPoints: 3 },
+          { label: 'c', text: 'Evaluate whether the changes were more a continuation or a departure from earlier trends.', maxPoints: 4 },
+        ],
+        points: 10,
+      },
+      {
+        id: 'frq2',
+        testId: 'test_apush_frq_1',
+        subject: 'AP_US_HISTORY',
+        questionType: QUESTION_TYPE.SAQ,
+        format: QUESTION_FORMAT.VERTICAL,
+        questionDomain: 'Unit 7: Civil War Era',
+        questionTopic: 'Reconstruction',
+        difficulty: 'MEDIUM',
+        questionText: 'Answer all parts of the question that follows.',
+        subQuestions: [
+          { label: 'a', text: 'Briefly describe ONE goal of Reconstruction.', maxPoints: 2 },
+          { label: 'b', text: 'Briefly explain ONE reason Reconstruction ended.', maxPoints: 2 },
+        ],
+        points: 4,
+      },
+    ]
+
+    for (const question of frqQuestions) {
+      const { id, ...questionData } = question
+      await setDoc(doc(db, COLLECTIONS.QUESTIONS, id), {
+        ...questionData,
+        createdBy: 'system',
+        createdAt: serverTimestamp(),
+      })
+      console.log('Created FRQ question:', id)
+    }
+
+    // --- FRQ-only test ---
+    const frqTestId = 'test_apush_frq_1'
+    await setDoc(doc(db, COLLECTIONS.TESTS, frqTestId), {
+      title: 'AP US History FRQ Practice',
+      subject: 'AP_US_HISTORY',
+      testType: TEST_TYPE.MODULE,
+      createdBy: 'system',
+      isPublic: true,
+      questionOrder: QUESTION_ORDER.FIXED,
+      sections: [
+        {
+          id: 'frq_section1',
+          title: 'Free Response',
+          sectionType: SECTION_TYPE.FRQ,
+          timeLimit: 40,
+          questionIds: ['frq1', 'frq2'],
+          frqMultipliers: { frq1: 1, frq2: 1 },
+        },
+      ],
+      scoreRanges: {
+        ap5: { min: 80, max: 100 },
+        ap4: { min: 65, max: 79 },
+        ap3: { min: 50, max: 64 },
+        ap2: { min: 35, max: 49 },
+        ap1: { min: 0, max: 34 },
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+    console.log('Created FRQ test:', frqTestId)
+
+    // --- Mixed MCQ + FRQ test ---
+    const mixedTestId = 'test_apush_mixed_1'
+    await setDoc(doc(db, COLLECTIONS.TESTS, mixedTestId), {
+      title: 'AP US History Full Practice Exam',
+      subject: 'AP_US_HISTORY',
+      testType: TEST_TYPE.EXAM,
+      createdBy: 'system',
+      isPublic: true,
+      questionOrder: QUESTION_ORDER.FIXED,
+      sections: [
+        {
+          id: 'mixed_mcq',
+          title: 'Multiple Choice',
+          sectionType: SECTION_TYPE.MCQ,
+          timeLimit: 45,
+          questionIds: ['q1', 'q2', 'q3', 'q4', 'q5'],
+          mcqMultiplier: 1.0,
+        },
+        {
+          id: 'mixed_frq',
+          title: 'Free Response',
+          sectionType: SECTION_TYPE.FRQ,
+          timeLimit: 40,
+          questionIds: ['frq1', 'frq2'],
+          frqMultipliers: { frq1: 1, frq2: 1 },
+        },
+      ],
+      scoreRanges: {
+        ap5: { min: 80, max: 100 },
+        ap4: { min: 65, max: 79 },
+        ap3: { min: 50, max: 64 },
+        ap2: { min: 35, max: 49 },
+        ap1: { min: 0, max: 34 },
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+    console.log('Created mixed test:', mixedTestId)
+
+    // --- Sample class ---
+    await setDoc(doc(db, COLLECTIONS.CLASSES, 'class_apush_period1'), {
+      name: 'APUSH Period 1',
+      teacherId: 'system',
+      period: '1',
+      subject: 'AP_US_HISTORY',
+      studentIds: [],
+      createdAt: serverTimestamp(),
+    })
+    console.log('Created sample class')
+
+    // --- Sample assignment ---
+    await setDoc(doc(db, COLLECTIONS.ASSIGNMENTS, 'assignment_apush_practice_1'), {
+      testId: testId,
+      classId: 'class_apush_period1',
+      teacherId: 'system',
+      maxAttempts: 3,
+      dueDate: null,
+      assignedAt: serverTimestamp(),
+    })
+    console.log('Created sample assignment')
+
+    console.log('Seed data complete! Created 3 tests, 7 questions, 1 class, 1 assignment.')
+    return { testId, frqTestId, mixedTestId }
   } catch (error) {
     console.error('Error seeding data:', error)
     throw error

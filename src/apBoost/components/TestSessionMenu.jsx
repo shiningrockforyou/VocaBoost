@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 /**
  * TestSessionMenu - Slide-up menu for test session header
@@ -14,6 +14,7 @@ export default function TestSessionMenu({
   onExit,
 }) {
   const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const closeButtonRef = useRef(null)
 
   const handleExitClick = () => {
     setShowExitConfirm(true)
@@ -39,6 +40,19 @@ export default function TestSessionMenu({
     onClose()
   }
 
+  // Keyboard: Escape to close
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') handleClose()
+    }
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+      // Focus the close button on open
+      closeButtonRef.current?.focus()
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen])
+
   if (!isOpen) return null
 
   return (
@@ -52,17 +66,26 @@ export default function TestSessionMenu({
         />
 
         {/* Modal */}
-        <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-[--radius-card-lg] p-6 animate-slide-up">
+        <div
+          className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-[--radius-card-lg] p-6 animate-slide-up"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Test session menu"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-text-primary">
               {showExitConfirm ? 'Exit Test?' : 'Menu'}
             </h3>
             <button
+              ref={closeButtonRef}
               onClick={handleClose}
-              className="text-text-muted hover:text-text-primary transition-colors text-xl"
+              aria-label="Close menu"
+              className="text-text-muted hover:text-text-primary transition-colors"
             >
-              x
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
 
@@ -94,14 +117,18 @@ export default function TestSessionMenu({
                 onClick={handleGoToQuestion}
                 className="w-full py-4 px-4 rounded-[--radius-button] text-left text-text-primary font-medium hover:bg-hover transition-colors flex items-center gap-3"
               >
-                <span className="text-lg">Q</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
                 <span>Go to Question...</span>
               </button>
               <button
                 onClick={handleExitClick}
                 className="w-full py-4 px-4 rounded-[--radius-button] text-left text-error-text font-medium hover:bg-hover transition-colors flex items-center gap-3"
               >
-                <span className="text-lg">x</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 <span>Exit Test</span>
               </button>
             </div>

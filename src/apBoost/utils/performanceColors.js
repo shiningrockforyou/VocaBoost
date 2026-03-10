@@ -1,15 +1,16 @@
 /**
  * Performance color utilities for analytics displays
  * Maps percentage scores to color codes for visual representation
+ * Uses design tokens from index.css
  */
 
-// Performance thresholds with corresponding Tailwind colors
+// Performance thresholds with corresponding design token colors
 export const PERFORMANCE_THRESHOLDS = [
-  { min: 85, color: 'bg-green-500', textColor: 'text-green-500', label: 'Excellent' },
-  { min: 70, color: 'bg-lime-400', textColor: 'text-lime-500', label: 'Good' },
-  { min: 60, color: 'bg-yellow-400', textColor: 'text-yellow-500', label: 'Satisfactory' },
-  { min: 50, color: 'bg-orange-400', textColor: 'text-orange-500', label: 'Needs Improvement' },
-  { min: 0, color: 'bg-red-500', textColor: 'text-red-500', label: 'Critical' },
+  { min: 85, color: 'bg-success', textColor: 'text-success-text-strong', label: 'Excellent' },
+  { min: 70, color: 'bg-success', textColor: 'text-success-text', label: 'Good' },
+  { min: 60, color: 'bg-warning', textColor: 'text-warning-text-strong', label: 'Satisfactory' },
+  { min: 50, color: 'bg-warning', textColor: 'text-warning-text-strong', label: 'Needs Improvement' },
+  { min: 0, color: 'bg-error', textColor: 'text-error-text', label: 'Critical' },
 ]
 
 /**
@@ -23,7 +24,7 @@ export function getPerformanceColor(percentage) {
       return threshold.color
     }
   }
-  return 'bg-red-500'
+  return 'bg-error'
 }
 
 /**
@@ -37,7 +38,7 @@ export function getPerformanceTextColor(percentage) {
       return threshold.textColor
     }
   }
-  return 'text-red-500'
+  return 'text-error-text'
 }
 
 /**
@@ -70,8 +71,8 @@ export function getPerformanceInfo(percentage) {
     }
   }
   return {
-    color: 'bg-red-500',
-    textColor: 'text-red-500',
+    color: 'bg-error',
+    textColor: 'text-error-text',
     label: 'Critical',
   }
 }
@@ -83,11 +84,11 @@ export function getPerformanceInfo(percentage) {
  */
 export function getAPScoreColor(apScore) {
   const colors = {
-    5: 'bg-green-500',
-    4: 'bg-lime-400',
-    3: 'bg-yellow-400',
-    2: 'bg-orange-400',
-    1: 'bg-red-500',
+    5: 'bg-success',
+    4: 'bg-success',
+    3: 'bg-warning',
+    2: 'bg-warning',
+    1: 'bg-error',
   }
   return colors[apScore] || 'bg-muted'
 }
@@ -99,11 +100,11 @@ export function getAPScoreColor(apScore) {
  */
 export function getAPScoreTextColor(apScore) {
   const colors = {
-    5: 'text-white',
-    4: 'text-gray-900',
-    3: 'text-gray-900',
-    2: 'text-white',
-    1: 'text-white',
+    5: 'text-success-text-strong',
+    4: 'text-success-text',
+    3: 'text-warning-text-strong',
+    2: 'text-warning-text-strong',
+    1: 'text-error-text',
   }
   return colors[apScore] || 'text-text-primary'
 }

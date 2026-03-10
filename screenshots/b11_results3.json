@@ -1,0 +1,31 @@
+{
+  "analytics": [],
+  "gradebookScrollContainer": {
+    "found": true,
+    "containerClasses": "overflow-x-auto",
+    "scrollWidth": 675,
+    "clientWidth": 343,
+    "hasScrollShadow": false,
+    "parentClasses": "bg-surface rounded-[--radius-card] shadow-theme-md overflow-hidden"
+  },
+  "reportCard768": {
+    "Q#": {
+      "visible": true
+    },
+    "Domain": {
+      "visible": true
+    },
+    "Topic": {
+      "visible": true
+    },
+    "Correct": {
+      "visible": true
+    },
+    "Your Answer": {
+      "visible": true
+    },
+    "Result": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "summary": {
+    "totalCompared": 22319,
+    "skipped": 6550,
+    "agreementRate": 94.84,
+    "agreeCorrect": 20531,
+    "agreeIncorrect": 637,
+    "bothWrong": 0,
+    "haikuRight": 0,
+    "haikuO_noGroundTruth": 896,
+    "haikuStricter": 255
+  },
+  "dateRange": {
+    "earliest": "2026-01-12T00:47:09.348Z",
+    "latest": "2026-02-27T10:07:19.788Z"
+  },
+  "datasetSize": {
+    "totalAttempts": 1498,
+    "benchmarkAttempts": 1065,
+    "totalAnswersCompared": 22319,
+    "skipped": 6550,
+    "uniqueStudents": 123,
+    "uniqueLists": 5,
+    "avgAnswersPerAttempt": "27.2"
+  },
+  "scoreStats": {
+    "avgScore": "88.0",
+    "medianScore": 93
+  },
+  "sessionTypes": {
+    "new": 1405,
+    "review": 1,
+    "other": 92
+  },
+  "challengeBreakdown": {
+    "hogx": {
+      "none": 754,
+      "pending": 90,
+      "rejected": 52,
+      "approved": 0
+    },
+    "hxgo": {
+      "none": 76,
+      "pending": 0,
+      "rejected": 0,
+      "approved": 0,
+      "accepted": null
+    }
+  },
+  "topDisagreementWords": {
+    "haikuO_gptX": [
+      [
+        "inflammatory",
+        10
+      ],
+      [
+        "dynamic",
+        9
+      ],
+      [
+        "petulance",
+        9
+      ],
+      [
+        "bereaved",
+        9
+      ],
+      [
+        "bane",
+        8
+      ],
+      [
+        "extremity",
+        8
+      ],
+      [
+        "arraign",
+        8
+      ],
+      [
+        "earnest",
+        7
+      ],
+      [
+        "effusion",
+        7
+      ],
+      [
+        "redolent",
+        6
+      ],
+      [
+        "nuance",
+        6
+      ],
+      [
+        "husbandry",
+        6
+      ],
+      [
+        "transfix",
+        6
+      ],
+      [
+        "consternation",
+        6
+      ],
+      [
+        "nay\r\n(old English)",
+        6
+      ],
+      [
+        "sequester",
+        6
+      ],
+      [
+        "disservice",
+        5
+      ],
+      [
+        "prohibitive",
+        5
+      ],
+      [
+        "stalwart",
+        5
+      ],
+      [
+        "acrimony",
+        5
+      ],
+      [
+        "debase",
+        4
+      ],
+      [
+        "cavort",
+        4
+      ],
+      [
+        "remission",
+        4
+      ],
+      [
+        "insular",
+        4
+      ],
+      [
+        "balm",
+        4
+      ]
+    ],
+    "haikuX_gptO": [
+      [
+        "affectation",
+        7
+      ],
+      [
+        "insular",
+        5
+      ],
+      [
+        "deflate",
+        4
+      ],
+      [
+        "colossus",
+        4
+      ],
+      [
+        "fabricate",
+        4
+      ],
+      [
+        "self-made",
+        4
+      ],
+      [
+        "delegate",
+        3
+      ],
+      [
+        "sneak",
+        3
+      ],
+      [
+        "mystifying",
+        3
+      ],
+      [
+        "disinformation",
+        3
+      ],
+      [
+        "rarefied",
+        3
+      ],
+      [
+        "augur",
+        3
+      ],
+      [
+        "ethos",
+        2
+      ],
+      [
+        "ruse",
+        2
+      ],
+      [
+        "determinant",
+        2
+      ],
+      [
+        "discord",
+        2
+      ],
+      [
+        "champion",
+        2
+      ],
+      [
+        "qualify",
+        2
+      ],
+      [
+        "inflammatory",
+        2
+      ],
+      [
+        "chortle",
+        2
+      ],
+      [
+        "circumnavigate",
+        2
+      ],
+      [
+        "embark",
+        2
+      ],
+      [
+        "relegate",
+        2
+      ],
+      [
+        "garrulous\r\n(old English)",
+        2
+      ],
+      [
+        "convention",
+        2
+      ]
+    ]
+  },
+  "responseLanguage": {
+    "korean": 811,
+    "english": 335,
+    "mixed": 5
+  },
+  "haikuErrorPatterns": {
+    "tooLenient": {
+      "total": 22,
+      "questionMark": 21
+    },
+    "tooStrict": {
+      "total": 233,
+      "koDefMatchExact": 68,
+      "koDefMatchPartial": 20
+    }
+  },
+  "gptReasonCategories": {
+    "different_concept": 136,
+    "other": 624,
+    "too_vague": 55,
+    "self_referencing": 6,
+    "missing_answer": 36,
+    "unable_to_grade": 31,
+    "too_short": 7,
+    "irrelevant": 1
+  },
+  "haikuReasonCategories": {
+    "different_concept": 34,
+    "other": 147,
+    "part_of_speech": 35,
+    "too_narrow": 18,
+    "self_referencing": 6,
+    "rejected_ko_def": 5,
+    "unclear_response": 6,
+    "reverse_meaning": 4
+  }
+}

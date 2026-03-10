@@ -11,10 +11,13 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   query,
   where,
   orderBy,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore'
 import { COLLECTIONS, GRADING_STATUS, TEST_TYPE, DEFAULT_SCORE_RANGES } from '../utils/apTypes'
 import { logError } from '../utils/logError'
@@ -61,7 +64,7 @@ export async function createTest(testData) {
       scoreRanges: testData.scoreRanges || DEFAULT_SCORE_RANGES,
       questionOrder: testData.questionOrder || 'FIXED',
       isPublished: false,
-      hasFRQ: false,
+      hasFRQ: (testData.sections || []).some(s => s.sectionType === 'FRQ' || s.sectionType === 'MIXED'),
       createdBy: testData.createdBy,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -282,19 +285,11 @@ export async function getTestAssignments(testId) {
  */
 export async function getPendingGradingCount(teacherId) {
   try {
-    // Get teacher's tests
-    const tests = await getTeacherTests(teacherId)
-    const testIds = tests.map(t => t.id)
-
-    if (testIds.length === 0) {
-      return { total: 0, byTest: {} }
-    }
-
-    // Get results pending grading for these tests
+    // Query directly by teacherId + gradingStatus (avoids two 'in' filters on different fields)
     const resultsRef = collection(db, COLLECTIONS.TEST_RESULTS)
     const q = query(
       resultsRef,
-      where('testId', 'in', testIds.slice(0, 10)), // Firestore 'in' limit
+      where('teacherId', '==', teacherId),
       where('gradingStatus', 'in', [GRADING_STATUS.PENDING, GRADING_STATUS.IN_PROGRESS])
     )
     const snapshot = await getDocs(q)
@@ -375,6 +370,83 @@ export async function unpublishTest(testId) {
     })
   } catch (error) {
     logError('apTeacherService.unpublishTest', { testId }, error)
+    throw error
+  }
+}
+
+/**
+ * Create a new class
+ */
+export async function createClass(teacherId, { name, period, subject }) {
+  try {
+    const classId = `${teacherId}_${name.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}`
+    const classData = {
+      name,
+      period: period || null,
+      subject: subject || null,
+      teacherId,
+      studentIds: [],
+      createdAt: serverTimestamp(),
+    }
+    await setDoc(doc(db, COLLECTIONS.CLASSES, classId), classData)
+    return { id: classId, ...classData }
+  } catch (error) {
+    logError('apTeacherService.createClass', { teacherId, name }, error)
+    throw error
+  }
+}
+
+/**
+ * Update class details
+ */
+export async function updateClass(classId, updates) {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.CLASSES, classId), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    })
+  } catch (error) {
+    logError('apTeacherService.updateClass', { classId }, error)
+    throw error
+  }
+}
+
+/**
+ * Delete a class
+ */
+export async function deleteClass(classId) {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.CLASSES, classId))
+  } catch (error) {
+    logError('apTeacherService.deleteClass', { classId }, error)
+    throw error
+  }
+}
+
+/**
+ * Add student to class by email
+ */
+export async function addStudentToClass(classId, studentId) {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.CLASSES, classId), {
+      studentIds: arrayUnion(studentId),
+    })
+  } catch (error) {
+    logError('apTeacherService.addStudentToClass', { classId, studentId }, error)
+    throw error
+  }
+}
+
+/**
+ * Remove student from class
+ */
+export async function removeStudentFromClass(classId, studentId) {
+  try {
+    await updateDoc(doc(db, COLLECTIONS.CLASSES, classId), {
+      studentIds: arrayRemove(studentId),
+    })
+  } catch (error) {
+    logError('apTeacherService.removeStudentFromClass', { classId, studentId }, error)
     throw error
   }
 }
