@@ -25,6 +25,18 @@ These fixes from the original plan have been **verified working** by retest agen
 
 ---
 
+### RFIX-11: AnswerInput letter badge contrast (B14A-RETEST-001) — APPLIED
+
+**File:** `src/apBoost/components/AnswerInput.jsx` line 104
+**Change:** `bg-white/20 text-white` → `bg-white text-brand-primary font-semibold`
+
+### RFIX-12: AnswerInput ARIA roles (B14A-RETEST-002) — APPLIED
+
+**File:** `src/apBoost/components/AnswerInput.jsx`
+**Changes:** Added `role="radio"/"checkbox"`, `aria-checked`, `aria-label` on answer buttons; `radiogroup`/`group` wrapper on container.
+
+---
+
 ## Deferred (Not Fixing Now)
 
 | Finding | Description | Reason |
