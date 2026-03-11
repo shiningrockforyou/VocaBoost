@@ -289,6 +289,7 @@ export default function APReportCard() {
   const [result, setResult] = useState(null)
   const [test, setTest] = useState(null)
   const [className, setClassName] = useState(null)
+  const [studentInfo, setStudentInfo] = useState(null) // For teacher viewing student's report
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -311,6 +312,22 @@ export default function APReportCard() {
         const testData = await getTestMeta(resultData.testId)
         if (cancelled) return
         setTest(testData)
+
+        // If the viewer is not the test-taker, fetch test-taker's profile
+        if (resultData.userId && resultData.userId !== user?.uid) {
+          try {
+            const studentDoc = await getDoc(doc(db, 'users', resultData.userId))
+            if (!cancelled && studentDoc.exists()) {
+              const studentData = studentDoc.data()
+              setStudentInfo({
+                displayName: studentData.displayName,
+                email: studentData.email,
+              })
+            }
+          } catch {
+            // Non-critical
+          }
+        }
 
         // Load class name if assigned
         if (resultData.classId) {
@@ -439,7 +456,7 @@ export default function APReportCard() {
 
           <div className="flex flex-col sm:flex-row justify-between text-text-secondary text-sm mb-6">
             <div>
-              <p>Student: {user?.displayName || user?.email || 'Student'}</p>
+              <p>Student: {studentInfo?.displayName || studentInfo?.email || user?.displayName || user?.email || 'Student'}</p>
               <p>Test: {test?.title || 'AP Practice Exam'}</p>
               {className && <p>Class: {className}</p>}
             </div>

@@ -298,15 +298,15 @@ export default function APExamAnalytics() {
           <SummaryCard
             label="Average Score"
             value={`${summary?.averagePercentage || 0}%`}
-            subtext={`${summary?.averageScore || 0} pts`}
+            subtext={summary?.maxScore ? `${summary.averageScore || 0}/${summary.maxScore} pts` : `${summary?.averageScore || 0} pts`}
           />
           <SummaryCard
             label="Highest Score"
-            value={`${summary?.highestScore || 0} pts`}
+            value={summary?.maxScore ? `${summary.highestScore || 0}/${summary.maxScore} pts` : `${summary?.highestScore || 0} pts`}
           />
           <SummaryCard
             label="Lowest Score"
-            value={`${summary?.lowestScore || 0} pts`}
+            value={summary?.maxScore ? `${summary.lowestScore || 0}/${summary.maxScore} pts` : `${summary?.lowestScore || 0} pts`}
           />
         </div>
 

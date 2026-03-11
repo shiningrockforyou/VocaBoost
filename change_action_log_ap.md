@@ -4,6 +4,12 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-12 | src/apBoost/services/apScoringService.js | B12-001: Added teacherId (from test.createdBy) to result documents for teacher gradebook visibility |
+| 2026-03-12 | src/apBoost/pages/APReportCard.jsx | B12-002: Fetch test-taker profile from Firestore via result.userId when teacher views report card |
+| 2026-03-12 | src/apBoost/services/apGradingService.js | B12-004: Changed data.studentId to data.userId (with fallback) in getPendingGrades and getResultForGrading |
+| 2026-03-12 | src/apBoost/services/apAnalyticsService.js | B12-005: Deduplicate results to latest attempt per student before computing stats |
+| 2026-03-12 | src/apBoost/components/APHeader.jsx | B12-006: Added Log out button using logout from useAuth |
+| 2026-03-12 | src/apBoost/services/apAnalyticsService.js + APExamAnalytics.jsx | B12-007: Summary stats include maxScore, displayed as "X/Y pts" |
 | 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | FIX-1: flushQueueRef ref indirection breaks stale closure in scheduleFlush; reordered scheduleFlush before addToQueue; fixed handleOnline to clear timeout/reset opportunistic |
 | 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | FIX-15: mountedRef guard on getPendingItems + suppress IDB "connection closing" errors on unmount |
 | 2026-03-12 | src/apBoost/hooks/useTestSession.js | FIX-2: reconcileQueue now uses content-based comparison (Firestore value match) instead of timestamp-based staleness |

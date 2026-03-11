@@ -40,6 +40,18 @@ export async function getTestAnalytics(testId, filters = {}) {
       results = results.filter(r => filters.studentIds.includes(r.userId))
     }
 
+    // Deduplicate: keep only the latest attempt per student
+    const latestByStudent = new Map()
+    for (const r of results) {
+      const key = r.userId
+      if (!key) continue
+      const existing = latestByStudent.get(key)
+      if (!existing || (r.attemptNumber || 0) > (existing.attemptNumber || 0)) {
+        latestByStudent.set(key, r)
+      }
+    }
+    results = Array.from(latestByStudent.values())
+
     // Get test with questions
     const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, testId))
     const test = testDoc.exists() ? { id: testDoc.id, ...testDoc.data() } : null
@@ -259,6 +271,7 @@ export function calculateSummaryStats(results) {
       averagePercentage: 0,
       highestScore: 0,
       lowestScore: 0,
+      maxScore: 0,
       apScoreDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     }
   }
@@ -276,11 +289,15 @@ export function calculateSummaryStats(results) {
     apScoreDistribution[ap]++
   }
 
+  // Get maxScore from first result that has it (all results for same test share the same maxScore)
+  const maxScore = results.find(r => r.maxScore != null)?.maxScore || 0
+
   return {
     averageScore: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
     averagePercentage: Math.round(percentages.reduce((a, b) => a + b, 0) / percentages.length),
     highestScore: Math.max(...scores),
     lowestScore: Math.min(...scores),
+    maxScore,
     apScoreDistribution,
   }
 }

@@ -81,9 +81,9 @@ export async function getPendingGrades(teacherId, filters = {}) {
 
       // Get student info
       let studentName = 'Unknown Student'
-      if (data.studentId) {
+      if (data.userId || data.studentId) {
         try {
-          const userDoc = await getDoc(doc(db, 'users', data.studentId))
+          const userDoc = await getDoc(doc(db, 'users', data.userId || data.studentId))
           if (userDoc.exists()) {
             const userData = userDoc.data()
             studentName = userData.displayName || userData.email || 'Student'
@@ -138,8 +138,8 @@ export async function getResultForGrading(resultId) {
     const resultData = { id: resultSnap.id, ...resultSnap.data() }
 
     // Get student info
-    if (resultData.studentId) {
-      const userDoc = await getDoc(doc(db, 'users', resultData.studentId))
+    if (resultData.userId || resultData.studentId) {
+      const userDoc = await getDoc(doc(db, 'users', resultData.userId || resultData.studentId))
       if (userDoc.exists()) {
         const userData = userDoc.data()
         resultData.studentName = userData.displayName || userData.email || 'Student'

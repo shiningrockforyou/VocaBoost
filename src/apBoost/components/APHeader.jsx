@@ -36,6 +36,12 @@ export default function APHeader() {
           >
             VocaBoost
           </Link>
+          <button
+            onClick={() => logout()}
+            className="text-text-muted text-sm hover:text-text-secondary transition-colors"
+          >
+            Log out
+          </button>
         </div>
       </div>
     </header>

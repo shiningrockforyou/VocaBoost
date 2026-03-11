@@ -266,6 +266,7 @@ export async function createTestResult(sessionId, frqData = null) {
       frqGradedPdfUrl: null, // Alias for spec compatibility
       frqGrades: null,
       gradingStatus,
+      teacherId: test.createdBy || null,
       startedAt: session.startedAt,
       completedAt: serverTimestamp(),
       gradedAt: null,
