@@ -85,6 +85,17 @@ export function useOfflineQueue(sessionId) {
     }
   }, [sessionId])
 
+  // Schedule a flush with debounce (declared before any useEffect that references it)
+  // Uses flushQueueRef to always call the latest flushQueue (avoids stale closure)
+  const scheduleFlush = useCallback((delay) => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current)
+    }
+    flushTimeoutRef.current = setTimeout(() => {
+      flushQueueRef.current?.()
+    }, delay)
+  }, [])
+
   // Listen for online/offline events
   useEffect(() => {
     const handleOnline = () => {
@@ -107,7 +118,7 @@ export function useOfflineQueue(sessionId) {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [])
+  }, [scheduleFlush])
 
   // Update queue length from IndexedDB
   const updateQueueLength = useCallback(async () => {
@@ -181,16 +192,6 @@ export function useOfflineQueue(sessionId) {
       logError('useOfflineQueue.deleteItems', { sessionId, itemIds }, error)
     }
   }, [sessionId, updateQueueLength])
-
-  // Schedule a flush with debounce (declared before addToQueue to avoid TDZ)
-  const scheduleFlush = useCallback((delay) => {
-    if (flushTimeoutRef.current) {
-      clearTimeout(flushTimeoutRef.current)
-    }
-    flushTimeoutRef.current = setTimeout(() => {
-      flushQueueRef.current?.() // Use ref indirection to always call latest flushQueue
-    }, delay)
-  }, [])
 
   // Add action to queue
   const addToQueue = useCallback(async (action) => {

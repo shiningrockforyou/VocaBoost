@@ -24,10 +24,18 @@ export function useHeartbeat(sessionId, instanceToken, { onRecovery } = {}) {
   const [sessionTakenOver, setSessionTakenOver] = useState(false)
   const intervalRef = useRef(null)
   const isActiveRef = useRef(true)
-  const suppressTakeoverRef = useRef(false)
+  const suppressTakeoverRef = useRef(true) // Start suppressed — allow BroadcastChannel auto-claim to complete
   const onRecoveryRef = useRef(onRecovery)
   const failureCountRef = useRef(0)
   onRecoveryRef.current = onRecovery
+
+  // Clear startup suppression after BroadcastChannel auto-claim window (2s)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      suppressTakeoverRef.current = false
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Perform heartbeat
   const doHeartbeat = useCallback(async () => {

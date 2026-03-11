@@ -4,6 +4,11 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | RFIX-1: Moved scheduleFlush declaration before online/offline useEffect to eliminate TDZ hazard; added scheduleFlush to deps |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | RFIX-6: Submit confirmation modal for final section (handleSubmitRequest + bottom-sheet modal) |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | RFIX-9: Track preReviewQuestionIndex so "Return to Questions" goes back to last-worked question |
+| 2026-03-12 | src/apBoost/components/InstructionScreen.jsx | RFIX-8: Cancel button py-2 → py-3 (44px touch target) |
+| 2026-03-12 | src/apBoost/hooks/useHeartbeat.js | RFIX-10: suppressTakeoverRef starts true with 2s startup timer to prevent false DuplicateTabModal on reload after crash |
 | 2026-03-12 | src/apBoost/utils/logError.js | B14G-003: String() wrapper on error.code to prevent startsWith crash on numeric codes |
 | 2026-03-12 | src/apBoost/components/TestTimer.jsx | Timer urgency: bold+pulse for last minute, bold for last 5 minutes |
 | 2026-03-12 | src/apBoost/components/FileUpload.jsx | Local objectURL previews before upload completes + cleanup on unmount |

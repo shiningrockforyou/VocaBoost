@@ -197,14 +197,19 @@ function APTestSessionInner() {
     setView('testing')
   }
 
+  // Track position before entering review (so "Return to Questions" goes back to right spot)
+  const [preReviewQuestionIndex, setPreReviewQuestionIndex] = useState(0)
+
   // Handle go to review
   const handleGoToReview = () => {
+    setPreReviewQuestionIndex(position.questionIndex)
     setView('review')
   }
 
   // Handle return from review
   const handleReturnFromReview = () => {
     setView('testing')
+    goToQuestion(preReviewQuestionIndex)
   }
 
   // Handle section submission (non-final sections only)
@@ -259,6 +264,10 @@ function APTestSessionInner() {
     setFrqSubmissionType(null)
     setView('frqChoice')
   }
+
+  // Submit confirmation for final section
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+  const handleSubmitRequest = () => setShowSubmitConfirm(true)
 
   // SPA navigation guard — prevent accidental Back button during test
   const [showLeaveModal, setShowLeaveModal] = useState(false)
@@ -509,12 +518,36 @@ function APTestSessionInner() {
             goToQuestion(idx)
             setView('testing')
           }}
-          onSubmit={position.sectionIndex === (test?.sections?.length || 1) - 1 ? handleSubmit : handleSubmitSection}
+          onSubmit={position.sectionIndex === (test?.sections?.length || 1) - 1 ? handleSubmitRequest : handleSubmitSection}
           onCancel={handleReturnFromReview}
           isSubmitting={isSubmitting}
           isFinalSection={position.sectionIndex === (test?.sections?.length || 1) - 1}
           timeRemaining={timeRemaining}
         />
+        {/* Submit confirmation modal */}
+        {showSubmitConfirm && (
+          <div className="fixed inset-0 z-50">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowSubmitConfirm(false)} />
+            <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-[--radius-card] p-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-2">Submit Test?</h3>
+              <p className="text-text-secondary text-sm mb-4">This action cannot be undone. Make sure you have reviewed all your answers.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSubmitConfirm(false)}
+                  className="flex-1 py-3 rounded-[--radius-button] border border-border-default text-text-primary font-medium hover:bg-hover transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setShowSubmitConfirm(false); handleSubmit() }}
+                  className="flex-1 py-3 rounded-[--radius-button] bg-brand-primary text-brand-text font-medium hover:opacity-90 transition-opacity"
+                >
+                  Submit Test
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
