@@ -4,6 +4,8 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-12 | src/apBoost/components/AnswerInput.jsx | B14A-RETEST-001: Letter badge bg-white/20 → bg-white text-brand-primary font-semibold for selected state contrast |
+| 2026-03-12 | src/apBoost/components/AnswerInput.jsx | B14A-RETEST-002: Added role="radio"/"checkbox", aria-checked, aria-label on answer buttons; radiogroup/group wrapper |
 | 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | RFIX-1: Moved scheduleFlush declaration before online/offline useEffect to eliminate TDZ hazard; added scheduleFlush to deps |
 | 2026-03-12 | src/apBoost/pages/APTestSession.jsx | RFIX-6: Submit confirmation modal for final section (handleSubmitRequest + bottom-sheet modal) |
 | 2026-03-12 | src/apBoost/pages/APTestSession.jsx | RFIX-9: Track preReviewQuestionIndex so "Return to Questions" goes back to last-worked question |

@@ -49,7 +49,7 @@ export default function AnswerInput({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role={isMulti ? 'group' : 'radiogroup'} aria-label="Answer choices">
       {choices.map((letter) => {
         const choiceText = getChoiceText(question, letter)
         if (!choiceText) return null
@@ -66,6 +66,9 @@ export default function AnswerInput({
           <div key={letter} className="flex items-start gap-2">
             <button
               type="button"
+              role={isMulti ? 'checkbox' : 'radio'}
+              aria-checked={isSelected}
+              aria-label={`Choice ${letter}: ${choiceText}`}
               onClick={() => handleSelect(letter)}
               disabled={disabled}
               className={`
@@ -101,7 +104,7 @@ export default function AnswerInput({
               <span
                 className={`
                   inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium shrink-0
-                  ${isSelected ? 'bg-white/20 text-white' : 'bg-muted text-text-secondary'}
+                  ${isSelected ? 'bg-white text-brand-primary font-semibold' : 'bg-muted text-text-secondary'}
                 `}
               >
                 {letter}
