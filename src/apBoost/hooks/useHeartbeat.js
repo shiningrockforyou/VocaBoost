@@ -7,7 +7,7 @@ import { withTimeout, TIMEOUTS } from '../utils/withTimeout'
 
 // Heartbeat interval in milliseconds
 const HEARTBEAT_INTERVAL = 15000 // 15 seconds
-const MAX_FAILURES = 3
+const MAX_FAILURES = 2
 
 /**
  * useHeartbeat - Server ping to verify session validity
@@ -126,6 +126,17 @@ export function useHeartbeat(sessionId, instanceToken, { onRecovery } = {}) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
+  }, [sessionId, instanceToken, doHeartbeat])
+
+  // Immediate heartbeat on network restore
+  useEffect(() => {
+    const handleOnline = () => {
+      if (sessionId && instanceToken) {
+        doHeartbeat()
+      }
+    }
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
   }, [sessionId, instanceToken, doHeartbeat])
 
   // Manual reconnect

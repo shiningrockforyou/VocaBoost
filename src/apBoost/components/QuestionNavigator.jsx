@@ -24,7 +24,7 @@ function QuestionBox({ displayLabel, isAnswered, isFlagged, isCurrent, onClick }
     <button
       onClick={onClick}
       className={`
-        ${hasSubLabel ? 'w-12' : 'w-10'} h-10 rounded-[--radius-button-sm] border flex items-center justify-center
+        ${hasSubLabel ? 'w-12' : 'w-11'} h-11 rounded-[--radius-button-sm] border flex items-center justify-center
         text-sm font-medium transition-all hover:opacity-80
         ${bgClass} ${borderClass}
         ${isAnswered ? 'text-white' : 'text-text-primary'}
@@ -109,7 +109,7 @@ export default function QuestionNavigator({
           onClick={onBack}
           disabled={!canGoBack}
           className={`
-            flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm
+            flex items-center gap-2 px-4 py-3 rounded-[--radius-button] text-sm
             ${canGoBack
               ? 'bg-surface border border-border-default text-text-primary hover:bg-hover'
               : 'bg-muted text-text-muted cursor-not-allowed'
@@ -121,7 +121,7 @@ export default function QuestionNavigator({
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+          className="flex items-center gap-2 py-3 px-2 min-h-[44px] text-text-primary hover:text-text-secondary transition-colors"
         >
           <span className="text-sm font-medium">
             Question {displayCurrentIndex + 1} of {displayTotalQuestions}
@@ -132,14 +132,14 @@ export default function QuestionNavigator({
         {canGoNext ? (
           <button
             onClick={onNext}
-            className="flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm bg-surface border border-border-default text-text-primary hover:bg-hover"
+            className="flex items-center gap-2 px-4 py-3 rounded-[--radius-button] text-sm bg-surface border border-border-default text-text-primary hover:bg-hover"
           >
             Next →
           </button>
         ) : (
           <button
             onClick={onGoToReview}
-            className="flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm bg-brand-primary text-white hover:opacity-90"
+            className="flex items-center gap-2 px-4 py-3 rounded-[--radius-button] text-sm bg-brand-primary text-white hover:opacity-90"
           >
             Review →
           </button>
@@ -164,7 +164,7 @@ export default function QuestionNavigator({
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
               >
                 ✕
               </button>

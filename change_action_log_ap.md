@@ -4,6 +4,23 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | FIX-1: flushQueueRef ref indirection breaks stale closure in scheduleFlush; reordered scheduleFlush before addToQueue; fixed handleOnline to clear timeout/reset opportunistic |
+| 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | FIX-15: mountedRef guard on getPendingItems + suppress IDB "connection closing" errors on unmount |
+| 2026-03-12 | src/apBoost/hooks/useTestSession.js | FIX-2: reconcileQueue now uses content-based comparison (Firestore value match) instead of timestamp-based staleness |
+| 2026-03-12 | src/apBoost/hooks/useTestSession.js | FIX-5: Pass flushQueue as onSessionQuery to useDuplicateTabGuard for fire-and-forget flush on tab query |
+| 2026-03-12 | src/apBoost/hooks/useTestSession.js | FIX-6: submitTest/retrySubmit use getPendingItems() instead of stale queueLength React state |
+| 2026-03-12 | src/apBoost/hooks/useDuplicateTabGuard.js | FIX-5: Added onSessionQuery callback param + onSessionQueryRef; fire-and-forget call on SESSION_QUERY |
+| 2026-03-12 | src/apBoost/hooks/useHeartbeat.js | FIX-10: MAX_FAILURES 3→2; added online event listener for immediate heartbeat on network restore |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | FIX-3: DuplicateTabModal rendered on instruction screen |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | FIX-4: handleBegin isInvalidated guard (defensive) |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | FIX-9: Two-step FRQ confirmation (pendingFRQChoice + Confirm button) + handleChangeFRQType with discard warning + header link |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | FIX-13: SPA back-button guard using popstate + history.pushState (BrowserRouter compatible) with Leave Test modal |
+| 2026-03-12 | src/apBoost/pages/APTestSession.jsx | FIX-14: Hamburger w-11, Flag py-3, timeRemaining to ReviewScreen |
+| 2026-03-12 | src/apBoost/components/ReviewScreen.jsx | FIX-7: Added TestTimer import + timeRemaining prop + timer in review header |
+| 2026-03-12 | src/apBoost/components/FRQTextInput.jsx | FIX-12: scrollIntoView on textarea focus for mobile keyboard |
+| 2026-03-12 | src/apBoost/components/QuestionNavigator.jsx | FIX-14: Grid cells h-11, toggle min-h-[44px], close button min-44px, Back/Next/Review py-3 |
+| 2026-03-12 | src/apBoost/components/InstructionScreen.jsx | FIX-14: Begin/Resume button py-3 |
+| 2026-03-12 | src/apBoost/components/AnswerInput.jsx | FIX-14: Strikethrough button p-3 |
 | 2026-03-10 | src/apBoost/hooks/useDuplicateTabGuard.js | B6-001: Rewrote with two-phase protocol (SESSION_QUERY → SESSION_ACTIVE) so new tabs get blocked, not the original |
 | 2026-03-10 | src/apBoost/utils/seedFullData.js | B6-002: Renamed `totalPossible` to `maxScore` in generateTestResult to match APReportCard field name |
 | 2026-03-10 | src/apBoost/utils/seedFullData.js | B6-003: Added `studentAnswer` field (alongside `selectedAnswer` alias) in generateMCQResults |

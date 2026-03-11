@@ -129,7 +129,7 @@ export default function AnswerInput({
                 onClick={() => onStrikethrough(letter)}
                 disabled={disabled}
                 className={`
-                  p-2 rounded-[--radius-button-sm] border transition-colors shrink-0
+                  p-3 rounded-[--radius-button-sm] border transition-colors shrink-0
                   ${isStruckThrough
                     ? 'bg-muted border-border-strong text-text-secondary'
                     : 'bg-surface border-border-default text-text-muted hover:text-text-secondary'

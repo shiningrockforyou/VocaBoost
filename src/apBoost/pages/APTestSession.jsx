@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import APHeader from '../components/APHeader'
@@ -53,6 +53,7 @@ function APTestSessionInner() {
   // FRQ submission type and handwritten files
   const [frqSubmissionType, setFrqSubmissionType] = useState(null)
   const [uploadedFiles, setUploadedFiles] = useState([])
+  const [pendingFRQChoice, setPendingFRQChoice] = useState(null) // For two-step confirmation
 
   // Use the test session hook
   const {
@@ -191,6 +192,7 @@ function APTestSessionInner() {
 
   // Handle begin test
   const handleBegin = async () => {
+    if (isInvalidated) return // Guard: DuplicateTabModal should block, but defensive
     await startTest()
     setView('testing')
   }
@@ -241,6 +243,55 @@ function APTestSessionInner() {
       goToQuestion(0)
       setView('testing')
     }
+  }
+
+  // Handle changing FRQ submission type (go back to choice screen)
+  const handleChangeFRQType = () => {
+    const hasAnswers = Object.keys(frqQuestions).some(qId => {
+      const ans = answers.get(qId)
+      if (!ans) return false
+      if (typeof ans === 'object') return Object.values(ans).some(v => v && String(v).trim())
+      return ans && String(ans).trim()
+    })
+    if (hasAnswers && !window.confirm('Switching submission type will discard your typed answers. Continue?')) {
+      return
+    }
+    setFrqSubmissionType(null)
+    setView('frqChoice')
+  }
+
+  // SPA navigation guard — prevent accidental Back button during test
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
+  const blockerPendingRef = useRef(false)
+
+  useEffect(() => {
+    if (status !== SESSION_STATUS.IN_PROGRESS || view !== 'testing') return
+
+    // Push a dummy history entry so browser back triggers popstate
+    window.history.pushState({ apTestGuard: true }, '')
+
+    const handlePopState = () => {
+      if (blockerPendingRef.current) return
+      blockerPendingRef.current = true
+      setShowLeaveModal(true)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [status, view])
+
+  const handleLeaveStay = () => {
+    window.history.pushState({ apTestGuard: true }, '')
+    blockerPendingRef.current = false
+    setShowLeaveModal(false)
+  }
+
+  const handleLeaveConfirm = () => {
+    blockerPendingRef.current = false
+    setShowLeaveModal(false)
+    navigate('/ap')
   }
 
   // Handle files uploaded for handwritten submission
@@ -301,6 +352,12 @@ function APTestSessionInner() {
     return (
       <div className="min-h-screen bg-base">
         <APHeader />
+        {isInvalidated && (
+          <DuplicateTabModal
+            onTakeControl={handleTakeControl}
+            onGoToDashboard={handleGoToDashboard}
+          />
+        )}
         <InstructionScreen
           test={test}
           existingSession={session}
@@ -329,8 +386,12 @@ function APTestSessionInner() {
             <div className="grid gap-4 md:grid-cols-2">
               {/* Typed option */}
               <button
-                onClick={() => handleFRQChoice(FRQ_SUBMISSION_TYPE.TYPED)}
-                className="p-6 rounded-[--radius-card] border-2 border-border-default hover:border-brand-primary text-left transition-colors group"
+                onClick={() => setPendingFRQChoice(FRQ_SUBMISSION_TYPE.TYPED)}
+                className={`p-6 rounded-[--radius-card] border-2 text-left transition-colors group ${
+                  pendingFRQChoice === FRQ_SUBMISSION_TYPE.TYPED
+                    ? 'border-brand-primary bg-brand-primary/5'
+                    : 'border-border-default hover:border-brand-primary'
+                }`}
               >
                 <div className="text-3xl mb-3">⌨️</div>
                 <h3 className="font-semibold text-text-primary mb-2">
@@ -344,8 +405,12 @@ function APTestSessionInner() {
 
               {/* Handwritten option */}
               <button
-                onClick={() => handleFRQChoice(FRQ_SUBMISSION_TYPE.HANDWRITTEN)}
-                className="p-6 rounded-[--radius-card] border-2 border-border-default hover:border-brand-primary text-left transition-colors group"
+                onClick={() => setPendingFRQChoice(FRQ_SUBMISSION_TYPE.HANDWRITTEN)}
+                className={`p-6 rounded-[--radius-card] border-2 text-left transition-colors group ${
+                  pendingFRQChoice === FRQ_SUBMISSION_TYPE.HANDWRITTEN
+                    ? 'border-brand-primary bg-brand-primary/5'
+                    : 'border-border-default hover:border-brand-primary'
+                }`}
               >
                 <div className="text-3xl mb-3">✍️</div>
                 <h3 className="font-semibold text-text-primary mb-2">
@@ -357,6 +422,20 @@ function APTestSessionInner() {
                 </p>
               </button>
             </div>
+
+            {pendingFRQChoice && (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => {
+                    handleFRQChoice(pendingFRQChoice)
+                    setPendingFRQChoice(null)
+                  }}
+                  className="bg-brand-primary text-brand-text px-6 py-2.5 rounded-[--radius-button] font-medium hover:opacity-90 transition-opacity"
+                >
+                  Confirm & Continue
+                </button>
+              </div>
+            )}
 
             <div className="mt-8 pt-6 border-t border-border-default text-center">
               <TestTimer timeRemaining={timeRemaining} />
@@ -434,6 +513,7 @@ function APTestSessionInner() {
           onCancel={handleReturnFromReview}
           isSubmitting={isSubmitting}
           isFinalSection={position.sectionIndex === (test?.sections?.length || 1) - 1}
+          timeRemaining={timeRemaining}
         />
       </div>
     )
@@ -464,13 +544,32 @@ function APTestSessionInner() {
         onRetry={handleRetry}
       />
 
+      {/* SPA leave guard modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-[--radius-card] p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-2">Leave Test?</h3>
+            <p className="text-text-secondary mb-4">Your progress is saved, but the timer will keep running.</p>
+            <div className="flex gap-3">
+              <button onClick={handleLeaveStay} className="flex-1 py-3 rounded-[--radius-button] border border-border-default text-text-primary font-medium hover:bg-hover">
+                Stay
+              </button>
+              <button onClick={handleLeaveConfirm} className="flex-1 py-3 rounded-[--radius-button] bg-error text-white font-medium hover:opacity-90">
+                Leave Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with timer */}
       <header className="bg-surface border-b border-border-default px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Hamburger menu button */}
           <button
             onClick={() => setShowMenu(true)}
-            className="w-8 h-8 flex items-center justify-center rounded-[--radius-button] text-text-primary hover:bg-hover transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-[--radius-button] text-text-primary hover:bg-hover transition-colors"
             aria-label="Open menu"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -490,6 +589,15 @@ function APTestSessionInner() {
             Section {position.sectionIndex + 1} of {test?.sections?.length || 1}:{' '}
             {currentSection?.title || 'Multiple Choice'}
           </span>
+          {isFRQSection && frqSubmissionType && (
+            <button
+              onClick={handleChangeFRQType}
+              className="text-brand-primary text-xs hover:underline ml-2"
+              title="Change how you submit FRQ answers"
+            >
+              Change submission type
+            </button>
+          )}
         </div>
         <TestTimer timeRemaining={timeRemaining} />
       </header>
@@ -553,7 +661,7 @@ function APTestSessionInner() {
             <button
               onClick={() => toggleFlag(currentQuestion?.id)}
               disabled={isInvalidated}
-              className={`flex items-center gap-2 px-3 py-2 rounded-[--radius-button] text-sm transition-colors ${
+              className={`flex items-center gap-2 px-3 py-3 rounded-[--radius-button] text-sm transition-colors ${
                 flags.has(currentQuestion?.id)
                   ? 'bg-warning text-warning-text-strong border-2 border-warning-text-strong font-semibold'
                   : 'bg-surface text-text-secondary border border-border-default hover:bg-hover'

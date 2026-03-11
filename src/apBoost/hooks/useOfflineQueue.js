@@ -57,6 +57,8 @@ export function useOfflineQueue(sessionId) {
   const dbRef = useRef(null)
   const flushTimeoutRef = useRef(null)
   const retryCountRef = useRef(0)
+  const flushQueueRef = useRef(null) // Always points to latest flushQueue
+  const mountedRef = useRef(true)
 
   // Initialize IndexedDB
   useEffect(() => {
@@ -88,8 +90,10 @@ export function useOfflineQueue(sessionId) {
     const handleOnline = () => {
       setIsOnline(true)
       retryCountRef.current = 0
-      // Try to flush when we come back online
-      scheduleFlush(1000)
+      setIsOpportunistic(false)
+      if (flushTimeoutRef.current) clearTimeout(flushTimeoutRef.current)
+      flushTimeoutRef.current = null
+      scheduleFlush(500)
     }
 
     const handleOffline = () => {
@@ -125,7 +129,7 @@ export function useOfflineQueue(sessionId) {
 
   // Get pending items from queue (optionally filtered by action type)
   const getPendingItems = useCallback(async (actionFilter = null) => {
-    if (!dbRef.current || !sessionId) return []
+    if (!mountedRef.current || !dbRef.current || !sessionId) return []
 
     try {
       const tx = dbRef.current.transaction(STORE_NAME, 'readonly')
@@ -147,6 +151,9 @@ export function useOfflineQueue(sessionId) {
 
       return pendingItems
     } catch (error) {
+      if (!mountedRef.current || error?.code === 11 || error?.message?.includes('closing')) {
+        return [] // Silently ignore — connection closed due to unmount
+      }
       logError('useOfflineQueue.getPendingItems', { sessionId, actionFilter }, error)
       return []
     }
@@ -174,6 +181,16 @@ export function useOfflineQueue(sessionId) {
       logError('useOfflineQueue.deleteItems', { sessionId, itemIds }, error)
     }
   }, [sessionId, updateQueueLength])
+
+  // Schedule a flush with debounce (declared before addToQueue to avoid TDZ)
+  const scheduleFlush = useCallback((delay) => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current)
+    }
+    flushTimeoutRef.current = setTimeout(() => {
+      flushQueueRef.current?.() // Use ref indirection to always call latest flushQueue
+    }, delay)
+  }, [])
 
   // Add action to queue
   const addToQueue = useCallback(async (action) => {
@@ -223,17 +240,7 @@ export function useOfflineQueue(sessionId) {
         logError('useOfflineQueue.addToQueue', { sessionId, action }, error)
       }
     }
-  }, [sessionId, isOnline, isOpportunistic, updateQueueLength])
-
-  // Schedule a flush with debounce
-  const scheduleFlush = useCallback((delay) => {
-    if (flushTimeoutRef.current) {
-      clearTimeout(flushTimeoutRef.current)
-    }
-    flushTimeoutRef.current = setTimeout(() => {
-      flushQueue()
-    }, delay)
-  }, [])
+  }, [sessionId, isOnline, isOpportunistic, updateQueueLength, scheduleFlush])
 
   // Flush queue to Firestore
   const flushQueue = useCallback(async () => {
@@ -491,6 +498,9 @@ export function useOfflineQueue(sessionId) {
     }
   }, [sessionId, isFlushing, isOnline, updateQueueLength, scheduleFlush])
 
+  // Keep flushQueueRef in sync with latest flushQueue (breaks stale closure in scheduleFlush)
+  useEffect(() => { flushQueueRef.current = flushQueue }, [flushQueue])
+
   // Flush queue when tab regains focus
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -507,6 +517,7 @@ export function useOfflineQueue(sessionId) {
   // Cleanup
   useEffect(() => {
     return () => {
+      mountedRef.current = false
       if (flushTimeoutRef.current) {
         clearTimeout(flushTimeoutRef.current)
       }

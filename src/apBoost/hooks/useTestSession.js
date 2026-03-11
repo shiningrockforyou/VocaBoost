@@ -63,7 +63,7 @@ export function useTestSession(testId, assignmentId = null) {
 
   // Resilience hooks
   const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, isStorageFull, getPendingItems, deleteItems } = useOfflineQueue(session?.id)
-  const { instanceToken, isInvalidated, takeControl } = useDuplicateTabGuard(session?.id)
+  const { instanceToken, isInvalidated, takeControl } = useDuplicateTabGuard(session?.id, { onSessionQuery: flushQueue })
   const { isConnected, failureCount, sessionTakenOver, clearSessionTakenOver } = useHeartbeat(session?.id, instanceToken, { onRecovery: flushQueue })
 
   // Combined invalidation check
@@ -516,9 +516,15 @@ export function useTestSession(testId, assignmentId = null) {
 
     // Attempt submission with 2s retry interval, max 30s
     const attemptSubmission = async () => {
-      // 1. Flush queue if needed (guard: don't call if already flushing)
-      if (queueLength > 0 && !isFlushing) {
+      // 1. Flush queue if needed — use direct IndexedDB check (not stale React state)
+      const pending = await getPendingItems()
+      if (pending.length > 0) {
         await flushQueue()
+        // Double-check after flush
+        const remaining = await getPendingItems()
+        if (remaining.length > 0) {
+          await flushQueue()
+        }
       }
 
       // 2. Create result (idempotent via deterministic ID)
@@ -554,7 +560,7 @@ export function useTestSession(testId, assignmentId = null) {
         await new Promise(r => setTimeout(r, 2000))
       }
     }
-  }, [session?.id, isSubmitting, timer, queueLength, isFlushing, flushQueue])
+  }, [session?.id, isSubmitting, timer, getPendingItems, flushQueue])
 
   // Manual retry function (for "Keep Trying" button)
   const retrySubmit = useCallback(async () => {
@@ -567,8 +573,13 @@ export function useTestSession(testId, assignmentId = null) {
 
     // Retry loop (same as submitTest but without the initial setup)
     const attemptSubmission = async () => {
-      if (queueLength > 0 && !isFlushing) {
+      const pending = await getPendingItems()
+      if (pending.length > 0) {
         await flushQueue()
+        const remaining = await getPendingItems()
+        if (remaining.length > 0) {
+          await flushQueue()
+        }
       }
       return await createTestResult(session.id, frqData)
     }
@@ -593,7 +604,7 @@ export function useTestSession(testId, assignmentId = null) {
         await new Promise(r => setTimeout(r, 2000))
       }
     }
-  }, [session?.id, queueLength, isFlushing, flushQueue])
+  }, [session?.id, getPendingItems, flushQueue])
 
   // Keep submitFunctionsRef updated to avoid circular dependency with timer
   useEffect(() => {
@@ -631,31 +642,48 @@ export function useTestSession(testId, assignmentId = null) {
     checkPendingAutoSubmit()
   }, [isOnline, session?.id, getPendingItems, deleteItems, submitTest, submitSection])
 
-  // Queue reconciliation on resume - discard stale items already flushed by another tab/device
+  // Queue reconciliation on resume - content-based comparison to discard stale items
   const reconciledRef = useRef(false)
   useEffect(() => {
     const reconcileQueue = async () => {
       if (!session?.id || reconciledRef.current) return
       reconciledRef.current = true
 
-      // Get the Firestore lastAction timestamp as epoch ms
-      const lastAction = session.lastAction
-      if (!lastAction) return
-      const lastActionMs = lastAction.toMillis ? lastAction.toMillis()
-        : lastAction.seconds ? lastAction.seconds * 1000
-        : typeof lastAction === 'number' ? lastAction
-        : null
-      if (!lastActionMs) return
-
       const pendingItems = await getPendingItems()
       if (pendingItems.length === 0) return
 
-      // Items whose localTimestamp is older than lastAction were already applied
-      const staleItems = pendingItems.filter(item => item.localTimestamp && item.localTimestamp < lastActionMs)
-      const freshItems = pendingItems.filter(item => !item.localTimestamp || item.localTimestamp >= lastActionMs)
+      // Get the Firestore lastAction timestamp as epoch ms (fallback for NAVIGATION/TIMER_SYNC)
+      const lastAction = session.lastAction
+      const lastActionMs = lastAction?.toMillis ? lastAction.toMillis()
+        : lastAction?.seconds ? lastAction.seconds * 1000
+        : typeof lastAction === 'number' ? lastAction
+        : null
+
+      // Content-based staleness: compare pending items against Firestore state
+      const firestoreAnswers = session.answers || {}
+      const firestoreFlags = new Set(session.flaggedQuestions || [])
+
+      const staleItems = pendingItems.filter(item => {
+        if (item.action === 'ANSWER_CHANGE') {
+          const { questionId, value, subQuestionLabel } = item.payload
+          const fsValue = subQuestionLabel
+            ? firestoreAnswers[questionId]?.[subQuestionLabel]
+            : firestoreAnswers[questionId]
+          // Stale ONLY if Firestore already has this exact value
+          return fsValue !== undefined && JSON.stringify(fsValue) === JSON.stringify(value)
+        }
+        if (item.action === 'FLAG_TOGGLE') {
+          const { questionId, markedForReview } = item.payload
+          return firestoreFlags.has(questionId) === markedForReview
+        }
+        // NAVIGATION, TIMER_SYNC — safe to discard if older than server
+        return lastActionMs && item.localTimestamp && item.localTimestamp < lastActionMs
+      })
+
+      const freshItems = pendingItems.filter(item => !staleItems.includes(item))
 
       if (staleItems.length > 0) {
-        logDebug('useTestSession.reconcileQueue', `Discarding ${staleItems.length} stale queue items`)
+        logDebug('useTestSession.reconcileQueue', `Discarding ${staleItems.length} stale queue items (content-based)`)
         await deleteItems(staleItems.map(item => item.id))
       }
 

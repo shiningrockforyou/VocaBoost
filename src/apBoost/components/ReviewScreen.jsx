@@ -1,3 +1,5 @@
+import TestTimer from './TestTimer'
+
 /**
  * QuestionBox - Individual question indicator in the review grid
  */
@@ -46,6 +48,7 @@ export default function ReviewScreen({
   onCancel,
   isSubmitting,
   isFinalSection,
+  timeRemaining,
 }) {
   // Calculate statistics
   const totalQuestions = questions.length
@@ -69,9 +72,12 @@ export default function ReviewScreen({
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="bg-surface rounded-[--radius-card] shadow-theme-md p-6">
         {/* Header */}
-        <h1 className="text-2xl font-bold text-text-primary text-center mb-6">
-          Review Your Answers
-        </h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-text-primary">
+            Review Your Answers
+          </h1>
+          {timeRemaining != null && <TestTimer timeRemaining={timeRemaining} />}
+        </div>
 
         {/* Question Grid */}
         <div className="flex flex-wrap gap-2 justify-center mb-6">

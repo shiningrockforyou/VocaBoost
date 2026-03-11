@@ -21,6 +21,19 @@ export default function FRQTextInput({
   const textareaRef = useRef(null)
   const lastBlurValueRef = useRef(value)
 
+  // Scroll textarea into view on focus (mobile keyboard pushes it offscreen)
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const handleFocus = () => {
+      setTimeout(() => {
+        textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 300) // Delay for keyboard animation
+    }
+    textarea.addEventListener('focus', handleFocus)
+    return () => textarea.removeEventListener('focus', handleFocus)
+  }, [])
+
   // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current

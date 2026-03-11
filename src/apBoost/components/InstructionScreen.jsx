@@ -96,7 +96,7 @@ export default function InstructionScreen({
           </button>
           <button
             onClick={onBegin}
-            className="px-6 py-2 rounded-[--radius-button] bg-brand-primary text-white hover:opacity-90 transition-opacity font-medium"
+            className="px-6 py-3 rounded-[--radius-button] bg-brand-primary text-white hover:opacity-90 transition-opacity font-medium"
           >
             {isResuming ? 'Resume Test' : 'Begin Test'}
           </button>

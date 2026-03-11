@@ -19,7 +19,7 @@ import { withTimeout, TIMEOUTS } from '../utils/withTimeout'
  * @param {string} sessionId - Current session ID
  * @returns {Object} Guard state and methods
  */
-export function useDuplicateTabGuard(sessionId) {
+export function useDuplicateTabGuard(sessionId, { onSessionQuery } = {}) {
   // Generate unique instance token for this tab
   const instanceToken = useMemo(() => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -32,6 +32,8 @@ export function useDuplicateTabGuard(sessionId) {
   const channelRef = useRef(null)
   const claimTimeoutRef = useRef(null)
   const isActiveRef = useRef(false) // Whether this tab has claimed the session
+  const onSessionQueryRef = useRef(onSessionQuery)
+  useEffect(() => { onSessionQueryRef.current = onSessionQuery }, [onSessionQuery])
 
   // Claim session in Firestore
   const claimSession = useCallback(async () => {
@@ -101,6 +103,8 @@ export function useDuplicateTabGuard(sessionId) {
               type: 'SESSION_ACTIVE',
               token: instanceToken,
             })
+            // Fire-and-forget flush — human latency on Tab 2 gives seconds of margin
+            onSessionQueryRef.current?.()
           }
 
           if (type === 'SESSION_ACTIVE' && token !== instanceToken && !isActiveRef.current) {
