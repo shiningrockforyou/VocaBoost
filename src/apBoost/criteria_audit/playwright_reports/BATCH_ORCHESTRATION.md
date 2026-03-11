@@ -481,3 +481,165 @@ If running B13 + B14 simultaneously, ensure each persona pair uses a different t
 | B13 (×8 personas) | Complex | ~30K each = ~240K |
 | B14 (×8 personas) | Complex | ~35K each = ~280K |
 | **Phase 2 Total** | | **~555K** |
+
+---
+
+## Phase 3: B14 Retest (Fix Verification)
+
+> Run AFTER B14 consolidated fixes are applied. Each agent re-runs its original B14 persona scenario AND verifies the specific fixes from `findings_B14_consolidated_fixes.md`.
+
+**Instructions for ALL B14 retest agents:**
+1. Read your previous findings file to know what was found last time
+2. Read `findings_B14_consolidated_fixes.md` for the specific fixes and verification steps assigned to you
+3. Re-run your full original B14 persona scenario from this file (same flow as Phase 2 B14)
+4. After the full scenario, run each targeted fix verification step
+5. Report: (a) original scenario pass/fail, (b) each previous finding as FIXED or STILL OPEN, (c) any new regressions
+6. Save results to `findings_B14X_retest.md`
+
+---
+
+### B14A-retest: The Careful One (student4@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14A.md`
+- **Fixes to verify:** None directly (all B14A findings were already fixed before this round)
+- **Focus:** Regression testing — verify session lifecycle, answer changes, flagging, navigator, and review still work correctly
+- **Full scenario:** Re-run B14-A persona flow (read questions 8-15s, change answers 30%, flag 3-4, revisit flags via navigator, change 1, review, submit)
+- **Extra checks:**
+  - Verify NAVIGATION reconciliation still works (refresh mid-test, resume, position correct)
+  - Verify flatNavigationItems has no duplicate entries
+  - Verify DuplicateTabModal does NOT appear on fresh session start (suppressTakeoverRef)
+- **Output:** `findings_B14A_retest.md`
+
+---
+
+### B14B-retest: The Rusher (student5@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14B.md`
+- **Fixes to verify:**
+  - **FIX-7 (B14B-LIVE-002):** Timer visible on review screen — after answering all MCQ, click "Review", verify TestTimer component renders with time remaining
+  - **FIX-8 (B14B-LIVE-007):** Submit confirmation — on final section review, click "Submit Test", verify confirmation dialog appears before actual submission
+- **Full scenario:** Re-run B14-B persona flow (1-3s per question, no flags, immediate submit, short FRQ, under 3 minutes)
+- **Extra checks:**
+  - Verify letter badge is visible when answer selected (bg-white text-brand-primary, not bg-white/20)
+  - Verify FRQ sub-question answer ordering is correct on report card
+  - Verify no `code.startsWith` errors in console
+- **Output:** `findings_B14B_retest.md`
+
+---
+
+### B14C-retest: The Second-Guesser (student6@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14C.md`
+- **Fixes to verify:**
+  - **FIX-6 (B14C-003):** Submit hardening — answer Q14, immediately navigate to Review and click Submit within 2 seconds. After submission, verify Firestore result contains Q14's final answer (check report card)
+- **Full scenario:** Re-run B14-C persona flow (answer all, go back and change Q3/Q11/Q14, review 3 times, submit on third visit)
+- **Extra checks:**
+  - Verify answer changes persist across navigator jumps
+  - Verify review screen updates answered count after each change
+  - Run `mcp__playwright__browser_console_messages` — zero errors
+- **Output:** `findings_B14C_retest.md`
+
+---
+
+### B14D-retest: The Confused One (student7@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14D.md`
+- **Fixes to verify:**
+  - **FIX-9 (B14D-002):** FRQ discard warning — complete MCQ, enter FRQ section, type answers in FRQ textarea, then click "Change submission type" link in header. Verify: (a) confirmation dialog appears warning about discarding answers, (b) Cancel keeps answers, (c) Confirm returns to choice screen
+- **Full scenario:** Re-run B14-D persona flow (MCQ normally, FRQ choice confusion, type/delete/retype, submit incomplete)
+- **Extra checks:**
+  - Verify two-step FRQ confirmation (select card → "Confirm & Continue")
+  - Verify "Change submission type" link visible in test header during FRQ
+  - Verify partial FRQ answers save and appear on report card
+- **Output:** `findings_B14D_retest.md`
+
+---
+
+### B14E-retest: The Distracted One (student8@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14E.md`
+- **Fixes to verify:** None directly (B14E findings were already fixed or not actionable)
+- **Focus:** Regression testing — verify tab switching, visibility changes, and focus/blur don't break session
+- **Full scenario:** Re-run B14-E persona flow (answer Q1-Q5, switch tab 45s, answer Q6-Q10, blur 30s, focus, answer Q11-Q15, submit)
+- **Extra checks:**
+  - Verify no `code.startsWith` errors in console
+  - Verify timer correct after tab switch and blur periods
+  - Verify all 15 answers present on report card
+- **Output:** `findings_B14E_retest.md`
+
+---
+
+### B14F-retest: The Lost One — Mobile (student9@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14F.md`
+- **Fixes to verify:**
+  - **FIX-12 (B14F-001):** FRQ textarea auto-scroll — set viewport to 375x667, navigate to FRQ question, resize to 375x350 (simulate keyboard), tap/focus textarea, verify page scrolls so textarea is visible (take screenshot)
+  - **FIX-13 (B14F-002):** SPA navigation guard — start test, answer Q1, press browser Back (`page.goBack()`), verify confirmation modal appears with "Stay"/"Leave Test" buttons. Click "Stay" → still on test. Press Back again → click "Leave Test" → navigates away
+  - **FIX-14 (B14F-003/004/005/006):** Touch targets — at 375x667 viewport, measure these elements via `page.evaluate` (getBoundingClientRect):
+    - Hamburger menu button: must be ≥44x44px
+    - Navigator toggle (center button in bottom bar): must be ≥44px height
+    - Navigator grid cells: must be ≥44x44px
+    - Navigator close button (✕): must be ≥44x44px
+    - Back/Next buttons: must be ≥44px height
+    - Flag button: must be ≥44px height
+    - Begin/Resume button on instruction screen: must be ≥44px height
+    - Strikethrough button (X next to answer choices): must be ≥44x44px
+  - **FIX-15 (B14F-007):** IDB error suppression — navigate to test, answer Q1, press Back (proceed through modal), navigate back to test. Run `mcp__playwright__browser_console_messages` — zero IDBDatabase "connection closing" errors
+- **Full scenario:** Re-run B14-F persona flow (375x667 viewport, tap wrong answer then correct, find navigator, tap grid cell, browser back, FRQ with keyboard, submit from mobile)
+- **Output:** `findings_B14F_retest.md`
+
+---
+
+### B14G-retest: The Technical Difficulties (student10@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14.md` (B14G findings were stored in the base findings file)
+- **Fixes to verify:**
+  - **FIX-1 (B14G-001):** Stale closure fix — answer Q1-Q5 normally. Intercept/block ALL Firestore network requests. Answer Q6-Q8 while "offline" (UI should still respond). Restore network. Wait 5 seconds. Use `page.evaluate` to check IndexedDB pending count: `const db = await indexedDB.open('ap_boost_queue'); ...count pending items for session` — must be 0. All 8 answers must appear in Firestore.
+  - **FIX-2 (B14G-002):** Content-based reconciliation — answer Q1-Q5 normally. Block Firestore. Answer Q6-Q8 offline. Restore network briefly (allow partial flush of Q6 only if timing works). Close the page. Open new page, navigate back to test URL. Resume session. Verify ALL answers Q1-Q8 are present (review screen shows "Answered: 8/15"). No answers should be lost due to timestamp-based staleness.
+  - **FIX-10 (B14G-004):** Heartbeat recovery speed — start test, answer Q1. Block Firestore requests for 20 seconds (enough for 2 heartbeat failures at 15s interval). Restore network. Measure time from restore to "Reconnected" banner appearing — should be under 5 seconds (immediate heartbeat on online event).
+- **Full scenario:** Re-run B14-G persona flow (answer Q1-Q5, go offline 10s, answer Q6-Q8, restore, answer Q9-Q12, close/reopen, resume, answer Q13-Q15, submit)
+- **Extra checks:**
+  - Verify ConnectionStatus banner shows "Connection lost" during offline period
+  - Verify queue length indicator updates correctly
+  - Verify report card has all 15 correct answers after full flow
+- **Output:** `findings_B14G_retest.md`
+
+---
+
+### B14H-retest: The Group Chat Student (student11@apboost.test / Student123!)
+
+- **Previous findings:** `findings_B14H.md`
+- **Fixes to verify:**
+  - **FIX-3 (B14H-001):** DuplicateTabModal on instruction screen — start test in Tab 1, answer Q1-Q3. Open same test URL in Tab 2 (new page). Tab 2 should be on instruction screen. Verify DuplicateTabModal appears OVERLAYING the instruction screen (take screenshot). Tab 2 should NOT be able to click "Resume Test" while modal is visible.
+  - **FIX-4 (B14H-002):** handleBegin guard — if somehow Tab 2 bypasses modal (shouldn't be possible after FIX-3), verify that "Resume Test" click does nothing when isInvalidated is true. Test by checking: after Tab 2 takes control and Tab 1 shows modal, Tab 1 cannot click its own "Resume Test" or interact with the test.
+  - **FIX-5 (B14H-003):** Fire-and-forget flush — Tab 1 answers Q1-Q3 quickly (don't wait for sync). Immediately open Tab 2 to same URL. Tab 2 clicks "Use This Tab" (Take Control). Tab 2 clicks "Resume Test". Verify: Q1-Q3 answers are present in Tab 2's session (navigate to Q1, Q2, Q3 and check selections). This confirms Tab 1 flushed its queue when it received SESSION_QUERY.
+- **Full scenario:** Re-run B14-H persona flow (Tab 1 answer Q1-Q3, Tab 2 take control, answer Q4-Q6, close Tab 2, Tab 1 take control, verify Q1-Q6, answer Q7-Q15, submit)
+- **Extra checks:**
+  - Verify session handoff works both directions
+  - Verify no answer loss across takeovers
+  - Verify report card shows all 15 answers
+- **Output:** `findings_B14H_retest.md`
+
+---
+
+### B14 Retest Dependency Graph
+
+```
+No setup needed (B0 data still seeded)
+ |
+ +-- All 8 B14X-retest agents run in parallel (different accounts)
+```
+
+### B14 Retest Estimated Token Cost
+
+| Batch | Complexity | Est. Tokens |
+|-------|------------|------------|
+| B14A-retest | Medium | ~30K |
+| B14B-retest | Medium | ~30K |
+| B14C-retest | Medium | ~30K |
+| B14D-retest | Medium | ~30K |
+| B14E-retest | Medium | ~25K |
+| B14F-retest | Complex | ~40K |
+| B14G-retest | Complex | ~40K |
+| B14H-retest | Complex | ~40K |
+| **Total** | | **~265K** |

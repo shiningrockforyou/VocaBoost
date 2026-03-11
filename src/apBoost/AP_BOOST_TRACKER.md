@@ -117,12 +117,12 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 #### 1.3 Highlighter
 - [x] ~~Highlights survive refresh/crash~~ (Fixed: ANNOTATION_UPDATE flush with transaction)
 - [x] ~~Overlapping highlights handled gracefully~~ (Fixed: boundary-sweep algorithm)
-- [ ] Highlights visible in review mode (read-only) | `ReviewScreen.jsx` | P2
+- [x] Highlights visible in review mode (read-only) | `APTestSession.jsx` | P2 — Done 2026-03-10 (pass exportAnnotations().highlights to ReviewScreen)
 
 #### 1.4 Strikethrough
 - [x] ~~Strikethrough icon changed to X~~ (Fixed: X icon + opacity-0.6 + text-text-muted)
 - [x] ~~Strikethrough survives refresh/crash~~ (Fixed: ANNOTATION_UPDATE flush)
-- [ ] Strikethrough visible in review mode | `ReviewScreen.jsx` | P2
+- [x] Strikethrough visible in review mode | `APTestSession.jsx` | P2 — Done 2026-03-10 (pass exportAnnotations().strikethroughs to ReviewScreen)
 - [ ] Click MCQ option text to toggle (not just button) | `AnswerInput.jsx` | P3 - BY DESIGN: button approach is cleaner
 
 #### 1.5 Line Reader
@@ -185,7 +185,7 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 - [x] ~~frqGradedPdfUrl alias~~ (Fixed: alias field added)
 
 #### 3.6 ap_classes
-- [ ] createClass() service function | `apTeacherService.js` | P2 - needed for class management UI
+- [x] createClass() service function | `apTeacherService.js` | P2 — Done 2026-03-07 (exists at line 380-397)
 
 #### 3.7 ap_assignments
 - [x] ~~maxAttempts default 3~~ (Fixed: default changed to 3)
@@ -249,7 +249,7 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 #### 5.9 Session Resume
 - [x] ~~Queue reconciliation: compare IndexedDB timestamps vs Firestore lastAction~~ | `useTestSession.js` | P0 — Done 2026-03-07
 - [x] ~~Discard stale queue items (older than server state)~~ | `useTestSession.js` | P0 — Done 2026-03-07
-- [ ] Show "Resume" modal if status was PAUSED | `InstructionScreen.jsx` | P2 - partially working via IN_PROGRESS check
+- [x] Show "Resume" modal if status was PAUSED | `InstructionScreen.jsx` | P2 — Done 2026-03-10 (checks IN_PROGRESS || PAUSED, shows "session was paused" message)
 
 #### 5.10 Conflict Resolution
 - [x] ~~Compare local vs Firestore timestamps before applying~~ | `useTestSession.js` | P2 — Done 2026-03-07 (part of reconciliation)
@@ -291,9 +291,9 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 
 - [x] ~~InstructionScreen: show FRQ submission mode info (typed vs handwritten)~~ | `InstructionScreen.jsx` | P1 — Done 2026-03-07
 - [x] ~~Answer sheet PDF: AP logo not included~~ | `generateAnswerSheetPdf.js` | P2 — Done 2026-03-07
-- [ ] Answer sheet PDF: stimulus text truncated to 500 chars, no images | `generateAnswerSheetPdf.js` | P3
+- [x] Answer sheet PDF: stimulus text truncated to 500 chars, no images | `generateAnswerSheetPdf.js` | P3 — Already implemented (500-char substring + text-only stimulus)
 - [x] ~~Image compression before upload~~ | `imageProcessing.js` | P2 — Done 2026-03-07
-- [ ] Client-side image preview before upload (createObjectURL) | `FileUpload.jsx` | P3
+- [x] Client-side image preview before upload (createObjectURL) | `FileUpload.jsx` | P3 — Done 2026-03-10 (localPreviews with URL.createObjectURL, cleanup on unmount)
 - [ ] Student FRQ mode choice → BY DESIGN: teacher controls this | N/A | CLOSED
 
 ---
@@ -385,10 +385,10 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 
 ### Section 20: Phase Verification
 
-- [ ] Submit with pending queue shows sync progress (verify) | testing | P2
+- [x] Submit with pending queue shows sync progress (verify) | testing | P2 — Verified 2026-03-10 (SubmitProgressModal wired with queueLength & isSyncing)
 - [ ] Cross-browser duplicate tab timing (verify) | testing | P3
 - [x] ~~Annotations visible in review mode~~ | `ReviewScreen.jsx` | P2 — Done 2026-03-07
-- [ ] Question reordering via drag/buttons (verify) | testing | P2
+- [x] Question reordering via drag/buttons (verify) | testing | P2 — Verified 2026-03-10 (up/down arrow buttons in APTestEditor, persists via reorderSectionQuestions)
 
 ---
 
@@ -416,6 +416,9 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 | B10-002: Dev-mode ErrorBoundary test hook | SKIP | Developer tooling for auditors, not a production feature or bug |
 | B11-001: Raw Tailwind highlight colors | BY DESIGN | No semantic design tokens for highlight colors; documented exception in useAnnotations.js |
 | **Design Overhaul** | **DEFERRED** | Full UI/UX audit complete — buttons, cards, spacing, transitions, typography all need polish to match vocaBoost. See [design-overhaul/DESIGN_OVERHAUL_PLAN.md](design-overhaul/DESIGN_OVERHAUL_PLAN.md) |
+| Review screen layout unification | DEFERRED | Review screen should use the same layout as question pages (header, Back/Next nav, navigator). Only the content area changes to show the review grid/summary. Currently it's a standalone full-page component with its own layout and no Back/Next buttons. |
+| **App Entry Screen** (post-login chooser for AP vs Voca) | DEFERRED | Login currently redirects to `/` for all users. Consider: (1) Post-login entry screen letting students choose AP or VocaBoost, (2) Separate AP-specific login pages under `/ap/login`, (3) In-app navigation/switcher between VocaBoost and apBoost |
+| Cross-app navigation (VocaBoost ↔ apBoost) | DEFERRED | No way to switch between apps once logged in. Future: add nav link/switcher in both app headers |
 
 ---
 
