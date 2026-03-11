@@ -1,0 +1,73 @@
+{
+  "login": "PASS",
+  "fix1": {
+    "result": "INCONCLUSIVE",
+    "pendingOffline": 0,
+    "pendingAfterFlush": 0,
+    "flushTimeSeconds": null,
+    "notes": [
+      "No offline answers captured into IDB — navigation/UI detection issue",
+      "No TDZ errors"
+    ]
+  },
+  "fix2": {
+    "result": "INCONCLUSIVE",
+    "answeredOnline": {},
+    "answeredOffline": {},
+    "preservedAfterResume": {
+      "navigatorAnsweredQs": [],
+      "reviewAnswered": null,
+      "reviewTotal": null
+    },
+    "reviewData": "\n    AP PracticeJulia BrownVocaBoost⚠Session Active ElsewhereThis test is already open in another browser tab.To prevent data conflicts, you can only have one active session at a time.Go to DashboardU",
+    "notes": [
+      "Online answers: Q[] (0)",
+      "Offline answers: Q[] (0)",
+      "Online preserved: Q[] (0/0)",
+      "Offline preserved: Q[] (0/0)",
+      "All answered in navigator: []",
+      "Review screen: null/null",
+      "No answers recorded — navigation blocked the test"
+    ]
+  },
+  "fix10": {
+    "result": "DOCUMENTED",
+    "notes": []
+  },
+  "codeStartsWith": "PASS",
+  "tdzError": false,
+  "consoleErrors": [
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ]
+}

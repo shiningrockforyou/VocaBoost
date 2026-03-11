@@ -1,0 +1,156 @@
+{
+  "results": [
+    "STEP 1: Navigating to login page...",
+    "Login page URL: http://localhost:5173/login",
+    "Post-login URL: http://localhost:5173/ap",
+    "FINDING-B14E-001 STATUS: Login redirect to /ap — FIXED",
+    "AP Dashboard URL: http://localhost:5173/ap",
+    "STEP 2: Navigating to test page to check for code.startsWith error...",
+    "Test page URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "FINDING-B14E-002: code.startsWith NOT FOUND on test page nav",
+    "Resume: 0, Begin: 0",
+    "WARNING: Neither Resume nor Begin button found",
+    "STEP 3: Answering Q1-Q5...",
+    "Q1: WARNING — could not find answer A",
+    "Q2: WARNING — could not find answer B",
+    "Q3: WARNING — could not find answer C",
+    "Q4: WARNING — could not find answer D",
+    "Q5: WARNING — could not find answer A",
+    "Q1-Q5 answered",
+    "Timer before 45s tab switch: N/A",
+    "STEP 4-5: Opening blank tab for 45s distraction...",
+    "Blank tab opened — waiting 45 seconds...",
+    "45 seconds elapsed",
+    "STEP 6: Returning to test tab...",
+    "Screenshot 08_after_tab_switch.png taken",
+    "PASS: No DuplicateTabModal after 45s blank tab switch",
+    "Timer after 45s tab switch: N/A",
+    "Test still intact: true",
+    "Checking Q1 answer persistence (navigating back)...",
+    "Q1 selected (brand-primary): 1",
+    "STEP 7: Answering Q6-Q10...",
+    "Q6: WARNING — could not click B",
+    "Q7: WARNING — could not click C",
+    "Q8: WARNING — could not click D",
+    "Q9: WARNING — could not click A",
+    "Q10: WARNING — could not click B",
+    "Q6-Q10 answered",
+    "STEP 8: Triggering page blur (30s)...",
+    "Timer before 30s blur: N/A",
+    "Blur dispatched",
+    "30 seconds elapsed",
+    "Focus restored",
+    "Timer after 30s blur: N/A",
+    "Visibility/blur console errors after blur phase: 0",
+    "STEP 9: Answering Q11-Q15...",
+    "Q11: WARNING — could not click C",
+    "Q12: WARNING — could not click D",
+    "Q13: WARNING — could not click A",
+    "Q14: WARNING — could not click B",
+    "Q15: WARNING — could not click C",
+    "Q11-Q15 answered",
+    "Review screen URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "Review numeric patterns: none found",
+    "STEP 10: Submitting MCQ section...",
+    "WARNING: Submit Section button not found",
+    "On FRQ choice screen: false",
+    "Final URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "Report card reached: false",
+    "=== FINAL CONSOLE ERROR ANALYSIS ===",
+    "Total errors: 2",
+    "  ERROR [test_micro_full_1]: %o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTest",
+    "  ERROR [test_micro_full_1]: [APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+    "code.startsWith total: 0",
+    "visibility-related errors: 0",
+    "focus/blur errors: 0",
+    "Firebase connection warnings: 0"
+  ],
+  "consoleMsgs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/apBoost/pages/APTestSession.jsx",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/apBoost/pages/APTestSession.jsx",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/apBoost/pages/APTestSession.jsx",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/apBoost/pages/APTestSession.jsx",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "timestamp": "2026-03-11T15:23:44.409Z"
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "step": "1_student4_login",
+    "url": "http://localhost:5173/"
+  },
+  {
+    "step": "2_dashboard_text",
+    "text": "\n    DashboardGradebookWelcome, Diana ParkYour personalized vocabulary journey starts here.Weekly GoalsNo Active ListDay 1Start SessionWords Introduced0Mastery Rate0%Current Streak0 days7-DAY RHYTHMMy ClassesWelcome! Join your first classEnter the 6-character code your teacher shared to get started.Class CodeJoin Class\n    \n  \n\n"
+  },
+  {
+    "step": "3_logout_button_not_found",
+    "FAIL": true
+  },
+  {
+    "step": "ERROR",
+    "error": "page.waitForLoadState: Timeout 30000ms exceeded."
+  },
+  {
+    "step": "console_errors",
+    "errors": []
+  }
+]

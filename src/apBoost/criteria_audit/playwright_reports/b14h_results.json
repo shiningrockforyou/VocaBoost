@@ -1,0 +1,296 @@
+{
+  "batchId": "B14-H",
+  "persona": "The Group Chat Student (student11@apboost.test)",
+  "startedAt": "2026-03-10T09:51:03.915Z",
+  "steps": [
+    {
+      "step": "Navigate to login",
+      "status": "INFO",
+      "details": "Login page loaded",
+      "ts": "2026-03-10T09:51:06.144Z"
+    },
+    {
+      "step": "Login",
+      "status": "PASS",
+      "details": "Redirected to: http://localhost:5173/",
+      "ts": "2026-03-10T09:51:10.161Z"
+    },
+    {
+      "step": "AP Dashboard",
+      "status": "INFO",
+      "details": "URL: http://localhost:5173/ap",
+      "ts": "2026-03-10T09:51:12.775Z"
+    },
+    {
+      "step": "Click Micro test card",
+      "status": "PASS",
+      "details": "URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "ts": "2026-03-10T09:51:17.137Z"
+    },
+    {
+      "step": "Begin Test",
+      "status": "PASS",
+      "details": "URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "ts": "2026-03-10T09:51:19.486Z"
+    },
+    {
+      "step": "Active test URL",
+      "status": "INFO",
+      "details": "http://localhost:5173/ap/test/test_micro_full_1",
+      "ts": "2026-03-10T09:51:19.486Z"
+    },
+    {
+      "step": "Tab1 Q1 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false,\"bodyPreview\":\"Section 1 of 2: Section I: Multiple Choice\\n⏱\\n34:57\\nQuestion 1\\n\\nA production possibilities curve that is bowed outward (concave to the origin) illustrates which economic concept?\\n\\nA\\nConstant opportunit\"}",
+      "ts": "2026-03-10T09:51:21.886Z"
+    },
+    {
+      "step": "Tab1 Q1 Next",
+      "status": "PASS",
+      "details": "Clicked Next",
+      "ts": "2026-03-10T09:51:21.895Z"
+    },
+    {
+      "step": "Tab1 Q2 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false,\"bodyPreview\":\"Section 1 of 2: Section I: Multiple Choice\\n⏱\\n34:54\\nQuestion 2\\n\\nCountry A can produce 100 units of wheat or 50 units of cloth. Country B can produce 80 units of wheat or 60 units of cloth. Which countr\"}",
+      "ts": "2026-03-10T09:51:24.799Z"
+    },
+    {
+      "step": "Tab1 Q2 Next",
+      "status": "PASS",
+      "details": "Clicked Next",
+      "ts": "2026-03-10T09:51:24.805Z"
+    },
+    {
+      "step": "Tab1 Q3 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false,\"bodyPreview\":\"Section 1 of 2: Section I: Multiple Choice\\n⏱\\n34:51\\nQuestion 3\\n\\nIf the price of a substitute good increases, what happens to the demand curve for the original good?\\n\\nA\\nIt shifts to the left\\nB\\nIt shifts\"}",
+      "ts": "2026-03-10T09:51:27.684Z"
+    },
+    {
+      "step": "Tab1 Q1-Q3 answered",
+      "status": "INFO",
+      "details": "Three questions answered in Tab 1",
+      "ts": "2026-03-10T09:51:27.763Z"
+    },
+    {
+      "step": "Test page URL for Tab 2",
+      "status": "INFO",
+      "details": "http://localhost:5173/ap/test/test_micro_full_1",
+      "ts": "2026-03-10T09:51:27.763Z"
+    },
+    {
+      "step": "Tab 2 opened",
+      "status": "INFO",
+      "details": "Navigated to: http://localhost:5173/ap/test/test_micro_full_1",
+      "ts": "2026-03-10T09:51:28.308Z"
+    },
+    {
+      "step": "DuplicateTabModal in Tab 2",
+      "status": "FAIL",
+      "details": "Modal NOT found. Body: AP Practice\nKevin Patel\nVocaBoost\nAP Microeconomics Practice Exam\n\nAP Microeconomics\n\nThis test has 2 sections:\n\nSection 1: Section I: Multiple Choice\n\n• 15 questions\n• 35 min\n\nSection 2: Section II: Free Response\n\n• 2 questions\n• 25 min\n\nTotal time: 1 hr\n\nFree Response Section\n\nYou will type your r",
+      "ts": "2026-03-10T09:51:31.434Z"
+    },
+    {
+      "step": "Click \"Use This Tab\" in Tab 2",
+      "status": "FAIL",
+      "details": "{\"clicked\":false}",
+      "ts": "2026-03-10T09:51:31.436Z"
+    },
+    {
+      "step": "Tab 2 after takeover",
+      "status": "PASS",
+      "details": "hasModal: false, hasQuestion: true",
+      "ts": "2026-03-10T09:51:33.535Z"
+    },
+    {
+      "step": "Tab 1 shows DuplicateTabModal after Tab 2 takeover",
+      "status": "FAIL",
+      "details": "Modal NOT shown in Tab 1. Preview: Section 1 of 2: Section I: Multiple Choice\n⏱\n34:42\nQuestion 3\n\nIf the price of a substitute good increases, what happens to the demand curve for the original good?\n\nA\nIt shifts to the left\nB\nIt shifts to the right\nC\nThere is a movement along the curve\nD\nThe curve becomes more elastic\n⚐\nFlag for Revi",
+      "ts": "2026-03-10T09:51:35.620Z"
+    },
+    {
+      "step": "Tab 2 current question",
+      "status": "INFO",
+      "details": "Current Q: 1",
+      "ts": "2026-03-10T09:51:35.640Z"
+    },
+    {
+      "step": "Tab2 Q4 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false}",
+      "ts": "2026-03-10T09:51:39.699Z"
+    },
+    {
+      "step": "Tab2 Q5 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false}",
+      "ts": "2026-03-10T09:51:41.830Z"
+    },
+    {
+      "step": "Tab2 Q6 answer",
+      "status": "FAIL",
+      "details": "{\"clicked\":false}",
+      "ts": "2026-03-10T09:51:43.954Z"
+    },
+    {
+      "step": "Tab2 Q4-Q6 answered",
+      "status": "INFO",
+      "details": "Q4-Q6 answered in Tab 2",
+      "ts": "2026-03-10T09:51:44.041Z"
+    },
+    {
+      "step": "Tab 2 closed",
+      "status": "INFO",
+      "details": "Closed Tab 2",
+      "ts": "2026-03-10T09:51:44.058Z"
+    },
+    {
+      "step": "Tab 1 shows DuplicateTabModal (Tab 2 closed)",
+      "status": "INFO",
+      "details": "Modal not shown — Tab 1 may have automatically recovered or never been invalidated. Preview: Section 1 of 2: Section I: Multiple Choice\n⏱\n34:30\nQuestion 3\n\nIf the price of a substitute good inc",
+      "ts": "2026-03-10T09:51:48.148Z"
+    },
+    {
+      "step": "Tab 1 \"Use This Tab\" click",
+      "status": "INFO",
+      "details": "Modal not shown, skipping click",
+      "ts": "2026-03-10T09:51:48.148Z"
+    },
+    {
+      "step": "Verify Q1-Q6 answers in Tab 1",
+      "status": "INFO",
+      "details": "Navigator: 0 answered of 0 cells. Progress: null",
+      "ts": "2026-03-10T09:51:48.150Z"
+    },
+    {
+      "step": "Navigate to Q7",
+      "status": "INFO",
+      "details": "{\"clicked\":false}",
+      "ts": "2026-03-10T09:51:48.226Z"
+    },
+    {
+      "step": "Tab1 Q7 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:50.456Z"
+    },
+    {
+      "step": "Tab1 Q8 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:52.089Z"
+    },
+    {
+      "step": "Tab1 Q9 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:53.708Z"
+    },
+    {
+      "step": "Tab1 Q10 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:55.336Z"
+    },
+    {
+      "step": "Tab1 Q11 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:56.968Z"
+    },
+    {
+      "step": "Tab1 Q12 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:51:58.591Z"
+    },
+    {
+      "step": "Tab1 Q13 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:52:00.225Z"
+    },
+    {
+      "step": "Tab1 Q14 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:52:01.849Z"
+    },
+    {
+      "step": "Tab1 Q15 answer (on Q3)",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"bodyPreview\":\" to the right\\nC\\nThere is a movement along the curve\\nD\\nThe curve becomes more elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 3 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:52:03.472Z"
+    },
+    {
+      "step": "Tab1 Q7-Q15 answered",
+      "status": "INFO",
+      "details": "All remaining questions answered",
+      "ts": "2026-03-10T09:52:03.548Z"
+    },
+    {
+      "step": "Review screen check",
+      "status": "PASS",
+      "details": "hasReview: true, hasSubmit: false",
+      "ts": "2026-03-10T09:52:05.634Z"
+    },
+    {
+      "step": "Submit Section 1",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"available\":[\"A0.5, and demand is inelastic\",\"B2.0, and demand is elastic\",\"C0.5, and demand is elastic\",\"D1.0, and demand is unit elastic\",\"⚐Flag for Review\",\"← Back\",\"Question 4 of 15▲\",\"Next →\"]}",
+      "ts": "2026-03-10T09:52:05.635Z"
+    },
+    {
+      "step": "FRQ/Choice Screen",
+      "status": "INFO",
+      "details": "{\"hasFRQ\":false,\"hasFRQChoice\":false,\"text\":\"Section 1 of 2: Section I: Multiple Choice\\n⏱\\n34:10\\nQuestion 4\\n\\nA firm raises its price by 10% and sees quantity demanded fall by 5%. The price elasticity of demand (in absolute value) is:\\n\\nA\\n0.5, and demand is inelastic\\nB\\n2.0, and demand is elastic\\nC\\n0.5, and demand is elastic\\nD\\n1.0, and demand is unit elastic\\n⚐\\nFlag for Review\\n← Back\\nQuestion 4 of 15\\n▲\\nNext →\"}",
+      "ts": "2026-03-10T09:52:07.736Z"
+    },
+    {
+      "step": "FRQ textareas found",
+      "status": "INFO",
+      "details": "Count: 0",
+      "ts": "2026-03-10T09:52:07.832Z"
+    },
+    {
+      "step": "Submit Test",
+      "status": "INFO",
+      "details": "{\"clicked\":false,\"available\":[\"A0.5, and demand is inelastic\",\"B2.0, and demand is elastic\",\"C0.5, and demand is elastic\",\"⚐Flag for Review\",\"← Back\",\"Question 4 of 15▲\",\"Next →\"]}",
+      "ts": "2026-03-10T09:52:07.833Z"
+    },
+    {
+      "step": "Report Card",
+      "status": "INFO",
+      "details": "{\"url\":\"http://localhost:5173/ap/test/test_micro_full_1\",\"hasResults\":false,\"hasMCQScore\":true,\"has15Qs\":true}",
+      "ts": "2026-03-10T09:52:14.993Z"
+    },
+    {
+      "step": "Report Card loaded",
+      "status": "FAIL",
+      "details": "Not on results page. URL: http://localhost:5173/ap/test/test_micro_full_1. Text: Section 1 of 2: Section I: Multiple Choice\n⏱\n34:03\nQuestion 4\n\nA firm raises its price by 10% and sees quantity demanded fall by 5%. The price elasticity of demand (in absolute value) is:\n\nA\n0.5, and ",
+      "ts": "2026-03-10T09:52:14.994Z"
+    }
+  ],
+  "consoleErrors": [],
+  "findings": [
+    {
+      "id": "B14H-002",
+      "severity": "High-Priority",
+      "title": "DuplicateTabModal did not appear in Tab 2",
+      "whatHappened": "After opening same test URL in Tab 2, DuplicateTabModal was not shown. Tab 2 body: AP Practice\nKevin Patel\nVocaBoost\nAP Microeconomics Practice Exam\n\nAP Microeconomics\n\nThis test has 2 sections:\n\nSection 1: Section I: Multiple Choice\n\n• 15 questions\n• 35 min\n\nSection 2: Section II: ",
+      "expected": "DuplicateTabModal should appear blocking Tab 2 since Tab 1 is the active session"
+    },
+    {
+      "id": "B14H-003",
+      "severity": "High-Priority",
+      "title": "Tab 1 not invalidated after Tab 2 takes control",
+      "whatHappened": "After Tab 2 clicked \"Use This Tab\", Tab 1 did not show DuplicateTabModal. Both tabs may be active simultaneously.",
+      "expected": "Tab 1 should show DuplicateTabModal with \"Session Active Elsewhere\" when another tab takes control"
+    }
+  ],
+  "completedAt": "2026-03-10T09:52:14.994Z",
+  "status": "COMPLETE"
+}

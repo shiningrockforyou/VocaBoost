@@ -1,0 +1,360 @@
+{
+  "scenarioId": "B14-E-v2",
+  "persona": "The Distracted One (corrected selectors)",
+  "email": "student8@apboost.test",
+  "startedAt": "2026-03-10T11:28:33.188Z",
+  "steps": [
+    {
+      "label": "Login",
+      "status": "PASS",
+      "notes": "Redirected to: http://localhost:5173/",
+      "time": "2026-03-10T11:28:35.335Z"
+    },
+    {
+      "label": "Resume existing session",
+      "status": "PASS",
+      "notes": "Resumed from previous session state",
+      "time": "2026-03-10T11:28:42.028Z"
+    },
+    {
+      "label": "Answer Q1-Q5",
+      "status": "PASS",
+      "notes": "Verified: 5/5. Selections: {\"1\":\"A\",\"2\":\"B\",\"3\":\"C\",\"4\":\"D\",\"5\":\"A\"}",
+      "time": "2026-03-10T11:28:54.209Z"
+    },
+    {
+      "label": "Open blank new tab (distraction start)",
+      "status": "PASS",
+      "notes": "New tab opened",
+      "time": "2026-03-10T11:28:54.310Z"
+    },
+    {
+      "label": "Return from 45s tab distraction",
+      "status": "PASS",
+      "notes": "45 seconds elapsed, returned",
+      "time": "2026-03-10T11:29:40.884Z"
+    },
+    {
+      "label": "Test survived 45s tab switch",
+      "status": "PASS",
+      "notes": "Test visible, no modal, not expired",
+      "time": "2026-03-10T11:29:40.887Z"
+    },
+    {
+      "label": "Timer continued during 45s tab switch",
+      "status": "PASS",
+      "notes": "Timer counted ~46s. Before: 34:48, After: 34:02",
+      "time": "2026-03-10T11:29:40.889Z"
+    },
+    {
+      "label": "Q1 answer persisted after 45s tab switch",
+      "status": "PASS",
+      "notes": "Q1 shows letter A: \"AConstant opportunity costs\"",
+      "time": "2026-03-10T11:29:43.623Z"
+    },
+    {
+      "label": "Answer Q6-Q10",
+      "status": "PASS",
+      "notes": "Verified: 5/5",
+      "time": "2026-03-10T11:29:54.439Z"
+    },
+    {
+      "label": "Page blur simulated",
+      "status": "PASS",
+      "notes": "document.visibilitychange=hidden fired",
+      "time": "2026-03-10T11:29:54.482Z"
+    },
+    {
+      "label": "30s page blur complete and refocused",
+      "status": "PASS",
+      "notes": "30s elapsed, focus restored",
+      "time": "2026-03-10T11:30:26.545Z"
+    },
+    {
+      "label": "Test survived 30s blur",
+      "status": "PASS",
+      "notes": "Test visible after 30s blur",
+      "time": "2026-03-10T11:30:26.547Z"
+    },
+    {
+      "label": "Timer continued during 30s blur",
+      "status": "PASS",
+      "notes": "Diff: ~32s. Before: 33:48, After: 33:16",
+      "time": "2026-03-10T11:30:26.550Z"
+    },
+    {
+      "label": "Answer Q11-Q15",
+      "status": "PASS",
+      "notes": "Verified: 5/5",
+      "time": "2026-03-10T11:30:33.545Z"
+    },
+    {
+      "label": "Navigate to Review Screen",
+      "status": "PASS",
+      "notes": "Review visible: true. URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "time": "2026-03-10T11:30:37.647Z"
+    },
+    {
+      "label": "Review screen: 15 answers present",
+      "status": "PASS",
+      "notes": "15/15 answered",
+      "time": "2026-03-10T11:30:37.648Z"
+    },
+    {
+      "label": "Submit MCQ Section",
+      "status": "PASS",
+      "notes": "FRQ: true, Results: false",
+      "time": "2026-03-10T11:30:45.799Z"
+    },
+    {
+      "label": "FRQ choice screen appeared",
+      "status": "PASS",
+      "notes": "Correct flow after MCQ submit",
+      "time": "2026-03-10T11:30:45.799Z"
+    },
+    {
+      "label": "FRQ answers typed",
+      "status": "PARTIAL",
+      "notes": "Filled 0 textareas",
+      "time": "2026-03-10T11:30:45.851Z"
+    },
+    {
+      "label": "Report card loaded",
+      "status": "FAIL",
+      "notes": "URL: http://localhost:5173/ap/test/test_micro_full_1, Content: false",
+      "time": "2026-03-10T11:30:51.034Z"
+    },
+    {
+      "label": "No console errors from visibility/focus events",
+      "status": "PASS",
+      "notes": "Visibility errors: 0, Total: 3",
+      "time": "2026-03-10T11:30:51.035Z"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "Medium-Priority",
+      "title": "Login redirects to non-AP route (B4-006)",
+      "what": "Redirected to http://localhost:5173/",
+      "expected": "Should redirect to /ap",
+      "evidence": "Known B4-006",
+      "time": "2026-03-10T11:28:35.335Z"
+    },
+    {
+      "severity": "High-Priority",
+      "title": "Report card did not load after submission",
+      "what": "Final URL: http://localhost:5173/ap/test/test_micro_full_1. Content: \n    AP PracticeHannah LeeVocaBoostLog outFree Response SectionChoose how you'd like to complete your free response answers:⌨️Type Your AnswersEnter your responses directly using the on-screen text bo",
+      "expected": "Report card must load after all distraction events and submission.",
+      "evidence": "Screenshot: v2_16_final_report_card.png",
+      "time": "2026-03-10T11:30:51.034Z"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "page": "http://localhost:5173/",
+      "message": "[2026-03-10T11:28:35.353Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "type": "console_error"
+    },
+    {
+      "page": "http://localhost:5173/ap/test/test_micro_full_1",
+      "message": "code.startsWith is not a function",
+      "type": "pageerror"
+    },
+    {
+      "page": "http://localhost:5173/ap/test/test_micro_full_1",
+      "message": "code.startsWith is not a function",
+      "type": "pageerror"
+    }
+  ],
+  "trackedAnswers": {
+    "q1to5": {
+      "1": {
+        "letter": "A",
+        "text": "AConstant opportunity costs",
+        "verified": true
+      },
+      "2": {
+        "letter": "B",
+        "text": "BCountry B, because it has a lower opportunity cost of cloth",
+        "verified": true
+      },
+      "3": {
+        "letter": "C",
+        "text": "CThere is a movement along the curve",
+        "verified": true
+      },
+      "4": {
+        "letter": "D",
+        "text": "D1.0, and demand is unit elastic",
+        "verified": true
+      },
+      "5": {
+        "letter": "A",
+        "text": "ABelow the demand curve and above the equilibrium price",
+        "verified": true
+      }
+    },
+    "q6to10": {
+      "6": {
+        "letter": "B",
+        "text": "BAt its minimum",
+        "verified": true
+      },
+      "7": {
+        "letter": "C",
+        "text": "CATC is minimized",
+        "verified": true
+      },
+      "8": {
+        "letter": "D",
+        "text": "DEconomic profits are zero",
+        "verified": true
+      },
+      "9": {
+        "letter": "A",
+        "text": "AMore output at a lower price",
+        "verified": true
+      },
+      "10": {
+        "letter": "B",
+        "text": "BZero economic profit",
+        "verified": true
+      }
+    },
+    "q11to15": {
+      "11": {
+        "letter": "C",
+        "text": "CRandomize",
+        "verified": true
+      },
+      "12": {
+        "letter": "D",
+        "text": "DMC x MP",
+        "verified": true
+      },
+      "13": {
+        "letter": "A",
+        "text": "AMRP = W",
+        "verified": true
+      },
+      "14": {
+        "letter": "B",
+        "text": "BMore than optimal",
+        "verified": true
+      },
+      "15": {
+        "letter": "C",
+        "text": "CA toll road",
+        "verified": true
+      }
+    }
+  },
+  "timerReadings": [
+    {
+      "phase": "before_tab_switch",
+      "value": "34:48",
+      "wallClock": "2026-03-10T11:28:54.212Z"
+    },
+    {
+      "phase": "after_tab_switch",
+      "value": "34:02",
+      "wallClock": "2026-03-10T11:29:40.889Z"
+    },
+    {
+      "phase": "tab_switch_diff",
+      "diff": 46,
+      "expected": 45
+    },
+    {
+      "phase": "before_blur",
+      "value": "33:48",
+      "wallClock": "2026-03-10T11:29:54.441Z"
+    },
+    {
+      "phase": "after_blur",
+      "value": "33:16",
+      "wallClock": "2026-03-10T11:30:26.549Z"
+    },
+    {
+      "phase": "blur_diff",
+      "diff": 32,
+      "expected": 30,
+      "before": "33:48",
+      "after": "33:16"
+    }
+  ],
+  "sessionChecks": {
+    "afterTabSwitch": {
+      "testVisibleAfterTab": true,
+      "isDupModal": false,
+      "isExpired": false,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    "q1AfterTabSwitch": {
+      "letter": "A",
+      "text": "AConstant opportunity costs",
+      "found": true
+    },
+    "afterBlur": {
+      "testVisibleAfterBlur": true,
+      "isDupModalBlur": false,
+      "timerPausedText": false,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    "review": {
+      "answeredCount": 15,
+      "totalCountOnReview": 15,
+      "unansweredCount": -1
+    }
+  },
+  "completedAt": "2026-03-10T11:30:51.035Z",
+  "summary": {
+    "q1to5Verified": 5,
+    "q6to10Verified": 5,
+    "q11to15Verified": 5,
+    "totalVerifiedAnswers": 15,
+    "timerReadings": [
+      {
+        "phase": "before_tab_switch",
+        "value": "34:48",
+        "wallClock": "2026-03-10T11:28:54.212Z"
+      },
+      {
+        "phase": "after_tab_switch",
+        "value": "34:02",
+        "wallClock": "2026-03-10T11:29:40.889Z"
+      },
+      {
+        "phase": "tab_switch_diff",
+        "diff": 46,
+        "expected": 45
+      },
+      {
+        "phase": "before_blur",
+        "value": "33:48",
+        "wallClock": "2026-03-10T11:29:54.441Z"
+      },
+      {
+        "phase": "after_blur",
+        "value": "33:16",
+        "wallClock": "2026-03-10T11:30:26.549Z"
+      },
+      {
+        "phase": "blur_diff",
+        "diff": 32,
+        "expected": 30,
+        "before": "33:48",
+        "after": "33:16"
+      }
+    ],
+    "totalFindings": 2,
+    "consoleErrorCount": 3,
+    "knownErrors": {
+      "codeStartsWith": 2,
+      "firestoreOffline": 1
+    },
+    "passed": 19,
+    "failed": 1,
+    "partial": 1
+  }
+}

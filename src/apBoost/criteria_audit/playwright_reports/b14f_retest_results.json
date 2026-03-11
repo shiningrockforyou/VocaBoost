@@ -1,0 +1,67 @@
+{
+  "login": {
+    "status": "PASS",
+    "url": "http://localhost:5173/ap"
+  },
+  "fix14_touchTargets": {
+    "beginResumeBtn": null,
+    "cancelBtn": null,
+    "q1Buttons": {}
+  },
+  "fix13_backBlocker": {
+    "afterBackUrl": "http://localhost:5173/ap",
+    "blockerState": {
+      "currentUrl": "http://localhost:5173/ap",
+      "urlAfterBack": "/ap",
+      "foundLeaveTest": false,
+      "foundStay": false,
+      "foundLeaveBtn": false,
+      "blockerAppearedLikely": false
+    },
+    "silentNavigation": true
+  },
+  "fix12_frqScroll": {
+    "error": "No textarea found — could not reach FRQ section"
+  },
+  "fix15_idbErrors": [],
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "summary": {
+    "FIX-12 (B14F-001) FRQ scroll-into-view": "SKIP",
+    "FIX-13 (B14F-002) Browser back blocker": "FAIL",
+    "FIX-14 (B14F-003/004/005/006) Touch targets": "PASS",
+    "FIX-15 (B14F-007) IDB errors suppressed": "PASS",
+    "fix14Failures": [],
+    "fix14Passes": []
+  }
+}

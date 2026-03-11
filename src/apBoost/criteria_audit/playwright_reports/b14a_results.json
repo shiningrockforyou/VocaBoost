@@ -1,0 +1,204 @@
+{
+  "scenarioId": "B14-A",
+  "persona": "The Careful One",
+  "email": "student4@apboost.test",
+  "startedAt": "2026-03-10T10:19:18.231Z",
+  "steps": [
+    {
+      "label": "Login",
+      "status": "PASS",
+      "notes": "→ http://localhost:5173/",
+      "time": "2026-03-10T10:19:20.842Z"
+    },
+    {
+      "label": "Dashboard",
+      "status": "PASS",
+      "notes": "Has AP tests: true",
+      "time": "2026-03-10T10:19:23.754Z"
+    },
+    {
+      "label": "Begin/Resume Test",
+      "status": "PASS",
+      "notes": "Clicked: Resume Test",
+      "time": "2026-03-10T10:19:30.238Z"
+    },
+    {
+      "label": "Test session active",
+      "status": "PASS",
+      "notes": "In MCQ section",
+      "time": "2026-03-10T10:19:30.286Z"
+    },
+    {
+      "label": "Answer MCQ questions",
+      "status": "PARTIAL",
+      "notes": "Answered: 5/5, Flagged: 2, Changed: 0",
+      "time": "2026-03-10T10:19:47.888Z"
+    },
+    {
+      "label": "Open navigator",
+      "status": "PASS",
+      "notes": "",
+      "time": "2026-03-10T10:19:50.147Z"
+    },
+    {
+      "label": "Navigator modal",
+      "status": "PASS",
+      "notes": "Grid: true, Flagged shown: 4",
+      "time": "2026-03-10T10:19:50.191Z"
+    },
+    {
+      "label": "Navigator flagged revisit",
+      "status": "PASS",
+      "notes": "Visited: 2/2, Changed 1: true",
+      "time": "2026-03-10T10:20:00.219Z"
+    },
+    {
+      "label": "Review screen",
+      "status": "PASS",
+      "notes": "Reached: true, Confirmed: true",
+      "time": "2026-03-10T10:20:05.622Z"
+    },
+    {
+      "label": "Submit Section",
+      "status": "PASS",
+      "notes": "",
+      "time": "2026-03-10T10:20:14.814Z"
+    },
+    {
+      "label": "FRQ choice screen",
+      "status": "PASS",
+      "notes": "",
+      "time": "2026-03-10T10:20:14.870Z"
+    },
+    {
+      "label": "Choose typed FRQ",
+      "status": "PASS",
+      "notes": "",
+      "time": "2026-03-10T10:20:17.476Z"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "Medium-Priority",
+      "title": "Login does not redirect to /ap",
+      "what": "Redirected to http://localhost:5173/",
+      "expected": "Should go to /ap",
+      "evidence": "Known finding B4-006",
+      "time": "2026-03-10T10:19:20.842Z"
+    },
+    {
+      "severity": "Nitpick",
+      "title": "Session state persists between test runs",
+      "what": "student4 has an existing in-progress session from a previous run — clicking Resume Test",
+      "expected": "This is expected behavior — the simulation is resuming a real student session state",
+      "evidence": "Screenshot v4_04_test_page.png",
+      "time": "2026-03-10T10:19:27.188Z"
+    },
+    {
+      "severity": "High-Priority",
+      "title": "JavaScript error: code.startsWith is not a function",
+      "what": "Page error: \"code.startsWith is not a function\" fires when submitting MCQ section (2 occurrences in v4 run)",
+      "expected": "No JavaScript errors during test submission flow",
+      "evidence": "Captured twice in consoleErrors during /ap/test/test_micro_full_1 submit flow",
+      "time": "2026-03-10T10:26:14.433Z"
+    },
+    {
+      "severity": "High-Priority",
+      "title": "FRQ submission not reached after 10 navigation iterations",
+      "what": "FRQ section has 7 navigation items. After 10 loop iterations (completing items Q11 of 7), Submit Test button was never found enabled. The script exhausted its iteration budget.",
+      "expected": "After completing all FRQ sub-questions, Submit Test button should appear enabled",
+      "evidence": "Screenshots v5_03_frq_q*.png — last FRQ item reached: Q11 of 7. FRQ Review → button: visible but cycling through sub-questions did not produce Submit Test.",
+      "time": "2026-03-10T10:26:14.434Z"
+    },
+    {
+      "severity": "Blocker",
+      "title": "Report card page not reached after FRQ completion attempt",
+      "what": "After FRQ navigation iterations (submitReached=false), URL is http://localhost:5173/ap/test/test_micro_full_1. Expected /ap/results/:id. Page text: ",
+      "expected": "After Submit Test, app should navigate to /ap/results/:resultId showing the complete report card",
+      "evidence": "Screenshot v5_07_results.png"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "msg": "code.startsWith is not a function",
+      "type": "pageerror"
+    },
+    {
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "msg": "code.startsWith is not a function",
+      "type": "pageerror"
+    },
+    {
+      "url": "http://localhost:5173/",
+      "msg": "[2026-03-10T10:23:16.191Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend."
+    }
+  ],
+  "trackedAnswers": {
+    "11": {
+      "initial": "C",
+      "final": "C",
+      "flagged": true,
+      "finalAfterReview": "D",
+      "changedInReview": true
+    },
+    "12": {
+      "initial": "D",
+      "final": "D",
+      "flagged": false
+    },
+    "13": {
+      "initial": "A",
+      "final": "A",
+      "flagged": false
+    },
+    "14": {
+      "initial": "B",
+      "final": "B",
+      "flagged": true
+    },
+    "15": {
+      "initial": "C",
+      "final": "C",
+      "flagged": false
+    }
+  },
+  "reportCard": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "isResultsPage": false,
+    "hasHeading": false,
+    "hasScore": false,
+    "hasMCQTable": false,
+    "hasAPScore": false,
+    "hasDomain": false,
+    "hasFlaggedSection": false,
+    "submitReached": false,
+    "textSnippet": ""
+  },
+  "simulationNotes": [
+    "Test page state: instruction=true, inTest=false, frq=false, completed=false",
+    "Clicked: \"Resume Test\" (session resume/fresh start)",
+    "Session resume detected — student4 has existing IN_PROGRESS session from previous run",
+    "MCQ start position: Q11 of 15"
+  ],
+  "completedAt": "2026-03-10T10:26:14.434Z",
+  "summary": {
+    "questionsAnswered": 5,
+    "flagsPlaced": 2,
+    "answersChanged": 1,
+    "totalFindings": 5,
+    "consoleErrors": 2,
+    "steps": {
+      "total": 12,
+      "pass": 11,
+      "fail": 0,
+      "partial": 1,
+      "skip": 0
+    },
+    "finalUrl": "http://localhost:5173/ap/test/test_micro_full_1",
+    "reportCardLoaded": false,
+    "consoleErrorCount": 3,
+    "finalStatus": "PARTIAL"
+  },
+  "finalStatus": "PARTIAL"
+}

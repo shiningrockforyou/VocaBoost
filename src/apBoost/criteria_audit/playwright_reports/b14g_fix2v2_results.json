@@ -1,0 +1,127 @@
+{
+  "findings": {
+    "fix2": {
+      "result": "FAIL",
+      "scenario": "Close tab while offline with pending IDB items, open new tab, check if items preserved",
+      "notes": [
+        "Session: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303",
+        "Q15=A answered online (flushed). Q15=B answered offline.",
+        "IDB pending when offline: 1",
+        "Answer shown while offline: B",
+        "IDB in new page (after going online): 2 pending items",
+        "Answer shown in new page: A",
+        "Firestore access: no-direct-access",
+        "FAIL: Q15=A shown — offline answer B was LOST"
+      ]
+    },
+    "consoleErrors": [
+      {
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "text": "Failed to load resource: the server responded with a status of 404 ()"
+      }
+    ]
+  },
+  "consoleLog": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 386a9f79-f13d-4824-acde-dd9c07f688ee}"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 386a9f79-f13d-4824-acde-dd9c07f688ee}"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773251036964-gat5gllhrs, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773251036964, action: ANSWE"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773251041334-370kpoxu8mv, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773251041334, action: ANSW"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: d68a6a5c-c405-43b2-bf5e-7602a7fbc75a}"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: d68a6a5c-c405-43b2-bf5e-7602a7fbc75a}"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    }
+  ]
+}

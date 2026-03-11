@@ -1,0 +1,257 @@
+{
+  "steps": [
+    {
+      "step": "S01_dashboard",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "step": "S02_instruction_screen",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "S03_started",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "S07_navigator_opened"
+    },
+    {
+      "step": "S09_browser_back",
+      "dialogFired": false,
+      "dialogType": null,
+      "dialogMessage": null,
+      "urlBefore": "http://localhost:5173/ap/test/test_micro_full_1",
+      "urlAfter": "http://localhost:5173/ap",
+      "stayedOnTest": false
+    },
+    {
+      "step": "S10_resumed_for_frq",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "S15_viewport_375x350"
+    },
+    {
+      "step": "S18_viewport_restored_375x667"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AA hamburger"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "Go to Dashboard"
+    },
+    {
+      "step": "S19_picked_topic",
+      "text": "AP Calculus AB Practice ExamNot StartedAP Calculus"
+    },
+    {
+      "step": "S19_stuck",
+      "frqIdx": 0,
+      "url": "http://localhost:5173/ap/test/test_calc_ab_full_1"
+    },
+    {
+      "step": "S20_final",
+      "url": "http://localhost:5173/ap/test/test_calc_ab_full_1",
+      "success": false
+    }
+  ],
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "findings": [],
+  "dashboardTouchTargets": [
+    {
+      "tag": "A",
+      "text": "AP Practice",
+      "w": 276,
+      "h": 56,
+      "fail44": false
+    },
+    {
+      "tag": "A",
+      "text": "VocaBoost",
+      "w": 67,
+      "h": 20,
+      "fail44": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "AP Calculus AB Practice ExamNot StartedAP Calculus",
+      "w": 343,
+      "h": 149,
+      "fail44": false
+    },
+    {
+      "tag": "BUTTON",
+      "text": "AP Macroeconomics Practice ExamNot StartedAP Macro",
+      "w": 343,
+      "h": 149,
+      "fail44": false
+    },
+    {
+      "tag": "BUTTON",
+      "text": "AP Microeconomics Practice ExamNot StartedAP Micro",
+      "w": 343,
+      "h": 149,
+      "fail44": false
+    }
+  ],
+  "dashboardSmallTargets": [
+    {
+      "tag": "A",
+      "text": "VocaBoost",
+      "w": 67,
+      "h": 20,
+      "fail44": true
+    }
+  ],
+  "instructionButtons": [
+    {
+      "text": "Cancel",
+      "w": 295,
+      "h": 41,
+      "fail44": false
+    },
+    {
+      "text": "Resume Test",
+      "w": 295,
+      "h": 40,
+      "fail44": false
+    }
+  ],
+  "instructionH": [
+    "AP Microeconomics Practice Exam"
+  ],
+  "sectionType": {
+    "isFRQ": true,
+    "isMCQ": true
+  },
+  "hasResumeBtn": true,
+  "hasBeginBtn": false,
+  "resumeBtnSize": {
+    "w": 295,
+    "h": 40,
+    "fail44": true
+  },
+  "sessionView": {
+    "isMCQ": true,
+    "isFRQChoice": false,
+    "isFRQ": false,
+    "url": "http://localhost:5173/ap/test/test_micro_full_1"
+  },
+  "mcqAnswerButtons": [
+    {
+      "text": "AConstant opportunity costs",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "BIncreasing opportunity costs",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "CDecreasing marginal returns",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "DEconomies of scale",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    }
+  ],
+  "answerAAfterClick": {
+    "classes": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all text-left\n                bg-brand-primary border-brand-primary text-white\n                \n                cursor-pointer\n              ",
+    "ariaChecked": null,
+    "hasBrand": true,
+    "hasSelected": false
+  },
+  "answerChangeTest": {
+    "aDeselected": false,
+    "bSelected": true,
+    "aClassFinal": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all text-left\n                bg-surface border-border-d",
+    "bClassFinal": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all text-left\n                bg-brand-primary border-br"
+  },
+  "navigatorToggleFound": true,
+  "navigatorToggle": {
+    "w": 121,
+    "h": 20,
+    "fail44": true
+  },
+  "beforeunloadTest": {
+    "dialogFired": false,
+    "dialogType": null,
+    "dialogMessage": null,
+    "urlBefore": "http://localhost:5173/ap/test/test_micro_full_1",
+    "urlAfter": "http://localhost:5173/ap",
+    "stayedOnTest": false
+  },
+  "onFRQInputScreen": false,
+  "frqAtSmallViewport": {
+    "textareaExists": false
+  },
+  "finalUrl": "http://localhost:5173/ap/test/test_calc_ab_full_1",
+  "submissionSuccess": false,
+  "summary": {
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  }
+}

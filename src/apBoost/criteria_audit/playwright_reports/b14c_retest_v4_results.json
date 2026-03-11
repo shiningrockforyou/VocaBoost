@@ -1,0 +1,1254 @@
+{
+  "scenarioId": "B14C-retest-v4",
+  "startedAt": "2026-03-11T16:12:18.514Z",
+  "steps": [
+    {
+      "time": "2026-03-11T16:12:18.864Z",
+      "msg": "STEP 1: Login"
+    },
+    {
+      "time": "2026-03-11T16:12:19.588Z",
+      "msg": "Screenshot: 01_login.png"
+    },
+    {
+      "time": "2026-03-11T16:12:24.610Z",
+      "msg": "Post-login URL: http://localhost:5173/"
+    },
+    {
+      "time": "2026-03-11T16:12:24.722Z",
+      "msg": "Screenshot: 01_after_login.png"
+    },
+    {
+      "time": "2026-03-11T16:12:24.722Z",
+      "msg": "Redirected to / — known bug B4-006. Navigating to /ap/test manually."
+    },
+    {
+      "time": "2026-03-11T16:12:24.722Z",
+      "msg": "STEP 2: Navigate to Micro test (force fresh)"
+    },
+    {
+      "time": "2026-03-11T16:12:30.072Z",
+      "msg": "Screenshot: 02_test_page.png"
+    },
+    {
+      "time": "2026-03-11T16:12:30.077Z",
+      "msg": "Page state: hasBegin=true, hasQuestion=false"
+    },
+    {
+      "time": "2026-03-11T16:12:30.081Z",
+      "msg": "DuplicateTabModal detected — clicking Use This Tab"
+    },
+    {
+      "time": "2026-03-11T16:12:32.222Z",
+      "msg": "Screenshot: 02_after_take_control.png"
+    },
+    {
+      "time": "2026-03-11T16:12:32.222Z",
+      "msg": "Clicking Begin Test"
+    },
+    {
+      "time": "2026-03-11T16:12:35.299Z",
+      "msg": "Screenshot: 02_after_begin.png"
+    },
+    {
+      "time": "2026-03-11T16:12:35.302Z",
+      "msg": "Starting question: Q15"
+    },
+    {
+      "time": "2026-03-11T16:12:35.302Z",
+      "msg": "Not on Q1 — navigating to Q1 via navigator"
+    },
+    {
+      "time": "2026-03-11T16:12:35.302Z",
+      "msg": "Navigating to Q1"
+    },
+    {
+      "time": "2026-03-11T16:12:36.433Z",
+      "msg": "Screenshot: nav_for_Q1.png"
+    },
+    {
+      "time": "2026-03-11T16:12:36.445Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"1\"}"
+    },
+    {
+      "time": "2026-03-11T16:12:37.063Z",
+      "msg": "  Now on Q1 (expected Q1)"
+    },
+    {
+      "time": "2026-03-11T16:12:37.063Z",
+      "msg": "STEP 3: Answer Q1-Q15 in order"
+    },
+    {
+      "time": "2026-03-11T16:12:37.067Z",
+      "msg": "Q1: currently at Q1"
+    },
+    {
+      "time": "2026-03-11T16:12:37.119Z",
+      "msg": "Screenshot: Q01_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:37.539Z",
+      "msg": "  Q1: plan=A, before=A, after=A"
+    },
+    {
+      "time": "2026-03-11T16:12:37.582Z",
+      "msg": "Screenshot: Q01_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:38.053Z",
+      "msg": "Q2: currently at Q2"
+    },
+    {
+      "time": "2026-03-11T16:12:38.098Z",
+      "msg": "Screenshot: Q02_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:38.518Z",
+      "msg": "  Q2: plan=B, before=A, after=B"
+    },
+    {
+      "time": "2026-03-11T16:12:38.565Z",
+      "msg": "Screenshot: Q02_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:39.018Z",
+      "msg": "Q3: currently at Q3"
+    },
+    {
+      "time": "2026-03-11T16:12:39.069Z",
+      "msg": "Screenshot: Q03_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:39.496Z",
+      "msg": "  Q3: plan=C, before=A, after=C"
+    },
+    {
+      "time": "2026-03-11T16:12:39.547Z",
+      "msg": "Screenshot: Q03_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:40.008Z",
+      "msg": "Q4: currently at Q4"
+    },
+    {
+      "time": "2026-03-11T16:12:40.062Z",
+      "msg": "Screenshot: Q04_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:40.478Z",
+      "msg": "  Q4: plan=A, before=C, after=A"
+    },
+    {
+      "time": "2026-03-11T16:12:40.535Z",
+      "msg": "Screenshot: Q04_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:41.009Z",
+      "msg": "Q5: currently at Q5"
+    },
+    {
+      "time": "2026-03-11T16:12:41.063Z",
+      "msg": "Screenshot: Q05_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:41.491Z",
+      "msg": "  Q5: plan=D, before=A, after=D"
+    },
+    {
+      "time": "2026-03-11T16:12:41.548Z",
+      "msg": "Screenshot: Q05_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:42.004Z",
+      "msg": "Q6: currently at Q6"
+    },
+    {
+      "time": "2026-03-11T16:12:42.048Z",
+      "msg": "Screenshot: Q06_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:42.462Z",
+      "msg": "  Q6: plan=B, before=D, after=B"
+    },
+    {
+      "time": "2026-03-11T16:12:42.514Z",
+      "msg": "Screenshot: Q06_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:42.961Z",
+      "msg": "Q7: currently at Q7"
+    },
+    {
+      "time": "2026-03-11T16:12:43.014Z",
+      "msg": "Screenshot: Q07_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:43.428Z",
+      "msg": "  Q7: plan=A, before=B, after=A"
+    },
+    {
+      "time": "2026-03-11T16:12:43.481Z",
+      "msg": "Screenshot: Q07_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:43.930Z",
+      "msg": "Q8: currently at Q8"
+    },
+    {
+      "time": "2026-03-11T16:12:43.982Z",
+      "msg": "Screenshot: Q08_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:44.395Z",
+      "msg": "  Q8: plan=C, before=A, after=C"
+    },
+    {
+      "time": "2026-03-11T16:12:44.446Z",
+      "msg": "Screenshot: Q08_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:44.894Z",
+      "msg": "Q9: currently at Q9"
+    },
+    {
+      "time": "2026-03-11T16:12:44.950Z",
+      "msg": "Screenshot: Q09_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:45.375Z",
+      "msg": "  Q9: plan=B, before=C, after=B"
+    },
+    {
+      "time": "2026-03-11T16:12:45.429Z",
+      "msg": "Screenshot: Q09_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:45.888Z",
+      "msg": "Q10: currently at Q10"
+    },
+    {
+      "time": "2026-03-11T16:12:45.930Z",
+      "msg": "Screenshot: Q10_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:46.354Z",
+      "msg": "  Q10: plan=D, before=B, after=D"
+    },
+    {
+      "time": "2026-03-11T16:12:46.396Z",
+      "msg": "Screenshot: Q10_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:46.855Z",
+      "msg": "Q11: currently at Q11"
+    },
+    {
+      "time": "2026-03-11T16:12:46.915Z",
+      "msg": "Screenshot: Q11_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:47.335Z",
+      "msg": "  Q11: plan=A, before=B, after=A"
+    },
+    {
+      "time": "2026-03-11T16:12:47.380Z",
+      "msg": "Screenshot: Q11_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:47.835Z",
+      "msg": "Q12: currently at Q12"
+    },
+    {
+      "time": "2026-03-11T16:12:47.879Z",
+      "msg": "Screenshot: Q12_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:48.301Z",
+      "msg": "  Q12: plan=C, before=A, after=C"
+    },
+    {
+      "time": "2026-03-11T16:12:48.344Z",
+      "msg": "Screenshot: Q12_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:48.800Z",
+      "msg": "Q13: currently at Q13"
+    },
+    {
+      "time": "2026-03-11T16:12:48.848Z",
+      "msg": "Screenshot: Q13_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:49.265Z",
+      "msg": "  Q13: plan=B, before=C, after=B"
+    },
+    {
+      "time": "2026-03-11T16:12:49.318Z",
+      "msg": "Screenshot: Q13_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:49.778Z",
+      "msg": "Q14: currently at Q14"
+    },
+    {
+      "time": "2026-03-11T16:12:49.830Z",
+      "msg": "Screenshot: Q14_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:50.244Z",
+      "msg": "  Q14: plan=D, before=B, after=D"
+    },
+    {
+      "time": "2026-03-11T16:12:50.297Z",
+      "msg": "Screenshot: Q14_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:50.757Z",
+      "msg": "Q15: currently at Q15"
+    },
+    {
+      "time": "2026-03-11T16:12:50.812Z",
+      "msg": "Screenshot: Q15_before.png"
+    },
+    {
+      "time": "2026-03-11T16:12:51.224Z",
+      "msg": "  Q15: plan=A, before=C, after=A"
+    },
+    {
+      "time": "2026-03-11T16:12:51.284Z",
+      "msg": "Screenshot: Q15_after.png"
+    },
+    {
+      "time": "2026-03-11T16:12:51.284Z",
+      "msg": "Q1-Q15 answered"
+    },
+    {
+      "time": "2026-03-11T16:12:51.284Z",
+      "msg": "Key answers — Q2:B Q3:C Q7:A Q11:A Q14:D"
+    },
+    {
+      "time": "2026-03-11T16:12:51.284Z",
+      "msg": "STEP 4: Navigate to Q3, change C→A"
+    },
+    {
+      "time": "2026-03-11T16:12:51.284Z",
+      "msg": "Navigating to Q3"
+    },
+    {
+      "time": "2026-03-11T16:12:52.399Z",
+      "msg": "Screenshot: nav_for_Q3.png"
+    },
+    {
+      "time": "2026-03-11T16:12:52.406Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"3\"}"
+    },
+    {
+      "time": "2026-03-11T16:12:53.012Z",
+      "msg": "  Now on Q3 (expected Q3)"
+    },
+    {
+      "time": "2026-03-11T16:12:53.053Z",
+      "msg": "Screenshot: Q03_before_change.png"
+    },
+    {
+      "time": "2026-03-11T16:12:53.055Z",
+      "msg": "Q3 before: C (expected C)"
+    },
+    {
+      "time": "2026-03-11T16:12:53.895Z",
+      "msg": "Q3 after change: A (expected A)"
+    },
+    {
+      "time": "2026-03-11T16:12:53.937Z",
+      "msg": "Screenshot: Q03_after_change.png"
+    },
+    {
+      "time": "2026-03-11T16:12:53.937Z",
+      "msg": "STEP 5: Navigate to Q11, change A→B"
+    },
+    {
+      "time": "2026-03-11T16:12:53.937Z",
+      "msg": "Navigating to Q11"
+    },
+    {
+      "time": "2026-03-11T16:12:55.050Z",
+      "msg": "Screenshot: nav_for_Q11.png"
+    },
+    {
+      "time": "2026-03-11T16:12:55.057Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"11\"}"
+    },
+    {
+      "time": "2026-03-11T16:12:55.663Z",
+      "msg": "  Now on Q11 (expected Q11)"
+    },
+    {
+      "time": "2026-03-11T16:12:55.701Z",
+      "msg": "Screenshot: Q11_before_change.png"
+    },
+    {
+      "time": "2026-03-11T16:12:55.704Z",
+      "msg": "Q11 before: A (expected A)"
+    },
+    {
+      "time": "2026-03-11T16:12:56.524Z",
+      "msg": "Q11 after change: B (expected B)"
+    },
+    {
+      "time": "2026-03-11T16:12:56.578Z",
+      "msg": "Screenshot: Q11_after_change.png"
+    },
+    {
+      "time": "2026-03-11T16:12:56.578Z",
+      "msg": "STEP 6: Navigate to Q7, observe only"
+    },
+    {
+      "time": "2026-03-11T16:12:56.578Z",
+      "msg": "Navigating to Q7"
+    },
+    {
+      "time": "2026-03-11T16:12:57.689Z",
+      "msg": "Screenshot: nav_for_Q7.png"
+    },
+    {
+      "time": "2026-03-11T16:12:57.697Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"🚩\"}"
+    },
+    {
+      "time": "2026-03-11T16:12:58.310Z",
+      "msg": "  Now on Q7 (expected Q7)"
+    },
+    {
+      "time": "2026-03-11T16:12:58.863Z",
+      "msg": "Screenshot: Q07_visit_only.png"
+    },
+    {
+      "time": "2026-03-11T16:12:58.867Z",
+      "msg": "On Q7, Q7 state: A (expected A=A)"
+    },
+    {
+      "time": "2026-03-11T16:12:58.868Z",
+      "msg": "STEP 7: Open Review screen (visit 1)"
+    },
+    {
+      "time": "2026-03-11T16:12:58.868Z",
+      "msg": "Navigating to Q15"
+    },
+    {
+      "time": "2026-03-11T16:12:59.953Z",
+      "msg": "Screenshot: nav_for_Q15.png"
+    },
+    {
+      "time": "2026-03-11T16:12:59.961Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"15\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:00.578Z",
+      "msg": "  Now on Q15 (expected Q15)"
+    },
+    {
+      "time": "2026-03-11T16:13:01.942Z",
+      "msg": "Clicked Review →"
+    },
+    {
+      "time": "2026-03-11T16:13:01.942Z",
+      "msg": "Review opened: true"
+    },
+    {
+      "time": "2026-03-11T16:13:01.986Z",
+      "msg": "Screenshot: REVIEW_01.png"
+    },
+    {
+      "time": "2026-03-11T16:13:01.992Z",
+      "msg": "On review: true"
+    },
+    {
+      "time": "2026-03-11T16:13:01.992Z",
+      "msg": "Review data 1: {\"heading\":\"Review Your Answers\",\"answered\":15,\"total\":15,\"flagged\":3,\"gridAnswered\":15,\"gridTotal\":15,\"hasBadges\":false,\"summarySnippet\":\"Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\\n    \\n  \\n\\n\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:01.992Z",
+      "msg": "STEP 8: Return to Questions → Q14 → change D→C"
+    },
+    {
+      "time": "2026-03-11T16:13:03.534Z",
+      "msg": "Clicked Return to Questions"
+    },
+    {
+      "time": "2026-03-11T16:13:03.578Z",
+      "msg": "Screenshot: RETURN_01.png"
+    },
+    {
+      "time": "2026-03-11T16:13:03.581Z",
+      "msg": "B14C-001 Return 1: landed on Q15"
+    },
+    {
+      "time": "2026-03-11T16:13:03.581Z",
+      "msg": "Navigating to Q14"
+    },
+    {
+      "time": "2026-03-11T16:13:04.684Z",
+      "msg": "Screenshot: nav_for_Q14.png"
+    },
+    {
+      "time": "2026-03-11T16:13:04.691Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"🚩\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:05.296Z",
+      "msg": "  Now on Q14 (expected Q14)"
+    },
+    {
+      "time": "2026-03-11T16:13:05.334Z",
+      "msg": "Screenshot: Q14_before_change.png"
+    },
+    {
+      "time": "2026-03-11T16:13:05.339Z",
+      "msg": "On Q14, Q14 before: D (expected D=D)"
+    },
+    {
+      "time": "2026-03-11T16:13:06.164Z",
+      "msg": "Q14 after change: C (expected C)"
+    },
+    {
+      "time": "2026-03-11T16:13:06.211Z",
+      "msg": "Screenshot: Q14_after_change.png"
+    },
+    {
+      "time": "2026-03-11T16:13:06.211Z",
+      "msg": "STEP 9: Open Review screen (visit 2)"
+    },
+    {
+      "time": "2026-03-11T16:13:06.212Z",
+      "msg": "Navigating to Q15"
+    },
+    {
+      "time": "2026-03-11T16:13:07.315Z",
+      "msg": "Screenshot: nav_for_Q15.png"
+    },
+    {
+      "time": "2026-03-11T16:13:07.322Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"15\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:07.927Z",
+      "msg": "  Now on Q15 (expected Q15)"
+    },
+    {
+      "time": "2026-03-11T16:13:09.276Z",
+      "msg": "Clicked Review →"
+    },
+    {
+      "time": "2026-03-11T16:13:09.277Z",
+      "msg": "Review 2 opened: true"
+    },
+    {
+      "time": "2026-03-11T16:13:09.321Z",
+      "msg": "Screenshot: REVIEW_02.png"
+    },
+    {
+      "time": "2026-03-11T16:13:09.328Z",
+      "msg": "On review: true"
+    },
+    {
+      "time": "2026-03-11T16:13:09.328Z",
+      "msg": "Review data 2: {\"heading\":\"Review Your Answers\",\"answered\":15,\"total\":15,\"flagged\":3,\"gridAnswered\":15,\"gridTotal\":15,\"hasBadges\":false,\"summarySnippet\":\"Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\\n    \\n  \\n\\n\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:09.328Z",
+      "msg": "STEP 10: Return to Questions (2nd) → Q2 → observe"
+    },
+    {
+      "time": "2026-03-11T16:13:10.882Z",
+      "msg": "Clicked Return to Questions (2nd)"
+    },
+    {
+      "time": "2026-03-11T16:13:10.927Z",
+      "msg": "Screenshot: RETURN_02.png"
+    },
+    {
+      "time": "2026-03-11T16:13:10.931Z",
+      "msg": "B14C-001 Return 2: landed on Q15"
+    },
+    {
+      "time": "2026-03-11T16:13:10.931Z",
+      "msg": "Navigating to Q2"
+    },
+    {
+      "time": "2026-03-11T16:13:12.032Z",
+      "msg": "Screenshot: nav_for_Q2.png"
+    },
+    {
+      "time": "2026-03-11T16:13:12.039Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"🚩\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:12.645Z",
+      "msg": "  Now on Q2 (expected Q2)"
+    },
+    {
+      "time": "2026-03-11T16:13:13.200Z",
+      "msg": "Screenshot: Q02_visit_only.png"
+    },
+    {
+      "time": "2026-03-11T16:13:13.204Z",
+      "msg": "On Q2, Q2 state: B (expected B=B, should not have changed)"
+    },
+    {
+      "time": "2026-03-11T16:13:13.204Z",
+      "msg": "STEP 11: Open Review screen (visit 3)"
+    },
+    {
+      "time": "2026-03-11T16:13:13.204Z",
+      "msg": "Navigating to Q15"
+    },
+    {
+      "time": "2026-03-11T16:13:14.303Z",
+      "msg": "Screenshot: nav_for_Q15.png"
+    },
+    {
+      "time": "2026-03-11T16:13:14.312Z",
+      "msg": "  Nav click result: {\"ok\":true,\"total\":15,\"clickedText\":\"15\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:14.928Z",
+      "msg": "  Now on Q15 (expected Q15)"
+    },
+    {
+      "time": "2026-03-11T16:13:16.276Z",
+      "msg": "Clicked Review →"
+    },
+    {
+      "time": "2026-03-11T16:13:16.276Z",
+      "msg": "Review 3 opened: true"
+    },
+    {
+      "time": "2026-03-11T16:13:16.315Z",
+      "msg": "Screenshot: REVIEW_03.png"
+    },
+    {
+      "time": "2026-03-11T16:13:16.319Z",
+      "msg": "On review: true"
+    },
+    {
+      "time": "2026-03-11T16:13:16.319Z",
+      "msg": "Review data 3: {\"heading\":\"Review Your Answers\",\"answered\":15,\"total\":15,\"flagged\":3,\"gridAnswered\":15,\"gridTotal\":15,\"hasBadges\":false,\"summarySnippet\":\"Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\\n    \\n  \\n\\n\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:16.319Z",
+      "msg": "STEP 12: Submit Test"
+    },
+    {
+      "time": "2026-03-11T16:13:16.325Z",
+      "msg": "Submit button text: \"Submit Section\""
+    },
+    {
+      "time": "2026-03-11T16:13:19.430Z",
+      "msg": "Screenshot: AFTER_SUBMIT.png"
+    },
+    {
+      "time": "2026-03-11T16:13:19.430Z",
+      "msg": "After submit: http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "time": "2026-03-11T16:13:19.433Z",
+      "msg": "FRQ choice screen: true, Direct results: false"
+    },
+    {
+      "time": "2026-03-11T16:13:19.433Z",
+      "msg": "MCQ submitted — handling FRQ choice screen"
+    },
+    {
+      "time": "2026-03-11T16:13:19.481Z",
+      "msg": "Screenshot: FRQ_CHOICE.png"
+    },
+    {
+      "time": "2026-03-11T16:13:20.325Z",
+      "msg": "Selected \"Type Your Answers\" card"
+    },
+    {
+      "time": "2026-03-11T16:13:22.389Z",
+      "msg": "Clicked Confirm & Continue"
+    },
+    {
+      "time": "2026-03-11T16:13:22.476Z",
+      "msg": "Screenshot: FRQ_STARTED.png"
+    },
+    {
+      "time": "2026-03-11T16:13:31.799Z",
+      "msg": "Screenshot: FRQ_REVIEW_6.png"
+    },
+    {
+      "time": "2026-03-11T16:13:36.842Z",
+      "msg": "Submitted test from FRQ review"
+    },
+    {
+      "time": "2026-03-11T16:13:41.043Z",
+      "msg": "Screenshot: RESULTS_FINAL.png"
+    },
+    {
+      "time": "2026-03-11T16:13:41.043Z",
+      "msg": "Final URL: http://localhost:5173/ap/results/4Bt1gbCpgPQvMovo1M0kXvJMbzi2_test_micro_full_1_1"
+    },
+    {
+      "time": "2026-03-11T16:13:41.043Z",
+      "msg": "STEP 13: Verifying results page"
+    },
+    {
+      "time": "2026-03-11T16:13:41.224Z",
+      "msg": "Screenshot: RESULTS_PAGE.png"
+    },
+    {
+      "time": "2026-03-11T16:13:41.229Z",
+      "msg": "Report heading: SCORE REPORT"
+    },
+    {
+      "time": "2026-03-11T16:13:41.229Z",
+      "msg": "MCQ score: 3/12"
+    },
+    {
+      "time": "2026-03-11T16:13:41.229Z",
+      "msg": "Question rows: [{\"q\":1,\"cells\":[\"1\",\"Unit 1: Basic Economic Concepts\",\"Scarcity & Opportunity Cost\",\"B\",\"A\",\"✗\"]},{\"q\":2,\"cells\":[\"2\",\"Unit 1: Basic Economic Concepts\",\"Comparative Advantage\",\"B\",\"B\",\"✓\"]},{\"q\":3,\"cells\":[\"3\",\"Unit 2: Supply and Demand\",\"Demand Shifters\",\"B\",\"A\",\"✗\"]},{\"q\":4,\"cells\":[\"4\",\"Unit 2: Supply and Demand\",\"Elasticity\",\"A\",\"A\",\"✓\"]},{\"q\":5,\"cells\":[\"5\",\"Unit 2: Supply and Demand\",\"Consumer & Producer Surplus\",\"A\",\"D\",\"✗\"]}]"
+    },
+    {
+      "time": "2026-03-11T16:13:41.229Z",
+      "msg": "Expected report answers: {\"2\":\"B\",\"3\":\"A\",\"7\":\"A\",\"11\":\"B\",\"14\":\"C\"}"
+    },
+    {
+      "time": "2026-03-11T16:13:41.229Z",
+      "msg": "B14C-001: Return 1 → Q15, Return 2 → Q15"
+    },
+    {
+      "time": "2026-03-11T16:13:41.230Z",
+      "msg": "Review 1: answered=15/15, gridAnswered=15/15, allAnswered=true"
+    },
+    {
+      "time": "2026-03-11T16:13:41.230Z",
+      "msg": "Review 2: answered=15/15, gridAnswered=15/15, allAnswered=true"
+    },
+    {
+      "time": "2026-03-11T16:13:41.230Z",
+      "msg": "Review 3: answered=15/15, gridAnswered=15/15, allAnswered=true"
+    }
+  ],
+  "answers": {
+    "1": {
+      "planned": "A",
+      "detected": "A"
+    },
+    "2": {
+      "planned": "B",
+      "detected": "B",
+      "visitedState": "B",
+      "visitedOnQ": 2
+    },
+    "3": {
+      "planned": "C",
+      "detected": "C",
+      "changed": "A"
+    },
+    "4": {
+      "planned": "A",
+      "detected": "A"
+    },
+    "5": {
+      "planned": "D",
+      "detected": "D"
+    },
+    "6": {
+      "planned": "B",
+      "detected": "B"
+    },
+    "7": {
+      "planned": "A",
+      "detected": "A",
+      "visitedState": "A",
+      "visitedOnQ": 7
+    },
+    "8": {
+      "planned": "C",
+      "detected": "C"
+    },
+    "9": {
+      "planned": "B",
+      "detected": "B"
+    },
+    "10": {
+      "planned": "D",
+      "detected": "D"
+    },
+    "11": {
+      "planned": "A",
+      "detected": "A",
+      "changed": "B"
+    },
+    "12": {
+      "planned": "C",
+      "detected": "C"
+    },
+    "13": {
+      "planned": "B",
+      "detected": "B"
+    },
+    "14": {
+      "planned": "D",
+      "detected": "D",
+      "changed": "C"
+    },
+    "15": {
+      "planned": "A",
+      "detected": "A"
+    }
+  },
+  "answerChanges": [
+    {
+      "question": 3,
+      "from": "C",
+      "to": "A",
+      "expectedTo": "A"
+    },
+    {
+      "question": 11,
+      "from": "A",
+      "to": "B",
+      "expectedTo": "B"
+    },
+    {
+      "question": 14,
+      "from": "D",
+      "to": "C",
+      "expectedTo": "C"
+    }
+  ],
+  "reviewVisits": [
+    {
+      "visitNumber": 1,
+      "onReview": true,
+      "data": {
+        "heading": "Review Your Answers",
+        "answered": 15,
+        "total": 15,
+        "flagged": 3,
+        "gridAnswered": 15,
+        "gridTotal": 15,
+        "hasBadges": false,
+        "summarySnippet": "Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\n    \n  \n\n"
+      },
+      "allAnswered": true
+    },
+    {
+      "visitNumber": 2,
+      "onReview": true,
+      "data": {
+        "heading": "Review Your Answers",
+        "answered": 15,
+        "total": 15,
+        "flagged": 3,
+        "gridAnswered": 15,
+        "gridTotal": 15,
+        "hasBadges": false,
+        "summarySnippet": "Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\n    \n  \n\n"
+      },
+      "allAnswered": true
+    },
+    {
+      "visitNumber": 3,
+      "onReview": true,
+      "data": {
+        "heading": "Review Your Answers",
+        "answered": 15,
+        "total": 15,
+        "flagged": 3,
+        "gridAnswered": 15,
+        "gridTotal": 15,
+        "hasBadges": false,
+        "summarySnippet": "Summary• Answered: 15/15• Flagged: 3 (Q2, Q7, Q14)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\n    \n  \n\n"
+      },
+      "allAnswered": true
+    }
+  ],
+  "b14c001Findings": [
+    {
+      "returnNumber": 1,
+      "landedOnQ": 15,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "note": "After first Return to Questions from Review screen"
+    },
+    {
+      "returnNumber": 2,
+      "landedOnQ": 15,
+      "note": "After second Return to Questions from Review screen"
+    }
+  ],
+  "b14c002Finding": {
+    "hasBadges": false,
+    "detail": "Review grid shows only question numbers (1-15) or 🚩 flag emoji — no letter badges for selected answers"
+  },
+  "findings": [
+    {
+      "id": "B4-006-reconfirmed",
+      "detail": "Login redirected to http://localhost:5173/"
+    },
+    {
+      "id": "B14C-DUP-MODAL-ON-LOAD",
+      "detail": "DuplicateTabModal appeared when loading test page (from stale prior session token)"
+    }
+  ],
+  "consoleErrors": [],
+  "tdzCrash": false,
+  "sectionSubmitResult": {
+    "onFRQChoice": true,
+    "onResultsDirect": false,
+    "url": "http://localhost:5173/ap/test/test_micro_full_1"
+  },
+  "submittedSuccessfully": true,
+  "finalURL": "http://localhost:5173/ap/results/4Bt1gbCpgPQvMovo1M0kXvJMbzi2_test_micro_full_1_1",
+  "reportData": {
+    "heading": "SCORE REPORT",
+    "mcqScore": "3/12",
+    "questionRows": [
+      {
+        "q": 1,
+        "cells": [
+          "1",
+          "Unit 1: Basic Economic Concepts",
+          "Scarcity & Opportunity Cost",
+          "B",
+          "A",
+          "✗"
+        ]
+      },
+      {
+        "q": 2,
+        "cells": [
+          "2",
+          "Unit 1: Basic Economic Concepts",
+          "Comparative Advantage",
+          "B",
+          "B",
+          "✓"
+        ]
+      },
+      {
+        "q": 3,
+        "cells": [
+          "3",
+          "Unit 2: Supply and Demand",
+          "Demand Shifters",
+          "B",
+          "A",
+          "✗"
+        ]
+      },
+      {
+        "q": 4,
+        "cells": [
+          "4",
+          "Unit 2: Supply and Demand",
+          "Elasticity",
+          "A",
+          "A",
+          "✓"
+        ]
+      },
+      {
+        "q": 5,
+        "cells": [
+          "5",
+          "Unit 2: Supply and Demand",
+          "Consumer & Producer Surplus",
+          "A",
+          "D",
+          "✗"
+        ]
+      },
+      {
+        "q": 6,
+        "cells": [
+          "6",
+          "Unit 3: Production & Cost",
+          "Marginal Product",
+          "B",
+          "B",
+          "✓"
+        ]
+      },
+      {
+        "q": 7,
+        "cells": [
+          "7",
+          "Unit 3: Production & Cost",
+          "Perfect Competition",
+          "B",
+          "A",
+          "✗"
+        ]
+      },
+      {
+        "q": 8,
+        "cells": [
+          "8",
+          "Unit 3: Production & Cost",
+          "Shutdown Rule",
+          "B",
+          "C",
+          "✗"
+        ]
+      },
+      {
+        "q": 9,
+        "cells": [
+          "9",
+          "Unit 4: Imperfect Competition",
+          "Monopoly",
+          "B",
+          "B",
+          "✓"
+        ]
+      },
+      {
+        "q": 10,
+        "cells": [
+          "10",
+          "Unit 4: Imperfect Competition",
+          "Monopolistic Competition",
+          "B",
+          "D",
+          "✗"
+        ]
+      },
+      {
+        "q": 11,
+        "cells": [
+          "11",
+          "Unit 4: Imperfect Competition",
+          "Game Theory",
+          "B",
+          "B",
+          "✓"
+        ]
+      },
+      {
+        "q": 12,
+        "cells": [
+          "12",
+          "Unit 5: Factor Markets",
+          "Labor Market",
+          "A",
+          "C",
+          "✗"
+        ]
+      },
+      {
+        "q": 13,
+        "cells": [
+          "13",
+          "Unit 5: Factor Markets",
+          "Labor Market",
+          "A",
+          "B",
+          "✗"
+        ]
+      },
+      {
+        "q": 14,
+        "cells": [
+          "14",
+          "Unit 6: Market Failure",
+          "Externalities",
+          "B",
+          "C",
+          "✗"
+        ]
+      },
+      {
+        "q": 15,
+        "cells": [
+          "15",
+          "Unit 6: Market Failure",
+          "Public Goods",
+          "B",
+          "A",
+          "✗"
+        ]
+      }
+    ],
+    "bodySnippet": "\n    AP PracticeFatima AliVocaBoostSCORE REPORT⏳Free Response section is awaiting teacher grading. Final AP score will be calculated after grading is complete.Student: Fatima AliTest: AP Microeconomics Practice ExamSubject: AP MicroeconomicsDate: 3/12/2026AP Score⏳PendingSection 1 (MCQ)5/15 (33%)Free Response--/18 (pending)Total: Pending FRQ gradingSection 1: Multiple Choice ResultsQ#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostBA✗2Unit 1: Basic E"
+  },
+  "mcqScorePresent": true,
+  "expectedAnswers": {
+    "2": "B",
+    "3": "A",
+    "7": "A",
+    "11": "B",
+    "14": "C"
+  },
+  "reportQuestionRows": [
+    {
+      "q": 1,
+      "cells": [
+        "1",
+        "Unit 1: Basic Economic Concepts",
+        "Scarcity & Opportunity Cost",
+        "B",
+        "A",
+        "✗"
+      ]
+    },
+    {
+      "q": 2,
+      "cells": [
+        "2",
+        "Unit 1: Basic Economic Concepts",
+        "Comparative Advantage",
+        "B",
+        "B",
+        "✓"
+      ]
+    },
+    {
+      "q": 3,
+      "cells": [
+        "3",
+        "Unit 2: Supply and Demand",
+        "Demand Shifters",
+        "B",
+        "A",
+        "✗"
+      ]
+    },
+    {
+      "q": 4,
+      "cells": [
+        "4",
+        "Unit 2: Supply and Demand",
+        "Elasticity",
+        "A",
+        "A",
+        "✓"
+      ]
+    },
+    {
+      "q": 5,
+      "cells": [
+        "5",
+        "Unit 2: Supply and Demand",
+        "Consumer & Producer Surplus",
+        "A",
+        "D",
+        "✗"
+      ]
+    },
+    {
+      "q": 6,
+      "cells": [
+        "6",
+        "Unit 3: Production & Cost",
+        "Marginal Product",
+        "B",
+        "B",
+        "✓"
+      ]
+    },
+    {
+      "q": 7,
+      "cells": [
+        "7",
+        "Unit 3: Production & Cost",
+        "Perfect Competition",
+        "B",
+        "A",
+        "✗"
+      ]
+    },
+    {
+      "q": 8,
+      "cells": [
+        "8",
+        "Unit 3: Production & Cost",
+        "Shutdown Rule",
+        "B",
+        "C",
+        "✗"
+      ]
+    },
+    {
+      "q": 9,
+      "cells": [
+        "9",
+        "Unit 4: Imperfect Competition",
+        "Monopoly",
+        "B",
+        "B",
+        "✓"
+      ]
+    },
+    {
+      "q": 10,
+      "cells": [
+        "10",
+        "Unit 4: Imperfect Competition",
+        "Monopolistic Competition",
+        "B",
+        "D",
+        "✗"
+      ]
+    },
+    {
+      "q": 11,
+      "cells": [
+        "11",
+        "Unit 4: Imperfect Competition",
+        "Game Theory",
+        "B",
+        "B",
+        "✓"
+      ]
+    },
+    {
+      "q": 12,
+      "cells": [
+        "12",
+        "Unit 5: Factor Markets",
+        "Labor Market",
+        "A",
+        "C",
+        "✗"
+      ]
+    },
+    {
+      "q": 13,
+      "cells": [
+        "13",
+        "Unit 5: Factor Markets",
+        "Labor Market",
+        "A",
+        "B",
+        "✗"
+      ]
+    },
+    {
+      "q": 14,
+      "cells": [
+        "14",
+        "Unit 6: Market Failure",
+        "Externalities",
+        "B",
+        "C",
+        "✗"
+      ]
+    },
+    {
+      "q": 15,
+      "cells": [
+        "15",
+        "Unit 6: Market Failure",
+        "Public Goods",
+        "B",
+        "A",
+        "✗"
+      ]
+    }
+  ],
+  "completedAt": "2026-03-11T16:13:41.229Z"
+}

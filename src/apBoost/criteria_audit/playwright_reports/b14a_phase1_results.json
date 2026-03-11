@@ -1,0 +1,68 @@
+[
+  {
+    "step": "1_navigate_login",
+    "url": "http://localhost:5173/login"
+  },
+  {
+    "step": "2_after_login",
+    "url": "http://localhost:5173/ap",
+    "isAP": true
+  },
+  {
+    "step": "3_check_logout_B12_006",
+    "allButtons": [
+      {
+        "text": "Log out",
+        "visible": true
+      },
+      {
+        "text": "AP Calculus AB Practice ExamNot StartedAP Calculus AB2 sections1 hr 15 min",
+        "visible": true
+      },
+      {
+        "text": "AP Macroeconomics Practice ExamNot StartedAP Macroeconomics2 sections1 hr",
+        "visible": true
+      },
+      {
+        "text": "AP Microeconomics Practice ExamNot StartedAP Microeconomics2 sections1 hr",
+        "visible": true
+      }
+    ],
+    "logoutFound": [
+      {
+        "text": "Log out",
+        "visible": true
+      }
+    ],
+    "PASS": true
+  },
+  {
+    "step": "4_test_page",
+    "url": "http://localhost:5173/ap/test/test_micro_full_1"
+  },
+  {
+    "step": "4b_page_body",
+    "text": "\n    !Something went wrongWe encountered an unexpected error. Don't worry - your answers are saved locally.Cannot access 'scheduleFlush' before initializationYour progress has been saved locally and will sync when the issue is resolved.Return to DashboardTry Again\n    \n  \n\n"
+  },
+  {
+    "step": "4c_duplicate_tab_modal",
+    "present": false
+  },
+  {
+    "step": "4d_begin_buttons",
+    "found": []
+  },
+  {
+    "step": "console_errors",
+    "errors": [
+      {
+        "type": "error",
+        "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary."
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}"
+      }
+    ]
+  }
+]

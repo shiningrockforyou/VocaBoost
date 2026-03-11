@@ -1,0 +1,61 @@
+{
+  "login": {
+    "status": "PASS",
+    "url": "http://localhost:5173/ap"
+  },
+  "appCrash": null,
+  "fix14_touchTargets": {
+    "sourceAnalysis": {
+      "InstructionScreen_beginBtn": "py-3 (verified in source line 100) — 12px*2 + ~20px text = 44px OK",
+      "QuestionNavigator_backBtn": "py-3 (verified in source line 112) — 44px target OK",
+      "QuestionNavigator_nextBtn": "py-3 (verified in source line 135) — 44px target OK",
+      "QuestionNavigator_navigatorToggle": "py-3 px-2 min-h-[44px] (verified in source line 124) — OK",
+      "QuestionNavigator_closeBtn": "p-2 min-h-[44px] min-w-[44px] (verified in source line 167) — OK",
+      "QuestionNavigator_gridCells": "w-11 h-11 (verified in source line 27) — 44px OK",
+      "AnswerInput_strikethrough": "p-3 (verified in source line 135) — 12px*2 + 16px SVG = 40px... wait",
+      "note": "p-3 = 12px padding each side. SVG is h-4 w-4 = 16px. Total = 12+16+12 = 40px. STILL BELOW 44px!"
+    }
+  },
+  "fix13_backBlocker": {},
+  "fix12_frqScroll": {},
+  "fix15_idbErrors": [],
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n Error: useBlocker must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.\n    at invariant (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:538:11)\n    at useDataRouterContext (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:6138:3)\n    at useBlocker (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:6254:30)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773242501673:187:19)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: useBlocker must be used within a data router.  See…reactrouter.com/en/main/routers/picking-a-router., code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "%o\n\n%s\n\n%s\n Error: useBlocker must be used within a data router.  See https://reactrouter.com/en/main/routers/picking-a-router.\n    at invariant (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:538:11)\n    at useDataRouterContext (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:6138:3)\n    at useBlocker (http://localhost:5173/node_modules/.vite/deps/chunk-UBSYHQNN.js?v=89752246:6254:30)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773242501673:187:19)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: useBlocker must be used within a data router.  See…reactrouter.com/en/main/routers/picking-a-router., code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "summary": {
+    "FIX-12 (B14F-001) FRQ scroll-into-view": "FAIL",
+    "FIX-13 (B14F-002) Browser back blocker": "FAIL",
+    "FIX-14 (B14F-003/004/005/006) Touch targets": "PARTIAL",
+    "FIX-15 (B14F-007) IDB errors suppressed — REGRESSION": "PASS",
+    "NEW_BLOCKER_B14F_R001": null,
+    "fix14Issues": [
+      "Strikethrough: p-3 + h-4 SVG = 40px height — STILL BELOW 44px (source confirmed)"
+    ],
+    "fix14Passes": [
+      "Begin/Resume: py-3 in source (line 100) — expect 44px height OK (unverified live)"
+    ],
+    "totalConsoleErrors": 4,
+    "totalTDZErrors": 0,
+    "totalIDBErrors": 0
+  },
+  "tdzErrors": []
+}

@@ -1,0 +1,884 @@
+{
+  "results": {
+    "loginStatus": "PASS",
+    "fix1": {
+      "status": "INCONCLUSIVE",
+      "evidence": "",
+      "notes": [
+        "Online answers: {\"15\":\"A\"}",
+        "Offline answers: {}",
+        "IDB pending before restore: 0",
+        "WARNING: No pending items during offline — queue may have been flushed already or answers not captured",
+        "IDB had no pending items during offline — could not verify flush behavior. MCQ answers may have been flushed immediately (online context)",
+        "No TDZ/ReferenceError errors — FIX-1 stale closure appears resolved"
+      ]
+    },
+    "fix2": {
+      "status": "PARTIAL",
+      "evidence": "",
+      "notes": [
+        "Expected answered online: 1",
+        "Expected answered offline: 0",
+        "Total expected: 1",
+        "Navigator showed: answered=null/null",
+        "Review screen raw: \n    AP PracticeJulia BrownVocaBoostReview Your Answers1234567891011121314🚩Summary• Answered: 7/15• Unanswered: 8 (Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14)• Flagged: 1 (Q15)⚠ You have 8 unanswered questi",
+        "Could not extract answered count — check screenshots manually"
+      ]
+    },
+    "fix10": {
+      "status": "PASS",
+      "evidence": "",
+      "notes": [
+        "Offline duration: 50s",
+        "\"Connection unstable\" banner appeared at: 46503ms",
+        "HEARTBEAT_INTERVAL=15000ms, MAX_FAILURES=3 (FIX-10 NOT applied)",
+        "\"Reconnected\" banner appeared at: 2010ms",
+        "\"Connection unstable\" cleared at: 1007ms",
+        "PASS: Reconnected in 2010ms — FIX-10 appears to be applied"
+      ]
+    },
+    "codeStartsWith": {
+      "status": "PASS",
+      "notes": [
+        "No code.startsWith errors found — logError.js fix verified"
+      ]
+    },
+    "tdzErrors": {
+      "found": false,
+      "messages": []
+    },
+    "consoleErrors": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      }
+    ],
+    "timeline": [
+      {
+        "event": "STEP 1: LOGIN",
+        "time": "2026-03-11T15:57:37.729Z"
+      },
+      {
+        "event": "screenshot:01_after_login",
+        "filename": "01_01_after_login.png"
+      },
+      {
+        "event": "STEP 2: NAVIGATE TO TEST",
+        "time": "2026-03-11T15:57:43.461Z"
+      },
+      {
+        "event": "screenshot:02_test_page_initial",
+        "filename": "02_02_test_page_initial.png"
+      },
+      {
+        "event": "screenshot:03_test_started",
+        "filename": "03_03_test_started.png"
+      },
+      {
+        "event": "STEP 3: CLEAR IDB FOR CLEAN TEST",
+        "time": "2026-03-11T15:57:48.034Z"
+      },
+      {
+        "event": "STEP 4: ANSWER QUESTIONS ONLINE (Q1-Q5)",
+        "time": "2026-03-11T15:57:48.037Z"
+      },
+      {
+        "event": "screenshot:04_after_online_answers",
+        "filename": "04_04_after_online_answers.png"
+      },
+      {
+        "event": "STEP 5: GO OFFLINE",
+        "time": "2026-03-11T15:57:57.783Z"
+      },
+      {
+        "event": "screenshot:05_after_offline_answers",
+        "filename": "05_05_after_offline_answers.png"
+      },
+      {
+        "event": "STEP 6: RESTORE NETWORK (FIX-1 TEST)",
+        "time": "2026-03-11T15:58:05.877Z"
+      },
+      {
+        "event": "screenshot:06_after_restore_10s",
+        "filename": "06_06_after_restore_10s.png"
+      },
+      {
+        "event": "STEP 7: PAGE RELOAD (FIX-2 TEST)",
+        "time": "2026-03-11T15:58:07.446Z"
+      },
+      {
+        "event": "screenshot:07_before_reload",
+        "filename": "07_07_before_reload.png"
+      },
+      {
+        "event": "screenshot:08_after_reload",
+        "filename": "08_08_after_reload.png"
+      },
+      {
+        "event": "screenshot:09_after_resume",
+        "filename": "09_09_after_resume.png"
+      },
+      {
+        "event": "STEP 7b: CHECK ANSWER PRESERVATION",
+        "time": "2026-03-11T15:58:15.313Z"
+      },
+      {
+        "event": "screenshot:10_navigator_state",
+        "filename": "10_10_navigator_state.png"
+      },
+      {
+        "event": "screenshot:11_review_screen",
+        "filename": "11_11_review_screen.png"
+      },
+      {
+        "event": "screenshot:12_review_final",
+        "filename": "12_12_review_final.png"
+      },
+      {
+        "event": "STEP 8: FIX-10 HEARTBEAT RECOVERY TEST",
+        "time": "2026-03-11T15:58:18.542Z"
+      },
+      {
+        "event": "screenshot:13_hb_test_initial",
+        "filename": "13_13_hb_test_initial.png"
+      },
+      {
+        "event": "screenshot:14_unstable_banner",
+        "filename": "14_14_unstable_banner.png"
+      },
+      {
+        "event": "screenshot:15_after_50s_offline",
+        "filename": "15_15_after_50s_offline.png"
+      },
+      {
+        "event": "screenshot:16_reconnected_banner",
+        "filename": "16_16_reconnected_banner.png"
+      },
+      {
+        "event": "screenshot:17_after_recovery",
+        "filename": "17_17_after_recovery.png"
+      },
+      {
+        "event": "STEP 9: CHECK code.startsWith REGRESSION",
+        "time": "2026-03-11T15:59:23.646Z"
+      },
+      {
+        "event": "screenshot:18_final_state",
+        "filename": "18_18_final_state.png"
+      }
+    ]
+  },
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 0ed52a4e-1914-4d7e-bdfc-63c27f9e489e}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244668854-ca48gas37ls, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244668854, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:57:59.382Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x7160bf86 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:57:59.385Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x7160bf87 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:57:59.386Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x7160bf89 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:00.114Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x7160bf8a transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:01.628Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x7160bf8b transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:04.030Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x7160bf8c transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 1a509cae-c6fa-4cf0-8813-a751cf362ede}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: a391a132-41f0-4bb0-a0de-c24a22c7f799}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:34.249Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x11f7ab45 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:34.252Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab46 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:34.253Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab48 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:34.965Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab49 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:36.431Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab4a transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:37.880Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab4b transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:42.835Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab4c transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244726826-v1tkvbupric, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244726826, action: TIMER_SYNC, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244726826-zimn4loxv, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244726826, action: TIMER_SYNC, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:47.765Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab4d transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:49.249Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x11f7ab47 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:58:58.315Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab4f transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:59:04.252Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x11f7ab4e transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:59:10.316Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x11f7ab51 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244756831-2oa5l9eobk8, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244756831, action: TIMER_SYNC, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244756831-o5bq9msy1eg, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244756831, action: TIMER_SYNC, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 4 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Heartbeat successful null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Connection recovered, calling onRecovery null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ]
+}

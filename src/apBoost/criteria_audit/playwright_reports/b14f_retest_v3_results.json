@@ -1,0 +1,203 @@
+{
+  "login": {
+    "status": "PASS",
+    "url": "http://localhost:5173/"
+  },
+  "appCrash": null,
+  "fix14_touchTargets": {
+    "instructionScreen": {
+      "cancelBtn": {
+        "w": 295,
+        "h": 42,
+        "fail44": true
+      },
+      "beginResumeBtn": {
+        "text": "Begin Test",
+        "w": 295,
+        "h": 40,
+        "fail44": true
+      }
+    },
+    "q1Buttons": {
+      "flagBtn": {
+        "text": "⚐Flag for Review",
+        "w": 140,
+        "h": 38,
+        "fail44": true
+      },
+      "backBtn": {
+        "w": 79,
+        "h": 36,
+        "fail44": true
+      },
+      "navigatorToggle": {
+        "text": "Question 1 of 15▲",
+        "w": 121,
+        "h": 20,
+        "fail44": true
+      },
+      "nextBtn": {
+        "w": 80,
+        "h": 38,
+        "fail44": true
+      },
+      "hamburger": {
+        "w": 29,
+        "h": 32,
+        "top": 16,
+        "fail44": true
+      },
+      "strikethrough": {
+        "w": 34,
+        "h": 34,
+        "fail44": true
+      }
+    },
+    "navigatorModal": {
+      "gridCells": [
+        {
+          "text": "1",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "2",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "3",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "4",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "5",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "6",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "7",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "8",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "9",
+          "w": 40,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "10",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "11",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "12",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "13",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "14",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        },
+        {
+          "text": "15",
+          "w": 48,
+          "h": 40,
+          "fail44": true
+        }
+      ],
+      "closeBtn": {
+        "w": 13,
+        "h": 24,
+        "fail44": true
+      },
+      "smallCellCount": 15
+    }
+  },
+  "fix13_backBlocker": {
+    "urlAfterBack": "http://localhost:5173/",
+    "state": {
+      "url": "http://localhost:5173/",
+      "path": "/",
+      "hasLeaveTest": false,
+      "hasModal": false,
+      "bodySnippet": "\n    DashboardGradebookWelcome, Isaac NguyenYour personalized vocabulary journey starts here.Weekly GoalsNo Active ListDay 1Start SessionWords Introduced0Mastery Rate0%Current Streak0 days7-DAY RHYTHMMy ClassesWelcome! Join your first classEnter the 6-character code your teacher shared to get starte",
+      "hasStayBtn": false,
+      "hasLeaveBtn": false,
+      "hasFixedOverlay": false
+    },
+    "blockerFired": false,
+    "silentNavigation": true,
+    "result": "FAIL"
+  },
+  "fix12_frqScroll": {
+    "error": "Could not reach FRQ section via MCQ answering"
+  },
+  "fix15_idbErrors": [],
+  "consoleErrors": [],
+  "summary": {
+    "FIX-12 (FRQ scroll-into-view)": "SKIP",
+    "FIX-13 (Browser back blocker)": "FAIL",
+    "FIX-14 (Touch targets)": "FAIL",
+    "FIX-15 (IDB errors suppressed)": "PASS",
+    "FIX-15 (TDZ regression check)": "PASS",
+    "appCrash": null,
+    "fix14Passes": [],
+    "fix14Failures": [
+      "Begin/Resume btn: FAIL",
+      "Cancel btn: FAIL",
+      "Back btn: FAIL",
+      "Next btn: FAIL",
+      "Navigator toggle: FAIL",
+      "Flag btn: FAIL",
+      "Hamburger: FAIL",
+      "Strikethrough: FAIL",
+      "Nav cells: FAIL",
+      "Nav close btn: FAIL"
+    ],
+    "totalErrors": 0,
+    "idbErrorCount": 0,
+    "tdzErrorCount": 0
+  },
+  "tdzErrors": []
+}

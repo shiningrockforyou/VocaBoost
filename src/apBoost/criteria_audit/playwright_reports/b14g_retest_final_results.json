@@ -1,0 +1,450 @@
+{
+  "results": {
+    "fix1": {
+      "status": "SKIP",
+      "evidence": [],
+      "notes": [
+        "Pending items after answering Q6-Q8 offline: 0",
+        "SKIP: No items were queued offline (answeredOffline=0)",
+        "No TDZ/ReferenceError console errors found"
+      ]
+    },
+    "fix2": {
+      "status": "PARTIAL",
+      "evidence": [],
+      "notes": [
+        "After reload+resume: Answered null/null",
+        "Pre-reload: answered 0 online + 0 offline = 0 total",
+        "PARTIAL: Could not extract answer count from review screen"
+      ]
+    },
+    "fix10": {
+      "status": "FAIL",
+      "evidence": [],
+      "notes": [
+        "After 25s offline: {\"hasUnstable\":false,\"hasOffline\":false,\"bannerText\":\"no banner found\",\"bodySnippet\":\"\\n    Section 1 of 2: Section I: Multiple Choice⏱34:34Question 15Which is a public good?AA hamburgerBNational defenseCA toll roadDCable TV🚩Flagged← BackQuestion 15 of 15▲Review →\\n        @keyframes slide-up {\\n          from { transform: translateY(100%); }\\n          to { transform: translateY(0); }\\n        }\\n        .animate-slide-up {\\n          animation: slide-up 0.3s ease-out;\\n        }\\n      \\n    \\n  \\n\\n\"}",
+        "No reconnection banner detected within 45s (FIX-10 not applied)",
+        "FAIL: No reconnection banner within 45s after network restore"
+      ]
+    },
+    "consoleErrors": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat write timed out after 5000ms, code: null}",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "url": "http://localhost:5173/ap/test/test_micro_full_1"
+      }
+    ],
+    "screenshots": [
+      {
+        "label": "01_after_login",
+        "filename": "01_01_after_login.png"
+      },
+      {
+        "label": "02_dashboard",
+        "filename": "02_02_dashboard.png"
+      },
+      {
+        "label": "03_test_page",
+        "filename": "03_03_test_page.png"
+      },
+      {
+        "label": "04_after_start_click",
+        "filename": "04_04_after_start_click.png"
+      },
+      {
+        "label": "06_test_start_state",
+        "filename": "05_06_test_start_state.png"
+      },
+      {
+        "label": "08_before_offline",
+        "filename": "06_08_before_offline.png"
+      },
+      {
+        "label": "09_during_offline",
+        "filename": "07_09_during_offline.png"
+      },
+      {
+        "label": "10_after_restore_3s",
+        "filename": "08_10_after_restore_3s.png"
+      },
+      {
+        "label": "11_after_restore_8s",
+        "filename": "09_11_after_restore_8s.png"
+      },
+      {
+        "label": "12_after_reload",
+        "filename": "10_12_after_reload.png"
+      },
+      {
+        "label": "13_after_resume",
+        "filename": "11_13_after_resume.png"
+      },
+      {
+        "label": "14_review_or_final",
+        "filename": "12_14_review_or_final.png"
+      },
+      {
+        "label": "15_review_final_state",
+        "filename": "13_15_review_final_state.png"
+      },
+      {
+        "label": "16_heartbeat_test_start",
+        "filename": "14_16_heartbeat_test_start.png"
+      },
+      {
+        "label": "17_after_25s_offline",
+        "filename": "15_17_after_25s_offline.png"
+      },
+      {
+        "label": "19_after_recovery_attempt",
+        "filename": "16_19_after_recovery_attempt.png"
+      },
+      {
+        "label": "20_final_state",
+        "filename": "17_20_final_state.png"
+      }
+    ]
+  },
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: d730a61b-966d-4ce9-90f6-1a042a08312b}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 1c1ada6f-5ac2-46a3-8e9e-42b8fc516351}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244248589-68ugum1u099, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244248589, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244249135-q0z3yb0k4qi, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244249135, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244249686-19yipzeqtr9, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244249686, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244250235-qukjio4yk4, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244250235, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244250769-8kjppmvyeg2, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244250769, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244251318-ycrbi0ui3s8, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244251318, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244251852-uskbzy1o85, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244251852, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244252385-av35xwu52s, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244252385, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244252918-15188z1uss3j, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244252918, action: NAVIGATION, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244253469-8ijkkyilles, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244253469, action: FLAG_TOGGLE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 10 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushed 1 flag changes null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: be9b093e-1e88-4e21-949b-3beeaac7a160}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:51:10.293Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Listen' stream 0x5693655f transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:51:10.295Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x56936560 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "warning",
+      "text": "[2026-03-11T15:51:10.297Z]  @firebase/firestore: Firestore (12.6.0): WebChannelConnection RPC 'Write' stream 0x56936562 transport errored. Name: undefined Message: undefined",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ]
+}

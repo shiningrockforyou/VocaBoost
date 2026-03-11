@@ -1,0 +1,137 @@
+{
+  "results": {
+    "login": "PASS",
+    "testStart": "PASS",
+    "q1to5": 5,
+    "q6to8_offline": {
+      "answeredCount": 3,
+      "queuedAnswerChanges": 3,
+      "uniqueQuestions": [
+        "micro_q6",
+        "micro_q7",
+        "micro_q8"
+      ],
+      "status": "PASS"
+    },
+    "syncOnReconnect": "PARTIAL",
+    "q9to12": 4,
+    "closeAndReopen": "PASS",
+    "resumeRestores": {
+      "count": 6,
+      "status": "FAIL"
+    },
+    "finalSubmit": "PARTIAL",
+    "allAnswersPresent": "FAIL",
+    "reportCard": "FAIL"
+  },
+  "errors": [
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "isPageError": true,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "isPageError": true,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "isPageError": true,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    },
+    {
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    },
+    {
+      "text": "[vite] Failed to reload /src/apBoost/pages/APReportCard.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above)",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    }
+  ],
+  "observations": [
+    "B4-006: login redirects to http://localhost:5173/ not /ap",
+    "Instruction screen buttons: [\"Cancel\",\"Resume Test\"]",
+    "Instruction screen has existing session: true",
+    "Test view DOM has 8 buttons",
+    "Queue Q1-5: 0 answer changes, unique Q: []",
+    "Navigation working (multiple question IDs in queue): false",
+    "WARNING: All answers went to same questionId — navigation may be broken!",
+    "Offline banner at 1.5s: \"none\"",
+    "Queue offline (Q6-8): 3 ANSWER_CHANGE pending",
+    "Unique question IDs in queue: [\"micro_q6\",\"micro_q7\",\"micro_q8\"]",
+    "Firestore requests blocked: 4",
+    "Banner after network restore: {\"text\":\"⚠Connection unstable - your progress is being saved locally\",\"cls\":\"bg-warning border-b border-warning-border px-4 py-2 flex items-center justify-ce\"}",
+    "Queue after 8s sync window: pending=4, answerChanges=2",
+    "Sync result: PARTIAL (2 answer changes remain)",
+    "Queue before page close: pending=14",
+    "Session ID: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303",
+    "After close, instruction screen shows: \"AP Practice Julia Brown VocaBoost AP Microeconomics Practice Exam  AP Microeconomics  This test has 2 sections:  Section 1: Section I: Multiple Choice  • 15 questions • 35 min  Section 2: Section II: \"",
+    "Instruction button after close: \"Resume Test\"",
+    "Instruction shows position info: true",
+    "After resume, shows question: {\"q\":6,\"total\":15}",
+    "Queue on new page after resume: pending=15",
+    "Restored answers Q1-12: 6/12",
+    "Per-Q: {\"Q1\":true,\"Q2\":true,\"Q3\":true,\"Q4\":true,\"Q5\":true,\"Q6\":true,\"Q7\":false,\"Q8\":false,\"Q9\":false,\"Q10\":false,\"Q11\":false,\"Q12\":false}",
+    "Review screen buttons: [\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\",\"15\",\"Return to Questions\",\"Submit Section\"]",
+    "After submit, URL is http://localhost:5173/ap/test/test_micro_full_1 — not /ap/results/",
+    "Report card score: not found",
+    "Report card table rows: 0",
+    "FAIL: 0/15 MCQ rows on report card"
+  ]
+}

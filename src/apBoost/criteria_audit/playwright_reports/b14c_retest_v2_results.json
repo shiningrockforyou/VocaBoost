@@ -1,0 +1,1146 @@
+{
+  "scenarioId": "B14C-retest-v2",
+  "startedAt": "2026-03-11T15:43:29.589Z",
+  "steps": [
+    {
+      "time": "2026-03-11T15:43:29.905Z",
+      "msg": "STEP 1: Login as student6@apboost.test"
+    },
+    {
+      "time": "2026-03-11T15:43:30.602Z",
+      "msg": "Screenshot: 01_login_filled.png"
+    },
+    {
+      "time": "2026-03-11T15:43:50.737Z",
+      "msg": "Screenshot: 01_login_failed.png"
+    },
+    {
+      "time": "2026-03-11T15:43:50.737Z",
+      "msg": "ERROR: Login did not redirect to /ap — checking page"
+    },
+    {
+      "time": "2026-03-11T15:43:50.737Z",
+      "msg": "Current URL: http://localhost:5173/"
+    },
+    {
+      "time": "2026-03-11T15:43:54.083Z",
+      "msg": "Screenshot: 01_after_login.png"
+    },
+    {
+      "time": "2026-03-11T15:43:54.083Z",
+      "msg": "STEP 2: Navigate to Micro test (test_micro_full_1)"
+    },
+    {
+      "time": "2026-03-11T15:43:57.611Z",
+      "msg": "Screenshot: 02_dashboard.png"
+    },
+    {
+      "time": "2026-03-11T15:44:02.452Z",
+      "msg": "Screenshot: 03_test_page.png"
+    },
+    {
+      "time": "2026-03-11T15:44:02.475Z",
+      "msg": "Found Begin Test button — clicking to start"
+    },
+    {
+      "time": "2026-03-11T15:44:05.576Z",
+      "msg": "Screenshot: 04_test_started.png"
+    },
+    {
+      "time": "2026-03-11T15:44:05.580Z",
+      "msg": "Current question: 1"
+    },
+    {
+      "time": "2026-03-11T15:44:05.580Z",
+      "msg": "STEP 3: Answering Q1-Q15 in order"
+    },
+    {
+      "time": "2026-03-11T15:44:05.583Z",
+      "msg": "Q1: Currently at Q1"
+    },
+    {
+      "time": "2026-03-11T15:44:05.625Z",
+      "msg": "Screenshot: Q01_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:05.630Z",
+      "msg": "DOM buttons for Q1: [\"DEconomies of scale\",\"⚐Flag for Review\",\"← Back\",\"Question 1 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:05.632Z",
+      "msg": "Q1: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:05.635Z",
+      "msg": "Q1: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:06.079Z",
+      "msg": "Q1: Fallback click succeeded for A"
+    },
+    {
+      "time": "2026-03-11T15:44:06.392Z",
+      "msg": "Q1: Selection state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":6,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:06.457Z",
+      "msg": "Screenshot: Q01_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:07.338Z",
+      "msg": "Q2: Currently at Q2"
+    },
+    {
+      "time": "2026-03-11T15:44:07.384Z",
+      "msg": "Screenshot: Q02_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:07.386Z",
+      "msg": "DOM buttons for Q2: [\"⚐Flag for Review\",\"← Back\",\"Question 2 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:07.389Z",
+      "msg": "Q2: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:07.391Z",
+      "msg": "Q2: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:07.828Z",
+      "msg": "Q2: Fallback click succeeded for B"
+    },
+    {
+      "time": "2026-03-11T15:44:08.142Z",
+      "msg": "Q2: Selection state: {\"selectedIndex\":1,\"selectedLetter\":\"B\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:08.209Z",
+      "msg": "Screenshot: Q02_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:09.083Z",
+      "msg": "Q3: Currently at Q3"
+    },
+    {
+      "time": "2026-03-11T15:44:09.125Z",
+      "msg": "Screenshot: Q03_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:09.127Z",
+      "msg": "DOM buttons for Q3: [\"⚐Flag for Review\",\"← Back\",\"Question 3 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:09.129Z",
+      "msg": "Q3: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:09.131Z",
+      "msg": "Q3: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:09.576Z",
+      "msg": "Q3: Fallback click succeeded for C"
+    },
+    {
+      "time": "2026-03-11T15:44:09.890Z",
+      "msg": "Q3: Selection state: {\"selectedIndex\":2,\"selectedLetter\":\"C\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:09.949Z",
+      "msg": "Screenshot: Q03_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:10.825Z",
+      "msg": "Q4: Currently at Q4"
+    },
+    {
+      "time": "2026-03-11T15:44:10.865Z",
+      "msg": "Screenshot: Q04_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:10.869Z",
+      "msg": "DOM buttons for Q4: [\"⚐Flag for Review\",\"← Back\",\"Question 4 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:10.872Z",
+      "msg": "Q4: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:10.875Z",
+      "msg": "Q4: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:11.311Z",
+      "msg": "Q4: Fallback click succeeded for A"
+    },
+    {
+      "time": "2026-03-11T15:44:11.628Z",
+      "msg": "Q4: Selection state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:11.685Z",
+      "msg": "Screenshot: Q04_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:12.538Z",
+      "msg": "Q5: Currently at Q5"
+    },
+    {
+      "time": "2026-03-11T15:44:12.582Z",
+      "msg": "Screenshot: Q05_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:12.584Z",
+      "msg": "DOM buttons for Q5: [\"⚐Flag for Review\",\"← Back\",\"Question 5 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:12.587Z",
+      "msg": "Q5: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:12.590Z",
+      "msg": "Q5: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:13.041Z",
+      "msg": "Q5: Fallback click succeeded for D"
+    },
+    {
+      "time": "2026-03-11T15:44:13.360Z",
+      "msg": "Q5: Selection state: {\"selectedIndex\":3,\"selectedLetter\":\"D\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:13.420Z",
+      "msg": "Screenshot: Q05_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:14.280Z",
+      "msg": "Q6: Currently at Q6"
+    },
+    {
+      "time": "2026-03-11T15:44:14.322Z",
+      "msg": "Screenshot: Q06_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:14.324Z",
+      "msg": "DOM buttons for Q6: [\"AAt its maximum\",\"BAt its minimum\",\"⚐Flag for Review\",\"← Back\",\"Question 6 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:14.326Z",
+      "msg": "Q6: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:14.328Z",
+      "msg": "Q6: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:14.765Z",
+      "msg": "Q6: Fallback click succeeded for B"
+    },
+    {
+      "time": "2026-03-11T15:44:15.077Z",
+      "msg": "Q6: Selection state: {\"selectedIndex\":1,\"selectedLetter\":\"B\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:15.131Z",
+      "msg": "Screenshot: Q06_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:16.001Z",
+      "msg": "Q7: Currently at Q7"
+    },
+    {
+      "time": "2026-03-11T15:44:16.050Z",
+      "msg": "Screenshot: Q07_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:16.054Z",
+      "msg": "DOM buttons for Q7: [\"BMR = MC\",\"CATC is minimized\",\"DP = AVC\",\"⚐Flag for Review\",\"← Back\",\"Question 7 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:16.057Z",
+      "msg": "Q7: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:16.060Z",
+      "msg": "Q7: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:16.507Z",
+      "msg": "Q7: Fallback click succeeded for A"
+    },
+    {
+      "time": "2026-03-11T15:44:16.825Z",
+      "msg": "Q7: Selection state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:16.883Z",
+      "msg": "Screenshot: Q07_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:17.740Z",
+      "msg": "Q8: Currently at Q8"
+    },
+    {
+      "time": "2026-03-11T15:44:17.781Z",
+      "msg": "Screenshot: Q08_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:17.783Z",
+      "msg": "DOM buttons for Q8: [\"APrice is below ATC\",\"BPrice is below AVC\",\"CMC exceeds MR\",\"⚐Flag for Review\",\"← Back\",\"Question 8 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:17.786Z",
+      "msg": "Q8: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:17.788Z",
+      "msg": "Q8: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:18.234Z",
+      "msg": "Q8: Fallback click succeeded for C"
+    },
+    {
+      "time": "2026-03-11T15:44:18.549Z",
+      "msg": "Q8: Selection state: {\"selectedIndex\":2,\"selectedLetter\":\"C\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:18.611Z",
+      "msg": "Screenshot: Q08_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:19.483Z",
+      "msg": "Q9: Currently at Q9"
+    },
+    {
+      "time": "2026-03-11T15:44:19.532Z",
+      "msg": "Screenshot: Q09_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:19.534Z",
+      "msg": "DOM buttons for Q9: [\"⚐Flag for Review\",\"← Back\",\"Question 9 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:19.537Z",
+      "msg": "Q9: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:19.540Z",
+      "msg": "Q9: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:19.994Z",
+      "msg": "Q9: Fallback click succeeded for B"
+    },
+    {
+      "time": "2026-03-11T15:44:20.306Z",
+      "msg": "Q9: Selection state: {\"selectedIndex\":1,\"selectedLetter\":\"B\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:20.367Z",
+      "msg": "Screenshot: Q09_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:21.243Z",
+      "msg": "Q10: Currently at Q10"
+    },
+    {
+      "time": "2026-03-11T15:44:21.287Z",
+      "msg": "Screenshot: Q10_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:21.290Z",
+      "msg": "DOM buttons for Q10: [\"⚐Flag for Review\",\"← Back\",\"Question 10 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:21.292Z",
+      "msg": "Q10: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:21.294Z",
+      "msg": "Q10: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:21.729Z",
+      "msg": "Q10: Fallback click succeeded for D"
+    },
+    {
+      "time": "2026-03-11T15:44:22.041Z",
+      "msg": "Q10: Selection state: {\"selectedIndex\":3,\"selectedLetter\":\"D\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:22.081Z",
+      "msg": "Screenshot: Q10_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:22.939Z",
+      "msg": "Q11: Currently at Q11"
+    },
+    {
+      "time": "2026-03-11T15:44:22.981Z",
+      "msg": "Screenshot: Q11_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:22.983Z",
+      "msg": "DOM buttons for Q11: [\"ACooperate\",\"BDefect\",\"CRandomize\",\"⚐Flag for Review\",\"← Back\",\"Question 11 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:22.984Z",
+      "msg": "Q11: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:22.987Z",
+      "msg": "Q11: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:23.430Z",
+      "msg": "Q11: Fallback click succeeded for A"
+    },
+    {
+      "time": "2026-03-11T15:44:23.742Z",
+      "msg": "Q11: Selection state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:23.799Z",
+      "msg": "Screenshot: Q11_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:24.655Z",
+      "msg": "Q12: Currently at Q12"
+    },
+    {
+      "time": "2026-03-11T15:44:24.698Z",
+      "msg": "Screenshot: Q12_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:24.700Z",
+      "msg": "DOM buttons for Q12: [\"AMP x P\",\"BTR / workers\",\"CW x workers\",\"DMC x MP\",\"⚐Flag for Review\",\"← Back\",\"Question 12 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:24.702Z",
+      "msg": "Q12: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:24.705Z",
+      "msg": "Q12: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:25.145Z",
+      "msg": "Q12: Fallback click succeeded for C"
+    },
+    {
+      "time": "2026-03-11T15:44:25.460Z",
+      "msg": "Q12: Selection state: {\"selectedIndex\":2,\"selectedLetter\":\"C\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:25.514Z",
+      "msg": "Screenshot: Q12_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:26.374Z",
+      "msg": "Q13: Currently at Q13"
+    },
+    {
+      "time": "2026-03-11T15:44:26.428Z",
+      "msg": "Screenshot: Q13_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:26.432Z",
+      "msg": "DOM buttons for Q13: [\"AMRP = W\",\"BMP = 0\",\"CTR is maximized\",\"DAP is maximized\",\"⚐Flag for Review\",\"← Back\",\"Question 13 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:26.436Z",
+      "msg": "Q13: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:26.441Z",
+      "msg": "Q13: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:26.895Z",
+      "msg": "Q13: Fallback click succeeded for B"
+    },
+    {
+      "time": "2026-03-11T15:44:27.210Z",
+      "msg": "Q13: Selection state: {\"selectedIndex\":1,\"selectedLetter\":\"B\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:27.269Z",
+      "msg": "Screenshot: Q13_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:28.143Z",
+      "msg": "Q14: Currently at Q14"
+    },
+    {
+      "time": "2026-03-11T15:44:28.209Z",
+      "msg": "Screenshot: Q14_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:28.212Z",
+      "msg": "DOM buttons for Q14: [\"ALess than optimal\",\"BMore than optimal\",\"CExactly optimal\",\"⚐Flag for Review\",\"← Back\",\"Question 14 of 15▲\",\"Next →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:28.216Z",
+      "msg": "Q14: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:28.223Z",
+      "msg": "Q14: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:28.695Z",
+      "msg": "Q14: Fallback click succeeded for D"
+    },
+    {
+      "time": "2026-03-11T15:44:29.009Z",
+      "msg": "Q14: Selection state: {\"selectedIndex\":3,\"selectedLetter\":\"D\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:29.065Z",
+      "msg": "Screenshot: Q14_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:29.925Z",
+      "msg": "Q15: Currently at Q15"
+    },
+    {
+      "time": "2026-03-11T15:44:29.978Z",
+      "msg": "Screenshot: Q15_before_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:29.980Z",
+      "msg": "DOM buttons for Q15: [\"AA hamburger\",\"BNational defense\",\"CA toll road\",\"DCable TV\",\"⚐Flag for Review\",\"← Back\",\"Question 15 of 15▲\",\"Review →\"]"
+    },
+    {
+      "time": "2026-03-11T15:44:29.983Z",
+      "msg": "Q15: Found 0 answer-looking buttons"
+    },
+    {
+      "time": "2026-03-11T15:44:29.985Z",
+      "msg": "Q15: Fallback — found 4 choices starting with A-D letter"
+    },
+    {
+      "time": "2026-03-11T15:44:30.446Z",
+      "msg": "Q15: Fallback click succeeded for A"
+    },
+    {
+      "time": "2026-03-11T15:44:30.760Z",
+      "msg": "Q15: Selection state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":6,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:30.825Z",
+      "msg": "Screenshot: Q15_after_answer.png"
+    },
+    {
+      "time": "2026-03-11T15:44:31.210Z",
+      "msg": "Screenshot: Q15_completed_all.png"
+    },
+    {
+      "time": "2026-03-11T15:44:31.210Z",
+      "msg": "Completed answering Q1-Q15"
+    },
+    {
+      "time": "2026-03-11T15:44:31.210Z",
+      "msg": "STEP 4: Navigate to Q3 via navigator, change answer"
+    },
+    {
+      "time": "2026-03-11T15:44:31.210Z",
+      "msg": "Q3 original answer: C"
+    },
+    {
+      "time": "2026-03-11T15:44:31.210Z",
+      "msg": "Navigating to Q3 via navigator"
+    },
+    {
+      "time": "2026-03-11T15:44:36.217Z",
+      "msg": "Navigator button not found, trying hamburger menu"
+    },
+    {
+      "time": "2026-03-11T15:44:37.377Z",
+      "msg": "Screenshot: nav_open_for_Q3.png"
+    },
+    {
+      "time": "2026-03-11T15:44:38.309Z",
+      "msg": "Screenshot: Q03_returned_to.png"
+    },
+    {
+      "time": "2026-03-11T15:44:38.327Z",
+      "msg": "After navigation: on Q3"
+    },
+    {
+      "time": "2026-03-11T15:44:38.327Z",
+      "msg": "Changing Q3: C -> A"
+    },
+    {
+      "time": "2026-03-11T15:44:38.923Z",
+      "msg": "Q3: Clicked new choice A"
+    },
+    {
+      "time": "2026-03-11T15:44:38.927Z",
+      "msg": "Q3 post-change state: {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:38.984Z",
+      "msg": "Screenshot: Q03_after_change.png"
+    },
+    {
+      "time": "2026-03-11T15:44:38.984Z",
+      "msg": "STEP 5: Navigate to Q11 via navigator, change answer"
+    },
+    {
+      "time": "2026-03-11T15:44:38.985Z",
+      "msg": "Q11 original: A"
+    },
+    {
+      "time": "2026-03-11T15:44:38.985Z",
+      "msg": "Navigating to Q11 via navigator"
+    },
+    {
+      "time": "2026-03-11T15:44:43.986Z",
+      "msg": "Navigator button not found, trying hamburger menu"
+    },
+    {
+      "time": "2026-03-11T15:44:45.132Z",
+      "msg": "Screenshot: nav_open_for_Q11.png"
+    },
+    {
+      "time": "2026-03-11T15:44:46.036Z",
+      "msg": "Screenshot: Q11_navigated_to.png"
+    },
+    {
+      "time": "2026-03-11T15:44:46.036Z",
+      "msg": "Changing Q11: A -> B"
+    },
+    {
+      "time": "2026-03-11T15:44:46.590Z",
+      "msg": "Q11: Clicked new choice B"
+    },
+    {
+      "time": "2026-03-11T15:44:46.658Z",
+      "msg": "Screenshot: Q11_after_change.png"
+    },
+    {
+      "time": "2026-03-11T15:44:46.658Z",
+      "msg": "STEP 6: Navigate to Q7, observe but do not change"
+    },
+    {
+      "time": "2026-03-11T15:44:46.658Z",
+      "msg": "Navigating to Q7 via navigator"
+    },
+    {
+      "time": "2026-03-11T15:44:51.670Z",
+      "msg": "Navigator button not found, trying hamburger menu"
+    },
+    {
+      "time": "2026-03-11T15:44:52.828Z",
+      "msg": "Screenshot: nav_open_for_Q7.png"
+    },
+    {
+      "time": "2026-03-11T15:44:54.711Z",
+      "msg": "Screenshot: Q07_visited_no_change.png"
+    },
+    {
+      "time": "2026-03-11T15:44:54.715Z",
+      "msg": "Q7 state (should stay A): {\"selectedIndex\":0,\"selectedLetter\":\"A\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:44:54.715Z",
+      "msg": "STEP 7: Opening Review screen (first visit)"
+    },
+    {
+      "time": "2026-03-11T15:44:56.285Z",
+      "msg": "Clicked Review button"
+    },
+    {
+      "time": "2026-03-11T15:44:56.331Z",
+      "msg": "Screenshot: REVIEW_01_first_visit.png"
+    },
+    {
+      "time": "2026-03-11T15:44:56.337Z",
+      "msg": "On review screen: false"
+    },
+    {
+      "time": "2026-03-11T15:44:59.337Z",
+      "msg": "Review summary (visit 1): null"
+    },
+    {
+      "time": "2026-03-11T15:44:59.340Z",
+      "msg": "Answered count from summary (visit 1): null"
+    },
+    {
+      "time": "2026-03-11T15:44:59.342Z",
+      "msg": "Grid info (visit 1): {\"answeredBtns\":0,\"totalGridBtns\":0}"
+    },
+    {
+      "time": "2026-03-11T15:44:59.345Z",
+      "msg": "B14C-002: Review grid badges: []"
+    },
+    {
+      "time": "2026-03-11T15:44:59.345Z",
+      "msg": "STEP 8: Click Return to Questions, navigate to Q14, change answer"
+    },
+    {
+      "time": "2026-03-11T15:45:04.353Z",
+      "msg": "ERROR: Could not find Return to Questions button"
+    },
+    {
+      "time": "2026-03-11T15:45:04.406Z",
+      "msg": "Screenshot: RETURN_TO_QUESTIONS_01.png"
+    },
+    {
+      "time": "2026-03-11T15:45:04.410Z",
+      "msg": "B14C-001 (first return): Landed on Q7, URL: http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "time": "2026-03-11T15:45:04.410Z",
+      "msg": "Navigating to Q14 via navigator"
+    },
+    {
+      "time": "2026-03-11T15:45:09.421Z",
+      "msg": "Navigator button not found, trying hamburger menu"
+    },
+    {
+      "time": "2026-03-11T15:45:10.565Z",
+      "msg": "Screenshot: nav_open_for_Q14.png"
+    },
+    {
+      "time": "2026-03-11T15:45:11.463Z",
+      "msg": "Screenshot: Q14_navigated_to.png"
+    },
+    {
+      "time": "2026-03-11T15:45:11.466Z",
+      "msg": "After navigation: on Q14"
+    },
+    {
+      "time": "2026-03-11T15:45:11.466Z",
+      "msg": "Changing Q14: D -> C"
+    },
+    {
+      "time": "2026-03-11T15:45:12.016Z",
+      "msg": "Q14: Clicked new choice C"
+    },
+    {
+      "time": "2026-03-11T15:45:12.062Z",
+      "msg": "Screenshot: Q14_after_change.png"
+    },
+    {
+      "time": "2026-03-11T15:45:12.062Z",
+      "msg": "STEP 9: Return to Review (second visit)"
+    },
+    {
+      "time": "2026-03-11T15:45:13.621Z",
+      "msg": "Clicked Review button (2nd time)"
+    },
+    {
+      "time": "2026-03-11T15:45:13.663Z",
+      "msg": "Screenshot: REVIEW_02_second_visit.png"
+    },
+    {
+      "time": "2026-03-11T15:45:13.665Z",
+      "msg": "On review screen (visit 2): false"
+    },
+    {
+      "time": "2026-03-11T15:45:16.681Z",
+      "msg": "Review summary (visit 2): null"
+    },
+    {
+      "time": "2026-03-11T15:45:16.683Z",
+      "msg": "Grid info (visit 2): {\"answeredBtns\":0,\"totalGridBtns\":0}"
+    },
+    {
+      "time": "2026-03-11T15:45:16.684Z",
+      "msg": "STEP 10: Return to Questions (2nd time), navigate to Q2, just look"
+    },
+    {
+      "time": "2026-03-11T15:45:21.686Z",
+      "msg": "ERROR: Could not find Return to Questions button (2nd time)"
+    },
+    {
+      "time": "2026-03-11T15:45:21.728Z",
+      "msg": "Screenshot: RETURN_TO_QUESTIONS_02.png"
+    },
+    {
+      "time": "2026-03-11T15:45:21.731Z",
+      "msg": "B14C-001 (second return): Landed on Q14, URL: http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "time": "2026-03-11T15:45:21.731Z",
+      "msg": "Navigating to Q2 via navigator"
+    },
+    {
+      "time": "2026-03-11T15:45:26.739Z",
+      "msg": "Navigator button not found, trying hamburger menu"
+    },
+    {
+      "time": "2026-03-11T15:45:27.882Z",
+      "msg": "Screenshot: nav_open_for_Q2.png"
+    },
+    {
+      "time": "2026-03-11T15:45:28.944Z",
+      "msg": "Screenshot: Q02_visited_no_change.png"
+    },
+    {
+      "time": "2026-03-11T15:45:28.951Z",
+      "msg": "Q2 state (should stay B): {\"selectedIndex\":1,\"selectedLetter\":\"B\",\"allChoicesCount\":7,\"method\":\"brand-primary-scan\",\"rawInfo\":\"\\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te\"}"
+    },
+    {
+      "time": "2026-03-11T15:45:28.951Z",
+      "msg": "STEP 11: Return to Review (third visit)"
+    },
+    {
+      "time": "2026-03-11T15:45:30.552Z",
+      "msg": "Clicked Review button (3rd time)"
+    },
+    {
+      "time": "2026-03-11T15:45:30.598Z",
+      "msg": "Screenshot: REVIEW_03_third_visit.png"
+    },
+    {
+      "time": "2026-03-11T15:45:30.600Z",
+      "msg": "On review screen (visit 3): false"
+    },
+    {
+      "time": "2026-03-11T15:45:33.611Z",
+      "msg": "Review summary (visit 3): null"
+    },
+    {
+      "time": "2026-03-11T15:45:33.614Z",
+      "msg": "Grid info (visit 3): {\"answeredBtns\":0,\"totalGridBtns\":0}"
+    },
+    {
+      "time": "2026-03-11T15:45:33.614Z",
+      "msg": "STEP 12: Submit Test from Review screen"
+    },
+    {
+      "time": "2026-03-11T15:45:38.618Z",
+      "msg": "ERROR: Could not find Submit button"
+    },
+    {
+      "time": "2026-03-11T15:45:41.664Z",
+      "msg": "Screenshot: AFTER_SUBMIT.png"
+    },
+    {
+      "time": "2026-03-11T15:45:41.664Z",
+      "msg": "After submit: URL = http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "time": "2026-03-11T15:45:41.667Z",
+      "msg": "Is FRQ choice screen: false, Is results: false"
+    },
+    {
+      "time": "2026-03-11T15:45:44.715Z",
+      "msg": "Screenshot: RESULTS_PAGE.png"
+    },
+    {
+      "time": "2026-03-11T15:45:44.716Z",
+      "msg": "Results URL: http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "time": "2026-03-11T15:45:44.716Z",
+      "msg": "On results page: false"
+    },
+    {
+      "time": "2026-03-11T15:45:44.716Z",
+      "msg": "STEP 13: Verifying results page"
+    },
+    {
+      "time": "2026-03-11T15:45:44.716Z",
+      "msg": "Not on results page yet — taking screenshot of current state"
+    },
+    {
+      "time": "2026-03-11T15:45:44.767Z",
+      "msg": "Screenshot: NOT_ON_RESULTS.png"
+    },
+    {
+      "time": "2026-03-11T15:45:44.767Z",
+      "msg": "B14C-001 Summary: Return to Questions landed on: [7,14]"
+    }
+  ],
+  "answers": {
+    "1": {
+      "planned": "A",
+      "detected": "A",
+      "state": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 6,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "2": {
+      "planned": "B",
+      "detected": "B",
+      "state": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      },
+      "visitedOnly": true,
+      "stateAfterVisit": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "3": {
+      "planned": "C",
+      "detected": "C",
+      "state": {
+        "selectedIndex": 2,
+        "selectedLetter": "C",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      },
+      "changed": "A"
+    },
+    "4": {
+      "planned": "A",
+      "detected": "A",
+      "state": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "5": {
+      "planned": "D",
+      "detected": "D",
+      "state": {
+        "selectedIndex": 3,
+        "selectedLetter": "D",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "6": {
+      "planned": "B",
+      "detected": "B",
+      "state": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "7": {
+      "planned": "A",
+      "detected": "A",
+      "state": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      },
+      "visitedOnly": true,
+      "stateAfterVisit": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "8": {
+      "planned": "C",
+      "detected": "C",
+      "state": {
+        "selectedIndex": 2,
+        "selectedLetter": "C",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "9": {
+      "planned": "B",
+      "detected": "B",
+      "state": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "10": {
+      "planned": "D",
+      "detected": "D",
+      "state": {
+        "selectedIndex": 3,
+        "selectedLetter": "D",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "11": {
+      "planned": "A",
+      "detected": "A",
+      "state": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      },
+      "changed": "B"
+    },
+    "12": {
+      "planned": "C",
+      "detected": "C",
+      "state": {
+        "selectedIndex": 2,
+        "selectedLetter": "C",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "13": {
+      "planned": "B",
+      "detected": "B",
+      "state": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    "14": {
+      "planned": "D",
+      "detected": "D",
+      "state": {
+        "selectedIndex": 3,
+        "selectedLetter": "D",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      },
+      "changed": "C"
+    },
+    "15": {
+      "planned": "A",
+      "detected": "A",
+      "state": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 6,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    }
+  },
+  "answerChanges": [
+    {
+      "question": 3,
+      "from": "C",
+      "to": "A",
+      "detectedAfter": {
+        "selectedIndex": 0,
+        "selectedLetter": "A",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    {
+      "question": 11,
+      "from": "A",
+      "to": "B",
+      "detectedAfter": {
+        "selectedIndex": 1,
+        "selectedLetter": "B",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    },
+    {
+      "question": 14,
+      "from": "D",
+      "to": "C",
+      "detectedAfter": {
+        "selectedIndex": 2,
+        "selectedLetter": "C",
+        "allChoicesCount": 7,
+        "method": "brand-primary-scan",
+        "rawInfo": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all te"
+      }
+    }
+  ],
+  "reviewVisits": [
+    {
+      "visitNumber": 1,
+      "summary": null,
+      "gridInfo": {
+        "answeredBtns": 0,
+        "totalGridBtns": 0
+      },
+      "answeredFromSummary": null
+    },
+    {
+      "visitNumber": 2,
+      "summary": null,
+      "gridInfo": {
+        "answeredBtns": 0,
+        "totalGridBtns": 0
+      }
+    },
+    {
+      "visitNumber": 3,
+      "summary": null,
+      "gridInfo": {
+        "answeredBtns": 0,
+        "totalGridBtns": 0
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "B14C-002",
+      "observation": "Review grid answer letter badges",
+      "hasBadges": false,
+      "badges": [],
+      "detail": "Review grid does NOT show answer letter badges — boxes only show number or flag emoji"
+    },
+    {
+      "id": "B14C-001-return1",
+      "observation": "Return to Questions landing position (1st return)",
+      "landedOnQuestion": 7,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "id": "B14C-001-return2",
+      "observation": "Return to Questions landing position (2nd return)",
+      "landedOnQuestion": 14,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "id": "B14C-001-summary",
+      "title": "Return to Questions landing behavior",
+      "description": "Return to Questions button lands on: 7, 14 (from Return to Questions landing position (1st return); Return to Questions landing position (2nd return))",
+      "returnLandings": [
+        7,
+        14
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "notOnResults": true,
+  "completedAt": "2026-03-11T15:45:44.768Z"
+}

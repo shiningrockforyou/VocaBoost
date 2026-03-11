@@ -1,0 +1,92 @@
+{
+  "steps": [
+    {
+      "step": "login_done",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "step": "clicked_resume_test"
+    },
+    {
+      "step": "submitted_section"
+    },
+    {
+      "step": "post_section1",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isFRQ": false,
+      "isChoice": false
+    },
+    {
+      "step": "never_reached_frq",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "loginPageCheck": {
+    "url": "http://localhost:5173/login",
+    "hasLoginForm": true
+  },
+  "instructionState": {
+    "h1s": [
+      "AP Microeconomics Practice Exam"
+    ],
+    "btnTexts": [
+      "Log out",
+      "Cancel",
+      "Resume Test"
+    ]
+  },
+  "afterResumeState": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "hasTa": false,
+    "isQ15": false,
+    "isReview": false,
+    "isFRQChoice": false,
+    "btns": [
+      "",
+      "AConstant opportunity costs",
+      "",
+      "BIncreasing opportunity costs",
+      "",
+      "CDecreasing marginal returns",
+      "",
+      "DEconomies of scale",
+      "",
+      "⚐Flag for Review",
+      "← Back",
+      "Question 1 of 15▲",
+      "Next →"
+    ]
+  },
+  "frqInputState": {
+    "hasTextarea": false,
+    "url": "http://localhost:5173/ap/test/test_micro_full_1"
+  },
+  "notOnFRQ": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "btns": [
+      "",
+      "AConstant opportunity costs",
+      "",
+      "BIncreasing opportunity costs",
+      "",
+      "CDecreasing marginal returns",
+      "",
+      "DEconomies of scale",
+      "",
+      "⚐Flag for Review",
+      "← Back",
+      "Question 1 of 15▲",
+      "Next →"
+    ]
+  }
+}

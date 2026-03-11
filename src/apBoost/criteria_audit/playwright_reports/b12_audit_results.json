@@ -1,0 +1,1727 @@
+{
+  "steps": [
+    {
+      "msg": "=== STEP 1: Login as Student ==="
+    },
+    {
+      "msg": "login as student@apboost.test"
+    },
+    {
+      "msg": "post-login url",
+      "data": "http://localhost:5173/"
+    },
+    {
+      "msg": "shot: 01_login.png"
+    },
+    {
+      "msg": "B4-006: student login redirected to non-AP URL",
+      "data": "http://localhost:5173/"
+    },
+    {
+      "msg": "navigated",
+      "data": "http://localhost:5173/ap -> http://localhost:5173/ap"
+    },
+    {
+      "msg": "shot: 02_dashboard.png"
+    },
+    {
+      "msg": "dashboard h1",
+      "data": "AP Practice Tests"
+    },
+    {
+      "msg": "=== STEP 2: Start Micro Test ==="
+    },
+    {
+      "msg": "navigated",
+      "data": "http://localhost:5173/ap/test/test_micro_full_1 -> http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "msg": "shot: 03_instruction.png"
+    },
+    {
+      "msg": "instruction screen",
+      "data": "hasResume=true, hasBegin=false"
+    },
+    {
+      "msg": "clicked button \"Resume Test\""
+    },
+    {
+      "msg": "shot: 04_test_started.png"
+    },
+    {
+      "msg": "URL after begin",
+      "data": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "msg": "buttons at test start (first 15)",
+      "data": [
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "AConstant opportunity costs",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "BIncreasing opportunity costs",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "CDecreasing marginal returns",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "DEconomies of scale",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "⚐Flag for Review",
+          "disabled": false
+        },
+        {
+          "text": "← Back",
+          "disabled": true
+        },
+        {
+          "text": "Question 1 of 15▲",
+          "disabled": false
+        },
+        {
+          "text": "Next →",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "msg": "=== STEP 3: Answer Questions ==="
+    },
+    {
+      "msg": "--- Q1 ---"
+    },
+    {
+      "msg": "shot: 05_q1.png"
+    },
+    {
+      "msg": "Q1: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q2 ---"
+    },
+    {
+      "msg": "Q2: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q3 ---"
+    },
+    {
+      "msg": "Q3: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q4 ---"
+    },
+    {
+      "msg": "Q4: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q5 ---"
+    },
+    {
+      "msg": "Q5: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q6 ---"
+    },
+    {
+      "msg": "Q6: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q7 ---"
+    },
+    {
+      "msg": "Q7: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q8 ---"
+    },
+    {
+      "msg": "Q8: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q9 ---"
+    },
+    {
+      "msg": "Q9: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q10 ---"
+    },
+    {
+      "msg": "shot: 05_q10.png"
+    },
+    {
+      "msg": "Q10: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q11 ---"
+    },
+    {
+      "msg": "shot: 05_q11.png"
+    },
+    {
+      "msg": "Q11: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q12 ---"
+    },
+    {
+      "msg": "Q12: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q13 ---"
+    },
+    {
+      "msg": "Q13: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q14 ---"
+    },
+    {
+      "msg": "Q14: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "--- Q15 ---"
+    },
+    {
+      "msg": "shot: 05_q15.png"
+    },
+    {
+      "msg": "Q15: choices found",
+      "data": 4
+    },
+    {
+      "msg": "clicked button \"Review →\""
+    },
+    {
+      "msg": "Q15: Review → clicked: true"
+    },
+    {
+      "msg": "answering complete",
+      "data": "15/15 answered"
+    },
+    {
+      "msg": "selected answers",
+      "data": [
+        {
+          "q": 1,
+          "letter": "A",
+          "text": "AConstant opportunity costs"
+        },
+        {
+          "q": 2,
+          "letter": "A",
+          "text": "ACountry A, because it can produce more wheat"
+        },
+        {
+          "q": 3,
+          "letter": "A",
+          "text": "AIt shifts to the left"
+        },
+        {
+          "q": 4,
+          "letter": "A",
+          "text": "A0.5, and demand is inelastic"
+        },
+        {
+          "q": 5,
+          "letter": "A",
+          "text": "ABelow the demand curve and above the equilibrium price"
+        },
+        {
+          "q": 6,
+          "letter": "A",
+          "text": "AAt its maximum"
+        },
+        {
+          "q": 7,
+          "letter": "A",
+          "text": "ATotal revenue is maximized"
+        },
+        {
+          "q": 8,
+          "letter": "A",
+          "text": "APrice is below ATC"
+        },
+        {
+          "q": 9,
+          "letter": "A",
+          "text": "AMore output at a lower price"
+        },
+        {
+          "q": 10,
+          "letter": "A",
+          "text": "APositive economic profit"
+        },
+        {
+          "q": 11,
+          "letter": "B",
+          "text": "BDefect"
+        },
+        {
+          "q": 12,
+          "letter": "B",
+          "text": "BTR / workers"
+        },
+        {
+          "q": 13,
+          "letter": "B",
+          "text": "BMP = 0"
+        },
+        {
+          "q": 14,
+          "letter": "B",
+          "text": "BMore than optimal"
+        },
+        {
+          "q": 15,
+          "letter": "B",
+          "text": "BNational defense"
+        }
+      ]
+    },
+    {
+      "msg": "shot: 05_done_answering.png"
+    },
+    {
+      "msg": "=== STEP 4: MCQ Review Screen ==="
+    },
+    {
+      "msg": "shot: 06_review.png"
+    },
+    {
+      "msg": "on review screen",
+      "data": true
+    },
+    {
+      "msg": "review summary",
+      "data": {
+        "answered": "15/15",
+        "flagged": null,
+        "unanswered": null,
+        "hasSubmitSection": true,
+        "hasSubmitTest": false,
+        "bodyPreview": "AP Practice\nAlex Johnson\nVocaBoost\nReview Your Answers\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\nSummary\n• Answered: 15/15\nAnswered\nUnanswered\nFlagged\nAnnotated\nReturn to Questions\nSubmit Section"
+      }
+    },
+    {
+      "msg": "shot: 06_review_before_submit.png"
+    },
+    {
+      "msg": "submit section result",
+      "data": "Submit Section"
+    },
+    {
+      "msg": "shot: 06_after_mcq_submit.png"
+    },
+    {
+      "msg": "URL after MCQ submit",
+      "data": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "msg": "shot: 06_post_confirm.png"
+    },
+    {
+      "msg": "URL post confirm",
+      "data": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "msg": "=== STEP 5: FRQ Section ==="
+    },
+    {
+      "msg": "shot: 07_frq.png"
+    },
+    {
+      "msg": "FRQ page info",
+      "data": {
+        "hasTypedOption": true,
+        "hasHandwritten": true,
+        "hasFRQQuestions": true,
+        "hasTextarea": false,
+        "preview": "AP Practice\nAlex Johnson\nVocaBoost\nFree Response Section\n\nChoose how you'd like to complete your free response answers:\n\n⌨️\nType Your Answers\n\nEnter your responses directly using the on-screen text boxes. Best for shorter answers and quick submission.\n\n✍️\nWrite by Hand\n\nDownload an answer sheet, write on paper, then scan and upload. Best for math, diagrams, and longer responses.\n\n⏱\n24:56",
+        "buttons": [
+          "⌨️Type Your AnswersEnter your responses directly u",
+          "✍️Write by HandDownload an answer sheet, write on "
+        ]
+      }
+    },
+    {
+      "msg": "shot: 07_frq_typed.png"
+    },
+    {
+      "msg": "FRQ typed selected"
+    },
+    {
+      "msg": "FRQ page 1",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 1 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:54\nQuestion 1(a)\nTotal: 10 points\n(a)Draw a correctly labeled monopoly graph. Identify Qm and Pm.(3 pts)\n(b)Shade the deadweight loss area.(2 pts)\n(c)Explain how a per-unit subsidy affects output and DWL.(3 pts)\n(d)Would a lump-sum tax change P a"
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 2",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 2 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:52\nQuestion 1(b)\nTotal: 10 points\n(a)Draw a correctly labeled monopoly graph. Identify Qm and Pm.(3 pts)\n(b)Shade the deadweight loss area.(2 pts)\n(c)Explain how a per-unit subsidy affects output and DWL.(3 pts)\n(d)Would a lump-sum tax change P a"
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 3",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 3 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:50\nQuestion 1(c)\nTotal: 10 points\n(a)Draw a correctly labeled monopoly graph. Identify Qm and Pm.(3 pts)\n(b)Shade the deadweight loss area.(2 pts)\n(c)Explain how a per-unit subsidy affects output and DWL.(3 pts)\n(d)Would a lump-sum tax change P a"
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 4",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 4 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:48\nQuestion 1(d)\nTotal: 10 points\n(a)Draw a correctly labeled monopoly graph. Identify Qm and Pm.(3 pts)\n(b)Shade the deadweight loss area.(2 pts)\n(c)Explain how a per-unit subsidy affects output and DWL.(3 pts)\n(d)Would a lump-sum tax change P a"
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 5",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 5 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:46\nQuestion 2(a)\nTotal: 8 points\n(a)Draw a labeled graph showing MFC, S, and MRP. Identify Wm and Lm.(3 pts)\n(b)Compare to competitive outcome.(2 pts)\n(c)Explain how a minimum wage could increase both W and L.(3 pts)\n(a)\n3 points\n(a)\n\nDraw a labe"
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 6",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": true,
+        "hasReview": false,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 6 of 7▲",
+          "Next →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:44\nQuestion 2(b)\nTotal: 8 points\n(a)Draw a labeled graph showing MFC, S, and MRP. Identify Wm and Lm.(3 pts)\n(b)Compare to competitive outcome.(2 pts)\n(c)Explain how a minimum wage could increase both W and L.(3 pts)\n(b)\n2 points\n(b)\n\nCompare to "
+      }
+    },
+    {
+      "msg": "clicked button \"Next →\""
+    },
+    {
+      "msg": "FRQ page 7",
+      "data": {
+        "textareaCount": 1,
+        "hasNext": false,
+        "hasReview": true,
+        "hasSubmitTest": false,
+        "hasSubmitSection": false,
+        "buttons": [
+          "⚐Flag for Review",
+          "← Back",
+          "Question 7 of 7▲",
+          "Review →"
+        ],
+        "preview": "Locked\nSection 2 of 2: Section II: Free Response\n⏱\n24:42\nQuestion 2(c)\nTotal: 8 points\n(a)Draw a labeled graph showing MFC, S, and MRP. Identify Wm and Lm.(3 pts)\n(b)Compare to competitive outcome.(2 pts)\n(c)Explain how a minimum wage could increase both W and L.(3 pts)\n(c)\n3 points\n(c)\n\nExplain how"
+      }
+    },
+    {
+      "msg": "clicked button \"Review →\""
+    },
+    {
+      "msg": "shot: 07_frq_review.png"
+    },
+    {
+      "msg": "Submit Test result",
+      "data": "Submit Test"
+    },
+    {
+      "msg": "shot: 07_after_submit.png"
+    },
+    {
+      "msg": "URL after test submit",
+      "data": "http://localhost:5173/ap/results/3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5"
+    },
+    {
+      "msg": "=== STEP 6: Report Card ==="
+    },
+    {
+      "msg": "report card URL",
+      "data": "http://localhost:5173/ap/results/3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5"
+    },
+    {
+      "msg": "result ID",
+      "data": "3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5"
+    },
+    {
+      "msg": "shot: 08_report_card.png"
+    },
+    {
+      "msg": "Report card extract",
+      "data": {
+        "isOnResultsPage": true,
+        "fractions": [
+          "3/10",
+          "5/15",
+          "0/2",
+          "0/3",
+          "1/3",
+          "2/3",
+          "2/2"
+        ],
+        "percentages": [
+          "33%",
+          "0%",
+          "67%",
+          "100%"
+        ],
+        "has10of15": false,
+        "has66": true,
+        "successElements": 1,
+        "errorElements": 4,
+        "apScore": "3",
+        "tableData": [
+          {
+            "rows": 16,
+            "preview": "Q#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostBA✗2Unit 1: Basic Economic ConceptsComparative AdvantageBA✗3Unit 2: Supply and DemandDemand ShiftersBA✗4"
+          },
+          {
+            "rows": 0,
+            "preview": "Domain"
+          },
+          {
+            "rows": 0,
+            "preview": "Topic"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 1: Basic Economic Concepts"
+          },
+          {
+            "rows": 0,
+            "preview": "Scarcity & Opportunity Cost"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 1: Basic Economic Concepts"
+          },
+          {
+            "rows": 0,
+            "preview": "Comparative Advantage"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 2: Supply and Demand"
+          },
+          {
+            "rows": 0,
+            "preview": "Demand Shifters"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 2: Supply and Demand"
+          },
+          {
+            "rows": 0,
+            "preview": "Elasticity"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 2: Supply and Demand"
+          },
+          {
+            "rows": 0,
+            "preview": "Consumer & Producer Surplus"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 3: Production & Cost"
+          },
+          {
+            "rows": 0,
+            "preview": "Marginal Product"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 3: Production & Cost"
+          },
+          {
+            "rows": 0,
+            "preview": "Perfect Competition"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 3: Production & Cost"
+          },
+          {
+            "rows": 0,
+            "preview": "Shutdown Rule"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 4: Imperfect Competition"
+          },
+          {
+            "rows": 0,
+            "preview": "Monopoly"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 4: Imperfect Competition"
+          },
+          {
+            "rows": 0,
+            "preview": "Monopolistic Competition"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 4: Imperfect Competition"
+          },
+          {
+            "rows": 0,
+            "preview": "Game Theory"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 5: Factor Markets"
+          },
+          {
+            "rows": 0,
+            "preview": "Labor Market"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 5: Factor Markets"
+          },
+          {
+            "rows": 0,
+            "preview": "Labor Market"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 6: Market Failure"
+          },
+          {
+            "rows": 0,
+            "preview": "Externalities"
+          },
+          {
+            "rows": 0,
+            "preview": "Unit 6: Market Failure"
+          },
+          {
+            "rows": 0,
+            "preview": "Public Goods"
+          }
+        ],
+        "bodyPreview": "AP Practice\nAlex Johnson\nVocaBoost\nSCORE REPORT\n⏳\nFree Response section is awaiting teacher grading. Final AP score will be calculated after grading is complete.\n\nStudent: Alex Johnson\n\nTest: AP Microeconomics Practice Exam\n\nSubject: AP Microeconomics\n\nDate: 3/10/2026\n\nAP SCORE\n⏳\nPending\nSection 1 (MCQ)\n5/15 (33%)\nFree Response\n--/18 (pending)\n\nTotal: Pending FRQ grading\n\nSection 1: Multiple Choice Results\nQ#\tDomain\tTopic\tCorrect\tYour Answer\tResult\n1\tUnit 1: Basic Economic Concepts\tScarcity & Opportunity Cost\tB\tA\t✗\n2\tUnit 1: Basic Economic Concepts\tComparative Advantage\tB\tA\t✗\n3\tUnit 2: Supply and Demand\tDemand Shifters\tB\tA\t✗\n4\tUnit 2: Supply and Demand\tElasticity\tA\tA\t✓\n5\tUnit 2: Supply and Demand\tConsumer & Producer Surplus\tA\tA\t✓\n6\tUnit 3: Production & Cost\tMarginal Product\tB\tA\t✗\n7\tUnit 3: Production & Cost\tPerfect Competition\tB\tA\t✗\n8\tUnit 3: Production & Cost\tShutdown Rule\tB\tA\t✗\n9\tUnit 4: Imperfect Competition\tMonopoly\tB\tA\t✗\n10\tUnit 4: Imperfect Competition\tMonopolistic Competition\tB\tA\t✗\n11\tUnit 4: Imperfect Competition\tGame Theory\tB\tB\t✓\n12\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n13\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n14\tUnit 6: Market Failure\tExternalities\tB\tB\t✓\n15\tUnit 6: Market Failure\tPublic Goods\tB\tB\t✓\n\nMCQ Summary: 5/15 correct (33%)\n\nPerformance by Domain\nUnit 1: Basic Economic Concepts\n0/2 (0%)\nUnit 3: Production & Cost\n0/3 (0%)\nUnit 5: Factor Markets\n0/2 (0%)\nUnit 4: Imperfect Competition\n1/3 (33%)\nUnit 2: Supply and Demand\n2/3 (67%)\nUnit 6: Market Failure\n2/2 (100%)\nSection 2: Free Response\n⏳\nAwaiting Grade\nYour Submitted Answers\nQuestion 1\n(a)\nEconomic analysis for FRQ 1-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 2-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 3-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(d)\nEconomic analysis for FRQ 4-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\nQuestion 2\n(a)\nEconomic analysis for FRQ 5-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 6-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 7-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n\nRaw Points: --/18 (pending)\n\nBack to Dashboard\nDownload PDF"
+      }
+    },
+    {
+      "msg": "=== SCORE VERIFICATION ==="
+    },
+    {
+      "msg": "On results page",
+      "data": true
+    },
+    {
+      "msg": "10/15 fraction in report",
+      "data": false
+    },
+    {
+      "msg": "~66.7% in report",
+      "data": true
+    },
+    {
+      "msg": "All fractions",
+      "data": "[\"3/10\",\"5/15\",\"0/2\",\"0/3\",\"1/3\",\"2/3\",\"2/2\"]"
+    },
+    {
+      "msg": "All percentages",
+      "data": "[\"33%\",\"0%\",\"67%\",\"100%\"]"
+    },
+    {
+      "msg": "Success elements (correct)",
+      "data": 1
+    },
+    {
+      "msg": "Error elements (incorrect)",
+      "data": 4
+    },
+    {
+      "msg": "AP Score displayed",
+      "data": "3"
+    },
+    {
+      "msg": "shot: 08_report_mcq_section.png"
+    },
+    {
+      "msg": "shot: 08_report_lower.png"
+    },
+    {
+      "msg": "shot: 08_report_bottom.png"
+    },
+    {
+      "msg": "=== STEP 7: Logout Student ==="
+    },
+    {
+      "msg": "navigated",
+      "data": "http://localhost:5173/ap -> http://localhost:5173/ap"
+    },
+    {
+      "msg": "header/nav elements",
+      "data": [
+        {
+          "tag": "A",
+          "text": "AP Practice",
+          "aria": "",
+          "classes": "flex items-center gap-3",
+          "href": "/ap"
+        },
+        {
+          "tag": "A",
+          "text": "VocaBoost",
+          "aria": "",
+          "classes": "text-text-muted text-sm hover:text-text-secondary transition",
+          "href": "/"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "AP Calculus AB Practice ExamNot StartedA",
+          "aria": "",
+          "classes": "w-full text-left bg-surface rounded-[--radius-card] shadow-t",
+          "href": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "AP Macroeconomics Practice ExamNot Start",
+          "aria": "",
+          "classes": "w-full text-left bg-surface rounded-[--radius-card] shadow-t",
+          "href": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "AP Microeconomics Practice ExamCompleted",
+          "aria": "",
+          "classes": "w-full text-left bg-surface rounded-[--radius-card] shadow-t",
+          "href": ""
+        }
+      ]
+    },
+    {
+      "msg": "trying firebase signOut"
+    },
+    {
+      "msg": "using page navigation to get to login"
+    },
+    {
+      "msg": "shot: 09_after_logout.png"
+    },
+    {
+      "msg": "post-logout URL",
+      "data": "http://localhost:5173/"
+    },
+    {
+      "msg": "Still on app, trying alternative logout approaches"
+    },
+    {
+      "msg": "all buttons visible",
+      "data": [
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "disabled": false
+        },
+        {
+          "text": "Start Session",
+          "disabled": false
+        },
+        {
+          "text": "Join Class",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "msg": "=== STEP 8: Login as Teacher ==="
+    },
+    {
+      "msg": "login as teacher@apboost.test"
+    },
+    {
+      "msg": "FATAL ERROR",
+      "data": "page.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"]')\u001b[22m\n"
+    },
+    {
+      "msg": "shot: error_state.png"
+    }
+  ],
+  "consoleErrors": [],
+  "findings": [
+    {
+      "id": "B4-006-RECONFIRMED",
+      "severity": "Medium",
+      "what": "Student login redirected to http://localhost:5173/"
+    }
+  ],
+  "selectedAnswers": [
+    {
+      "q": 1,
+      "letter": "A",
+      "text": "AConstant opportunity costs"
+    },
+    {
+      "q": 2,
+      "letter": "A",
+      "text": "ACountry A, because it can produce more wheat"
+    },
+    {
+      "q": 3,
+      "letter": "A",
+      "text": "AIt shifts to the left"
+    },
+    {
+      "q": 4,
+      "letter": "A",
+      "text": "A0.5, and demand is inelastic"
+    },
+    {
+      "q": 5,
+      "letter": "A",
+      "text": "ABelow the demand curve and above the equilibrium price"
+    },
+    {
+      "q": 6,
+      "letter": "A",
+      "text": "AAt its maximum"
+    },
+    {
+      "q": 7,
+      "letter": "A",
+      "text": "ATotal revenue is maximized"
+    },
+    {
+      "q": 8,
+      "letter": "A",
+      "text": "APrice is below ATC"
+    },
+    {
+      "q": 9,
+      "letter": "A",
+      "text": "AMore output at a lower price"
+    },
+    {
+      "q": 10,
+      "letter": "A",
+      "text": "APositive economic profit"
+    },
+    {
+      "q": 11,
+      "letter": "B",
+      "text": "BDefect"
+    },
+    {
+      "q": 12,
+      "letter": "B",
+      "text": "BTR / workers"
+    },
+    {
+      "q": 13,
+      "letter": "B",
+      "text": "BMP = 0"
+    },
+    {
+      "q": 14,
+      "letter": "B",
+      "text": "BMore than optimal"
+    },
+    {
+      "q": 15,
+      "letter": "B",
+      "text": "BNational defense"
+    }
+  ],
+  "mcqReviewSummary": {
+    "answered": "15/15",
+    "flagged": null,
+    "unanswered": null,
+    "hasSubmitSection": true,
+    "hasSubmitTest": false,
+    "bodyPreview": "AP Practice\nAlex Johnson\nVocaBoost\nReview Your Answers\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\nSummary\n• Answered: 15/15\nAnswered\nUnanswered\nFlagged\nAnnotated\nReturn to Questions\nSubmit Section"
+  },
+  "reportUrl": "http://localhost:5173/ap/results/3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5",
+  "resultId": "3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5",
+  "reportExtract": {
+    "isOnResultsPage": true,
+    "fractions": [
+      "3/10",
+      "5/15",
+      "0/2",
+      "0/3",
+      "1/3",
+      "2/3",
+      "2/2"
+    ],
+    "percentages": [
+      "33%",
+      "0%",
+      "67%",
+      "100%"
+    ],
+    "has10of15": false,
+    "has66": true,
+    "successElements": 1,
+    "errorElements": 4,
+    "apScore": "3",
+    "tableData": [
+      {
+        "rows": 16,
+        "preview": "Q#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostBA✗2Unit 1: Basic Economic ConceptsComparative AdvantageBA✗3Unit 2: Supply and DemandDemand ShiftersBA✗4"
+      },
+      {
+        "rows": 0,
+        "preview": "Domain"
+      },
+      {
+        "rows": 0,
+        "preview": "Topic"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 1: Basic Economic Concepts"
+      },
+      {
+        "rows": 0,
+        "preview": "Scarcity & Opportunity Cost"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 1: Basic Economic Concepts"
+      },
+      {
+        "rows": 0,
+        "preview": "Comparative Advantage"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 2: Supply and Demand"
+      },
+      {
+        "rows": 0,
+        "preview": "Demand Shifters"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 2: Supply and Demand"
+      },
+      {
+        "rows": 0,
+        "preview": "Elasticity"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 2: Supply and Demand"
+      },
+      {
+        "rows": 0,
+        "preview": "Consumer & Producer Surplus"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 3: Production & Cost"
+      },
+      {
+        "rows": 0,
+        "preview": "Marginal Product"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 3: Production & Cost"
+      },
+      {
+        "rows": 0,
+        "preview": "Perfect Competition"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 3: Production & Cost"
+      },
+      {
+        "rows": 0,
+        "preview": "Shutdown Rule"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 4: Imperfect Competition"
+      },
+      {
+        "rows": 0,
+        "preview": "Monopoly"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 4: Imperfect Competition"
+      },
+      {
+        "rows": 0,
+        "preview": "Monopolistic Competition"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 4: Imperfect Competition"
+      },
+      {
+        "rows": 0,
+        "preview": "Game Theory"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 5: Factor Markets"
+      },
+      {
+        "rows": 0,
+        "preview": "Labor Market"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 5: Factor Markets"
+      },
+      {
+        "rows": 0,
+        "preview": "Labor Market"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 6: Market Failure"
+      },
+      {
+        "rows": 0,
+        "preview": "Externalities"
+      },
+      {
+        "rows": 0,
+        "preview": "Unit 6: Market Failure"
+      },
+      {
+        "rows": 0,
+        "preview": "Public Goods"
+      }
+    ],
+    "bodyPreview": "AP Practice\nAlex Johnson\nVocaBoost\nSCORE REPORT\n⏳\nFree Response section is awaiting teacher grading. Final AP score will be calculated after grading is complete.\n\nStudent: Alex Johnson\n\nTest: AP Microeconomics Practice Exam\n\nSubject: AP Microeconomics\n\nDate: 3/10/2026\n\nAP SCORE\n⏳\nPending\nSection 1 (MCQ)\n5/15 (33%)\nFree Response\n--/18 (pending)\n\nTotal: Pending FRQ grading\n\nSection 1: Multiple Choice Results\nQ#\tDomain\tTopic\tCorrect\tYour Answer\tResult\n1\tUnit 1: Basic Economic Concepts\tScarcity & Opportunity Cost\tB\tA\t✗\n2\tUnit 1: Basic Economic Concepts\tComparative Advantage\tB\tA\t✗\n3\tUnit 2: Supply and Demand\tDemand Shifters\tB\tA\t✗\n4\tUnit 2: Supply and Demand\tElasticity\tA\tA\t✓\n5\tUnit 2: Supply and Demand\tConsumer & Producer Surplus\tA\tA\t✓\n6\tUnit 3: Production & Cost\tMarginal Product\tB\tA\t✗\n7\tUnit 3: Production & Cost\tPerfect Competition\tB\tA\t✗\n8\tUnit 3: Production & Cost\tShutdown Rule\tB\tA\t✗\n9\tUnit 4: Imperfect Competition\tMonopoly\tB\tA\t✗\n10\tUnit 4: Imperfect Competition\tMonopolistic Competition\tB\tA\t✗\n11\tUnit 4: Imperfect Competition\tGame Theory\tB\tB\t✓\n12\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n13\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n14\tUnit 6: Market Failure\tExternalities\tB\tB\t✓\n15\tUnit 6: Market Failure\tPublic Goods\tB\tB\t✓\n\nMCQ Summary: 5/15 correct (33%)\n\nPerformance by Domain\nUnit 1: Basic Economic Concepts\n0/2 (0%)\nUnit 3: Production & Cost\n0/3 (0%)\nUnit 5: Factor Markets\n0/2 (0%)\nUnit 4: Imperfect Competition\n1/3 (33%)\nUnit 2: Supply and Demand\n2/3 (67%)\nUnit 6: Market Failure\n2/2 (100%)\nSection 2: Free Response\n⏳\nAwaiting Grade\nYour Submitted Answers\nQuestion 1\n(a)\nEconomic analysis for FRQ 1-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 2-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 3-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(d)\nEconomic analysis for FRQ 4-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\nQuestion 2\n(a)\nEconomic analysis for FRQ 5-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 6-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 7-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n\nRaw Points: --/18 (pending)\n\nBack to Dashboard\nDownload PDF"
+  },
+  "error": "page.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"]')\u001b[22m\n",
+  "teacher": {
+    "steps": [
+      {
+        "msg": "=== Login as Teacher ==="
+      },
+      {
+        "msg": "login as teacher@apboost.test"
+      },
+      {
+        "msg": "post-login",
+        "data": "http://localhost:5173/"
+      },
+      {
+        "msg": "shot: 10_teacher_login"
+      },
+      {
+        "msg": "teacher URL",
+        "data": "http://localhost:5173/"
+      },
+      {
+        "msg": "nav",
+        "data": "http://localhost:5173/ap/teacher -> http://localhost:5173/ap/teacher"
+      },
+      {
+        "msg": "shot: 10_teacher_dashboard"
+      },
+      {
+        "msg": "=== Gradebook Verification ==="
+      },
+      {
+        "msg": "nav",
+        "data": "http://localhost:5173/ap/gradebook -> http://localhost:5173/ap/gradebook"
+      },
+      {
+        "msg": "shot: 11_gradebook"
+      },
+      {
+        "msg": "gradebook",
+        "data": {
+          "fractions": [
+            "3/6",
+            "2/27"
+          ],
+          "percentages": [],
+          "rows": [
+            "StudentTestSubmittedStatusAction",
+            "Alex Johnson⏳PendingAP Calculus AB Practice Exam3/6/2026⏳PendingGrade",
+            "Ethan Williams⏳PendingAP Microeconomics Practice Exam2/27/2026⏳PendingGrade"
+          ],
+          "pendingCount": 3,
+          "hasAlex": true,
+          "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nAlex Johnson\tAP Calculus AB Practice Exam\t3/6/2026\t\n⏳\nPending\tGrade\nEthan Williams\tAP Microeconomics Practice Exam\t2/27/2026\t\n⏳\nPending\tGrade\nShowing 2 submissions"
+        }
+      },
+      {
+        "msg": "shot: 11_gradebook_scroll"
+      },
+      {
+        "msg": "Has our student result",
+        "data": true
+      },
+      {
+        "msg": "Fractions in gradebook",
+        "data": "[\"3/6\",\"2/27\"]"
+      },
+      {
+        "msg": "Percentages in gradebook",
+        "data": "[]"
+      },
+      {
+        "msg": "=== Analytics Verification ==="
+      },
+      {
+        "msg": "nav",
+        "data": "http://localhost:5173/ap/teacher/analytics/test_micro_full_1 -> http://localhost:5173/ap/teacher/analytics/test_micro_full_1"
+      },
+      {
+        "msg": "shot: 12_analytics"
+      },
+      {
+        "msg": "analytics",
+        "data": {
+          "fractions": [
+            "6/15",
+            "5/15",
+            "13/15",
+            "15/18",
+            "11/15",
+            "14/18",
+            "15/15",
+            "16/18",
+            "14/15",
+            "10/15",
+            "10/18",
+            "9/15",
+            "13/18",
+            "12/18",
+            "8/15",
+            "8/18"
+          ],
+          "percentages": [
+            "59%",
+            "19%",
+            "13%",
+            "44%",
+            "6%",
+            "85%",
+            "70%",
+            "60%",
+            "50%",
+            "56%",
+            "75%",
+            "38%",
+            "63%",
+            "69%",
+            "88%",
+            "94%",
+            "61%",
+            "0%",
+            "40%",
+            "33%",
+            "76%",
+            "91%",
+            "58%",
+            "79%",
+            "64%",
+            "48%"
+          ],
+          "hasAverage": true,
+          "hasDifficulty": false,
+          "hasStudentList": true,
+          "tableRows": 17,
+          "buttons": [
+            {
+              "text": "AP Practice",
+              "href": "/ap"
+            },
+            {
+              "text": "VocaBoost",
+              "href": "/"
+            },
+            {
+              "text": "Export Questions PDF",
+              "href": ""
+            },
+            {
+              "text": "Export with Answers",
+              "href": ""
+            },
+            {
+              "text": "← Back",
+              "href": ""
+            },
+            {
+              "text": "Select classes...▼",
+              "href": ""
+            },
+            {
+              "text": "Select students...▼",
+              "href": ""
+            },
+            {
+              "text": "Apply Filters",
+              "href": ""
+            },
+            {
+              "text": "Grid",
+              "href": ""
+            },
+            {
+              "text": "Detailed",
+              "href": ""
+            },
+            {
+              "text": "Q156%",
+              "href": ""
+            },
+            {
+              "text": "Q275%",
+              "href": ""
+            },
+            {
+              "text": "Q356%",
+              "href": ""
+            },
+            {
+              "text": "Q438%",
+              "href": ""
+            },
+            {
+              "text": "Q563%",
+              "href": ""
+            },
+            {
+              "text": "Q669%",
+              "href": ""
+            },
+            {
+              "text": "Q738%",
+              "href": ""
+            },
+            {
+              "text": "Q888%",
+              "href": ""
+            },
+            {
+              "text": "Q956%",
+              "href": ""
+            },
+            {
+              "text": "Q1056%",
+              "href": ""
+            },
+            {
+              "text": "Q1194%",
+              "href": ""
+            },
+            {
+              "text": "Q1275%",
+              "href": ""
+            },
+            {
+              "text": "Q1344%",
+              "href": ""
+            },
+            {
+              "text": "Q1463%",
+              "href": ""
+            },
+            {
+              "text": "Q1538%",
+              "href": ""
+            },
+            {
+              "text": "a0%",
+              "href": ""
+            },
+            {
+              "text": "b0%",
+              "href": ""
+            },
+            {
+              "text": "c0%",
+              "href": ""
+            },
+            {
+              "text": "d0%",
+              "href": ""
+            },
+            {
+              "text": "a0%",
+              "href": ""
+            }
+          ],
+          "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n16\nAverage Score\n59%\n17 pts\nHighest Score\n31 pts\nLowest Score\n5 pts\nAP Score Distribution\n5\n3 (19%)\n4\n2 (13%)\n3\n3 (19%)\n2\n7 (44%)\n1\n1 (6%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\nLegend:\n≥85% (Excellent)\n≥70% (Good)\n≥60% (Satisfactory)\n≥50% (Needs Improvement)\n<50% (Critical)\nQ1\n56%\nQ2\n75%\nQ3\n56%\nQ4\n38%\nQ5\n63%\nQ6\n69%\nQ7\n38%\nQ8\n88%\nQ9\n56%\nQ10\n56%\nQ11\n94%\nQ12\n75%\nQ13\n44%\nQ14\n63%\nQ15\n38%\nTotal Questions: 15\nAverage: 61%\nLowest: 38%\nHighest: 94%\nSection 2: Free Response Performance\nFRQ 1\n\nAssume a profit-maximizing monopoly operates with no externalities....\n\n0%\na\n0%\nb\n0%\nc\n0%\nd\n0%\n0 students graded\nFRQ 2\n\nConsider a monopsony labor market....\n\n0%\na\n0%\nb\n0%\nc\n0%\n0 students graded\nStudent Results (16 students)\nName ↑\tEmail\tMCQ\tFRQ\tTotal\tAP Score\tActions\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t5/15\tPending\t33%\t1\t\n\nAlex Johnson\talex.j@school.edu\t13/15\t15/18\t85%\t5\t\n\nAlex Johnson\talex.j@school.edu\t11/15\t14/18\t76%\t4\t\n\nEthan Williams\tethan.w@school.edu\t15/15\t16/18\t94%\t5\t\n\nEthan Williams\tethan.w@school.edu\t14/15\t16/18\t91%\t5\t\n\nJames Chen\tjames.c@school.edu\t10/15\t10/18\t61%\t3\t\n\nJames Chen\tjames.c@school.edu\t9/15\t10/18\t58%\t3\t\n\nMaria Garcia\tmaria.g@school.edu\t13/15\t13/18\t79%\t4\t\n\nMaria Garcia\tmaria.g@school.edu\t9/15\t12/18\t64%\t3\t\n\nMs. Thompson\tthompson@school.edu\t6/15\tPending\t40%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\nShowing 16 students"
+        }
+      },
+      {
+        "msg": "shot: 12_analytics_scroll"
+      },
+      {
+        "msg": "shot: 12_analytics_bottom"
+      },
+      {
+        "msg": "Profile links found",
+        "data": []
+      },
+      {
+        "msg": "=== Student Profile ==="
+      },
+      {
+        "msg": "No profile links in analytics, searching gradebook for student"
+      },
+      {
+        "msg": "nav",
+        "data": "http://localhost:5173/ap/gradebook -> http://localhost:5173/ap/gradebook"
+      },
+      {
+        "msg": "gradebook rows for our student",
+        "data": [
+          {
+            "rowText": "Alex Johnson⏳PendingAP Calculus AB Practice Exam3/6/2026⏳PendingGrade",
+            "links": [
+              {
+                "text": "Grade",
+                "href": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "msg": "shot: 13_gradebook_student_row"
+      },
+      {
+        "msg": "=== Teacher views student report card ==="
+      },
+      {
+        "msg": "nav",
+        "data": "http://localhost:5173/ap/results/3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5 -> http://localhost:5173/ap/results/3s3ch0IlQYVffn5lYgZJczQ5SL22_test_micro_full_1_5"
+      },
+      {
+        "msg": "shot: 14_teacher_report"
+      },
+      {
+        "msg": "teacher report view",
+        "data": {
+          "fractions": [
+            "3/10",
+            "5/15",
+            "0/2",
+            "0/3",
+            "1/3",
+            "2/3",
+            "2/2"
+          ],
+          "percentages": [
+            "33%",
+            "0%",
+            "67%",
+            "100%"
+          ],
+          "isOnResults": true,
+          "tableRows": 16,
+          "has5of15": true,
+          "has33Pct": true,
+          "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nSCORE REPORT\n⏳\nFree Response section is awaiting teacher grading. Final AP score will be calculated after grading is complete.\n\nStudent: Ms. Thompson\n\nTest: AP Microeconomics Practice Exam\n\nSubject: AP Microeconomics\n\nDate: 3/10/2026\n\nAP SCORE\n⏳\nPending\nSection 1 (MCQ)\n5/15 (33%)\nFree Response\n--/18 (pending)\n\nTotal: Pending FRQ grading\n\nSection 1: Multiple Choice Results\nQ#\tDomain\tTopic\tCorrect\tYour Answer\tResult\n1\tUnit 1: Basic Economic Concepts\tScarcity & Opportunity Cost\tB\tA\t✗\n2\tUnit 1: Basic Economic Concepts\tComparative Advantage\tB\tA\t✗\n3\tUnit 2: Supply and Demand\tDemand Shifters\tB\tA\t✗\n4\tUnit 2: Supply and Demand\tElasticity\tA\tA\t✓\n5\tUnit 2: Supply and Demand\tConsumer & Producer Surplus\tA\tA\t✓\n6\tUnit 3: Production & Cost\tMarginal Product\tB\tA\t✗\n7\tUnit 3: Production & Cost\tPerfect Competition\tB\tA\t✗\n8\tUnit 3: Production & Cost\tShutdown Rule\tB\tA\t✗\n9\tUnit 4: Imperfect Competition\tMonopoly\tB\tA\t✗\n10\tUnit 4: Imperfect Competition\tMonopolistic Competition\tB\tA\t✗\n11\tUnit 4: Imperfect Competition\tGame Theory\tB\tB\t✓\n12\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n13\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n14\tUnit 6: Market Failure\tExternalities\tB\tB\t✓\n15\tUnit 6: Market Failure\tPublic Goods\tB\tB\t✓\n\nMCQ Summary: 5/15 correct (33%)\n\nPerformance by Domain\nUnit 1: Basic Economic Concepts\n0/2 (0%)\nUnit 3: Production & Cost\n0/3 (0%)\nUnit 5: Factor Markets\n0/2 (0%)\nUnit 4: Imperfect Competition\n1/3 (33%)\nUnit 2: Supply and Demand\n2/3 (67%)\nUnit 6: Market Failure\n2/2 (100%)\nSection 2: Free Response\n⏳\nAwaiting Grade\nYour Submitted Answers\nQuestion 1\n(a)\nEconomic analysis for FRQ 1-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 2-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 3-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(d)\nEconomic analysis for FRQ 4-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\nQuestion 2\n(a)\nEconomic analysis for FRQ 5-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 6-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 7-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n\nRaw Points: --/18 (pending)\n\nBack to Dashboard\nDownload PDF"
+        }
+      },
+      {
+        "msg": "shot: 14_teacher_report_mcq"
+      },
+      {
+        "msg": "shot: 14_teacher_report_frq"
+      },
+      {
+        "msg": "shot: 15_final"
+      },
+      {
+        "msg": "=== B12 Teacher Verification Complete ==="
+      }
+    ],
+    "consoleErrors": [],
+    "gradebookData": {
+      "fractions": [
+        "3/6",
+        "2/27"
+      ],
+      "percentages": [],
+      "rows": [
+        "StudentTestSubmittedStatusAction",
+        "Alex Johnson⏳PendingAP Calculus AB Practice Exam3/6/2026⏳PendingGrade",
+        "Ethan Williams⏳PendingAP Microeconomics Practice Exam2/27/2026⏳PendingGrade"
+      ],
+      "pendingCount": 3,
+      "hasAlex": true,
+      "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nGradebook\n\nReview and grade student FRQ submissions\n\nStatus:\nPending\nIn Progress\nComplete\nAll\nTest:\nAll Tests\nClass:\nAll Classes\nStudent\tTest\tSubmitted\tStatus\tAction\nAlex Johnson\tAP Calculus AB Practice Exam\t3/6/2026\t\n⏳\nPending\tGrade\nEthan Williams\tAP Microeconomics Practice Exam\t2/27/2026\t\n⏳\nPending\tGrade\nShowing 2 submissions"
+    },
+    "analyticsData": {
+      "fractions": [
+        "6/15",
+        "5/15",
+        "13/15",
+        "15/18",
+        "11/15",
+        "14/18",
+        "15/15",
+        "16/18",
+        "14/15",
+        "10/15",
+        "10/18",
+        "9/15",
+        "13/18",
+        "12/18",
+        "8/15",
+        "8/18"
+      ],
+      "percentages": [
+        "59%",
+        "19%",
+        "13%",
+        "44%",
+        "6%",
+        "85%",
+        "70%",
+        "60%",
+        "50%",
+        "56%",
+        "75%",
+        "38%",
+        "63%",
+        "69%",
+        "88%",
+        "94%",
+        "61%",
+        "0%",
+        "40%",
+        "33%",
+        "76%",
+        "91%",
+        "58%",
+        "79%",
+        "64%",
+        "48%"
+      ],
+      "hasAverage": true,
+      "hasDifficulty": false,
+      "hasStudentList": true,
+      "tableRows": 17,
+      "buttons": [
+        {
+          "text": "AP Practice",
+          "href": "/ap"
+        },
+        {
+          "text": "VocaBoost",
+          "href": "/"
+        },
+        {
+          "text": "Export Questions PDF",
+          "href": ""
+        },
+        {
+          "text": "Export with Answers",
+          "href": ""
+        },
+        {
+          "text": "← Back",
+          "href": ""
+        },
+        {
+          "text": "Select classes...▼",
+          "href": ""
+        },
+        {
+          "text": "Select students...▼",
+          "href": ""
+        },
+        {
+          "text": "Apply Filters",
+          "href": ""
+        },
+        {
+          "text": "Grid",
+          "href": ""
+        },
+        {
+          "text": "Detailed",
+          "href": ""
+        },
+        {
+          "text": "Q156%",
+          "href": ""
+        },
+        {
+          "text": "Q275%",
+          "href": ""
+        },
+        {
+          "text": "Q356%",
+          "href": ""
+        },
+        {
+          "text": "Q438%",
+          "href": ""
+        },
+        {
+          "text": "Q563%",
+          "href": ""
+        },
+        {
+          "text": "Q669%",
+          "href": ""
+        },
+        {
+          "text": "Q738%",
+          "href": ""
+        },
+        {
+          "text": "Q888%",
+          "href": ""
+        },
+        {
+          "text": "Q956%",
+          "href": ""
+        },
+        {
+          "text": "Q1056%",
+          "href": ""
+        },
+        {
+          "text": "Q1194%",
+          "href": ""
+        },
+        {
+          "text": "Q1275%",
+          "href": ""
+        },
+        {
+          "text": "Q1344%",
+          "href": ""
+        },
+        {
+          "text": "Q1463%",
+          "href": ""
+        },
+        {
+          "text": "Q1538%",
+          "href": ""
+        },
+        {
+          "text": "a0%",
+          "href": ""
+        },
+        {
+          "text": "b0%",
+          "href": ""
+        },
+        {
+          "text": "c0%",
+          "href": ""
+        },
+        {
+          "text": "d0%",
+          "href": ""
+        },
+        {
+          "text": "a0%",
+          "href": ""
+        }
+      ],
+      "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nExam Analytics\n\nAP Microeconomics Practice Exam\n\nExport Questions PDF\nExport with Answers\n← Back\nFilters:\nClasses\nSelect classes...\n▼\nStudents\nSelect students...\n▼\nApply Filters\nTotal Students\n16\nAverage Score\n59%\n17 pts\nHighest Score\n31 pts\nLowest Score\n5 pts\nAP Score Distribution\n5\n3 (19%)\n4\n2 (13%)\n3\n3 (19%)\n2\n7 (44%)\n1\n1 (6%)\nSection 1: Multiple Choice Performance\nGrid\nDetailed\nLegend:\n≥85% (Excellent)\n≥70% (Good)\n≥60% (Satisfactory)\n≥50% (Needs Improvement)\n<50% (Critical)\nQ1\n56%\nQ2\n75%\nQ3\n56%\nQ4\n38%\nQ5\n63%\nQ6\n69%\nQ7\n38%\nQ8\n88%\nQ9\n56%\nQ10\n56%\nQ11\n94%\nQ12\n75%\nQ13\n44%\nQ14\n63%\nQ15\n38%\nTotal Questions: 15\nAverage: 61%\nLowest: 38%\nHighest: 94%\nSection 2: Free Response Performance\nFRQ 1\n\nAssume a profit-maximizing monopoly operates with no externalities....\n\n0%\na\n0%\nb\n0%\nc\n0%\nd\n0%\n0 students graded\nFRQ 2\n\nConsider a monopsony labor market....\n\n0%\na\n0%\nb\n0%\nc\n0%\n0 students graded\nStudent Results (16 students)\nName ↑\tEmail\tMCQ\tFRQ\tTotal\tAP Score\tActions\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t6/15\tPending\t40%\t2\t\n\nAlex Johnson\tstudent@apboost.test\t5/15\tPending\t33%\t1\t\n\nAlex Johnson\talex.j@school.edu\t13/15\t15/18\t85%\t5\t\n\nAlex Johnson\talex.j@school.edu\t11/15\t14/18\t76%\t4\t\n\nEthan Williams\tethan.w@school.edu\t15/15\t16/18\t94%\t5\t\n\nEthan Williams\tethan.w@school.edu\t14/15\t16/18\t91%\t5\t\n\nJames Chen\tjames.c@school.edu\t10/15\t10/18\t61%\t3\t\n\nJames Chen\tjames.c@school.edu\t9/15\t10/18\t58%\t3\t\n\nMaria Garcia\tmaria.g@school.edu\t13/15\t13/18\t79%\t4\t\n\nMaria Garcia\tmaria.g@school.edu\t9/15\t12/18\t64%\t3\t\n\nMs. Thompson\tthompson@school.edu\t6/15\tPending\t40%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\n\nPriya Patel\tpriya.p@school.edu\t8/15\t8/18\t48%\t2\t\nShowing 16 students"
+    },
+    "gradebookStudentRows": [
+      {
+        "rowText": "Alex Johnson⏳PendingAP Calculus AB Practice Exam3/6/2026⏳PendingGrade",
+        "links": [
+          {
+            "text": "Grade",
+            "href": ""
+          }
+        ]
+      }
+    ],
+    "teacherReport": {
+      "fractions": [
+        "3/10",
+        "5/15",
+        "0/2",
+        "0/3",
+        "1/3",
+        "2/3",
+        "2/2"
+      ],
+      "percentages": [
+        "33%",
+        "0%",
+        "67%",
+        "100%"
+      ],
+      "isOnResults": true,
+      "tableRows": 16,
+      "has5of15": true,
+      "has33Pct": true,
+      "bodyText": "AP Practice\nMs. Thompson\nVocaBoost\nSCORE REPORT\n⏳\nFree Response section is awaiting teacher grading. Final AP score will be calculated after grading is complete.\n\nStudent: Ms. Thompson\n\nTest: AP Microeconomics Practice Exam\n\nSubject: AP Microeconomics\n\nDate: 3/10/2026\n\nAP SCORE\n⏳\nPending\nSection 1 (MCQ)\n5/15 (33%)\nFree Response\n--/18 (pending)\n\nTotal: Pending FRQ grading\n\nSection 1: Multiple Choice Results\nQ#\tDomain\tTopic\tCorrect\tYour Answer\tResult\n1\tUnit 1: Basic Economic Concepts\tScarcity & Opportunity Cost\tB\tA\t✗\n2\tUnit 1: Basic Economic Concepts\tComparative Advantage\tB\tA\t✗\n3\tUnit 2: Supply and Demand\tDemand Shifters\tB\tA\t✗\n4\tUnit 2: Supply and Demand\tElasticity\tA\tA\t✓\n5\tUnit 2: Supply and Demand\tConsumer & Producer Surplus\tA\tA\t✓\n6\tUnit 3: Production & Cost\tMarginal Product\tB\tA\t✗\n7\tUnit 3: Production & Cost\tPerfect Competition\tB\tA\t✗\n8\tUnit 3: Production & Cost\tShutdown Rule\tB\tA\t✗\n9\tUnit 4: Imperfect Competition\tMonopoly\tB\tA\t✗\n10\tUnit 4: Imperfect Competition\tMonopolistic Competition\tB\tA\t✗\n11\tUnit 4: Imperfect Competition\tGame Theory\tB\tB\t✓\n12\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n13\tUnit 5: Factor Markets\tLabor Market\tA\tB\t✗\n14\tUnit 6: Market Failure\tExternalities\tB\tB\t✓\n15\tUnit 6: Market Failure\tPublic Goods\tB\tB\t✓\n\nMCQ Summary: 5/15 correct (33%)\n\nPerformance by Domain\nUnit 1: Basic Economic Concepts\n0/2 (0%)\nUnit 3: Production & Cost\n0/3 (0%)\nUnit 5: Factor Markets\n0/2 (0%)\nUnit 4: Imperfect Competition\n1/3 (33%)\nUnit 2: Supply and Demand\n2/3 (67%)\nUnit 6: Market Failure\n2/2 (100%)\nSection 2: Free Response\n⏳\nAwaiting Grade\nYour Submitted Answers\nQuestion 1\n(a)\nEconomic analysis for FRQ 1-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 2-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 3-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(d)\nEconomic analysis for FRQ 4-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\nQuestion 2\n(a)\nEconomic analysis for FRQ 5-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(b)\nEconomic analysis for FRQ 6-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n(c)\nEconomic analysis for FRQ 7-1: The law of demand states that as price increases, quantity demanded decreases, ceteris paribus. Market equilibrium occurs where supply equals demand.\n\nRaw Points: --/18 (pending)\n\nBack to Dashboard\nDownload PDF"
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "results": [
+    "Login...",
+    "Post-login URL: http://localhost:5173/",
+    "Navigating to test page...",
+    "Test page URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "Screenshot: retest2_01_test_page.png",
+    "Body contains \"Something went wrong\": false",
+    "Body contains \"scheduleFlush\": false",
+    "Body contains \"Resume Test\": false",
+    "Body contains \"Begin Test\": true",
+    "Body contains \"Cannot access\": false",
+    "Body (first 200 chars):  AP PracticeHannah LeeVocaBoostAP Microeconomics Practice ExamAP MicroeconomicsThis test has 2 sections:Section 1: Section I: Multiple Choice• 15 questions• 35 minSection 2: Section II: Free Respo",
+    "Console errors on test page nav: 0",
+    "code.startsWith errors: 0",
+    "scheduleFlush errors: 0",
+    "No Try Again button — error boundary NOT shown (good)",
+    "Trying hard reload (page.reload)...",
+    "After reload — \"Something went wrong\": false",
+    "After reload — \"Resume Test\": true",
+    "After reload — \"Begin Test\": false",
+    "All console errors in session: 0"
+  ],
+  "consoleMsgs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 50fa2258-6fbe-4869-a2dd-75ef123360e8}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 78f1b5d7-82f3-4932-b5cc-d70344c628d8}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "timestamp": "2026-03-11T15:41:36.150Z"
+}

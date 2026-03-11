@@ -1,0 +1,353 @@
+{
+  "scenarioId": "B14-E",
+  "persona": "The Distracted One",
+  "email": "student8@apboost.test",
+  "startedAt": "2026-03-10T10:05:46.024Z",
+  "steps": [
+    {
+      "label": "Login",
+      "status": "PASS",
+      "notes": "Redirected to: http://localhost:5173/",
+      "time": "2026-03-10T10:05:48.289Z"
+    },
+    {
+      "label": "Dashboard loads with tests",
+      "status": "PASS",
+      "notes": "Tests visible: true",
+      "time": "2026-03-10T10:05:55.054Z"
+    },
+    {
+      "label": "Navigate to Micro test page",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "time": "2026-03-10T10:05:59.493Z"
+    },
+    {
+      "label": "Click Begin Test",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap/test/test_micro_full_1, Clicked: true",
+      "time": "2026-03-10T10:06:02.600Z"
+    },
+    {
+      "label": "Answer Q1-Q5",
+      "status": "PASS",
+      "notes": "Answered: 5/5. Selections: {\"1\":0,\"2\":0,\"3\":0,\"4\":0,\"5\":0}",
+      "time": "2026-03-10T10:06:14.897Z"
+    },
+    {
+      "label": "Open new browser tab",
+      "status": "PASS",
+      "notes": "New tab opened with about:blank",
+      "time": "2026-03-10T10:06:15.227Z"
+    },
+    {
+      "label": "Wait 45s in new tab and switch back",
+      "status": "PASS",
+      "notes": "45 seconds elapsed, returned to test tab",
+      "time": "2026-03-10T10:07:02.253Z"
+    },
+    {
+      "label": "No spurious DuplicateTabModal after new tab",
+      "status": "PASS",
+      "notes": "Test continued normally after tab switch",
+      "time": "2026-03-10T10:07:02.302Z"
+    },
+    {
+      "label": "Timer continued during tab switch",
+      "status": "PASS",
+      "notes": "Timer decreased by ~47s during 45s distraction. Before: 34:45, After: 33:58",
+      "time": "2026-03-10T10:07:02.320Z"
+    },
+    {
+      "label": "Answer Q6-Q10",
+      "status": "PASS",
+      "notes": "Answered: 5/5",
+      "time": "2026-03-10T10:07:13.040Z"
+    },
+    {
+      "label": "Simulate page blur (document hidden)",
+      "status": "PASS",
+      "notes": "visibilitychange event dispatched with hidden=true",
+      "time": "2026-03-10T10:07:13.105Z"
+    },
+    {
+      "label": "Simulate page blur 30s and refocus",
+      "status": "PASS",
+      "notes": "Blur events dispatched. Console messages during blur: 2. Messages: [\"[B14-E] Page blur simulated — document.hidden = tr\",\"[B14-E] Page focus restored — document.hidden = fa\"]",
+      "time": "2026-03-10T10:07:45.177Z"
+    },
+    {
+      "label": "Test session survived page blur",
+      "status": "PASS",
+      "notes": "Test still visible after blur",
+      "time": "2026-03-10T10:07:45.180Z"
+    },
+    {
+      "label": "Timer behavior after 30s blur",
+      "status": "PASS",
+      "notes": "Timer decreased by ~32s during 30s blur. Before: 33:47, After: 33:15",
+      "time": "2026-03-10T10:07:45.193Z"
+    },
+    {
+      "label": "Answer Q11-Q15",
+      "status": "PASS",
+      "notes": "Answered: 5/5",
+      "time": "2026-03-10T10:07:54.313Z"
+    },
+    {
+      "label": "Navigate to Review Screen",
+      "status": "PASS",
+      "notes": "Review screen visible: true. URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "time": "2026-03-10T10:07:59.430Z"
+    },
+    {
+      "label": "Review screen shows answered count",
+      "status": "FAIL",
+      "notes": "Expected ~15 answered, review shows -1",
+      "time": "2026-03-10T10:07:59.430Z"
+    },
+    {
+      "label": "Submit MCQ Section",
+      "status": "FAIL",
+      "notes": "URL after submit: http://localhost:5173/ap/test/test_micro_full_1. FRQ choice: true. Results: false",
+      "time": "2026-03-10T10:08:04.481Z"
+    },
+    {
+      "label": "FRQ Choice Screen appeared",
+      "status": "PASS",
+      "notes": "FRQ choice screen after MCQ section submit",
+      "time": "2026-03-10T10:08:04.481Z"
+    },
+    {
+      "label": "Type FRQ answers",
+      "status": "PARTIAL",
+      "notes": "Filled 0 textareas",
+      "time": "2026-03-10T10:08:07.648Z"
+    },
+    {
+      "label": "Submit Test (FRQ)",
+      "status": "FAIL",
+      "notes": "URL: http://localhost:5173/ap/test/test_micro_full_1",
+      "time": "2026-03-10T10:08:12.728Z"
+    },
+    {
+      "label": "Report card loaded",
+      "status": "FAIL",
+      "notes": "URL: http://localhost:5173/ap/test/test_micro_full_1. Report content: false",
+      "time": "2026-03-10T10:08:17.783Z"
+    },
+    {
+      "label": "No console errors during visibility/focus events",
+      "status": "PASS",
+      "notes": "Visibility-related errors: 0. Total errors: 2",
+      "time": "2026-03-10T10:08:17.784Z"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "Medium-Priority",
+      "title": "student8 login redirects to non-AP route",
+      "what": "Login redirected to http://localhost:5173/ instead of /ap",
+      "expected": "Student accounts should redirect to /ap after login",
+      "evidence": "Consistent with known finding B4-006",
+      "time": "2026-03-10T10:05:48.289Z"
+    },
+    {
+      "severity": "High-Priority",
+      "title": "Review screen shows fewer answers than expected after tab switch and blur",
+      "what": "Review screen shows -1 answered questions, but we answered approximately 15 questions across the session including after tab switch and page blur events.",
+      "expected": "All answers selected before and after tab switch / page blur events should persist and be reflected on the review screen.",
+      "evidence": "Screenshot: 15_review_screen.png",
+      "time": "2026-03-10T10:07:59.430Z"
+    },
+    {
+      "severity": "High-Priority",
+      "title": "Report card did not load after test submission",
+      "what": "After all distractions and submission, the page at http://localhost:5173/ap/test/test_micro_full_1 does not show report card content. Text snippet: \n    Section 1 of 2: Section I: Multiple Choice⏱32:42Question 15Which is a public good?AA hamburgerBNational defenseCA toll roadDCable TV🚩Flagged← BackQuestion 15 of 15▲Review →Question Navigator✕123",
+      "expected": "Report card should load correctly after test completion regardless of distraction events during the session.",
+      "evidence": "Screenshot: 20_report_card.png",
+      "time": "2026-03-10T10:08:17.783Z"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "page": "http://localhost:5173/",
+      "message": "[2026-03-10T10:05:48.317Z]  @firebase/firestore: Firestore (12.6.0): Could not reach Cloud Firestore backend. Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]: The operation could not be completed\nThis typically indicates that your device does not have a healthy Internet connection at the moment. The client will operate in offline mode until it is able to successfully connect to the backend.",
+      "type": "console_error"
+    },
+    {
+      "page": "http://localhost:5173/ap/test/test_micro_full_1",
+      "message": "code.startsWith is not a function",
+      "type": "pageerror"
+    }
+  ],
+  "trackedAnswers": {
+    "q1to5": {
+      "1": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "2": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "3": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "4": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "5": {
+        "optionIndex": 0,
+        "label": ""
+      }
+    },
+    "q6to10": {
+      "6": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "7": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "8": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "9": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "10": {
+        "optionIndex": 0,
+        "label": ""
+      }
+    },
+    "q11to15": {
+      "11": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "12": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "13": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "14": {
+        "optionIndex": 0,
+        "label": ""
+      },
+      "15": {
+        "optionIndex": 0,
+        "label": ""
+      }
+    }
+  },
+  "timerReadings": [
+    {
+      "phase": "before_tab_switch",
+      "value": "34:45",
+      "time": "2026-03-10T10:06:14.937Z"
+    },
+    {
+      "phase": "after_tab_switch",
+      "value": "33:58",
+      "time": "2026-03-10T10:07:02.319Z"
+    },
+    {
+      "phase": "tab_switch_diff",
+      "expected": 45,
+      "actual": 47
+    },
+    {
+      "phase": "before_page_blur",
+      "value": "33:47",
+      "time": "2026-03-10T10:07:13.056Z"
+    },
+    {
+      "phase": "after_page_blur",
+      "value": "33:15",
+      "time": "2026-03-10T10:07:45.193Z"
+    },
+    {
+      "phase": "blur_diff",
+      "expected": 30,
+      "actual": 32
+    }
+  ],
+  "sessionChecks": {
+    "afterTabSwitch": {
+      "testStillVisible": true,
+      "isDuplicateTabModal": false,
+      "isSessionInvalidated": false,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    "blurConsoleMessages": [
+      {
+        "type": "log",
+        "text": "[B14-E] Page blur simulated — document.hidden = true"
+      },
+      {
+        "type": "log",
+        "text": "[B14-E] Page focus restored — document.hidden = false"
+      }
+    ],
+    "afterBlur": {
+      "testStillVisibleAfterBlur": true,
+      "isTimerPausedAfterBlur": false,
+      "isDuplicateModalAfterBlur": false,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    "reviewAnsweredCount": -1
+  },
+  "completedAt": "2026-03-10T10:08:17.784Z",
+  "summary": {
+    "q1to5Answered": 5,
+    "q6to10Answered": 5,
+    "q11to15Answered": 5,
+    "totalAnswered": 15,
+    "timerReadings": [
+      {
+        "phase": "before_tab_switch",
+        "value": "34:45",
+        "time": "2026-03-10T10:06:14.937Z"
+      },
+      {
+        "phase": "after_tab_switch",
+        "value": "33:58",
+        "time": "2026-03-10T10:07:02.319Z"
+      },
+      {
+        "phase": "tab_switch_diff",
+        "expected": 45,
+        "actual": 47
+      },
+      {
+        "phase": "before_page_blur",
+        "value": "33:47",
+        "time": "2026-03-10T10:07:13.056Z"
+      },
+      {
+        "phase": "after_page_blur",
+        "value": "33:15",
+        "time": "2026-03-10T10:07:45.193Z"
+      },
+      {
+        "phase": "blur_diff",
+        "expected": 30,
+        "actual": 32
+      }
+    ],
+    "totalFindings": 3,
+    "consoleErrorCount": 2,
+    "passed": 18,
+    "failed": 4,
+    "partial": 1
+  }
+}

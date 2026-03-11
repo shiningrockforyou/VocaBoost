@@ -1,0 +1,323 @@
+{
+  "steps": [
+    {
+      "step": "login",
+      "url": "http://localhost:5173/",
+      "redirectedToAP": false
+    },
+    {
+      "step": "set_mobile_375x667",
+      "status": "done"
+    },
+    {
+      "step": "measure_touch_targets",
+      "count": 5,
+      "tooSmall": 1
+    },
+    {
+      "step": "find_micro_test",
+      "found": true
+    },
+    {
+      "step": "click_micro_test",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "begin_test",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "at_q1",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "find_answers",
+      "status": "no_answer_options_found_with_selectors"
+    },
+    {
+      "step": "open_hamburger_for_nav",
+      "status": "done"
+    },
+    {
+      "step": "find_navigator",
+      "status": "not_found_with_standard_selectors"
+    },
+    {
+      "step": "browser_back",
+      "dialogFired": false,
+      "afterUrl": "http://localhost:5173/ap"
+    },
+    {
+      "step": "navigated_away_after_back",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "step": "resumed_test_after_back",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "current_state_before_frq_path",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "could_not_answer_q",
+      "mcqCount": 0,
+      "note": "no_answer_options_found"
+    },
+    {
+      "step": "set_keyboard_viewport_375x350",
+      "status": "done"
+    },
+    {
+      "step": "restored_mobile_viewport_375x667",
+      "status": "done"
+    },
+    {
+      "step": "frq_1",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_2",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_3",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_4",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_5",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_6",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_7",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_8",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_9",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "frq_10",
+      "clickedBtn": "Next →"
+    },
+    {
+      "step": "final_state",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "success": false
+    }
+  ],
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "touchTargets": [
+    {
+      "index": 0,
+      "width": 276,
+      "height": 56,
+      "tooSmall": false
+    },
+    {
+      "index": 1,
+      "width": 67,
+      "height": 20,
+      "tooSmall": true
+    },
+    {
+      "index": 2,
+      "width": 343,
+      "height": 149,
+      "tooSmall": false
+    },
+    {
+      "index": 3,
+      "width": 343,
+      "height": 149,
+      "tooSmall": false
+    },
+    {
+      "index": 4,
+      "width": 343,
+      "height": 149,
+      "tooSmall": false
+    }
+  ],
+  "findings": [],
+  "loginRedirectIssue": true,
+  "dashboardH1Mobile": "AP Practice Tests",
+  "instructionScreenLoaded": true,
+  "beginBtnSize": {
+    "w": 295,
+    "h": 40
+  },
+  "beginBtnTouchOK": false,
+  "q1Text": null,
+  "answerOptionCount": 0,
+  "allClickableElements": [
+    {
+      "text": "",
+      "size": "29x32"
+    },
+    {
+      "text": "AConstant opportunity costs",
+      "size": "269x49"
+    },
+    {
+      "text": "",
+      "size": "33x33"
+    },
+    {
+      "text": "BIncreasing opportunity costs",
+      "size": "269x49"
+    },
+    {
+      "text": "",
+      "size": "33x33"
+    },
+    {
+      "text": "CDecreasing marginal returns",
+      "size": "269x49"
+    },
+    {
+      "text": "",
+      "size": "33x33"
+    },
+    {
+      "text": "DEconomies of scale",
+      "size": "269x49"
+    },
+    {
+      "text": "",
+      "size": "33x33"
+    },
+    {
+      "text": "⚐Flag for Review",
+      "size": "139x37"
+    },
+    {
+      "text": "← Back",
+      "size": "79x36"
+    },
+    {
+      "text": "Question 1 of 15▲",
+      "size": "121x20"
+    },
+    {
+      "text": "Next →",
+      "size": "79x37"
+    }
+  ],
+  "navigatorButtonFound": false,
+  "allButtons": [
+    {
+      "text": "",
+      "ariaLabel": "Open menu",
+      "className": "w-8 h-8 flex items-center justify-center rounded-[--radius-button] text-text-pri"
+    },
+    {
+      "text": "",
+      "ariaLabel": "Close menu",
+      "className": "text-text-muted hover:text-text-primary transition-colors"
+    },
+    {
+      "text": "Go to Question...",
+      "ariaLabel": null,
+      "className": "w-full py-4 px-4 rounded-[--radius-button] text-left text-text-primary font-medi"
+    },
+    {
+      "text": "Exit Test",
+      "ariaLabel": null,
+      "className": "w-full py-4 px-4 rounded-[--radius-button] text-left text-error-text font-medium"
+    },
+    {
+      "text": "AConstant opportunity costs",
+      "ariaLabel": null,
+      "className": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] bord"
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "className": "\n                  p-2 rounded-[--radius-button-sm] border transition-colors shr"
+    },
+    {
+      "text": "BIncreasing opportunity costs",
+      "ariaLabel": null,
+      "className": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] bord"
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "className": "\n                  p-2 rounded-[--radius-button-sm] border transition-colors shr"
+    },
+    {
+      "text": "CDecreasing marginal returns",
+      "ariaLabel": null,
+      "className": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] bord"
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "className": "\n                  p-2 rounded-[--radius-button-sm] border transition-colors shr"
+    },
+    {
+      "text": "DEconomies of scale",
+      "ariaLabel": null,
+      "className": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] bord"
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "className": "\n                  p-2 rounded-[--radius-button-sm] border transition-colors shr"
+    },
+    {
+      "text": "⚐Flag for Review",
+      "ariaLabel": null,
+      "className": "flex items-center gap-2 px-3 py-2 rounded-[--radius-button] text-sm transition-c"
+    },
+    {
+      "text": "← Back",
+      "ariaLabel": null,
+      "className": "\n            flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm"
+    },
+    {
+      "text": "Question 1 of 15▲",
+      "ariaLabel": null,
+      "className": "flex items-center gap-2 text-text-primary hover:text-text-secondary transition-c"
+    },
+    {
+      "text": "Next →",
+      "ariaLabel": null,
+      "className": "flex items-center gap-2 px-4 py-2 rounded-[--radius-button] text-sm bg-surface b"
+    }
+  ],
+  "beforeunloadDialog": {
+    "fired": false,
+    "type": null,
+    "message": null
+  },
+  "stayedOnTest": false,
+  "currentView": {
+    "isOnMCQ": false,
+    "isOnReview": false,
+    "isOnFRQ": false
+  },
+  "onReviewScreen": true,
+  "reviewScrollable": false,
+  "reviewScrollHeight": 667,
+  "onFRQChoiceScreen": false,
+  "frqTextareaFound": false,
+  "finalUrl": "http://localhost:5173/ap/test/test_micro_full_1",
+  "submissionSuccess": false,
+  "totalConsoleErrors": 0,
+  "totalConsoleWarnings": 0
+}

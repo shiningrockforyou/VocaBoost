@@ -1,0 +1,69 @@
+{
+  "steps": [
+    {
+      "step": "section_submitted",
+      "ansCount": 15
+    },
+    {
+      "step": "clicked_type_answers"
+    },
+    {
+      "step": "clicked_confirm_continue"
+    },
+    {
+      "step": "frq_keyboard_test_complete"
+    },
+    {
+      "step": "stuck_in_frq_completion",
+      "frqIdx": 6,
+      "btns": [
+        "",
+        "Change submission type",
+        "⚐Flag for Review",
+        "← Back",
+        "Question 7 of 7▲",
+        "Review →"
+      ]
+    }
+  ],
+  "consoleErrors": [
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "frqInputReached": true,
+  "frqInputFinalReached": true,
+  "frqInputUrl": "http://localhost:5173/ap/test/test_micro_full_1",
+  "frqInputBtns": [
+    "",
+    "Change submission type",
+    "⚐Flag for Review",
+    "← Back",
+    "Question 1 of 7▲",
+    "Next →"
+  ],
+  "frqAt667": {
+    "top": 462,
+    "bottom": 612,
+    "vh": 667,
+    "inVP": true
+  },
+  "frqAt350": {
+    "top": 462,
+    "bottom": 612,
+    "vh": 350,
+    "inVP": false,
+    "needsScroll": true
+  },
+  "frqAt350AfterScroll": {
+    "top": 100,
+    "inVP": true
+  },
+  "finalUrl": "http://localhost:5173/ap/test/test_micro_full_1",
+  "submissionSuccess": false
+}

@@ -1,0 +1,39 @@
+{
+  "results": {
+    "login": "PASS",
+    "testStart": "FAIL"
+  },
+  "errors": [
+    {
+      "text": "%o\n\n%s\n\n%s\n ReferenceError: Cannot access 'scheduleFlush' before initialization\n    at useOfflineQueue (http://localhost:5173/src/apBoost/hooks/useOfflineQueue.js?t=1773241084834:118:7)\n    at useTestSession (http://localhost:5173/src/apBoost/hooks/useTestSession.js?t=1773241111683:65:132)\n    at APTestSessionInner (http://localhost:5173/src/apBoost/pages/APTestSession.jsx?t=1773241119254:115:7)\n    at Object.react_stack_bottom_frame (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:18509:20)\n    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:5654:24)\n    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:7475:21)\n    at beginWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:8525:20)\n    at runWithFiberInDEV (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:997:72)\n    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12561:98)\n    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=89752246:12424:43) The above error occurred in the <APTestSessionInner> component. React will try to recreate this component tree from scratch using the error boundary you provided, APErrorBoundary.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:APErrorBoundary] {function: APErrorBoundary, context: Object, type: unknown, message: Cannot access 'scheduleFlush' before initialization, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "observations": [
+    "FAIL: Not in question view after Begin/Resume Test"
+  ],
+  "answerLog": {
+    "Q2": {
+      "original": null
+    },
+    "Q3": {
+      "original": null,
+      "changed": null
+    },
+    "Q7": {
+      "original": null
+    },
+    "Q11": {
+      "original": null,
+      "changed": null
+    },
+    "Q14": {
+      "original": null,
+      "changed": null
+    }
+  }
+}

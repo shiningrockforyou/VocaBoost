@@ -1,0 +1,83 @@
+{
+  "login": "PASS",
+  "testStart": "PASS",
+  "q1to5": "PARTIAL",
+  "offlineMode": "PARTIAL",
+  "q6to8_offline": {
+    "answeredCount": 0,
+    "queuedItems": 6,
+    "answerChangesQueued": 0
+  },
+  "syncOnReconnect": "PARTIAL",
+  "q9to12": "PARTIAL",
+  "closeAndReopen": "PASS",
+  "resumeRestores": {
+    "answersRestored": {
+      "Q1": "not_checked",
+      "Q2": "not_checked",
+      "Q3": "not_checked",
+      "Q4": "not_checked",
+      "Q5": "not_checked",
+      "Q6": "not_checked",
+      "Q7": "not_checked",
+      "Q8": "not_checked",
+      "Q9": "not_checked",
+      "Q10": "not_checked",
+      "Q11": "not_checked",
+      "Q12": "not_checked"
+    },
+    "restoredCount": 0,
+    "status": "FAIL"
+  },
+  "finalSubmit": "PARTIAL",
+  "reportCard": "PARTIAL",
+  "allAnswersPresent": "FAIL",
+  "consoleErrors": [
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true,
+      "phase": "resume"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true,
+      "phase": "resume"
+    }
+  ],
+  "consoleWarnings": [],
+  "observations": [
+    "B4-006 confirmed: student login redirects to / not /ap",
+    "After Q1-Q5: IndexedDB has 4 queue items",
+    "No immediate offline banner (banner may appear after Firestore failures)",
+    "Offline answers queued: 6 total, 0 answer changes",
+    "UI responsive during offline mode: false",
+    "Blocked 0 Firestore requests during offline period",
+    "Post-sync queue: 6 pending items remain",
+    "WARNING: 6 items still pending after 5s sync window",
+    "Queue before page close: 9 pending items",
+    "IndexedDB after resume: pending=10",
+    "After submit, URL is http://localhost:5173/ap/test/test_micro_full_1 — not /ap/results/",
+    "Report card MCQ score: not found/15",
+    "Report card MCQ rows: 0",
+    "WARNING: Only 0 MCQ rows on report card — expected 15"
+  ]
+}

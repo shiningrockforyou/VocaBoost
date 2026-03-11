@@ -1,0 +1,194 @@
+{
+  "findings": {
+    "login": "PASS",
+    "sessionFlow": "clean-start",
+    "fix1_idbPendingDuringOffline": 0,
+    "fix1_idbAfterFlush": 0,
+    "fix1_flushTime": null,
+    "fix1_result": "INCONCLUSIVE",
+    "fix1_notes": [
+      "Could not get offline answers into IDB — session may have been at wrong position or answer detection failed",
+      "No TDZ errors found — stale closure fix did not introduce initialization bugs"
+    ],
+    "fix2_answeredAfterResume": {
+      "answeredInNavigator": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "answeredCount": 7,
+      "totalCount": 15,
+      "unanswered": 8,
+      "reviewData": "\n    AP PracticeJulia BrownVocaBoostReview Your Answers1234567891011121314🚩Summary• Answered: 7/15• Unanswered: 8 (Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14)• Flagged: 1 (Q15)⚠ You have 8 unanswered questionsAnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\n    \n  \n\n"
+    },
+    "fix2_expectedAnswers": {
+      "online": {
+        "15": "A"
+      },
+      "offline": {},
+      "total": 1
+    },
+    "fix2_result": "PASS",
+    "fix2_notes": [
+      "Expected answers: online={\"15\":\"A\"}, offline={}",
+      "Total expected: 1",
+      "Navigator shows answered Q: [1,2,3,4,5,6]",
+      "Review screen: Answered 7/15, Unanswered: 8",
+      "Offline Qs in navigator: [] of []",
+      "PASS: 7 answers preserved (1 expected)"
+    ],
+    "fix10_unstableAt": null,
+    "fix10_reconnectedAt": null,
+    "fix10_result": "DOCUMENTED",
+    "fix10_notes": [
+      "FIX-10 result from b14g_retest_v2: PASS — Reconnected in 2010ms",
+      "\"Connection unstable\" appeared after 46503ms offline (3 failures at 15s each = ~45s)",
+      "\"Syncing\" appeared 1s after restore, \"Reconnected\" at 2s after restore",
+      "Analysis: Fast recovery is due to visibilitychange handler in useHeartbeat (line 117-128)",
+      "Playwright setOffline(false) causes page visibility change which triggers immediate doHeartbeat()",
+      "FIX-10 (online event listener) is NOT explicitly applied BUT visibilitychange provides equivalent behavior"
+    ],
+    "codeStartsWith": "PASS",
+    "tdzErrors": false
+  },
+  "consoleLog": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 50e86851-248c-4338-8a9d-1fc01aae0f59}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244931587-ddanciir35v, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773244931587, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Heartbeat successful null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 9fb03cb9-9fb6-4ce1-a99b-6e2d1f6f2291}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "timeline": [
+    "ss:01_dashboard",
+    "ss:02_initial_test_page",
+    "ss:03_after_begin",
+    "ss:04_in_test",
+    "ss:05_after_online_5q",
+    "ss:06_during_offline",
+    "ss:07_after_restore",
+    "ss:08_before_reload",
+    "ss:09_after_reload",
+    "ss:10_after_resume",
+    "ss:11_navigator_open",
+    "ss:12_after_review_nav",
+    "ss:13_final_state"
+  ]
+}

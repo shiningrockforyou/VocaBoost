@@ -1,0 +1,116 @@
+{
+  "results": {
+    "login": "PASS",
+    "testStart": "PASS",
+    "q1to5": "PASS",
+    "q6to8_offline": {
+      "answeredCount": 3,
+      "queuedAnswers": 8,
+      "totalPending": 8,
+      "status": "PASS"
+    },
+    "syncOnReconnect": "FAIL",
+    "q9to12": "PASS",
+    "closeAndReopen": "PASS",
+    "resumeRestores": {
+      "answersRestored": {
+        "Q1": false,
+        "Q2": false,
+        "Q3": false,
+        "Q4": false,
+        "Q5": false,
+        "Q6": false,
+        "Q7": false,
+        "Q8": false,
+        "Q9": false,
+        "Q10": false,
+        "Q11": false,
+        "Q12": false
+      },
+      "restoredCount": 0,
+      "total": 12,
+      "status": "FAIL"
+    },
+    "finalSubmit": "PARTIAL",
+    "allAnswersPresent": "FAIL",
+    "reportCard": "FAIL"
+  },
+  "consoleErrors": [
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "isPageError": true
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_FAILED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useHeartbeat.doHeartbeat] {function: useHeartbeat.doHeartbeat, context: Object, type: unknown, message: Heartbeat read timed out after 5000ms, code: null}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "isPageError": true,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    },
+    {
+      "text": "code.startsWith is not a function",
+      "isPageError": true,
+      "url": "http://localhost:5173/ap/test/test_micro_full_1",
+      "phase": "resume"
+    }
+  ],
+  "observations": [
+    "B4-006 confirmed: login redirects to http://localhost:5173/ not /ap",
+    "Queue after Q1-5: 5 ANSWER_CHANGE items, 5 total pending",
+    "Offline banner text during block: \"none shown yet\"",
+    "Queue during offline (Q6-Q8): 8 ANSWER_CHANGE items queued",
+    "All pending actions: [\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\",\"ANSWER_CHANGE\"]",
+    "Firestore requests blocked during offline: 2",
+    "Banner after restore: \"none\"",
+    "Queue after sync: 8 pending items remain",
+    "WARNING: 8 ANSWER_CHANGE items still unsynced after 5s",
+    "Queue before page close: 12 pending items",
+    "Session ID: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303",
+    "Instruction screen after close shows resume info: false",
+    "After close, instruction button shows: \"Resume Test\"",
+    "Queue after resume: 13 pending items",
+    "Navigator cells on resume: []",
+    "Answers restored Q1-Q12: 0/12 have answers",
+    "Per-question: {\"Q1\":false,\"Q2\":false,\"Q3\":false,\"Q4\":false,\"Q5\":false,\"Q6\":false,\"Q7\":false,\"Q8\":false,\"Q9\":false,\"Q10\":false,\"Q11\":false,\"Q12\":false}",
+    "After submit, URL is http://localhost:5173/ap/test/test_micro_full_1 — expected /ap/results/",
+    "Report card MCQ score: not found",
+    "Report card MCQ table: 0 data rows",
+    "Report card has FRQ section: false",
+    "FAIL: Only 0/15 MCQ rows — possible data loss"
+  ],
+  "summary": {
+    "login": "PASS",
+    "testStart": "PASS",
+    "q1to5": "PASS",
+    "q6to8_offline": {
+      "answeredCount": 3,
+      "queuedAnswers": 8,
+      "totalPending": 8,
+      "status": "PASS"
+    },
+    "syncOnReconnect": "FAIL",
+    "q9to12": "PASS",
+    "closeAndReopen": "PASS",
+    "resumeRestores": "FAIL",
+    "finalSubmit": "PARTIAL",
+    "reportCard": "FAIL",
+    "allAnswersPresent": "FAIL"
+  }
+}

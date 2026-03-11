@@ -1,0 +1,229 @@
+{
+  "findings": {
+    "login": "PASS",
+    "fix1": {
+      "result": "PASS",
+      "notes": [
+        "Pending items in IDB during offline: 3",
+        "PASS: 3 items flushed in 1s after network restore",
+        "scheduleFlush via flushQueueRef is functioning correctly (FIX-1 verified)",
+        "No TDZ errors — flushQueueRef initialization is safe"
+      ]
+    },
+    "fix2": {
+      "result": "FAIL",
+      "notes": [
+        "Online answers: {\"15\":\"A\"}",
+        "Offline answers: {\"15\":\"B\"}",
+        "Navigator shows answered: [1,2,3,4,5,6]",
+        "Review screen: Answered 7/15, Unanswered: 8",
+        "Summary: Summary• Answered: 7/15• Unanswered: 8 (Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14)• Flagged: 1 (Q15)⚠ You have 8 unanswered questionsAnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section\n    \n",
+        "Online Qs expected: [15], preserved: []",
+        "Offline Qs expected: [15], preserved: []",
+        "FAIL: offline 0/1, online 0/1"
+      ]
+    },
+    "fix10": {
+      "result": "DOCUMENTED",
+      "notes": [
+        "Tested in b14g_retest_v2.mjs — \"Connection unstable\" appeared after 46503ms (3 failed heartbeats at 15s each)",
+        "\"Reconnected\" banner appeared 2010ms after network restore — fast recovery due to visibilitychange handler",
+        "FIX-10 explicitly adds window.online event listener to useHeartbeat.js",
+        "Current visibilitychange handler provides equivalent behavior in headless browser context",
+        "Manual test with a non-headless browser would require longer wait for next heartbeat (up to 15s)",
+        "HEARTBEAT_INTERVAL=15000ms, MAX_FAILURES=3 — banner appears after ~45s offline (confirmed)"
+      ]
+    },
+    "codeStartsWith": "PASS",
+    "tdzError": false,
+    "consoleErrors": [
+      {
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      },
+      {
+        "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+      }
+    ],
+    "idbCaptures": {
+      "beforeOffline": 0,
+      "duringOffline": 3
+    }
+  },
+  "consoleLog": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: b0ef386e-5249-4cf8-be54-8bb29af91918}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: b0ef386e-5249-4cf8-be54-8bb29af91918}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245800950-60isj3kiciw, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245800950, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245803818-qmoskfsr66, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245803818, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] hot updated: /src/index.css",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245806699-owl0e7laaq, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245806699, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Heartbeat successful null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245812131-okhwqi6p8yn, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245812131, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245814582-5pk354wi84q, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245814582, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773245817043-97sz6viw41p, sessionId: zWnkKfaiH7cpp7FdbBEyMMV3ZI32_test_micro_full_1_1773136301303, localTimestamp: 1773245817043, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 3 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 9e6ade4c-f80c-477d-b777-868932ded3e0}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 9e6ade4c-f80c-477d-b777-868932ded3e0}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ]
+}

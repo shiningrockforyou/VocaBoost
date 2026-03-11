@@ -1,0 +1,119 @@
+[
+  {
+    "step": "1_teacher_login",
+    "url": "http://localhost:5173/ap",
+    "success": true
+  },
+  {
+    "step": "2_teacher_logout_button_B12_006",
+    "found": [
+      {
+        "text": "Log out",
+        "visible": true
+      }
+    ],
+    "PASS": true
+  },
+  {
+    "step": "3_gradebook",
+    "url": "http://localhost:5173/ap/gradebook",
+    "text": "\n    AP PracticeMs. ThompsonVocaBoostGradebookReview and grade student FRQ submissionsStatus:PendingIn ProgressCompleteAllTest:All TestsClass:All ClassesStudentTestSubmittedStatusActionAlex Johnson⏳PendingAP Calculus AB Practice Exam2026. 3. 6.⏳PendingGradeEthan Williams⏳PendingAP Microeconomics Practice Exam2026. 2. 27.⏳PendingGradeShowing 2 submissions\n    \n  \n\n"
+  },
+  {
+    "step": "4_check_B12_004_student_names",
+    "hasUnknownStudent": false,
+    "PASS_B12_004": true,
+    "sampleNames": [
+      "In Progress",
+      "All Tests",
+      "All Classes",
+      "Alex Johnson",
+      "Practice Exam"
+    ],
+    "gradebookText": "\n    AP PracticeMs. ThompsonVocaBoostGradebookReview and grade student FRQ submissionsStatus:PendingIn ProgressCompleteAllTest:All TestsClass:All ClassesStudentTestSubmittedStatusActionAlex Johnson⏳PendingAP Calculus AB Practice Exam2026. 3. 6.⏳PendingGradeEthan Williams⏳PendingAP Microeconomics Practice Exam2026. 2. 27.⏳PendingGradeShowing 2 submissions\n    \n  \n\n"
+  },
+  {
+    "step": "5_analytics",
+    "url": "http://localhost:5173/ap/teacher/analytics/test_micro_full_1",
+    "textSample": "\n    AP PracticeMs. ThompsonVocaBoostExam AnalyticsAP Microeconomics Practice ExamExport Questions PDFExport with Answers← BackFilters:ClassesSelect classes...▼StudentsSelect students...▼Apply FiltersTotal Students18Average Score54%15 ptsHighest Score31 ptsLowest Score2 ptsAP Score Distribution53 (17%)42 (11%)33 (17%)27 (39%)13 (17%)Section 1: Multiple Choice PerformanceGridDetailedLegend:≥85% (Excellent)≥70% (Good)≥60% (Satisfactory)≥50% (Needs Improvement)<50% (Critical)Q150%Q267%Q350%Q439%Q561%Q661%Q733%Q878%Q950%Q1061%Q1194%Q1267%Q1339%Q1456%Q1533%Total Questions: 15Average: 56%Lowest: 33%"
+  },
+  {
+    "step": "6_check_B12_007_denominator",
+    "hasDenominator": false,
+    "matches": [
+      "15 pts",
+      "31 pts",
+      "2 pts"
+    ],
+    "PASS_B12_007": false
+  },
+  {
+    "step": "7_check_B12_005_deduplication",
+    "uniqueStudents": [
+      "0 students",
+      "0"
+    ],
+    "avgScore": [
+      "Average Score54%15 ptsHighest Score31 ptsLowest Score2 ptsAP Score Distribution53 (17%)42 (11%)33 (17%)27 (39%)13 (17%)Section 1: Multiple Choice PerformanceGridDetailedLegend:≥85% (Excellent)≥70% (Good)≥60% (Satisfactory)≥50% (Needs Improvement)<50% (Critical)Q150%Q267%Q350%Q439%Q561%Q661%Q733%Q878%Q950%Q1061%Q1194%Q1267%Q1339%Q1456%Q1533%Total Questions: 15Average: 56%Lowest: 33%Highest: 94%Section 2: Free Response PerformanceFRQ 1Assume a profit-maximizing monopoly operates with no externalities....0%a0%b0%c0%d0%0 students gradedFRQ 2Consider a monopsony labor market....0%a0%b0%c0%0 students gradedStudent Results (18 students)Name ↑Email MCQ FRQ Total AP Score ActionsAlex Johnsonstudent@apboost.test6/15",
+      "6/15"
+    ],
+    "analyticsText": "\n    AP PracticeMs. ThompsonVocaBoostExam AnalyticsAP Microeconomics Practice ExamExport Questions PDFExport with Answers← BackFilters:ClassesSelect classes...▼StudentsSelect students...▼Apply FiltersTotal Students18Average Score54%15 ptsHighest Score31 ptsLowest Score2 ptsAP Score Distribution53 (17%)42 (11%)33 (17%)27 (39%)13 (17%)Section 1: Multiple Choice PerformanceGridDetailedLegend:≥85% (Excellent)≥70% (Good)≥60% (Satisfactory)≥50% (Needs Improvement)<50% (Critical)Q150%Q267%Q350%Q439%Q561%Q661%Q733%Q878%Q950%Q1061%Q1194%Q1267%Q1339%Q1456%Q1533%Total Questions: 15Average: 56%Lowest: 33%Highest: 94%Section 2: Free Response PerformanceFRQ 1Assume a profit-maximizing monopoly operates with no externalities....0%a0%b0%c0%d0%0 students gradedFRQ 2Consider a monopsony labor market....0%a0"
+  },
+  {
+    "step": "7b_stats_cards",
+    "cards": [
+      "Filters:ClassesSelect classes...▼StudentsSelect students...▼Apply Filters",
+      "Total Students18",
+      "Average Score54%15 pts",
+      "Highest Score31 pts",
+      "Lowest Score2 pts",
+      "AP Score Distribution53 (17%)42 (11%)33 (17%)27 (39%)13 (17%)",
+      "Section 1: Multiple Choice PerformanceGridDetailedLegend:≥85% (Excellent)≥70% (Good)≥60% (Satisfactory)≥50% (Needs Improvement)<50% (Critical)Q150%Q267%Q350%Q439%Q561%Q661%Q733%Q878%Q950%Q1061%Q1194%Q",
+      "Section 2: Free Response PerformanceFRQ 1Assume a profit-maximizing monopoly operates with no externalities....0%a0%b0%c0%d0%0 students gradedFRQ 2Consider a monopsony labor market....0%a0%b0%c0%0 stu",
+      "FRQ 1Assume a profit-maximizing monopoly operates with no externalities....0%a0%b0%c0%d0%0 students graded",
+      "FRQ 2Consider a monopsony labor market....0%a0%b0%c0%0 students graded"
+    ]
+  },
+  {
+    "step": "8_analytics_student_table",
+    "rows": [
+      "Name ↑Email MCQ FRQ Total AP Score Actions",
+      "Alex Johnsonstudent@apboost.test6/15Pending40%2",
+      "Alex Johnsonstudent@apboost.test6/15Pending40%2",
+      "Alex Johnsonstudent@apboost.test6/15Pending40%2",
+      "Alex Johnsonstudent@apboost.test6/15Pending40%2",
+      "Alex Johnsonstudent@apboost.test5/15Pending33%1",
+      "Alex Johnsonalex.j@school.edu13/1515/1885%5",
+      "Alex Johnsonalex.j@school.edu11/1514/1876%4",
+      "Ethan Chenstudent5@apboost.test4/15Pending27%1",
+      "Ethan Williamsethan.w@school.edu15/1516/1894%5"
+    ]
+  },
+  {
+    "step": "9_analytics_unknown_student",
+    "hasUnknownStudent": false,
+    "PASS": true
+  },
+  {
+    "step": "10_report_card_student1",
+    "url": "http://localhost:5173/ap/results/result_micro_student1",
+    "text": "\n    AP PracticeMs. ThompsonVocaBoostSCORE REPORTStudent: Ms. ThompsonTest: AP Microeconomics Practice ExamSubject: AP MicroeconomicsDate: 2026. 2. 23.AP Score5Total: / pts (85%)Section 1: Multiple Choice ResultsQ#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostB—✓2Unit 1: Basic Economic ConceptsComparative AdvantageB—✓3Unit 2: Supply and DemandDemand ShiftersB—✓4Unit 2: Supply and DemandElasticityA—✗5Unit 2: Supply and DemandConsumer & Producer SurplusA—✓6Unit 3: Production, Cost, and the Perfect Competition ModelMarginal ProductB—✓7Unit 3: Produc"
+  },
+  {
+    "step": "11_check_B12_002_student_name",
+    "showsThompson": true,
+    "studentLabel": [
+      "Student: Ms. ThompsonTest: AP Microeconomics Practice ExamSubject: AP MicroeconomicsDate: 2026. 2. 23.AP Score5Total: / pts (85%)Section 1: Multiple Choice ResultsQ#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostB—✓2Unit 1: Basic Economic ConceptsComparative AdvantageB—✓3Unit 2: Supply and DemandDemand ShiftersB—✓4Unit 2: Supply and DemandElasticityA—✗5Unit 2: Supply and DemandConsumer & Producer SurplusA—✓6Unit 3: Production, Cost, and the Perfect Competition ModelMarginal ProductB—✓7Unit 3: Production, Cost, and the Perfect Competition ModelPerfect CompetitionB—✓8Unit 3: Production, Cost, and the Perfect Competition ModelShutdown RuleB—✓9Unit 4: Imperfect CompetitionMonopolyB—✓10Unit 4: Imperfect CompetitionMonopolistic CompetitionB—✓11Unit 4: Imperfect CompetitionOligopoly & Game TheoryB—✓12Unit 5: Factor MarketsLabor MarketA—✓13Unit 5: Factor MarketsLabor MarketA—✗14Unit 6: Market Failure and the Role of GovernmentExternalitiesB—✓15Unit 6: Market Failure and the Role of GovernmentPublic GoodsB—✓MCQ Summary: 13/15 correct (87%)Performance by DomainUnit 5: Factor Markets1/2 (50%)Unit 2: Supply and Demand2/3 (67%)Unit 1: Basic Economic Concepts2/2 (100%)Unit 3: Production, Cost, and the Perfect Competition Model3/3 (100%)Unit 4: Imperfect Competition3/3 (100%)Unit 6: Market Failure and the Role of Government2/2 (100%)Back to DashboardDownload PDF",
+      "Ms. ThompsonTest: AP Microeconomics Practice ExamSubject: AP MicroeconomicsDate: 2026. 2. 23.AP Score5Total: / pts (85%)Section 1: Multiple Choice ResultsQ#DomainTopicCorrectYour AnswerResult1Unit 1: Basic Economic ConceptsScarcity & Opportunity CostB—✓2Unit 1: Basic Economic ConceptsComparative AdvantageB—✓3Unit 2: Supply and DemandDemand ShiftersB—✓4Unit 2: Supply and DemandElasticityA—✗5Unit 2: Supply and DemandConsumer & Producer SurplusA—✓6Unit 3: Production, Cost, and the Perfect Competition ModelMarginal ProductB—✓7Unit 3: Production, Cost, and the Perfect Competition ModelPerfect CompetitionB—✓8Unit 3: Production, Cost, and the Perfect Competition ModelShutdown RuleB—✓9Unit 4: Imperfect CompetitionMonopolyB—✓10Unit 4: Imperfect CompetitionMonopolistic CompetitionB—✓11Unit 4: Imperfect CompetitionOligopoly & Game TheoryB—✓12Unit 5: Factor MarketsLabor MarketA—✓13Unit 5: Factor MarketsLabor MarketA—✗14Unit 6: Market Failure and the Role of GovernmentExternalitiesB—✓15Unit 6: Market Failure and the Role of GovernmentPublic GoodsB—✓MCQ Summary: 13/15 correct (87%)Performance by DomainUnit 5: Factor Markets1/2 (50%)Unit 2: Supply and Demand2/3 (67%)Unit 1: Basic Economic Concepts2/2 (100%)Unit 3: Production, Cost, and the Perfect Competition Model3/3 (100%)Unit 4: Imperfect Competition3/3 (100%)Unit 6: Market Failure and the Role of Government2/2 (100%)Back to DashboardDownload PDF"
+    ],
+    "PASS_B12_002": true
+  },
+  {
+    "step": "11b_student_display_text",
+    "text": "Student: Ms. Thompson"
+  },
+  {
+    "step": "console_errors_teacher",
+    "errors": []
+  }
+]

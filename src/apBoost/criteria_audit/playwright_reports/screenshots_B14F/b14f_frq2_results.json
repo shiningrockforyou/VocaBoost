@@ -1,0 +1,64 @@
+{
+  "steps": [
+    {
+      "step": "clicked_review_arrow",
+      "answered": 15
+    },
+    {
+      "step": "reached_review",
+      "answered": 15
+    },
+    {
+      "step": "clicked_submit_section"
+    },
+    {
+      "step": "clicked_frq_topic",
+      "text": "⌨️Type Your AnswersEnter your responses directly using the o"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "startState": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "btns": [
+      "",
+      "AConstant opportunity costs",
+      "",
+      "BIncreasing opportunity costs",
+      "",
+      "CDecreasing marginal returns",
+      "",
+      "DEconomies of scale",
+      "",
+      "⚐Flag for Review",
+      "← Back",
+      "Question 1 of 15▲",
+      "Next →"
+    ]
+  },
+  "postSection1": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "hasTa": false,
+    "btns": [
+      "Log out",
+      "⌨️Type Your AnswersEnter your responses directly using the on-screen text boxes. Best for shorter answers and quick submission.",
+      "✍️Write by HandDownload an answer sheet, write on paper, then scan and upload. Best for math, diagrams, and longer responses."
+    ]
+  },
+  "frqInputReached": false,
+  "frqInputUrl": "http://localhost:5173/ap/test/test_micro_full_1",
+  "frqInputBtns": [
+    "Log out",
+    "⌨️Type Your AnswersEnter your responses directly using the on-screen text boxes. Best for shorter answers and quick submission.",
+    "✍️Write by HandDownload an answer sheet, write on paper, then scan and upload. Best for math, diagrams, and longer responses.",
+    "Confirm & Continue"
+  ]
+}

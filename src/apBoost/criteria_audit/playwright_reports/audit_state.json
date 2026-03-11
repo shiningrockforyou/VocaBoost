@@ -135,13 +135,94 @@
       "openFindings": ["Gradebook Grade button mobile reachability (fix applied, needs re-verify)"]
     }
   },
-  "lastUpdated": "2026-03-10 (B6 complete)",
+  "lastUpdated": "2026-03-12 (B14A-retest complete)",
+  "B14Aretest": {
+    "status": "partial",
+    "completedAt": "2026-03-12",
+    "notes": "B14A-retest PARTIAL 2026-03-12. Static code analysis COMPLETE — all 6 B12 fixes confirmed present in source. B12-001 FIXED (teacherId: test.createdBy in apScoringService.js line 269). B12-002 FIXED (studentInfo fetched from Firestore in APReportCard.jsx lines 317-329 when viewer != result.userId). B12-004 FIXED (getPendingGrades uses data.userId || data.studentId in apGradingService.js lines 83-93). B12-005 FIXED (latestByStudent Map deduplication in apAnalyticsService.js lines 43-53). B12-006 FIXED (Log out button in APHeader.jsx lines 39-44). B12-007 FIXED (averageScore/maxScore pts subtext in APExamAnalytics.jsx lines 299-302). BLOCKER: Playwright MCP tools unavailable in this agent environment — live browser testing could not be executed. 1 Medium finding logged (audit infrastructure). See findings_B14A.md Section 1.",
+    "openFindings": [
+      "B14A-RETEST-001 (Medium — Playwright MCP unavailable; live browser testing needed to confirm runtime behavior of all 6 B12 fixes)"
+    ]
+  },
+  "B14Cretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "resultId": "4Bt1gbCpgPQvMovo1M0kXvJMbzi2_test_micro_full_1_1",
+    "notes": "LIVE Playwright retest 2026-03-12 (b14c_retest_v4.spec.js). FIX-6 verification: ALL PASS. Q3 (C→A), Q11 (A→B), Q14 (D→C) changed answers all correctly reflected in report card. Q7 (A, visited only) and Q2 (B, visited only) preserved correctly. All 3 Review visits showed 15/15 answered. Zero console errors. No TDZ crash (confirmed stale HMR artifact). New findings: B14C-001 (Medium — Return to Questions always lands on Q15 not last-visited question), B14C-002 (Medium — Review grid has no answer letter badges), B14C-003 (Medium — DuplicateTabModal appears on test reload after browser crash due to stale Firestore sessionToken). See findings_B14C_retest_v2.md.",
+    "openFindings": [
+      "B14C-001 (Medium — Return to Questions lands on Q15 not last visited question; fix: save position before review, restore on return)",
+      "B14C-002 (Medium — Review grid boxes show no answer letter (A/B/C/D) — students cannot see their choices at a glance)",
+      "B14C-003 (Medium — DuplicateTabModal false positive on reload after browser crash; stale Firestore sessionToken triggers heartbeat takeover detection)"
+    ]
+  },
+  "B14Dretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "notes": "LIVE Playwright retest 2026-03-12 (b14d_retest_v2.spec.cjs + b14d_frq_v2.spec.cjs). FIX-9 verification: B14D-001 FIXED (DuplicateTabModal false positive — sessionStorage token suppresses false positives on reload, confirmed 0 modal within 10s). B14D-002 PARTIAL (two-step confirmation card highlight + Confirm & Continue PASS; 'Change submission type' header link MISSING — handleChangeFRQType not in working dir). B14D-003 FIXED (code.startsWith: 0 errors). SPA nav guard FAIL (useBlocker removed, browser back exits test silently). Hamburger touch target FAIL (w-8 h-8 not w-11 h-11). Flag button FAIL (py-2 not py-3). Intermittent scheduleFlush TDZ crash (first run only). See findings_B14D_retest.md.",
+    "openFindings": [
+      "B14D-RETEST-001 (High — Change submission type link missing from FRQ testing header)",
+      "B14D-RETEST-002 (High — SPA back-button exits test silently, no Leave Test modal)",
+      "B14D-RETEST-003 (Medium — Hamburger menu still w-8 h-8 not w-11 h-11)",
+      "B14D-RETEST-004 (Medium — Flag button still py-2 not py-3)",
+      "B14D-RETEST-005 (Medium — Intermittent scheduleFlush TDZ crash in useOfflineQueue)"
+    ]
+  },
+  "B14Eretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "notes": "REGRESSION RETEST 2026-03-12 (5 Playwright script runs). OVERALL VERDICT: PASS — no regressions in core session resilience. B14E-001 (login redirect to /) STILL PRESENT. B14E-002 (code.startsWith) FIXED — 0 occurrences across all runs. Tab switch (45s) PASS: no DuplicateTabModal, timer continued (~45s diff), Q1 answer A persisted (screenshot sim_08_q1_check.png). Page blur (30s) PASS: timer diff 32s (expected ~30s). Review 15/15 PASS. Submit Section + FRQ choice screen PASS. NEW Medium: B14E-RETEST-001 (scheduleFlush TDZ under Vite HMR dev-env only; fix: reorder useCallback in useOfflineQueue.js). See findings_B14E_retest.md.",
+    "openFindings": [
+      "B14E-RETEST-001 (Medium — scheduleFlush TDZ under HMR; dev-only; reorder useCallback declarations in useOfflineQueue.js before their referencing useEffects)",
+      "B14E-RETEST-002 (Medium — B4-006 login redirect to / still present; fix: check user.role in Login.jsx redirectTo defaulting)"
+    ]
+  },
+  "B14Bretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "notes": "RETEST 2026-03-12 (code review + Playwright scripts from prior session). 6/8 items CONFIRMED FIXED: V1 (logError String coercion), V2 (letter badge bg-white text-brand-primary), V5 (FRQ nav Q1 of X), V6 (timer urgency cues), V7 (FRQ two-step confirmation), V8 (nav dedup). FAIL V3: ReviewScreen.jsx missing TestTimer import + timeRemaining prop — FIX APPLIED in this session (import + prop + conditional render added). FAIL V4: No submit confirmation modal for final section — FIX-8 still not implemented. See findings_B14B_retest.md.",
+    "openFindings": [
+      "B14B-RETEST-002 (Medium — Submit Test on FRQ review has no confirmation dialog; FIX-8 not implemented)"
+    ],
+    "fixesAppliedThisSession": [
+      "ReviewScreen.jsx: Added TestTimer import, timeRemaining prop, conditional timer render above question grid (completes FIX-7)"
+    ]
+  },
+  "batchResults": {
+    "B14H-retest": {
+      "status": "complete",
+      "completedAt": "2026-03-12",
+      "notes": "B14H-retest COMPLETE 2026-03-12. FIX-3 (B14H-001) CONFIRMED FIXED — DuplicateTabModal appears at t=0.5s overlaying instruction screen, Resume Test blocked. FIX-4 (B14H-002) CONFIRMED FIXED — Tab 1 invalidated immediately after Tab 2 clicks Use This Tab. FIX-5 (B14H-003) INCOMPLETE — onSessionQuery callback not wired in useTestSession.js line 66 (single line fix needed: pass { onSessionQuery: flushQueue } as second arg to useDuplicateTabGuard). New regression: useBlocker from react-router crashes with BrowserRouter (intermittent, only with in-progress sessions). scheduleFlush TDZ error was already fixed before retest started. See findings_B14H_retest.md.",
+      "openFindings": [
+        "B14H-RETEST-001 (High — FIX-5 incomplete: onSessionQuery not wired in useTestSession.js line 66)",
+        "B14H-RETEST-002 (Medium — useBlocker requires data router, crashes intermittently with BrowserRouter)"
+      ]
+    }
+  },
+  "B14Fretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "notes": "LIVE Playwright retest 2026-03-12 (b14f_retest_v3.cjs + source analysis). FIX-15 PASS — mountedRef guard confirmed in useOfflineQueue.js lines 63-65/141/163-165, 0 IDB errors in live run. FIX-12 FAIL — scrollIntoView useEffect absent from FRQTextInput.jsx (not implemented). FIX-13 FAIL — useBlocker not in APTestSession.jsx; browser back navigated silently to / (VocaBoost main dashboard) with no modal (screenshot v3_05_after_back.png). FIX-14 FAIL — all 10 measured elements still below 44px (py-2 unchanged on Begin/Cancel/Back/Next/Flag, w-10 h-10 unchanged on nav cells, w-8 h-8 unchanged on hamburger, p-2 unchanged on strikethrough, no min-h on toggle or close). Vite cache TDZ crash in v1 run was transient. See findings_B14F_retest.md.",
+    "openFindings": [
+      "B14F-R001 (High — FIX-12 not implemented: FRQ textarea still hidden at 375x350 keyboard viewport; scrollIntoView useEffect absent from FRQTextInput.jsx)",
+      "B14F-R002 (High — FIX-13 not implemented: useBlocker not added to APTestSession.jsx, browser back navigates silently to / with no modal)",
+      "B14F-R003 (Medium — FIX-14 not implemented: all 10 touch targets remain below 44px minimum)"
+    ]
+  },
+  "B14Gretest": {
+    "status": "complete",
+    "completedAt": "2026-03-12",
+    "notes": "B14G-retest COMPLETE 2026-03-12. FIX-1 (scheduleFlush flushQueueRef stale closure) PASS — 3 offline IDB ANSWER_CHANGE items flushed within 1s of network restore, no TDZ/ReferenceError errors. FIX-2 (reconcileQueue content-based comparison) FAIL — content-based comparison code IS present in source (useTestSession.js lines 662-681) but reconcileQueue never executes it. Root cause: DB race condition — dbRef.current is null when getPendingItems fires (session loads before IDB initDB async completes), causing getPendingItems to return [] immediately, reconciledRef.current set true, function blocked from all future runs. Fix: add dbReady state to useOfflineQueue (set after dbRef.current assigned), return from hook, add to reconcileQueue dep array and guard condition. FIX-10 (heartbeat online event listener) DOCUMENTED — Connection unstable banner confirmed at ~46.5s offline (3 failures × 15s), Reconnected banner at ~2s after restore (visibilitychange handler provides partial mitigation; online event listener still missing from useHeartbeat.js). See findings_B14G.md.",
+    "openFindings": [
+      "B14G-RETEST-001 (High — reconcileQueue DB race condition: dbRef.current is null at reconcile time, getPendingItems returns [], reconciledRef.current set true prematurely, offline answers permanently lost on resume; fix: add dbReady state to useOfflineQueue, guard reconcileQueue effect on dbReady)",
+      "B14G-RETEST-002 (Medium — FIX-10 not applied: useHeartbeat.js missing window.addEventListener('online', ...) listener; current visibilitychange provides partial mitigation but real-browser no-focus-change scenarios wait up to 15s for recovery)"
+    ]
+  },
   "summary": {
-    "complete": ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11"],
-    "fixesApplied": [],
+    "complete": ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B14E-retest", "B14D-retest", "B14B-retest", "B14H-retest", "B14F-retest", "B14G-retest"],
+    "fixesApplied": ["ReviewScreen.jsx FIX-7 (timer on review screen) completed 2026-03-12", "FIX-15 (IDB closing errors) PASS verified 2026-03-12", "FIX-1 (scheduleFlush flushQueueRef) PASS verified 2026-03-12"],
     "pending": [],
-    "openHighPriority": 5,
-    "openMediumPriority": 16,
-    "note": "B6 live run COMPLETE 2026-03-10. 1 new High: B6-001 (duplicate tab modal on wrong tab — Tab 2 takes over silently). 3 new Medium: B6-002 (seed result total score missing — totalPossible vs maxScore), B6-003 (seed result Your Answer shows dashes — selectedAnswer vs studentAnswer), B6-004 (Syncing banner imperceptible). ALL BATCHES NOW COMPLETE. Total open High: 5 (B3-001, B4-007, B5-001, B5-002, B6-001). Total open Medium: 16 (B2-002, B2-004, B2-005, B2-006, B3-002, B3-003, B4-006, B4-008, B5-003, B6-002, B6-003, B6-004, B8-006, B8-007, B8-008, B11 gradebook)."
+    "openHighPriority": 11,
+    "openMediumPriority": 25,
+    "note": "B14G-retest COMPLETE 2026-03-12. VERDICTS: FIX-1 PASS (flushQueueRef flush on network restore). FIX-2 FAIL (reconcileQueue DB race condition — dbRef.current null at reconcile time). FIX-10 DOCUMENTED (online event listener still missing). 1 new High, 1 new Medium. See findings_B14G.md."
   }
 }

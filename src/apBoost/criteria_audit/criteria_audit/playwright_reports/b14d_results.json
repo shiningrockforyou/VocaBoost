@@ -1,0 +1,56 @@
+{
+  "loginStatus": "pending",
+  "mcqCompletion": "pending",
+  "frqTopicSwitch": "pending",
+  "frqTypingDeleteRetype": "pending",
+  "frqPartialSubmit": "pending",
+  "reportCardStatus": "pending",
+  "consoleErrors": [],
+  "findings": [
+    {
+      "type": "observation",
+      "message": "Student login redirected to http://localhost:5173/ instead of /ap — known issue B4-006"
+    }
+  ],
+  "screenshots": [
+    "00_login_page.png",
+    "01_login_credentials_entered.png",
+    "02_after_login.png",
+    "03_error_state.png"
+  ],
+  "testUrl": null,
+  "resultUrl": null,
+  "error": "page.waitForLoadState: Timeout 30000ms exceeded.",
+  "allConsoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap"
+    }
+  ]
+}

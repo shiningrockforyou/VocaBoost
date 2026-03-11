@@ -1,0 +1,349 @@
+{
+  "results": [
+    "Login URL: http://localhost:5173/",
+    "Test page URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "Console errors on test page load: 0",
+    "Has \"Something went wrong\": false",
+    "No resume — beginning fresh (answering all 15 first)...",
+    "Q1: answered A",
+    "Q2: answered B",
+    "Q3: answered C",
+    "Q4: answered D",
+    "Q5: answered A",
+    "Q6: answered B",
+    "Q7: answered C",
+    "Q8: answered D",
+    "Q9: answered A",
+    "Q10: answered B",
+    "Q11: answered C",
+    "Q12: answered D",
+    "Q13: answered A",
+    "Q14: answered B",
+    "Q15: answered C",
+    "All 15 answered",
+    "Current state snippet:  Syncing your progress...Section 1 of 2: Section I: Multiple Choice⏱32:48Question 15Which is a p",
+    "Currently on Q15",
+    "Buttons on current page:",
+    "  Button: \"\"",
+    "  Button: \"AA hamburger\"",
+    "  Button: \"\"",
+    "  Button: \"BNational defense\"",
+    "  Button: \"\"",
+    "  Button: \"CA toll road\"",
+    "  Button: \"\"",
+    "  Button: \"DCable TV\"",
+    "  Button: \"\"",
+    "  Button: \"🚩Flagged\"",
+    "  Button: \"← Back\"",
+    "  Button: \"Question 15 of 15▲\"",
+    "  Button: \"Review →\"",
+    "Review buttons found: 1",
+    "Clicked Review button",
+    "Review screen body (first 300):  AP PracticeHannah LeeVocaBoostReview Your Answers1234567891011121314🚩Summary• Answered: 15/15• Flagged: 1 (Q15)AnsweredUnansweredFlaggedAnnotatedReturn to QuestionsSubmit Section ",
+    "Answered: Answered: 15/15",
+    "Looking for Submit Section button...",
+    "  Visible button: \"1\"",
+    "  Visible button: \"2\"",
+    "  Visible button: \"3\"",
+    "  Visible button: \"4\"",
+    "  Visible button: \"5\"",
+    "  Visible button: \"6\"",
+    "  Visible button: \"7\"",
+    "  Visible button: \"8\"",
+    "  Visible button: \"9\"",
+    "  Visible button: \"10\"",
+    "  Visible button: \"11\"",
+    "  Visible button: \"12\"",
+    "  Visible button: \"13\"",
+    "  Visible button: \"14\"",
+    "  Visible button: \"🚩\"",
+    "  Visible button: \"Return to Questions\"",
+    "  Visible button: \"Submit Section\"",
+    "PASS: Submit Section button found",
+    "Clicked Submit Section",
+    "Post-submit URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "FRQ choice screen: true",
+    "PASS: FRQ choice screen appeared",
+    "Final URL: http://localhost:5173/ap/test/test_micro_full_1",
+    "Report card: NOT REACHED",
+    "Total console errors: 0"
+  ],
+  "consoleMsgs": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/login"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Session taken over by another instance null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard] No other tab responded, claiming session null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useDuplicateTabGuard.claimSession] Session claimed {instanceToken: 80ac073e-8900-4ae8-8be6-0f48771a47be}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244061111-337vnauxzt7, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244061111, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244061494-82eksqq97zd, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244061494, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244061860-fg0qc0rucsr, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244061860, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244062228-6ne0um03x, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244062228, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244062594-7lb9h4jneyf, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244062594, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244062960-yztp8c3lkt, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244062960, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244063327-uzhk81wy8eo, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244063327, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244063710-53gl7v7jtfa, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244063710, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244064076-m8jryaw5ui, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244064076, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244064443-6d1f11yxbbu, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244064443, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244064827-lb4jata46uo, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244064827, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244065226-ei7qmdnncz4, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244065226, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244065593-10tgshnzxkjh, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244065593, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244065961-lu98509uu29, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244065961, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.addToQueue] Added to queue {id: 1773244066362-kma4ite5g2o, sessionId: Vy0aHU2TwxPzqPPRRD6Bw1vNgwu2_test_micro_full_1_1773137159631, localTimestamp: 1773244066362, action: ANSWER_CHANGE, payload: Object}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flushing 1 items null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useOfflineQueue.flushQueue] Flush complete null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "type": "log",
+      "text": "[APBoost:useHeartbeat.doHeartbeat] Heartbeat successful null",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "timestamp": "2026-03-11T15:47:57.179Z"
+}

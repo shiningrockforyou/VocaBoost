@@ -1,0 +1,473 @@
+{
+  "steps": [
+    {
+      "step": "q1_loaded",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "nav_jump_q5",
+      "done": true
+    },
+    {
+      "step": "after_submit_section",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "step": "not_on_frq_at_keyboard_test",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    },
+    {
+      "text": "[APBoost:useOfflineQueue.getPendingItems] {function: useOfflineQueue.getPendingItems, context: Object, type: unknown, message: Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing., code: 11}",
+      "url": "http://localhost:5173/ap/test/test_micro_full_1"
+    }
+  ],
+  "navigatorDetails": {
+    "totalCells": 17,
+    "cells": [
+      {
+        "text": "✕",
+        "w": 13,
+        "h": 24,
+        "fail44": true
+      },
+      {
+        "text": "1",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "2",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "3",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "4",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "5",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "6",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "7",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "8",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "9",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "10",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "11",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "12",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "13",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "14",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "15",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "Go to Review Screen",
+        "w": 327,
+        "h": 48,
+        "fail44": false
+      }
+    ],
+    "smallCells": [
+      {
+        "text": "✕",
+        "w": 13,
+        "h": 24,
+        "fail44": true
+      },
+      {
+        "text": "1",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "2",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "3",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "4",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "5",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "6",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "7",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "8",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "9",
+        "w": 40,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "10",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "11",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "12",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "13",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "14",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      },
+      {
+        "text": "15",
+        "w": 48,
+        "h": 40,
+        "fail44": true
+      }
+    ],
+    "smallCellCount": 16
+  },
+  "frqKeyboardViewport": null,
+  "touchTargetSummary": null,
+  "beginOrResumeBtnSize": {
+    "text": "Resume Test",
+    "w": 295,
+    "h": 40,
+    "fail44": true
+  },
+  "q1TouchData": [
+    {
+      "text": "",
+      "ariaLabel": "Open menu",
+      "w": 29,
+      "h": 32,
+      "fail44": true
+    },
+    {
+      "text": "AConstant opportunity costs",
+      "ariaLabel": "Choice A",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "BIncreasing opportunity costs",
+      "ariaLabel": "Choice B",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "CDecreasing marginal returns",
+      "ariaLabel": "Choice C",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "DEconomies of scale",
+      "ariaLabel": "Choice D",
+      "w": 269,
+      "h": 49,
+      "fail44": false
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "⚐Flag for Review",
+      "ariaLabel": null,
+      "w": 139,
+      "h": 37,
+      "fail44": true
+    },
+    {
+      "text": "← Back",
+      "ariaLabel": null,
+      "w": 79,
+      "h": 36,
+      "fail44": true
+    },
+    {
+      "text": "Question 1 of 15▲",
+      "ariaLabel": null,
+      "w": 121,
+      "h": 20,
+      "fail44": true
+    },
+    {
+      "text": "Next →",
+      "ariaLabel": null,
+      "w": 79,
+      "h": 37,
+      "fail44": true
+    }
+  ],
+  "q1TouchFailures": [
+    {
+      "text": "",
+      "ariaLabel": "Open menu",
+      "w": 29,
+      "h": 32,
+      "fail44": true
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "",
+      "ariaLabel": null,
+      "w": 33,
+      "h": 33,
+      "fail44": true
+    },
+    {
+      "text": "⚐Flag for Review",
+      "ariaLabel": null,
+      "w": 139,
+      "h": 37,
+      "fail44": true
+    },
+    {
+      "text": "← Back",
+      "ariaLabel": null,
+      "w": 79,
+      "h": 36,
+      "fail44": true
+    },
+    {
+      "text": "Question 1 of 15▲",
+      "ariaLabel": null,
+      "w": 121,
+      "h": 20,
+      "fail44": true
+    },
+    {
+      "text": "Next →",
+      "ariaLabel": null,
+      "w": 79,
+      "h": 37,
+      "fail44": true
+    }
+  ],
+  "answerASelected": {
+    "bg": "rgb(27, 58, 148)",
+    "classes": "\n                flex-1 flex items-start gap-3 p-3 rounded-[--radius-input] border transition-all text-left\n                bg-brand-primary border-brand-primary text-white\n                \n                cursor-pointer\n              ",
+    "isBrand": true
+  },
+  "answerSwitchTest": {
+    "aStillSelected": false,
+    "bNowSelected": true,
+    "selectionChanged": true
+  },
+  "navigatorToggle": {
+    "w": 121,
+    "h": 20,
+    "fail44": true
+  },
+  "navigatorDialog": {
+    "w": 375,
+    "h": 336,
+    "fitsViewport": false
+  },
+  "backButtonTest": {
+    "dialogFired": false,
+    "urlBefore": "http://localhost:5173/ap/test/test_micro_full_1",
+    "urlAfter": "http://localhost:5173/ap",
+    "stayedOnTest": false
+  },
+  "reviewMobile": {
+    "scrollH": 667,
+    "viewH": 667,
+    "scrollable": false
+  },
+  "onFRQ": false,
+  "currentStateForFRQ": {
+    "url": "http://localhost:5173/ap/test/test_micro_full_1",
+    "btns": [
+      "",
+      "AA hamburger",
+      "",
+      "BNational defense",
+      "",
+      "CA toll road",
+      "",
+      "DCable TV",
+      "",
+      "🚩Flagged",
+      "← Back",
+      "Question 15 of 15▲",
+      "Review →"
+    ]
+  },
+  "finalUrl": "http://localhost:5173/ap/test/test_calc_ab_full_1",
+  "submissionSuccess": false,
+  "consoleErrorCount": 4,
+  "summary": {
+    "loginRedirectsToSlash": true,
+    "beginBtnTooSmall": true,
+    "navToggleTooSmall": true,
+    "navCellsTooSmall": 16,
+    "backDialogFired": false,
+    "frqHiddenAtKeyboard": "unknown",
+    "submissionSuccess": false,
+    "consoleErrors": 4
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "batchId": "B14-H",
+  "version": "v3-submit",
+  "startedAt": "2026-03-10T09:59:18.354Z",
+  "steps": [
+    {
+      "step": "Login",
+      "status": "PASS",
+      "details": "URL: http://localhost:5173/",
+      "ts": "2026-03-10T09:59:34.088Z"
+    },
+    {
+      "step": "Instruction screen",
+      "status": "INFO",
+      "details": "AP Practice\nKevin Patel\nVocaBoost\nAP Microeconomics Practice Exam\n\nAP Microeconomics\n\nThis test has 2 sections:\n\nSection 1: Section I: Multiple Choice",
+      "ts": "2026-03-10T09:59:38.982Z"
+    },
+    {
+      "step": "Resume/Begin clicked",
+      "status": "PASS",
+      "details": "Button: \"Resume Test\"",
+      "ts": "2026-03-10T09:59:38.986Z"
+    },
+    {
+      "step": "After Begin",
+      "status": "PASS",
+      "details": "Section 1 of 2: Section I: Multiple Choice\n⏱\n34:58\nQuestion 1\n\nA production possibilities curve that is bowed outward (concave to the origin) illustra",
+      "ts": "2026-03-10T09:59:41.082Z"
+    },
+    {
+      "step": "Current question",
+      "status": "INFO",
+      "details": "Q1 of 15",
+      "ts": "2026-03-10T09:59:41.084Z"
+    },
+    {
+      "step": "Navigate to Q1",
+      "status": "INFO",
+      "details": "no navigator button for Q1",
+      "ts": "2026-03-10T09:59:41.085Z"
+    },
+    {
+      "step": "Q1 answer preserved",
+      "status": "FAIL",
+      "details": "{\"hasAnswer\":false,\"selected\":[]}",
+      "ts": "2026-03-10T09:59:41.594Z"
+    },
+    {
+      "step": "Additional answers",
+      "status": "INFO",
+      "details": "Answered 14 previously unanswered questions",
+      "ts": "2026-03-10T09:59:51.891Z"
+    },
+    {
+      "step": "Click Review →",
+      "status": "PASS",
+      "details": "{\"clicked\":true,\"text\":\"⚐Flag for Review\"}",
+      "ts": "2026-03-10T09:59:52.044Z"
+    },
+    {
+      "step": "Review screen state",
+      "status": "PASS",
+      "details": "Section 1 of 2: Section I: Multiple Choice\n⏱\n34:45\nQuestion 15\n\nWhich is a public good?\n\nA\nA hamburger\nB\nNational defense\nC\nA toll road\nD\nCable TV\n🚩\nFlagged\n← Back\nQuestion 15 of 15\n▲\nReview →",
+      "ts": "2026-03-10T09:59:54.125Z"
+    },
+    {
+      "step": "Review screen details",
+      "status": "INFO",
+      "details": "{\"answeredCount\":0,\"flaggedCount\":1,\"hasSubmitBtn\":false,\"questionRows\":2,\"preview\":\"Section 1 of 2: Section I: Multiple Choice\\n⏱\\n34:45\\nQuestion 15\\n\\nWhich is a public good?\\n\\nA\\nA hamburger\\nB\\nNational defense\\nC\\nA toll road\\nD\\nCable TV\\n🚩\\nFlagged\\n← Back\\nQuestion 15 of 15\\n▲\\nReview →\"}",
+      "ts": "2026-03-10T09:59:54.126Z"
+    },
+    {
+      "step": "Submit Section",
+      "status": "FAIL",
+      "details": "{\"clicked\":false,\"available\":[\"AA hamburger\",\"BNational defense\",\"CA toll road\",\"DCable TV\",\"🚩Flagged\",\"← Back\",\"Question 15 of 15▲\",\"Review →\"]}",
+      "ts": "2026-03-10T09:59:54.128Z"
+    },
+    {
+      "step": "After Submit Section",
+      "status": "INFO",
+      "details": "Section 1 of 2: Section I: Multiple Choice\n⏱\n34:43\nQuestion 15\n\nWhich is a public good?\n\nA\nA hamburger\nB\nNational defense\nC\nA toll road\nD\nCable TV\n🚩\nFlagged\n← Back\nQuestion 15 of 15\n▲\nReview →",
+      "ts": "2026-03-10T09:59:56.208Z"
+    },
+    {
+      "step": "After Section 1 submit",
+      "status": "INFO",
+      "details": "URL: http://localhost:5173/ap/test/test_micro_full_1, FRQChoice: false",
+      "ts": "2026-03-10T09:59:56.209Z"
+    },
+    {
+      "step": "FRQ Choice screen",
+      "status": "FAIL",
+      "details": "Not shown. State: Section 1 of 2: Section I: Multiple Choice\n⏱\n34:43\nQuestion 15\n\nWhich is a public good?\n\nA\nA hamburger\nB\nNational defense\nC\nA toll road\nD\nCable TV\n🚩\nFlagged\n← Back\nQuestion 15 of 15\n▲\nReview →",
+      "ts": "2026-03-10T09:59:56.209Z"
+    },
+    {
+      "step": "FRQ section state",
+      "status": "INFO",
+      "details": "hasQ: true, text: Section 1 of 2: Section I: Multiple Choice\n⏱\n34:42\nQuestion 15\n\nWhich is a public good?\n\nA\nA hamburger\nB\nNational defense\nC\nA toll road\nD\nCable TV\n🚩\n",
+      "ts": "2026-03-10T09:59:57.216Z"
+    },
+    {
+      "step": "FRQ loop 1",
+      "status": "INFO",
+      "details": "No submit or next button found",
+      "ts": "2026-03-10T09:59:57.220Z"
+    },
+    {
+      "step": "FRQ fallback click",
+      "status": "INFO",
+      "details": "Clicked: Review →",
+      "ts": "2026-03-10T09:59:57.298Z"
+    },
+    {
+      "step": "FRQ answers typed",
+      "status": "INFO",
+      "details": "0 FRQ textarea(s) filled",
+      "ts": "2026-03-10T09:59:59.313Z"
+    },
+    {
+      "step": "Final state",
+      "status": "FAIL",
+      "details": "URL: http://localhost:5173/ap/test/test_micro_full_1, isResults: false",
+      "ts": "2026-03-10T10:00:01.555Z"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "message": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "ts": "2026-03-10T09:59:42.239Z"
+    },
+    {
+      "message": "[vite] Failed to reload /src/apBoost/pages/APReportCard.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above)",
+      "ts": "2026-03-10T09:59:42.240Z"
+    }
+  ],
+  "findings": [],
+  "status": "COMPLETE",
+  "completedAt": "2026-03-10T10:00:01.555Z"
+}
