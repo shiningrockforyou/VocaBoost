@@ -10,7 +10,7 @@
  */
 function classifyError(error) {
   if (!error) return 'unknown'
-  const code = error?.code || ''
+  const code = String(error?.code || '')
   const message = (error?.message || '').toLowerCase()
 
   if (code.startsWith('auth/') || message.includes('auth')) return 'auth'

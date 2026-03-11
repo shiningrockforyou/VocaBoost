@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { formatFileSize, validateFile } from '../services/apStorageService'
 import { processImageFile } from '../utils/imageProcessing'
 
@@ -31,7 +31,15 @@ export default function FileUpload({
 }) {
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState(null)
+  const [localPreviews, setLocalPreviews] = useState({}) // objectURL previews keyed by file name+size
   const fileInputRef = useRef(null)
+
+  // Clean up object URLs on unmount or when files change
+  useEffect(() => {
+    return () => {
+      Object.values(localPreviews).forEach(url => URL.revokeObjectURL(url))
+    }
+  }, [localPreviews])
 
   // Handle drag events
   const handleDragEnter = useCallback((e) => {
@@ -96,6 +104,16 @@ export default function FileUpload({
     }
 
     if (validFiles.length > 0 && onUpload) {
+      // Create local previews for images before upload
+      const newPreviews = { ...localPreviews }
+      for (const file of validFiles) {
+        if (file.type.startsWith('image/')) {
+          const key = `${file.name}_${file.size}`
+          newPreviews[key] = URL.createObjectURL(file)
+        }
+      }
+      setLocalPreviews(newPreviews)
+
       // Compress images before upload
       const processed = await Promise.all(
         validFiles.map(f => f.type.startsWith('image/') ? processImageFile(f) : f)
@@ -193,9 +211,9 @@ export default function FileUpload({
               className="flex items-center gap-3 p-3 bg-surface rounded-[--radius-sm] border border-border-default"
             >
               {/* Preview or icon */}
-              {isImage(file.type) && file.url ? (
+              {isImage(file.type) && (file.url || localPreviews[`${file.name}_${file.size}`]) ? (
                 <img
-                  src={file.url}
+                  src={file.url || localPreviews[`${file.name}_${file.size}`]}
                   alt={file.name}
                   className="w-12 h-12 object-cover rounded"
                 />

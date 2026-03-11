@@ -4,6 +4,11 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-12 | src/apBoost/utils/logError.js | B14G-003: String() wrapper on error.code to prevent startsWith crash on numeric codes |
+| 2026-03-12 | src/apBoost/components/TestTimer.jsx | Timer urgency: bold+pulse for last minute, bold for last 5 minutes |
+| 2026-03-12 | src/apBoost/components/FileUpload.jsx | Local objectURL previews before upload completes + cleanup on unmount |
+| 2026-03-12 | src/apBoost/pages/APDashboard.jsx | TestCard: check completions first to avoid stale "In Progress" after submit |
+| 2026-03-12 | src/pages/Login.jsx | AP redirect logic: @apboost.test users go to /ap, preserve /ap route state |
 | 2026-03-12 | src/apBoost/services/apScoringService.js | B12-001: Added teacherId (from test.createdBy) to result documents for teacher gradebook visibility |
 | 2026-03-12 | src/apBoost/pages/APReportCard.jsx | B12-002: Fetch test-taker profile from Firestore via result.userId when teacher views report card |
 | 2026-03-12 | src/apBoost/services/apGradingService.js | B12-004: Changed data.studentId to data.userId (with fallback) in getPendingGrades and getResultForGrading |

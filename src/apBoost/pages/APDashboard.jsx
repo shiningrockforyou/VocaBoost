@@ -14,11 +14,14 @@ function TestCard({ test, assignment, session, attemptCount, onClick }) {
   const subjectConfig = getSubjectConfig(test.subject)
   const totalTime = calculateTotalTime(test.sections || [])
 
-  // Determine status
+  // Determine status — check completions first to avoid stale IN_PROGRESS after submit
   let status = 'Not Started'
   let statusColor = 'bg-muted text-text-secondary'
 
-  if (session?.status === SESSION_STATUS.IN_PROGRESS) {
+  if (attemptCount > 0 && session?.status !== SESSION_STATUS.IN_PROGRESS) {
+    status = 'Completed'
+    statusColor = 'bg-success text-success-text'
+  } else if (session?.status === SESSION_STATUS.IN_PROGRESS) {
     status = 'In Progress'
     statusColor = 'bg-info text-info-text'
   } else if (attemptCount > 0) {

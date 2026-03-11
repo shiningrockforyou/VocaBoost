@@ -8,13 +8,24 @@ const Login = () => {
   const location = useLocation()
   const { login, user, signInWithGoogle } = useAuth()
 
-  // Determine where to redirect after login (from PrivateRoute state or default /)
-  const redirectTo = location.state?.from || '/'
+  // Determine where to redirect after login (from PrivateRoute state or default)
+  // If the user came from an /ap route, preserve that; otherwise check pathname
+  const getRedirectTarget = () => {
+    if (location.state?.from) return location.state.from
+    // If user navigated from an /ap path (e.g. bookmarked login while on apBoost)
+    if (location.pathname?.startsWith('/ap')) return '/ap'
+    return '/'
+  }
+  const redirectTo = getRedirectTarget()
 
   // Auto-redirect when user becomes authenticated
   useEffect(() => {
     if (user) {
-      navigate(redirectTo, { replace: true })
+      // If no explicit redirect target, check if this is an apBoost user (by email domain)
+      const target = redirectTo !== '/' ? redirectTo
+        : user.email?.endsWith('@apboost.test') ? '/ap'
+        : '/'
+      navigate(target, { replace: true })
     }
   }, [user, navigate, redirectTo])
   const [formState, setFormState] = useState({ email: '', password: '' })

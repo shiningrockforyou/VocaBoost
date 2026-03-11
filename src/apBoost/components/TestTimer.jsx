@@ -15,18 +15,21 @@ export default function TestTimer({ timeRemaining }) {
     )
   }
 
-  // Determine color based on time remaining
+  // Determine color and urgency based on time remaining
   let colorClass = 'text-text-primary'
+  let urgencyClass = ''
   if (timeRemaining <= 60) {
-    // Last minute - red
+    // Last minute - red + pulse animation
     colorClass = 'text-error-text'
+    urgencyClass = 'font-bold animate-pulse'
   } else if (timeRemaining <= 300) {
-    // Last 5 minutes - warning
+    // Last 5 minutes - warning + bold
     colorClass = 'text-warning-text'
+    urgencyClass = 'font-bold'
   }
 
   return (
-    <div className={`flex items-center gap-2 ${colorClass}`}>
+    <div className={`flex items-center gap-2 ${colorClass} ${urgencyClass}`}>
       <span className="text-lg">⏱</span>
       <span className="font-mono text-lg font-medium">
         {formatTimeSeconds(timeRemaining)}
