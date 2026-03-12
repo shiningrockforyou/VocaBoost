@@ -1,0 +1,234 @@
+{
+  "timestamp": "2026-03-11T19:11:48.658Z",
+  "steps": [
+    {
+      "step": "Login",
+      "status": "PASS",
+      "notes": "Redirected to: http://localhost:5173/ap"
+    },
+    {
+      "step": "Login redirect to /ap",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap"
+    },
+    {
+      "step": "Dashboard loaded",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap"
+    },
+    {
+      "step": "Clicked Micro test",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "No DuplicateTabModal on fresh start",
+      "status": "PASS",
+      "notes": "suppressTakeoverRef working"
+    },
+    {
+      "step": "Found begin/resume button",
+      "status": "PASS",
+      "notes": "Button text: \"Begin Test\""
+    },
+    {
+      "step": "Clicked begin/resume",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "Q3: Flagged",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "Q4: Changed answer",
+      "status": "PASS",
+      "notes": "A → C"
+    },
+    {
+      "step": "Q6: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q7: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q8: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q9: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q10: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q11: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q12: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q13: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q14: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Q15: No answer buttons found",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "MCQ answering complete",
+      "status": "PARTIAL",
+      "notes": "Answered 5/15 questions, flagged 1"
+    },
+    {
+      "step": "Navigator button not found",
+      "status": "WARN",
+      "notes": "Cannot test navigator"
+    },
+    {
+      "step": "Review button not found on Q15",
+      "status": "WARN",
+      "notes": ""
+    },
+    {
+      "step": "Submit Section clicked",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ choice screen appeared",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "Two-step FRQ confirmation worked",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ typed submission selected",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "Change submission type link visible",
+      "status": "PASS",
+      "notes": "FIX-9 verified"
+    },
+    {
+      "step": "FRQ item 1 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 2 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 3 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 4 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 5 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 6 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ item 7 answered",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "FRQ answered",
+      "status": "PASS",
+      "notes": "Answered 7 FRQ sub-questions"
+    },
+    {
+      "step": "Submit Test confirmation dialog appeared",
+      "status": "PASS",
+      "notes": "FIX-8 verified"
+    },
+    {
+      "step": "After Submit Test",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap/results/i9ROu5cl60ZWZzsGnz2Pknw5B502_test_micro_full_1_1"
+    },
+    {
+      "step": "Report Card loaded",
+      "status": "PASS",
+      "notes": "URL: http://localhost:5173/ap/results/i9ROu5cl60ZWZzsGnz2Pknw5B502_test_micro_full_1_1"
+    },
+    {
+      "step": "Flagged for Review section present",
+      "status": "PASS",
+      "notes": "B14A-003/B3-001 fix verified"
+    },
+    {
+      "step": "Flagged section content",
+      "status": "INFO",
+      "notes": "Flagged for ReviewYou flagged 5 questions during the test:Q3 ✓Q7 ✓Q11 ✓Q14 ✗Q13 ✗"
+    },
+    {
+      "step": "MCQ section on report card",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "No \"Unknown Student\" text on report card",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "Back to dashboard",
+      "status": "PASS",
+      "notes": ""
+    },
+    {
+      "step": "No critical console errors",
+      "status": "PASS",
+      "notes": "code.startsWith fix verified"
+    }
+  ],
+  "consoleErrors": [],
+  "findings": [
+    {
+      "id": "B14A-RETEST-ARIA-001",
+      "severity": "Medium",
+      "description": "AnswerInput answer buttons missing role=\"radio\" ARIA attribute",
+      "details": "B14A-005 fix was listed as complete in consolidated fixes but role=\"radio\" not present"
+    }
+  ]
+}

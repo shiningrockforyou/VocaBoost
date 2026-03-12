@@ -135,13 +135,15 @@
       "openFindings": ["Gradebook Grade button mobile reachability (fix applied, needs re-verify)"]
     }
   },
-  "lastUpdated": "2026-03-12 (B14A-retest complete)",
+  "lastUpdated": "2026-03-12 (B14A-retest LIVE complete)",
   "B14Aretest": {
-    "status": "partial",
+    "status": "complete",
     "completedAt": "2026-03-12",
-    "notes": "B14A-retest PARTIAL 2026-03-12. Static code analysis COMPLETE — all 6 B12 fixes confirmed present in source. B12-001 FIXED (teacherId: test.createdBy in apScoringService.js line 269). B12-002 FIXED (studentInfo fetched from Firestore in APReportCard.jsx lines 317-329 when viewer != result.userId). B12-004 FIXED (getPendingGrades uses data.userId || data.studentId in apGradingService.js lines 83-93). B12-005 FIXED (latestByStudent Map deduplication in apAnalyticsService.js lines 43-53). B12-006 FIXED (Log out button in APHeader.jsx lines 39-44). B12-007 FIXED (averageScore/maxScore pts subtext in APExamAnalytics.jsx lines 299-302). BLOCKER: Playwright MCP tools unavailable in this agent environment — live browser testing could not be executed. 1 Medium finding logged (audit infrastructure). See findings_B14A.md Section 1.",
+    "notes": "B14A-retest COMPLETE 2026-03-12 (live Playwright run b14a_retest_live.cjs). Full scenario PASS: login→/ap, no DuplicateTabModal, Begin Test→Q11 resume, MCQ Q11-Q15, flag Q3, change answer Q4, review screen (timer 26:50 PASS FIX-7), submit section, FRQ choice (two-step PASS FIX-9), 7 FRQ sub-questions, submit confirmation dialog (PASS FIX-8), report card with Diana Park + 5 flaggedQuestions (PASS FIX-B14A-003). Zero console errors. NOT FIXED: B14A-RETEST-001 (letter badge bg-white/20 not updated to bg-white text-brand-primary), B14A-RETEST-002 (role=radio not added to AnswerInput). See findings_B14A_retest.md.",
+    "resultId": "i9ROu5cl60ZWZzsGnz2Pknw5B502_test_micro_full_1_1",
     "openFindings": [
-      "B14A-RETEST-001 (Medium — Playwright MCP unavailable; live browser testing needed to confirm runtime behavior of all 6 B12 fixes)"
+      "B14A-RETEST-001 (Medium — AnswerInput letter badge still bg-white/20 when selected; fix not applied despite being listed as complete in consolidated fixes)",
+      "B14A-RETEST-002 (Medium — AnswerInput answer buttons missing role='radio' ARIA attribute; accessibility fix not applied despite being listed as complete)"
     ]
   },
   "B14Cretest": {
@@ -218,11 +220,11 @@
     ]
   },
   "summary": {
-    "complete": ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B14E-retest", "B14D-retest", "B14B-retest", "B14H-retest", "B14F-retest", "B14G-retest"],
+    "complete": ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B14A-retest", "B14E-retest", "B14D-retest", "B14B-retest", "B14H-retest", "B14F-retest", "B14G-retest"],
     "fixesApplied": ["ReviewScreen.jsx FIX-7 (timer on review screen) completed 2026-03-12", "FIX-15 (IDB closing errors) PASS verified 2026-03-12", "FIX-1 (scheduleFlush flushQueueRef) PASS verified 2026-03-12"],
     "pending": [],
     "openHighPriority": 11,
     "openMediumPriority": 25,
-    "note": "B14G-retest COMPLETE 2026-03-12. VERDICTS: FIX-1 PASS (flushQueueRef flush on network restore). FIX-2 FAIL (reconcileQueue DB race condition — dbRef.current null at reconcile time). FIX-10 DOCUMENTED (online event listener still missing). 1 new High, 1 new Medium. See findings_B14G.md."
+    "note": "B14A-retest COMPLETE 2026-03-12. VERDICTS: Full scenario PASS. FIX-7/8/9 PASS. suppressTakeoverRef PASS. flaggedQuestions PASS. login redirect PASS. 0 console errors. NOT FIXED: B14A-RETEST-001 (AnswerInput letter badge bg-white/20), B14A-RETEST-002 (ARIA role=radio missing). B14G-retest COMPLETE 2026-03-12. VERDICTS: FIX-1 PASS (flushQueueRef flush on network restore). FIX-2 FAIL (reconcileQueue DB race condition — dbRef.current null at reconcile time). FIX-10 DOCUMENTED (online event listener still missing). 1 new High, 1 new Medium. See findings_B14G.md."
   }
 }
