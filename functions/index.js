@@ -8,12 +8,13 @@
  */
 
 const {setGlobalOptions} = require("firebase-functions");
-const {onCall} = require("firebase-functions/v2/https");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const Anthropic = require("@anthropic-ai/sdk").default;
+const {buildTestResult} = require("./scoring");
 
 admin.initializeApp();
 
@@ -386,6 +387,273 @@ Do not include "reasoning" for correct answers.
       throw new Error(`Failed to grade test: ${error.message}`);
     }
   }
+);
+
+/**
+ * Cloud Function to create or resume a test session.
+ *
+ * Fixes:
+ * - Race condition: check-then-create without transaction
+ * - Security: server-authoritative attempt counting (can't be manipulated)
+ * - Attempt limits enforced server-side
+ */
+exports.createSession = onCall(
+  {
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required");
+    }
+
+    const {testId, assignmentId} = request.data;
+    if (!testId) {
+      throw new HttpsError("invalid-argument", "testId is required");
+    }
+
+    const userId = request.auth.uid;
+    const firestore = admin.firestore();
+
+    return firestore.runTransaction(async (tx) => {
+      // 1. Check test exists and is accessible
+      const testRef = firestore.doc(`ap_tests/${testId}`);
+      const testSnap = await tx.get(testRef);
+      if (!testSnap.exists) {
+        throw new HttpsError("not-found", "Test not found");
+      }
+      const testData = testSnap.data();
+
+      // 2. Verify access: test is published OR user is assigned
+      let resolvedAssignmentId = assignmentId || null;
+      if (!testData.isPublished) {
+        const assignmentsQuery = firestore
+          .collection("ap_assignments")
+          .where("testId", "==", testId)
+          .where("studentIds", "array-contains", userId);
+        const assignmentsSnap = await tx.get(assignmentsQuery);
+        if (assignmentsSnap.empty) {
+          throw new HttpsError(
+            "permission-denied",
+            "You are not authorized to take this test",
+          );
+        }
+        if (!resolvedAssignmentId) {
+          resolvedAssignmentId = assignmentsSnap.docs[0].id;
+        }
+      }
+
+      // 3. Check for existing active session (atomic — no race window)
+      const sessionsQuery = firestore
+        .collection("ap_session_state")
+        .where("testId", "==", testId)
+        .where("userId", "==", userId)
+        .where("status", "in", ["IN_PROGRESS", "PAUSED"]);
+      const existing = await tx.get(sessionsQuery);
+
+      if (!existing.empty) {
+        const existingDoc = existing.docs[0];
+        return {id: existingDoc.id, ...existingDoc.data(), resumed: true};
+      }
+
+      // 4. Count prior attempts (server-authoritative)
+      const resultsQuery = firestore
+        .collection("ap_test_results")
+        .where("testId", "==", testId)
+        .where("userId", "==", userId);
+      const attempts = await tx.get(resultsQuery);
+      const attemptNumber = attempts.size + 1;
+
+      // 5. Enforce attempt limits if configured
+      const maxAttempts = testData.maxAttempts || Infinity;
+      if (attemptNumber > maxAttempts) {
+        throw new HttpsError(
+          "resource-exhausted",
+          `Maximum ${maxAttempts} attempts reached`,
+        );
+      }
+
+      // 6. Create session atomically
+      const sessionId = `${userId}_${testId}_${Date.now()}`;
+      const sessionData = {
+        userId,
+        testId,
+        assignmentId: resolvedAssignmentId,
+        sessionToken:
+          `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`,
+        status: "IN_PROGRESS",
+        attemptNumber,
+        currentSectionIndex: 0,
+        currentQuestionIndex: 0,
+        sectionTimeRemaining: {},
+        answers: {},
+        flaggedQuestions: [],
+        annotations: {},
+        strikethroughs: {},
+        lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
+        lastAction: admin.firestore.FieldValue.serverTimestamp(),
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        completedAt: null,
+      };
+
+      tx.set(
+        firestore.doc(`ap_session_state/${sessionId}`),
+        sessionData,
+      );
+
+      logger.info(`Session created: ${sessionId}`, {
+        userId,
+        testId,
+        attemptNumber,
+      });
+
+      return {id: sessionId, ...sessionData, resumed: false};
+    });
+  },
+);
+
+/**
+ * Cloud Function to submit a test — scores MCQs server-side,
+ * creates the result document, and marks the session complete.
+ *
+ * Fixes:
+ * - Race condition: client-side scoring (last-write-wins on result doc)
+ * - Race condition: client-only submit dedup (double-submit)
+ * - Security: students can no longer see answer keys or manipulate scores
+ * - Timer: server validates elapsed time with 30s grace period
+ */
+exports.submitTest = onCall(
+  {
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required");
+    }
+
+    const {sessionId, frqData} = request.data;
+    if (!sessionId) {
+      throw new HttpsError("invalid-argument", "sessionId is required");
+    }
+
+    const userId = request.auth.uid;
+    const firestore = admin.firestore();
+
+    return firestore.runTransaction(async (tx) => {
+      // 1. Load & validate session
+      const sessionRef = firestore.doc(`ap_session_state/${sessionId}`);
+      const sessionSnap = await tx.get(sessionRef);
+      if (!sessionSnap.exists) {
+        throw new HttpsError("not-found", "Session not found");
+      }
+      const session = {id: sessionSnap.id, ...sessionSnap.data()};
+
+      if (session.userId !== userId) {
+        throw new HttpsError("permission-denied", "Not your session");
+      }
+
+      // 2. Idempotency: if result already exists, return it
+      const resultId = `${userId}_${session.testId}_${session.attemptNumber}`;
+      const resultRef = firestore.doc(`ap_test_results/${resultId}`);
+      const existingResult = await tx.get(resultRef);
+
+      if (existingResult.exists) {
+        // Ensure session is marked complete
+        if (session.status !== "COMPLETED") {
+          tx.update(sessionRef, {
+            status: "COMPLETED",
+            completedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+        return {resultId, alreadySubmitted: true};
+      }
+
+      if (session.status === "COMPLETED") {
+        throw new HttpsError(
+          "failed-precondition",
+          "Session already completed but no result found",
+        );
+      }
+
+      // 3. Load test
+      const testRef = firestore.doc(`ap_tests/${session.testId}`);
+      const testSnap = await tx.get(testRef);
+      if (!testSnap.exists) {
+        throw new HttpsError("not-found", "Test not found");
+      }
+      const test = testSnap.data();
+
+      // 4. Load answer keys + question metadata in batch
+      const allQuestionIds = test.sections.flatMap((s) => s.questionIds || []);
+      if (allQuestionIds.length === 0) {
+        throw new HttpsError("failed-precondition", "Test has no questions");
+      }
+
+      const answerKeyRefs = allQuestionIds.map(
+        (qId) => firestore.doc(`ap_answer_keys/${qId}`),
+      );
+      const questionRefs = allQuestionIds.map(
+        (qId) => firestore.doc(`ap_questions/${qId}`),
+      );
+      const allSnaps = await tx.getAll(...answerKeyRefs, ...questionRefs);
+
+      // Split results back into answer keys and questions
+      const answerKeySnaps = allSnaps.slice(0, allQuestionIds.length);
+      const questionSnaps = allSnaps.slice(allQuestionIds.length);
+
+      // Build questions map with answer keys merged in
+      const questions = {};
+      for (let i = 0; i < allQuestionIds.length; i++) {
+        const qId = allQuestionIds[i];
+        const qSnap = questionSnaps[i];
+        const akSnap = answerKeySnaps[i];
+        if (qSnap.exists) {
+          questions[qId] = {
+            ...qSnap.data(),
+            correctAnswers: akSnap.exists ?
+              (akSnap.data().correctAnswers || []) : [],
+          };
+        }
+      }
+
+      // 5. Timer validation (30s grace period)
+      const startedMs = session.startedAt?.toMillis?.() || 0;
+      const totalTimeLimitSec = test.sections.reduce(
+        (sum, s) => sum + (s.timeLimit || 45) * 60,
+        0,
+      );
+      const elapsedSec = startedMs > 0 ?
+        (Date.now() - startedMs) / 1000 : 0;
+      const GRACE_PERIOD = 30;
+      const isLateSubmission = startedMs > 0 &&
+        elapsedSec > totalTimeLimitSec + GRACE_PERIOD;
+
+      // 6. Score server-side
+      const result = buildTestResult(session, test, questions, frqData);
+
+      // Add server-side fields
+      result.completedAt = admin.firestore.FieldValue.serverTimestamp();
+      result.gradedAt = null;
+      result.isLateSubmission = isLateSubmission;
+
+      // 7. Write result + complete session atomically
+      tx.set(resultRef, result);
+      tx.update(sessionRef, {
+        status: "COMPLETED",
+        completedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      logger.info(`Test submitted: ${resultId}`, {
+        userId,
+        testId: session.testId,
+        score: result.score,
+        maxScore: result.maxScore,
+        percentage: result.percentage,
+        isLateSubmission,
+      });
+
+      return {resultId, alreadySubmitted: false};
+    });
+  },
 );
 
 /**

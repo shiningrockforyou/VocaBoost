@@ -114,7 +114,7 @@ service cloud.firestore {
       allow write: if isAuthenticated() && isTeacher();
     }
 
-    // AP QUESTIONS - Readable by all authenticated users
+    // AP QUESTIONS - Readable by all (answer keys are in ap_answer_keys, not here)
     match /ap_questions/{questionId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && isTeacher();
@@ -126,27 +126,38 @@ service cloud.firestore {
       allow write: if isAuthenticated() && isTeacher();
     }
 
-    // AP SESSION STATE - Only owner can read/write their session
-    match /ap_session_state/{sessionId} {
-      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    // AP ANSWER KEYS - Teachers + Admin SDK only (students must never read)
+    match /ap_answer_keys/{questionId} {
+      allow read, write: if isAuthenticated() && isTeacher();
     }
 
-    // AP TEST RESULTS - Owner or teacher can read, owner or teacher can create
-    // Teachers can only update results for their own students (teacherId check)
+    // AP SESSION STATE - Server creates; students update safe fields only
+    match /ap_session_state/{sessionId} {
+      // Students read own sessions; teachers read for monitoring
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isTeacher()
+      );
+      // Only Cloud Function (Admin SDK) can create sessions
+      allow create: if false;
+      // Students can update ONLY safe fields on their own sessions
+      allow update: if isAuthenticated()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['answers', 'flaggedQuestions', 'annotations', 'strikethroughs',
+                    'currentSectionIndex', 'currentQuestionIndex', 'sectionTimeRemaining',
+                    'lastAction', 'lastHeartbeat', 'sessionToken', 'status']);
+    }
+
+    // AP TEST RESULTS - Immutable for students; only server creates, only teacher updates (grading)
     match /ap_test_results/{resultId} {
       allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        isTeacher()
+        resource.data.userId == request.auth.uid || isTeacher()
       );
-      allow create: if isAuthenticated() && (
-        request.resource.data.userId == request.auth.uid ||
-        isTeacher()
-      );
-      allow update: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        (isTeacher() && resource.data.teacherId == request.auth.uid)
-      );
+      // Only Cloud Function (Admin SDK) can create results
+      allow create: if false;
+      // Only the test creator (teacher) can update (for grading)
+      allow update: if isAuthenticated() && isTeacher()
+        && resource.data.teacherId == request.auth.uid;
     }
 
     // AP CLASSES - Teachers manage, students read if enrolled

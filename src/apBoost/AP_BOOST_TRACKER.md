@@ -419,6 +419,49 @@ The following critical/high items were **FIXED** during the Jan 14 fix wave, con
 | Review screen layout unification | DEFERRED | Review screen should use the same layout as question pages (header, Back/Next nav, navigator). Only the content area changes to show the review grid/summary. Currently it's a standalone full-page component with its own layout and no Back/Next buttons. |
 | **App Entry Screen** (post-login chooser for AP vs Voca) | DEFERRED | Login currently redirects to `/` for all users. Consider: (1) Post-login entry screen letting students choose AP or VocaBoost, (2) Separate AP-specific login pages under `/ap/login`, (3) In-app navigation/switcher between VocaBoost and apBoost |
 | Cross-app navigation (VocaBoost ↔ apBoost) | DEFERRED | No way to switch between apps once logged in. Future: add nav link/switcher in both app headers |
+| **Server-Side Scoring & Security Hardening** | **DONE** | All 5 phases implemented 2026-03-14. See details below. |
+
+---
+
+### Server-Side Scoring & Security Hardening — COMPLETED 2026-03-14
+
+All race conditions and security gaps have been fixed. Implementation follows the detailed plan in `C:\Users\dmchw\.claude\plans\stateful-coalescing-galaxy.md`.
+
+#### What Was Done
+
+| Phase | Status | Summary |
+|-------|--------|---------|
+| Phase 1: Answer key separation | DONE | `ap_answer_keys` collection (teacher+Admin SDK only); `getTestForStudent()` strips keys; `createQuestion`/`updateQuestion` write keys to separate collection; migration script at `scripts/migrateAnswerKeys.js` |
+| Phase 2: `submitTest` Cloud Function | DONE | Server-side MCQ scoring in `functions/scoring.js`; deterministic result ID for idempotency; timer validation with 30s grace; atomic result+session-complete via `runTransaction` |
+| Phase 3: `createSession` Cloud Function | DONE | Atomic check-then-create via `runTransaction`; server-authoritative attempt counting; attempt limit enforcement; access verification |
+| Phase 4: Firestore security rules | DONE | `ap_session_state` create: if false + field-level update restrictions; `ap_test_results` create: if false + teacher-only update; `ap_answer_keys` teacher+Admin SDK only |
+| Phase 5: `saveGrade` transaction | DONE | Wrapped in `runTransaction` with teacher ownership verification |
+
+#### Files Changed
+- `functions/index.js` — `createSession` + `submitTest` Cloud Functions
+- `functions/scoring.js` — NEW server-side scoring module
+- `src/apBoost/services/apScoringService.js` — gutted; calls `submitTest` CF
+- `src/apBoost/services/apSessionService.js` — calls `createSession` CF
+- `src/apBoost/services/apTestService.js` — `getTestForStudent()` + answer key fetch in `getTestWithQuestions()`
+- `src/apBoost/services/apQuestionService.js` — writes answer keys to `ap_answer_keys`
+- `src/apBoost/services/apGradingService.js` — `saveGrade` in `runTransaction`
+- `src/apBoost/hooks/useTestSession.js` — uses `getTestForStudent()`
+- `src/apBoost/utils/apTypes.js` — `ANSWER_KEYS` collection constant
+- `src/apBoost/utils/seedFullData.js` — seeds answer keys separately
+- `firestore.rules` — hardened AP collection rules
+- `scripts/migrateAnswerKeys.js` — one-time migration
+
+#### Post-Deploy Steps
+1. Run `node scripts/migrateAnswerKeys.js` to migrate existing answer keys
+2. Deploy: `firebase deploy --only functions,firestore:rules`
+
+#### What Stays Client-Side (Correctly)
+- Answer selection, flagging, annotations, navigation (UI interactions)
+- IndexedDB offline queue (resilience pattern)
+- Timer display (visual only — server enforces)
+- Session state updates for allowed fields (validated by security rules)
+- FRQ text collection (submitted to server for scoring)
+- `saveGrade` with `runTransaction` (teacher is trusted, no secrets)
 
 ---
 

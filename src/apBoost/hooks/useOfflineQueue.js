@@ -54,6 +54,7 @@ export function useOfflineQueue(sessionId) {
   const [isFlushing, setIsFlushing] = useState(false)
   const [isOpportunistic, setIsOpportunistic] = useState(false)
   const [isStorageFull, setIsStorageFull] = useState(false)
+  const [dbReady, setDbReady] = useState(false)
   const dbRef = useRef(null)
   const flushTimeoutRef = useRef(null)
   const retryCountRef = useRef(0)
@@ -68,6 +69,7 @@ export function useOfflineQueue(sessionId) {
       try {
         dbRef.current = await openDatabase()
         if (mounted) {
+          setDbReady(true)
           await updateQueueLength()
         }
       } catch (error) {
@@ -535,6 +537,7 @@ export function useOfflineQueue(sessionId) {
     isStorageFull,
     getPendingItems,
     deleteItems,
+    dbReady,
   }
 }
 

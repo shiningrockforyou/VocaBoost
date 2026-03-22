@@ -9,6 +9,7 @@ import {
   getDoc,
   getDocs,
   updateDoc,
+  runTransaction,
   query,
   where,
   orderBy,
@@ -187,33 +188,40 @@ export async function saveGrade(resultId, grades, status, teacherId, annotatedPd
   try {
     const resultRef = doc(db, COLLECTIONS.TEST_RESULTS, resultId)
 
-    const updateData = {
-      frqGrades: grades,
-      gradingStatus: status,
-      gradedBy: teacherId,
-      gradedAt: serverTimestamp(),
-    }
+    await runTransaction(db, async (transaction) => {
+      const resultSnap = await transaction.get(resultRef)
+      if (!resultSnap.exists()) {
+        throw new Error('Result not found')
+      }
 
-    // Include annotated PDF URL if provided (with alias for API compatibility)
-    if (annotatedPdfUrl) {
-      updateData.annotatedPdfUrl = annotatedPdfUrl
-      updateData.frqGradedPdfUrl = annotatedPdfUrl // Alias for spec compatibility
-    }
+      const resultData = resultSnap.data()
 
-    // If complete, calculate FRQ score and update totals
-    if (status === GRADING_STATUS.COMPLETE) {
-      // Get current result to access testId and scores
-      const resultSnap = await getDoc(resultRef)
-      if (resultSnap.exists()) {
-        const resultData = resultSnap.data()
+      // Verify teacher ownership — only the test creator can grade
+      if (resultData.teacherId && resultData.teacherId !== teacherId) {
+        throw new Error('Only the test creator can grade this result')
+      }
 
-        // Fetch test to get frqMultipliers from sections
+      const updateData = {
+        frqGrades: grades,
+        gradingStatus: status,
+        gradedBy: teacherId,
+        gradedAt: serverTimestamp(),
+      }
+
+      // Include annotated PDF URL if provided (with alias for API compatibility)
+      if (annotatedPdfUrl) {
+        updateData.annotatedPdfUrl = annotatedPdfUrl
+        updateData.frqGradedPdfUrl = annotatedPdfUrl // Alias for spec compatibility
+      }
+
+      // If complete, calculate FRQ score and update totals
+      if (status === GRADING_STATUS.COMPLETE) {
+        // Fetch test for frqMultipliers (inside transaction for consistency)
         let frqMultipliers = {}
         if (resultData.testId) {
-          const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, resultData.testId))
+          const testDoc = await transaction.get(doc(db, COLLECTIONS.TESTS, resultData.testId))
           if (testDoc.exists()) {
-            const test = testDoc.data()
-            frqMultipliers = buildFrqMultipliersMap(test.sections)
+            frqMultipliers = buildFrqMultipliersMap(testDoc.data().sections)
           }
         }
 
@@ -221,13 +229,13 @@ export async function saveGrade(resultId, grades, status, teacherId, annotatedPd
         const frqScore = calculateFRQScore(grades, frqMultipliers)
         updateData.frqScore = frqScore
 
-        const mcqScore = resultData.mcqScore || 0
-        const mcqMaxPoints = resultData.mcqMaxPoints || 0
+        const mcqScore = resultData.score || 0
+        const mcqMaxScore = resultData.maxScore || 0
         const frqMaxPoints = resultData.frqMaxPoints || 0
 
         // Update total score and percentage
         updateData.score = mcqScore + frqScore
-        updateData.maxScore = mcqMaxPoints + frqMaxPoints
+        updateData.maxScore = mcqMaxScore + frqMaxPoints
         updateData.percentage = updateData.maxScore > 0
           ? Math.round((updateData.score / updateData.maxScore) * 100)
           : 0
@@ -235,9 +243,9 @@ export async function saveGrade(resultId, grades, status, teacherId, annotatedPd
         // Recalculate AP score with FRQ
         updateData.apScore = calculateAPScore(updateData.percentage)
       }
-    }
 
-    await updateDoc(resultRef, updateData)
+      transaction.update(resultRef, updateData)
+    })
   } catch (error) {
     logError('apGradingService.saveGrade', { resultId, status, teacherId }, error)
     throw error

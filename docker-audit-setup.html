@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocaBoost Docker Audit Setup</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-dim: #1f3a5f;
+    --green: #3fb950;
+    --green-dim: #1a3a2a;
+    --red: #f85149;
+    --yellow: #d29922;
+    --code-bg: #0d1117;
+    --copy-bg: #21262d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 {
+    font-size: 1.4rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h2 .step-num {
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 0.8rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent); }
+  p { margin-bottom: 0.75rem; }
+  ul, ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  strong { color: var(--text); }
+  code {
+    background: var(--surface);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+  .code-block {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .code-block .lang-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--border);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-bottom-right-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .code-block pre {
+    padding: 1.75rem 1rem 1rem;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre;
+    color: var(--text);
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--copy-bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .copy-btn:hover { background: var(--border); color: var(--text); }
+  .copy-btn.copied { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .callout.warn {
+    border-left-color: var(--yellow);
+    background: #2a2000;
+  }
+  .callout.success {
+    border-left-color: var(--green);
+    background: var(--green-dim);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  th { background: var(--surface); color: var(--accent); font-weight: 600; }
+  td { background: var(--bg); }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 2rem; }
+  .toc h3 { margin-top: 0; color: var(--text); }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin-bottom: 0; }
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 10px;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  .badge-required { background: #3d1e20; color: var(--red); }
+  .badge-optional { background: #2a2000; color: var(--yellow); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+</style>
+</head>
+<body>
+
+<h1>VocaBoost <span>Docker Audit Setup</span></h1>
+<p class="subtitle">Run parallel Playwright audit agents in Docker with bypass permissions. Each container gets its own Chrome instance.</p>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#prereqs">Prerequisites</a></li>
+    <li><a href="#folders">Create Writable Folders</a></li>
+    <li><a href="#dockerfile">Create the Dockerfile</a></li>
+    <li><a href="#build">Build the Image</a></li>
+    <li><a href="#login">One-Time Login</a></li>
+    <li><a href="#run">Run a Container</a></li>
+    <li><a href="#launch-claude">Launch Claude Code</a></li>
+    <li><a href="#verify-pw">Verify Playwright</a></li>
+    <li><a href="#parallel">Run Parallel Audit Sessions</a></li>
+    <li><a href="#compose">Docker Compose (Optional)</a></li>
+    <li><a href="#fire-forget">Fire-and-Forget Batch Script</a></li>
+    <li><a href="#prompt-template">Audit Prompt Template</a></li>
+    <li><a href="#fs-perms">Filesystem Permissions</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="prereqs"><span class="step-num">1</span> Prerequisites</h2>
+
+<ul>
+  <li><strong>Docker Desktop</strong> installed and running (Engine running in bottom-left)</li>
+  <li><strong>Claude Max subscription</strong> (auth uses Max plan credentials)</li>
+  <li><strong>Dev server running</strong> on your Windows host at <code>http://localhost:5173</code></li>
+</ul>
+
+<div class="callout warn">
+  The audit agents connect to <code>localhost:5173</code> on the host. Docker containers need <code>--network host</code> (Linux) or <code>host.docker.internal:5173</code> (Windows/Mac) to reach it. The Dockerfile below handles this.
+</div>
+
+<!-- ============================================ -->
+<h2 id="folders"><span class="step-num">2</span> Create Writable Folders</h2>
+
+<p>The container mounts the project as read-only, except for the findings output directory. Create it if it doesn't exist:</p>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>cd C:\Users\dmchw\vocaboost
+mkdir -Force src\apBoost\criteria_audit\playwright_reports</pre>
+</div>
+
+<!-- ============================================ -->
+<h2 id="dockerfile"><span class="step-num">3</span> Create the Dockerfile</h2>
+
+<p>Create <code>Dockerfile.audit</code> in the project root:</p>
+
+<div class="code-block">
+  <span class="lang-label">Dockerfile</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>FROM node:20-bookworm
+
+# System dependencies for Playwright's Chromium
+RUN apt-get update && apt-get install -y \
+    libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
+    libpango-1.0-0 libcairo2 libasound2 libxshmfence1 \
+    fonts-liberation fonts-noto-cjk \
+    git curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code
+RUN npm install -g @anthropic-ai/claude-code
+
+# Install Playwright with Chromium
+RUN npx -y playwright@latest install --with-deps chromium
+
+# Pre-configure Playwright MCP for the workspace
+RUN mkdir -p /root/.claude && echo '{ \
+  "projects": { \
+    "/workspace": { \
+      "mcpServers": { \
+        "playwright": { \
+          "type": "stdio", \
+          "command": "npx", \
+          "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium", "--headless", "--no-sandbox"], \
+          "env": {} \
+        } \
+      } \
+    } \
+  } \
+}' > /root/.claude.json
+
+WORKDIR /workspace
+CMD ["bash"]</pre>
+</div>
+
+<div class="callout">
+  Using <code>npm install -g</code> instead of the native installer — more reliable in Docker.
+</div>
+
+<!-- ============================================ -->
+<h2 id="build"><span class="step-num">4</span> Build the Image</h2>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>cd C:\Users\dmchw\vocaboost
+docker build -f Dockerfile.audit -t claude-audit .</pre>
+</div>
+
+<p>Takes 5-10 minutes first time (~2GB download). Subsequent builds use cache.</p>
+
+<!-- ============================================ -->
+<h2 id="login"><span class="step-num">5</span> One-Time Login <span class="badge badge-required">ONE TIME</span></h2>
+
+<p>Run a temporary interactive container to authenticate:</p>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker run -it --rm `
+  -v "$env:USERPROFILE\.claude:/root/.claude" `
+  claude-audit</pre>
+</div>
+
+<p>Inside the container:</p>
+
+<div class="code-block">
+  <span class="lang-label">Bash (inside container)</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>claude</pre>
+</div>
+
+<p>Copy the URL, open in your browser, log in. Once authenticated:</p>
+
+<div class="code-block">
+  <span class="lang-label">Bash (inside container)</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>/exit
+exit</pre>
+</div>
+
+<p>Credentials are now saved to <code>C:\Users\dmchw\.claude\</code> on the host.</p>
+
+<div class="callout success">
+  Verify: <code>ls $env:USERPROFILE\.claude\.credentials.json</code> — should exist and not be empty.
+</div>
+
+<!-- ============================================ -->
+<h2 id="run"><span class="step-num">6</span> Run a Container</h2>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker run -it --rm `
+  -v "$env:USERPROFILE\.claude:/root/.claude:ro" `
+  -v "${PWD}:/workspace:ro" `
+  -v "${PWD}/src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw" `
+  --add-host=host.docker.internal:host-gateway `
+  --memory=6g `
+  --name audit-session-1 `
+  claude-audit</pre>
+</div>
+
+<table>
+  <tr><th>Flag</th><th>Purpose</th></tr>
+  <tr><td><code>.claude:ro</code></td><td>Credentials mounted read-only (prevents token race conditions between containers)</td></tr>
+  <tr><td><code>/workspace:ro</code></td><td>Entire project is read-only — agent can't modify source code</td></tr>
+  <tr><td><code>playwright_reports:rw</code></td><td>Findings directory is writable (only place agent can write)</td></tr>
+  <tr><td><code>--add-host</code></td><td>Maps <code>host.docker.internal</code> so container can reach <code>localhost:5173</code> on your host</td></tr>
+  <tr><td><code>--memory=6g</code></td><td>~6GB per container (Chrome + Node + Claude Code)</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>Important:</strong> The app URL inside the container is <code>http://host.docker.internal:5173</code>, not <code>localhost:5173</code>. The audit prompt template (Step 12) handles this.
+</div>
+
+<!-- ============================================ -->
+<h2 id="launch-claude"><span class="step-num">7</span> Launch Claude Code</h2>
+
+<p>Inside the container:</p>
+
+<div class="code-block">
+  <span class="lang-label">Bash (inside container)</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>claude --dangerously-skip-permissions</pre>
+</div>
+
+<p>No login prompt. Starts immediately.</p>
+
+<!-- ============================================ -->
+<h2 id="verify-pw"><span class="step-num">8</span> Verify Playwright</h2>
+
+<p>Inside Claude Code, type:</p>
+
+<div class="code-block">
+  <span class="lang-label">Claude Code prompt</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>Use Playwright MCP to navigate to http://host.docker.internal:5173 and take a screenshot</pre>
+</div>
+
+<p>Check MCP is registered:</p>
+
+<div class="code-block">
+  <span class="lang-label">Claude Code</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>/mcp</pre>
+</div>
+
+<p>Should list <code>playwright</code> with browser_navigate, browser_click, etc.</p>
+
+<div class="callout">
+  <strong>If Playwright doesn't show:</strong> Exit Claude, run <code>claude mcp add playwright npx @playwright/mcp@latest -- --browser chromium --headless --no-sandbox</code>, restart.
+</div>
+
+<!-- ============================================ -->
+<h2 id="parallel"><span class="step-num">9</span> Run Parallel Audit Sessions</h2>
+
+<p>Open multiple PowerShell terminals. Run a container in each with a different name:</p>
+
+<h3>Terminal 1 — B13-P1 (Speed Clicker)</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker run -it --rm `
+  -v "$env:USERPROFILE\.claude:/root/.claude:ro" `
+  -v "${PWD}:/workspace:ro" `
+  -v "${PWD}/src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw" `
+  --add-host=host.docker.internal:host-gateway `
+  --memory=6g `
+  --name audit-b13-p1 `
+  claude-audit</pre>
+</div>
+
+<h3>Terminal 2 — B13-P2 (Rapid Flagger)</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker run -it --rm `
+  -v "$env:USERPROFILE\.claude:/root/.claude:ro" `
+  -v "${PWD}:/workspace:ro" `
+  -v "${PWD}/src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw" `
+  --add-host=host.docker.internal:host-gateway `
+  --memory=6g `
+  --name audit-b13-p2 `
+  claude-audit</pre>
+</div>
+
+<h3>Terminal 3 — B13-P3 (Navigator Spammer)</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker run -it --rm `
+  -v "$env:USERPROFILE\.claude:/root/.claude:ro" `
+  -v "${PWD}:/workspace:ro" `
+  -v "${PWD}/src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw" `
+  --add-host=host.docker.internal:host-gateway `
+  --memory=6g `
+  --name audit-b13-p3 `
+  claude-audit</pre>
+</div>
+
+<p>Each container is fully isolated — own Chrome, own Claude Code, own MCP server. Run 2-3 at a time with 16GB available on host.</p>
+
+<!-- ============================================ -->
+<h2 id="compose"><span class="step-num">10</span> Docker Compose <span class="badge badge-optional">OPTIONAL</span></h2>
+
+<p>Create <code>docker-compose.audit.yml</code> for easier multi-session launch:</p>
+
+<div class="code-block">
+  <span class="lang-label">YAML</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>services:
+  audit-p1:
+    build:
+      context: .
+      dockerfile: Dockerfile.audit
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${USERPROFILE}/.claude:/root/.claude:ro
+      - .:/workspace:ro
+      - ./src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+
+  audit-p2:
+    build:
+      context: .
+      dockerfile: Dockerfile.audit
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${USERPROFILE}/.claude:/root/.claude:ro
+      - .:/workspace:ro
+      - ./src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+
+  audit-p3:
+    build:
+      context: .
+      dockerfile: Dockerfile.audit
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${USERPROFILE}/.claude:/root/.claude:ro
+      - .:/workspace:ro
+      - ./src/apBoost/criteria_audit/playwright_reports:/workspace/src/apBoost/criteria_audit/playwright_reports:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 6g</pre>
+</div>
+
+<p>Launch all three:</p>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker compose -f docker-compose.audit.yml up</pre>
+</div>
+
+<p>Attach to one:</p>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker attach vocaboost-audit-p1-1</pre>
+</div>
+
+<!-- ============================================ -->
+<h2 id="fire-forget"><span class="step-num">11</span> Fire-and-Forget Batch Script <span class="badge badge-optional">OPTIONAL</span></h2>
+
+<p>Run audit agents completely unattended. Create <code>run-audits.ps1</code>:</p>
+
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre># run-audits.ps1 — Fire-and-forget parallel audit runner
+# Usage: .\run-audits.ps1
+# Runs 3 B13 personas in parallel, waits, then runs next 3
+
+$image = "claude-audit"
+$reportsPath = "${PWD}/src/apBoost/criteria_audit/playwright_reports"
+
+function Run-Audit($name, $prompt) {
+    Write-Host "Starting $name..." -ForegroundColor Cyan
+    docker run -d --rm `
+      -v "$env:USERPROFILE\.claude:/root/.claude:ro" `
+      -v "${PWD}:/workspace:ro" `
+      -v "${reportsPath}:/workspace/src/apBoost/criteria_audit/playwright_reports:rw" `
+      --add-host=host.docker.internal:host-gateway `
+      --memory=6g `
+      --name $name `
+      $image `
+      bash -c "claude -p '$prompt' --model sonnet --dangerously-skip-permissions > /workspace/src/apBoost/criteria_audit/playwright_reports/log_${name}.txt 2>&1"
+}
+
+# --- Batch 1: P1-P3 ---
+Run-Audit "b13-p1" "Run audit batch B13-P1 (Speed Clicker). Read BATCH_ORCHESTRATION.md for full details. Account: student4@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P1.md after each scenario step."
+Run-Audit "b13-p2" "Run audit batch B13-P2 (Rapid Flagger). Read BATCH_ORCHESTRATION.md for full details. Account: student5@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P2.md after each scenario step."
+Run-Audit "b13-p3" "Run audit batch B13-P3 (Navigator Spammer). Read BATCH_ORCHESTRATION.md for full details. Account: student6@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P3.md after each scenario step."
+
+Write-Host "`nBatch 1 running (P1-P3). Waiting..." -ForegroundColor Yellow
+docker wait b13-p1 b13-p2 b13-p3
+Write-Host "Batch 1 complete.`n" -ForegroundColor Green
+
+# --- Batch 2: P4-P6 ---
+Run-Audit "b13-p4" "Run audit batch B13-P4 (Submit Interceptor). Read BATCH_ORCHESTRATION.md for full details. Account: student7@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P4.md after each scenario step."
+Run-Audit "b13-p5" "Run audit batch B13-P5 (XSS/Injection Tester). Read BATCH_ORCHESTRATION.md for full details. Account: student8@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P5.md after each scenario step."
+Run-Audit "b13-p6" "Run audit batch B13-P6 (Back Button Abuser). Read BATCH_ORCHESTRATION.md for full details. Account: student9@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P6.md after each scenario step."
+
+Write-Host "`nBatch 2 running (P4-P6). Waiting..." -ForegroundColor Yellow
+docker wait b13-p4 b13-p5 b13-p6
+Write-Host "Batch 2 complete.`n" -ForegroundColor Green
+
+# --- Batch 3: P7-P8 ---
+Run-Audit "b13-p7" "Run audit batch B13-P7 (Timer Manipulator). Read BATCH_ORCHESTRATION.md for full details. Account: student10@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P7.md after each scenario step."
+Run-Audit "b13-p8" "Run audit batch B13-P8 (Concurrent Submitter). Read BATCH_ORCHESTRATION.md for full details. Account: student11@apboost.test / Student123!. App URL: http://host.docker.internal:5173. CRITICAL: Write findings INCREMENTALLY to findings_B13_P8.md after each scenario step."
+
+Write-Host "`nBatch 3 running (P7-P8). Waiting..." -ForegroundColor Yellow
+docker wait b13-p7 b13-p8
+Write-Host "Batch 3 complete.`n" -ForegroundColor Green
+
+Write-Host "=== ALL B13 AUDITS COMPLETE ===" -ForegroundColor Green
+Write-Host "Findings at: src\apBoost\criteria_audit\playwright_reports\findings_B13_P*.md"
+Write-Host "Logs at: src\apBoost\criteria_audit\playwright_reports\log_b13-p*.txt"</pre>
+</div>
+
+<!-- ============================================ -->
+<h2 id="prompt-template"><span class="step-num">12</span> Audit Prompt Template</h2>
+
+<p>Use this template when launching audit agents interactively. The critical rules are in the prompt so they survive context compression.</p>
+
+<h3>For B13 Personas (Chaos Testing)</h3>
+<div class="code-block">
+  <span class="lang-label">Prompt Template</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>Run audit batch B13-P[N] ([Persona Name]).
+
+## Setup
+- Read src/apBoost/criteria_audit/playwright_reports/BATCH_ORCHESTRATION.md — find B13-P[N] section
+- Read src/apBoost/criteria_audit/playwright_reports/FINDINGS_TEMPLATE.md for output format
+- Read src/apBoost/criteria_audit/playwright_reports/audit_state.json for test IDs
+
+## Credentials
+- Account: student[X]@apboost.test / Student123!
+- App URL: http://host.docker.internal:5173
+
+## Critical Rules
+1. WRITE FINDINGS INCREMENTALLY: Create findings_B13_P[N].md with header BEFORE starting. Append each result IMMEDIATELY after each test step. Do NOT wait until the end.
+2. Login first. If login fails, write it as a Blocker and stop.
+3. Follow the exact scenario steps from BATCH_ORCHESTRATION.md.
+4. Take screenshots at every major verification point.
+5. Check console messages after each navigation.
+6. When writing "How to Fix", READ the source file first — reference actual function names and line numbers.</pre>
+</div>
+
+<h3>For B1/B2/B8 Regression (Post-Hardening)</h3>
+<div class="code-block">
+  <span class="lang-label">Prompt Template</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>Run audit batch B[N] ([Batch Name]) — POST-HARDENING REGRESSION.
+
+## Setup
+- Read src/apBoost/criteria_audit/playwright_reports/BATCH_ORCHESTRATION.md — find B[N] section
+- Read src/apBoost/criteria_audit/playwright_reports/AUDIT_PLAN.md — find scenarios [S-XX through S-YY]
+- Read src/apBoost/criteria_audit/playwright_reports/FINDINGS_TEMPLATE.md
+- Read src/apBoost/criteria_audit/playwright_reports/audit_state.json
+
+## Credentials
+- Account: [student or teacher]@apboost.test / [Student123! or Teacher123!]
+- App URL: http://host.docker.internal:5173
+
+## Critical Rules
+1. WRITE FINDINGS INCREMENTALLY: Create findings_B[N]_regression.md with header BEFORE starting. Append each scenario result IMMEDIATELY after completing it.
+2. This is a REGRESSION test after security hardening. Pay special attention to:
+   - Session creation (now via Cloud Function — may take 2-3s on cold start)
+   - Test submission (now via submitTest Cloud Function)
+   - No correctAnswers visible in any network response
+   - No permission errors in console
+3. Take screenshots at every verification point.
+4. Check console messages after each navigation.
+5. When writing "How to Fix", READ the source file first.</pre>
+</div>
+
+<h3>For B14 Retests (Fix Verification)</h3>
+<div class="code-block">
+  <span class="lang-label">Prompt Template</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>Run audit batch B14[X]-retest ([Persona Name]) — FIX VERIFICATION.
+
+## Setup
+- Read src/apBoost/criteria_audit/playwright_reports/BATCH_ORCHESTRATION.md — find B14[X]-retest section
+- Read src/apBoost/criteria_audit/playwright_reports/findings_B14[X].md (previous findings)
+- Read src/apBoost/criteria_audit/playwright_reports/findings_B14_retest_consolidated_fixes.md (fixes to verify)
+- Read src/apBoost/criteria_audit/playwright_reports/FINDINGS_TEMPLATE.md
+
+## Credentials
+- Account: student[X]@apboost.test / Student123!
+- App URL: http://host.docker.internal:5173
+
+## Critical Rules
+1. WRITE FINDINGS INCREMENTALLY: Create findings_B14[X]_retest2.md with header BEFORE starting. Append each result IMMEDIATELY.
+2. Re-run the FULL original B14 persona scenario first.
+3. Then run each targeted fix verification step from B14[X]-retest section.
+4. For each previous finding, report: FIXED or STILL OPEN.
+5. Report any NEW regressions.
+6. Take screenshots at every verification point.</pre>
+</div>
+
+<!-- ============================================ -->
+<h2 id="fs-perms"><span class="step-num">13</span> Filesystem Permissions</h2>
+
+<table>
+  <tr><th>Path (in container)</th><th>Access</th><th>Contents</th></tr>
+  <tr><td><code>/workspace</code></td><td><strong>Read-only</strong></td><td>Entire vocaboost project</td></tr>
+  <tr><td><code>/workspace/CLAUDE.md</code></td><td><strong>Read-only</strong></td><td>Project instructions (agent reads, can't modify)</td></tr>
+  <tr><td><code>/workspace/src/**</code></td><td><strong>Read-only</strong></td><td>All source code (agent can read for "How to Fix")</td></tr>
+  <tr><td><code>/workspace/src/apBoost/criteria_audit/playwright_reports/</code></td><td><strong>Read-write</strong></td><td>Findings, logs, audit_state.json</td></tr>
+  <tr><td><code>/root/.claude</code></td><td><strong>Read-only</strong></td><td>Auth credentials (shared, no token race conditions)</td></tr>
+  <tr><td><code>/tmp</code></td><td><strong>Read-write</strong></td><td>Ephemeral scratch (Chrome profiles, etc.)</td></tr>
+</table>
+
+<!-- ============================================ -->
+<h2 id="troubleshooting"><span class="step-num">14</span> Troubleshooting</h2>
+
+<h3>Container can't reach localhost:5173</h3>
+<p>Use <code>http://host.docker.internal:5173</code> instead. The <code>--add-host</code> flag maps this to your Windows host. Verify inside container:</p>
+<div class="code-block">
+  <span class="lang-label">Bash</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>curl -s http://host.docker.internal:5173 | head -5</pre>
+</div>
+
+<h3>Login prompt appears despite mounting .claude</h3>
+<p>Credentials may have expired. Re-run the one-time login (Step 5) — mount <code>.claude</code> as <code>:rw</code> for that one container.</p>
+
+<h3>"Read-only file system" when writing findings</h3>
+<p>The <code>playwright_reports</code> volume mount may not be matching. Check the path is exact:</p>
+<div class="code-block">
+  <span class="lang-label">Bash (inside container)</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>touch /workspace/src/apBoost/criteria_audit/playwright_reports/test.txt && rm /workspace/src/apBoost/criteria_audit/playwright_reports/test.txt && echo "OK"</pre>
+</div>
+
+<h3>Playwright MCP not found</h3>
+<div class="code-block">
+  <span class="lang-label">Bash (inside container)</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>claude mcp add playwright npx @playwright/mcp@latest -- --browser chromium --headless --no-sandbox</pre>
+</div>
+
+<h3>Container OOM killed</h3>
+<p>Increase memory limit. For 3 concurrent containers on 32GB host:</p>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>--memory=8g</pre>
+</div>
+
+<h3>"Name already in use" error</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker rm -f audit-b13-p1</pre>
+</div>
+
+<h3>Check running containers</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"</pre>
+</div>
+
+<h3>View logs from fire-and-forget run</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>Get-Content src\apBoost\criteria_audit\playwright_reports\log_b13-p1.txt -Tail 50</pre>
+</div>
+
+<h3>Kill all audit containers</h3>
+<div class="code-block">
+  <span class="lang-label">PowerShell</span>
+  <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  <pre>docker ps -q --filter "name=audit-" | ForEach-Object { docker rm -f $_ }</pre>
+</div>
+
+<h3>Auth conflicts between concurrent containers</h3>
+<p>Shouldn't happen with <code>:ro</code> mount. If you see auth issues, all containers are reading the same token without trying to refresh it. If tokens do expire mid-run, you'll need to re-login (Step 5) and restart containers.</p>
+
+<hr>
+
+<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-top: 2rem;">
+  Generated for vocaboost audit infrastructure. Adapted from the sat-transcription Docker guide.
+</p>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.parentElement.querySelector('pre');
+  const text = pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>

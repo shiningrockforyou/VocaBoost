@@ -90,9 +90,9 @@ export async function getAvailableTests(userId, role) {
 }
 
 /**
- * Fetch full test with all questions for a test session
+ * Fetch full test with all questions for a test session (teacher view — includes answer keys)
  * @param {string} testId - Test document ID
- * @returns {Promise<Object>} Test object with questions array
+ * @returns {Promise<Object>} Test object with questions including correctAnswers
  */
 export async function getTestWithQuestions(testId) {
   try {
@@ -114,6 +114,26 @@ export async function getTestWithQuestions(testId) {
     questionsSnap.forEach((doc) => {
       questionsMap[doc.id] = { id: doc.id, ...doc.data() }
     })
+
+    // Fetch answer keys from ap_answer_keys (teacher-only collection)
+    // Merge correctAnswers back into question objects for teacher views
+    const questionIds = Object.keys(questionsMap)
+    if (questionIds.length > 0) {
+      const answerKeyPromises = questionIds.map(qId =>
+        getDoc(doc(db, COLLECTIONS.ANSWER_KEYS, qId))
+      )
+      const answerKeySnaps = await Promise.all(answerKeyPromises)
+
+      answerKeySnaps.forEach((snap) => {
+        if (snap.exists() && questionsMap[snap.id]) {
+          const keyData = snap.data()
+          questionsMap[snap.id].correctAnswers = keyData.correctAnswers || []
+          if (keyData.explanation) {
+            questionsMap[snap.id].explanation = keyData.explanation
+          }
+        }
+      })
+    }
 
     // Resolve stimulus references for questions that have stimulusId but no inline stimulus
     const stimulusIds = Object.values(questionsMap)
@@ -137,6 +157,59 @@ export async function getTestWithQuestions(testId) {
     return test
   } catch (error) {
     logError('apTestService.getTestWithQuestions', { testId }, error)
+    throw error
+  }
+}
+
+/**
+ * Fetch test with questions for student test-taking (NO answer keys)
+ * @param {string} testId - Test document ID
+ * @returns {Promise<Object>} Test object with questions (correctAnswers stripped)
+ */
+export async function getTestForStudent(testId) {
+  try {
+    // Get test document
+    const testDoc = await getDoc(doc(db, COLLECTIONS.TESTS, testId))
+    if (!testDoc.exists()) {
+      throw new Error('Test not found')
+    }
+    const test = { id: testDoc.id, ...testDoc.data() }
+
+    // Get all questions for this test
+    const questionsQuery = query(
+      collection(db, COLLECTIONS.QUESTIONS),
+      where('testId', '==', testId)
+    )
+    const questionsSnap = await getDocs(questionsQuery)
+
+    const questionsMap = {}
+    questionsSnap.forEach((docSnap) => {
+      const data = docSnap.data()
+      // Defense-in-depth: strip answer keys even though they should
+      // already be moved to ap_answer_keys collection
+      const { correctAnswers, correctAnswer, explanation, ...safeData } = data
+      questionsMap[docSnap.id] = { id: docSnap.id, ...safeData }
+    })
+
+    // Resolve stimulus references
+    const stimulusIds = Object.values(questionsMap)
+      .filter((q) => q.stimulusId && !q.stimulus)
+      .map((q) => q.stimulusId)
+
+    if (stimulusIds.length > 0) {
+      const stimuli = await getStimuliByIds(stimulusIds)
+
+      for (const question of Object.values(questionsMap)) {
+        if (question.stimulusId && !question.stimulus && stimuli[question.stimulusId]) {
+          question.stimulus = stimuli[question.stimulusId]
+        }
+      }
+    }
+
+    test.questions = questionsMap
+    return test
+  } catch (error) {
+    logError('apTestService.getTestForStudent', { testId }, error)
     throw error
   }
 }

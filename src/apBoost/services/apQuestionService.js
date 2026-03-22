@@ -9,6 +9,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -185,14 +186,11 @@ export async function createQuestion(questionData) {
       choiceD: questionData.choiceD || null,
       choiceE: questionData.choiceE || null,
       choiceCount: questionData.choiceCount || 4,
-      correctAnswers: questionData.correctAnswers || [],
       // FRQ sub-questions
       subQuestions: questionData.subQuestions || null,
       // Stimulus
       stimulusId: questionData.stimulusId || null,
       stimulus: questionData.stimulus || null,
-      // Explanation
-      explanation: questionData.explanation || '',
       // Scoring
       partialCredit: questionData.partialCredit || false,
       // Grading criteria (for FRQ/SAQ/DBQ)
@@ -206,6 +204,14 @@ export async function createQuestion(questionData) {
     }
 
     const docRef = await addDoc(questionsRef, newQuestion)
+
+    // Store answer keys in separate collection (server-only for scoring)
+    await setDoc(doc(db, COLLECTIONS.ANSWER_KEYS, docRef.id), {
+      correctAnswers: questionData.correctAnswers || [],
+      explanation: questionData.explanation || '',
+      updatedAt: serverTimestamp(),
+    })
+
     return docRef.id
   } catch (error) {
     logError('apQuestionService.createQuestion', { questionData }, error)
@@ -221,12 +227,24 @@ export async function createQuestion(questionData) {
  */
 export async function updateQuestion(questionId, updates) {
   try {
-    const questionRef = doc(db, COLLECTIONS.QUESTIONS, questionId)
+    // Separate answer key fields from question fields
+    const { correctAnswers, explanation, ...questionUpdates } = updates
 
+    // Update question document (without answer keys)
+    const questionRef = doc(db, COLLECTIONS.QUESTIONS, questionId)
     await updateDoc(questionRef, {
-      ...updates,
+      ...questionUpdates,
       updatedAt: serverTimestamp(),
     })
+
+    // Update answer keys if provided
+    if (correctAnswers !== undefined || explanation !== undefined) {
+      const answerKeyUpdates = { updatedAt: serverTimestamp() }
+      if (correctAnswers !== undefined) answerKeyUpdates.correctAnswers = correctAnswers
+      if (explanation !== undefined) answerKeyUpdates.explanation = explanation
+
+      await setDoc(doc(db, COLLECTIONS.ANSWER_KEYS, questionId), answerKeyUpdates, { merge: true })
+    }
   } catch (error) {
     logError('apQuestionService.updateQuestion', { questionId, updates }, error)
     throw error

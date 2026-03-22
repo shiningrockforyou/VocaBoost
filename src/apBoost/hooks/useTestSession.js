@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { getTestWithQuestions, getQuestion, canAccessTest } from '../services/apTestService'
+import { getTestForStudent, getQuestion, canAccessTest } from '../services/apTestService'
 import {
   createOrResumeSession,
   getActiveSession,
@@ -62,7 +62,7 @@ export function useTestSession(testId, assignmentId = null) {
   const submitFunctionsRef = useRef({ submitTest: null, submitSection: null })
 
   // Resilience hooks
-  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, isStorageFull, getPendingItems, deleteItems } = useOfflineQueue(session?.id)
+  const { addToQueue, flushQueue, queueLength, isOnline, isFlushing, isStorageFull, getPendingItems, deleteItems, dbReady } = useOfflineQueue(session?.id)
   const { instanceToken, isInvalidated, takeControl } = useDuplicateTabGuard(session?.id, { onSessionQuery: flushQueue })
   const { isConnected, failureCount, sessionTakenOver, clearSessionTakenOver } = useHeartbeat(session?.id, instanceToken, { onRecovery: flushQueue })
 
@@ -236,8 +236,8 @@ export function useTestSession(testId, assignmentId = null) {
           return
         }
 
-        // Load test with questions
-        const testData = await getTestWithQuestions(testId)
+        // Load test with questions (student view — no answer keys)
+        const testData = await getTestForStudent(testId)
         if (!testData) {
           throw new Error('Test not found')
         }
@@ -646,7 +646,7 @@ export function useTestSession(testId, assignmentId = null) {
   const reconciledRef = useRef(false)
   useEffect(() => {
     const reconcileQueue = async () => {
-      if (!session?.id || reconciledRef.current) return
+      if (!session?.id || !dbReady || reconciledRef.current) return
       reconciledRef.current = true
 
       const pendingItems = await getPendingItems()
@@ -720,7 +720,7 @@ export function useTestSession(testId, assignmentId = null) {
     }
 
     reconcileQueue()
-  }, [session?.id, getPendingItems, deleteItems, flushQueue])
+  }, [session?.id, dbReady, getPendingItems, deleteItems, flushQueue])
 
   // Visibility change handler - pause timer if backgrounded >30s on mobile
   useEffect(() => {

@@ -91,6 +91,7 @@ export const DEFAULT_SCORE_RANGES = {
 export const COLLECTIONS = {
   TESTS: 'ap_tests',
   QUESTIONS: 'ap_questions',
+  ANSWER_KEYS: 'ap_answer_keys',
   STIMULI: 'ap_stimuli',
   SESSION_STATE: 'ap_session_state',
   TEST_RESULTS: 'ap_test_results',

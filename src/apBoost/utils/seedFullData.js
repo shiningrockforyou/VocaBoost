@@ -829,6 +829,7 @@ const CALC_FRQ_QUESTIONS = [
 // ============================================================
 
 function buildQuestionDoc(q, testId, subject) {
+  // Note: correctAnswers and explanation are stored in ap_answer_keys, not here
   return {
     testId,
     subject,
@@ -844,14 +845,22 @@ function buildQuestionDoc(q, testId, subject) {
     ...(q.choiceD && { choiceD: q.choiceD }),
     ...(q.choiceE && { choiceE: q.choiceE }),
     ...(q.choiceA && { choiceCount: q.choiceE ? 5 : 4 }),
-    ...(q.correctAnswers && { correctAnswers: q.correctAnswers }),
-    ...(q.explanation && { explanation: q.explanation }),
     ...(q.subQuestions && { subQuestions: q.subQuestions }),
     ...(q.stimulus && { stimulus: q.stimulus }),
     partialCredit: false,
     points: q.points || 1,
     createdBy: TEACHER_ID,
     createdAt: serverTimestamp(),
+  }
+}
+
+/** Write answer keys to separate ap_answer_keys collection */
+async function seedAnswerKey(questionId, q) {
+  if (q.correctAnswers || q.explanation) {
+    await setDoc(doc(db, COLLECTIONS.ANSWER_KEYS, questionId), {
+      correctAnswers: q.correctAnswers || [],
+      explanation: q.explanation || '',
+    })
   }
 }
 
@@ -1028,12 +1037,15 @@ export async function seedFullData(teacherUid = null) {
 
     for (const q of MICRO_MCQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, MICRO_TEST_ID, 'AP_MICRO'))
+      await seedAnswerKey(q.id, q)
     }
     for (const q of MICRO_MCQ_MULTI_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, MICRO_TEST_ID, 'AP_MICRO'))
+      await seedAnswerKey(q.id, q)
     }
     for (const q of MICRO_FRQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, MICRO_TEST_ID, 'AP_MICRO'))
+      await seedAnswerKey(q.id, q)
     }
     console.log('Created AP Micro test with', microMcqIds.length, 'MCQ +', microMcqMultiIds.length, 'MCQ_MULTI +', microFrqIds.length, 'FRQ')
 
@@ -1080,9 +1092,11 @@ export async function seedFullData(teacherUid = null) {
 
     for (const q of MACRO_MCQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, MACRO_TEST_ID, 'AP_MACRO'))
+      await seedAnswerKey(q.id, q)
     }
     for (const q of MACRO_FRQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, MACRO_TEST_ID, 'AP_MACRO'))
+      await seedAnswerKey(q.id, q)
     }
     console.log('Created AP Macro test with', macroMcqIds.length, 'MCQ +', macroFrqIds.length, 'FRQ')
 
@@ -1130,9 +1144,11 @@ export async function seedFullData(teacherUid = null) {
 
     for (const q of CALC_MCQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, CALC_TEST_ID, 'AP_CALC_AB'))
+      await seedAnswerKey(q.id, q)
     }
     for (const q of CALC_FRQ_QUESTIONS) {
       await setDoc(doc(db, COLLECTIONS.QUESTIONS, q.id), buildQuestionDoc(q, CALC_TEST_ID, 'AP_CALC_AB'))
+      await seedAnswerKey(q.id, q)
     }
     console.log('Created AP Calc AB test with', calcMcqIds.length, 'MCQ +', calcFrqIds.length, 'FRQ')
 

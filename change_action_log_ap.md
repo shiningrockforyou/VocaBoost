@@ -4,6 +4,21 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-03-14 | firestore.rules | Phase 4: ap_session_state create: if false (server-only), update hasOnly safe fields; ap_test_results create: if false, update teacher-only; added ap_answer_keys rule (teacher+Admin SDK only) |
+| 2026-03-14 | src/apBoost/services/apSessionService.js | Phase 3: Replaced client-side createOrResumeSession with createSession Cloud Function call via httpsCallable; removed setDoc/canAccessTest/generateSessionToken |
+| 2026-03-14 | functions/index.js | Phase 3: Added createSession Cloud Function — atomic session creation with runTransaction, server-authoritative attempt counting, access verification, attempt limit enforcement |
+| 2026-03-14 | src/apBoost/services/apScoringService.js | Phase 2: Gutted client-side scoring; replaced createTestResult with submitTest Cloud Function call via httpsCallable; removed calculateMCQScore, calculateMCQMultiScore, calculateAPScore |
+| 2026-03-14 | functions/index.js | Phase 2: Added submitTest Cloud Function — server-side MCQ scoring, deterministic result ID for idempotency, timer validation with 30s grace, atomic result+session-complete via runTransaction |
+| 2026-03-14 | functions/scoring.js | Phase 2: NEW — Server-side scoring module with calculateMCQMultiScore, calculateMCQScore, calculateAPScore, buildTestResult (extracted from client apScoringService.js) |
+| 2026-03-14 | src/apBoost/utils/seedFullData.js | Phase 1: Updated buildQuestionDoc to exclude correctAnswers/explanation; added seedAnswerKey helper writing to ap_answer_keys collection |
+| 2026-03-14 | src/apBoost/services/apQuestionService.js | Phase 1: createQuestion writes correctAnswers/explanation to ap_answer_keys instead of ap_questions; updateQuestion splits answer key fields to ap_answer_keys with merge |
+| 2026-03-14 | src/apBoost/services/apTestService.js | Phase 1: getTestWithQuestions fetches+merges from ap_answer_keys for teacher views; added getTestForStudent that strips answer keys for student views |
+| 2026-03-14 | src/apBoost/hooks/useTestSession.js | Phase 1: Switched from getTestWithQuestions to getTestForStudent for student test-taking (no answer keys sent to client) |
+| 2026-03-14 | src/apBoost/utils/apTypes.js | Phase 1: Added ANSWER_KEYS: 'ap_answer_keys' to COLLECTIONS constant |
+| 2026-03-14 | scripts/migrateAnswerKeys.js | Phase 1: NEW — Migration script to move correctAnswers/explanation from ap_questions to ap_answer_keys collection |
+| 2026-03-14 | src/apBoost/services/apGradingService.js | Phase 5: Wrapped saveGrade in runTransaction for atomic read-modify-write; added teacher ownership verification inside transaction |
+| 2026-03-14 | src/apBoost/hooks/useOfflineQueue.js | B14G-RETEST-001: Added dbReady state — set true after initDB completes, exposed from hook return |
+| 2026-03-14 | src/apBoost/hooks/useTestSession.js | B14G-RETEST-001: Destructure dbReady from useOfflineQueue; guard reconcileQueue on dbReady; added dbReady to effect deps — fixes race where getPendingItems returns [] before IDB is ready |
 | 2026-03-12 | src/apBoost/components/AnswerInput.jsx | B14A-RETEST-001: Letter badge bg-white/20 → bg-white text-brand-primary font-semibold for selected state contrast |
 | 2026-03-12 | src/apBoost/components/AnswerInput.jsx | B14A-RETEST-002: Added role="radio"/"checkbox", aria-checked, aria-label on answer buttons; radiogroup/group wrapper |
 | 2026-03-12 | src/apBoost/hooks/useOfflineQueue.js | RFIX-1: Moved scheduleFlush declaration before online/offline useEffect to eliminate TDZ hazard; added scheduleFlush to deps |

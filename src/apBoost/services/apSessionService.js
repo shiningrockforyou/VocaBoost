@@ -3,83 +3,29 @@ import {
   doc,
   getDoc,
   getDocs,
-  setDoc,
   updateDoc,
   query,
   where,
   serverTimestamp,
-  Timestamp,
 } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '../../firebase'
 import { COLLECTIONS, SESSION_STATUS } from '../utils/apTypes'
 import { logError } from '../utils/logError'
-import { canAccessTest } from './apTestService'
 
 /**
- * Generate a unique session token
- */
-function generateSessionToken() {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
-}
-
-/**
- * Create new session or resume existing
+ * Create new session or resume existing via Cloud Function (server-side)
  * @param {string} testId - Test ID
- * @param {string} userId - User ID
+ * @param {string} userId - User ID (used for logging only; server uses auth.uid)
  * @param {string|null} assignmentId - Assignment ID if assigned
  * @returns {Promise<Object>} Session object
  */
 export async function createOrResumeSession(testId, userId, assignmentId = null) {
   try {
-    // Verify user has access to this test
-    const access = await canAccessTest(testId, userId)
-    if (!access.allowed) {
-      throw new Error('Access denied: You are not authorized to take this test')
-    }
-
-    // Use assignment ID from access check if not provided
-    const resolvedAssignmentId = assignmentId || access.assignmentId || null
-
-    // Check for existing active session
-    const existingSession = await getActiveSession(testId, userId)
-    if (existingSession) {
-      return existingSession
-    }
-
-    // Get attempt count
-    const attemptsQuery = query(
-      collection(db, COLLECTIONS.TEST_RESULTS),
-      where('testId', '==', testId),
-      where('userId', '==', userId)
-    )
-    const attemptsSnap = await getDocs(attemptsQuery)
-    const attemptNumber = attemptsSnap.size + 1
-
-    // Create new session
-    const sessionId = `${userId}_${testId}_${Date.now()}`
-    const sessionData = {
-      userId,
-      testId,
-      assignmentId: resolvedAssignmentId,
-      sessionToken: generateSessionToken(),
-      status: SESSION_STATUS.IN_PROGRESS,
-      attemptNumber,
-      currentSectionIndex: 0,
-      currentQuestionIndex: 0,
-      sectionTimeRemaining: {},
-      answers: {},
-      flaggedQuestions: [],
-      annotations: {},
-      strikethroughs: {},
-      lastHeartbeat: serverTimestamp(),
-      lastAction: serverTimestamp(),
-      startedAt: serverTimestamp(),
-      completedAt: null,
-    }
-
-    await setDoc(doc(db, COLLECTIONS.SESSION_STATE, sessionId), sessionData)
-
-    return { id: sessionId, ...sessionData }
+    const functions = getFunctions()
+    const createSession = httpsCallable(functions, 'createSession')
+    const response = await createSession({ testId, assignmentId })
+    return response.data
   } catch (error) {
     logError('apSessionService.createOrResumeSession', { testId, userId }, error)
     throw error

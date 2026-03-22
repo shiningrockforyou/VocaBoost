@@ -221,6 +221,16 @@ Every finding must include:
 
 This ensures the next agent working on fixes has everything needed.
 
+### Incremental Writing (IMPORTANT)
+
+**Write findings incrementally, not at the end.** If the agent crashes or runs out of quota mid-run, all findings up to that point are preserved.
+
+1. **Before first scenario:** Write the findings file header (batch name, date, environment, status: `IN_PROGRESS`)
+2. **After each scenario:** Append the scenario result (PASS/FAIL/PARTIAL/SKIP) and any findings to the file immediately
+3. **After all scenarios:** Update the status to `COMPLETE` and append the Summary table at the bottom
+
+This means the file is always in a valid state. If the agent dies after scenario 4 of 7, you still have findings for scenarios 1-4 with status `IN_PROGRESS`.
+
 ---
 
 ## After All Batches Complete
