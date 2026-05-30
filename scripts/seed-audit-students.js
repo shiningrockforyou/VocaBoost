@@ -68,13 +68,17 @@ if (!projectId) {
 
 // --- Credentials ---
 function initAdminApp() {
-  // Priority: GOOGLE_APPLICATION_CREDENTIALS env > service-account.json > legacy ADC path > applicationDefault()
+  // Priority: GOOGLE_APPLICATION_CREDENTIALS env > scripts/serviceAccountKey.json (repo convention)
+  // > ./service-account.json > legacy ADC path > applicationDefault()
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     return initializeApp({ projectId, credential: applicationDefault() })
   }
-  if (existsSync('./service-account.json')) {
-    const sa = JSON.parse(readFileSync('./service-account.json', 'utf-8'))
-    return initializeApp({ projectId, credential: cert(sa) })
+  for (const path of ['./scripts/serviceAccountKey.json', './service-account.json']) {
+    if (existsSync(path)) {
+      const sa = JSON.parse(readFileSync(path, 'utf-8'))
+      console.log(`Using service account: ${path} (${sa.client_email})`)
+      return initializeApp({ projectId, credential: cert(sa) })
+    }
   }
   const home = process.env.HOME || process.env.USERPROFILE
   const legacyPath = `${home}/.config/firebase/dmchwang_gmail_com_application_default_credentials.json`
@@ -82,7 +86,6 @@ function initAdminApp() {
     process.env.GOOGLE_APPLICATION_CREDENTIALS = legacyPath
     return initializeApp({ projectId, credential: applicationDefault() })
   }
-  // Last resort — applicationDefault tries gcloud's ADC
   return initializeApp({ projectId, credential: applicationDefault() })
 }
 
