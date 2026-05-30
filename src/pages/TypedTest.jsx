@@ -24,7 +24,8 @@ import {
   getRecoveryTimeRemaining,
   markIntentionalExit,
   wasIntentionalExit,
-  clearIntentionalExitFlag
+  clearIntentionalExitFlag,
+  getOrCreateAttemptNonce
 } from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
@@ -99,6 +100,10 @@ const TypedTest = () => {
   // AI grading retry state
   const [retryAttempt, setRetryAttempt] = useState(0)
   const [gradingError, setGradingError] = useState(null)
+  // Tracks whether processTestResults has already committed for this mount, so
+  // a Try-Again click after a transient failure does not re-increment
+  // timesTestedTotal on every retry. See MCQTest for the same pattern.
+  const resultsProcessedRef = useRef(false)
 
   // Refs for scroll-based fade effect
   const headerRef = useRef(null)
@@ -614,8 +619,10 @@ const TypedTest = () => {
     setRetryAttempt(0)
 
     try {
-      // Clear saved test state
-      clearTestState(testId)
+      // localStorage recovery is intentionally NOT cleared here. We only clear
+      // after grading + attempt + study_state writes all succeed — otherwise
+      // a mid-flow failure (especially during the 90s-per-attempt AI grading
+      // call) loses 15–20 minutes of typing on a refresh.
 
       // Prepare answers for grading
       const answersToGrade = words.map((word) => ({
@@ -635,20 +642,18 @@ const TypedTest = () => {
         correct: r.isCorrect
       }))
 
-      // Process test results (updates word statuses) - skip if practice mode
-      let summary
-      if (isPracticeMode) {
-        // Calculate score locally without saving
-        const correct = resultsArray.filter(r => r.correct).length
-        summary = {
-          score: correct / resultsArray.length,
-          correct,
-          total: resultsArray.length,
-          failed: resultsArray.filter(r => !r.correct).map(r => r.wordId)
-        }
-      } else {
-        summary = await processTestResults(user.uid, resultsArray, listId)
+      // Summarize locally first (no I/O). Same numbers processTestResults
+      // would have returned, computed without touching study_states yet.
+      const correctCount = resultsArray.filter(r => r.correct).length
+      const failedIds = resultsArray.filter(r => !r.correct).map(r => r.wordId)
+      const summary = {
+        score: resultsArray.length > 0 ? correctCount / resultsArray.length : 0,
+        correct: correctCount,
+        total: resultsArray.length,
+        failed: failedIds
+      }
 
+      if (!isPracticeMode) {
         // Determine if student passed (review tests always pass)
         const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
 
@@ -665,8 +670,14 @@ const TypedTest = () => {
           }
         }
 
-        // GATE: Attempt MUST succeed before any progression
-        // Uses retry with exponential backoff for transient failures
+        // [PHASE 1] Write the attempt doc FIRST.
+        // - Idempotent docId from a per-session nonce so withRetry / Try-Again
+        //   overwrites the same doc instead of producing duplicates.
+        // - study_state mutations happen AFTER this succeeds, so a failed
+        //   submit cannot leave word stats ahead of the gradebook.
+        const attemptNonce = getOrCreateAttemptNonce(testId)
+        const attemptDocId = `${user.uid}_${testId}_${attemptNonce}`
+
         let result
         try {
           result = await withRetry(
@@ -681,20 +692,34 @@ const TypedTest = () => {
               currentTestType,
               studyDay || null,
               passed,
-              sessionContext
+              sessionContext,
+              attemptDocId
             ),
             { maxRetries: 3, totalTimeoutMs: 15000 },
             { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
           )
         } catch (submitErr) {
-          // Attempt failed after retries - block progression, stay on page
+          // Attempt failed after retries — block progression, stay on page.
+          // localStorage recovery is still intact; study_states untouched.
           console.error('Failed to save test attempt:', submitErr)
           setSubmitError('Failed to save your test results. Please try again.')
           setIsSubmitting(false)
-          return // Don't proceed - answers preserved in state
+          return // Don't proceed - answers preserved in state and localStorage
         }
 
         setAttemptId(result.id)
+
+        // [PHASE 2] Now commit study_state mutations. Guarded by ref so
+        // Try-Again does not double-increment counters within the same mount.
+        if (!resultsProcessedRef.current) {
+          try {
+            await processTestResults(user.uid, resultsArray, listId)
+            resultsProcessedRef.current = true
+          } catch (processErr) {
+            // Don't fail the whole submit — attempt is saved.
+            console.error('processTestResults failed after attempt write:', processErr)
+          }
+        }
 
         // Determine if this is the final test of the session
         const isSessionFinalTest = sessionContext?.isFirstDay
@@ -769,6 +794,11 @@ const TypedTest = () => {
       if (currentTestType === 'new' && summary.score < retakeThreshold) {
         setCanRetake(true)
       }
+
+      // Safe to drop local recovery now: grading + attempt + study_states all
+      // succeeded. Rolls over the per-session nonce so the next test launch
+      // gets a fresh attempt docId.
+      clearTestState(testId)
 
       // Store for display
       setTestResultsData({

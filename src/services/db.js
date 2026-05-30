@@ -1120,7 +1120,7 @@ export const calculateCredibility = (answers, userWordStates) => {
  * @param {number|null} studyDay - Study day number (1-indexed), defaults to null
  * @returns {Promise<Object>} Attempt document data
  */
-export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, listId = null, testType = 'mcq', sessionType = null, studyDay = null, passed = null, sessionContext = null) => {
+export const submitTestAttempt = async (userId, testId, answers, totalQuestions = 0, classId = null, listId = null, testType = 'mcq', sessionType = null, studyDay = null, passed = null, sessionContext = null, attemptDocId = null) => {
   if (!userId || !testId) {
     throw new Error('userId and testId are required.')
   }
@@ -1204,7 +1204,13 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
     attemptData.teacherId = teacherId
   }
 
-  const attemptRef = await addDoc(collection(db, 'attempts'), attemptData)
+  // Use deterministic doc id when caller supplies one — makes withRetry safe.
+  // setDoc on the same id is an idempotent overwrite of identical data.
+  const attemptsCol = collection(db, 'attempts')
+  const attemptRef = attemptDocId
+    ? doc(attemptsCol, attemptDocId)
+    : doc(attemptsCol)
+  await setDoc(attemptRef, attemptData)
 
   await updateDoc(userRef, {
     stats: {
@@ -1244,6 +1250,7 @@ export const submitTypedTestAttempt = async (
   studyDay = null,
   passed = null,
   sessionContext = null,
+  attemptDocId = null,
 ) => {
   console.log('submitTypedTestAttempt called with:', { userId, testId, classId })
 
@@ -1352,7 +1359,12 @@ export const submitTypedTestAttempt = async (
 
     console.log('Saving attempt document:', attemptData)
 
-    const attemptRef = await addDoc(collection(db, 'attempts'), attemptData)
+    // Use deterministic doc id when caller supplies one — see submitTestAttempt.
+    const attemptsCol = collection(db, 'attempts')
+    const attemptRef = attemptDocId
+      ? doc(attemptsCol, attemptDocId)
+      : doc(attemptsCol)
+    await setDoc(attemptRef, attemptData)
 
     // Update user stats
     await updateDoc(userRef, {

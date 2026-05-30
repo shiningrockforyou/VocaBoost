@@ -19,9 +19,13 @@ service cloud.firestore {
       return getUserData().role == 'teacher';
     }
 
-    // ADMIN: Collection group rule for class_progress (enables admin dashboard)
+    // ADMIN: Collection group rule for class_progress (enables admin dashboard).
+    // Read-only and teacher-only — student/own-progress writes go through the
+    // owner rule under /users/{userId}/class_progress.
+    // SECURITY: previously `allow read, write: if isAuthenticated();` permitted
+    // any authenticated user to corrupt any student's progress doc.
     match /{path=**}/class_progress/{docId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && isTeacher();
     }
 
     // USERS
@@ -32,6 +36,12 @@ service cloud.firestore {
         (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
       );
 
+      // TODO(security): teacher writes here exist solely to support
+      // reviewChallenge (writes student's study_states + class_progress when
+      // accepting/rejecting a dispute). This is overly broad — any teacher
+      // account can write any student's subcollections regardless of class
+      // membership. Follow-up: move reviewChallenge to a Cloud Function
+      // (Admin SDK bypasses rules) and tighten this to `isOwner(userId)`.
       match /{subcollection}/{docId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isTeacher());
         allow write: if isAuthenticated() && (isOwner(userId) || isTeacher());
@@ -88,9 +98,15 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.resource.data.studentId == request.auth.uid;
 
+      // Student-side updates are limited to the `answers` array (for
+      // submitChallenge, which mutates a nested challengeStatus on a single
+      // answer). Score, passed, credibility, retention, gradedBy and similar
+      // fields cannot be touched from the client.
+      // Teacher updates: only the teacher of record for this attempt.
       allow update: if isAuthenticated() && (
-        resource.data.studentId == request.auth.uid ||
-        resource.data.teacherId == request.auth.uid
+        (resource.data.studentId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ||
+        (resource.data.teacherId == request.auth.uid && isTeacher())
       );
 
       // Allow students to delete their own attempts (for progress reset)

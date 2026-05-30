@@ -1,0 +1,29 @@
+# One sandbox image with the FULL loop: browsers (from the base image),
+# Node, git, and Claude Code. The agent runs the app + tests *inside* this
+# container, so there is no need for Docker-in-Docker or a mounted Docker
+# socket (which would be a host-root escape, not a sandbox).
+
+FROM mcr.microsoft.com/playwright:v1.60.0-noble
+
+# Agent toolchain. Chromium/Firefox/WebKit + OS deps are already in the base.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git curl jq ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Claude Code CLI. Pin a version here if you want reproducible builds:
+#   npm install -g @anthropic-ai/claude-code@X.Y.Z
+RUN npm install -g @anthropic-ai/claude-code
+
+# --- Optional: Firebase emulator inside the sandbox (needs Java) ---------
+# Running the emulator in-container means NO external Firebase egress, which
+# lets you keep the network allowlist tight. Uncomment to enable:
+# RUN apt-get update && apt-get install -y --no-install-recommends openjdk-21-jre-headless \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && npm install -g firebase-tools
+# -------------------------------------------------------------------------
+
+# Run as the image's built-in NON-root user. Required: the CLI refuses
+# --dangerously-skip-permissions when launched as root.
+USER pwuser
+WORKDIR /work
+CMD ["bash"]

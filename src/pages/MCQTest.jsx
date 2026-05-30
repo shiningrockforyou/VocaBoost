@@ -24,7 +24,8 @@ import {
   getRecoveryTimeRemaining,
   markIntentionalExit,
   wasIntentionalExit,
-  clearIntentionalExitFlag
+  clearIntentionalExitFlag,
+  getOrCreateAttemptNonce
 } from '../utils/testRecovery'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import TestResults from '../components/TestResults.jsx'
@@ -70,6 +71,11 @@ const MCQTest = () => {
   const [originalWords, setOriginalWords] = useState([])
   const [answers, setAnswers] = useState({})
   const answersRef = useRef({})  // Sync copy to avoid race condition on submit
+  // Tracks whether processTestResults has already committed for this mount, so
+  // a Try-Again click after a transient failure does not re-increment
+  // timesTestedTotal on every retry. (Refresh-then-retry still re-runs it; see
+  // audit_findings_persistence.md for the follow-up.)
+  const resultsProcessedRef = useRef(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -444,10 +450,11 @@ const MCQTest = () => {
     setSubmitError(null)
 
     try {
-      // Clear saved test state
-      clearTestState(testId)
-
-      // Build results array (read from ref for sync access)
+      // Build results array (read from ref for sync access).
+      // NOTE: localStorage recovery is intentionally NOT cleared here. We only
+      // clear after the attempt doc AND study_states writes both succeed —
+      // otherwise a transient failure mid-submit loses the student's answers
+      // on refresh.
       const currentAnswers = answersRef.current
       const results = testWords.map((word) => {
         const selectedOption = currentAnswers[word.id]
@@ -476,19 +483,16 @@ const MCQTest = () => {
         return
       }
 
-      // Process test results (updates word statuses) - skip if practice mode
-      let summary
-      if (isPracticeMode) {
-        // Calculate score locally without saving
-        const correct = results.filter(r => r.correct).length
-        summary = {
-          score: correct / results.length,
-          correct,
-          total: results.length,
-          failed: results.filter(r => !r.correct).map(r => r.wordId)
-        }
-      } else {
-        summary = await processTestResults(user.uid, results, listId)
+      // Summarize locally first — pure computation, no I/O. The same numbers
+      // processTestResults would have returned, computed without touching
+      // study_states yet.
+      const correctCount = results.filter(r => r.correct).length
+      const failedIds = results.filter(r => !r.correct).map(r => r.wordId)
+      const summary = {
+        score: correctCount / results.length,
+        correct: correctCount,
+        total: results.length,
+        failed: failedIds
       }
 
       // Calculate score
@@ -546,13 +550,20 @@ const MCQTest = () => {
 
         console.log('[DEBUG STUDYDAY] Final studyDay for attempt:', studyDay);
 
-        // GATE: Attempt MUST succeed before any progression
-        // Uses retry with exponential backoff for transient failures
+        // [PHASE 1] Write the attempt doc FIRST.
+        // - Idempotent docId from a per-session nonce so withRetry / Try-Again
+        //   overwrites the same doc instead of producing duplicates.
+        // - study_state mutations (processTestResults) intentionally happen
+        //   AFTER this succeeds, so a failed submit cannot leave word stats
+        //   ahead of the gradebook (the audit's split-brain bug).
         console.log('[SUBMIT] ═══════════════════════════════════════')
         console.log('[SUBMIT] Starting test submission with retry logic')
+        const attemptNonce = getOrCreateAttemptNonce(testId)
+        const attemptDocId = `${user.uid}_${testId}_${attemptNonce}`
         console.log('[SUBMIT] Test data:', {
           userId: user.uid,
           testId,
+          attemptDocId,
           answerCount: answerArray.length,
           totalQuestions: testWords.length,
           studyDay,
@@ -574,7 +585,8 @@ const MCQTest = () => {
               currentTestType,
               studyDay || null,
               passed,
-              sessionContext
+              sessionContext,
+              attemptDocId
             ),
             { maxRetries: 3, totalTimeoutMs: 15000 },
             { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
@@ -582,7 +594,10 @@ const MCQTest = () => {
 
           console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
         } catch (submitErr) {
-          // Attempt failed after retries - block progression, stay on page
+          // Attempt failed after retries — block progression, stay on page.
+          // localStorage recovery is still intact (we never cleared it),
+          // and study_states have NOT been mutated, so a refresh-then-retry
+          // is safe.
           console.error('[SUBMIT] ✗ Submission failed after all retries:', submitErr)
           console.log('[SUBMIT] Error details:', {
             message: submitErr.message,
@@ -593,11 +608,27 @@ const MCQTest = () => {
           setSubmitError('Failed to save your test results. Please try again.')
           setSubmitting(false)
           console.log('[SUBMIT] ═══════════════════════════════════════')
-          return // Don't proceed - answers preserved in state
+          return // Don't proceed - answers preserved in state and localStorage
         }
 
         setAttemptId(result.id)
         console.log('[SUBMIT] Set attempt ID:', result.id)
+
+        // [PHASE 2] Now that the attempt is durable, commit study_state
+        // mutations. Guard with a ref so a Try-Again click after a partial
+        // failure within the same mount does not double-increment counters.
+        if (!resultsProcessedRef.current) {
+          try {
+            await processTestResults(user.uid, results, listId)
+            resultsProcessedRef.current = true
+            console.log('[SUBMIT] ✓ Study states updated')
+          } catch (processErr) {
+            // Don't fail the whole submit — the attempt is saved.
+            // Reconciliation in progressService uses attempts as the
+            // authoritative anchor; study_states can be repaired later.
+            console.error('[SUBMIT] processTestResults failed after attempt write:', processErr)
+          }
+        }
 
         // Determine if this is the final test of the session
         const isSessionFinalTest = sessionContext?.isFirstDay
@@ -667,6 +698,12 @@ const MCQTest = () => {
           }
         }
       }
+
+      // Safe to drop local recovery now: attempt is persisted (idempotent ID),
+      // study_states are committed (or will be repaired via reconciliation if
+      // processTestResults failed). Also rolls over the per-session nonce so
+      // the next test launch gets a fresh attempt docId.
+      clearTestState(testId)
 
       setTestResultsData({
         score: summary.score, // Store as decimal (0-1), not percentage

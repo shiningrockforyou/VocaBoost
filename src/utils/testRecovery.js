@@ -8,6 +8,7 @@
 const STORAGE_PREFIX = 'vocaboost_test_'
 const RECOVERY_WINDOW_MS = 3 * 60 * 1000 // 3 minutes
 const INTENTIONAL_EXIT_KEY = 'vocaboost_intentional_exit'
+const NONCE_SUFFIX = '_nonce'
 
 /**
  * Generate a unique test ID
@@ -68,14 +69,44 @@ export function getTestState(testId) {
 }
 
 /**
- * Clear test state from localStorage
+ * Clear test state from localStorage. Also clears the attempt nonce so the
+ * next test launch starts a fresh attempt docId.
  * @param {string} testId - Unique test identifier
  */
 export function clearTestState(testId) {
   try {
     localStorage.removeItem(testId)
+    localStorage.removeItem(testId + NONCE_SUFFIX)
   } catch (error) {
     console.warn('Failed to clear test state:', error)
+  }
+}
+
+/**
+ * Return a stable per-session nonce for use as part of an idempotent attempt
+ * document ID. Lazily created on first call for a given testId and persisted
+ * to localStorage so it survives refresh-resume within the recovery window.
+ * Cleared as a side effect of clearTestState (success path or expiration).
+ *
+ * Why: withRetry can replay submitTestAttempt; addDoc would create duplicates.
+ * A deterministic docId like ${userId}_${testId}_${nonce} lets us use setDoc
+ * so retries are no-op overwrites of identical data.
+ *
+ * @param {string} testId - Unique test identifier
+ * @returns {string} Stable nonce string
+ */
+export function getOrCreateAttemptNonce(testId) {
+  const key = testId + NONCE_SUFFIX
+  try {
+    const existing = localStorage.getItem(key)
+    if (existing) return existing
+    const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+    localStorage.setItem(key, nonce)
+    return nonce
+  } catch (error) {
+    console.warn('Failed to get/create attempt nonce:', error)
+    // Fall back to an in-memory nonce; submission still works, just non-idempotent
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
   }
 }
 
