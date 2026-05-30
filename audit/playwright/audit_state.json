@@ -1,0 +1,161 @@
+{
+  "version": 2,
+  "schemaNote": "Populated by B00 (Setup & Seed). Subsequent batches append to attempts/sessions but do not delete prior records. Treat as the contract between batches. v2 adds words[] per list with canonical English + Korean definitions so the audit agent can look up canonical answers when simulating Typed test responses (see PLAN.md 'Student input simulation').",
+  "seededAt": null,
+  "environment": {
+    "vocaboostUrl": "http://localhost:5173",
+    "firebaseProjectId": null,
+    "usingEmulator": null,
+    "timezone": "Asia/Seoul",
+    "anchorDateISO": "2026-06-01T09:00:00+09:00"
+  },
+  "users": {
+    "carefulStudent": null,
+    "rushedStudent": null,
+    "distractedStudent": null,
+    "lazyStudent": null,
+    "anxiousStudent": null,
+    "recoveringStudent": null,
+    "hostileStudent": null,
+    "koreanNativeTypist": null,
+    "codeSwitchingStudent": null,
+    "eslLearner": null,
+    "beginnerStudent": null,
+    "advancedStudent": null,
+    "phoneOnlyStudent": null,
+    "slowLaptopStudent": null,
+    "academyWifiStudent": null,
+    "mobileDataStudent": null,
+    "multiDeviceStudent": null,
+    "speedRunner": null,
+    "perfectionist": null,
+    "trollingStudent": null,
+    "cheaterStudent": null,
+    "habitualRefresher": null,
+    "classSwitcher": null,
+    "confusedFirstTimer": null,
+    "noviceTeacher": null,
+    "powerTeacher": null,
+    "anxiousTeacher": null,
+    "taProxy": null
+  },
+  "classes": {
+    "primaryClass": null,
+    "secondaryClass": null,
+    "emptyClass": null,
+    "fullClass": null,
+    "coreClass": null,
+    "topClass": null
+  },
+  "lists": {
+    "tinyList": null,
+    "standardList": null,
+    "largeList": null,
+    "specialCharsList": null,
+    "koreanList": null,
+    "satTopList": null,
+    "satCoreList": null
+  },
+  "listSchemaExample": {
+    "_comment": "Each list, once seeded, MUST match this shape so the agent can look up canonical answers.",
+    "id": "firestore-doc-id",
+    "title": "Standard Audit List",
+    "wordCount": 50,
+    "classIds": ["..."],
+    "pace": 7,
+    "studyDaysPerWeek": 5,
+    "retakeThreshold": 0.95,
+    "words": [
+      {
+        "id": "firestore-word-doc-id",
+        "word": "anthology",
+        "partOfSpeech": "n.",
+        "definition_en": "a published collection of poems or other writings",
+        "definition_ko": "(시 등의) 선집",
+        "position": 0,
+        "_synonyms": ["collection", "compendium", "compilation"],
+        "_commonStudentErrors": ["a book of poems", "poem book"]
+      },
+      {
+        "id": "firestore-word-doc-id-2",
+        "word": "coalesce",
+        "partOfSpeech": "v.",
+        "definition_en": "to come together to form one mass or whole",
+        "definition_ko": "결합하다, 합체하다",
+        "position": 1,
+        "_synonyms": ["merge", "unite", "blend"],
+        "_commonStudentErrors": ["to mix", "combine"]
+      }
+    ]
+  },
+  "attempts": {},
+  "sessions": {},
+  "challenges": {},
+  "personas": {
+    "_comment": "Persona configuration consumed by the audit agent. transform_rule maps to PLAN.md 'Student input simulation' section. typing_delay_ms is the average inter-keystroke delay for realisticType().",
+    "carefulStudent": {
+      "transform_rule": "canonical_en_verbatim",
+      "typing_delay_ms": 100,
+      "viewport": { "width": 1440, "height": 900 },
+      "submitClickStyle": "single",
+      "browserBackHabit": false
+    },
+    "koreanNativeTypist": {
+      "transform_rule": "canonical_ko",
+      "typing_delay_ms": 80,
+      "imeComposition": true,
+      "viewport": { "width": 1440, "height": 900 },
+      "submitClickStyle": "single",
+      "browserBackHabit": false
+    },
+    "codeSwitchingStudent": {
+      "transform_rule": "code_switch_one_noun",
+      "typing_delay_ms": 90,
+      "viewport": { "width": 1440, "height": 900 }
+    },
+    "eslLearner": {
+      "transform_rule": "esl_strip_articles_mispluralize",
+      "typing_delay_ms": 100
+    },
+    "phoneOnlyStudent": {
+      "transform_rule": "canonical_en_verbatim",
+      "typing_delay_ms": 200,
+      "viewport": { "width": 375, "height": 812 },
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+    },
+    "academyWifiStudent": {
+      "transform_rule": "canonical_en_verbatim",
+      "typing_delay_ms": 100,
+      "networkConditions": {
+        "rttMs": 800,
+        "packetLossRate": 0.05
+      }
+    },
+    "speedRunner": {
+      "transform_rule": "first_word_only",
+      "typing_delay_ms": 15,
+      "submitClickStyle": "rapid_double",
+      "advanceVia": "enter_key"
+    },
+    "lazyStudent": {
+      "transform_rule": "random_from_idk_set",
+      "typing_delay_ms": 50,
+      "skipFraction": 0.5
+    },
+    "trollingStudent": {
+      "transform_rule": "random_from_joke_set",
+      "typing_delay_ms": 30
+    },
+    "habitualRefresher": {
+      "transform_rule": "canonical_en_verbatim",
+      "typing_delay_ms": 100,
+      "refreshEveryMs": 30000
+    }
+  },
+  "notes": [],
+  "audit_metadata": {
+    "lastBatch": null,
+    "batchesCompleted": [],
+    "issuesFound": []
+  }
+}

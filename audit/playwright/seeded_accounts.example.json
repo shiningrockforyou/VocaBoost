@@ -1,0 +1,49 @@
+{
+  "_comment": "EXAMPLE shape only — DO NOT commit a real seeded_accounts.json. The real file is written by scripts/seed-audit-students.js and is gitignored. It contains real Firebase passwords.",
+  "version": 1,
+  "projectId": "vocaboost-879c2",
+  "seededAt": "2026-06-01T09:00:00.000Z",
+  "totalAccounts": 50,
+  "classes": {
+    "TOP": {
+      "id": "<firestore-doc-id-of-25WT-2차-TOP-OFFLINE>",
+      "name": "25WT 2차 TOP OFFLINE",
+      "joinCode": "QSTRZL"
+    },
+    "CORE": {
+      "id": "<firestore-doc-id-of-25WT-2차-CORE-OFFLINE>",
+      "name": "25WT 2차 CORE OFFLINE",
+      "joinCode": "3VEHE8"
+    }
+  },
+  "accounts": [
+    {
+      "email": "audit_careful_01_top@vocaboost.test",
+      "password": "AuditPass2026!",
+      "displayName": "Audit Careful Student 01 (TOP)",
+      "personaId": "careful",
+      "personaLabel": "Careful Student",
+      "personaTransform": "canonical_en_verbatim",
+      "targetClass": "TOP",
+      "indexInPersona": 1,
+      "globalIdx": 1,
+      "uid": "<firebase-auth-uid>",
+      "created": true,
+      "enrollment": { "enrolled": true }
+    },
+    {
+      "email": "audit_korean_01_top@vocaboost.test",
+      "password": "AuditPass2026!",
+      "displayName": "Audit Korean Native Typist 01 (TOP)",
+      "personaId": "korean",
+      "personaLabel": "Korean Native Typist",
+      "personaTransform": "canonical_ko",
+      "targetClass": "TOP",
+      "indexInPersona": 1,
+      "globalIdx": 8,
+      "uid": "<firebase-auth-uid>",
+      "created": true,
+      "enrollment": { "enrolled": true }
+    }
+  ]
+}

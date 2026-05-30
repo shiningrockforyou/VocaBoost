@@ -28,6 +28,20 @@ dist-ssr
 .env
 scripts/serviceAccountKey.json
 
+# Firebase Admin SDK service account — never commit
+service-account.json
+service-account*.json
+*-credentials.json
+gcp-key.json
+
+# Audit-generated credentials (contains real Firebase passwords)
+audit/playwright/seeded_accounts.json
+audit/playwright/findings/evidence/
+audit/playwright/findings/findings_*.md
+audit/playwright/findings/SUMMARY.md
+audit/playwright/findings/RECOMMENDATIONS.md
+audit/playwright/findings/EVIDENCE_INDEX.md
+
 # Playwright
 /test-results/
 /playwright-report/
