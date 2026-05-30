@@ -96,7 +96,7 @@ Invoke a general-purpose agent (or a new vocaboost-audit agent if you create one
 Run vocaBoost audit batch B02 (MCQ Submission Critical Path).
 
 Context:
-- App is live at http://localhost:5173.
+- App target URL is the live Netlify deploy at https://vocaboostone.netlify.app/ (configured in audit_state.json.environment.vocaboostUrl).
 - Read /app/audit/playwright/PLAN.md first for selector strategy, persona definitions, and severity rubric.
 - Read /app/audit/playwright/batches/B02_mcq_submission_critical.md for the scenarios.
 - Read /app/audit/playwright/audit_state.json for seeded users and test IDs.

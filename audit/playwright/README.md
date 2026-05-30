@@ -67,7 +67,7 @@ audit/playwright/
 
 The audit assumes a Docker environment with:
 - `npx playwright install chromium` already run
-- Vite dev server reachable at `http://localhost:5173`
+- Vite dev server reachable at `https://vocaboostone.netlify.app`
 - Firebase project reachable (production `vocaboost-879c2`, OR a staging clone — set via `VITE_FIREBASE_PROJECT_ID`)
 - **`audit/playwright/seeded_accounts.json` present** (produced by step 1 above)
 

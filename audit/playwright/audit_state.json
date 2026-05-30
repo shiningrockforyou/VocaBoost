@@ -3,9 +3,10 @@
   "schemaNote": "Populated by B00 (Setup & Seed). Subsequent batches append to attempts/sessions but do not delete prior records. Treat as the contract between batches. v2 adds words[] per list with canonical English + Korean definitions so the audit agent can look up canonical answers when simulating Typed test responses (see PLAN.md 'Student input simulation').",
   "seededAt": null,
   "environment": {
-    "vocaboostUrl": "http://localhost:5173",
-    "firebaseProjectId": null,
-    "usingEmulator": null,
+    "vocaboostUrl": "https://vocaboostone.netlify.app",
+    "vocaboostUrlNote": "Live production Netlify deploy. Tests run against the same frontend students use. Backend is production Firebase vocaboost-879c2 regardless.",
+    "firebaseProjectId": "vocaboost-879c2",
+    "usingEmulator": false,
     "timezone": "Asia/Seoul",
     "anchorDateISO": "2026-06-01T09:00:00+09:00"
   },

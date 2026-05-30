@@ -257,7 +257,7 @@ function nextStudyDay(currentDate, studyDaysPerWeek) {
 
 The audit assumes the following are stood up before B00 runs:
 
-- **Vite dev server** on `http://localhost:5173` with hot reload.
+- **Vite dev server** on `https://vocaboostone.netlify.app` with hot reload.
 - **Firebase emulators** OR a dedicated Firebase test project — *never* run against the production Firebase project. Configuration via `.env.test`.
 - **Playwright** with Chromium installed (`npx playwright install chromium`).
 - **Time-based testing** uses `Date.now` shimming via Playwright's `page.addInitScript` rather than real waits whenever possible — `await page.waitForTimeout(60000)` is banned.

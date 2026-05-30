@@ -47,9 +47,9 @@ For each batch when you start it, read `/app/audit/playwright/batches/B{XX}_*.md
 # 1. Install Playwright Chromium if missing
 test -d ~/.cache/ms-playwright || npx playwright install chromium
 
-# 2. Start dev server in background
-ls /tmp/.vocaboost-dev || (npm run dev > /tmp/.vocaboost-dev 2>&1 &) ; sleep 5
-curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5173/   # expect 200
+# 2. Verify live site is reachable
+node -e "require('https').get('https://vocaboostone.netlify.app/', r => console.log('status:', r.statusCode))"
+# Expect: status: 200
 
 # 3. Verify seeded accounts file
 test -f /app/audit/playwright/seeded_accounts.json && \
@@ -57,10 +57,20 @@ test -f /app/audit/playwright/seeded_accounts.json && \
 
 # 4. Create evidence and helpers directories
 mkdir -p /app/audit/playwright/findings/evidence
+mkdir -p /app/audit/playwright/findings/agent_logs
 mkdir -p /app/e2e/audit/helpers
 ```
 
+**Target URL:** `https://vocaboostone.netlify.app/` — the live Netlify deploy that real students use. Do NOT start the local Vite dev server; the audit explicitly tests the deployed code path so we measure real student experience, not checked-out source.
+
 **Firebase:** production project `vocaboost-879c2`. 50 audit students already exist in classes `25WT 2차 TOP OFFLINE` (joinCode QSTRZL) and `25WT 2차 CORE OFFLINE` (joinCode 3VEHE8). All carry `auditAccount: true` markers; cleanup is `node scripts/cleanup-audit-students.js --apply` when done.
+
+**Live-site gotchas to know about:**
+
+- **Service workers may intercept your routes.** If `page.route('**/firestore**', ...)` doesn't fire on the live site, a service worker is serving cached responses. Disable via `await context.addInitScript(() => navigator.serviceWorker?.getRegistrations().then(rs => rs.forEach(r => r.unregister())))` before navigation.
+- **No HMR / no React DevTools.** Source maps may or may not be served; minified bundles make root-causing harder. Capture extra evidence (full network HAR, full console log) to compensate.
+- **Real Cloud Functions get hit.** Every typed-test grading call is a live Claude Haiku invocation. Cost is real but small (~$0.001 per call). Budget accordingly.
+- **Netlify edge caching.** Some static assets may be cached at the edge — that's fine. Firestore writes go straight through.
 
 **Teacher proxy:** `veterans@vocaboost.com` / `veterans5944` — for gradebook-side verification.
 
@@ -180,7 +190,7 @@ function getAccount(personaId, targetClass = null, index = 1) {
 async function loginAs(page, personaId, opts = {}) {
   const account = getAccount(personaId, opts.targetClass, opts.index)
   if (!account) throw new Error(`No seeded account for ${personaId}`)
-  await page.goto('http://localhost:5173/login')
+  await page.goto('https://vocaboostone.netlify.app/login')
   await page.getByLabel(/email/i).fill(account.email)
   await page.getByLabel(/password/i).fill(account.password)
   await page.getByRole('button', { name: /log\s?in|sign\s?in/i }).click()

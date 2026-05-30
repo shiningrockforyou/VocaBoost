@@ -12,7 +12,7 @@ Verify the environment, confirm the pre-seeded Firebase accounts (50 students ac
 
 ## Preconditions
 
-- Vite dev server reachable at `http://localhost:5173` (verify with `curl -s -o /dev/null -w "%{http_code}" http://localhost:5173/` → `200`).
+- Vite dev server reachable at `https://vocaboostone.netlify.app` (verify with `curl -s -o /dev/null -w "%{http_code}" https://vocaboostone.netlify.app/` → `200`).
 - Firebase config in `.env`. For production project `vocaboost-879c2`, verify the current cohort is between sessions (the seeded "Audit ..." students will be visible in the gradebook briefly).
 - Playwright Chromium installed (`npx playwright install chromium` was run).
 - **`audit/playwright/seeded_accounts.json` exists** — produced by `node scripts/seed-audit-students.js --apply`. If missing, B00 cannot proceed; abort and run the seed first.
