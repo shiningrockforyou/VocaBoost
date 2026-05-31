@@ -1,0 +1,18 @@
+{
+  "T3": {
+    "showingCount": 0,
+    "finalShowingCount": 0,
+    "hasKorean": false,
+    "errors": 0
+  },
+  "T4": {
+    "dashRendered": true,
+    "hookErrors": 0,
+    "hookErrorTexts": []
+  },
+  "T5": {
+    "createBtnFound": true,
+    "testClassCreated": true,
+    "hasAuditClass": true
+  }
+}

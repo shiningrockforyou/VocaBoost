@@ -1,0 +1,152 @@
+{"ts":"2026-05-31T18:05:28.210Z","type":"verify2_smoke_start"}
+{"ts":"2026-05-31T18:05:33.044Z","type":"deep_link_result","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","status":200,"is404":false,"spaLoaded":true,"url":"https://vocaboostone.netlify.app/login","bodySnip":"WELCOME BACK\n\nVocaBoost Login\n\nSign in to access your personalized study queue.\n\nEmail\nPassword\nCont"}
+{"ts":"2026-05-31T18:05:36.734Z","type":"deep_link_result","path":"/typedtest","status":200,"is404":false,"spaLoaded":true,"url":"https://vocaboostone.netlify.app/login","bodySnip":"WELCOME BACK\n\nVocaBoost Login\n\nSign in to access your personalized study queue.\n\nEmail\nPassword\nCont"}
+{"ts":"2026-05-31T18:05:40.383Z","type":"deep_link_result","path":"/login","status":200,"is404":false,"spaLoaded":true,"url":"https://vocaboostone.netlify.app/login","bodySnip":"WELCOME BACK\n\nVocaBoost Login\n\nSign in to access your personalized study queue.\n\nEmail\nPassword\nCont"}
+{"ts":"2026-05-31T18:05:44.033Z","type":"deep_link_result","path":"/dashboard","status":200,"is404":false,"spaLoaded":true,"url":"https://vocaboostone.netlify.app/login","bodySnip":"WELCOME BACK\n\nVocaBoost Login\n\nSign in to access your personalized study queue.\n\nEmail\nPassword\nCont"}
+{"ts":"2026-05-31T18:05:48.171Z","type":"mcq_route_check","status":200,"is404":false,"spaLoaded":true}
+{"ts":"2026-05-31T18:05:48.422Z","type":"curl_deep_link","status":"200","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T18:05:48.527Z","type":"verify2_smoke_complete","results":{"deepLinks":{"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR":{"status":200,"is404":false,"spaLoaded":true,"pass":true},"/typedtest":{"status":200,"is404":false,"spaLoaded":true,"pass":true},"/login":{"status":200,"is404":false,"spaLoaded":true,"pass":true},"/dashboard":{"status":200,"is404":false,"spaLoaded":true,"pass":true}},"mcqRoute":{"status":200,"is404":false,"spaLoaded":true,"pass":true},"curlDeepLink":{"status":200,"pass":true}}}
+{"ts":"2026-05-31T18:06:07.377Z","type":"verify2_recovery_start"}
+{"ts":"2026-05-31T18:06:07.382Z","type":"crash_test_userDataDir","dir":"/tmp/claude-1000/verify2_crash_1780250767382"}
+{"ts":"2026-05-31T18:06:13.868Z","type":"logged_in"}
+{"ts":"2026-05-31T18:06:21.737Z","type":"initial_session_state","bodySnip":"Step 5 of 5\n✓\n\nDAY 25 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1920 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T18:06:21.747Z","type":"page_state","isOnFlashcards":false,"isOnTest":false,"inputCount":0}
+{"ts":"2026-05-31T18:06:21.750Z","type":"using_skip_to_test"}
+{"ts":"2026-05-31T18:06:22.362Z","type":"skip_no_menu"}
+{"ts":"2026-05-31T18:06:24.366Z","type":"skip_result","skipped":false}
+{"ts":"2026-05-31T18:06:24.375Z","type":"test_state","bodySnip":"Step 5 of 5\n✓\n\nDAY 25 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1920 / 3381\nBack to Dashboard\nℹ️\nResu","inputCount":0,"hasTextbox":false}
+{"ts":"2026-05-31T18:06:24.379Z","type":"warning_not_on_test","bodySnip":"Step 5 of 5\n✓\n\nDAY 25 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1920 / 3381\nBack to Dashboard\nℹ️\nResume Day 25?\n\nYou scored 100% on the review test. Wo"}
+{"ts":"2026-05-31T18:06:24.387Z","type":"simulating_crash"}
+{"ts":"2026-05-31T18:06:31.287Z","type":"after_reopen","url":"https://vocaboostone.netlify.app/","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Careful Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal"}
+{"ts":"2026-05-31T18:06:31.320Z","type":"recovery_result","routedToTest":true,"promptShown":false,"answersRestored":false}
+{"ts":"2026-05-31T18:06:37.833Z","type":"logged_in"}
+{"ts":"2026-05-31T18:06:46.198Z","type":"skip_no_menu"}
+{"ts":"2026-05-31T18:06:56.477Z","type":"verify2_recovery_complete","summary":{"test":"CRASH_RECOVERY","lastPhaseValue":null,"lastPhaseIsNewTest":false,"answersFoundInLS":false,"intentionalExitNotSet":true,"routedToTestAfterCrash":true,"recoveryPromptShown":false,"answersRestored":false,"gracefulCloseSuppressesRecovery":true,"overallPass":false}}
+{"ts":"2026-05-31T18:09:43.596Z","type":"verify2_recovery_v2_start"}
+{"ts":"2026-05-31T18:09:43.601Z","type":"userDataDir","dir":"/tmp/claude-1000/verify2_crash_v2_1780250983601"}
+{"ts":"2026-05-31T18:09:49.991Z","type":"logged_in"}
+{"ts":"2026-05-31T18:09:53.181Z","type":"dashboard_state","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Lazy Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nD"}
+{"ts":"2026-05-31T18:09:55.739Z","type":"after_session_nav","bodySnip":"Step 5 of 5\n✓\n\nDAY 19 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n30\nWords Reviewed\n103\nTotal Progress\n420 / 3381\nBack to Dashboard\nℹ️\nResume Day 18?\n\nYou scored 100% on the review test. Wo"}
+{"ts":"2026-05-31T18:09:55.744Z","type":"resume_modal_found"}
+{"ts":"2026-05-31T18:09:58.785Z","type":"moved_on_to_next_day"}
+{"ts":"2026-05-31T18:09:58.792Z","type":"after_move_on","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Lazy Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nD"}
+{"ts":"2026-05-31T18:10:01.338Z","type":"after_start_new_day","bodySnip":"Step 1 of 5\n\nNew Words Study — Day 19\n\nProgress\n\n0 of 30 mastered\n\nCard 1 of 30\n\ndecadent\n\n(adj.)\n\ndecadent\n\n(adj.)\n\ndecaying or decayed, especially in terms of morals\n\n🇰🇷\n\nKorean\n\n쇠퇴하거나 쇠퇴한, 특히 도덕적"}
+{"ts":"2026-05-31T18:10:02.383Z","type":"dismissed_modal"}
+{"ts":"2026-05-31T18:10:03.389Z","type":"pre_skip_state","bodySnip":"Step 1 of 5\n\nNew Words Study — Day 19\n\nProgress\n\n0 of 30 mastered\n\nCard 1 of 30\n\ndecadent\n\n(adj.)\n\ndecadent\n\n(adj.)\n\ndecaying or decayed, especially in terms of morals\n\n🇰🇷\n\nKorean\n\n쇠퇴하거나 쇠퇴한, 특히 도덕적"}
+{"ts":"2026-05-31T18:10:07.013Z","type":"skip_confirmed","btn":"Start Test"}
+{"ts":"2026-05-31T18:10:09.024Z","type":"test_reach_result","inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 19\n\nProgress\n\n0 of 30 answered\n\n1.\nsuffice\n(v.)\n2.\nyesternight (old English)\n(n.)\n3.\ndominate\n(v.)\n4.\nembody\n(v.)\n5."}
+{"ts":"2026-05-31T18:10:10.243Z","type":"typed_answers","count":3}
+{"ts":"2026-05-31T18:10:12.252Z","type":"ls_captured","keys":["vocaboost-theme","vocaboost_showKoreanDef","vocaboost-roundness","vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","vocaboost-border-weight","vocaboost_session_VBgBmlrlzXVPzURmABkdDBGtKd42_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day19_new","vocaboost_showSampleSentence"]}
+{"ts":"2026-05-31T18:10:12.257Z","type":"lastPhase_found","key":"vocaboost_session_VBgBmlrlzXVPzURmABkdDBGtKd42_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day19_new","value":"NEW_TEST"}
+{"ts":"2026-05-31T18:10:12.260Z","type":"session_ls_key","key":"vocaboost_session_VBgBmlrlzXVPzURmABkdDBGtKd42_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day19_new","value":"{\"lastPhase\":\"NEW_TEST\",\"testType\":\"new\",\"wordPool\":[{\"id\":\"5HkxCK8H0NEQmj0zEFZF\",\"word\":\"decadent\"},{\"id\":\"Rhf24V5zlljWujYrYmOc\",\"word\":\"suave\"},{\"id\":\"mSheyTyzn3Sq3yPcKpAe\",\"word\":\"prose\"},{\"id\":\"xn"}
+{"ts":"2026-05-31T18:10:12.269Z","type":"simulating_crash"}
+{"ts":"2026-05-31T18:10:19.679Z","type":"after_reopen","url":"https://vocaboostone.netlify.app/","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Lazy Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 19\n\nStart Session\n\nWords Introduced\n\n420\n\nMastery Rate\n\n29%\n\nCurrent Streak\n\n1 days\n\n7-DAY RHYTHM"}
+{"ts":"2026-05-31T18:10:26.272Z","type":"logged_in"}
+{"ts":"2026-05-31T18:10:29.465Z","type":"dashboard_state","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Lazy Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nD"}
+{"ts":"2026-05-31T18:10:32.019Z","type":"after_session_nav","bodySnip":"Step 1 of 5\n\nNew Words Study — Day 19\n\nProgress\n\n0 of 30 mastered\n\nCard 1 of 30\n\ndecadent\n\n(adj.)\n\ndecadent\n\n(adj.)\n\ndecaying or decayed, especially in terms of morals\n\n🇰🇷\n\nKorean\n\n쇠퇴하거나 쇠퇴한, 특히 도덕적"}
+{"ts":"2026-05-31T18:10:33.064Z","type":"dismissed_modal"}
+{"ts":"2026-05-31T18:10:34.072Z","type":"pre_skip_state","bodySnip":"Step 1 of 5\n\nNew Words Study — Day 19\n\nProgress\n\n0 of 30 mastered\n\nCard 1 of 30\n\ndecadent\n\n(adj.)\n\ndecadent\n\n(adj.)\n\ndecaying or decayed, especially in terms of morals\n\n🇰🇷\n\nKorean\n\n쇠퇴하거나 쇠퇴한, 특히 도덕적"}
+{"ts":"2026-05-31T18:10:37.695Z","type":"skip_confirmed","btn":"Start Test"}
+{"ts":"2026-05-31T18:10:39.704Z","type":"test_reach_result","inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 19\n\nProgress\n\n0 of 30 answered\n\n1.\nincumbent\n(adj.)\n2.\nskittish\n(adj.)\n3.\nenfranchise\n(v.)\n4.\nsacrosanct\n(adj.)\n5.\np"}
+{"ts":"2026-05-31T18:10:47.473Z","type":"recovery_v2_complete","summary":{"test":"CRASH_RECOVERY_v2","reachedTest":true,"lastPhaseValue":"NEW_TEST","lastPhaseIsNewTest":true,"answersFoundInLS":true,"intentionalExitNotSet":true,"routedToTestAfterCrash":false,"recoveryPromptShown":false,"answersRestored":true,"gracefulCloseSuppressesRecovery":true,"overallPass":true}}
+{"ts":"2026-05-31T18:11:11.239Z","type":"verify2_f01_start","persona":"lazy","class":"TOP"}
+{"ts":"2026-05-31T18:11:12.079Z","type":"initial_state","CSD":18,"TWI":420}
+{"ts":"2026-05-31T18:11:12.242Z","type":"day_start","day":19,"fakeDate":"2026-07-07T00:00:00.000Z"}
+{"ts":"2026-05-31T18:11:12.436Z","type":"pre_state","day":19,"totalStates":450,"mastered":96,"masteredFuture":96}
+{"ts":"2026-05-31T18:11:18.708Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:11:18.717Z","type":"shim_check","day":19,"shimCheck":{"now":1783382405920,"fakeNow":1783382400000}}
+{"ts":"2026-05-31T18:11:21.915Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:11:32.487Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:11:34.498Z","type":"page_state","day":19,"hasInput":true,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 19\n\nProgress\n\n0 of 30 answered\n\n1.\nquantitative\n(adj.)\n2.\nreservoi"}
+{"ts":"2026-05-31T18:11:34.506Z","type":"new_word_test_inputs","day":19,"count":30}
+{"ts":"2026-05-31T18:11:44.933Z","type":"new_test_submitted","day":19}
+{"ts":"2026-05-31T18:12:14.945Z","type":"nav_review_re_enter","day":19}
+{"ts":"2026-05-31T18:12:24.091Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:12:26.096Z","type":"review_test_start","day":19}
+{"ts":"2026-05-31T18:12:55.407Z","type":"day_result","day":19,"served":30,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:12:58.412Z","type":"day_start","day":20,"fakeDate":"2026-07-08T00:00:00.000Z"}
+{"ts":"2026-05-31T18:12:58.520Z","type":"pre_state","day":20,"totalStates":450,"mastered":182,"masteredFuture":182}
+{"ts":"2026-05-31T18:13:04.622Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:13:04.629Z","type":"shim_check","day":20,"shimCheck":{"now":1783468805806,"fakeNow":1783468800000}}
+{"ts":"2026-05-31T18:13:07.825Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:13:13.855Z","type":"h2_reentry_modal","day":20}
+{"ts":"2026-05-31T18:13:20.082Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:13:30.658Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:13:32.667Z","type":"page_state","day":20,"hasInput":true,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 20\n\nProgress\n\n0 of 30 answered\n\n1.\nextrinsic\n(adj.)\n2.\ncommodifica"}
+{"ts":"2026-05-31T18:13:32.674Z","type":"new_word_test_inputs","day":20,"count":30}
+{"ts":"2026-05-31T18:13:43.124Z","type":"new_test_submitted","day":20}
+{"ts":"2026-05-31T18:14:13.133Z","type":"nav_review_re_enter","day":20}
+{"ts":"2026-05-31T18:14:22.234Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:14:24.238Z","type":"review_test_start","day":20}
+{"ts":"2026-05-31T18:14:53.522Z","type":"day_result","day":20,"served":30,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:14:56.526Z","type":"day_start","day":21,"fakeDate":"2026-07-09T00:00:00.000Z"}
+{"ts":"2026-05-31T18:14:56.625Z","type":"pre_state","day":21,"totalStates":480,"mastered":278,"masteredFuture":278}
+{"ts":"2026-05-31T18:15:02.717Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:15:02.724Z","type":"shim_check","day":21,"shimCheck":{"now":1783555205799,"fakeNow":1783555200000}}
+{"ts":"2026-05-31T18:15:05.943Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:15:11.980Z","type":"h2_reentry_modal","day":21}
+{"ts":"2026-05-31T18:15:18.204Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:15:28.778Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:15:30.785Z","type":"page_state","day":21,"hasInput":true,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 21\n\nProgress\n\n0 of 30 answered\n\n1.\nafford\n(v.)\n2.\ndistend\n(v.)\n3.\n"}
+{"ts":"2026-05-31T18:15:30.792Z","type":"new_word_test_inputs","day":21,"count":30}
+{"ts":"2026-05-31T18:15:41.125Z","type":"new_test_submitted","day":21}
+{"ts":"2026-05-31T18:16:11.133Z","type":"nav_review_re_enter","day":21}
+{"ts":"2026-05-31T18:16:20.206Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:16:22.210Z","type":"review_test_start","day":21}
+{"ts":"2026-05-31T18:16:51.502Z","type":"day_result","day":21,"served":30,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:16:54.506Z","type":"day_start","day":22,"fakeDate":"2026-07-10T00:00:00.000Z"}
+{"ts":"2026-05-31T18:16:54.599Z","type":"pre_state","day":22,"totalStates":510,"mastered":399,"masteredFuture":399}
+{"ts":"2026-05-31T18:17:00.772Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:17:00.781Z","type":"shim_check","day":22,"shimCheck":{"now":1783641605872,"fakeNow":1783641600000}}
+{"ts":"2026-05-31T18:17:03.999Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:17:10.037Z","type":"h2_reentry_modal","day":22}
+{"ts":"2026-05-31T18:17:16.262Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:17:26.839Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:17:28.853Z","type":"page_state","day":22,"hasInput":true,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 22\n\nProgress\n\n0 of 30 answered\n\n1.\ncaptivate\n(v.)\n2.\nprestige\n(n.)"}
+{"ts":"2026-05-31T18:17:28.859Z","type":"new_word_test_inputs","day":22,"count":30}
+{"ts":"2026-05-31T18:17:39.410Z","type":"new_test_submitted","day":22}
+{"ts":"2026-05-31T18:18:09.428Z","type":"nav_review_re_enter","day":22}
+{"ts":"2026-05-31T18:18:18.518Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:18:20.522Z","type":"review_test_start","day":22}
+{"ts":"2026-05-31T18:18:49.835Z","type":"day_result","day":22,"served":30,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:18:52.841Z","type":"day_start","day":23,"fakeDate":"2026-07-13T00:00:00.000Z"}
+{"ts":"2026-05-31T18:18:52.931Z","type":"pre_state","day":23,"totalStates":540,"mastered":463,"masteredFuture":463}
+{"ts":"2026-05-31T18:18:59.070Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:18:59.077Z","type":"shim_check","day":23,"shimCheck":{"now":1783900805787,"fakeNow":1783900800000}}
+{"ts":"2026-05-31T18:19:02.276Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:19:08.309Z","type":"h2_reentry_modal","day":23}
+{"ts":"2026-05-31T18:19:14.531Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:19:25.113Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:19:27.121Z","type":"page_state","day":23,"hasInput":true,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 23\n\nProgress\n\n0 of 30 answered\n\n1.\nmimic\n(v.)\n2.\nculpable\n(adj.)\n3"}
+{"ts":"2026-05-31T18:19:27.128Z","type":"new_word_test_inputs","day":23,"count":30}
+{"ts":"2026-05-31T18:19:37.448Z","type":"new_test_submitted","day":23}
+{"ts":"2026-05-31T18:20:07.456Z","type":"nav_review_re_enter","day":23}
+{"ts":"2026-05-31T18:20:16.532Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T18:20:18.536Z","type":"review_test_start","day":23}
+{"ts":"2026-05-31T18:20:27.490Z","type":"day_result","day":23,"served":8,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:20:30.497Z","type":"day_start","day":24,"fakeDate":"2026-07-14T00:00:00.000Z"}
+{"ts":"2026-05-31T18:20:30.581Z","type":"pre_state","day":24,"totalStates":570,"mastered":466,"masteredFuture":466}
+{"ts":"2026-05-31T18:20:36.666Z","type":"logged_in","email":"audit_lazy_01_top@vocaboost.test"}
+{"ts":"2026-05-31T18:20:36.674Z","type":"shim_check","day":24,"shimCheck":{"now":1783987205785,"fakeNow":1783987200000}}
+{"ts":"2026-05-31T18:20:39.879Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:20:45.919Z","type":"h2_reentry_modal","day":24}
+{"ts":"2026-05-31T18:20:52.141Z","type":"nav_session_button","label":"Start Session"}
+{"ts":"2026-05-31T18:20:58.783Z","type":"skip_no_session_menu"}
+{"ts":"2026-05-31T18:21:00.791Z","type":"page_state","day":24,"hasInput":false,"bodySnip":""}
+{"ts":"2026-05-31T18:21:00.795Z","type":"review_test_start","day":24}
+{"ts":"2026-05-31T18:21:40.013Z","type":"verify2_f01_careful_start"}
+{"ts":"2026-05-31T18:21:40.843Z","type":"initial_state","CSD":24,"TWI":1920}
+{"ts":"2026-05-31T18:21:41.365Z","type":"pre_state","persona":"careful","day":25,"mastered":360,"masteredFuture":360}
+{"ts":"2026-05-31T18:22:45.003Z","type":"day_result","day":24,"served":0,"masteredLeaks":0,"blocked":false}
+{"ts":"2026-05-31T18:22:48.018Z","type":"verify2_f01_complete","totalLeaks":0,"f01Pass":true}
+{"ts":"2026-05-31T18:23:45.110Z","type":"pre_state","persona":"careful","day":26,"mastered":360,"masteredFuture":360}
+{"ts":"2026-05-31T18:24:04.297Z","type":"logged_in_setup"}
+{"ts":"2026-05-31T18:24:09.554Z","type":"session_state","bodySnip":"Step 1 of 5\n\nNew Words Study — Day 24\n\nProgress\n\n0 of 30 mastered\n\nCard 1 of 30\n\ncontradict\n\n(v.)\n\ncontradict\n\n(v.)\n\nto deny, oppose\n\n🇰🇷\n\nKorean\n\n반박"}
+{"ts":"2026-05-31T18:24:14.003Z","type":"inputs_found","count":30}
+{"ts":"2026-05-31T18:24:16.251Z","type":"ls_before_crash","sessionKey":"vocaboost_session_VBgBmlrlzXVPzURmABkdDBGtKd42_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day24_new","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionVal":"{\"lastPhase\":\"NEW_TEST\",\"testType\":\"new\",\"wordPool\":[{\"id\":\"x2nNyo9A6unpMaOhLnTN\",\"word\":\"contradict\"},{\"id\":\"OGfhNjmMfzmfAJI3L0CB\",\"word\":\"instill\"},{\"id\":\"ox3jdEnjYN8CnnNhARy4\",\"word\":\"inequitable\"}"}
+{"ts":"2026-05-31T18:24:22.661Z","type":"after_reopen","url":"https://vocaboostone.netlify.app/","bodySnip":"Dashboard\nGradebook\nWelcome, Audit Lazy Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nD"}
+{"ts":"2026-05-31T18:24:25.734Z","type":"after_session_nav","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 2 of 5\n\nNew Words Test — Day 24\n\nProgress\n\n0 of 30 answered\n\n1.\nresurrection\n2.\npeccadillo\n3.\ndispensable\n4.\nreplenish\n5.\nenthrall\n6.\nnourish\n7.\nesteem\n8.\nintegral\n9.\ndiffuse\n10.\npivotal\n11.\ninfusion\n12.\nintrospection\n13.\ninequitable\n14.\naffront (old English)\n15.\nastound\n16.\ninjunction\n17.\nbrin"}
+{"ts":"2026-05-31T18:24:25.754Z","type":"session_recovery_check","recoveryPromptShown":true,"routedToTest":true,"answersPreFilled":false,"inputCount":30}
+{"ts":"2026-05-31T18:25:48.561Z","type":"pre_state","persona":"careful","day":27,"mastered":360,"masteredFuture":360}
+{"ts":"2026-05-31T18:27:51.992Z","type":"pre_state","persona":"careful","day":28,"mastered":360,"masteredFuture":360}
+{"ts":"2026-05-31T18:31:11.245Z","type":"verify2_f01_careful_complete","totalLeaks":0,"f01Pass":true}

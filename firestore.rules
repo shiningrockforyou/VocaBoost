@@ -54,7 +54,10 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isTeacher();
       allow update: if isAuthenticated() && (
         resource.data.ownerTeacherId == request.auth.uid ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentCount'])
+        // Self-enrollment (joinClass) updates studentCount AND studentIds together;
+        // both must be allowed or the studentIds write is rejected and the student
+        // becomes a "phantom" member (present in members/ but missing from studentIds).
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentCount', 'studentIds'])
       );
       allow delete: if isAuthenticated()
         && resource.data.ownerTeacherId == request.auth.uid;

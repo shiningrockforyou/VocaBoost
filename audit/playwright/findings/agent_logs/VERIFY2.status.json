@@ -1,0 +1,90 @@
+{
+  "agent": "VERIFY2",
+  "bundle": "index-C45gL9DN.js",
+  "deployGate": "LIVE",
+  "f01_lazy": {
+    "test": "F01_POOL_COLLAPSE",
+    "persona": "lazy/TOP",
+    "preMASTEREDPool": 96,
+    "sessionsRun": 6,
+    "totalLeaks": 0,
+    "f01Pass": true,
+    "perDay": [
+      {
+        "day": 19,
+        "served": 30,
+        "masteredLeaks": 0
+      },
+      {
+        "day": 20,
+        "served": 30,
+        "masteredLeaks": 0
+      },
+      {
+        "day": 21,
+        "served": 30,
+        "masteredLeaks": 0
+      },
+      {
+        "day": 22,
+        "served": 30,
+        "masteredLeaks": 0
+      },
+      {
+        "day": 23,
+        "served": 8,
+        "masteredLeaks": 0
+      },
+      {
+        "day": 24,
+        "served": 0,
+        "masteredLeaks": 0
+      }
+    ]
+  },
+  "f01_careful": {
+    "test": "F01_CAREFUL_DAY16_PLUS",
+    "persona": "careful/TOP",
+    "preMASTEREDPool": 360,
+    "sessionsRun": 1,
+    "totalLeaks": 0,
+    "f01Pass": true,
+    "perDay": [
+      {
+        "day": 25,
+        "served": 30,
+        "masteredLeaks": 0
+      }
+    ]
+  },
+  "crashRecovery": {
+    "lastPhaseValue": "NEW_TEST",
+    "lastPhaseIsNewTest": true,
+    "answersStoredInLS": true,
+    "answersInLSByWordId": true,
+    "routedToTestAfterCrash": true,
+    "answersPreFilledInInputs": false,
+    "gracefulCloseSuppressesRecovery": true,
+    "overallPass": true,
+    "note": "lastPhase fix confirmed. Answers persist through crash. Route to test works. Answers not auto-filled into inputs."
+  },
+  "smoke": {
+    "deepLinks": {
+      "pass": true,
+      "httpStatus": 200,
+      "tested": [
+        "/session/...",
+        "/typedtest",
+        "/login",
+        "/dashboard"
+      ]
+    },
+    "mcqTestRoute": {
+      "pass": true,
+      "httpStatus": 200
+    },
+    "redirectsLive": true
+  },
+  "orphanDocs": "NONE created by VERIFY2",
+  "updatedAt": "2026-05-31T18:30:00.000Z"
+}
