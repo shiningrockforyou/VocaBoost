@@ -177,8 +177,15 @@ export async function updateSessionState(userId, classId, listId, updates) {
   const docId = getSessionDocId(classId, listId);
   const sessionRef = doc(db, `users/${userId}/session_states`, docId);
 
+  // Strip undefined: Firestore rejects setDoc/update with undefined values, which
+  // would throw and (for callers in the day-completion path) strand the session.
+  // Mirrors the guard in saveSessionState so no caller can poison the write.
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, v]) => v !== undefined)
+  );
+
   await setDoc(sessionRef, {
-    ...updates,
+    ...cleanUpdates,
     lastUpdated: Timestamp.now()
   }, { merge: true });
 }

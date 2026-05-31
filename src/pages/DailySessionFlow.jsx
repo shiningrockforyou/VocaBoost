@@ -51,7 +51,7 @@ import {
   getReviewTestType
 } from '../services/sessionService'
 import { downloadListAsPDF } from '../utils/pdfGenerator'
-import { STUDY_ALGORITHM_CONSTANTS } from '../utils/studyAlgorithm'
+import { STUDY_ALGORITHM_CONSTANTS, excludeRetiredMastered } from '../utils/studyAlgorithm'
 import { buildTestConfig } from '../utils/testConfig'
 import { getSessionStep } from '../utils/sessionStepTracker'
 import {
@@ -487,12 +487,12 @@ export default function DailySessionFlow() {
 
     try {
       if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
-        const allWords = await getSegmentWords(
+        const allWords = excludeRetiredMastered(await getSegmentWords(
           user.uid,
           listId,
           sessionConfig.segment.startIndex,
           sessionConfig.segment.endIndex
-        )
+        ))
         setReviewQueue(allWords)
         setReviewQueueCurrent(allWords)
         setReviewDismissed(new Set())
@@ -619,12 +619,12 @@ export default function DailySessionFlow() {
           // Mid-session recovery: new word test passed, need to do review
           // Load segment words for review study (reusing same logic as moveToReviewPhase)
           try {
-            const segmentWords = await getSegmentWords(
+            const segmentWords = excludeRetiredMastered(await getSegmentWords(
               user.uid,
               listId,
               config.segment.startIndex,
               config.segment.endIndex
-            )
+            ))
 
             setReviewQueue(segmentWords)
             setReviewQueueCurrent(segmentWords)
@@ -803,12 +803,12 @@ export default function DailySessionFlow() {
           // Resume at review phase (same day only)
           // Use full segment for study flashcards
           if (config.segment) {
-            const allWords = await getSegmentWords(
+            const allWords = excludeRetiredMastered(await getSegmentWords(
               user.uid,
               listId,
               config.segment.startIndex,
               config.segment.endIndex
-            )
+            ))
             setReviewQueue(allWords)
             setReviewQueueCurrent(allWords)
           }
@@ -817,12 +817,12 @@ export default function DailySessionFlow() {
           setPhase(PHASES.NEW_WORDS)
         } else if (config.segment) {
           // Use full segment for study flashcards (not prioritized queue)
-          const allWords = await getSegmentWords(
+          const allWords = excludeRetiredMastered(await getSegmentWords(
             user.uid,
             listId,
             config.segment.startIndex,
             config.segment.endIndex
-          )
+          ))
           setReviewQueue(allWords)
           setReviewQueueCurrent(allWords)
           setPhase(PHASES.REVIEW_STUDY)
@@ -942,7 +942,8 @@ export default function DailySessionFlow() {
     )
 
     // Also include today's failed new words if any
-    let allWords = segmentWords
+    // Exclude still-retired MASTERED words from the review study queue (F01).
+    let allWords = excludeRetiredMastered(segmentWords)
     if (newWordFailedIds && newWordFailedIds.length > 0) {
       const failedWordDocs = await Promise.all(
         newWordFailedIds.map(wordId => getDoc(doc(db, 'lists', listId, 'words', wordId)))
@@ -955,7 +956,7 @@ export default function DailySessionFlow() {
           studyState: { status: 'failed' }
         }))
       // Prepend failed new words so they appear first in review
-      allWords = [...failedWords, ...segmentWords]
+      allWords = [...failedWords, ...allWords]
     }
 
     // Check if segment is empty (shouldn't happen, but safety check)
@@ -1141,6 +1142,26 @@ export default function DailySessionFlow() {
       assignmentSettings,
       reviewTestAttempts
     }))
+
+    // Write the crash-recovery marker for the TEST phase. The test runs on a
+    // separate route (/mcqtest, /typedtest), so this component's `phase` never
+    // becomes NEW_WORD_TEST/REVIEW_TEST and the phase-entry useEffect that would
+    // write lastPhase='NEW_TEST' never fires. Without this, checkTestRecovery()
+    // never triggers on reopen and a mid-test crash silently loses answers
+    // (confirmed: RECOVER3). Write it here, where the student commits to the test.
+    if (user?.uid && sessionConfig?.dayNumber) {
+      const recoverySessionId = getLocalSessionId(user.uid, classId, listId, sessionConfig.dayNumber, testPhase)
+      saveLocalSessionState(recoverySessionId, {
+        lastPhase: testPhase === 'new' ? 'NEW_TEST' : 'REVIEW_TEST',
+        testType: testPhase,
+        wordPool: (wordPool || []).map(w => ({ id: w.id, word: w.word })),
+        sessionContext: {
+          dayNumber: sessionConfig.dayNumber,
+          phase: testPhase,
+          isFirstDay: sessionConfig?.isFirstDay
+        }
+      })
+    }
 
     navigate(`${route}/${classId}/${listId}`, {
       state: {
@@ -1439,12 +1460,12 @@ export default function DailySessionFlow() {
       } else {
         // Review phase - use full segment for study flashcards
         if (sessionConfig.segment) {
-          const allWords = await getSegmentWords(
+          const allWords = excludeRetiredMastered(await getSegmentWords(
             user.uid,
             listId,
             sessionConfig.segment.startIndex,
             sessionConfig.segment.endIndex
-          )
+          ))
           setReviewQueue(allWords)
 
           // Re-filter based on saved state

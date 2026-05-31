@@ -265,7 +265,21 @@ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = [
   queue.push(...neverTestedToAdd);
   remaining -= neverTestedToAdd.length;
 
-  // Priority 4: PASSED words (already proven, fill remaining slots)
+  // Priority 4: NEEDS_CHECK words (returned from MASTERED after their 21-day rest;
+  // returnMasteredWords flips MASTERED -> NEEDS_CHECK, but without this bucket those
+  // words would never be re-selected for review and stay stuck out of rotation).
+  if (remaining > 0) {
+    const needsCheck = segmentWords.filter(w =>
+      w.status === 'NEEDS_CHECK' && !queueIds.has(w.id)
+    );
+    const shuffledNeedsCheck = shuffleArray(needsCheck);
+    const needsCheckToAdd = shuffledNeedsCheck.slice(0, remaining);
+    needsCheckToAdd.forEach(w => queueIds.add(w.id));
+    queue.push(...needsCheckToAdd);
+    remaining -= needsCheckToAdd.length;
+  }
+
+  // Priority 5: PASSED words (already proven, fill remaining slots)
   if (remaining > 0) {
     const passed = segmentWords.filter(w =>
       w.status === 'PASSED' && !queueIds.has(w.id)
@@ -283,16 +297,54 @@ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = [
  * @param {number} testSize - Target test size
  * @returns {Array} Array of word objects
  */
+/**
+ * True if a word is a still-retired MASTERED word (should be hidden from review
+ * study AND test). returnAt-aware: an expired-MASTERED word (returnAt <= now) is
+ * due back and is NOT retired. Status lives at w.status OR w.studyState.status;
+ * returnAt is a Firestore Timestamp (.toMillis()) or a number. Words with no
+ * status (new-word pools) are never retired.
+ * @param {Object} w - word object
+ * @param {number} nowMs - current time in ms
+ * @returns {boolean}
+ */
+export function isRetiredMastered(w, nowMs = Date.now()) {
+  const state = w?.studyState || w;
+  if (state?.status !== 'MASTERED') return false;
+  const returnAtMs = state.returnAt?.toMillis?.() ?? state.returnAt ?? null;
+  return !!(returnAtMs && returnAtMs > nowMs);
+}
+
+/**
+ * Remove still-retired MASTERED words from a list (review study queue or test pool).
+ * Single source of truth for the F01 exclusion.
+ * @param {Array} words
+ * @returns {Array}
+ */
+export function excludeRetiredMastered(words) {
+  if (!Array.isArray(words)) return [];
+  const now = Date.now();
+  return words.filter(w => !isRetiredMastered(w, now));
+}
+
 export function selectTestWords(wordPool, testSize) {
   if (!Array.isArray(wordPool) || wordPool.length === 0) {
     return [];
   }
 
-  if (wordPool.length <= testSize) {
-    return shuffleArray(wordPool);
+  // F01 chokepoint: never serve a still-retired MASTERED word in any test.
+  // Every review-test population path funnels its word list through here
+  // (DailySessionFlow -> buildTestConfig, and MCQTest/TypedTest standalone
+  // getSegmentWords paths), so filtering here closes all of them at once.
+  // New-word pools have no status -> excludeRetiredMastered is a no-op for them.
+  const eligible = excludeRetiredMastered(wordPool);
+
+  if (eligible.length === 0) return [];
+
+  if (eligible.length <= testSize) {
+    return shuffleArray(eligible);
   }
 
-  const shuffled = shuffleArray(wordPool);
+  const shuffled = shuffleArray(eligible);
   return shuffled.slice(0, testSize);
 }
 

@@ -1,0 +1,63 @@
+diff --git a/src/utils/studyAlgorithm.js b/src/utils/studyAlgorithm.js
+index 122df45..9994b71 100644
+--- a/src/utils/studyAlgorithm.js
++++ b/src/utils/studyAlgorithm.js
+@@ -265,7 +265,21 @@ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = [
+   queue.push(...neverTestedToAdd);
+   remaining -= neverTestedToAdd.length;
+ 
+-  // Priority 4: PASSED words (already proven, fill remaining slots)
++  // Priority 4: NEEDS_CHECK words (returned from MASTERED after their 21-day rest;
++  // returnMasteredWords flips MASTERED -> NEEDS_CHECK, but without this bucket those
++  // words would never be re-selected for review and stay stuck out of rotation).
++  if (remaining > 0) {
++    const needsCheck = segmentWords.filter(w =>
++      w.status === 'NEEDS_CHECK' && !queueIds.has(w.id)
++    );
++    const shuffledNeedsCheck = shuffleArray(needsCheck);
++    const needsCheckToAdd = shuffledNeedsCheck.slice(0, remaining);
++    needsCheckToAdd.forEach(w => queueIds.add(w.id));
++    queue.push(...needsCheckToAdd);
++    remaining -= needsCheckToAdd.length;
++  }
++
++  // Priority 5: PASSED words (already proven, fill remaining slots)
+   if (remaining > 0) {
+     const passed = segmentWords.filter(w =>
+       w.status === 'PASSED' && !queueIds.has(w.id)
+@@ -288,11 +302,32 @@ export function selectTestWords(wordPool, testSize) {
+     return [];
+   }
+ 
+-  if (wordPool.length <= testSize) {
+-    return shuffleArray(wordPool);
++  // F01 chokepoint: never serve a still-retired MASTERED word in any test.
++  // Every review-test population path funnels its word list through here
++  // (DailySessionFlow -> buildTestConfig, and MCQTest/TypedTest standalone
++  // getSegmentWords paths), so filtering here closes all of them at once.
++  // returnAt-aware on purpose: the standalone test paths read study_states
++  // BEFORE returnMasteredWords runs, so an expired-MASTERED word can still
++  // carry status==='MASTERED'; such a word is due back and must NOT be excluded.
++  // Status lives at w.status (from buildReviewQueue) OR w.studyState.status
++  // (from getSegmentWords); returnAt is a Firestore Timestamp (.toMillis()).
++  // New-word pools have no status -> filter is a no-op for them.
++  const now = Date.now();
++  const eligible = wordPool.filter(w => {
++    const state = w.studyState || w;
++    if (state?.status !== 'MASTERED') return true;
++    const returnAtMs = state.returnAt?.toMillis?.() ?? state.returnAt ?? null;
++    // Still retired (returnAt in the future) -> exclude. Overdue/missing -> keep.
++    return !(returnAtMs && returnAtMs > now);
++  });
++
++  if (eligible.length === 0) return [];
++
++  if (eligible.length <= testSize) {
++    return shuffleArray(eligible);
+   }
+ 
+-  const shuffled = shuffleArray(wordPool);
++  const shuffled = shuffleArray(eligible);
+   return shuffled.slice(0, testSize);
+ }
+ 

@@ -1,0 +1,16 @@
+{
+  "dayNum": 25,
+  "fakeDate": "2026-08-07T00:00:00.000Z",
+  "preMasteredFutureCount": 360,
+  "servedWordsCount": 30,
+  "masteredLeaks": [],
+  "leakCount": 0,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "preCSD": 24,
+  "postCSD": 24,
+  "csdAdvanced": false,
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "PASS"
+}

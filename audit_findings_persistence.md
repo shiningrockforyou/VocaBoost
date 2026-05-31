@@ -1,5 +1,7 @@
 # vocaBoost Persistence & Stability Audit
 
+> **See also:** `CODE_REVIEW_2026-06-01.md` — broader full-codebase audit (2026-06-01). It re-confirms several open backlog items here (#10, #11, #16) and flags a residual bug in the #4 fix (retake doesn't reset `resultsProcessedRef`). Reconcile status between the two files.
+
 **Date:** 2026-05-26
 **Scope:** vocaBoost (excluding apBoost) — student-facing test/study flows, persistence layer, Firestore rules.
 **Symptom investigated:** "Things weren't writing properly / progress wasn't persisting. Students lost progress or got stuck."

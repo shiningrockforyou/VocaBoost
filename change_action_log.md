@@ -4,6 +4,7 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-06-01 | `CODE_REVIEW_2026-06-01.md` | Added full multi-agent code audit report (vocaBoost excl. apBoost): 72 verified findings (0 blocker / 7 high), severity-ranked + systemic patterns |
 | 2026-01-02 | `src/pages/Dashboard.jsx` | Removed Panic Mode warning banner (lines 1300-1312) |
 | 2026-01-02 | `src/pages/DailySessionFlow.jsx` | Fixed daily pace calculation - changed `pace * 7` to `pace * studyDaysPerWeek` (line 467) |
 | 2026-01-02 | `src/pages/ClassDetail.jsx` | Added `studyDaysPerWeek` setting to Edit List Settings modal |

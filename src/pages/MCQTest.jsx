@@ -804,7 +804,7 @@ const MCQTest = () => {
       console.log('[RETAKE] Restored progress from snapshot')
 
       // [6] Navigate to retake (same test)
-      navigate(`/mcq-test/${classIdParam}/${listId}?type=review`, {
+      navigate(`/mcqtest/${classIdParam}/${listId}?type=review`, {
         state: {
           testConfig: sessionContext,
           returnPath
@@ -988,13 +988,28 @@ const MCQTest = () => {
                   Continue
                 </Button>
               ) : (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => navigate('/')}
-                >
-                  Go to Dashboard
-                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  {canRetake && (
+                    <Button
+                      variant="primary-blue"
+                      size="lg"
+                      onClick={handleRetake}
+                      disabled={submitting}
+                    >
+                      {submitting ? 'Loading...' : 'Try Again'}
+                    </Button>
+                  )}
+                  {retakeError && (
+                    <p className="text-sm text-text-on-error-muted">{retakeError}</p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate('/')}
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
               )}
             </div>
           </div>

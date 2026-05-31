@@ -1,0 +1,41 @@
+{
+  "dayNum": 12,
+  "fakeDate": "2026-07-07T00:00:00.000Z",
+  "preMasteredFutureCount": 24,
+  "servedWordsCount": 30,
+  "masteredLeaks": [
+    {
+      "wordId": "PaiY51v6MrQQqT8o0qzY",
+      "word": "unbiased",
+      "position": 86,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783555227000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "obqz07VMtLM510YecxLb",
+      "word": "extremity",
+      "position": 91,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783555227000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "EAdXy5uHiulCoh8d0SMh",
+      "word": "navigate",
+      "position": 75,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783555227000,
+      "isMasteredLeak": true
+    }
+  ],
+  "leakCount": 3,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "preCSD": 11,
+  "postCSD": 12,
+  "csdAdvanced": true,
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "FAIL"
+}

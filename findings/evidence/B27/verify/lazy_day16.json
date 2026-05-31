@@ -1,0 +1,185 @@
+{
+  "dayNum": 16,
+  "fakeDate": "2026-07-13T00:00:00.000Z",
+  "preMasteredFutureCount": 252,
+  "servedWordsCount": 30,
+  "masteredLeaks": [
+    {
+      "wordId": "cbtA1CN0d6tA7PD8WOrJ",
+      "word": "zeal\r\n(old English)",
+      "position": 67,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "cS6qeCF1OqPC8KjyZnUQ",
+      "word": "unequivocal",
+      "position": 59,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "MRa6N6mw9xAwb9xhJjl6",
+      "word": "vitriolic",
+      "position": 82,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "IkZhL3ltn4PhHFhg7REm",
+      "word": "attendant",
+      "position": 50,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "YLszt10nX8W4CokbDoVE",
+      "word": "elite",
+      "position": 71,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "cBMp0eYoGcROkg5gBSl4",
+      "word": "continuum",
+      "position": 29,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783987239000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "fSYeZlEPSFAnj8fvNkhr",
+      "word": "allegory",
+      "position": 85,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "Sp5zerJe8bXu0b599K0L",
+      "word": "deface",
+      "position": 57,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "8as83ERPBquoQnM4qdAi",
+      "word": "multifaceted",
+      "position": 83,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "rEEvK70oVCH1gaq17SZh",
+      "word": "resentful",
+      "position": 56,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "xORGGEuLAmyAEnfubOx1",
+      "word": "vagary",
+      "position": 92,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "16wOcNB1BAMmHgmXn9jR",
+      "word": "disservice",
+      "position": 2,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": null,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "EQnGcntJyBgbN6lbefiX",
+      "word": "fetter",
+      "position": 51,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "EAdXy5uHiulCoh8d0SMh",
+      "word": "navigate",
+      "position": 75,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "Ejm7LOTyJlpjvyBm61Ai",
+      "word": "pathos",
+      "position": 69,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "ZU9vYs8p8lPr8qL1bMGK",
+      "word": "enigmatic",
+      "position": 58,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "bbK50FqN1cKx0kBiDEkp",
+      "word": "lavish",
+      "position": 90,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "AtHXz5xPPZR5RRW18g3M",
+      "word": "umbrage\r\n(old English)",
+      "position": 17,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783987239000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "obqz07VMtLM510YecxLb",
+      "word": "extremity",
+      "position": 91,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "cXpiXz4U5LIdN2I0R0P2",
+      "word": "stoical",
+      "position": 70,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "KSBvXK7cd2Yn4tIKrITj",
+      "word": "indigent",
+      "position": 93,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785196849000,
+      "isMasteredLeak": true
+    }
+  ],
+  "leakCount": 21,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "preCSD": 15,
+  "postCSD": 16,
+  "csdAdvanced": true,
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "FAIL"
+}

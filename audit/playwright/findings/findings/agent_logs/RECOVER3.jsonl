@@ -1,0 +1,118 @@
+{"ts":"2026-05-31T16:46:43.491Z","event":"SCENARIO_A_START","note":"Advanced account Day 3, advance 80 cards via real UI, then crash"}
+{"ts":"2026-05-31T16:46:43.842Z","event":"login","email":"audit_advanced_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:46:52.578Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:46:52.741Z","event":"screenshot","name":"A_01_dashboard"}
+{"ts":"2026-05-31T16:46:55.251Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:46:58.341Z","event":"screenshot","name":"A_02_session_page"}
+{"ts":"2026-05-31T16:46:58.344Z","event":"A_session_loaded","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodyPreview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 3Progress0 of 80 masteredCard 1 of 80negligible(adj"}
+{"ts":"2026-05-31T16:46:58.876Z","event":"A_dismissed_modal"}
+{"ts":"2026-05-31T16:46:58.950Z","event":"screenshot","name":"A_03_after_modal"}
+{"ts":"2026-05-31T16:46:58.953Z","event":"A_page_state","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","preview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 3Progress0 of 80 masteredCard 1 of 80negligible(adj.)negligible(adj.)so small as to be meaningless; insignificant; not worth considering🇰🇷Korean무시할 만"}
+{"ts":"2026-05-31T16:46:58.953Z","event":"A_starting_card_advance","note":"Using aria-label \"I know this word (C)\" button"}
+{"ts":"2026-05-31T16:47:03.761Z","event":"A_progress","cardCount":20}
+{"ts":"2026-05-31T16:47:03.849Z","event":"screenshot","name":"A_cards_20"}
+{"ts":"2026-05-31T16:47:08.908Z","event":"A_progress","cardCount":40}
+{"ts":"2026-05-31T16:47:08.992Z","event":"screenshot","name":"A_cards_40"}
+{"ts":"2026-05-31T16:47:14.007Z","event":"A_progress","cardCount":60}
+{"ts":"2026-05-31T16:47:14.098Z","event":"screenshot","name":"A_cards_60"}
+{"ts":"2026-05-31T16:47:19.116Z","event":"A_progress","cardCount":80}
+{"ts":"2026-05-31T16:47:19.273Z","event":"screenshot","name":"A_cards_80"}
+{"ts":"2026-05-31T16:47:19.477Z","event":"A_take_test_btn_visible","cardsAdvanced":80,"note":"This is the REAL flow button"}
+{"ts":"2026-05-31T16:47:49.486Z","event":"A_ERROR","error":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /take test/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"inline-flex items-center justify-center rounded-button font-heading transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:active:scale-100 bg-brand-primary text-white font-bold shadow-lg shadow-brand-primary/20 hover:bg-brand-primary/90 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-primary/30 active:translate-y-0 active:scale-95 active:shadow-md h-12 px-4 text-sm gap-2 w-full\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n","stack":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /take test/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"inline-flex items-center justify-center rounded-button font-heading transition-all duration-200 disabled:opacity-"}
+{"ts":"2026-05-31T16:47:49.589Z","event":"SCENARIO_C_START"}
+{"ts":"2026-05-31T16:47:49.940Z","event":"login","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:47:58.456Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:48:00.963Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:48:03.966Z","event":"C_uid","uid":null}
+{"ts":"2026-05-31T16:48:03.969Z","event":"C_injected","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessKey":"vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"}
+{"ts":"2026-05-31T16:48:03.977Z","event":"saved_json","name":"storage_C_before_crash"}
+{"ts":"2026-05-31T16:48:03.984Z","event":"saved_json","name":"summary_C_before_crash"}
+{"ts":"2026-05-31T16:48:03.984Z","event":"storage_analysis","label":"C_before_crash","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"],"lastPhase":"NEW_TEST","answerCount":2,"isExpired":true,"exitKeys":[]}
+{"ts":"2026-05-31T16:48:07.962Z","event":"saved_json","name":"storage_C_reopen_preserved"}
+{"ts":"2026-05-31T16:48:07.969Z","event":"saved_json","name":"summary_C_reopen_preserved"}
+{"ts":"2026-05-31T16:48:07.969Z","event":"storage_analysis","label":"C_reopen_preserved","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"],"lastPhase":"NEW_TEST","answerCount":2,"isExpired":true,"exitKeys":[]}
+{"ts":"2026-05-31T16:48:07.969Z","event":"C_storage_preserved","preserved":true,"expired":true}
+{"ts":"2026-05-31T16:48:10.476Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:48:15.678Z","event":"screenshot","name":"C_after_reopen"}
+{"ts":"2026-05-31T16:48:15.678Z","event":"C_verdict","expiredStateInjected":true,"lastPhaseInjected":"NEW_TEST","expiryMinutesAgo":4,"storagePreserved":true,"stateExpiredInStorage":true,"routedToTest":false,"verdict":"EXPIRED_STATE_CORRECTLY_NOT_RECOVERED_MEDIUM_WINDOW_CONFIRMED"}
+{"ts":"2026-05-31T16:48:15.790Z","event":"SCENARIO_D_START"}
+{"ts":"2026-05-31T16:48:16.157Z","event":"login","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:48:24.717Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:48:27.226Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:48:30.229Z","event":"D_uid","uid":null}
+{"ts":"2026-05-31T16:48:30.231Z","event":"D_valid_state_injected"}
+{"ts":"2026-05-31T16:48:30.242Z","event":"saved_json","name":"storage_D_before_graceful_close"}
+{"ts":"2026-05-31T16:48:30.248Z","event":"saved_json","name":"summary_D_before_graceful_close"}
+{"ts":"2026-05-31T16:48:30.249Z","event":"storage_analysis","label":"D_before_graceful_close","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"],"lastPhase":"NEW_TEST","answerCount":2,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:48:30.249Z","event":"D_graceful_navigate"}
+{"ts":"2026-05-31T16:48:31.582Z","event":"saved_json","name":"storage_D_after_navigate"}
+{"ts":"2026-05-31T16:48:31.588Z","event":"saved_json","name":"summary_D_after_navigate"}
+{"ts":"2026-05-31T16:48:31.589Z","event":"storage_analysis","label":"D_after_navigate","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"],"lastPhase":"NEW_TEST","answerCount":2,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:48:31.589Z","event":"D_after_nav_exits","exitKeys":[]}
+{"ts":"2026-05-31T16:48:35.535Z","event":"saved_json","name":"storage_D_after_reopen"}
+{"ts":"2026-05-31T16:48:35.541Z","event":"saved_json","name":"summary_D_after_reopen"}
+{"ts":"2026-05-31T16:48:35.541Z","event":"storage_analysis","label":"D_after_reopen","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"],"lastPhase":"NEW_TEST","answerCount":2,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:48:38.048Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:48:43.306Z","event":"screenshot","name":"D_after_reopen"}
+{"ts":"2026-05-31T16:48:43.311Z","event":"D_after_reopen","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","onTest":false}
+{"ts":"2026-05-31T16:48:43.312Z","event":"D_verdict","validStateInjected":true,"intentionalExitSetAfterNav":[],"intentionalExitSetAfterReopen":[],"storagePreserved":true,"routedToTest":false,"verdict":"GRACEFUL_CLOSE_CORRECTLY_SUPPRESSES_RECOVERY"}
+{"ts":"2026-05-31T16:48:43.409Z","event":"SCENARIO_B_INJECT_START","note":"Review test via injection (since no easy review path in test accounts)"}
+{"ts":"2026-05-31T16:48:43.712Z","event":"login","email":"audit_advanced_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:48:52.244Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:48:54.752Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:48:57.756Z","event":"B_inject_review_state","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_review","sessKey":"vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_review"}
+{"ts":"2026-05-31T16:48:57.769Z","event":"saved_json","name":"storage_B_before_crash"}
+{"ts":"2026-05-31T16:48:57.776Z","event":"saved_json","name":"summary_B_before_crash"}
+{"ts":"2026-05-31T16:48:57.776Z","event":"storage_analysis","label":"B_before_crash","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_review","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_review","vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":2,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:49:01.712Z","event":"saved_json","name":"storage_B_immediately_after"}
+{"ts":"2026-05-31T16:49:01.718Z","event":"saved_json","name":"summary_B_immediately_after"}
+{"ts":"2026-05-31T16:49:01.718Z","event":"storage_analysis","label":"B_immediately_after","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_review","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_review","vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":2,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:49:01.718Z","event":"B_preserved","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_review","exitKeys":[]}
+{"ts":"2026-05-31T16:49:04.225Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:49:09.660Z","event":"screenshot","name":"B_after_reopen"}
+{"ts":"2026-05-31T16:49:09.665Z","event":"B_after_reopen","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","onTest":true,"preview":"\n    Step 4 of 5Review Test — Day 3Progress0 of 30 answered1.sneak(v.)2.hypothetical(adj.)3.omission(n.)4.inertia(n.)5.delinquent(adj.)6.conspicuous(adj.)7.stupefy(v.)8.anonymous(adj.)9.utopia(n.)10.hierarchy(n.)11.chimerical(adj.)12.resume(v.)13.impotent(adj.)14.artisan(n.)15.fervor(n.)16.genial(ad"}
+{"ts":"2026-05-31T16:49:09.665Z","event":"B_verdict","method":"injection (REVIEW_TEST phase injected with valid, non-expired state)","lastPhaseInjected":"REVIEW_TEST","storagePreserved":true,"intentionalExitSet":false,"routedToTest":true,"verdict":"REVIEW_RECOVERY_WORKS_WITH_CORRECT_LAST_PHASE"}
+{"ts":"2026-05-31T16:49:09.805Z","event":"findings_written","path":"/app/audit/playwright/findings/findings/findings_B27_recovery_definitive.md"}
+{"ts":"2026-05-31T16:49:09.810Z","event":"status_written","path":"/app/audit/playwright/findings/findings/agent_logs/RECOVER3.status.json"}
+{"ts":"2026-05-31T16:51:10.516Z","event":"SCENARIO_A_V2_START","note":"Fixed: handle test-confirm modal after 80 cards"}
+{"ts":"2026-05-31T16:51:10.982Z","event":"login","email":"audit_advanced_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:51:19.553Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:51:19.738Z","event":"screenshot","name":"Av2_01_dashboard"}
+{"ts":"2026-05-31T16:51:22.249Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:51:25.353Z","event":"screenshot","name":"Av2_02_session"}
+{"ts":"2026-05-31T16:51:25.359Z","event":"Av2_session","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","preview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 3Progress80 of 80 masteredCard 1 of 80negligible(ad"}
+{"ts":"2026-05-31T16:51:25.933Z","event":"Av2_modal_dismissed"}
+{"ts":"2026-05-31T16:51:25.933Z","event":"Av2_advance_start","note":"80 cards expected"}
+{"ts":"2026-05-31T16:51:29.603Z","event":"Av2_progress","cardCount":20}
+{"ts":"2026-05-31T16:51:29.699Z","event":"screenshot","name":"Av2_cards_20"}
+{"ts":"2026-05-31T16:51:33.419Z","event":"Av2_progress","cardCount":40}
+{"ts":"2026-05-31T16:51:33.512Z","event":"screenshot","name":"Av2_cards_40"}
+{"ts":"2026-05-31T16:51:37.219Z","event":"Av2_progress","cardCount":60}
+{"ts":"2026-05-31T16:51:37.314Z","event":"screenshot","name":"Av2_cards_60"}
+{"ts":"2026-05-31T16:51:41.061Z","event":"Av2_progress","cardCount":80}
+{"ts":"2026-05-31T16:51:41.312Z","event":"screenshot","name":"Av2_cards_80"}
+{"ts":"2026-05-31T16:51:41.467Z","event":"Av2_confirm_modal_appeared","cardCount":80}
+{"ts":"2026-05-31T16:51:41.630Z","event":"screenshot","name":"Av2_confirm_modal"}
+{"ts":"2026-05-31T16:51:42.167Z","event":"Av2_start_test_clicked_manually"}
+{"ts":"2026-05-31T16:51:45.168Z","event":"Av2_url_after_confirm","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:51:45.532Z","event":"screenshot","name":"Av2_04_after_advance"}
+{"ts":"2026-05-31T16:51:45.533Z","event":"Av2_advance_complete","cardCount":80,"testReached":true,"confirmModalSeen":true,"startTestClicked":true}
+{"ts":"2026-05-31T16:51:47.535Z","event":"Av2_current_state","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","onTest":true}
+{"ts":"2026-05-31T16:51:48.551Z","event":"storage_analysis","label":"Av2_at_test_entry","testKey":"NONE","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":0,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:51:48.551Z","event":"Av2_CRITICAL_lastPhase_at_entry","lastPhase":"NEW_STUDY","question":"Is lastPhase=NEW_TEST (correct, recovery works) or NEW_STUDY (bug, recovery fails)?"}
+{"ts":"2026-05-31T16:51:48.879Z","event":"screenshot","name":"Av2_05_test_page"}
+{"ts":"2026-05-31T16:51:48.882Z","event":"Av2_test_inputs","ic":30}
+{"ts":"2026-05-31T16:51:51.767Z","event":"screenshot","name":"Av2_06_answers"}
+{"ts":"2026-05-31T16:51:51.767Z","event":"Av2_answered","answeredA":3}
+{"ts":"2026-05-31T16:51:51.784Z","event":"storage_analysis","label":"Av2_before_crash","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":3,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:51:51.785Z","event":"Av2_BEFORE_CRASH","lastPhase":"NEW_STUDY","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","answerCount":3,"exitKeys":[],"VERDICT":"BUG — lastPhase=NEW_STUDY means recovery will NOT trigger"}
+{"ts":"2026-05-31T16:51:51.785Z","event":"Av2_CRASH","method":"ctx.close() without navigate"}
+{"ts":"2026-05-31T16:51:53.887Z","event":"Av2_REOPEN","userDataDir":"/tmp/claude-1000/recover3_scenario_A_v2"}
+{"ts":"2026-05-31T16:51:56.919Z","event":"screenshot","name":"Av2_07_home_after_reopen"}
+{"ts":"2026-05-31T16:51:56.934Z","event":"storage_analysis","label":"Av2_immediately_after_reopen","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":3,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:51:56.934Z","event":"Av2_storage_immediate","testKeyPreserved":true,"lastPhase":"NEW_STUDY","exitKeys":[]}
+{"ts":"2026-05-31T16:51:59.440Z","event":"spa_navigate","routePath":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:52:04.446Z","event":"Av2_AFTER_REOPEN","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","onTest":false,"preview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 3Progress80 of 80 masteredCard 1 of 80negligible(adj.)negligible(adj.)so small as to be meaningless; insignificant; not worth considering🇰🇷Korean무시할 "}
+{"ts":"2026-05-31T16:52:04.517Z","event":"screenshot","name":"Av2_08_session_after_reopen"}
+{"ts":"2026-05-31T16:52:04.535Z","event":"storage_analysis","label":"Av2_after_reopen","testKey":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","sessionKeys":["vocaboost_session_tVDBmGcf0nSW5CKndqrZ8lgQirE2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day3_new"],"lastPhase":"NEW_STUDY","answerCount":3,"isExpired":false,"exitKeys":[]}
+{"ts":"2026-05-31T16:52:04.539Z","event":"Av2_FINAL_VERDICT","testReachedViaRealFlow":true,"cardsAdvancedViaUI":80,"confirmModalSeen":true,"startTestClicked":true,"answersTyped":3,"lastPhaseAtTestEntry":"NEW_STUDY","lastPhaseBeforeCrash":"NEW_STUDY","answerCountBeforeCrash":3,"testKeyBeforeCrash":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","intentionalExitBeforeCrash":[],"storagePreservedAcrossRestart":true,"intentionalExitAfterReopen":[],"routedToTestAfterReopen":false,"recoveryPromptShown":false,"answersRestored":false,"urlAfterReopen":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","verdict":"BUG_lastPhase_is_NEW_STUDY_not_NEW_TEST"}

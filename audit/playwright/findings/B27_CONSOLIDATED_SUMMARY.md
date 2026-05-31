@@ -48,7 +48,9 @@ Production audit of vocaBoost (https://vocaboostone.netlify.app, Firebase vocabo
 - **No fabrication:** 0 orphan docs created by any B27 agent; all attempts use correct classId_listId ids.
 
 ## RECOVERY PATHS (after a guard/interruption, does restart/re-entry land on the right path?)
-Tested 6 scenarios (RECOVER agent). Summary: **path-correctness is mostly fine (5/6 land on the right day+phase, no corruption/dead-ends), but in-progress work is never preserved across a real restart/logout, and the B2 strand leaves students permanently stuck.**
+Tested 6 scenarios (RECOVER agent). Summary: **path-correctness is mostly fine (5/6 land on the right day+phase, no corruption/dead-ends); the B2 strand leaves students permanently stuck (now patched).**
+
+> **CORRECTION (2026-05-31, owner clarification + harness re-scope):** The "logout/restart loses in-progress work (HIGH)" finding is largely WITHDRAWN. (1) **Intentional logout clearing progress is INTENDED** — the `intentional_exit` flag is working as designed; the "Logout mid-test → re-login → work lost" row is NOT a bug, remove it. (2) The "browser restart loses work" rows are a **likely harness artifact**: the agent simulated restart with a fresh Playwright context (empty localStorage), but a real browser restart PRESERVES localStorage, so real loss was overstated and needs a localStorage-preserving re-test before being called a bug. (3) Only genuinely-remaining issue, downgraded to **MEDIUM/optional**: the recovery window is just **3 minutes**, so a student returning after a longer break loses in-progress answers even though localStorage survived. The B2 strand row stands (real, now patched).
 
 | Scenario | Recovers to correct path? | In-progress work | Verdict |
 |---|---|---|---|

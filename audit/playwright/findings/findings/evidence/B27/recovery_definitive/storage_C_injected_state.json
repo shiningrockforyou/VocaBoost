@@ -1,0 +1,7 @@
+{
+  "vocaboost-theme": "light",
+  "vocaboost_session_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new": "{\"lastPhase\":\"NEW_TEST\",\"wordPool\":[{\"id\":\"word1\",\"word\":\"apple\"}],\"dayNumber\":1}",
+  "vocaboost-roundness": "normal",
+  "vocaboost-border-weight": "normal",
+  "vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new": "{\"testId\":\"k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new\",\"answers\":{\"word1\":\"expired_answer_1\",\"word2\":\"expired_answer_2\"},\"wordIds\":[\"word1\",\"word2\"],\"expiresAt\":1780245457545,\"savedAt\":1780245397545}"
+}

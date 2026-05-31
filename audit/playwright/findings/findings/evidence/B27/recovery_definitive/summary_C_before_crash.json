@@ -1,0 +1,11 @@
+{
+  "label": "C_before_crash",
+  "testKey": "vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new",
+  "sessionKeys": [
+    "vocaboost_session_careful_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new"
+  ],
+  "lastPhase": "NEW_TEST",
+  "answerCount": 2,
+  "isExpired": true,
+  "exitKeys": []
+}

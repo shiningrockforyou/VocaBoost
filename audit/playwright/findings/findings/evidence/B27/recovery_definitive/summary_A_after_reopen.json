@@ -1,0 +1,12 @@
+{
+  "label": "A_after_reopen",
+  "testKey": "NOT FOUND",
+  "sessionKey": "NOT FOUND",
+  "lastPhase": "NOT FOUND",
+  "testAnswerCount": 0,
+  "testExpiresAt": null,
+  "intentionalExitKeys": [],
+  "intentionalExitValues": null,
+  "allKeysCount": 3,
+  "vocaboostKeysCount": 3
+}

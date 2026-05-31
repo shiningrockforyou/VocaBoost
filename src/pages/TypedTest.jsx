@@ -906,7 +906,7 @@ const TypedTest = () => {
       console.log('[RETAKE] Restored progress from snapshot')
 
       // [6] Navigate to retake (same test)
-      navigate(`/typed-test/${classIdParam}/${listId}?type=review`, {
+      navigate(`/typedtest/${classIdParam}/${listId}?type=review`, {
         state: {
           testConfig: sessionContext,
           returnPath
@@ -1072,13 +1072,28 @@ const TypedTest = () => {
                   Continue
                 </Button>
               ) : (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => navigate('/')}
-                >
-                  Go to Dashboard
-                </Button>
+                <div className="flex flex-col items-center gap-3">
+                  {canRetake && (
+                    <Button
+                      variant="primary-blue"
+                      size="lg"
+                      onClick={handleRetake}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Loading...' : 'Try Again'}
+                    </Button>
+                  )}
+                  {retakeError && (
+                    <p className="text-sm text-text-on-error-muted">{retakeError}</p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigate('/')}
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
               )}
             </div>
           </div>

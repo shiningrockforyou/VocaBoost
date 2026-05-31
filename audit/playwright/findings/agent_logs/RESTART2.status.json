@@ -1,0 +1,13 @@
+{
+  "agent": "RESTART2",
+  "completedAt": "2026-05-31T16:04:25.415Z",
+  "methodUsed": "Option B (same context, new page) + Option C (inject) + Scenario 4 (old method = empty context)",
+  "scenariosRun": 5,
+  "recoveryWorks": false,
+  "confirmedFreshContextFlaw": true,
+  "expiryWorksCorrectly": true,
+  "genuineBugConfirmed": true,
+  "allErrors": false,
+  "verdict": "GENUINE_RECOVERY_BUG_CONFIRMED",
+  "recommendation": "KEEP_AS_HIGH: genuine recovery bug"
+}

@@ -1,0 +1,19 @@
+{
+  "b2Date": "2026-09-07T00:00:00.000Z",
+  "preCP": {
+    "currentStudyDay": 17,
+    "totalWordsIntroduced": 390
+  },
+  "postCP": {
+    "currentStudyDay": 18,
+    "totalWordsIntroduced": 420
+  },
+  "csdAdvanced": true,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "undefinedFieldError": false,
+  "sessionPhase": "complete",
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "PASS"
+}

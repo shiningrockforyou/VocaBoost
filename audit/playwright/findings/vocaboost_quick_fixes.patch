@@ -1,0 +1,153 @@
+diff --git a/src/pages/MCQTest.jsx b/src/pages/MCQTest.jsx
+index a0c9efd..b8aab97 100644
+--- a/src/pages/MCQTest.jsx
++++ b/src/pages/MCQTest.jsx
+@@ -804,7 +804,7 @@ const MCQTest = () => {
+       console.log('[RETAKE] Restored progress from snapshot')
+ 
+       // [6] Navigate to retake (same test)
+-      navigate(`/mcq-test/${classIdParam}/${listId}?type=review`, {
++      navigate(`/mcqtest/${classIdParam}/${listId}?type=review`, {
+         state: {
+           testConfig: sessionContext,
+           returnPath
+@@ -988,13 +988,28 @@ const MCQTest = () => {
+                   Continue
+                 </Button>
+               ) : (
+-                <Button
+-                  variant="outline"
+-                  size="lg"
+-                  onClick={() => navigate('/')}
+-                >
+-                  Go to Dashboard
+-                </Button>
++                <div className="flex flex-col items-center gap-3">
++                  {canRetake && (
++                    <Button
++                      variant="primary-blue"
++                      size="lg"
++                      onClick={handleRetake}
++                      disabled={submitting}
++                    >
++                      {submitting ? 'Loading...' : 'Try Again'}
++                    </Button>
++                  )}
++                  {retakeError && (
++                    <p className="text-sm text-text-on-error-muted">{retakeError}</p>
++                  )}
++                  <Button
++                    variant="outline"
++                    size="lg"
++                    onClick={() => navigate('/')}
++                  >
++                    Go to Dashboard
++                  </Button>
++                </div>
+               )}
+             </div>
+           </div>
+diff --git a/src/pages/TypedTest.jsx b/src/pages/TypedTest.jsx
+index 4fc1760..3544291 100644
+--- a/src/pages/TypedTest.jsx
++++ b/src/pages/TypedTest.jsx
+@@ -906,7 +906,7 @@ const TypedTest = () => {
+       console.log('[RETAKE] Restored progress from snapshot')
+ 
+       // [6] Navigate to retake (same test)
+-      navigate(`/typed-test/${classIdParam}/${listId}?type=review`, {
++      navigate(`/typedtest/${classIdParam}/${listId}?type=review`, {
+         state: {
+           testConfig: sessionContext,
+           returnPath
+@@ -1072,13 +1072,28 @@ const TypedTest = () => {
+                   Continue
+                 </Button>
+               ) : (
+-                <Button
+-                  variant="outline"
+-                  size="lg"
+-                  onClick={() => navigate('/')}
+-                >
+-                  Go to Dashboard
+-                </Button>
++                <div className="flex flex-col items-center gap-3">
++                  {canRetake && (
++                    <Button
++                      variant="primary-blue"
++                      size="lg"
++                      onClick={handleRetake}
++                      disabled={isSubmitting}
++                    >
++                      {isSubmitting ? 'Loading...' : 'Try Again'}
++                    </Button>
++                  )}
++                  {retakeError && (
++                    <p className="text-sm text-text-on-error-muted">{retakeError}</p>
++                  )}
++                  <Button
++                    variant="outline"
++                    size="lg"
++                    onClick={() => navigate('/')}
++                  >
++                    Go to Dashboard
++                  </Button>
++                </div>
+               )}
+             </div>
+           </div>
+diff --git a/src/services/sessionService.js b/src/services/sessionService.js
+index bea0390..a032c41 100644
+--- a/src/services/sessionService.js
++++ b/src/services/sessionService.js
+@@ -177,8 +177,15 @@ export async function updateSessionState(userId, classId, listId, updates) {
+   const docId = getSessionDocId(classId, listId);
+   const sessionRef = doc(db, `users/${userId}/session_states`, docId);
+ 
++  // Strip undefined: Firestore rejects setDoc/update with undefined values, which
++  // would throw and (for callers in the day-completion path) strand the session.
++  // Mirrors the guard in saveSessionState so no caller can poison the write.
++  const cleanUpdates = Object.fromEntries(
++    Object.entries(updates).filter(([, v]) => v !== undefined)
++  );
++
+   await setDoc(sessionRef, {
+-    ...updates,
++    ...cleanUpdates,
+     lastUpdated: Timestamp.now()
+   }, { merge: true });
+ }
+diff --git a/src/utils/studyAlgorithm.js b/src/utils/studyAlgorithm.js
+index 122df45..64c13e9 100644
+--- a/src/utils/studyAlgorithm.js
++++ b/src/utils/studyAlgorithm.js
+@@ -265,7 +265,21 @@ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = [
+   queue.push(...neverTestedToAdd);
+   remaining -= neverTestedToAdd.length;
+ 
+-  // Priority 4: PASSED words (already proven, fill remaining slots)
++  // Priority 4: NEEDS_CHECK words (returned from MASTERED after their 21-day rest;
++  // returnMasteredWords flips MASTERED -> NEEDS_CHECK, but without this bucket those
++  // words would never be re-selected for review and stay stuck out of rotation).
++  if (remaining > 0) {
++    const needsCheck = segmentWords.filter(w =>
++      w.status === 'NEEDS_CHECK' && !queueIds.has(w.id)
++    );
++    const shuffledNeedsCheck = shuffleArray(needsCheck);
++    const needsCheckToAdd = shuffledNeedsCheck.slice(0, remaining);
++    needsCheckToAdd.forEach(w => queueIds.add(w.id));
++    queue.push(...needsCheckToAdd);
++    remaining -= needsCheckToAdd.length;
++  }
++
++  // Priority 5: PASSED words (already proven, fill remaining slots)
+   if (remaining > 0) {
+     const passed = segmentWords.filter(w =>
+       w.status === 'PASSED' && !queueIds.has(w.id)
+diff --git a/public/_redirects b/public/_redirects
+new file mode 100644
+index 0000000..ad37e2c
+--- /dev/null
++++ b/public/_redirects
+@@ -0,0 +1 @@
++/*    /index.html   200

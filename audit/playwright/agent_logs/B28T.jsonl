@@ -1,0 +1,37 @@
+{"ts":"2026-05-31T17:46:42.403Z","level":"INFO","msg":"=== T1: Enrollment Integrity ==="}
+{"ts":"2026-05-31T17:46:42.415Z","level":"INFO","msg":"T1 code analysis","joinClassWritesBothFields":true,"rulesOnlyAllowsStudentCount":true,"rulesAlsoAllowsStudentIds":false,"phantomBugConfirmed":true}
+{"ts":"2026-05-31T17:46:42.723Z","level":"INFO","msg":"Logging in as teacher","email":"veterans@vocaboost.com"}
+{"ts":"2026-05-31T17:46:47.900Z","level":"INFO","msg":"Teacher login successful","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T17:46:48.009Z","level":"INFO","msg":"Screenshot: T1_01_teacher_dashboard","path":"/app/audit/playwright/findings/evidence/B28/T1_01_teacher_dashboard.png"}
+{"ts":"2026-05-31T17:46:52.771Z","level":"INFO","msg":"Screenshot: T1_02_dashboard_loaded","path":"/app/audit/playwright/findings/evidence/B28/T1_02_dashboard_loaded.png"}
+{"ts":"2026-05-31T17:46:52.778Z","level":"INFO","msg":"T1: Teacher dashboard loaded","hasClasses":true,"url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T17:46:52.785Z","level":"INFO","msg":"T1: Class links found","count":8}
+{"ts":"2026-05-31T17:46:56.028Z","level":"INFO","msg":"Screenshot: T1_03_class_roster","path":"/app/audit/playwright/findings/evidence/B28/T1_03_class_roster.png"}
+{"ts":"2026-05-31T17:47:01.652Z","level":"INFO","msg":"T1: Roster page loaded","url":"https://vocaboostone.netlify.app/classes/GNktwcqI18vyAps3iJDf","hasStudentInfo":true}
+{"ts":"2026-05-31T17:47:01.840Z","level":"INFO","msg":"=== T2: Challenge Consistency + Day-Advance ==="}
+{"ts":"2026-05-31T17:47:01.851Z","level":"INFO","msg":"T2 code analysis","hasStaleGuardInReviewChallenge":false,"advancesDay":true,"usesTransactionOrBatch":true,"dayGuardMatch":null}
+{"ts":"2026-05-31T17:47:01.851Z","level":"INFO","msg":"T2: sequential writes in reviewChallenge","count":5}
+{"ts":"2026-05-31T17:47:01.851Z","level":"INFO","msg":"T2: submitChallenge writes","count":2,"usesTransaction":false}
+{"ts":"2026-05-31T17:47:01.856Z","level":"INFO","msg":"=== T3: Gradebook ==="}
+{"ts":"2026-05-31T17:47:01.929Z","level":"INFO","msg":"Logging in as teacher","email":"veterans@vocaboost.com"}
+{"ts":"2026-05-31T17:47:06.896Z","level":"INFO","msg":"Teacher login successful","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T17:47:12.492Z","level":"INFO","msg":"Screenshot: T3_01_gradebook_initial","path":"/app/audit/playwright/findings/evidence/B28/T3_01_gradebook_initial.png"}
+{"ts":"2026-05-31T17:47:12.496Z","level":"INFO","msg":"T3: Gradebook loaded","url":"https://vocaboostone.netlify.app/gradebook","hasGradebook":true}
+{"ts":"2026-05-31T17:47:12.496Z","level":"INFO","msg":"T3: Initial showing count","count":0}
+{"ts":"2026-05-31T17:47:12.496Z","level":"INFO","msg":"T3: Korean text present","hasKorean":false}
+{"ts":"2026-05-31T17:47:13.095Z","level":"INFO","msg":"Screenshot: T3_02_filter_input_clicked","path":"/app/audit/playwright/findings/evidence/B28/T3_02_filter_input_clicked.png"}
+{"ts":"2026-05-31T17:47:13.098Z","level":"INFO","msg":"T3: Filter elements","count":0}
+{"ts":"2026-05-31T17:47:14.211Z","level":"INFO","msg":"Screenshot: T3_03_class_filter_clicked","path":"/app/audit/playwright/findings/evidence/B28/T3_03_class_filter_clicked.png"}
+{"ts":"2026-05-31T17:47:14.284Z","level":"INFO","msg":"Screenshot: T3_04_gradebook_state","path":"/app/audit/playwright/findings/evidence/B28/T3_04_gradebook_state.png"}
+{"ts":"2026-05-31T17:47:14.291Z","level":"INFO","msg":"T3: Post-pagination filter analysis","hasMoreComputedBeforeClientFilter":false}
+{"ts":"2026-05-31T17:47:14.295Z","level":"INFO","msg":"T3: Showing count uses full attempts array","match":true}
+{"ts":"2026-05-31T17:47:14.295Z","level":"INFO","msg":"T3 console errors","count":0,"errors":[]}
+{"ts":"2026-05-31T17:47:14.308Z","level":"INFO","msg":"=== T4: Dashboard Hook-Order ==="}
+{"ts":"2026-05-31T17:47:14.394Z","level":"INFO","msg":"T4: Code analysis","hasEarlyReturnForTeacher":true,"hooksDefinedAfterEarlyReturn":false,"earlyReturnPos":-1,"firstUseMemoAfterReturn":33970,"modalState1Pos":46872}
+{"ts":"2026-05-31T17:47:14.394Z","level":"INFO","msg":"Logging in as teacher","email":"veterans@vocaboost.com"}
+{"ts":"2026-05-31T17:47:19.345Z","level":"INFO","msg":"Teacher login successful","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T17:47:21.483Z","level":"INFO","msg":"Screenshot: T4_01_teacher_dashboard_initial","path":"/app/audit/playwright/findings/evidence/B28/T4_01_teacher_dashboard_initial.png"}
+{"ts":"2026-05-31T17:47:21.487Z","level":"INFO","msg":"T4: Dashboard state","teacherDashboardRendered":true,"isBlankOrBroken":false,"reactHookErrors":0,"allConsoleErrors":[]}
+{"ts":"2026-05-31T17:47:24.796Z","level":"INFO","msg":"Screenshot: T4_02_after_reload","path":"/app/audit/playwright/findings/evidence/B28/T4_02_after_reload.png"}
+{"ts":"2026-05-31T17:47:32.438Z","level":"INFO","msg":"Screenshot: T4_03_after_nav_back","path":"/app/audit/playwright/findings/evidence/B28/T4_03_after_nav_back.png"}
+{"ts":"2026-05-31T17:47:32.442Z","level":"INFO","msg":"T4: Post-nav state","stillRendered":true,"reactHookErrors":0,"errors":[]}

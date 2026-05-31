@@ -1,0 +1,66 @@
+{"ts":"2026-05-31T16:02:27.155Z","event":"RESTART2_start","date":"2026-05-31T16:02:27.155Z"}
+{"ts":"2026-05-31T16:02:27.355Z","event":"running_scenario_C"}
+{"ts":"2026-05-31T16:02:27.390Z","event":"scenario_start","scenario":"C","description":"Option C: inject pre-built localStorage, verify app reads it"}
+{"ts":"2026-05-31T16:02:27.663Z","event":"login_attempt","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:02:35.843Z","event":"login_success","email":"audit_careful_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:02:36.029Z","event":"screenshot","name":"SC_01_logged_in"}
+{"ts":"2026-05-31T16:02:36.037Z","event":"injected_test_state","testId":"vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","wordCount":3,"expiresAt":"2026-05-31T16:05:27.391Z"}
+{"ts":"2026-05-31T16:02:36.058Z","event":"firebase_uid","uid":null}
+{"ts":"2026-05-31T16:02:36.223Z","event":"screenshot","name":"SC_02_after_full_inject"}
+{"ts":"2026-05-31T16:02:43.701Z","event":"spa_navigate","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:02:46.805Z","event":"screenshot","name":"SC_03_session_after_inject"}
+{"ts":"2026-05-31T16:02:46.810Z","event":"page_state_after_inject_nav","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodyPreview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 22Progress0 of 80 masteredCard 1 of 80novice(n.)novice(n.)a person who has just started learning or doing something🇰🇷Korean초보자Sample SentenceAs a nov"}
+{"ts":"2026-05-31T16:02:47.823Z","event":"recovery_prompt_check","hasRecovery":false,"hasResume":false,"contentPreview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s"}
+{"ts":"2026-05-31T16:02:47.835Z","event":"scenario_complete","scenario":"C_inject","result":{"scenario":"C_inject","description":"Option C: inject pre-built localStorage state before page load, verify recovery path is triggered","method":"Option C (addInitScript to pre-populate localStorage before app JS runs)","localStoragePreserved":true,"intentionalExitSet":false,"answersTyped":3,"answersRestored":false,"recoveryPromptShown":false,"classification":"STORAGE_INTACT_BUT_NO_RECOVERY_PATH_TRIGGERED","notes":["Injected: testId=vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new, 3 answers, no intentional_exit","Verified: 3 answers in storage","Firebase UID from localStorage: NOT FOUND","URL after navigate: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","Page content: \n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s","After navigate: testId in localStorage: true, intentional_exit: false","Redirected to typedtest: false","Recovery prompt in session page: false"]}}
+{"ts":"2026-05-31T16:02:47.867Z","event":"running_scenario_1"}
+{"ts":"2026-05-31T16:02:47.877Z","event":"scenario_start","scenario":1,"description":"Mid new-word typed test, localStorage-preserving restart (Option B)"}
+{"ts":"2026-05-31T16:02:47.975Z","event":"login_attempt","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:02:55.906Z","event":"login_success","email":"audit_careful_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:02:56.074Z","event":"screenshot","name":"S1_01_dashboard"}
+{"ts":"2026-05-31T16:02:59.116Z","event":"s1_session_start","result":"started"}
+{"ts":"2026-05-31T16:02:59.226Z","event":"screenshot","name":"S1_02_session_started"}
+{"ts":"2026-05-31T16:02:59.229Z","event":"s1_current_step","step":3,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:03:00.230Z","event":"s1_url_after_skip","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:03:00.234Z","event":"typed_inputs_found","count":0}
+{"ts":"2026-05-31T16:03:00.306Z","event":"screenshot","name":"S1_04_no_inputs"}
+{"ts":"2026-05-31T16:03:00.337Z","event":"running_scenario_2"}
+{"ts":"2026-05-31T16:03:00.345Z","event":"scenario_start","scenario":2,"description":"Mid review test, localStorage-preserving restart"}
+{"ts":"2026-05-31T16:03:00.410Z","event":"login_attempt","email":"audit_advanced_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:03:08.391Z","event":"login_success","email":"audit_advanced_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:03:08.557Z","event":"screenshot","name":"S2_01_dashboard"}
+{"ts":"2026-05-31T16:03:12.252Z","event":"screenshot","name":"S2_02_session_started"}
+{"ts":"2026-05-31T16:03:12.255Z","event":"s2_current_step","step":1}
+{"ts":"2026-05-31T16:03:16.692Z","event":"skipped_to_test_via_menu"}
+{"ts":"2026-05-31T16:03:17.069Z","event":"screenshot","name":"S2_03_after_skip_step1"}
+{"ts":"2026-05-31T16:03:17.072Z","event":"no_session_menu_found"}
+{"ts":"2026-05-31T16:03:17.444Z","event":"screenshot","name":"S2_04_after_skip_step3"}
+{"ts":"2026-05-31T16:03:17.447Z","event":"typed_inputs_found","count":30}
+{"ts":"2026-05-31T16:03:20.252Z","event":"screenshot","name":"S2_05_answers_typed"}
+{"ts":"2026-05-31T16:03:20.263Z","event":"s2_simulating_restart"}
+{"ts":"2026-05-31T16:03:28.601Z","event":"spa_navigate","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:03:32.703Z","event":"screenshot","name":"S2_06_session_after_restart"}
+{"ts":"2026-05-31T16:03:33.710Z","event":"recovery_prompt_check","hasRecovery":false,"hasResume":false,"contentPreview":"\n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s"}
+{"ts":"2026-05-31T16:03:33.715Z","event":"scenario_complete","scenario":2,"result":{"scenario":2,"description":"Mid review test (Day 2+), unintentional restart (Option B)","method":"Option B","localStoragePreserved":true,"intentionalExitSet":false,"answersTyped":3,"answersRestored":false,"recoveryPromptShown":false,"classification":"STORAGE_PRESERVED_BUT_NO_RECOVERY","notes":["Session start: started","Step: 1, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","Skip to test: true","Skip to review test: false","Typed test inputs (review): 30","Before restart: 1 test keys","Test state: 3 answers","After restart: 1 test keys preserved=true","Final URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","Body: \n    Step 1 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s","Redirected to test: false, recovery prompt: false"]}}
+{"ts":"2026-05-31T16:03:33.746Z","event":"running_scenario_3"}
+{"ts":"2026-05-31T16:03:33.752Z","event":"scenario_start","scenario":3,"description":"Expiry boundary test"}
+{"ts":"2026-05-31T16:03:33.827Z","event":"login_attempt","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:03:41.792Z","event":"login_success","email":"audit_careful_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:03:41.798Z","event":"s3_injected_expired_state","expiresAt":"2026-05-31T16:02:33.753Z"}
+{"ts":"2026-05-31T16:03:48.459Z","event":"spa_navigate","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:03:52.573Z","event":"screenshot","name":"S3_01_session_after_expired_inject"}
+{"ts":"2026-05-31T16:03:53.592Z","event":"recovery_prompt_check","hasRecovery":false,"hasResume":false,"contentPreview":"\n    Step 3 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s"}
+{"ts":"2026-05-31T16:03:53.596Z","event":"scenario_complete","scenario":3,"result":{"scenario":3,"description":"Expiry boundary: inject state, shim Date.now +4 min, verify it is NOT recovered (expected)","method":"Option C + Date.now() shim","localStoragePreserved":true,"intentionalExitSet":false,"answersTyped":3,"answersRestored":false,"recoveryPromptShown":false,"classification":"EXPIRED_STATE_NOT_RECOVERED_CORRECT","notes":["Injected state with expiresAt=2026-05-31T16:02:33.753Z (already expired 1 min ago)","Test key in storage before nav: true","URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR, body: \n    Step 3 of 5\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s","Test key remains after navigate: true (if cleared = expiry working)","CORRECT BEHAVIOR: expired state correctly not recovered"]}}
+{"ts":"2026-05-31T16:03:53.737Z","event":"running_scenario_4"}
+{"ts":"2026-05-31T16:03:53.738Z","event":"scenario_start","scenario":4,"description":"Sanity: fresh empty context (prior RECOVER agent method)"}
+{"ts":"2026-05-31T16:03:54.220Z","event":"login_attempt","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:04:02.218Z","event":"login_success","email":"audit_careful_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:04:05.265Z","event":"no_session_menu_found"}
+{"ts":"2026-05-31T16:04:05.268Z","event":"typed_inputs_found","count":0}
+{"ts":"2026-05-31T16:04:05.439Z","event":"screenshot","name":"S4_01_before_fresh_context"}
+{"ts":"2026-05-31T16:04:05.439Z","event":"s4_closing_full_context_as_prior_agent_did"}
+{"ts":"2026-05-31T16:04:07.404Z","event":"login_attempt","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T16:04:14.716Z","event":"login_success","email":"audit_careful_01_top@vocaboost.test","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T16:04:21.104Z","event":"spa_navigate","path":"/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T16:04:24.284Z","event":"screenshot","name":"S4_02_fresh_context_session"}
+{"ts":"2026-05-31T16:04:25.288Z","event":"recovery_prompt_check","hasRecovery":false,"hasResume":false,"contentPreview":"\n    Step 5 of 5✓Day 23 CompleteGreat Job!Session SummaryNew Words Studied80Words Reviewed57Total Progress1760 / 3381Back to Dashboardℹ️Resume Day 23?You scored 90% on the review test. Would you like to retry the review test or move on to the next day?Move On to Next DayRetry Review Test\n  \n\n"}
+{"ts":"2026-05-31T16:04:25.398Z","event":"scenario_complete","scenario":4,"result":{"scenario":4,"description":"Sanity: fresh empty Playwright context (= prior RECOVER agent method)","method":"NEW empty context (prior incorrect method)","localStoragePreserved":false,"intentionalExitSet":false,"answersTyped":0,"answersRestored":false,"recoveryPromptShown":false,"classification":"CONFIRMS_PRIOR_FLAW: fresh context wipes localStorage causing false HIGH finding","notes":["This replicates what the prior RECOVER agent did — proves fresh context = no localStorage","Session start: started","Inputs found: 0","Fresh context localStorage: 0 test keys (expected: 0)","Recovery prompt after fresh context: false (expected: false)"]}}

@@ -1,0 +1,49 @@
+{
+  "dayNum": 14,
+  "fakeDate": "2026-07-09T00:00:00.000Z",
+  "preMasteredFutureCount": 132,
+  "servedWordsCount": 30,
+  "masteredLeaks": [
+    {
+      "wordId": "nz8Mso8jFbxqFA9xz3YR",
+      "word": "edict",
+      "position": 208,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783728038000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "1TEiBQ9BOSL03aMTIDmv",
+      "word": "flawed",
+      "position": 231,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783728038000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "wbNjQXNFNIzSJj2ePFNh",
+      "word": "despot",
+      "position": 204,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783728038000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "k263VKbJi4Xk6qj8mZG8",
+      "word": "candid",
+      "position": 219,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1783728038000,
+      "isMasteredLeak": true
+    }
+  ],
+  "leakCount": 4,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "preCSD": 13,
+  "postCSD": 14,
+  "csdAdvanced": true,
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "FAIL"
+}

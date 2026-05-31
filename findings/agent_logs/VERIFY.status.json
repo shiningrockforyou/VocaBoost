@@ -1,0 +1,52 @@
+{
+  "agent": "VERIFY",
+  "completedAt": "2026-05-31T16:12:00Z",
+  "deployGate": "DEPLOYED",
+  "bundleHash": "index-Q7YGdakV.js",
+  "f01Signatures": "PRESENT",
+  "b2Signatures": "PRESENT",
+  "test1_f01_lazy": {
+    "sessions": 6,
+    "leaksByDay": [
+      {"day": 12, "leaks": 3},
+      {"day": 13, "leaks": 0},
+      {"day": 14, "leaks": 4},
+      {"day": 15, "leaks": 0},
+      {"day": 16, "leaks": 21},
+      {"day": 17, "leaks": 20}
+    ],
+    "totalLeaks": 48,
+    "verdict": "FAIL"
+  },
+  "test2_f01_careful": {
+    "sessions": 5,
+    "leaksByDay": [
+      {"day": 21, "leaks": 0, "note": "0 MASTERED-future; skip-to-test failed; MCQ scanned flashcards"},
+      {"day": 22, "leaks": 0},
+      {"day": 23, "leaks": 0},
+      {"day": 24, "leaks": 0, "preMasteredFuture": 360},
+      {"day": 25, "leaks": 0, "preMasteredFuture": 360}
+    ],
+    "totalLeaks": 0,
+    "verdict": "PASS",
+    "note": "No leaks, but careful pool is large enough that MASTERED words rarely hit the 30-word test sample"
+  },
+  "test3_b2": {
+    "undefinedFieldError": false,
+    "csdAdvanced": true,
+    "preCSd": 17,
+    "postCSD": 18,
+    "sessionPhase": "complete",
+    "consoleErrors": 0,
+    "verdict": "PASS"
+  },
+  "orphanDocs": {
+    "lazy": [],
+    "careful": [],
+    "status": "NONE"
+  },
+  "rootCauseF01": "Fix applied to iX()/VC() but main session init uses rc() directly (no MASTERED filter). rc() populates the review queue state M, which is saved to sessionStorage for the MCQ test. VC() is only called in fast-mode/PDF callbacks, not the main init path.",
+  "overallF01": "FAILED",
+  "overallB2": "CONFIRMED_WORKING",
+  "bothFixesVerified": false
+}

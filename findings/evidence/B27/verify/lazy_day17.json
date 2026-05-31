@@ -1,0 +1,177 @@
+{
+  "dayNum": 17,
+  "fakeDate": "2026-07-14T00:00:00.000Z",
+  "preMasteredFutureCount": 291,
+  "servedWordsCount": 30,
+  "masteredLeaks": [
+    {
+      "wordId": "Ll5nUCmfhBsm0v6vYvW6",
+      "word": "laconic\r\n(old English)",
+      "position": 179,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "f3bZpoDfxRVE9PKsF1Wp",
+      "word": "impose",
+      "position": 134,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "f6XPxc2eUH0Ru0TQJv65",
+      "word": "pregnant",
+      "position": 163,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "CRxVXUTB1pmAXDzWw1gS",
+      "word": "quay",
+      "position": 158,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "rcTDy8RkICA2P1JbZvnL",
+      "word": "delinquent",
+      "position": 157,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "99aWXRiNFztyEwcaTNYh",
+      "word": "salve",
+      "position": 174,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "6shldeNNv3CzlqsIKq15",
+      "word": "armament",
+      "position": 170,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "tngybcurQcgbynRxZSSX",
+      "word": "acquisitive",
+      "position": 171,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "5JQayRn5MyuZAa6qPxwq",
+      "word": "arrangement",
+      "position": 181,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "6dRzjEehFosx6YqtPbOc",
+      "word": "propel",
+      "position": 172,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "AnMo1UtGyhvYq6eBJcGS",
+      "word": "colossus",
+      "position": 137,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "omHzlhFQgpdfp4zomYx9",
+      "word": "omission",
+      "position": 140,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "wV1SzPBfsZL8XUq7iRHs",
+      "word": "redoubtable",
+      "position": 143,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "acN89UiuE9slYzKB4kRe",
+      "word": "impunity",
+      "position": 176,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "pbsfXlcYsPl1lnNjtXyj",
+      "word": "fain\r\n(old English)",
+      "position": 139,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "qU1ksvrmhl79bMnLXRQn",
+      "word": "vicissitude",
+      "position": 187,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "uvWdsyT3Toxd8ox5gTrz",
+      "word": "inertia",
+      "position": 148,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "Wlh2WJvP1eAKyrLcbk06",
+      "word": "chimerical",
+      "position": 136,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "fcznNCvk1MzEEDy24Pkb",
+      "word": "prevail",
+      "position": 154,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    },
+    {
+      "wordId": "9xBeKLm5MPXK1bzEuoDa",
+      "word": "divers\r\n(old English)",
+      "position": 168,
+      "preStatus": "MASTERED",
+      "preReturnAtMs": 1785283245000,
+      "isMasteredLeak": true
+    }
+  ],
+  "leakCount": 20,
+  "b2Errors": [],
+  "consoleErrors": [],
+  "preCSD": 16,
+  "postCSD": 17,
+  "csdAdvanced": true,
+  "blocked": false,
+  "blockedReason": null,
+  "verdict": "FAIL"
+}
