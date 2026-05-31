@@ -1,0 +1,18 @@
+{
+  "label": "LAZY27B",
+  "status": "complete",
+  "startedAt": "2026-05-31T10:00:00.000Z",
+  "finishedAt": "2026-05-31T10:22:06.151Z",
+  "sessionsCompleted": 2,
+  "totalSessions": 2,
+  "stopConditionHit": true,
+  "stopReason": "F01 NOT FIXED: MASTERED-future-returnAt words served in review on days 10 and 11",
+  "f01Verdict": "NOT FIXED",
+  "masteredLeakDays": [
+    10,
+    11
+  ],
+  "h2Count": 1,
+  "newOrphansCreated": 0,
+  "singleInstanceConfirmed": true
+}

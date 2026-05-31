@@ -149,23 +149,31 @@ async function enrollInClass(uid, classDoc) {
     return { alreadyEnrolled: true }
   }
 
+  // 1. Create member subdoc (matches src/services/db.js joinClass behavior).
   await memberRef.set({
     studentId: uid,
     joinedAt: FieldValue.serverTimestamp(),
     auditAccount: true,
   })
 
+  // 2. Update class doc with studentIds + studentCount.
   await classRef.update({
     studentIds: FieldValue.arrayUnion(uid),
     studentCount: FieldValue.increment(1),
   })
 
-  await db.doc(`users/${uid}/enrolledClasses/${classDoc.id}`).set({
-    classId: classDoc.id,
-    className: classDoc.name || null,
-    joinedAt: FieldValue.serverTimestamp(),
-    auditAccount: true,
-  })
+  // 3. Write enrolledClasses MAP onto the user doc — this is what
+  //    src/services/db.js:fetchStudentClasses reads (userData.enrolledClasses).
+  //    Earlier versions of this script wrote a subcollection here; that field
+  //    is never read by the app, so the dashboard showed an empty state.
+  await db.doc(`users/${uid}`).set({
+    enrolledClasses: {
+      [classDoc.id]: {
+        name: classDoc.name || null,
+        joinedAt: FieldValue.serverTimestamp(),
+      },
+    },
+  }, { merge: true })
 
   return { enrolled: true }
 }

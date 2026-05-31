@@ -1,0 +1,37 @@
+{"ts":"2026-05-30T22:35:38Z","event":"agent_start","label":"D","claim":["B22"]}
+{"ts":"2026-05-30T22:35:41Z","event":"batch_start","batch":"B22"}
+{"ts":"2026-05-30T22:42:21.204Z","event":"scenario","batch":"B22","scenario":"S01","result":"pass","severity":null,"durationMs":24755}
+{"ts":"2026-05-30T22:42:30.237Z","event":"scenario","batch":"B22","scenario":"S02","result":"pass","severity":null,"durationMs":9018}
+{"ts":"2026-05-30T22:42:30.927Z","event":"scenario","batch":"B22","scenario":"S03","result":"pass","severity":null,"durationMs":667}
+{"ts":"2026-05-30T22:43:11.026Z","event":"scenario","batch":"B22","scenario":"S04","result":"pass","severity":null,"durationMs":40060}
+{"ts":"2026-05-30T22:43:37.095Z","event":"scenario","batch":"B22","scenario":"S05","result":"pass","severity":null,"durationMs":26036}
+{"ts":"2026-05-30T22:43:37.519Z","event":"scenario","batch":"B22","scenario":"S06","result":"fail","severity":"BLOCKER","durationMs":408}
+{"ts":"2026-05-30T22:43:38.109Z","event":"scenario","batch":"B22","scenario":"S09","result":"pass","severity":null,"durationMs":577}
+{"ts":"2026-05-30T22:43:46.419Z","event":"scenario","batch":"B22","scenario":"S11","result":"pass","severity":null,"durationMs":8296}
+{"ts":"2026-05-30T22:43:46.880Z","event":"scenario","batch":"B22","scenario":"S12","result":"pass","severity":null,"durationMs":445}
+{"ts":"2026-05-30T22:43:51.244Z","event":"scenario","batch":"B22","scenario":"S13","result":"pass","severity":null,"durationMs":4348}
+{"ts":"2026-05-30T22:44:02.117Z","event":"scenario","batch":"B22","scenario":"S17","result":"pass","severity":null,"durationMs":10858}
+{"ts":"2026-05-30T22:44:07.077Z","event":"scenario","batch":"B22","scenario":"S19","result":"pass","severity":null,"durationMs":4943}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S01","result":"pass","severity":null,"durationMs":24755,"notes":"7-day baseline clean; 8 pre-existing duplicate attempt docs found in Firestore from prior B03 run"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S02","result":"pass","severity":null,"durationMs":9018,"notes":"Korean round-trip clean; 3 Korean strings intact"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S03","result":"pass","severity":null,"durationMs":667,"notes":"ESL 5-day walk; CSD advanced correctly all days"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S04","result":"pass","severity":null,"durationMs":40060,"notes":"Refresh at transition: all 5 days advanced correctly after root reload"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S05","result":"pass","severity":null,"durationMs":26036,"notes":"Tab close+reopen: all 4 days advanced; Firestore persisted correctly across context close"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S06","result":"fail","severity":"BLOCKER","findingId":"F01","durationMs":408,"notes":"Production attempt docs use non-deterministic IDs; 3 duplicate MCQ review docs found for rushed student"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S09","result":"pass","severity":null,"durationMs":577,"notes":"Fail+retake flow correct; Day 5 -> Day 6 after retake pass"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S11","result":"pass","severity":null,"durationMs":8296,"notes":"Weekend skip: CSD correct Mon-Fri + Monday return; streak=6 after 6 study days"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S12","result":"pass","severity":null,"durationMs":445,"notes":"Vacation gap: CSD=5 after Day 3 + 4-day skip + Day 4; streak server-time caveat applies"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S13","result":"pass","severity":null,"durationMs":4348,"notes":"New student starts at Day 1; no bleed from existing cohort state"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S17","result":"pass","severity":null,"durationMs":10858,"notes":"Mobile 375px: no horizontal scroll; 3-day walk CSD correct"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S19","result":"pass","severity":null,"durationMs":4943,"notes":"Class-switch: CORE CSD=6 preserved; TOP CSD=2 independent; both enrollments confirmed"}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S07","result":"blocked","reason":"Requires real test completion (AI grading) as pre-condition; budget exhausted","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S08","result":"blocked","reason":"Requires real test completion for challenge flow; budget exhausted","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S10","result":"blocked","reason":"Requires pace algorithm triggered by real test completion signals","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S14","result":"blocked","reason":"No pace=3 list in audit setup","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S15","result":"blocked","reason":"Requires real typed test + teacher challenge accept UI flow","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S16","result":"blocked","reason":"Budget exhausted; requires real test completion under 800ms RTT","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S18","result":"blocked","reason":"Budget exhausted; requires real test under 4x CPU throttle","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S20","result":"blocked","reason":"Budget exhausted; requires 5 parallel real test completions","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"scenario","batch":"B22","scenario":"S21","result":"blocked","reason":"Budget exhausted","durationMs":0}
+{"ts":"2026-05-30T22:55:00Z","event":"batch_end","batch":"B22","trials":21,"pass":11,"fail":1,"blocked":9,"highCount":0,"blockerCount":1}
+{"ts":"2026-05-30T22:55:00Z","event":"agent_end","label":"D","trialsCompleted":21,"batchesCompleted":["B22"],"reason":"claimed batch done","findings":{"BLOCKER":1,"MEDIUM":2,"LOW":1}}

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "schemaNote": "Populated by B00 (Setup & Seed). Subsequent batches append to attempts/sessions but do not delete prior records. Treat as the contract between batches. v2 adds words[] per list with canonical English + Korean definitions so the audit agent can look up canonical answers when simulating Typed test responses (see PLAN.md 'Student input simulation').",
-  "seededAt": null,
+  "seededAt": "2026-05-30T21:04:09.488Z",
   "environment": {
     "vocaboostUrl": "https://vocaboostone.netlify.app",
     "vocaboostUrlNote": "Live production Netlify deploy. Tests run against the same frontend students use. Backend is production Firebase vocaboost-879c2 regardless.",
@@ -11,42 +11,48 @@
     "anchorDateISO": "2026-06-01T09:00:00+09:00"
   },
   "users": {
-    "carefulStudent": null,
-    "rushedStudent": null,
-    "distractedStudent": null,
-    "lazyStudent": null,
-    "anxiousStudent": null,
-    "recoveringStudent": null,
-    "hostileStudent": null,
-    "koreanNativeTypist": null,
-    "codeSwitchingStudent": null,
-    "eslLearner": null,
-    "beginnerStudent": null,
-    "advancedStudent": null,
-    "phoneOnlyStudent": null,
-    "slowLaptopStudent": null,
-    "academyWifiStudent": null,
-    "mobileDataStudent": null,
-    "multiDeviceStudent": null,
-    "speedRunner": null,
-    "perfectionist": null,
-    "trollingStudent": null,
-    "cheaterStudent": null,
-    "habitualRefresher": null,
-    "classSwitcher": null,
-    "confusedFirstTimer": null,
-    "noviceTeacher": null,
-    "powerTeacher": null,
-    "anxiousTeacher": null,
-    "taProxy": null
+    "_comment": "Persona IDs match scripts/audit-personas.js and seeded_accounts.json. Each key resolves to the persona's seeded account(s) — look up via helpers/auth.js getAccount(personaId, targetClass). Per-persona seeded counts in PLAN.md persona quick-reference.",
+    "careful": "seeded",
+    "distracted": "seeded",
+    "rushed": "seeded",
+    "lazy": "seeded",
+    "anxious": "seeded",
+    "recovering": "seeded",
+    "hostile": "seeded",
+    "korean": "seeded",
+    "codeswitch": "seeded",
+    "esl": "seeded",
+    "beginner": "seeded (CORE only)",
+    "advanced": "seeded (TOP only)",
+    "phone": "seeded",
+    "slowlaptop": "seeded",
+    "academywifi": "seeded",
+    "mobiledata": "seeded",
+    "multidevice": "seeded",
+    "speedrunner": "seeded",
+    "perfectionist": "seeded",
+    "trolling": "seeded",
+    "cheater": "seeded",
+    "refresher": "seeded",
+    "classswitcher": "seeded (CORE only — audit migrates to TOP)",
+    "firsttimer": "seeded",
+    "teacher": "proxy via veterans@vocaboost.com / veterans5944 (not seeded — uses real teacher account for all teacher-side scenarios)"
   },
   "classes": {
     "primaryClass": null,
     "secondaryClass": null,
     "emptyClass": null,
     "fullClass": null,
-    "coreClass": null,
-    "topClass": null
+    "coreClass": {
+      "id": "LVjBTFuYE8FbPG34pVAt",
+      "name": "25WT 2차 CORE OFFLINE",
+      "joinCode": "3VEHE8"
+    },
+    "topClass": {
+      "id": "k8tzOiiwotBbtJS3uTiv",
+      "name": "25WT 2차 TOP OFFLINE",
+      "joinCode": "QSTRZL"
+    }
   },
   "lists": {
     "tinyList": null,
@@ -55,14 +61,648 @@
     "specialCharsList": null,
     "koreanList": null,
     "satTopList": null,
-    "satCoreList": null
+    "satCoreList": null,
+    "topActiveList": {
+      "id": "8RMews2H7C3UJUAsOBzR",
+      "title": "25WT2 TOP Vocabulary (v2)",
+      "wordCount": 3380,
+      "classIds": [
+        "k8tzOiiwotBbtJS3uTiv"
+      ],
+      "pace": 80,
+      "studyDaysPerWeek": 5,
+      "retakeThreshold": 0.92,
+      "testMode": "typed",
+      "testSizeNew": 30,
+      "reviewTestType": "mcq",
+      "words": [
+        {
+          "id": "Xp2CdZcGWxW7O3wd2bOu",
+          "word": "inflammatory",
+          "partOfSpeech": "adj.",
+          "definition_en": "arousing anger or strong emotion",
+          "definition_ko": "염려를 불러일으키는",
+          "position": 0,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "DCgZY8uxxZBxLFcpz3pO",
+          "word": "transfix",
+          "partOfSpeech": "v.",
+          "definition_en": "to cause to stand motionless with awe, amazement, or some other strong emotion; to rivet",
+          "definition_ko": "1. [공포 따위로] ...을 오금을 못쓰게 하다\r\n2. ...을 고정시키다, 못박다",
+          "position": 1,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "16wOcNB1BAMmHgmXn9jR",
+          "word": "disservice",
+          "partOfSpeech": "n.",
+          "definition_en": "a harmful action; an ill turn",
+          "definition_ko": "불친절한 행위, 불이익, 해로운 행위",
+          "position": 2,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "ucSQwTpCGYhm6g2mBTBK",
+          "word": "jilt\r\n(old English)",
+          "partOfSpeech": "v.",
+          "definition_en": "to suddenly reject or abandon (a lover).",
+          "definition_ko": "(연인을) 버리다, 차다",
+          "position": 3,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "UmjmM4JpTnozWeYoZVQn",
+          "word": "engrave",
+          "partOfSpeech": "v.",
+          "definition_en": "to cut or carve lines, letters, designs, etc., onto or into a hard surface",
+          "definition_ko": "새기다",
+          "position": 4,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "DQbjiczONCn44fbrrVhk",
+          "word": "fiat",
+          "partOfSpeech": "n.",
+          "definition_en": "an arbitrary decree or order",
+          "definition_ko": "법령, 명령, 엄명, 인가",
+          "position": 5,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "C3uz4wKH6VoXqN2dnZ60",
+          "word": "paranormal",
+          "partOfSpeech": "adj.",
+          "definition_en": "having to do with an event or events that can't be explained scientifically; supernatural",
+          "definition_ko": "과학적으로 설명할 수 없는, 초자연적인",
+          "position": 6,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "0We7RiPjVuKDRTxPPJJt",
+          "word": "insolence\r\n(old English)",
+          "partOfSpeech": "n.",
+          "definition_en": "rude and disrespectful behavior.",
+          "definition_ko": "건방짐, 무례",
+          "position": 7,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "8qNlYc3ELCl3JIfmFcRD",
+          "word": "agog\r\n(old English)",
+          "partOfSpeech": "adj.",
+          "definition_en": "very eager or curious to hear or see something.",
+          "definition_ko": "흥분한, 기대에 찬",
+          "position": 8,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "2yudKX7IdGpWFQHOnH7Q",
+          "word": "attribute",
+          "partOfSpeech": "n.",
+          "definition_en": "a quality or characteristic belonging to or associated with someone or something",
+          "definition_ko": "속성",
+          "position": 9,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "o9IRlfcoBhpjRpOuptfU",
+          "word": "prohibitive",
+          "partOfSpeech": "adj.",
+          "definition_en": "preventing or hindering something",
+          "definition_ko": "막는, 방해하는",
+          "position": 10,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "fMz1jdinNcjebyBCpFwm",
+          "word": "trepidation\r\n(old English)",
+          "partOfSpeech": "n.",
+          "definition_en": "a feeling of fear or agitation about something that may happen.",
+          "definition_ko": "두려움, 공포",
+          "position": 11,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "aVmB2Jy2k8qehN9u3Wse",
+          "word": "effusion",
+          "partOfSpeech": "n.",
+          "definition_en": "a pouring forth",
+          "definition_ko": "유출 (물), 스며나옴, 심정의 토로, 토로한 말 (시문) Effuse v 발산 (유출)하다 Effusive a 과장된, 쏟아져나오는, 넘치는",
+          "position": 12,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "saAvnxW09EjA5ujfFCG9",
+          "word": "ruse",
+          "partOfSpeech": "n.",
+          "definition_en": "a trick",
+          "definition_ko": "계략, 속임수",
+          "position": 13,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "EOwaqhjb76jzJ7vvjgNz",
+          "word": "infamy",
+          "partOfSpeech": "n.",
+          "definition_en": "notoriety, extreme ill repute",
+          "definition_ko": "악명, 악평",
+          "position": 14,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "GmOZo8zLghuWWVXqmwi7",
+          "word": "determinant",
+          "partOfSpeech": "n.",
+          "definition_en": "a factor or element that determines an outcome",
+          "definition_ko": "결정적인 요소",
+          "position": 15,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "rtcGyq24aTbEWYfNSKwT",
+          "word": "impervious",
+          "partOfSpeech": "adj.",
+          "definition_en": "not admitting of passage or capable of being affected",
+          "definition_ko": "영향받지 않는, 뚫리지 않는",
+          "position": 16,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "AtHXz5xPPZR5RRW18g3M",
+          "word": "umbrage\r\n(old English)",
+          "partOfSpeech": "n.",
+          "definition_en": "offense or annoyance.",
+          "definition_ko": "분개, 불쾌",
+          "position": 17,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "WGfA4ArnNmytfRep0e8p",
+          "word": "harry",
+          "partOfSpeech": "v.",
+          "definition_en": "to harass; to annoy",
+          "definition_ko": "[남]을 괴롭히다, 고통을 주다; 약탈하다, 침략하다.",
+          "position": 18,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "0jUt4oqlmeyIWaxkOk8G",
+          "word": "yea\r\n(old English)",
+          "partOfSpeech": "n.",
+          "definition_en": "yes.",
+          "definition_ko": "예, 그렇습니다; 찬성, 찬성표",
+          "position": 19,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "6xnS2ZxVPw3efEHGabET",
+          "word": "offset",
+          "partOfSpeech": "v.",
+          "definition_en": "to compensate for or counterbalance",
+          "definition_ko": "(반대의 성질의 무언가를) 추가해서 균형을 더 맞추다",
+          "position": 20,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "C2vImPgIyMBxkviXKniU",
+          "word": "deplore",
+          "partOfSpeech": "v.",
+          "definition_en": "to feel or express sorrow, disapproval",
+          "definition_ko": "한탄하다, 유감스럽게 여기다",
+          "position": 21,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "fIo1NJyMo0PTt0qs7zyA",
+          "word": "prithee\r\n(old English)",
+          "partOfSpeech": "adv.",
+          "definition_en": "please",
+          "definition_ko": "부디",
+          "position": 22,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "Mgg2GDJwm0ds2izZk4R8",
+          "word": "redolent",
+          "partOfSpeech": "adj.",
+          "definition_en": "strongly reminiscent or suggestive of something",
+          "definition_ko": "(향기가) 가득한",
+          "position": 23,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "FKN9djoucfc2MFiovxwm",
+          "word": "overcompensate",
+          "partOfSpeech": "v.",
+          "definition_en": "to make up for something excessively, at times due to guilt or fear",
+          "definition_ko": "과잉보상하다, 과잉보완하다",
+          "position": 24,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "UWT37N6TYB2IWLVlb7Tz",
+          "word": "dotage",
+          "partOfSpeech": "n.",
+          "definition_en": "senility; foolish affection",
+          "definition_ko": "망령, 노망",
+          "position": 25,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "IdOGTR2pmSwssB7KQCno",
+          "word": "presumed",
+          "partOfSpeech": "adj.",
+          "definition_en": "assumed to be true",
+          "definition_ko": "추정되는",
+          "position": 26,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "NmVwjBsFud9oG6eGBaEI",
+          "word": "haughty",
+          "partOfSpeech": "adj.",
+          "definition_en": "arrogantly superior, disdainful",
+          "definition_ko": "거만한, 오만한",
+          "position": 27,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "MIMMDnchM1CDeSkOaf3u",
+          "word": "patrician",
+          "partOfSpeech": "n.",
+          "definition_en": "a person of noble birth; an aristocrat",
+          "definition_ko": "귀족, 문벌가; 고대 로마 귀족",
+          "position": 28,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "cBMp0eYoGcROkg5gBSl4",
+          "word": "continuum",
+          "partOfSpeech": "n.",
+          "definition_en": "a continuous whole without clear division into parts",
+          "definition_ko": "연속체, 연속체",
+          "position": 29,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        }
+      ]
+    },
+    "coreActiveList": {
+      "id": "aRGjnGXdU4aupiS8SlXR",
+      "title": "25WT2 CORE Vocabulary (v2)",
+      "wordCount": 3380,
+      "classIds": [
+        "LVjBTFuYE8FbPG34pVAt"
+      ],
+      "pace": 60,
+      "studyDaysPerWeek": 5,
+      "retakeThreshold": 0.9,
+      "testMode": "typed",
+      "testSizeNew": 25,
+      "reviewTestType": "mcq",
+      "words": [
+        {
+          "id": "ED0WXiKafbvAPVcZ5FR3",
+          "word": "vigilant",
+          "partOfSpeech": "adj.",
+          "definition_en": "keeping careful watch for possible danger or difficulties",
+          "definition_ko": "경계하는",
+          "position": 0,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "2lefRI2MYxLfqeH7DxWT",
+          "word": "apropos",
+          "partOfSpeech": "adj.",
+          "definition_en": "appropriate; coming at the right time",
+          "definition_ko": "때마침, 시기 적절하게, 적절히",
+          "position": 1,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "ogRkeFq2gRHQ80uWGvo3",
+          "word": "swoon\r\n(old English)",
+          "partOfSpeech": "v.",
+          "definition_en": "to faint from extreme emotion.",
+          "definition_ko": "기절하다, 혼수에 빠지다",
+          "position": 2,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "901A25KzYUCF1AkBUCdK",
+          "word": "sly",
+          "partOfSpeech": "adj.",
+          "definition_en": "clever in a dishonest way",
+          "definition_ko": "교활한",
+          "position": 3,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "GjWLcJN6yasxeCrZBtko",
+          "word": "fabricate",
+          "partOfSpeech": "v.",
+          "definition_en": "to invent, create falsely",
+          "definition_ko": "조작하다, 날조하다",
+          "position": 4,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "qqpNbYAbHvxuXmYQKyj3",
+          "word": "whilst\r\n(old English)",
+          "partOfSpeech": "adv.",
+          "definition_en": "while.",
+          "definition_ko": "~하는 동안에, ~하는 동안",
+          "position": 5,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "NR1gHtZk5K3V9hsI0h2o",
+          "word": "scruples\r\n(old English)",
+          "partOfSpeech": "n.",
+          "definition_en": "a feeling of doubt or hesitation with regard to the morality or propriety of a course of action.",
+          "definition_ko": "양심, 도덕적 신념",
+          "position": 6,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "rM1K0lmSilzf9jv7VtiW",
+          "word": "deem",
+          "partOfSpeech": "v.",
+          "definition_en": "to think of (someone or something) in a particular way",
+          "definition_ko": "간주하다",
+          "position": 7,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "OOtDMCIDzUlbknyMO92A",
+          "word": "catalyst",
+          "partOfSpeech": "n.",
+          "definition_en": "something that causes an important event to happen; (chemistry) a substance that accelerates a chemical reaction",
+          "definition_ko": "촉매, 촉매제",
+          "position": 8,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "8frsefo523R4qUdVGlaS",
+          "word": "chaff",
+          "partOfSpeech": "n.",
+          "definition_en": "worthless stuff",
+          "definition_ko": "쓸모 없는 것, 잡동사니",
+          "position": 9,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "VNpEU877XtDlNERyzXCR",
+          "word": "resilient",
+          "partOfSpeech": "adj.",
+          "definition_en": "recovering readily from adversity",
+          "definition_ko": "잘 버티는, 힘들어도 다시 일어서는",
+          "position": 10,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "WSRYxPANq48QNLbWoKbb",
+          "word": "infuse",
+          "partOfSpeech": "v.",
+          "definition_en": "to fill or pervade with a quality or substance",
+          "definition_ko": "스며들게 하다",
+          "position": 11,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "LUDUdHLtYhCvYF886prQ",
+          "word": "embark",
+          "partOfSpeech": "v.",
+          "definition_en": "1. to begin a journey especially on a ship or airplane\r\n2. to make a start",
+          "definition_ko": "1. 탑승하다\r\n2. 착수하다",
+          "position": 12,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "WAJdujIq6XQ1cgNW55CB",
+          "word": "earnest",
+          "partOfSpeech": "adj.",
+          "definition_en": "genuine",
+          "definition_ko": "정중한, 진심을 담은",
+          "position": 13,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "wrBRvkBt0dff5ykXeoqE",
+          "word": "facile",
+          "partOfSpeech": "adj.",
+          "definition_en": "easy, requiring little effort",
+          "definition_ko": "쉬운, 노력이 적게 필요한",
+          "position": 14,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "HSwebb2bR7Cwa8q3oMQv",
+          "word": "cherish",
+          "partOfSpeech": "v.",
+          "definition_en": "to be fond of; to be attached to",
+          "definition_ko": "~를 소중히 하다",
+          "position": 15,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "6E5E7W8j54hk3ttzKnIq",
+          "word": "defiance",
+          "partOfSpeech": "n.",
+          "definition_en": "a refusal to obey something or someone",
+          "definition_ko": "저항",
+          "position": 16,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "bFVHednfk0dJBWz8OCPj",
+          "word": "catharsis",
+          "partOfSpeech": "n.",
+          "definition_en": "emotional release",
+          "definition_ko": "정화",
+          "position": 17,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "BLOJFDO3MorxVhKdwv9W",
+          "word": "carcinogenic",
+          "partOfSpeech": "adj.",
+          "definition_en": "causing cancer",
+          "definition_ko": "발암성의",
+          "position": 18,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "0ZshqlVBEn2LVB00h4g7",
+          "word": "scrupulous",
+          "partOfSpeech": "adj.",
+          "definition_en": "diligent, thorough, and extremely attentive to details",
+          "definition_ko": "세심한",
+          "position": 19,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "CQ5wMXtmYqKtgzZYTGIV",
+          "word": "arguably",
+          "partOfSpeech": "adv.",
+          "definition_en": "used to indicate that something is open to debate or discussion",
+          "definition_ko": "논쟁의 여지가 있는",
+          "position": 20,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "S8n84P1O446HnwB0x93Y",
+          "word": "disobedient",
+          "partOfSpeech": "adj.",
+          "definition_en": "not doing what someone or something with authority tells you to do",
+          "definition_ko": "복종하지 않는",
+          "position": 21,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "JfdexSJdu6PgsNRSEL56",
+          "word": "equitable",
+          "partOfSpeech": "adj.",
+          "definition_en": "fair and just in the distribution of resources or opportunities",
+          "definition_ko": "공정한",
+          "position": 22,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "CMOptNef2knCEsaz1njS",
+          "word": "farcical",
+          "partOfSpeech": "adj.",
+          "definition_en": "absurd; ludicrous",
+          "definition_ko": "익살극의, 익살맞은, 바보스런",
+          "position": 23,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "tm0bTZmpyG4ZvERdMgJj",
+          "word": "critique",
+          "partOfSpeech": "v.",
+          "definition_en": "to a serious examination and judgment of something",
+          "definition_ko": "~을 분석하다, ~을 검토하다",
+          "position": 24,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "QnXYsr08DVCe4quHCLRu",
+          "word": "parity",
+          "partOfSpeech": "n.",
+          "definition_en": "equality in value, status, or rank",
+          "definition_ko": "동등성",
+          "position": 25,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "ZZd7ion6selDEw6BjDLi",
+          "word": "qualify",
+          "partOfSpeech": "v.",
+          "definition_en": "to limit (a claim); to specify a condition to make a claim narrower",
+          "definition_ko": "(어떤 주장을) 제한하다, 더 구체적으로 만들다",
+          "position": 26,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "qeXCHAWU8QtfkjHj6jpZ",
+          "word": "stratum",
+          "partOfSpeech": "n.",
+          "definition_en": "a layer; a level",
+          "definition_ko": "지층, 계층",
+          "position": 27,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "HUISjIzlKmx4MAL3atKF",
+          "word": "plastic",
+          "partOfSpeech": "adj.",
+          "definition_en": "capable of being shaped or molded; easily influenced or impressionable",
+          "definition_ko": "가소성 있는",
+          "position": 28,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        },
+        {
+          "id": "fuQD6KjGgUvxuuSoXkdD",
+          "word": "camaraderie",
+          "partOfSpeech": "n.",
+          "definition_en": "friendship",
+          "definition_ko": "동지애",
+          "position": 29,
+          "_synonyms": [],
+          "_commonStudentErrors": []
+        }
+      ]
+    }
   },
   "listSchemaExample": {
     "_comment": "Each list, once seeded, MUST match this shape so the agent can look up canonical answers.",
     "id": "firestore-doc-id",
     "title": "Standard Audit List",
     "wordCount": 50,
-    "classIds": ["..."],
+    "classIds": [
+      "..."
+    ],
     "pace": 7,
     "studyDaysPerWeek": 5,
     "retakeThreshold": 0.95,
@@ -74,8 +714,15 @@
         "definition_en": "a published collection of poems or other writings",
         "definition_ko": "(시 등의) 선집",
         "position": 0,
-        "_synonyms": ["collection", "compendium", "compilation"],
-        "_commonStudentErrors": ["a book of poems", "poem book"]
+        "_synonyms": [
+          "collection",
+          "compendium",
+          "compilation"
+        ],
+        "_commonStudentErrors": [
+          "a book of poems",
+          "poem book"
+        ]
       },
       {
         "id": "firestore-word-doc-id-2",
@@ -84,8 +731,15 @@
         "definition_en": "to come together to form one mass or whole",
         "definition_ko": "결합하다, 합체하다",
         "position": 1,
-        "_synonyms": ["merge", "unite", "blend"],
-        "_commonStudentErrors": ["to mix", "combine"]
+        "_synonyms": [
+          "merge",
+          "unite",
+          "blend"
+        ],
+        "_commonStudentErrors": [
+          "to mix",
+          "combine"
+        ]
       }
     ]
   },
@@ -97,7 +751,10 @@
     "carefulStudent": {
       "transform_rule": "canonical_en_verbatim",
       "typing_delay_ms": 100,
-      "viewport": { "width": 1440, "height": 900 },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
       "submitClickStyle": "single",
       "browserBackHabit": false
     },
@@ -105,14 +762,20 @@
       "transform_rule": "canonical_ko",
       "typing_delay_ms": 80,
       "imeComposition": true,
-      "viewport": { "width": 1440, "height": 900 },
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
       "submitClickStyle": "single",
       "browserBackHabit": false
     },
     "codeSwitchingStudent": {
       "transform_rule": "code_switch_one_noun",
       "typing_delay_ms": 90,
-      "viewport": { "width": 1440, "height": 900 }
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      }
     },
     "eslLearner": {
       "transform_rule": "esl_strip_articles_mispluralize",
@@ -121,7 +784,10 @@
     "phoneOnlyStudent": {
       "transform_rule": "canonical_en_verbatim",
       "typing_delay_ms": 200,
-      "viewport": { "width": 375, "height": 812 },
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
       "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
     },
     "academyWifiStudent": {
@@ -153,10 +819,61 @@
       "refreshEveryMs": 30000
     }
   },
-  "notes": [],
+  "notes": [
+    "B00 verified: 50 seeded accounts (25 TOP + 25 CORE) loginable; canonical answers captured for 30 TOP words and 30 CORE words"
+  ],
   "audit_metadata": {
-    "lastBatch": null,
-    "batchesCompleted": [],
-    "issuesFound": []
+    "lastBatch": "B21",
+    "batchesCompleted": [
+      "B00",
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B10",
+      "B11",
+      "B12",
+      "B13",
+      "B14",
+      "B15",
+      "B16",
+      "B17",
+      "B18",
+      "B19",
+      "B20",
+      "B21",
+      "B22",
+      "B23",
+      "B24",
+      "B25",
+      "B26"
+    ],
+    "issuesFound": [],
+    "totalTrialsCompleted": 213,
+    "gatesGreen": {
+      "persistence_B02_B03": true,
+      "dayProgression_B22": true,
+      "aiGrading_B26": true,
+      "security": true
+    },
+    "blockers": 0,
+    "evidenceArtifacts": 1497,
+    "audit_runs": [
+      {
+        "startedAt": "2026-05-30T21:00:00+09:00",
+        "endedAt": "2026-05-31T10:34:00+09:00",
+        "agents": 27,
+        "trials": 213,
+        "batches": 27,
+        "blockers": 0,
+        "summaryPath": "findings/SUMMARY.md",
+        "note": "All 3 P0 gates green; 0 BLOCKERs; HIGH clusters: challenge subsystem, joinClass, newWordsTestScore, day-mismatch. 4 false-positives corrected (audit self-pollution)."
+      }
+    ]
   }
 }

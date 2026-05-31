@@ -1,0 +1,63 @@
+{"ts":"2026-05-31T09:18:09.488Z","type":"audit_start","persona":"korean","class":"TOP","batch":"B27","label":"K27","startedAt":"2026-05-31T09:18:09.488Z"}
+{"ts":"2026-05-31T09:18:29.414Z","type":"audit_start","persona":"korean","class":"TOP","batch":"B27","label":"K27","startedAt":"2026-05-31T09:18:29.414Z"}
+{"ts":"2026-05-31T09:18:30.489Z","type":"session_start","day":1,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T09:20:24.407Z","type":"session_complete","day":1,"preCSD":0,"postCSD":1,"preTWI":0,"postTWI":80,"masteredCount":0,"masteredInReview":0,"violations":0,"newScore":100,"reviewScore":100,"blocked":false}
+{"ts":"2026-05-31T09:20:24.423Z","type":"session_start","day":2,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:12.664Z","type":"session_complete","day":2,"preCSD":1,"postCSD":2,"preTWI":80,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":100,"reviewScore":23,"blocked":false}
+{"ts":"2026-05-31T09:22:12.674Z","type":"session_start","day":3,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:57.671Z","type":"session_error","day":3,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:23:02.021Z","type":"session_complete","day":3,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:23:02.035Z","type":"session_start","day":4,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T09:23:47.495Z","type":"session_error","day":4,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:23:51.762Z","type":"session_complete","day":4,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:23:51.772Z","type":"session_start","day":5,"date":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T09:24:37.102Z","type":"session_error","day":5,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:24:41.355Z","type":"session_complete","day":5,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:24:41.366Z","type":"session_start","day":6,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:25:26.597Z","type":"session_error","day":6,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:25:30.787Z","type":"session_complete","day":6,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:25:30.797Z","type":"session_start","day":7,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:26:15.955Z","type":"session_error","day":7,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:26:20.182Z","type":"session_complete","day":7,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:26:20.193Z","type":"session_start","day":8,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:27:05.362Z","type":"session_error","day":8,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:27:09.577Z","type":"session_complete","day":8,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:27:09.588Z","type":"session_start","day":9,"date":"2026-06-12T00:00:00.000Z"}
+{"ts":"2026-05-31T09:27:54.711Z","type":"session_error","day":9,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:27:58.900Z","type":"session_complete","day":9,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:27:58.908Z","type":"session_start","day":10,"date":"2026-06-15T00:00:00.000Z"}
+{"ts":"2026-05-31T09:28:44.288Z","type":"session_error","day":10,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:28:48.461Z","type":"session_complete","day":10,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:28:48.470Z","type":"session_start","day":11,"date":"2026-06-16T00:00:00.000Z"}
+{"ts":"2026-05-31T09:29:33.728Z","type":"session_error","day":11,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:29:37.991Z","type":"session_complete","day":11,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:29:37.999Z","type":"session_start","day":12,"date":"2026-06-17T00:00:00.000Z"}
+{"ts":"2026-05-31T09:30:23.135Z","type":"session_error","day":12,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:30:27.326Z","type":"session_complete","day":12,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:30:27.334Z","type":"session_start","day":13,"date":"2026-06-18T00:00:00.000Z"}
+{"ts":"2026-05-31T09:31:13.507Z","type":"session_error","day":13,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:31:17.714Z","type":"session_complete","day":13,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:31:17.724Z","type":"session_start","day":14,"date":"2026-06-19T00:00:00.000Z"}
+{"ts":"2026-05-31T09:32:02.786Z","type":"session_error","day":14,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:32:07.000Z","type":"session_complete","day":14,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:32:07.008Z","type":"session_start","day":15,"date":"2026-06-22T00:00:00.000Z"}
+{"ts":"2026-05-31T09:32:53.463Z","type":"session_error","day":15,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:32:57.728Z","type":"session_complete","day":15,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:32:57.754Z","type":"session_start","day":16,"date":"2026-06-23T00:00:00.000Z"}
+{"ts":"2026-05-31T09:33:43.072Z","type":"session_error","day":16,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:33:47.364Z","type":"session_complete","day":16,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:33:47.372Z","type":"session_start","day":17,"date":"2026-06-24T00:00:00.000Z"}
+{"ts":"2026-05-31T09:34:32.479Z","type":"session_error","day":17,"error":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:34:36.701Z","type":"session_complete","day":17,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":18,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:34:36.709Z","type":"session_start","day":18,"date":"2026-06-25T00:00:00.000Z"}
+{"ts":"2026-05-31T09:35:37.426Z","type":"audit_start","persona":"korean","class":"TOP","batch":"B27","label":"K27","version":"v2","startedAt":"2026-05-31T09:35:37.426Z"}
+{"ts":"2026-05-31T09:35:38.766Z","type":"session_start","day":3,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T09:35:58.356Z","type":"session_complete","day":3,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":0,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:35:58.376Z","type":"session_start","day":4,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T09:36:17.961Z","type":"session_complete","day":4,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":0,"masteredInReview":0,"violations":0,"newScore":null,"blocked":true}
+{"ts":"2026-05-31T09:36:17.976Z","type":"session_start","day":5,"date":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T09:46:50.912Z","type":"audit_start","persona":"korean","class":"TOP","batch":"B27","label":"K27","version":"v2","startedAt":"2026-05-31T09:46:50.912Z"}
+{"ts":"2026-05-31T09:46:52.047Z","type":"session_start","day":3,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T09:47:50.397Z","type":"session_complete","day":3,"preCSD":2,"postCSD":2,"preTWI":160,"postTWI":160,"masteredCount":0,"masteredInReview":0,"violations":0,"newScore":92,"blocked":false}
+{"ts":"2026-05-31T09:47:50.415Z","type":"session_start","day":4,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T09:58:24.745Z","type":"audit_finalized","label":"K27","realSessionsCompleted":2,"partialSessions":1,"realStartDay":1,"realEndDay":3,"newWordsCorrectEverySession":true,"newWordDriftDays":[],"reviewWordsCorrect":true,"reviewTestsReached":1,"f01MasteredInReviewDays":[],"f01Resolved":true,"f01Caveat":"verified on 1 review test (Day2) via Firestore attempt wordIds; not the eligible<reviewCount stress regime","koreanRoundTripClean":true,"logoutScenarioExecuted":false,"orphanDocsCreated":0,"allAttemptsCorrectFormat":true,"blockers":["F-K01: newWordsTestScore undefined -> setDoc rejects -> session stranded, day will not advance"],"csdAdvancePerSession":"Days 1-2 yes; Day 3 stranded by F-K01 (CSD stayed 2)","walkLimitedReason":"F-K01 strands session after new-word test; resume-state gate blocks clean re-entry; Date.now shim cannot move serverTimestamp","goNoGo":"F01 fix holds where tested (GO on that question); F-K01 is a new BLOCKER for student rollout"}

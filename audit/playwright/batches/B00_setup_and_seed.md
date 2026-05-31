@@ -73,15 +73,31 @@ Goal: the typed-test input pipeline (PLAN.md "Student input simulation") needs t
 
 **Pass criteria:** `audit_state.json.lists.topActiveList.words` and `.coreActiveList.words` each have ≥20 entries with both definition_en and definition_ko.
 
-### S05 — Verify the dashboard renders for the seeded students
+### S05 — DASHBOARD ENROLLMENT GATE (BLOCKER if it fails)
 
-For 5 sampled students (1 per persona category):
+**This scenario gates the entire audit.** A previous version of the seed script wrote enrollment to a subcollection while the app reads it as a map on the user doc; the bug let logins succeed but showed all students an empty "join your first class" state. If this gate fails, every downstream batch fails for the same setup reason. Halt the whole audit and run `node scripts/repair-audit-enrollments.js --apply` (script is idempotent and safe to re-run).
+
+For ONE student of each class — pick `careful` for TOP and `careful` for CORE, since baseline persona is the most-likely-correct test:
+
+1. `helpers.loginAs(page, 'careful', { targetClass: 'TOP' })`
+2. **Assert the dashboard shows a class card with text matching `25WT 2차 TOP OFFLINE`.** If instead you see "Join your first class" or any other empty state → **HALT THE AUDIT**, file BLOCKER, run the repair script, restart B00.
+3. Assert the today's-session card is present and clickable.
+4. Assert no `console.error` calls fired during dashboard load.
+5. Screenshot `B00_S05_enrollment_gate_top.png`.
+6. Log out.
+7. Repeat with `helpers.loginAs(page, 'careful', { targetClass: 'CORE' })` and `25WT 2차 CORE OFFLINE`.
+
+**Then** for 5 sampled students across persona categories:
 
 1. `helpers.loginAs(page, personaId)`.
 2. Assert dashboard renders without console errors.
-3. Verify the student sees the appropriate class card (TOP or CORE).
+3. Verify the student sees the appropriate class card.
 4. Verify the today's-session card is present and clickable.
-5. Verify no "join a class" empty state (student should already be enrolled).
+5. Screenshot `B00_S05_dashboard_${personaId}.png`.
+
+**Pass criteria:** Both gate logins show a real class card. All 5 sampled personas pass the same checks.
+**Failure on the gate → BLOCKER, halt the whole audit.**
+**Failure on a sample persona only → MEDIUM, continue but flag.**
 
 ### S06 — Final audit_state.json sanity check
 

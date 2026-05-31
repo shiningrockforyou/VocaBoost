@@ -1,0 +1,23 @@
+{
+  "label": "SPD27",
+  "persona": "speedrunner",
+  "class": "TOP",
+  "status": "completed_partial",
+  "note": "14/20 sessions completed; browser crash at Day 15. Logout/login scenario ran separately (logout locator failed).",
+  "sessionsCompleted": 14,
+  "totalSessionsAttempted": 14,
+  "startDay": 1,
+  "endDay": 14,
+  "f01LeakDays": 0,
+  "f01Tested": false,
+  "stopConditionHit": false,
+  "totalH2Count": 0,
+  "totalDuplicateAttempts": 0,
+  "rapidDoubleSubmitDedup": "HOLDS (0 duplicates across 14 sessions)",
+  "hasNewOrphan": false,
+  "csdAdvanced": false,
+  "csdNote": "CSD stuck at 0 — speedrunner first-word answers score below 92% pass threshold; correct product behavior",
+  "logoutLoginRecoveryState": "error",
+  "logoutLoginNote": "Logout UI locator failed; localStorage evidence captured — typed answers ARE stored per-wordId in localStorage",
+  "completedAt": "2026-05-31T00:00:00.000Z"
+}

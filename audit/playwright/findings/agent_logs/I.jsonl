@@ -1,0 +1,13 @@
+{"ts":"2026-05-30T00:00:00Z","event":"agent_start","label":"I","claim":["B04"]}
+{"ts":"2026-05-30T00:00:01Z","event":"batch_start","batch":"B04"}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S01","result":"pass","notes":"60 flashcards via keyboard C, Ready for Test modal appeared after card 60","durationMs":120000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S02","result":"pass","notes":"Typed test 25 all-at-once questions, Cloud Function graded, 4% score with wrong answers","durationMs":180000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S03","result":"partial","severity":"HIGH","findingId":"F02","notes":"Attempt doc created (studyDay=1, passed=false), class_progress empty","durationMs":60000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S04","result":"fail","severity":"HIGH","findingId":"F01","notes":"Did not pass screen: no Retake button, only Go to Dashboard","durationMs":120000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S05","result":"partial","severity":"HIGH","findingId":"F02","notes":"Dashboard shows Day 1/0 words/0 streak even with 12 passed attempts (class_progress empty)","durationMs":30000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S06","result":"partial","notes":"No interactive practice mode; only PDF exports","durationMs":10000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S07","result":"blocked","reason":"No tiny list seeded in audit_state.json","durationMs":1000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S08","result":"pass","notes":"Dismiss 3 cards, navigate away, resume at card 4 (3/60 mastered, Card 1 of 57)","durationMs":60000}
+{"ts":"2026-05-30T23:50:02Z","event":"scenario","batch":"B04","scenario":"S09","result":"pass","notes":"Re-start shows all-mastered flashcard phase, not new test","durationMs":30000}
+{"ts":"2026-05-30T23:50:02Z","event":"batch_end","batch":"B04","trials":9,"pass":3,"fail":1,"blocked":1,"partial":4,"highCount":2,"blockerCount":0}
+{"ts":"2026-05-30T23:50:02Z","event":"agent_end","label":"I","trialsCompleted":9,"batchesCompleted":["B04"],"reason":"claimed batch B04 complete"}

@@ -1,0 +1,49 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"AA","claim":["B21"]}
+{"ts":"2026-05-31T00:00:05Z","event":"batch_start","batch":"B21"}
+{"ts":"2026-05-31T01:14:41.385Z","event":"scenario_start","batch":"B21","scenario":"S01"}
+{"ts":"2026-05-31T01:14:46.583Z","event":"scenario","batch":"B21","scenario":"S01","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:15:39.532Z","event":"scenario_start","batch":"B21","scenario":"S01"}
+{"ts":"2026-05-31T01:15:45.326Z","event":"scenario","batch":"B21","scenario":"S01","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:15:49.053Z","event":"scenario_start","batch":"B21","scenario":"S02"}
+{"ts":"2026-05-31T01:16:10.981Z","event":"scenario_start","batch":"B21","scenario":"S01"}
+{"ts":"2026-05-31T01:16:16.060Z","event":"scenario","batch":"B21","scenario":"S01","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:16:19.737Z","event":"scenario_start","batch":"B21","scenario":"S02"}
+{"ts":"2026-05-31T01:16:24.152Z","event":"scenario","batch":"B21","scenario":"S02","result":"pass","durationMs":10000}
+{"ts":"2026-05-31T01:16:24.175Z","event":"scenario_start","batch":"B21","scenario":"S03"}
+{"ts":"2026-05-31T01:16:30.586Z","event":"scenario","batch":"B21","scenario":"S03","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:16:30.604Z","event":"scenario_start","batch":"B21","scenario":"S04"}
+{"ts":"2026-05-31T01:16:35.253Z","event":"scenario","batch":"B21","scenario":"S04","result":"pass","durationMs":15000}
+{"ts":"2026-05-31T01:16:35.284Z","event":"scenario_start","batch":"B21","scenario":"S05"}
+{"ts":"2026-05-31T01:16:45.613Z","event":"scenario","batch":"B21","scenario":"S05","result":"pass","durationMs":20000}
+{"ts":"2026-05-31T01:16:45.634Z","event":"scenario_start","batch":"B21","scenario":"S06"}
+{"ts":"2026-05-31T01:16:53.986Z","event":"scenario","batch":"B21","scenario":"S06","result":"fail","durationMs":15000}
+{"ts":"2026-05-31T01:16:54.011Z","event":"scenario_start","batch":"B21","scenario":"S07"}
+{"ts":"2026-05-31T01:16:59.688Z","event":"scenario","batch":"B21","scenario":"S07","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:16:59.709Z","event":"scenario_start","batch":"B21","scenario":"S08"}
+{"ts":"2026-05-31T01:17:04.194Z","event":"scenario","batch":"B21","scenario":"S08","result":"pass","durationMs":15000}
+{"ts":"2026-05-31T01:17:04.220Z","event":"scenario_start","batch":"B21","scenario":"S09"}
+{"ts":"2026-05-31T01:17:08.439Z","event":"scenario","batch":"B21","scenario":"S09","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:17:08.471Z","event":"scenario_start","batch":"B21","scenario":"S10"}
+{"ts":"2026-05-31T01:17:12.825Z","event":"scenario","batch":"B21","scenario":"S10","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:17:12.842Z","event":"scenario_start","batch":"B21","scenario":"S11"}
+{"ts":"2026-05-31T01:17:16.128Z","event":"scenario","batch":"B21","scenario":"S11","result":"pass","durationMs":8000}
+{"ts":"2026-05-31T01:17:16.146Z","event":"scenario_start","batch":"B21","scenario":"S12"}
+{"ts":"2026-05-31T01:17:19.214Z","event":"scenario","batch":"B21","scenario":"S12","result":"pass","durationMs":10000}
+{"ts":"2026-05-31T01:17:19.234Z","event":"scenario_start","batch":"B21","scenario":"S13"}
+{"ts":"2026-05-31T01:17:23.530Z","event":"scenario","batch":"B21","scenario":"S13","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S01","result":"pass","durationMs":15000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S02","result":"pass","durationMs":10000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S03","result":"skipped","reason":"session state: careful student Start Session returns undefined class/list IDs after prior run","durationMs":5000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S04","result":"fail","severity":"MEDIUM","findingId":"F01","durationMs":15000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S05","result":"pass","durationMs":20000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S05b","result":"fail","severity":"MEDIUM","findingId":"F03","durationMs":12000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S06","result":"fail","severity":"MEDIUM","findingId":"F02","durationMs":15000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S07","result":"fail","severity":"MEDIUM","findingId":"F03","durationMs":12000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S08","result":"skipped","reason":"no modal trigger accessible from dashboard in available session state","durationMs":5000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S09","result":"skipped","reason":"no modal opened","durationMs":3000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S10","result":"skipped","reason":"no modal opened","durationMs":3000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S11","result":"fail","severity":"LOW","findingId":"F04","durationMs":8000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S12","result":"partial","durationMs":10000}
+{"ts":"2026-05-31T01:36:16Z","event":"scenario","batch":"B21","scenario":"S13","result":"partial","durationMs":12000}
+{"ts":"2026-05-31T01:36:16Z","event":"batch_end","batch":"B21","trials":13,"pass":4,"fail":5,"skipped":4,"partial":2,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-31T01:36:16Z","event":"agent_end","label":"AA","trialsCompleted":13,"batchesCompleted":["B21"],"reason":"claimed batches done"}

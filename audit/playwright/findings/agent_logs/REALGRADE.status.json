@@ -1,0 +1,11 @@
+{
+  "label": "REALGRADE",
+  "phase": "COMPLETE",
+  "verdict": "ACCEPTABLE",
+  "verdictReason": "90% accuracy vs ground truth; 0 false negatives on stored-correct data; 3 false negatives (3.8%) on evaluated sample; massive improvement over old grader (51.2%)",
+  "newGraderAccuracy": 0.9,
+  "oldGraderAccuracy": 0.5125,
+  "newFalseNegatives": 3,
+  "newFalsePositives": 5,
+  "timestamp": "2026-05-31T10:27:47.636248"
+}

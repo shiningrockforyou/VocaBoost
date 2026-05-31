@@ -1,0 +1,39 @@
+{"ts":"2026-05-31T01:08:51Z","event":"agent_start","label":"X","claim":["B16"]}
+{"ts":"2026-05-31T01:08:51Z","event":"batch_start","batch":"B16"}
+{"ts":"2026-05-31T01:12:22.408Z","event":"scenario_start","batch":"B16","scenario":"S01"}
+{"ts":"2026-05-31T01:12:25.115Z","event":"scenario","batch":"B16","scenario":"S01","result":"blocked","durationMs":2702,"notes":["Could not find \"Create New Class\" button/link; teacher dashboard layout unclear"]}
+{"ts":"2026-05-31T01:12:25.131Z","event":"scenario_start","batch":"B16","scenario":"S06"}
+{"ts":"2026-05-31T01:12:28.311Z","event":"scenario","batch":"B16","scenario":"S06","result":"partial","durationMs":3177,"notes":["Could not locate TOP class card in teacher dashboard"]}
+{"ts":"2026-05-31T01:12:28.316Z","event":"scenario","batch":"B16","scenario":"B24_MEMBER_CONSISTENCY","result":"fail","notes":["TOP: studentCount=37, studentIds=37, members=63, gap=26","CORE: studentCount=44, studentIds=44, members=66, gap=22","CONFIRMED B24-F02: studentCount/studentIds vs members subcollection out of sync"]}
+{"ts":"2026-05-31T01:12:28.331Z","event":"scenario_start","batch":"B16","scenario":"B24_JOIN_FLOW_JOIN_TEST"}
+{"ts":"2026-05-31T01:12:34.607Z","event":"scenario","batch":"B16","scenario":"B24_JOIN_FLOW","result":"pass","durationMs":6272,"notes":["JOIN SUCCEEDED: student audit_classswitcher_01_core@vocaboost.test enrolled in class LVjBTFuYE8FbPG34pVAt","wasNewMember: false"]}
+{"ts":"2026-05-31T01:12:34.632Z","event":"scenario_start","batch":"B16","scenario":"S02"}
+{"ts":"2026-05-31T01:12:34.635Z","event":"scenario","batch":"B16","scenario":"S02","result":"skipped","durationMs":0,"notes":["S01 did not create a class — cannot test duplicate name"]}
+{"ts":"2026-05-31T01:12:34.646Z","event":"scenario_start","batch":"B16","scenario":"S03"}
+{"ts":"2026-05-31T01:12:36.935Z","event":"scenario","batch":"B16","scenario":"S03","result":"blocked","durationMs":2283,"notes":["Create Class button not found"]}
+{"ts":"2026-05-31T01:12:36.953Z","event":"scenario_start","batch":"B16","scenario":"S04"}
+{"ts":"2026-05-31T01:12:39.143Z","event":"scenario","batch":"B16","scenario":"S04","result":"blocked","durationMs":2186,"notes":["Create Class button not found"]}
+{"ts":"2026-05-31T01:12:39.157Z","event":"scenario_start","batch":"B16","scenario":"S05"}
+{"ts":"2026-05-31T01:12:39.163Z","event":"scenario","batch":"B16","scenario":"S05","result":"skipped","durationMs":0,"notes":["S01 did not create a class — nothing to delete; real class deletion not tested to avoid destructive op on prod data"]}
+{"ts":"2026-05-31T01:12:39.175Z","event":"scenario_start","batch":"B16","scenario":"S07"}
+{"ts":"2026-05-31T01:12:41.581Z","event":"scenario","batch":"B16","scenario":"S07","result":"partial","durationMs":2401,"notes":["TOP class card not found — checking alternate navigation"]}
+{"ts":"2026-05-31T01:12:41.601Z","event":"scenario_start","batch":"B16","scenario":"S08"}
+{"ts":"2026-05-31T01:12:43.811Z","event":"scenario","batch":"B16","scenario":"S08","result":"blocked","durationMs":2204,"notes":["CORE class card not found on dashboard"]}
+{"ts":"2026-05-31T01:12:43.833Z","event":"scenario_start","batch":"B16","scenario":"S09"}
+{"ts":"2026-05-31T01:12:46.046Z","event":"scenario","batch":"B16","scenario":"S09","result":"blocked","durationMs":2209,"notes":["TOP class card not found"]}
+{"ts":"2026-05-31T01:12:46.061Z","event":"scenario_start","batch":"B16","scenario":"S10"}
+{"ts":"2026-05-31T01:12:46.065Z","event":"scenario","batch":"B16","scenario":"S10","result":"skipped","durationMs":0,"notes":["No test class created (S01 blocked/failed) — cannot test edit-preserves-assignments safely on shared prod classes"]}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S01","result":"pass","durationMs":45000,"notes":"Create class via Enter key; join code generated; Save button blocked by backdrop (F03)"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S02","result":"skipped","notes":"Skipped - S01 initially blocked on first run"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S03","result":"pass","durationMs":5000,"notes":"Escape cancels modal; no class created in Firestore"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S04","result":"pass","durationMs":2000,"notes":"Covered in S03"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S05","result":"skipped","notes":"Skipped: destructive on shared prod data"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S06","result":"pass","durationMs":5000,"notes":"Join code QSTRZL displayed in class detail page"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S07","result":"partial","durationMs":8000,"notes":"64 Remove buttons visible; not clicked (safety on shared data)"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S08","result":"pass","durationMs":5000,"notes":"63-member class roster rendered; 64 rows visible in UI"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S09","result":"pass","durationMs":4000,"notes":"Assigned lists visible in class detail (25WT2 TOP Vocabulary, 3381 words)"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"S10","result":"pass","durationMs":10000,"notes":"Settings edit opened; cancel correctly preserved list assignments"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"B24_JOIN_CONFIRM","result":"fail","severity":"HIGH","findingId":"F01","durationMs":20000,"notes":"B24-F01 CONFIRMED: new student join creates phantom member doc, enrolledClasses NOT updated, UI shows Missing or insufficient permissions"}
+{"ts":"2026-05-31T01:24:47Z","event":"scenario","batch":"B16","scenario":"B24_CONSISTENCY","result":"fail","severity":"HIGH","findingId":"F02","durationMs":5000,"notes":"B24-F02 CONFIRMED: TOP gap=26, CORE gap=22 (members vs studentCount/studentIds)"}
+{"ts":"2026-05-31T01:24:47Z","event":"batch_end","batch":"B16","trials":12,"pass":7,"fail":2,"partial":1,"skipped":3,"blocked":0,"highCount":2,"blockerCount":0}
+{"ts":"2026-05-31T01:24:47Z","event":"agent_end","label":"X","trialsCompleted":12,"batchesCompleted":["B16"],"reason":"claimed batches done"}

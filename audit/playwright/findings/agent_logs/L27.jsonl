@@ -1,0 +1,62 @@
+{"ts":"2026-05-31T09:19:46.000Z","label":"L27","type":"agent_start","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:19:46.000Z"}
+{"ts":"2026-05-31T09:19:48.131Z","type":"session_start","day":4,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:20:07.871Z","type":"audit_start","label":"L27","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:20:07.871Z"}
+{"ts":"2026-05-31T09:20:09.495Z","type":"session_start","day":5,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:20:23.241Z","type":"audit_start","label":"L27","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:20:23.241Z"}
+{"ts":"2026-05-31T09:20:24.687Z","type":"session_start","day":5,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:20:41.632Z","type":"session_complete","day":4,"preCSD":3,"postCSD":4,"preTWI":240,"postTWI":240,"preInterventionLevel":0.5,"postInterventionLevel":1,"masteredCount":46,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":true}
+{"ts":"2026-05-31T09:20:41.636Z","type":"session_start","day":5,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:20:50.135Z","type":"session_complete","day":4,"preCSD":3,"postCSD":4,"preTWI":240,"postTWI":240,"preInterventionLevel":0.5,"postInterventionLevel":1,"masteredCount":46,"masteredInReviewCount":1,"violations":26,"newScore":null,"reviewScore":27,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:20:50.140Z","type":"session_start","day":5,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:21:54.950Z","type":"session_complete","day":5,"preCSD":4,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":5,"violations":26,"newScore":null,"reviewScore":13,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:21:54.953Z","type":"session_start","day":6,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:10.404Z","type":"session_complete","day":5,"preCSD":4,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":2,"violations":23,"newScore":null,"reviewScore":27,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:22:10.406Z","type":"session_start","day":6,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:17.262Z","type":"session_error","day":6,"error":"page.goto: Target page, context or browser has been closed"}
+{"ts":"2026-05-31T09:22:17.265Z","type":"session_error","day":6,"error":"page.goto: Target page, context or browser has been closed"}
+{"ts":"2026-05-31T09:22:17.271Z","type":"session_error","day":5,"error":"page.goto: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:22:17.319Z","type":"session_error","day":5,"error":"page.goto: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:22:21.357Z","type":"session_complete","day":6,"preCSD":5,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:22:21.359Z","type":"session_start","day":7,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:21.395Z","type":"session_complete","day":6,"preCSD":5,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:22:21.398Z","type":"session_start","day":7,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:21.451Z","type":"session_complete","day":5,"preCSD":4,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:22:21.452Z","type":"session_complete","day":5,"preCSD":4,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:22:21.454Z","type":"session_start","day":6,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:21.455Z","type":"session_start","day":6,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:37.463Z","type":"audit_start","label":"L27","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:22:37.463Z"}
+{"ts":"2026-05-31T09:22:38.542Z","type":"session_start","day":6,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:22:51.152Z","type":"audit_start","label":"L27","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:22:51.152Z"}
+{"ts":"2026-05-31T09:22:52.260Z","type":"session_start","day":6,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T09:23:32.028Z","type":"session_complete","day":6,"preCSD":5,"postCSD":5,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":64,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":true}
+{"ts":"2026-05-31T09:23:32.031Z","type":"session_start","day":7,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:24:20.869Z","type":"audit_start","label":"L27","persona":"lazy","class":"TOP","batch":"B27","startedAt":"2026-05-31T09:24:20.868Z"}
+{"ts":"2026-05-31T09:24:22.203Z","type":"session_start","day":7,"date":"2026-06-17T00:00:00.000Z"}
+{"ts":"2026-05-31T09:24:37.802Z","type":"session_complete","day":6,"preCSD":5,"postCSD":6,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":50,"masteredInReviewCount":1,"violations":15,"newScore":null,"reviewScore":20,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:24:37.805Z","type":"session_start","day":7,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T09:25:15.674Z","type":"session_complete","day":7,"preCSD":6,"postCSD":6,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":50,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":true}
+{"ts":"2026-05-31T09:25:15.677Z","type":"session_start","day":8,"date":"2026-06-18T00:00:00.000Z"}
+{"ts":"2026-05-31T09:25:24.426Z","type":"session_error","day":7,"error":"page.goto: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:25:28.655Z","type":"session_complete","day":7,"preCSD":5,"postCSD":6,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":50,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:25:28.657Z","type":"session_start","day":8,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:26:33.275Z","type":"session_error","day":7,"error":"page.goto: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://vocaboostone.netlify.app/\", waiting until \"networkidle\"\u001b[22m\n"}
+{"ts":"2026-05-31T09:26:37.502Z","type":"session_complete","day":7,"preCSD":6,"postCSD":7,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":61,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":false}
+{"ts":"2026-05-31T09:26:37.506Z","type":"session_start","day":8,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T09:27:01.102Z","type":"session_complete","day":8,"preCSD":6,"postCSD":7,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":61,"masteredInReviewCount":7,"violations":29,"newScore":null,"reviewScore":30,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:27:01.105Z","type":"session_start","day":9,"date":"2026-06-19T00:00:00.000Z"}
+{"ts":"2026-05-31T09:27:13.940Z","type":"session_complete","day":8,"preCSD":6,"postCSD":7,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":61,"masteredInReviewCount":3,"violations":29,"newScore":null,"reviewScore":17,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:27:13.942Z","type":"session_start","day":9,"date":"2026-06-12T00:00:00.000Z"}
+{"ts":"2026-05-31T09:27:30.699Z","type":"session_complete","day":8,"preCSD":7,"postCSD":7,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":61,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":true}
+{"ts":"2026-05-31T09:27:30.702Z","type":"session_start","day":9,"date":"2026-06-12T00:00:00.000Z"}
+{"ts":"2026-05-31T09:28:24.013Z","type":"session_complete","day":9,"preCSD":7,"postCSD":8,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":70,"masteredInReviewCount":0,"violations":0,"newScore":null,"blocked":true,"h2StaleHit":true}
+{"ts":"2026-05-31T09:28:24.028Z","type":"session_start","day":10,"date":"2026-06-15T00:00:00.000Z"}
+{"ts":"2026-05-31T09:28:46.673Z","type":"session_complete","day":9,"preCSD":7,"postCSD":8,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":70,"masteredInReviewCount":11,"violations":27,"newScore":null,"reviewScore":10,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:28:46.677Z","type":"stop_condition_hit","reason":"F01 REGRESSION: MASTERED words with future returnAt in review on days 8, 9","day":9}
+{"ts":"2026-05-31T09:28:46.759Z","type":"audit_complete","sessionsCompleted":2,"totalSessions":3,"newOrphansCreated":0,"h2StaleCount":1,"stopConditionHit":true,"finalCPDocs":["k8tzOiiwotBbtJS3uTiv","k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T09:28:59.428Z","type":"session_complete","day":9,"preCSD":7,"postCSD":8,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":70,"masteredInReviewCount":4,"violations":27,"newScore":null,"reviewScore":33,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:28:59.437Z","type":"stop_condition_hit","reason":"F01 REGRESSION: MASTERED words with future returnAt in review on days 8, 9","day":9}
+{"ts":"2026-05-31T09:28:59.517Z","type":"audit_complete","sessionsCompleted":2,"totalSessions":4,"newOrphansCreated":0,"h2StaleCount":1,"stopConditionHit":true,"finalCPDocs":["k8tzOiiwotBbtJS3uTiv","k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T09:30:09.188Z","type":"session_complete","day":10,"preCSD":8,"postCSD":9,"preTWI":240,"postTWI":240,"preInterventionLevel":1,"postInterventionLevel":1,"masteredCount":77,"masteredInReviewCount":7,"violations":28,"newScore":null,"reviewScore":33,"blocked":false,"h2StaleHit":false}
+{"ts":"2026-05-31T09:30:09.193Z","type":"stop_condition_hit","reason":"F01 REGRESSION: MASTERED words with future returnAt in review on days 6, 10","day":10}
+{"ts":"2026-05-31T09:30:09.251Z","type":"audit_complete","sessionsCompleted":2,"totalSessions":5,"newOrphansCreated":0,"h2StaleCount":2,"stopConditionHit":true,"finalCPDocs":["k8tzOiiwotBbtJS3uTiv","k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T09:35:08Z","label":"L27","type":"audit_complete","persona":"lazy","class":"TOP","sessionsCompleted":4,"sessionBlocked":3,"startDay":4,"endDay":10,"F01Resolved":false,"F01Days":[6,9,10],"stopConditionHit":true,"h2Count":3,"orphanDocsCreated":0}

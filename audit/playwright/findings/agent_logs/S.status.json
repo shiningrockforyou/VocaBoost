@@ -1,0 +1,20 @@
+{
+  "label": "S",
+  "currentBatch": "B13",
+  "currentScenario": "done",
+  "batchesClaimed": ["B13"],
+  "batchesCompleted": ["B13"],
+  "trialsCompleted": 24,
+  "lastUpdate": "2026-05-31T01:30:01Z",
+  "state": "finished",
+  "findings": {
+    "F01": {
+      "severity": "MEDIUM",
+      "title": "Class name input missing maxlength — 500-char name accepted at client level without validation message",
+      "scenario": "S05"
+    }
+  },
+  "xssResult": "SAFE — React JSX text escaping confirmed. No [onerror] attributes in DOM. No dialog fired.",
+  "blockerCount": 0,
+  "highCount": 0
+}

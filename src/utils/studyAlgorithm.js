@@ -213,6 +213,14 @@ export function calculateReviewTestSize(interventionLevel, minSize, maxSize) {
  * @returns {Array} Array of word objects (length ≤ reviewCount)
  */
 export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = []) {
+  // Backstop (F01): never serve a still-retired MASTERED word in review, regardless
+  // of which path built the pool. buildReviewQueue already filters MASTERED before a
+  // fresh build, but a persisted/restored review queue (resumed session) can replay
+  // words that graduated AFTER the queue was built. Filtering here makes the leak
+  // structurally impossible. MASTERED words re-enter review via NEEDS_CHECK once their
+  // returnAt passes (returnMasteredWords), not through this queue.
+  segmentWords = (segmentWords || []).filter(w => w.status !== 'MASTERED');
+
   const queue = [];
   const todaysNewFailedIds = new Set(todaysNewFailed.map(w => w.id));
 

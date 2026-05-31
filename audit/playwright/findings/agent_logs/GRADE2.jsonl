@@ -1,0 +1,41 @@
+{"ts":"2026-05-31T09:52:02.675Z","msg":"GRADE2 probe start"}
+{"ts":"2026-05-31T09:52:02.678Z","msg":"authenticating careful account"}
+{"ts":"2026-05-31T09:52:03.117Z","msg":"authenticated","account":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T09:52:03.122Z","msg":"S01: Verbatim canonical English — all 20 words"}
+{"ts":"2026-05-31T09:52:04.892Z","msg":"S01 batch done","offset":0,"results":["inflammatory:true","transfix:true","disservice:true","jilt:true","engrave:true","fiat:true","paranormal:true","insolence:true"]}
+{"ts":"2026-05-31T09:52:07.055Z","msg":"S01 batch done","offset":8,"results":["agog:true","attribute:true","prohibitive:true","ruse:true","infamy:true","determinant:true","impervious:true","effusion:true"]}
+{"ts":"2026-05-31T09:52:08.675Z","msg":"S01 batch done","offset":16,"results":["harry:true","deplore:true","redolent:true","overcompensate:true"]}
+{"ts":"2026-05-31T09:52:09.079Z","msg":"S02: Korean canonical translation"}
+{"ts":"2026-05-31T09:52:10.790Z","msg":"S02 batch done","offset":0}
+{"ts":"2026-05-31T09:52:12.211Z","msg":"S02 batch done","offset":8}
+{"ts":"2026-05-31T09:52:12.614Z","msg":"S03: Code-switching EN+KO"}
+{"ts":"2026-05-31T09:52:14.265Z","msg":"S03 done"}
+{"ts":"2026-05-31T09:52:14.669Z","msg":"S06: ESL imperfect"}
+{"ts":"2026-05-31T09:52:16.692Z","msg":"S06 done"}
+{"ts":"2026-05-31T09:52:17.095Z","msg":"S04: Beginner one-word synonym"}
+{"ts":"2026-05-31T09:52:18.733Z","msg":"S04 done"}
+{"ts":"2026-05-31T09:52:19.136Z","msg":"S07: Advanced verbose"}
+{"ts":"2026-05-31T09:52:20.835Z","msg":"S07 done"}
+{"ts":"2026-05-31T09:52:21.238Z","msg":"S13: Junk answers — expect REJECT"}
+{"ts":"2026-05-31T09:52:24.180Z","msg":"S13+S14 done"}
+{"ts":"2026-05-31T09:52:24.583Z","msg":"8a: Negated/opposite phrasing — expect REJECT"}
+{"ts":"2026-05-31T09:52:28.049Z","msg":"8a done","results":["inflammatory:false","transfix:false","disservice:false","jilt:false","engrave:false","fiat:false","paranormal:false","insolence:false"]}
+{"ts":"2026-05-31T09:52:28.458Z","msg":"8b: Different word's correct definition — expect REJECT (too-loose false-positive test)"}
+{"ts":"2026-05-31T09:52:28.463Z","msg":"8b probes","probes":["inflammatory -> \"a trick\"","transfix -> \"an arbitrary decree or order\"","disservice -> \"very eager or curious to hear or see something.\"","jilt -> \"preventing or hindering something\"","engrave -> \"to harass; to annoy\"","fiat -> \"to cause to stand motionless with awe, amazement, or some other strong emotion; to rivet\"","paranormal -> \"a trick\"","insolence -> \"not admitting of passage or capable of being affected\""]}
+{"ts":"2026-05-31T09:52:34.069Z","msg":"8b done"}
+{"ts":"2026-05-31T09:52:34.072Z","msg":"8c: Partial answer (half the definition) — expect ACCEPT"}
+{"ts":"2026-05-31T09:52:35.994Z","msg":"8c done","results":["inflammatory:true","transfix:true","disservice:true","jilt:true","engrave:true","fiat:true","paranormal:true","insolence:true"]}
+{"ts":"2026-05-31T09:52:36.397Z","msg":"8d: Typo answer (1-2 chars) — expect ACCEPT"}
+{"ts":"2026-05-31T09:52:38.040Z","msg":"8d done","results":["inflammatory:true ans=\"arousing agner or strong emotion\"","transfix:true ans=\"to cause to stand motionless iwth awe, amazement, or some other strong emotion; to rivet\"","disservice:true ans=\"a harmfula ction; an ill turn\"","jilt:true ans=\"to suddenly rjeect or abandon (a lover).\"","engrave:true ans=\"to cut or carve lines, lteters, designs, etc., onto or into a hard surface\"","fiat:true ans=\"an arbitrray decree or order\"","paranormal:true ans=\"having to do with an event ore vents that can't be explained scientifically; supernatural\"","insolence:true ans=\"rude and dsirespectful behavior.\""]}
+{"ts":"2026-05-31T09:52:38.444Z","msg":"8e: Word echoed back as definition — expect REJECT (self-referencing)"}
+{"ts":"2026-05-31T09:52:38.640Z","msg":"8e done","results":["inflammatory:false","transfix:false","disservice:false","jilt:false","engrave:false","fiat:false","paranormal:false","insolence:false"]}
+{"ts":"2026-05-31T09:52:39.046Z","msg":"9: Consistency — same answer 5 times"}
+{"ts":"2026-05-31T09:52:40.022Z","msg":"consistency iter 1","verdict":true}
+{"ts":"2026-05-31T09:52:41.198Z","msg":"consistency iter 2","verdict":true}
+{"ts":"2026-05-31T09:52:42.410Z","msg":"consistency iter 3","verdict":true}
+{"ts":"2026-05-31T09:52:43.811Z","msg":"consistency iter 4","verdict":true}
+{"ts":"2026-05-31T09:52:45.351Z","msg":"consistency iter 5","verdict":true}
+{"ts":"2026-05-31T09:52:45.655Z","msg":"consistency result","verdicts":[true,true,true,true,true],"allSame":true}
+{"ts":"2026-05-31T09:52:45.662Z","msg":"evidence saved","path":"/app/audit/playwright/findings/evidence/B26_recheck/GRADE2_raw_probe_results.json"}
+{"ts":"2026-05-31T09:52:45.670Z","msg":"findings written","path":"/app/audit/playwright/findings/findings_B26_recheck.md"}
+{"ts":"2026-05-31T09:52:45.677Z","msg":"status written","path":"/app/audit/playwright/findings/agent_logs/GRADE2.status.json"}

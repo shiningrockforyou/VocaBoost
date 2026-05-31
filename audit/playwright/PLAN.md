@@ -258,11 +258,18 @@ function nextStudyDay(currentDate, studyDaysPerWeek) {
 The audit assumes the following are stood up before B00 runs:
 
 - **Vite dev server** on `https://vocaboostone.netlify.app` with hot reload.
-- **Firebase emulators** OR a dedicated Firebase test project — *never* run against the production Firebase project. Configuration via `.env.test`.
+- **Firebase: production project `vocaboost-879c2`.** The 50 audit students (all carrying `auditAccount: true` markers) are already seeded into 25WT 2차 TOP OFFLINE and CORE OFFLINE. Frontend target is the live Netlify deploy at https://vocaboostone.netlify.app/. This is a deliberate decision: tests run against the same code path students see, including real Cloud Functions for AI grading. The earlier draft of this section said "never run against production" — that has been superseded; the audit's value is measuring what students actually experience.
 - **Playwright** with Chromium installed (`npx playwright install chromium`).
-- **Time-based testing** uses `Date.now` shimming via Playwright's `page.addInitScript` rather than real waits whenever possible — `await page.waitForTimeout(60000)` is banned.
+- **Time-based testing** uses `Date.now` shimming via Playwright's `page.addInitScript` rather than real waits whenever possible — `await page.waitForTimeout(60000)` is banned. NOTE: client-side `Date.now` shim does NOT affect Firebase `serverTimestamp()` — those come from Google's clock. For batches that need server-time invariants (B22 day progression), see that batch's caveat block.
 
-If the Firestore emulator is unavailable, batches that rely on inspecting Firestore directly (most of B02, B03, B05, B07, B16, B19) must be re-cast as black-box (UI-only) tests with clear notes in findings.
+**Production tradeoffs to keep in mind:**
+
+- Firestore snapshots use the Admin SDK (`scripts/serviceAccountKey.json`). The audit can read any document.
+- Firestore writes via destructive scenarios (B12 hostile, B22 multi-tab races) DO mutate production. The 50 audit students are intentionally scoped containers — the seeded `auditAccount: true` markers let cleanup safely revert.
+- Service workers may intercept Playwright route handlers on the live site; unregister at session start.
+- AI grading calls cost real money (~$0.001 per call, Claude Haiku). Budget for ~1500–2000 calls across a full audit.
+
+**Emulator path (alternative, not the chosen target):** If you specifically need to validate server-time invariants in B22 or B14, run a separate B22-emulator pass using `firebase emulators:start`. PLAN.md leaves the helpers compatible with either backend, but the default-and-tested target is production.
 
 ## Selector strategy — read this twice
 

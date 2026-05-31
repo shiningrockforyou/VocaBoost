@@ -1,0 +1,16 @@
+{
+  "agent": "CW",
+  "label": "careful/TOP B27",
+  "status": "finished",
+  "startedAt": "2026-05-31T05:59:00.000Z",
+  "finishedAt": "2026-05-31T06:35:00.000Z",
+  "persona": "careful",
+  "class": "TOP",
+  "batch": "B27",
+  "realStartingDay": 4,
+  "endingDay": 15,
+  "sessionsCompleted": 10,
+  "totalIterations": 25,
+  "orphanDocsCreated": 0,
+  "harness_verdict": "CONDITIONAL_GO"
+}

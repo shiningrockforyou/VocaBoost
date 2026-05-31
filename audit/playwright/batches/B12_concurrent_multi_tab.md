@@ -19,7 +19,7 @@ Multi-tab is the most realistic way students/teachers hit these. Each scenario s
 
 ### S01 — Two tabs, same user, same test
 
-1. Tab A and B both log in as `carefulStudent`.
+1. Tab A and B both log in as `careful`.
 2. Both navigate to MCQ on `tinyList`.
 3. Tab A: answer 3, submit.
 4. Tab B: answer 5 (different), submit.
@@ -42,14 +42,14 @@ Unacceptable:
 
 ### S03 — Two students same time
 
-1. Tab A: `carefulStudent` takes test.
-2. Tab B: `rushedStudent` takes a DIFFERENT test on a different list (so processTestResults doesn't touch overlapping study_states).
+1. Tab A: `careful` takes test.
+2. Tab B: `rushed` takes a DIFFERENT test on a different list (so processTestResults doesn't touch overlapping study_states).
 3. Both submit. Verify no cross-contamination.
 
 ### S04 — Two students same time, overlapping lists
 
-1. Tab A: `carefulStudent` takes test on `standardList`.
-2. Tab B: `rushedStudent` takes test on `standardList` (same list, different per-student study_states).
+1. Tab A: `careful` takes test on `standardList`.
+2. Tab B: `rushed` takes test on `standardList` (same list, different per-student study_states).
 3. Both submit. Verify each student's study_states are isolated.
 
 ### S05 — joinClass race
@@ -122,14 +122,14 @@ Power-user-like:
 
 ### S12 — Hostile student writes another student's study_states
 
-1. `hostileStudent` opens devtools.
+1. `hostile` opens devtools.
 2. `await firebase.firestore().doc('users/<carefulStudentUid>/study_states/<wordId>').set({ status: 'FAILED' })`.
 3. Expected: PERMISSION_DENIED (per the recent rule tightening if it covered this; if not, this would succeed pre-fix).
-4. Verify the carefulStudent's data is unchanged.
+4. Verify the careful's data is unchanged.
 
 ### S13 — Hostile student writes another student's class_progress
 
-1. `hostileStudent` devtools.
+1. `hostile` devtools.
 2. `await firebase.firestore().doc('users/<carefulStudentUid>/class_progress/<docId>').update({ currentStudyDay: 999 })`.
 3. Expected: PERMISSION_DENIED.
 
@@ -137,7 +137,7 @@ Power-user-like:
 
 ### S14 — Hostile student tries to modify their own attempt's score
 
-1. Take an MCQ as `hostileStudent`. Score 40%.
+1. Take an MCQ as `hostile`. Score 40%.
 2. devtools: `await firebase.firestore().doc('attempts/<id>').update({ score: 100, passed: true })`.
 3. Expected: PERMISSION_DENIED (per C3 fix — `hasOnly(['answers'])`).
 

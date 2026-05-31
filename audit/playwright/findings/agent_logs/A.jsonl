@@ -1,0 +1,10 @@
+{"ts":"2026-05-30T00:00:00Z","event":"agent_start","label":"A","claim":["B00"]}
+{"ts":"2026-05-30T00:00:05Z","event":"batch_start","batch":"B00"}
+{"ts":"2026-05-30T20:58:17Z","event":"scenario","batch":"B00","scenario":"S01","result":"pass","durationMs":3507}
+{"ts":"2026-05-30T21:00:07Z","event":"scenario","batch":"B00","scenario":"S02","result":"pass","durationMs":110595,"loginCount":"24/24"}
+{"ts":"2026-05-30T21:00:22Z","event":"scenario","batch":"B00","scenario":"S03","result":"pass","durationMs":14490}
+{"ts":"2026-05-30T21:01:30Z","event":"scenario","batch":"B00","scenario":"S04","result":"pass","durationMs":30000,"topWords":30,"coreWords":30,"topKo":30,"coreKo":30}
+{"ts":"2026-05-30T21:00:56Z","event":"scenario","batch":"B00","scenario":"S05","result":"pass","durationMs":34254,"enrollmentGate":"PASS","topGate":"pass","coreGate":"pass","samplesFailed":0}
+{"ts":"2026-05-30T21:02:00Z","event":"scenario","batch":"B00","scenario":"S06","result":"pass","durationMs":2000,"auditStatePopulated":true}
+{"ts":"2026-05-30T21:05:00Z","event":"batch_end","batch":"B00","trials":6,"pass":6,"fail":0,"blocked":0,"highCount":0,"blockerCount":0,"mediumCount":1,"lowCount":2}
+{"ts":"2026-05-30T21:05:00Z","event":"agent_end","label":"A","trialsCompleted":6,"batchesCompleted":["B00"],"reason":"claimed batches done"}

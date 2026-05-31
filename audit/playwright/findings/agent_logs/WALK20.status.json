@@ -1,0 +1,48 @@
+{
+  "status": "complete",
+  "agent": "WALK20",
+  "batch": "B27",
+  "persona": "careful",
+  "class": "TOP",
+  "transform": "canonical_en_verbatim",
+  "completedAt": "2026-05-31T11:31:53.106Z",
+  "proofGatePassed": true,
+  "proofGateResults": [
+    {
+      "day": 19,
+      "csdBefore": 18,
+      "csdAfter": 19,
+      "csdAdvanced": true,
+      "blocked": false,
+      "blockedReason": null
+    },
+    {
+      "day": 20,
+      "csdBefore": 19,
+      "csdAfter": 20,
+      "csdAdvanced": true,
+      "blocked": false,
+      "blockedReason": null
+    }
+  ],
+  "walk20Achieved": true,
+  "initialCSD": 18,
+  "finalCSD": 20,
+  "targetCSD": 20,
+  "sessionsCompleted": 2,
+  "sessionsAttempted": 2,
+  "csdAdvancedCount": 2,
+  "h2Count": 1,
+  "f01TotalCount": 12,
+  "newViolDays": [],
+  "reviewViolDays": [
+    19
+  ],
+  "orphanDocsPreRun": [
+    "k8tzOiiwotBbtJS3uTiv"
+  ],
+  "newOrphansCreated": [],
+  "noFabricationConfirmed": true,
+  "findingsPath": "/app/audit/playwright/findings/findings_B27_walk20.md",
+  "evidenceDir": "/app/audit/playwright/findings/evidence/B27/walk20"
+}

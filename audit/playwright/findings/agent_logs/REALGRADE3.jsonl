@@ -1,0 +1,26 @@
+{"ts":"2026-05-31T10:31:58.525Z","msg":"REALGRADE3 grading start"}
+{"ts":"2026-05-31T10:31:58.972Z","msg":"pairs loaded","total":17391,"oldCorrect":14314,"oldIncorrect":3077}
+{"ts":"2026-05-31T10:31:58.990Z","msg":"sample selected","incorrectSample":500,"correctSample":300,"total":800}
+{"ts":"2026-05-31T10:31:58.998Z","msg":"authenticating","account":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T10:31:59.699Z","msg":"auth SUCCESS"}
+{"ts":"2026-05-31T10:31:59.703Z","msg":"batching","totalItems":800,"batchSize":50,"numBatches":16}
+{"ts":"2026-05-31T10:32:10.826Z","msg":"batch 1/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":11118}
+{"ts":"2026-05-31T10:32:19.895Z","msg":"batch 2/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":8863}
+{"ts":"2026-05-31T10:32:30.787Z","msg":"batch 3/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":10689}
+{"ts":"2026-05-31T10:32:42.374Z","msg":"batch 4/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":11382}
+{"ts":"2026-05-31T10:32:51.190Z","msg":"batch 5/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":8612}
+{"ts":"2026-05-31T10:32:58.830Z","msg":"batch 6/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":7436}
+{"ts":"2026-05-31T10:33:07.816Z","msg":"batch 7/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":8778}
+{"ts":"2026-05-31T10:33:18.426Z","msg":"batch 8/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":10406}
+{"ts":"2026-05-31T10:33:27.086Z","msg":"batch 9/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":8455}
+{"ts":"2026-05-31T10:33:27.491Z","msg":"batch 10/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":201}
+{"ts":"2026-05-31T10:33:33.139Z","msg":"batch 11/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":5443}
+{"ts":"2026-05-31T10:33:37.818Z","msg":"batch 12/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":4475}
+{"ts":"2026-05-31T10:33:49.396Z","msg":"batch 13/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":11371}
+{"ts":"2026-05-31T10:33:59.666Z","msg":"batch 14/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":10065}
+{"ts":"2026-05-31T10:34:14.573Z","msg":"batch 15/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":14703}
+{"ts":"2026-05-31T10:34:26.264Z","msg":"batch 16/16 SUCCESS","batchSize":50,"resultsReturned":50,"latencyMs":11487}
+{"ts":"2026-05-31T10:34:26.269Z","msg":"grading complete","totalSucceeded":800,"totalFailed":0}
+{"ts":"2026-05-31T10:34:26.281Z","msg":"regrade_results_v3.json written","path":"/app/audit/playwright/findings/evidence/REAL_GRADING/regrade_results_v3.json"}
+{"ts":"2026-05-31T10:34:26.285Z","msg":"agreement stats","graded":800,"oldCorrectNewCorrect":291,"oldCorrectNewWrong_FN_candidates":9,"oldWrongNewCorrect_FP_candidates":257,"oldWrongNewWrong":243}
+{"ts":"2026-05-31T10:34:26.292Z","msg":"status written"}

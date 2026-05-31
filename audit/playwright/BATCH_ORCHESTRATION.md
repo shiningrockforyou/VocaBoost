@@ -123,12 +123,12 @@ Expected shape after B00:
   "version": 1,
   "seededAt": "2026-05-30T18:00:00Z",
   "users": {
-    "carefulStudent": { "uid": "...", "email": "...", "password": "..." },
-    "rushedStudent": { ... },
-    "distractedStudent": { ... },
-    "lazyStudent": { ... },
-    "anxiousStudent": { ... },
-    "hostileStudent": { ... },
+    "careful": { "uid": "...", "email": "...", "password": "..." },
+    "rushed": { ... },
+    "distracted": { ... },
+    "lazy": { ... },
+    "anxious": { ... },
+    "hostile": { ... },
     "noviceTeacher": { ... },
     "powerTeacher": { ... },
     "anxiousTeacher": { ... }

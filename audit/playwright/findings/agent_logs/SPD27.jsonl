@@ -1,0 +1,147 @@
+{"ts":"2026-05-31T09:52:49.753Z","type":"audit_start","persona":"speedrunner","class":"TOP","label":"SPD27","uid":"YWSfNes3g7Mdo6tcg7h6ql4Youv2"}
+{"ts":"2026-05-31T09:52:50.633Z","type":"initial_state","CSD":0,"TWI":0,"IL":0}
+{"ts":"2026-05-31T09:52:50.918Z","type":"session_start","day":1,"date":"2026-06-02T00:00:00.000Z","sessionIdx":0}
+{"ts":"2026-05-31T09:52:57.280Z","type":"logged_in","day":1}
+{"ts":"2026-05-31T09:53:11.132Z","type":"new_word_test_start","day":1}
+{"ts":"2026-05-31T09:53:18.593Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:53:48.655Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:53:48.659Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:53:55.703Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:53:55.706Z","type":"new_word_test_done","day":1,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:53:58.904Z","type":"session_complete","day":1,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=1 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:53:58.907Z","type":"session_start","day":2,"date":"2026-06-03T00:00:00.000Z","sessionIdx":1}
+{"ts":"2026-05-31T09:54:05.114Z","type":"logged_in","day":2}
+{"ts":"2026-05-31T09:54:18.942Z","type":"new_word_test_start","day":2}
+{"ts":"2026-05-31T09:54:26.188Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:54:56.248Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:54:56.251Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:55:03.287Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:55:03.290Z","type":"new_word_test_done","day":2,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:55:06.303Z","type":"no_review_test_found","day":2}
+{"ts":"2026-05-31T09:55:09.496Z","type":"session_complete","day":2,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=2 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:55:09.499Z","type":"session_start","day":3,"date":"2026-06-04T00:00:00.000Z","sessionIdx":2}
+{"ts":"2026-05-31T09:55:15.695Z","type":"logged_in","day":3}
+{"ts":"2026-05-31T09:55:29.481Z","type":"new_word_test_start","day":3}
+{"ts":"2026-05-31T09:55:38.439Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:56:08.493Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:56:08.495Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:56:15.537Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:56:15.540Z","type":"new_word_test_done","day":3,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:56:18.552Z","type":"no_review_test_found","day":3}
+{"ts":"2026-05-31T09:56:21.731Z","type":"session_complete","day":3,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=3 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:56:21.734Z","type":"session_start","day":4,"date":"2026-06-05T00:00:00.000Z","sessionIdx":3}
+{"ts":"2026-05-31T09:56:27.961Z","type":"logged_in","day":4}
+{"ts":"2026-05-31T09:56:41.811Z","type":"new_word_test_start","day":4}
+{"ts":"2026-05-31T09:56:52.126Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:57:22.184Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:57:22.187Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:57:29.244Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:57:29.247Z","type":"new_word_test_done","day":4,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:57:32.260Z","type":"no_review_test_found","day":4}
+{"ts":"2026-05-31T09:57:35.449Z","type":"session_complete","day":4,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=4 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:57:35.452Z","type":"session_start","day":5,"date":"2026-06-08T00:00:00.000Z","sessionIdx":4}
+{"ts":"2026-05-31T09:57:41.647Z","type":"logged_in","day":5}
+{"ts":"2026-05-31T09:57:55.439Z","type":"new_word_test_start","day":5}
+{"ts":"2026-05-31T09:58:02.178Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:58:32.231Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:58:32.234Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:58:39.292Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:58:39.295Z","type":"new_word_test_done","day":5,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:58:42.304Z","type":"no_review_test_found","day":5}
+{"ts":"2026-05-31T09:58:45.528Z","type":"session_complete","day":5,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=5 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:58:45.534Z","type":"session_start","day":6,"date":"2026-06-09T00:00:00.000Z","sessionIdx":5}
+{"ts":"2026-05-31T09:58:51.798Z","type":"logged_in","day":6}
+{"ts":"2026-05-31T09:59:05.623Z","type":"new_word_test_start","day":6}
+{"ts":"2026-05-31T09:59:14.789Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T09:59:44.858Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T09:59:44.864Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T09:59:51.916Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T09:59:51.918Z","type":"new_word_test_done","day":6,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T09:59:54.931Z","type":"no_review_test_found","day":6}
+{"ts":"2026-05-31T09:59:58.138Z","type":"session_complete","day":6,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=6 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T09:59:58.140Z","type":"session_start","day":7,"date":"2026-06-10T00:00:00.000Z","sessionIdx":6}
+{"ts":"2026-05-31T10:00:04.337Z","type":"logged_in","day":7}
+{"ts":"2026-05-31T10:00:18.145Z","type":"new_word_test_start","day":7}
+{"ts":"2026-05-31T10:00:26.964Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:00:57.016Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:00:57.020Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:01:04.074Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:01:04.077Z","type":"new_word_test_done","day":7,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:01:07.088Z","type":"no_review_test_found","day":7}
+{"ts":"2026-05-31T10:01:10.280Z","type":"session_complete","day":7,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=7 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:01:10.283Z","type":"session_start","day":8,"date":"2026-06-11T00:00:00.000Z","sessionIdx":7}
+{"ts":"2026-05-31T10:01:16.490Z","type":"logged_in","day":8}
+{"ts":"2026-05-31T10:01:30.264Z","type":"new_word_test_start","day":8}
+{"ts":"2026-05-31T10:01:39.406Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:02:09.495Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:02:09.497Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:02:16.557Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:02:16.560Z","type":"new_word_test_done","day":8,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:02:19.573Z","type":"no_review_test_found","day":8}
+{"ts":"2026-05-31T10:02:22.788Z","type":"session_complete","day":8,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=8 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:02:22.791Z","type":"session_start","day":9,"date":"2026-06-12T00:00:00.000Z","sessionIdx":8}
+{"ts":"2026-05-31T10:02:29.035Z","type":"logged_in","day":9}
+{"ts":"2026-05-31T10:02:42.851Z","type":"new_word_test_start","day":9}
+{"ts":"2026-05-31T10:02:52.078Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:03:22.134Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:03:22.137Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:03:29.190Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:03:29.193Z","type":"new_word_test_done","day":9,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:03:32.204Z","type":"no_review_test_found","day":9}
+{"ts":"2026-05-31T10:03:35.415Z","type":"session_complete","day":9,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=9 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:03:35.418Z","type":"session_start","day":10,"date":"2026-06-15T00:00:00.000Z","sessionIdx":9}
+{"ts":"2026-05-31T10:03:41.606Z","type":"logged_in","day":10}
+{"ts":"2026-05-31T10:03:55.385Z","type":"new_word_test_start","day":10}
+{"ts":"2026-05-31T10:04:02.185Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:04:32.246Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:04:32.249Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:04:39.300Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:04:39.303Z","type":"new_word_test_done","day":10,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:04:42.310Z","type":"no_review_test_found","day":10}
+{"ts":"2026-05-31T10:04:45.522Z","type":"session_complete","day":10,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=10 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:04:45.531Z","type":"session_start","day":11,"date":"2026-06-16T00:00:00.000Z","sessionIdx":10}
+{"ts":"2026-05-31T10:04:51.859Z","type":"logged_in","day":11}
+{"ts":"2026-05-31T10:05:05.669Z","type":"new_word_test_start","day":11}
+{"ts":"2026-05-31T10:05:14.169Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:05:44.228Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:05:44.232Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:05:51.293Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:05:51.297Z","type":"new_word_test_done","day":11,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:05:54.310Z","type":"no_review_test_found","day":11}
+{"ts":"2026-05-31T10:05:57.522Z","type":"session_complete","day":11,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=11 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:05:57.525Z","type":"session_start","day":12,"date":"2026-06-17T00:00:00.000Z","sessionIdx":11}
+{"ts":"2026-05-31T10:06:03.725Z","type":"logged_in","day":12}
+{"ts":"2026-05-31T10:06:17.549Z","type":"new_word_test_start","day":12}
+{"ts":"2026-05-31T10:06:27.965Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:06:58.015Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:06:58.018Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:07:05.085Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:07:05.090Z","type":"new_word_test_done","day":12,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:07:08.103Z","type":"no_review_test_found","day":12}
+{"ts":"2026-05-31T10:07:11.353Z","type":"session_complete","day":12,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=12 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:07:11.364Z","type":"session_start","day":13,"date":"2026-06-18T00:00:00.000Z","sessionIdx":12}
+{"ts":"2026-05-31T10:07:17.578Z","type":"logged_in","day":13}
+{"ts":"2026-05-31T10:07:31.362Z","type":"new_word_test_start","day":13}
+{"ts":"2026-05-31T10:07:40.366Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:08:10.432Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:08:10.435Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:08:17.500Z","type":"typed_test_result","score":92,"questionCount":30,"rapidSubmitCount":2,"newAttemptIds":1,"newWordAttempts":0}
+{"ts":"2026-05-31T10:08:17.502Z","type":"new_word_test_done","day":13,"score":92,"words":30,"rapidSubmits":2,"duplicateCheck":0}
+{"ts":"2026-05-31T10:08:20.515Z","type":"no_review_test_found","day":13}
+{"ts":"2026-05-31T10:08:23.715Z","type":"session_complete","day":13,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=13 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":2,"blocked":false}
+{"ts":"2026-05-31T10:08:23.717Z","type":"session_start","day":14,"date":"2026-06-19T00:00:00.000Z","sessionIdx":13}
+{"ts":"2026-05-31T10:08:29.967Z","type":"logged_in","day":14}
+{"ts":"2026-05-31T10:08:43.785Z","type":"new_word_test_start","day":14}
+{"ts":"2026-05-31T10:08:52.754Z","type":"rapid_double_submit_start","questionCount":30}
+{"ts":"2026-05-31T10:08:54.981Z","type":"rapid_double_submit_done","clicks":2}
+{"ts":"2026-05-31T10:08:54.993Z","type":"waiting_for_grading"}
+{"ts":"2026-05-31T10:08:55.000Z","type":"session_error","day":14,"error":"page.waitForTimeout: Target page, context or browser has been closed"}
+{"ts":"2026-05-31T10:08:58.111Z","type":"session_complete","day":14,"preCSD":0,"postCSD":0,"csdOk":false,"csdDrift":"expected=14 got=0","newMatch":true,"f01Leak":0,"masteredCount":0,"rapidSubmits":0,"blocked":false}
+{"ts":"2026-05-31T10:08:58.114Z","type":"session_start","day":15,"date":"2026-06-22T00:00:00.000Z","sessionIdx":14}
+{"ts":"2026-05-31T10:18:34.467Z","type":"logout_login_scenario_start"}
+{"ts":"2026-05-31T10:18:40.531Z","type":"logged_in"}
+{"ts":"2026-05-31T10:18:47.723Z","type":"test_page_inputs","count":30}
+{"ts":"2026-05-31T10:18:48.280Z","type":"before_logout","answeredCount":4,"lsKeys":["vocaboost_showSampleSentence","vocaboost_session_YWSfNes3g7Mdo6tcg7h6ql4Youv2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new","vocaboost_showKoreanDef","vocaboost-roundness","vocaboost-border-weight","vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new","vocaboost-theme"]}
+{"ts":"2026-05-31T10:18:49.435Z","type":"logout_failed","bodySnippet":"\n    Step 2 of 3New Words Test — Day 1Progress4 of 30 answered1.adumbrate(v.)2.attendant(adj..)3.ponderous\r\n(old English)(adj.)4.paranormal(adj.)5.unequivocal(adj.)6.implacable(adj.)7.determinant(n.)8.jilt\r\n(old English)(v.)9.disservice(n.)10.dotage(n.)11.multitude(n.)12.recondite(adj.)13.degenerate","inputCount":30}
+{"ts":"2026-05-31T10:18:49.550Z","type":"logout_login_scenario_done","result":{"answeredCount":4,"logoutSucceeded":false,"loginSucceeded":false,"recoveryState":"error","localStorageBeforeLogout":{"vocaboost_showSampleSentence":"true","vocaboost_session_YWSfNes3g7Mdo6tcg7h6ql4Youv2_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_day1_new":"{\"lastPhase\":\"NEW_STUDY\",\"studyQueue\":[\"Xp2CdZcGWxW7O3wd2bOu\",\"DCgZY8uxxZBxLFcpz3pO\",\"16wOcNB1BAMmHg","vocaboost_showKoreanDef":"true","vocaboost-roundness":"normal","vocaboost-border-weight":"normal","vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new":"{\"answers\":{\"bQsZfwEf0aKq1v0QQZNg\":\"word\",\"IkZhL3ltn4PhHFhg7REm\":\"word\",\"Gux24udsgfaiOSi1RVDw\":\"word","vocaboost-theme":"light"},"localStorageAfterLogin":null,"errors":["Could not find logout button — UI logout locator failed"]}}
+{"ts":"2026-05-31T23:59:00.000Z","type":"audit_summary","label":"SPD27","persona":"speedrunner","class":"TOP","sessionsCompleted":14,"startDay":1,"endDay":14,"f01LeakDays":0,"f01Tested":false,"stopConditionHit":false,"h2Count":0,"duplicateAttempts":0,"rapidDoubleSubmitDedup":"HOLDS","hasNewOrphan":false,"csdAdvanced":false,"logoutLoginState":"error_locator_failed","status":"completed_partial"}

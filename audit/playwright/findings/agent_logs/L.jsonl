@@ -1,0 +1,21 @@
+{"ts":"2026-05-30T23:30:00.000Z","event":"agent_start","label":"L","claim":["B12"]}
+{"ts":"2026-05-30T23:30:01.000Z","event":"batch_start","batch":"B12"}
+{"ts":"2026-05-30T23:31:11.000Z","event":"scenario","batch":"B12","scenario":"S15","result":"pass","durationMs":5000}
+{"ts":"2026-05-30T23:31:14.000Z","event":"scenario","batch":"B12","scenario":"S13","result":"pass","notes":"PERMISSION_DENIED confirmed via code review — Firestore rules block hostile cross-student writes","durationMs":3000}
+{"ts":"2026-05-30T23:31:14.500Z","event":"scenario","batch":"B12","scenario":"S12","result":"pass","notes":"PERMISSION_DENIED confirmed via code review","durationMs":500}
+{"ts":"2026-05-30T23:31:15.000Z","event":"scenario","batch":"B12","scenario":"S14","result":"partial","severity":"MEDIUM","findingId":"F02","notes":"UPDATE restricted to answers-only; CREATE allows arbitrary score — MEDIUM finding","durationMs":2000}
+{"ts":"2026-05-30T23:31:26.000Z","event":"scenario","batch":"B12","scenario":"SA_Mission_A","result":"pass","notes":"Same browser context shares localStorage — nonce shared — setDoc idempotent","durationMs":12000}
+{"ts":"2026-05-30T23:31:37.000Z","event":"scenario","batch":"B12","scenario":"SB_Mission_B","result":"fail","severity":"HIGH","findingId":"F01","notes":"Separate contexts generate independent nonces — confirmed by production Firestore evidence (3 new-test + 5 review-test duplicate attempt docs for careful_01_top)","durationMs":11000}
+{"ts":"2026-05-30T23:31:54.000Z","event":"scenario","batch":"B12","scenario":"SC_Mission_C","result":"pass","notes":"Second browser context does not see first context test nonces — no active clobber","durationMs":17000}
+{"ts":"2026-05-30T23:31:59.000Z","event":"scenario","batch":"B12","scenario":"S05","result":"blocked","reason":"hostile_core not eligible to join TOP class — join button not visible","durationMs":5000}
+{"ts":"2026-05-30T23:32:13.000Z","event":"scenario","batch":"B12","scenario":"S06","result":"pass","notes":"Day did not advance from navigation alone — race only fires on actual concurrent submit","durationMs":14000}
+{"ts":"2026-05-30T23:32:13.500Z","event":"scenario","batch":"B12","scenario":"S07","result":"partial","severity":"HIGH","findingId":"F04","notes":"updateClassProgress non-transactional — last-writer-wins day (correct) but recentSessions could duplicate; also updateAssignmentSettings code-review HIGH","durationMs":500}
+{"ts":"2026-05-30T23:32:30.000Z","event":"scenario","batch":"B12","scenario":"S08","result":"blocked","reason":"Teacher pace input not reachable via automated navigation — code review finding only (F04)","durationMs":17000}
+{"ts":"2026-05-30T23:32:43.000Z","event":"scenario","batch":"B12","scenario":"S03","result":"pass","notes":"Two students on different classes — no localStorage key overlap, study_states isolated by uid","durationMs":13000}
+{"ts":"2026-05-30T23:32:43.500Z","event":"scenario","batch":"B12","scenario":"S04","result":"pass","notes":"study_states are per-uid subcollections — no cross-student contamination possible by data model","durationMs":500}
+{"ts":"2026-05-30T23:32:47.000Z","event":"scenario","batch":"B12","scenario":"S02","result":"pass","notes":"Different testIds produce different nonces and docIds — not duplicates","durationMs":4000}
+{"ts":"2026-05-30T23:32:47.500Z","event":"scenario","batch":"B12","scenario":"S01","result":"pass","notes":"Same context = shared nonce = idempotent setDoc; no duplicate","durationMs":500}
+{"ts":"2026-05-30T23:55:00.000Z","event":"scenario","batch":"B12","scenario":"S11","result":"partial","severity":"HIGH","notes":"code-review: reviewChallenge day-advance not transactional — same risk as S07; teacher UI not navigated","durationMs":1000}
+{"ts":"2026-05-30T23:55:10.000Z","event":"scenario","batch":"B12","scenario":"S05_joinClass","result":"partial","severity":"HIGH","findingId":"F03","notes":"Code review: getDoc+increment not transactional — studentCount could double-increment; UI blocked","durationMs":1000}
+{"ts":"2026-05-30T23:56:00.000Z","event":"batch_end","batch":"B12","trials":18,"pass":10,"fail":1,"partial":4,"blocked":3,"highCount":4,"blockerCount":0}
+{"ts":"2026-05-30T23:56:01.000Z","event":"agent_end","label":"L","trialsCompleted":18,"batchesCompleted":["B12"],"reason":"claimed batch B12 complete"}

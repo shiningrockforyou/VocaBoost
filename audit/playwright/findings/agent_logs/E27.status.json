@@ -1,0 +1,24 @@
+{
+  "label": "E27",
+  "batch": "B27",
+  "persona": "esl",
+  "targetClass": "TOP",
+  "state": "finished",
+  "updatedAt": "2026-05-31T09:35:00Z",
+  "sessionsCompleted": 2,
+  "totalSessionsWalked": 20,
+  "startDay": 6,
+  "endDay": 25,
+  "stopConditionHit": false,
+  "f01LeakDays": 1,
+  "f01Resolved": false,
+  "newOrphansCreated": 0,
+  "h2Count": 18,
+  "logoutLoginSeverity": "INFO",
+  "findingsSeverities": {
+    "BLOCKER": ["F01", "F-NEW-1"],
+    "HIGH": ["F-NEW-2"],
+    "MEDIUM": ["F-NEW-3"],
+    "HARNESS": ["H2-cascade"]
+  }
+}

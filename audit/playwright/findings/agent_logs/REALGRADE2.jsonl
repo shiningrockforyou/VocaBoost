@@ -1,0 +1,179 @@
+{"ts":"2026-05-31T10:23:30.546Z","phase":"START","msg":"REALGRADE2 beginning"}
+{"ts":"2026-05-31T10:23:30.555Z","phase":"PHASE_1","msg":"Loading extracted_answers.json"}
+{"ts":"2026-05-31T10:23:31.215Z","phase":"PHASE_1","msg":"Loaded","totalAnswers":41142,"distinctStudents":138,"dateRange":"2025-11-24T17:34:36.057Z to 2026-02-27T10:07:19.788Z"}
+{"ts":"2026-05-31T10:23:31.272Z","phase":"PHASE_1","msg":"Deduplicated","totalDistinct":18517,"distinctWrong":2986,"distinctCorrect":15531}
+{"ts":"2026-05-31T10:23:31.310Z","phase":"PHASE_1","msg":"Grading sample selected","wrongSampleSize":500,"correctSampleSize":300,"totalToGrade":800}
+{"ts":"2026-05-31T10:23:31.323Z","phase":"PHASE_2","msg":"Initializing Firebase"}
+{"ts":"2026-05-31T10:23:31.330Z","phase":"PHASE_2","msg":"Signing in as audit user","email":"audit_careful_01_top@vocaboost.test"}
+{"ts":"2026-05-31T10:23:32.002Z","phase":"PHASE_2","msg":"Auth SUCCESS"}
+{"ts":"2026-05-31T10:23:32.006Z","phase":"PHASE_2","msg":"Processing 8 batches of up to 100"}
+{"ts":"2026-05-31T10:23:32.018Z","phase":"PHASE_2","msg":"Calling batch 1/8","batchSize":100}
+{"ts":"2026-05-31T10:23:32.383Z","phase":"PHASE_2","msg":"Batch 0 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:32.387Z","phase":"PHASE_2","msg":"Batch 1 done","latencyMs":369,"failed":"yes"}
+{"ts":"2026-05-31T10:23:32.895Z","phase":"PHASE_2","msg":"Calling batch 2/8","batchSize":100}
+{"ts":"2026-05-31T10:23:33.133Z","phase":"PHASE_2","msg":"Batch 1 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:33.137Z","phase":"PHASE_2","msg":"Batch 2 done","latencyMs":242,"failed":"yes"}
+{"ts":"2026-05-31T10:23:33.651Z","phase":"PHASE_2","msg":"Calling batch 3/8","batchSize":100}
+{"ts":"2026-05-31T10:23:33.889Z","phase":"PHASE_2","msg":"Batch 2 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:33.894Z","phase":"PHASE_2","msg":"Batch 3 done","latencyMs":243,"failed":"yes"}
+{"ts":"2026-05-31T10:23:34.402Z","phase":"PHASE_2","msg":"Calling batch 4/8","batchSize":100}
+{"ts":"2026-05-31T10:23:34.625Z","phase":"PHASE_2","msg":"Batch 3 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:34.629Z","phase":"PHASE_2","msg":"Batch 4 done","latencyMs":227,"failed":"yes"}
+{"ts":"2026-05-31T10:23:35.138Z","phase":"PHASE_2","msg":"Calling batch 5/8","batchSize":100}
+{"ts":"2026-05-31T10:23:35.377Z","phase":"PHASE_2","msg":"Batch 4 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:35.383Z","phase":"PHASE_2","msg":"Batch 5 done","latencyMs":244,"failed":"yes"}
+{"ts":"2026-05-31T10:23:35.890Z","phase":"PHASE_2","msg":"Calling batch 6/8","batchSize":100}
+{"ts":"2026-05-31T10:23:36.132Z","phase":"PHASE_2","msg":"Batch 5 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:36.136Z","phase":"PHASE_2","msg":"Batch 6 done","latencyMs":246,"failed":"yes"}
+{"ts":"2026-05-31T10:23:36.646Z","phase":"PHASE_2","msg":"Calling batch 7/8","batchSize":100}
+{"ts":"2026-05-31T10:23:36.899Z","phase":"PHASE_2","msg":"Batch 6 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:36.903Z","phase":"PHASE_2","msg":"Batch 7 done","latencyMs":257,"failed":"yes"}
+{"ts":"2026-05-31T10:23:37.411Z","phase":"PHASE_2","msg":"Calling batch 8/8","batchSize":100}
+{"ts":"2026-05-31T10:23:37.657Z","phase":"PHASE_2","msg":"Batch 7 FAILED","error":"FirebaseError: INTERNAL"}
+{"ts":"2026-05-31T10:23:37.664Z","phase":"PHASE_2","msg":"Batch 8 done","latencyMs":252,"failed":"yes"}
+{"ts":"2026-05-31T10:23:37.673Z","phase":"PHASE_2","msg":"All batches complete","totalResults":800}
+{"ts":"2026-05-31T10:23:37.679Z","phase":"PHASE_3","msg":"Computing metrics"}
+{"ts":"2026-05-31T10:23:37.687Z","phase":"PHASE_3","gradedSuccessfully":0,"failedToGrade":800}
+{"ts":"2026-05-31T10:23:37.691Z","phase":"PHASE_3","oldNewAgreement":0,"oldNewDisagreement":0,"oldCorrectNewWrong":0,"oldWrongNewCorrect":0}
+{"ts":"2026-05-31T10:23:37.708Z","phase":"PHASE_3","msg":"Saved regrade_results_v2.json"}
+{"ts":"2026-05-31T10:26:02.711Z","phase":"START","msg":"REALGRADE2_v2 beginning"}
+{"ts":"2026-05-31T10:26:02.728Z","phase":"PHASE_1","msg":"Loading extracted_answers.json"}
+{"ts":"2026-05-31T10:26:03.366Z","phase":"PHASE_1","msg":"Loaded","totalAnswers":41142,"distinctStudents":138,"dateRange":"2025-11-24T17:34:36.057Z to 2026-02-27T10:07:19.788Z"}
+{"ts":"2026-05-31T10:26:03.410Z","phase":"PHASE_1","msg":"Deduplicated","totalDistinct":18517,"distinctWrong":2986,"distinctCorrect":15531}
+{"ts":"2026-05-31T10:26:03.441Z","phase":"PHASE_1","msg":"Sample selected","wrongSampleSize":500,"correctSampleSize":200,"totalToGrade":700}
+{"ts":"2026-05-31T10:26:03.449Z","phase":"PHASE_2","msg":"Initializing Firebase & signing in"}
+{"ts":"2026-05-31T10:26:04.132Z","phase":"PHASE_2","msg":"Auth SUCCESS"}
+{"ts":"2026-05-31T10:26:04.138Z","phase":"PHASE_2","msg":"Processing 24 batches of ≤30"}
+{"ts":"2026-05-31T10:26:04.468Z","phase":"PHASE_2","msg":"Batch 0 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:06.673Z","phase":"PHASE_2","msg":"Batch 0 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:10.877Z","phase":"PHASE_2","msg":"Batch 0 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:10.882Z","phase":"PHASE_2","msg":"Batch 1/24 done","latencyMs":6740,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:11.388Z","phase":"PHASE_2","msg":"Batch 1 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:13.591Z","phase":"PHASE_2","msg":"Batch 1 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:17.796Z","phase":"PHASE_2","msg":"Batch 1 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:17.801Z","phase":"PHASE_2","msg":"Batch 2/24 done","latencyMs":6610,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:18.314Z","phase":"PHASE_2","msg":"Batch 2 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:20.516Z","phase":"PHASE_2","msg":"Batch 2 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:24.721Z","phase":"PHASE_2","msg":"Batch 2 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:24.726Z","phase":"PHASE_2","msg":"Batch 3/24 done","latencyMs":6611,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:25.233Z","phase":"PHASE_2","msg":"Batch 3 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:27.438Z","phase":"PHASE_2","msg":"Batch 3 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:31.640Z","phase":"PHASE_2","msg":"Batch 3 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:31.644Z","phase":"PHASE_2","msg":"Batch 4/24 done","latencyMs":6607,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:32.155Z","phase":"PHASE_2","msg":"Batch 4 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:34.371Z","phase":"PHASE_2","msg":"Batch 4 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:38.576Z","phase":"PHASE_2","msg":"Batch 4 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:38.581Z","phase":"PHASE_2","msg":"Batch 5/24 done","latencyMs":6629,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:39.090Z","phase":"PHASE_2","msg":"Batch 5 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:41.292Z","phase":"PHASE_2","msg":"Batch 5 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:45.495Z","phase":"PHASE_2","msg":"Batch 5 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:45.499Z","phase":"PHASE_2","msg":"Batch 6/24 done","latencyMs":6608,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:46.006Z","phase":"PHASE_2","msg":"Batch 6 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:48.210Z","phase":"PHASE_2","msg":"Batch 6 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:52.414Z","phase":"PHASE_2","msg":"Batch 6 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:52.421Z","phase":"PHASE_2","msg":"Batch 7/24 done","latencyMs":6614,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:52.931Z","phase":"PHASE_2","msg":"Batch 7 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:55.130Z","phase":"PHASE_2","msg":"Batch 7 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:59.331Z","phase":"PHASE_2","msg":"Batch 7 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:26:59.336Z","phase":"PHASE_2","msg":"Batch 8/24 done","latencyMs":6606,"succeeded":"no"}
+{"ts":"2026-05-31T10:26:59.841Z","phase":"PHASE_2","msg":"Batch 8 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:02.059Z","phase":"PHASE_2","msg":"Batch 8 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:06.265Z","phase":"PHASE_2","msg":"Batch 8 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:06.269Z","phase":"PHASE_2","msg":"Batch 9/24 done","latencyMs":6626,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:06.775Z","phase":"PHASE_2","msg":"Batch 9 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:08.979Z","phase":"PHASE_2","msg":"Batch 9 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:13.180Z","phase":"PHASE_2","msg":"Batch 9 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:13.185Z","phase":"PHASE_2","msg":"Batch 10/24 done","latencyMs":6606,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:13.694Z","phase":"PHASE_2","msg":"Batch 10 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:15.896Z","phase":"PHASE_2","msg":"Batch 10 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:20.100Z","phase":"PHASE_2","msg":"Batch 10 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:20.104Z","phase":"PHASE_2","msg":"Batch 11/24 done","latencyMs":6611,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:20.615Z","phase":"PHASE_2","msg":"Batch 11 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:22.821Z","phase":"PHASE_2","msg":"Batch 11 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:27.031Z","phase":"PHASE_2","msg":"Batch 11 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:27.039Z","phase":"PHASE_2","msg":"Batch 12/24 done","latencyMs":6624,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:27.581Z","phase":"PHASE_2","msg":"Batch 12 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:29.784Z","phase":"PHASE_2","msg":"Batch 12 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:33.991Z","phase":"PHASE_2","msg":"Batch 12 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:33.995Z","phase":"PHASE_2","msg":"Batch 13/24 done","latencyMs":6642,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:34.499Z","phase":"PHASE_2","msg":"Batch 13 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:36.700Z","phase":"PHASE_2","msg":"Batch 13 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:40.900Z","phase":"PHASE_2","msg":"Batch 13 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:40.905Z","phase":"PHASE_2","msg":"Batch 14/24 done","latencyMs":6603,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:41.411Z","phase":"PHASE_2","msg":"Batch 14 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:43.614Z","phase":"PHASE_2","msg":"Batch 14 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:47.816Z","phase":"PHASE_2","msg":"Batch 14 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:47.820Z","phase":"PHASE_2","msg":"Batch 15/24 done","latencyMs":6607,"succeeded":"no"}
+{"ts":"2026-05-31T10:27:48.332Z","phase":"PHASE_2","msg":"Batch 15 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:50.541Z","phase":"PHASE_2","msg":"Batch 15 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:54.748Z","phase":"PHASE_2","msg":"Batch 15 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:27:54.753Z","phase":"PHASE_2","msg":"Batch 16/24 done","latencyMs":6622,"succeeded":"no"}
+{"ts":"2026-05-31T10:28:02.057Z","phase":"PHASE_2","msg":"Batch 17/24 done","latencyMs":6995,"succeeded":"yes"}
+{"ts":"2026-05-31T10:28:06.211Z","phase":"PHASE_2","msg":"Batch 18/24 done","latencyMs":3841,"succeeded":"yes"}
+{"ts":"2026-05-31T10:28:06.721Z","phase":"PHASE_2","msg":"Batch 18 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:08.929Z","phase":"PHASE_2","msg":"Batch 18 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:13.130Z","phase":"PHASE_2","msg":"Batch 18 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:13.134Z","phase":"PHASE_2","msg":"Batch 19/24 done","latencyMs":6614,"succeeded":"no"}
+{"ts":"2026-05-31T10:28:16.710Z","phase":"PHASE_2","msg":"Batch 20/24 done","latencyMs":3261,"succeeded":"yes"}
+{"ts":"2026-05-31T10:28:17.222Z","phase":"PHASE_2","msg":"Batch 20 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:19.429Z","phase":"PHASE_2","msg":"Batch 20 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:23.635Z","phase":"PHASE_2","msg":"Batch 20 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:23.639Z","phase":"PHASE_2","msg":"Batch 21/24 done","latencyMs":6619,"succeeded":"no"}
+{"ts":"2026-05-31T10:28:27.193Z","phase":"PHASE_2","msg":"Batch 22/24 done","latencyMs":3248,"succeeded":"yes"}
+{"ts":"2026-05-31T10:28:27.702Z","phase":"PHASE_2","msg":"Batch 22 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:29.908Z","phase":"PHASE_2","msg":"Batch 22 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:34.113Z","phase":"PHASE_2","msg":"Batch 22 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:34.117Z","phase":"PHASE_2","msg":"Batch 23/24 done","latencyMs":6616,"succeeded":"no"}
+{"ts":"2026-05-31T10:28:34.620Z","phase":"PHASE_2","msg":"Batch 23 attempt 0 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:36.822Z","phase":"PHASE_2","msg":"Batch 23 attempt 1 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:41.023Z","phase":"PHASE_2","msg":"Batch 23 attempt 2 FAILED","error":"functions/internal: INTERNAL"}
+{"ts":"2026-05-31T10:28:41.028Z","phase":"PHASE_2","msg":"Batch 24/24 done","latencyMs":6602,"succeeded":"no"}
+{"ts":"2026-05-31T10:28:41.039Z","phase":"PHASE_2","msg":"All batches done","totalResults":700}
+{"ts":"2026-05-31T10:28:41.046Z","phase":"PHASE_3","gradedOK":120,"failed":580,"oldNewAgree":110,"agreeRatePct":"91.7","oldCorrectNewWrong":3,"oldWrongNewCorrect":7,"oldWrongNewWrong":13,"oldCorrectNewCorrect":97}
+{"ts":"2026-05-31T10:28:41.068Z","phase":"PHASE_3","msg":"Saved regrade_results_v2.json"}
+{"ts":"2026-05-31T10:32:15.217Z","phase":"START","msg":"REALGRADE2_final beginning"}
+{"ts":"2026-05-31T10:32:15.227Z","phase":"PHASE_1","msg":"Loading extracted_answers.json"}
+{"ts":"2026-05-31T10:32:15.946Z","phase":"PHASE_1","msg":"Loaded 41142 answers, 138 students"}
+{"ts":"2026-05-31T10:32:16.015Z","phase":"PHASE_1","msg":"Deduplicated","totalDistinct":18517,"validDef":17502,"emptyDef":1015,"wrongPairs":2458,"correctPairs":15044}
+{"ts":"2026-05-31T10:32:16.053Z","phase":"PHASE_1","msg":"Sample: 500 wrong + 200 correct = 700 total"}
+{"ts":"2026-05-31T10:32:16.061Z","phase":"PHASE_2","msg":"Initializing Firebase"}
+{"ts":"2026-05-31T10:32:16.856Z","phase":"PHASE_2","msg":"Auth SUCCESS"}
+{"ts":"2026-05-31T10:32:16.865Z","phase":"PHASE_2","msg":"35 batches of ≤20"}
+{"ts":"2026-05-31T10:32:22.643Z","phase":"PHASE_2","msg":"Batch 1/35 OK","latencyMs":5774}
+{"ts":"2026-05-31T10:32:28.378Z","phase":"PHASE_2","msg":"Batch 2/35 OK","latencyMs":5325}
+{"ts":"2026-05-31T10:32:34.373Z","phase":"PHASE_2","msg":"Batch 3/35 OK","latencyMs":5578}
+{"ts":"2026-05-31T10:32:39.513Z","phase":"PHASE_2","msg":"Batch 4/35 OK","latencyMs":4725}
+{"ts":"2026-05-31T10:32:44.627Z","phase":"PHASE_2","msg":"Batch 5/35 OK","latencyMs":4703}
+{"ts":"2026-05-31T10:32:49.129Z","phase":"PHASE_2","msg":"Batch 6/35 OK","latencyMs":4093}
+{"ts":"2026-05-31T10:32:53.581Z","phase":"PHASE_2","msg":"Batch 7/35 OK","latencyMs":4045}
+{"ts":"2026-05-31T10:32:58.029Z","phase":"PHASE_2","msg":"Batch 8/35 OK","latencyMs":4038}
+{"ts":"2026-05-31T10:33:02.106Z","phase":"PHASE_2","msg":"Batch 9/35 OK","latencyMs":3666}
+{"ts":"2026-05-31T10:33:08.106Z","phase":"PHASE_2","msg":"Batch 10/35 OK","latencyMs":5589}
+{"ts":"2026-05-31T10:33:14.230Z","phase":"PHASE_2","msg":"Batch 11/35 OK","latencyMs":5711}
+{"ts":"2026-05-31T10:33:18.914Z","phase":"PHASE_2","msg":"Batch 12/35 OK","latencyMs":4276}
+{"ts":"2026-05-31T10:33:22.972Z","phase":"PHASE_2","msg":"Batch 13/35 OK","latencyMs":3649}
+{"ts":"2026-05-31T10:33:27.492Z","phase":"PHASE_2","msg":"Batch 14/35 OK","latencyMs":4111}
+{"ts":"2026-05-31T10:33:31.563Z","phase":"PHASE_2","msg":"Batch 15/35 OK","latencyMs":3660}
+{"ts":"2026-05-31T10:33:36.566Z","phase":"PHASE_2","msg":"Batch 16/35 OK","latencyMs":4587}
+{"ts":"2026-05-31T10:33:41.166Z","phase":"PHASE_2","msg":"Batch 17/35 OK","latencyMs":4191}
+{"ts":"2026-05-31T10:33:49.146Z","phase":"PHASE_2","msg":"Batch 18/35 OK","latencyMs":7571}
+{"ts":"2026-05-31T10:33:58.663Z","phase":"PHASE_2","msg":"Batch 19/35 OK","latencyMs":9106}
+{"ts":"2026-05-31T10:34:03.981Z","phase":"PHASE_2","msg":"Batch 20/35 OK","latencyMs":4909}
+{"ts":"2026-05-31T10:34:12.110Z","phase":"PHASE_2","msg":"Batch 21/35 OK","latencyMs":7720}
+{"ts":"2026-05-31T10:34:16.643Z","phase":"PHASE_2","msg":"Batch 22/35 OK","latencyMs":4121}
+{"ts":"2026-05-31T10:34:25.800Z","phase":"PHASE_2","msg":"Batch 23/35 OK","latencyMs":8748}
+{"ts":"2026-05-31T10:34:34.356Z","phase":"PHASE_2","msg":"Batch 24/35 OK","latencyMs":8149}
+{"ts":"2026-05-31T10:34:38.778Z","phase":"PHASE_2","msg":"Batch 25/35 OK","latencyMs":4012}
+{"ts":"2026-05-31T10:34:41.938Z","phase":"PHASE_2","msg":"Batch 26/35 OK","latencyMs":2752}
+{"ts":"2026-05-31T10:34:45.207Z","phase":"PHASE_2","msg":"Batch 27/35 OK","latencyMs":2860}
+{"ts":"2026-05-31T10:34:48.932Z","phase":"PHASE_2","msg":"Batch 28/35 OK","latencyMs":3316}
+{"ts":"2026-05-31T10:34:52.446Z","phase":"PHASE_2","msg":"Batch 29/35 OK","latencyMs":3106}
+{"ts":"2026-05-31T10:34:57.746Z","phase":"PHASE_2","msg":"Batch 30/35 OK","latencyMs":4891}
+{"ts":"2026-05-31T10:35:00.762Z","phase":"PHASE_2","msg":"Batch 31/35 OK","latencyMs":2608}
+{"ts":"2026-05-31T10:35:04.343Z","phase":"PHASE_2","msg":"Batch 32/35 OK","latencyMs":3170}
+{"ts":"2026-05-31T10:35:07.858Z","phase":"PHASE_2","msg":"Batch 33/35 OK","latencyMs":3102}
+{"ts":"2026-05-31T10:35:11.186Z","phase":"PHASE_2","msg":"Batch 34/35 OK","latencyMs":2919}
+{"ts":"2026-05-31T10:35:14.393Z","phase":"PHASE_2","msg":"Batch 35/35 OK","latencyMs":2796}
+{"ts":"2026-05-31T10:35:14.401Z","phase":"PHASE_2","msg":"All batches done, 700 results collected"}
+{"ts":"2026-05-31T10:35:14.406Z","phase":"PHASE_3","gradedOK":700,"failed":0,"agreements":416,"agreeRate":"59.4%","oldCorrectNewWrong":10,"oldWrongNewCorrect":274}
+{"ts":"2026-05-31T10:35:14.421Z","phase":"PHASE_3","msg":"Saved regrade_results_final.json"}

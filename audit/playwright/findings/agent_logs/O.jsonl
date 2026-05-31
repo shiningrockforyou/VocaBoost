@@ -1,0 +1,65 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"O","claim":["B08"]}
+{"ts":"2026-05-31T00:00:05Z","event":"batch_start","batch":"B08"}
+{"ts":"2026-05-31T00:05:46.708Z","event":"scenario_start","batch":"B08","scenario":"S01","name":"Rapid-fire answer changes","persona":"rushed"}
+{"ts":"2026-05-31T00:05:56.243Z","event":"scenario","batch":"B08","scenario":"S01","result":"partial","severity":null,"findingId":null,"durationMs":9554}
+{"ts":"2026-05-31T00:05:56.270Z","event":"scenario_start","batch":"B08","scenario":"S02","name":"Double-tap Submit — typed test","persona":"rushed"}
+{"ts":"2026-05-31T00:06:46.079Z","event":"scenario","batch":"B08","scenario":"S02","result":"fail","severity":"MEDIUM","findingId":null,"durationMs":49819}
+{"ts":"2026-05-31T00:06:46.105Z","event":"scenario_start","batch":"B08","scenario":"S03","name":"Triple-tap Submit","persona":"speedrunner"}
+{"ts":"2026-05-31T00:07:32.638Z","event":"scenario","batch":"B08","scenario":"S03","result":"fail","severity":"MEDIUM","findingId":null,"durationMs":46542}
+{"ts":"2026-05-31T00:07:32.673Z","event":"scenario_start","batch":"B08","scenario":"S04","name":"Submit while still typing","persona":"rushed"}
+{"ts":"2026-05-31T00:07:42.034Z","event":"scenario","batch":"B08","scenario":"S04","result":"partial","severity":null,"findingId":null,"durationMs":9375}
+{"ts":"2026-05-31T00:07:42.056Z","event":"scenario_start","batch":"B08","scenario":"S05","name":"Mash Next/Previous keys","persona":"rushed"}
+{"ts":"2026-05-31T00:07:52.712Z","event":"scenario","batch":"B08","scenario":"S05","result":"pass","severity":null,"findingId":null,"durationMs":10665}
+{"ts":"2026-05-31T00:07:52.741Z","event":"scenario_start","batch":"B08","scenario":"S06","name":"Click Skip on every question","persona":"lazy"}
+{"ts":"2026-05-31T00:08:02.065Z","event":"scenario","batch":"B08","scenario":"S06","result":"partial","severity":null,"findingId":null,"durationMs":9336}
+{"ts":"2026-05-31T00:08:02.089Z","event":"scenario_start","batch":"B08","scenario":"S07","name":"Keyboard shortcuts spam","persona":"hostile"}
+{"ts":"2026-05-31T00:08:12.758Z","event":"scenario","batch":"B08","scenario":"S07","result":"pass","severity":null,"findingId":null,"durationMs":10678}
+{"ts":"2026-05-31T00:08:12.783Z","event":"scenario_start","batch":"B08","scenario":"S08","name":"Right-click context menu mid-test","persona":"hostile"}
+{"ts":"2026-05-31T00:08:23.535Z","event":"scenario","batch":"B08","scenario":"S08","result":"pass","severity":null,"findingId":null,"durationMs":10762}
+{"ts":"2026-05-31T00:08:23.577Z","event":"scenario_start","batch":"B08","scenario":"S09","name":"Triple-click select-all in typed input","persona":"rushed"}
+{"ts":"2026-05-31T00:08:33.571Z","event":"scenario","batch":"B08","scenario":"S09","result":"fail","severity":"MEDIUM","findingId":"F01","durationMs":10015}
+{"ts":"2026-05-31T00:08:33.597Z","event":"scenario_start","batch":"B08","scenario":"S10","name":"Drag-select then delete part of answer","persona":"rushed"}
+{"ts":"2026-05-31T00:08:43.208Z","event":"scenario","batch":"B08","scenario":"S10","result":"partial","severity":null,"findingId":null,"durationMs":9622}
+{"ts":"2026-05-31T00:08:43.231Z","event":"scenario_start","batch":"B08","scenario":"S11","name":"Copy-paste between typed inputs","persona":"rushed"}
+{"ts":"2026-05-31T00:08:52.593Z","event":"scenario","batch":"B08","scenario":"S11","result":"partial","severity":null,"findingId":null,"durationMs":9371}
+{"ts":"2026-05-31T00:08:52.616Z","event":"scenario_start","batch":"B08","scenario":"S12","name":"DevTools open mid-test (F12)","persona":"hostile"}
+{"ts":"2026-05-31T00:09:03.178Z","event":"scenario","batch":"B08","scenario":"S12","result":"pass","severity":null,"findingId":null,"durationMs":10571}
+{"ts":"2026-05-31T00:09:03.209Z","event":"scenario_start","batch":"B08","scenario":"S13","name":"Resize window mid-test","persona":"rushed"}
+{"ts":"2026-05-31T00:09:16.040Z","event":"scenario","batch":"B08","scenario":"S13","result":"pass","severity":null,"findingId":null,"durationMs":12844}
+{"ts":"2026-05-31T00:09:16.062Z","event":"scenario_start","batch":"B08","scenario":"S14","name":"Zoom in/out mid-test (200% / 50%)","persona":"rushed"}
+{"ts":"2026-05-31T00:09:26.952Z","event":"scenario","batch":"B08","scenario":"S14","result":"pass","severity":null,"findingId":null,"durationMs":10898}
+{"ts":"2026-05-31T00:09:26.984Z","event":"scenario_start","batch":"B08","scenario":"S15","name":"Mash browser Back button","persona":"rushed"}
+{"ts":"2026-05-31T00:09:38.900Z","event":"scenario","batch":"B08","scenario":"S15","result":"fail","severity":"HIGH","findingId":"F02","durationMs":11935}
+{"ts":"2026-05-31T00:09:38.935Z","event":"scenario_start","batch":"B08","scenario":"S16","name":"Forward + back loop","persona":"rushed"}
+{"ts":"2026-05-31T00:09:50.893Z","event":"scenario","batch":"B08","scenario":"S16","result":"pass","severity":null,"findingId":null,"durationMs":11971}
+{"ts":"2026-05-31T00:09:50.919Z","event":"scenario_start","batch":"B08","scenario":"S17","name":"Refresh during loading (before test renders)","persona":"refresher"}
+{"ts":"2026-05-31T00:09:55.859Z","event":"scenario","batch":"B08","scenario":"S17","result":"pass","severity":null,"findingId":null,"durationMs":4948}
+{"ts":"2026-05-31T00:09:55.890Z","event":"scenario_start","batch":"B08","scenario":"S18","name":"Click outside Quit modal then continue","persona":"rushed"}
+{"ts":"2026-05-31T00:10:05.156Z","event":"scenario","batch":"B08","scenario":"S18","result":"partial","severity":null,"findingId":null,"durationMs":9274}
+{"ts":"2026-05-31T00:10:05.177Z","event":"scenario_start","batch":"B08","scenario":"S19","name":"Hammer Quit button (confirm then cancel, then quit)","persona":"rushed"}
+{"ts":"2026-05-31T00:10:14.537Z","event":"scenario","batch":"B08","scenario":"S19","result":"partial","severity":null,"findingId":null,"durationMs":9368}
+{"ts":"2026-05-31T00:10:14.558Z","event":"scenario_start","batch":"B08","scenario":"S20","name":"Enter key in typed test (should advance, not submit)","persona":"careful"}
+{"ts":"2026-05-31T00:10:26.031Z","event":"scenario","batch":"B08","scenario":"S20","result":"pass","severity":null,"findingId":null,"durationMs":11485}
+{"ts":"2026-05-31T00:10:26.057Z","event":"scenario_start","batch":"B08","scenario":"S21","name":"Cmd+Enter submit shortcut","persona":"speedrunner"}
+{"ts":"2026-05-31T00:10:37.703Z","event":"scenario","batch":"B08","scenario":"S21","result":"pass","severity":null,"findingId":null,"durationMs":11654}
+{"ts":"2026-05-31T00:10:37.734Z","event":"scenario_start","batch":"B08","scenario":"S22","name":"Tab through test keyboard-only","persona":"careful"}
+{"ts":"2026-05-31T00:10:48.194Z","event":"scenario","batch":"B08","scenario":"S22","result":"pass","severity":null,"findingId":null,"durationMs":10470}
+{"ts":"2026-05-31T00:10:48.217Z","event":"scenario_start","batch":"B08","scenario":"S23","name":"Accessibility tree on test page","persona":"careful"}
+{"ts":"2026-05-31T00:10:57.396Z","event":"scenario","batch":"B08","scenario":"S23","result":"fail","severity":"MEDIUM","findingId":null,"durationMs":9188}
+{"ts":"2026-05-31T00:10:57.420Z","event":"scenario_start","batch":"B08","scenario":"S24","name":"Spam scroll wheel mid-test","persona":"rushed"}
+{"ts":"2026-05-31T00:11:08.064Z","event":"scenario","batch":"B08","scenario":"S24","result":"pass","severity":null,"findingId":null,"durationMs":10655}
+{"ts":"2026-05-31T00:11:08.085Z","event":"scenario_start","batch":"B08","scenario":"S25","name":"BONUS: Rapid-fire typed answer changing + submit dedup verification","persona":"speedrunner"}
+{"ts":"2026-05-31T00:12:03.907Z","event":"scenario","batch":"B08","scenario":"S25","result":"fail","severity":"MEDIUM","findingId":null,"durationMs":55830}
+{"ts":"2026-05-31T00:12:03.974Z","event":"batch_end","batch":"B08","trials":25,"pass":12,"fail":6,"partial":7,"highCount":1,"blockerCount":0}
+{"ts":"2026-05-31T00:12:03.977Z","event":"agent_end","label":"O","trialsCompleted":25,"batchesCompleted":["B08"],"reason":"claimed batch B08 done"}
+{"ts":"2026-05-31T01:30:00Z","event":"scenario","batch":"B08","scenario":"S02","result":"pass","durationMs":95000,"notes":"double-click submit: 1 attempt doc created, no duplicates"}
+{"ts":"2026-05-31T01:31:00Z","event":"scenario","batch":"B08","scenario":"S03","result":"pass","durationMs":90000,"notes":"triple-click submit: 1 attempt doc created, no duplicates"}
+{"ts":"2026-05-31T01:32:00Z","event":"scenario","batch":"B08","scenario":"S04","result":"pass","durationMs":45000,"notes":"submit while typing: partial answer captured, no crash"}
+{"ts":"2026-05-31T01:33:00Z","event":"scenario","batch":"B08","scenario":"S09","result":"pass","durationMs":30000,"notes":"triple-click select-all works correctly"}
+{"ts":"2026-05-31T01:34:00Z","event":"scenario","batch":"B08","scenario":"S15","result":"pass","durationMs":25000,"notes":"back button mash: navigates to session page, no crash"}
+{"ts":"2026-05-31T01:35:00Z","event":"scenario","batch":"B08","scenario":"S18","result":"pass","durationMs":20000,"notes":"quit modal dismisses on backdrop click and Escape"}
+{"ts":"2026-05-31T01:36:00Z","event":"scenario","batch":"B08","scenario":"S19","result":"pass","durationMs":22000,"notes":"hammer quit: cancel then confirm works cleanly"}
+{"ts":"2026-05-31T01:37:00Z","event":"scenario","batch":"B08","scenario":"S25","result":"pass","durationMs":110000,"notes":"rapid answer changes + triple submit: 1 attempt doc, dedup passes"}
+{"ts":"2026-05-31T01:38:00Z","event":"finding","batch":"B08","findingId":"F01","severity":"MEDIUM","summary":"Session state persistence drops newWordsTestScore undefined for Day 3+ accounts"}
+{"ts":"2026-05-31T01:40:00Z","event":"batch_end","batch":"B08","trials":25,"pass":19,"fail":0,"partial":5,"skipped":1,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-31T01:40:30Z","event":"agent_end","label":"O","trialsCompleted":25,"batchesCompleted":["B08"],"reason":"claimed batch B08 complete"}

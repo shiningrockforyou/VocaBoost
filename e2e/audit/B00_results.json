@@ -1,0 +1,342 @@
+{
+  "S01": {
+    "result": "pass",
+    "titleMatch": true,
+    "consoleErrors": [],
+    "durationMs": 3485
+  },
+  "S02": {
+    "result": "pass",
+    "successCount": 24,
+    "total": 24,
+    "failed": [],
+    "results": [
+      {
+        "personaId": "careful",
+        "targetClass": "TOP",
+        "email": "audit_careful_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4646
+      },
+      {
+        "personaId": "distracted",
+        "targetClass": "TOP",
+        "email": "audit_distracted_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4480
+      },
+      {
+        "personaId": "rushed",
+        "targetClass": "TOP",
+        "email": "audit_rushed_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4411
+      },
+      {
+        "personaId": "lazy",
+        "targetClass": "TOP",
+        "email": "audit_lazy_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4393
+      },
+      {
+        "personaId": "anxious",
+        "targetClass": "TOP",
+        "email": "audit_anxious_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4411
+      },
+      {
+        "personaId": "recovering",
+        "targetClass": "TOP",
+        "email": "audit_recovering_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4419
+      },
+      {
+        "personaId": "hostile",
+        "targetClass": "TOP",
+        "email": "audit_hostile_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4382
+      },
+      {
+        "personaId": "korean",
+        "targetClass": "TOP",
+        "email": "audit_korean_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4630
+      },
+      {
+        "personaId": "codeswitch",
+        "targetClass": "TOP",
+        "email": "audit_codeswitch_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4403
+      },
+      {
+        "personaId": "esl",
+        "targetClass": "TOP",
+        "email": "audit_esl_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4383
+      },
+      {
+        "personaId": "advanced",
+        "targetClass": "TOP",
+        "email": "audit_advanced_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4397
+      },
+      {
+        "personaId": "phone",
+        "targetClass": "TOP",
+        "email": "audit_phone_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4383
+      },
+      {
+        "personaId": "slowlaptop",
+        "targetClass": "TOP",
+        "email": "audit_slowlaptop_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4411
+      },
+      {
+        "personaId": "academywifi",
+        "targetClass": "TOP",
+        "email": "audit_academywifi_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4401
+      },
+      {
+        "personaId": "mobiledata",
+        "targetClass": "TOP",
+        "email": "audit_mobiledata_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4390
+      },
+      {
+        "personaId": "multidevice",
+        "targetClass": "TOP",
+        "email": "audit_multidevice_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4420
+      },
+      {
+        "personaId": "speedrunner",
+        "targetClass": "TOP",
+        "email": "audit_speedrunner_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4514
+      },
+      {
+        "personaId": "perfectionist",
+        "targetClass": "TOP",
+        "email": "audit_perfectionist_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4345
+      },
+      {
+        "personaId": "trolling",
+        "targetClass": "TOP",
+        "email": "audit_trolling_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4336
+      },
+      {
+        "personaId": "cheater",
+        "targetClass": "TOP",
+        "email": "audit_cheater_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4420
+      },
+      {
+        "personaId": "refresher",
+        "targetClass": "TOP",
+        "email": "audit_refresher_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4462
+      },
+      {
+        "personaId": "firsttimer",
+        "targetClass": "TOP",
+        "email": "audit_firsttimer_01_top@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4364
+      },
+      {
+        "personaId": "beginner",
+        "targetClass": "CORE",
+        "email": "audit_beginner_01_core@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 4362
+      },
+      {
+        "personaId": "classswitcher",
+        "targetClass": "CORE",
+        "email": "audit_classswitcher_01_core@vocaboost.test",
+        "success": true,
+        "nameVisible": true,
+        "showsEmptyState": true,
+        "consoleErrors": 0,
+        "durationMs": 5269
+      }
+    ],
+    "durationMs": 110064
+  },
+  "S03": {
+    "result": "pass",
+    "teacherLoginSuccess": true,
+    "topVisible": true,
+    "coreVisible": true,
+    "durationMs": 14473
+  },
+  "S04": {
+    "result": "partial",
+    "data": null,
+    "durationMs": 118
+  },
+  "S05": {
+    "result": "pass",
+    "anyBlocker": false,
+    "gateResults": [
+      {
+        "personaId": "careful",
+        "targetClass": "TOP",
+        "expectedClass": "25WT 2차 TOP OFFLINE",
+        "result": "pass",
+        "blocker": false,
+        "showsEmptyState": false,
+        "classVisible": true,
+        "sessionCardVisible": true,
+        "consoleErrors": 0,
+        "consoleErrorTexts": []
+      },
+      {
+        "personaId": "careful",
+        "targetClass": "CORE",
+        "expectedClass": "25WT 2차 CORE OFFLINE",
+        "result": "pass",
+        "blocker": false,
+        "showsEmptyState": false,
+        "classVisible": true,
+        "sessionCardVisible": true,
+        "consoleErrors": 0,
+        "consoleErrorTexts": []
+      }
+    ],
+    "sampleResults": [
+      {
+        "personaId": "distracted",
+        "targetClass": "TOP",
+        "result": "pass",
+        "showsEmptyState": false,
+        "sessionCardVisible": true,
+        "consoleErrors": 0
+      },
+      {
+        "personaId": "korean",
+        "targetClass": "TOP",
+        "result": "pass",
+        "showsEmptyState": false,
+        "sessionCardVisible": true,
+        "consoleErrors": 0
+      },
+      {
+        "personaId": "rushed",
+        "targetClass": "TOP",
+        "result": "pass",
+        "showsEmptyState": false,
+        "sessionCardVisible": true,
+        "consoleErrors": 0
+      },
+      {
+        "personaId": "phone",
+        "targetClass": "TOP",
+        "result": "pass",
+        "showsEmptyState": false,
+        "sessionCardVisible": true,
+        "consoleErrors": 0
+      },
+      {
+        "personaId": "lazy",
+        "targetClass": "TOP",
+        "result": "pass",
+        "showsEmptyState": false,
+        "sessionCardVisible": true,
+        "consoleErrors": 0
+      }
+    ],
+    "durationMs": 34254
+  }
+}

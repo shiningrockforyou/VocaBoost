@@ -1,0 +1,16 @@
+{
+  "label": "Q",
+  "currentBatch": "B10",
+  "currentScenario": "done",
+  "batchesClaimed": ["B10"],
+  "batchesCompleted": ["B10"],
+  "trialsCompleted": 16,
+  "lastUpdate": "2026-05-31T00:15:11Z",
+  "state": "finished",
+  "findings": {
+    "F01": {"severity": "MEDIUM", "title": "NEVER_TESTED filter misses NEW status words - blind spot pool always empty for Day-N students"},
+    "F02": {"severity": "MEDIUM", "title": "All words verified! shown to fresh students who have never studied"},
+    "F03": {"severity": "MEDIUM", "title": "MCQ distractor shortage when pool < 4 words"},
+    "F04": {"severity": "LOW", "title": "O(n) Firestore reads for n-word list on every blind spot page load"}
+  }
+}

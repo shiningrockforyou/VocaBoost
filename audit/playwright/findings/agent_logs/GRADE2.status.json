@@ -1,0 +1,116 @@
+{
+  "agent": "GRADE2",
+  "runAt": "2026-05-31T09:52:45.666Z",
+  "overallStatus": "PASS",
+  "categories": {
+    "S01_verbatim_en": {
+      "total": 20,
+      "accepted": 20,
+      "fn": 0,
+      "fp": 0
+    },
+    "S02_korean_canonical": {
+      "total": 10,
+      "accepted": 10,
+      "fn": 0,
+      "fp": 0
+    },
+    "S03_code_switch": {
+      "total": 8,
+      "accepted": 8,
+      "fn": 0,
+      "fp": 0
+    },
+    "S06_esl_imperfect": {
+      "total": 8,
+      "accepted": 8,
+      "fn": 0,
+      "fp": 0
+    },
+    "S04_beginner_one_word": {
+      "total": 8,
+      "accepted": 8,
+      "fn": 0,
+      "fp": 0
+    },
+    "S07_advanced_verbose": {
+      "total": 5,
+      "accepted": 5,
+      "fn": 0,
+      "fp": 0
+    },
+    "S13_junk": {
+      "total": 5,
+      "accepted": 0,
+      "fn": 0,
+      "fp": 0
+    },
+    "S14_trolling": {
+      "total": 5,
+      "accepted": 0,
+      "fn": 0,
+      "fp": 0
+    },
+    "8a_negated_phrasing": {
+      "total": 8,
+      "accepted": 0,
+      "fn": 0,
+      "fp": 0
+    },
+    "8b_wrong_word_definition": {
+      "total": 8,
+      "accepted": 0,
+      "fn": 0,
+      "fp": 0
+    },
+    "8c_partial_answer": {
+      "total": 8,
+      "accepted": 8,
+      "fn": 0,
+      "fp": 0
+    },
+    "8d_typo_answer": {
+      "total": 8,
+      "accepted": 8,
+      "fn": 0,
+      "fp": 0
+    },
+    "8e_word_echoed": {
+      "total": 8,
+      "accepted": 0,
+      "fn": 0,
+      "fp": 0
+    },
+    "S29_consistency": {
+      "total": 5,
+      "accepted": 5,
+      "fn": 0,
+      "fp": 0
+    }
+  },
+  "consistency": {
+    "word": "inflammatory",
+    "verdicts": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "allSame": true
+  },
+  "latency": {
+    "count": 114,
+    "min": 194,
+    "median": 1758,
+    "p95": 3462,
+    "max": 3462
+  },
+  "findings": [],
+  "verbatimEnFalseNegatives": 0,
+  "koreanAcceptRate": "10/10",
+  "wrongWordFP": 0,
+  "negatedFP": 0,
+  "selfRefFP": 0,
+  "junkFP": 0
+}

@@ -1,0 +1,1326 @@
+{
+  "topWords": [
+    {
+      "id": "Xp2CdZcGWxW7O3wd2bOu",
+      "word": "inflammatory",
+      "definition": "arousing anger or strong emotion",
+      "definitions": {
+        "en": "arousing anger or strong emotion",
+        "ko": "염려를 불러일으키는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"
+      ],
+      "position": 0,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "DCgZY8uxxZBxLFcpz3pO",
+      "word": "transfix",
+      "definition": "to cause to stand motionless with awe, amazement, or some other strong emotion; to rivet",
+      "definitions": {
+        "en": "to cause to stand motionless with awe, amazement, or some other strong emotion; to rivet",
+        "ko": "1. [공포 따위로] ...을 오금을 못쓰게 하다\r\n2. ...을 고정시키다, 못박다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The breathtaking view of the sunset over the mountains transfixed everyone at the campsite, leaving them speechless in its beauty. (1602)"
+      ],
+      "position": 1,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "16wOcNB1BAMmHgmXn9jR",
+      "word": "disservice",
+      "definition": "a harmful action; an ill turn",
+      "definitions": {
+        "en": "a harmful action; an ill turn",
+        "ko": "불친절한 행위, 불이익, 해로운 행위"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "Ignoring someone's feelings can be a disservice to both the person and the relationship. (1603)"
+      ],
+      "position": 2,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "ucSQwTpCGYhm6g2mBTBK",
+      "word": "jilt\r\n(old English)",
+      "definition": "to suddenly reject or abandon (a lover).",
+      "definitions": {
+        "en": "to suddenly reject or abandon (a lover).",
+        "ko": "(연인을) 버리다, 차다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "After years of dating, she decided to jilt him for someone who shared her dreams and ambitions. (1604)"
+      ],
+      "position": 3,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "UmjmM4JpTnozWeYoZVQn",
+      "word": "engrave",
+      "definition": "to cut or carve lines, letters, designs, etc., onto or into a hard surface",
+      "definitions": {
+        "en": "to cut or carve lines, letters, designs, etc., onto or into a hard surface",
+        "ko": "새기다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The artist decided to engrave her name on the beautiful wooden box as a personal touch. (1605)"
+      ],
+      "position": 4,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "DQbjiczONCn44fbrrVhk",
+      "word": "fiat",
+      "definition": "an arbitrary decree or order",
+      "definitions": {
+        "en": "an arbitrary decree or order",
+        "ko": "법령, 명령, 엄명, 인가"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The principal issued a fiat requiring all students to wear uniforms starting next semester. (1606)"
+      ],
+      "position": 5,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "C3uz4wKH6VoXqN2dnZ60",
+      "word": "paranormal",
+      "definition": "having to do with an event or events that can't be explained scientifically; supernatural",
+      "definitions": {
+        "en": "having to do with an event or events that can't be explained scientifically; supernatural",
+        "ko": "과학적으로 설명할 수 없는, 초자연적인"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The haunted house was famous for its paranormal activities, drawing visitors eager to experience the unexplained events that occurred there. (1607)"
+      ],
+      "position": 6,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "0We7RiPjVuKDRTxPPJJt",
+      "word": "insolence\r\n(old English)",
+      "definition": "rude and disrespectful behavior.",
+      "definitions": {
+        "en": "rude and disrespectful behavior.",
+        "ko": "건방짐, 무례"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "Her insolence towards the teacher during class resulted in a warning and a call to her parents. (1608)"
+      ],
+      "position": 7,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "8qNlYc3ELCl3JIfmFcRD",
+      "word": "agog\r\n(old English)",
+      "definition": "very eager or curious to hear or see something.",
+      "definitions": {
+        "en": "very eager or curious to hear or see something.",
+        "ko": "흥분한, 기대에 찬"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The students were agog with excitement as they waited for the science fair to begin. (1609)"
+      ],
+      "position": 8,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "2yudKX7IdGpWFQHOnH7Q",
+      "word": "attribute",
+      "definition": "a quality or characteristic belonging to or associated with someone or something",
+      "definitions": {
+        "en": "a quality or characteristic belonging to or associated with someone or something",
+        "ko": "속성"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "Honesty is an important attribute that many people admire in a friend. (1610)"
+      ],
+      "position": 9,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "o9IRlfcoBhpjRpOuptfU",
+      "word": "prohibitive",
+      "definition": "preventing or hindering something",
+      "definitions": {
+        "en": "preventing or hindering something",
+        "ko": "막는, 방해하는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The high cost of the equipment was prohibitive, making it difficult for many schools to participate in the science fair. (1611)"
+      ],
+      "position": 10,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "fMz1jdinNcjebyBCpFwm",
+      "word": "trepidation\r\n(old English)",
+      "definition": "a feeling of fear or agitation about something that may happen.",
+      "definitions": {
+        "en": "a feeling of fear or agitation about something that may happen.",
+        "ko": "두려움, 공포"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "As the storm clouds gathered overhead, a sense of trepidation filled the students waiting for the school bus. (1612)"
+      ],
+      "position": 11,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "aVmB2Jy2k8qehN9u3Wse",
+      "word": "effusion",
+      "definition": "a pouring forth",
+      "definitions": {
+        "en": "a pouring forth",
+        "ko": "유출 (물), 스며나옴, 심정의 토로, 토로한 말 (시문) Effuse v 발산 (유출)하다 Effusive a 과장된, 쏟아져나오는, 넘치는"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The effusion of emotions during the graduation ceremony brought tears to many eyes as students reflected on their journey. (1613)"
+      ],
+      "position": 12,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "saAvnxW09EjA5ujfFCG9",
+      "word": "ruse",
+      "definition": "a trick",
+      "definitions": {
+        "en": "a trick",
+        "ko": "계략, 속임수"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The magician's ruse amazed the audience as he made it seem like he had vanished into thin air. (1614)"
+      ],
+      "position": 13,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "EOwaqhjb76jzJ7vvjgNz",
+      "word": "infamy",
+      "definition": "notoriety, extreme ill repute",
+      "definitions": {
+        "en": "notoriety, extreme ill repute",
+        "ko": "악명, 악평"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The criminal's actions led to his infamy, as he became known for his terrible deeds across the entire city. (1615)"
+      ],
+      "position": 14,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "GmOZo8zLghuWWVXqmwi7",
+      "word": "determinant",
+      "definition": "a factor or element that determines an outcome",
+      "definitions": {
+        "en": "a factor or element that determines an outcome",
+        "ko": "결정적인 요소"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The weather is often a key determinant of whether we will have a picnic or stay indoors. (1616)"
+      ],
+      "position": 15,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "rtcGyq24aTbEWYfNSKwT",
+      "word": "impervious",
+      "definition": "not admitting of passage or capable of being affected",
+      "definitions": {
+        "en": "not admitting of passage or capable of being affected",
+        "ko": "영향받지 않는, 뚫리지 않는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The raincoat was designed to be impervious to water, keeping the wearer dry even in the heaviest downpour. (1617)"
+      ],
+      "position": 16,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "AtHXz5xPPZR5RRW18g3M",
+      "word": "umbrage\r\n(old English)",
+      "definition": "offense or annoyance.",
+      "definitions": {
+        "en": "offense or annoyance.",
+        "ko": "분개, 불쾌"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "She took umbrage at the rude comments made by her classmates during the discussion. (1618)"
+      ],
+      "position": 17,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "WGfA4ArnNmytfRep0e8p",
+      "word": "harry",
+      "definition": "to harass; to annoy",
+      "definitions": {
+        "en": "to harass; to annoy",
+        "ko": "[남]을 괴롭히다, 고통을 주다; 약탈하다, 침략하다."
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The constant questions from his classmates began to harry him, making it difficult for him to concentrate on his studies. (1619)"
+      ],
+      "position": 18,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "0jUt4oqlmeyIWaxkOk8G",
+      "word": "yea\r\n(old English)",
+      "definition": "yes.",
+      "definitions": {
+        "en": "yes.",
+        "ko": "예, 그렇습니다; 찬성, 찬성표"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The teacher asked if everyone understood the lesson, and the students responded with a loud \"yea!\" (1620)"
+      ],
+      "position": 19,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "6xnS2ZxVPw3efEHGabET",
+      "word": "offset",
+      "definition": "to compensate for or counterbalance",
+      "definitions": {
+        "en": "to compensate for or counterbalance",
+        "ko": "(반대의 성질의 무언가를) 추가해서 균형을 더 맞추다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The team worked extra hours to offset the delays caused by the unexpected storm. (1621)"
+      ],
+      "position": 20,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "C2vImPgIyMBxkviXKniU",
+      "word": "deplore",
+      "definition": "to feel or express sorrow, disapproval",
+      "definitions": {
+        "en": "to feel or express sorrow, disapproval",
+        "ko": "한탄하다, 유감스럽게 여기다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "Many teachers deplore the lack of respect some students show towards their classmates. (1622)"
+      ],
+      "position": 21,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "fIo1NJyMo0PTt0qs7zyA",
+      "word": "prithee\r\n(old English)",
+      "definition": "please",
+      "definitions": {
+        "en": "please",
+        "ko": "부디"
+      },
+      "partOfSpeech": "adv.",
+      "samples": [
+        "Prithee, tell me what you think about the new book we read in class. (1623)"
+      ],
+      "position": 22,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "Mgg2GDJwm0ds2izZk4R8",
+      "word": "redolent",
+      "definition": "strongly reminiscent or suggestive of something",
+      "definitions": {
+        "en": "strongly reminiscent or suggestive of something",
+        "ko": "(향기가) 가득한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The garden was redolent with the sweet fragrance of blooming flowers, reminding everyone of the beauty of spring. (1624)"
+      ],
+      "position": 23,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "FKN9djoucfc2MFiovxwm",
+      "word": "overcompensate",
+      "definition": "to make up for something excessively, at times due to guilt or fear",
+      "definitions": {
+        "en": "to make up for something excessively, at times due to guilt or fear",
+        "ko": "과잉보상하다, 과잉보완하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "After losing the race, she tried to overcompensate by practicing even harder for the next competition. (1625)"
+      ],
+      "position": 24,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "UWT37N6TYB2IWLVlb7Tz",
+      "word": "dotage",
+      "definition": "senility; foolish affection",
+      "definitions": {
+        "en": "senility; foolish affection",
+        "ko": "망령, 노망"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "As her grandmother entered her dotage, the family noticed her increasing forgetfulness and tendency to become overly attached to her childhood belongings. (1626)"
+      ],
+      "position": 25,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "IdOGTR2pmSwssB7KQCno",
+      "word": "presumed",
+      "definition": "assumed to be true",
+      "definitions": {
+        "en": "assumed to be true",
+        "ko": "추정되는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The teacher presumed that all the students had completed their homework before the class started. (1627)"
+      ],
+      "position": 26,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "NmVwjBsFud9oG6eGBaEI",
+      "word": "haughty",
+      "definition": "arrogantly superior, disdainful",
+      "definitions": {
+        "en": "arrogantly superior, disdainful",
+        "ko": "거만한, 오만한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The haughty student looked down on her classmates, believing she was far more intelligent than they were. (1628)"
+      ],
+      "position": 27,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "MIMMDnchM1CDeSkOaf3u",
+      "word": "patrician",
+      "definition": "a person of noble birth; an aristocrat",
+      "definitions": {
+        "en": "a person of noble birth; an aristocrat",
+        "ko": "귀족, 문벌가; 고대 로마 귀족"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The patrician attended the grand banquet, showcasing the elegance and traditions of his noble lineage. (1629)"
+      ],
+      "position": 28,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    },
+    {
+      "id": "cBMp0eYoGcROkg5gBSl4",
+      "word": "continuum",
+      "definition": "a continuous whole without clear division into parts",
+      "definitions": {
+        "en": "a continuous whole without clear division into parts",
+        "ko": "연속체, 연속체"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The spectrum of colors in a rainbow forms a beautiful continuum, blending seamlessly from red to violet without any distinct breaks. (1630)"
+      ],
+      "position": 29,
+      "createdAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180095,
+        "_nanoseconds": 170000000
+      }
+    }
+  ],
+  "coreWords": [
+    {
+      "id": "ED0WXiKafbvAPVcZ5FR3",
+      "word": "vigilant",
+      "definition": "keeping careful watch for possible danger or difficulties",
+      "definitions": {
+        "en": "keeping careful watch for possible danger or difficulties",
+        "ko": "경계하는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The lifeguard remained vigilant as he scanned the beach for any signs of trouble among the swimmers. (1281)"
+      ],
+      "position": 0,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "2lefRI2MYxLfqeH7DxWT",
+      "word": "apropos",
+      "definition": "appropriate; coming at the right time",
+      "definitions": {
+        "en": "appropriate; coming at the right time",
+        "ko": "때마침, 시기 적절하게, 적절히"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "Her comment was apropos to the discussion, providing valuable insight just when we needed it. (1282)"
+      ],
+      "position": 1,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "ogRkeFq2gRHQ80uWGvo3",
+      "word": "swoon\r\n(old English)",
+      "definition": "to faint from extreme emotion.",
+      "definitions": {
+        "en": "to faint from extreme emotion.",
+        "ko": "기절하다, 혼수에 빠지다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The crowd began to swoon as the famous singer stepped onto the stage, overwhelmed by excitement. (1283)"
+      ],
+      "position": 2,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "901A25KzYUCF1AkBUCdK",
+      "word": "sly",
+      "definition": "clever in a dishonest way",
+      "definitions": {
+        "en": "clever in a dishonest way",
+        "ko": "교활한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The sly fox tricked the farmer into leaving the henhouse unguarded. (1284)"
+      ],
+      "position": 3,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "GjWLcJN6yasxeCrZBtko",
+      "word": "fabricate",
+      "definition": "to invent, create falsely",
+      "definitions": {
+        "en": "to invent, create falsely",
+        "ko": "조작하다, 날조하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The student tried to fabricate a story about why he was late to class, but his teacher saw through his lies. (1285)"
+      ],
+      "position": 4,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "qqpNbYAbHvxuXmYQKyj3",
+      "word": "whilst\r\n(old English)",
+      "definition": "while.",
+      "definitions": {
+        "en": "while.",
+        "ko": "~하는 동안에, ~하는 동안"
+      },
+      "partOfSpeech": "adv.",
+      "samples": [
+        "I like to listen to music whilst I study for my exams. (1286)"
+      ],
+      "position": 5,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "NR1gHtZk5K3V9hsI0h2o",
+      "word": "scruples\r\n(old English)",
+      "definition": "a feeling of doubt or hesitation with regard to the morality or propriety of a course of action.",
+      "definitions": {
+        "en": "a feeling of doubt or hesitation with regard to the morality or propriety of a course of action.",
+        "ko": "양심, 도덕적 신념"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "She had scruples about accepting the reward, knowing it might encourage cheating among her classmates. (1287)"
+      ],
+      "position": 6,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "rM1K0lmSilzf9jv7VtiW",
+      "word": "deem",
+      "definition": "to think of (someone or something) in a particular way",
+      "definitions": {
+        "en": "to think of (someone or something) in a particular way",
+        "ko": "간주하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The teacher will deem the students' projects successful if they meet all the requirements outlined in the rubric. (1288)"
+      ],
+      "position": 7,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "OOtDMCIDzUlbknyMO92A",
+      "word": "catalyst",
+      "definition": "something that causes an important event to happen; (chemistry) a substance that accelerates a chemical reaction",
+      "definitions": {
+        "en": "something that causes an important event to happen; (chemistry) a substance that accelerates a chemical reaction",
+        "ko": "촉매, 촉매제"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The teacher's inspiring words acted as a catalyst for the students to pursue their dreams and work harder in their studies. (1289)"
+      ],
+      "position": 8,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "8frsefo523R4qUdVGlaS",
+      "word": "chaff",
+      "definition": "worthless stuff",
+      "definitions": {
+        "en": "worthless stuff",
+        "ko": "쓸모 없는 것, 잡동사니"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The farmer separated the valuable grain from the chaff that was left behind after the harvest. (1290)"
+      ],
+      "position": 9,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "VNpEU877XtDlNERyzXCR",
+      "word": "resilient",
+      "definition": "recovering readily from adversity",
+      "definitions": {
+        "en": "recovering readily from adversity",
+        "ko": "잘 버티는, 힘들어도 다시 일어서는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The resilient athlete trained hard every day, determined to recover from her injury and compete in the championship. (1291)"
+      ],
+      "position": 10,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "WSRYxPANq48QNLbWoKbb",
+      "word": "infuse",
+      "definition": "to fill or pervade with a quality or substance",
+      "definitions": {
+        "en": "to fill or pervade with a quality or substance",
+        "ko": "스며들게 하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The teacher wanted to infuse the lesson with excitement to engage her students more effectively. (1292)"
+      ],
+      "position": 11,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "LUDUdHLtYhCvYF886prQ",
+      "word": "embark",
+      "definition": "1. to begin a journey especially on a ship or airplane\r\n2. to make a start",
+      "definitions": {
+        "en": "1. to begin a journey especially on a ship or airplane\r\n2. to make a start",
+        "ko": "1. 탑승하다\r\n2. 착수하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "The students were excited to embark on their field trip to the science museum. (1293)"
+      ],
+      "position": 12,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "WAJdujIq6XQ1cgNW55CB",
+      "word": "earnest",
+      "definition": "genuine",
+      "definitions": {
+        "en": "genuine",
+        "ko": "정중한, 진심을 담은"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "She made an earnest effort to help her classmates understand the difficult material. (1294)"
+      ],
+      "position": 13,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "wrBRvkBt0dff5ykXeoqE",
+      "word": "facile",
+      "definition": "easy, requiring little effort",
+      "definitions": {
+        "en": "easy, requiring little effort",
+        "ko": "쉬운, 노력이 적게 필요한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The facile solution to the math problem made it easy for all the students to complete the assignment quickly. (1295)"
+      ],
+      "position": 14,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "HSwebb2bR7Cwa8q3oMQv",
+      "word": "cherish",
+      "definition": "to be fond of; to be attached to",
+      "definitions": {
+        "en": "to be fond of; to be attached to",
+        "ko": "~를 소중히 하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "I cherish the time I spend with my family during our weekend gatherings. (1296)"
+      ],
+      "position": 15,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "6E5E7W8j54hk3ttzKnIq",
+      "word": "defiance",
+      "definition": "a refusal to obey something or someone",
+      "definitions": {
+        "en": "a refusal to obey something or someone",
+        "ko": "저항"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The student's defiance in refusing to follow the unfair rules led to a discussion about the importance of standing up for what is right. (1297)"
+      ],
+      "position": 16,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "bFVHednfk0dJBWz8OCPj",
+      "word": "catharsis",
+      "definition": "emotional release",
+      "definitions": {
+        "en": "emotional release",
+        "ko": "정화"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "After a long week of exams, watching a heartfelt movie provided her with the catharsis she needed to feel refreshed and ready for the challenges ahead. (1298)"
+      ],
+      "position": 17,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "BLOJFDO3MorxVhKdwv9W",
+      "word": "carcinogenic",
+      "definition": "causing cancer",
+      "definitions": {
+        "en": "causing cancer",
+        "ko": "발암성의"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "Many studies have shown that smoking cigarettes is carcinogenic and can lead to serious health issues. (1299)"
+      ],
+      "position": 18,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "0ZshqlVBEn2LVB00h4g7",
+      "word": "scrupulous",
+      "definition": "diligent, thorough, and extremely attentive to details",
+      "definitions": {
+        "en": "diligent, thorough, and extremely attentive to details",
+        "ko": "세심한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The scrupulous student double-checked her math homework to ensure that every calculation was correct. (1300)"
+      ],
+      "position": 19,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "CQ5wMXtmYqKtgzZYTGIV",
+      "word": "arguably",
+      "definition": "used to indicate that something is open to debate or discussion",
+      "definitions": {
+        "en": "used to indicate that something is open to debate or discussion",
+        "ko": "논쟁의 여지가 있는"
+      },
+      "partOfSpeech": "adv.",
+      "samples": [
+        "Arguably, the best time to visit the beach is during the early morning when it is less crowded. (1301)"
+      ],
+      "position": 20,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "S8n84P1O446HnwB0x93Y",
+      "word": "disobedient",
+      "definition": "not doing what someone or something with authority tells you to do",
+      "definitions": {
+        "en": "not doing what someone or something with authority tells you to do",
+        "ko": "복종하지 않는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The disobedient student chose to ignore the teacher's instructions during the group project. (1302)"
+      ],
+      "position": 21,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "JfdexSJdu6PgsNRSEL56",
+      "word": "equitable",
+      "definition": "fair and just in the distribution of resources or opportunities",
+      "definitions": {
+        "en": "fair and just in the distribution of resources or opportunities",
+        "ko": "공정한"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The school implemented an equitable system for distributing resources to ensure every student had access to the same opportunities for learning. (1303)"
+      ],
+      "position": 22,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "CMOptNef2knCEsaz1njS",
+      "word": "farcical",
+      "definition": "absurd; ludicrous",
+      "definitions": {
+        "en": "absurd; ludicrous",
+        "ko": "익살극의, 익살맞은, 바보스런"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The farcical play had everyone laughing with its silly characters and outrageous situations. (1304)"
+      ],
+      "position": 23,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "tm0bTZmpyG4ZvERdMgJj",
+      "word": "critique",
+      "definition": "to a serious examination and judgment of something",
+      "definitions": {
+        "en": "to a serious examination and judgment of something",
+        "ko": "~을 분석하다, ~을 검토하다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "In her art class, Maria learned how to critique her peers' paintings by discussing the techniques and emotions they conveyed. (1305)"
+      ],
+      "position": 24,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "QnXYsr08DVCe4quHCLRu",
+      "word": "parity",
+      "definition": "equality in value, status, or rank",
+      "definitions": {
+        "en": "equality in value, status, or rank",
+        "ko": "동등성"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The company strives to maintain parity among its employees by ensuring equal pay for equal work. (1306)"
+      ],
+      "position": 25,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "ZZd7ion6selDEw6BjDLi",
+      "word": "qualify",
+      "definition": "to limit (a claim); to specify a condition to make a claim narrower",
+      "definitions": {
+        "en": "to limit (a claim); to specify a condition to make a claim narrower",
+        "ko": "(어떤 주장을) 제한하다, 더 구체적으로 만들다"
+      },
+      "partOfSpeech": "v.",
+      "samples": [
+        "To qualify her statement about the project, she added that the results were only applicable to the first phase of the study. (1307)"
+      ],
+      "position": 26,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "qeXCHAWU8QtfkjHj6jpZ",
+      "word": "stratum",
+      "definition": "a layer; a level",
+      "definitions": {
+        "en": "a layer; a level",
+        "ko": "지층, 계층"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The archaeologists discovered a stratum of ancient pottery buried beneath the soil, revealing insights into the lives of the people who once lived there. (1308)"
+      ],
+      "position": 27,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "HUISjIzlKmx4MAL3atKF",
+      "word": "plastic",
+      "definition": "capable of being shaped or molded; easily influenced or impressionable",
+      "definitions": {
+        "en": "capable of being shaped or molded; easily influenced or impressionable",
+        "ko": "가소성 있는"
+      },
+      "partOfSpeech": "adj.",
+      "samples": [
+        "The artist appreciated how plastic the clay was, allowing her to create intricate designs with ease. (1309)"
+      ],
+      "position": 28,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    },
+    {
+      "id": "fuQD6KjGgUvxuuSoXkdD",
+      "word": "camaraderie",
+      "definition": "friendship",
+      "definitions": {
+        "en": "friendship",
+        "ko": "동지애"
+      },
+      "partOfSpeech": "n.",
+      "samples": [
+        "The students developed a strong camaraderie as they worked together on their group project, supporting each other through challenges. (1310)"
+      ],
+      "position": 29,
+      "createdAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      },
+      "updatedAt": {
+        "_seconds": 1768180140,
+        "_nanoseconds": 859000000
+      }
+    }
+  ]
+}

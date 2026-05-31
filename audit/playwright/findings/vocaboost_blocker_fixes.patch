@@ -1,0 +1,57 @@
+diff --git a/src/services/sessionService.js b/src/services/sessionService.js
+index 6e2496c..bea0390 100644
+--- a/src/services/sessionService.js
++++ b/src/services/sessionService.js
+@@ -120,8 +120,17 @@ export async function saveSessionState(userId, classId, listId, state) {
+   const docId = getSessionDocId(classId, listId);
+   const sessionRef = doc(db, `users/${userId}/session_states`, docId);
+ 
++  // Strip undefined fields: Firestore rejects setDoc with any undefined value
++  // ("Unsupported field value: undefined"), which would fail the whole write and
++  // strand the session (e.g. newWordsTestScore undefined on a Day 2+ completion
++  // when no prior new-word attempt is found). Drop undefined so a single missing
++  // field can never block session-state persistence / day advancement.
++  const cleanState = Object.fromEntries(
++    Object.entries(state).filter(([, v]) => v !== undefined)
++  );
++
+   const sessionData = {
+-    ...state,
++    ...cleanState,
+     classId,
+     listId,
+     lastUpdated: Timestamp.now()
+diff --git a/src/services/studyService.js b/src/services/studyService.js
+index e887391..ea4c363 100644
+--- a/src/services/studyService.js
++++ b/src/services/studyService.js
+@@ -1141,6 +1141,10 @@ export async function completeSessionFromTest({
+         : newWordAttempt.score / 100;
+     } else {
+       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
++      // No prior new-word attempt found: keep newWordScore a valid number (0) rather
++      // than undefined, so the session_states write below succeeds and the day can
++      // complete. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
++      newWordScore = 0;
+     }
+ 
+     // Update session_states with final status (prevents race condition)
+diff --git a/src/utils/studyAlgorithm.js b/src/utils/studyAlgorithm.js
+index 5ea414d..122df45 100644
+--- a/src/utils/studyAlgorithm.js
++++ b/src/utils/studyAlgorithm.js
+@@ -213,6 +213,14 @@ export function calculateReviewTestSize(interventionLevel, minSize, maxSize) {
+  * @returns {Array} Array of word objects (length ≤ reviewCount)
+  */
+ export function selectReviewQueue(segmentWords, reviewCount, todaysNewFailed = []) {
++  // Backstop (F01): never serve a still-retired MASTERED word in review, regardless
++  // of which path built the pool. buildReviewQueue already filters MASTERED before a
++  // fresh build, but a persisted/restored review queue (resumed session) can replay
++  // words that graduated AFTER the queue was built. Filtering here makes the leak
++  // structurally impossible. MASTERED words re-enter review via NEEDS_CHECK once their
++  // returnAt passes (returnMasteredWords), not through this queue.
++  segmentWords = (segmentWords || []).filter(w => w.status !== 'MASTERED');
++
+   const queue = [];
+   const todaysNewFailedIds = new Set(todaysNewFailed.map(w => w.id));
+ 

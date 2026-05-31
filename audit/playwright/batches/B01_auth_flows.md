@@ -14,7 +14,7 @@ Login, signup, password reset, sign-out, persistence across tabs and refresh. An
 ### S01 — Login happy path
 
 1. `page.goto('/login')`
-2. Enter `carefulStudent` credentials.
+2. Enter `careful` credentials.
 3. Submit. Redirect to `/` or `/dashboard` within 3s.
 4. Dashboard shows the student's name / their assigned lists.
 5. No console errors.
@@ -38,7 +38,7 @@ Already covered in B00. Sanity-check once more with a throwaway account.
 
 ### S05 — Signup duplicate email
 
-1. Try to sign up with `carefulStudent`'s email (created in B00).
+1. Try to sign up with `careful`'s email (created in B00).
 2. Expected: error "Email already in use" or similar.
 
 ### S06 — Signup with very weak password
@@ -61,7 +61,7 @@ If implemented:
 
 ### S09 — Sign out, dashboard inaccessible
 
-1. Log in as `carefulStudent`.
+1. Log in as `careful`.
 2. Click Sign out.
 3. Navigate to `/dashboard` directly.
 4. Redirected to /login.
@@ -88,14 +88,14 @@ If implemented:
 
 ### S13 — Two tabs different users
 
-1. Tab A logged in as `carefulStudent`.
-2. Tab B: log in as `rushedStudent` (Firebase auth is per-context, so this either logs out A or coexists).
+1. Tab A logged in as `careful`.
+2. Tab B: log in as `rushed` (Firebase auth is per-context, so this either logs out A or coexists).
 3. Verify behaviour is consistent.
 
 ### S14 — Role-based redirect
 
 1. Log in as `powerTeacher`. Dashboard renders the teacher view.
-2. Log in as `carefulStudent` (same machine, different session). Dashboard renders student view.
+2. Log in as `careful` (same machine, different session). Dashboard renders student view.
 3. Try navigating to a teacher-only URL as a student. Expected: redirect or 403.
 
 ### S15 — Email verification (if required)

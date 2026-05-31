@@ -1,0 +1,53 @@
+{
+  "label": "REALGRADE3",
+  "phase": "COMPLETE",
+  "smokeTest": "PASS",
+  "gradedAt": "2026-05-31T10:34:26.288Z",
+  "completedAt": "2026-05-31T10:45:00.000Z",
+  "dataScope": {
+    "totalAttempts": 1496,
+    "totalStudents": 122,
+    "totalAnswerInstances": 40573,
+    "distinctPairs": 17391,
+    "dateRange": {
+      "min": "2025-12-08T09:09:58.629Z",
+      "max": "2026-02-27T10:07:19.788Z"
+    }
+  },
+  "gradingSample": {
+    "total": 800,
+    "succeeded": 800,
+    "failed": 0,
+    "oldIncorrectSample": 500,
+    "oldCorrectSample": 300
+  },
+  "agreementMatrix": {
+    "bothCorrect": 291,
+    "oldCorrectNewWrong_FN_candidates": 9,
+    "oldWrongNewCorrect_FP_candidates": 257,
+    "bothWrong": 243,
+    "agreementRate": 0.668,
+    "disagreementRate": 0.333
+  },
+  "groundTruth": {
+    "trueFalseNegatives": 0,
+    "trueFalsePositives_confirmed": 16,
+    "trueFalsePositives_estimated": 26,
+    "fnCandidatesReview": "All 9 FN candidates reviewed: new grader correctly rejected old-grader bugs (blank responses, single-char junk, wrong-word answers). Old grader had acceptance bug.",
+    "fpCandidatesReview": "16 confirmed FPs from expert review of 257 FP candidates. Key patterns: wrong Korean near-synonyms (색조/nuance, 변화/dynamic), wrong-meaning Korean (exposition/폭로=exposé not exposition), anatomical vs figurative meaning (insular)."
+  },
+  "metrics": {
+    "newGraderAccuracy_vsGroundTruth": 0.968,
+    "oldGraderAccuracy_vsGroundTruth": 0.668,
+    "newGraderRecall": 1.0,
+    "oldGraderRecall": 0.557,
+    "newGraderPrecision": 0.970,
+    "oldGraderPrecision": 0.970,
+    "oldNewAgreementRate": 0.668,
+    "changeRate": 0.333,
+    "changeDirection": "new grader accepts 248 more answers (+31pp net)",
+    "modelConfirmed": "Claude Haiku 4.5"
+  },
+  "verdict": "ACCEPTABLE",
+  "verdictReason": "0 false negatives (gate metric); ~96.8% vs ~66.8% old grader accuracy; old grader had massive recall failure (55.7%); new grader correctly handles Korean answers, paraphrases, typos; ~16 confirmed FPs (2%) are edge cases not systematic failures"
+}

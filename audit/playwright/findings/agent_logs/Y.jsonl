@@ -1,0 +1,56 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"Y","claim":["B17"]}
+{"ts":"2026-05-31T00:01:00Z","event":"batch_start","batch":"B17"}
+{"ts":"2026-05-31T01:16:05.684Z","event":"scenario","batch":"B17","scenario":"S01","result":"blocked","notes":"Could not navigate to list editor. URL: https://vocaboostone.netlify.app/lists/8RMews2H7C3UJUAsOBzR","durationMs":20896}
+{"ts":"2026-05-31T01:16:16.632Z","event":"scenario","batch":"B17","scenario":"S02","result":"blocked","notes":"Could not find word \"inflammatory\" on the list editor page. URL: https://vocaboostone.netlify.app/teacher","durationMs":10931}
+{"ts":"2026-05-31T01:16:19.608Z","event":"scenario","batch":"B17","scenario":"S03","result":"partial","severity":"LOW","notes":"SAFETY: No throwaway test word available from S01 to delete safely. Delete on real list words blocked to avoid corrupting student study_states. Verifying delete UI exists only.","durationMs":2953}
+{"ts":"2026-05-31T01:16:31.448Z","event":"scenario","batch":"B17","scenario":"S04","result":"partial","severity":"MEDIUM","notes":"No bulk add/import button found. Buttons visible: 0. URL: https://vocaboostone.netlify.app/teacher/list/8RMews2H7C3UJUAsOBzR","durationMs":6575}
+{"ts":"2026-05-31T01:16:35.857Z","event":"scenario","batch":"B17","scenario":"S05","result":"skipped","notes":"skipped: no bulk import UI found; dependent on S04 infrastructure","durationMs":4391}
+{"ts":"2026-05-31T01:16:40.398Z","event":"scenario","batch":"B17","scenario":"S06","result":"blocked","notes":"Could not find word \"inflammatory\" to open editor","durationMs":4524}
+{"ts":"2026-05-31T01:16:44.803Z","event":"scenario","batch":"B17","scenario":"S09","result":"partial","severity":"LOW","notes":"No PDF/download button found in list editor","durationMs":4389}
+{"ts":"2026-05-31T01:16:49.292Z","event":"scenario","batch":"B17","scenario":"S10","result":"partial","severity":"LOW","notes":"No Today's Batch button found","durationMs":4473}
+{"ts":"2026-05-31T01:16:53.807Z","event":"scenario","batch":"B17","scenario":"S11","result":"partial","severity":"LOW","notes":"No drag handle or reorder button found — reorder may not be supported","durationMs":4492}
+{"ts":"2026-05-31T01:16:58.561Z","event":"scenario","batch":"B17","scenario":"S12","result":"partial","severity":"LOW","notes":"No settings/edit list button found","durationMs":4738}
+{"ts":"2026-05-31T01:17:05.381Z","event":"scenario","batch":"B17","scenario":"S_CRLF","result":"partial","severity":"MEDIUM","notes":"CRLF confirmed in 3 Firestore word NAME fields. Display behavior: not_tested. Old English annotation visible: false","durationMs":6794}
+{"ts":"2026-05-31T01:17:09.974Z","event":"scenario","batch":"B17","scenario":"S_VAL","result":"blocked","notes":"No Add Word button found","durationMs":4564}
+{"ts":"2026-05-31T01:17:10.061Z","event":"scenario","batch":"B17","scenario":"S_STUDSTATE","result":"partial","severity":"LOW","notes":"No study_states found for listId 8RMews2H7C3UJUAsOBzR to inspect","durationMs":70}
+{"ts":"2026-05-31T01:17:10.136Z","event":"batch_end","batch":"B17","trials":13,"pass":0,"fail":0,"partial":8,"skipped":5,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-31T01:17:10.140Z","event":"agent_end","label":"Y","trialsCompleted":13,"batchesCompleted":["B17"],"reason":"claimed batches done"}
+{"ts":"2026-05-31T01:25:38.398Z","event":"scenario","batch":"B17","scenario":"S01","result":"fail","notes":"Exception: Invalid regular expression: /+ Add/i: Nothing to repeat","durationMs":6626,"severity":"HIGH"}
+{"ts":"2026-05-31T01:25:45.122Z","event":"scenario","batch":"B17","scenario":"S02","result":"blocked","notes":"Could not find \"inflammatory\" word element in list. bodyHasWords=false. URL: https://vocaboostone.netlify.app/lists/8RMews2H7C3UJUAsOBzR","durationMs":6705}
+{"ts":"2026-05-31T01:25:49.342Z","event":"scenario","batch":"B17","scenario":"S03","result":"partial","notes":"SAFETY: Throwaway word from S01 not found. Cannot safely delete a real word without risking student study_states. Verifying delete UI only.","durationMs":4203,"severity":"LOW"}
+{"ts":"2026-05-31T01:25:58.735Z","event":"scenario","batch":"B17","scenario":"S04","result":"partial","notes":"No bulk/import button found in list editor. Buttons: []","durationMs":6722,"severity":"MEDIUM"}
+{"ts":"2026-05-31T01:25:58.754Z","event":"scenario","batch":"B17","scenario":"S05","result":"skipped","notes":"skipped: bulk import UI not found in S04; dependent scenario cannot run","durationMs":5}
+{"ts":"2026-05-31T01:26:05.338Z","event":"scenario","batch":"B17","scenario":"S06","result":"blocked","notes":"Could not find word element to open editor","durationMs":6575}
+{"ts":"2026-05-31T01:26:11.996Z","event":"scenario","batch":"B17","scenario":"S09","result":"partial","notes":"No PDF button/link found in list editor. Buttons: []","durationMs":6641,"severity":"LOW"}
+{"ts":"2026-05-31T01:26:18.628Z","event":"scenario","batch":"B17","scenario":"S10","result":"partial","notes":"No Today's Batch button found in list editor","durationMs":6617,"severity":"LOW"}
+{"ts":"2026-05-31T01:26:25.242Z","event":"scenario","batch":"B17","scenario":"S11","result":"partial","notes":"No drag handles or reorder button found — reorder may not be available","durationMs":6600,"severity":"LOW"}
+{"ts":"2026-05-31T01:26:31.859Z","event":"scenario","batch":"B17","scenario":"S12","result":"partial","notes":"No settings/edit list button found — metadata may not be editable from this view","durationMs":6597,"severity":"LOW"}
+{"ts":"2026-05-31T01:26:38.765Z","event":"scenario","batch":"B17","scenario":"S_CRLF","result":"partial","notes":"CRLF confirmed in Firestore word NAME field for 7/7 words (jilt, insolence, agog, trepidation, umbrage, yea, prithee). Editor behavior: not_tested.","durationMs":6893,"severity":"MEDIUM"}
+{"ts":"2026-05-31T01:26:45.308Z","event":"scenario","batch":"B17","scenario":"S_VAL","result":"blocked","notes":"No Add Word button found — cannot test form validation","durationMs":6527}
+{"ts":"2026-05-31T01:26:45.451Z","event":"scenario","batch":"B17","scenario":"S_STUDSTATE","result":"partial","notes":"No study_states for TOP list found; sample from other list. Keys: result, nextReview, box, streak, lastReviewed","durationMs":125,"severity":"LOW"}
+{"ts":"2026-05-31T01:26:45.528Z","event":"batch_end","batch":"B17","trials":13,"pass":0,"fail":1,"partial":8,"skipped":4,"highCount":1,"blockerCount":0}
+{"ts":"2026-05-31T01:26:45.533Z","event":"agent_end","label":"Y","trialsCompleted":13,"batchesCompleted":["B17"],"reason":"claimed batches done"}
+{"ts":"2026-05-31T01:34:18.011Z","event":"scenario","batch":"B17","scenario":"S01","result":"fail","notes":"List editor did not load. URL: https://vocaboostone.netlify.app/lists. Body: \"\n    DashboardClassesGradebookListsVocabulary ListsList LibraryManage content for your classes and s\"","durationMs":9158,"severity":"HIGH"}
+{"ts":"2026-05-31T01:34:18.033Z","event":"batch_end","batch":"B17","trials":1,"pass":0,"fail":1,"partial":0,"skipped":0,"highCount":1,"blockerCount":0}
+{"ts":"2026-05-31T01:34:18.038Z","event":"agent_end","label":"Y","trialsCompleted":1,"batchesCompleted":["B17"],"reason":"claimed batches done"}
+{"ts":"2026-05-31T01:48:45.578Z","event":"scenario","batch":"B17","scenario":"S01","result":"fail","severity":"HIGH","notes":"Word not visible after Add. errors: ","durationMs":75700}
+{"ts":"2026-05-31T01:50:09.345Z","event":"scenario","batch":"B17","scenario":"S02","result":"fail","severity":"HIGH","notes":"Save button clicked but Firestore not updated. definitions.en: \"arousing anger or strong emotion\"","durationMs":83748}
+{"ts":"2026-05-31T01:50:09.626Z","event":"scenario","batch":"B17","scenario":"S03","result":"partial","severity":"LOW","notes":"SAFETY: No throwaway word from S01. Cannot delete real words safely. Delete UI inspected only.","durationMs":266}
+{"ts":"2026-05-31T01:58:04.873Z","event":"scenario","batch":"B17","scenario":"S04","result":"fail","severity":"HIGH","notes":"Exception: locator.all: Target page, context or browser has been closed","durationMs":475229}
+{"ts":"2026-05-31T01:58:04.881Z","event":"scenario","batch":"B17","scenario":"S05","result":"skipped","notes":"skipped: tested via S04 route interception; separate scenario deferred per spec dependencies"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S01","result":"fail","severity":"HIGH","notes":"Add Word: SELECT at index 3 broke form fill; wordCount unchanged after add attempt"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S02","result":"fail","severity":"HIGH","notes":"Edit word: definitions.en unchanged in Firestore after save attempt; dual field structure confirmed"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S03","result":"partial","severity":"LOW","notes":"SAFETY: No throwaway word. Delete UI confirmed (title=Delete word). wordCount drift observed."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S04","result":"partial","severity":"MEDIUM","notes":"Import Words opens file picker (not paste modal). Format undocumented."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S05","result":"skipped","notes":"Dependent on S04 infrastructure"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S06","result":"fail","severity":"MEDIUM","notes":"CONFIRMED KNOWN ISSUE #15: no unsaved-changes warning on navigate-away"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S07","result":"skipped","notes":"Covered by B12 S09 per spec"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S09","result":"partial","severity":"LOW","notes":"PDF button on dashboard (not list editor). File picker approach needed."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S10","result":"partial","severity":"LOW","notes":"Today's Batch button not found in list editor"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S11","result":"partial","severity":"LOW","notes":"No drag handles. Reorder may not be implemented."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S12","result":"pass","notes":"Title input and Save Changes button confirmed accessible"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S_CRLF","result":"fail","severity":"HIGH","notes":"ALL 7 CRLF words confirmed: jilt, insolence, agog, trepidation, umbrage, yea, prithee. Rendered as visible newline in table."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S_VAL","result":"partial","notes":"Add Word button found; validation partially tested (select issue blocked full test)"}
+{"ts":"2026-05-31T02:07:11.205Z","event":"scenario","batch":"B17","scenario":"S_STUDSTATE","result":"pass","notes":"study_state docs keyed by Firestore auto-IDs. Definition edits are safe."}
+{"ts":"2026-05-31T02:07:11.205Z","event":"batch_end","batch":"B17","trials":14,"pass":2,"fail":4,"partial":6,"skipped":2,"highCount":3,"blockerCount":0}
+{"ts":"2026-05-31T02:07:11.205Z","event":"agent_end","label":"Y","trialsCompleted":14,"batchesCompleted":["B17"],"reason":"claimed batches done"}

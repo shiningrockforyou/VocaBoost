@@ -1,0 +1,238 @@
+{"ts":"2026-05-31T09:53:05.128Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T09:53:06.010Z","type":"initial_state","CSD":1,"TWI":80,"atts":1,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T09:53:06.207Z","type":"session_start","day":2,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T09:53:17.873Z","type":"h2_hit","day":2}
+{"ts":"2026-05-31T09:53:54.804Z","type":"session_err","day":2,"err":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /session menu/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"Session menu\" class=\"p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-muted transition\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"}
+{"ts":"2026-05-31T09:53:57.972Z","type":"session_complete","day":2,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T09:53:57.974Z","type":"session_start","day":3,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T09:54:11.505Z","type":"test_detect","day":3,"hasInput":false,"isStep4":false,"isMCQ":false,"optBtns":2}
+{"ts":"2026-05-31T09:54:11.510Z","type":"no_test","day":3,"body":"Step 1 of 5\n\nNew Words Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\nanthology\n\n(n.)\n\nanthology\n\n(n.)\n\na collection, especially of literary works\n\n🇰🇷\n\nKorean\n\n명시 전집, 작품집, [한 작가의]전작, 작품집, "}
+{"ts":"2026-05-31T09:54:14.675Z","type":"session_complete","day":3,"postCSD":1,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T09:54:14.678Z","type":"session_start","day":4,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T09:54:56.132Z","type":"session_err","day":4,"err":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /session menu/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"Session menu\" class=\"p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-muted transition\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"}
+{"ts":"2026-05-31T09:54:59.282Z","type":"session_complete","day":4,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T09:54:59.285Z","type":"session_start","day":5,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T09:55:40.751Z","type":"session_err","day":5,"err":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /session menu/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"Session menu\" class=\"p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-muted transition\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"}
+{"ts":"2026-05-31T09:55:43.936Z","type":"session_complete","day":5,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T09:55:43.939Z","type":"session_start","day":6,"date":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T09:59:27.230Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T09:59:28.093Z","type":"initial_state","CSD":1,"TWI":80,"atts":1,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T09:59:28.292Z","type":"session_start","day":2,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T09:59:42.747Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T09:59:48.637Z","type":"test_detect","day":2,"hasInput":false,"isStep4":false,"isMCQ":false,"optBtns":2}
+{"ts":"2026-05-31T09:59:48.640Z","type":"no_test","day":2,"body":"Step 2 of 5\n\nNew Words Test — Day 2\n\nProgress\n\n0 of 30 answered\n\n1.\nvituperate\n(v.)\n2.\ndeficient\n(adj.)\n3.\nsecular\n(adj.)\n4.\nlithe\n(adj.)\n5.\nomission\n(n.)\n6.\nsurrogate\n(n.)\n7.\nstint\n(v.)\n8.\ncarouse\n(v"}
+{"ts":"2026-05-31T09:59:51.804Z","type":"session_complete","day":2,"postCSD":1,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T09:59:51.808Z","type":"session_start","day":3,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T10:00:06.186Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T10:00:12.036Z","type":"test_detect","day":3,"hasInput":false,"isStep4":false,"isMCQ":false,"optBtns":0}
+{"ts":"2026-05-31T10:00:12.039Z","type":"no_test","day":3,"body":""}
+{"ts":"2026-05-31T10:00:15.129Z","type":"session_complete","day":3,"postCSD":1,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T10:00:15.132Z","type":"session_start","day":4,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T10:05:30.000Z","type":"v3_reset","note":"fixed all-at-once typed test handling"}
+{"ts":"2026-05-31T10:05:45.350Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T10:05:46.071Z","type":"initial_state","CSD":1,"TWI":80,"atts":1,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T10:05:46.294Z","type":"session_start","day":2,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T10:06:00.905Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T10:06:06.794Z","type":"test_detect","day":2,"hasInput":true,"isStep2":true,"isStep4":false,"isMCQ":false,"defInputs":30,"optBtns":2}
+{"ts":"2026-05-31T10:06:06.803Z","type":"typed_inputs_found","day":2,"count":30}
+{"ts":"2026-05-31T10:08:09.242Z","type":"typed_done","day":2,"questions":30,"words":29}
+{"ts":"2026-05-31T10:08:40.298Z","type":"typed_score","day":2,"score":100}
+{"ts":"2026-05-31T10:08:45.388Z","type":"no_review_found","day":2,"body":"Step 3 of 5\n\nReview Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ni"}
+{"ts":"2026-05-31T10:08:48.588Z","type":"session_complete","day":2,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":100}
+{"ts":"2026-05-31T10:08:48.591Z","type":"session_start","day":3,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T10:08:55.366Z","type":"session_err","day":3,"err":"page.goto: Target page, context or browser has been closed"}
+{"ts":"2026-05-31T10:08:58.436Z","type":"session_complete","day":3,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null}
+{"ts":"2026-05-31T10:08:58.439Z","type":"session_start","day":4,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T10:12:06.000Z","type":"v4_restart","note":"fixed typing speed, browser restart, review nav Step3->4"}
+{"ts":"2026-05-31T10:12:20.059Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T10:12:21.103Z","type":"initial_state","CSD":1,"TWI":80,"atts":2,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T10:12:21.294Z","type":"session_start","day":2,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T10:12:40.802Z","type":"test_detect","day":2,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:12:40.806Z","type":"mcq_start","day":2}
+{"ts":"2026-05-31T10:12:43.244Z","type":"mcq_done","day":2,"questions":0,"words":0}
+{"ts":"2026-05-31T10:12:52.464Z","type":"session_complete","day":2,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:12:52.467Z","type":"session_start","day":3,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T10:13:11.890Z","type":"test_detect","day":3,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:13:11.893Z","type":"mcq_start","day":3}
+{"ts":"2026-05-31T10:13:14.343Z","type":"mcq_done","day":3,"questions":0,"words":0}
+{"ts":"2026-05-31T10:13:23.522Z","type":"session_complete","day":3,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:13:23.525Z","type":"session_start","day":4,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T10:13:42.748Z","type":"test_detect","day":4,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:13:42.751Z","type":"mcq_start","day":4}
+{"ts":"2026-05-31T10:13:45.181Z","type":"mcq_done","day":4,"questions":0,"words":0}
+{"ts":"2026-05-31T10:13:54.357Z","type":"session_complete","day":4,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:13:54.360Z","type":"session_start","day":5,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T10:14:13.523Z","type":"test_detect","day":5,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:14:13.525Z","type":"mcq_start","day":5}
+{"ts":"2026-05-31T10:14:15.960Z","type":"mcq_done","day":5,"questions":0,"words":0}
+{"ts":"2026-05-31T10:14:25.120Z","type":"session_complete","day":5,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":3}
+{"ts":"2026-05-31T10:14:25.123Z","type":"session_start","day":6,"date":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T10:14:44.331Z","type":"test_detect","day":6,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:14:44.334Z","type":"mcq_start","day":6}
+{"ts":"2026-05-31T10:14:46.774Z","type":"mcq_done","day":6,"questions":0,"words":0}
+{"ts":"2026-05-31T10:14:55.967Z","type":"session_complete","day":6,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:14:55.971Z","type":"session_start","day":7,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T10:15:15.265Z","type":"test_detect","day":7,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:15:15.268Z","type":"mcq_start","day":7}
+{"ts":"2026-05-31T10:15:17.711Z","type":"mcq_done","day":7,"questions":0,"words":0}
+{"ts":"2026-05-31T10:15:26.884Z","type":"session_complete","day":7,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:15:26.887Z","type":"session_start","day":8,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T10:15:46.180Z","type":"test_detect","day":8,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:15:46.183Z","type":"mcq_start","day":8}
+{"ts":"2026-05-31T10:15:48.623Z","type":"mcq_done","day":8,"questions":0,"words":0}
+{"ts":"2026-05-31T10:15:57.809Z","type":"session_complete","day":8,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:15:57.812Z","type":"session_start","day":9,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T10:16:17.167Z","type":"test_detect","day":9,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:16:17.169Z","type":"mcq_start","day":9}
+{"ts":"2026-05-31T10:16:19.616Z","type":"mcq_done","day":9,"questions":0,"words":0}
+{"ts":"2026-05-31T10:16:28.814Z","type":"session_complete","day":9,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:16:28.818Z","type":"session_start","day":10,"date":"2026-06-12T00:00:00.000Z"}
+{"ts":"2026-05-31T10:16:48.270Z","type":"test_detect","day":10,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:16:48.273Z","type":"mcq_start","day":10}
+{"ts":"2026-05-31T10:16:50.727Z","type":"mcq_done","day":10,"questions":0,"words":0}
+{"ts":"2026-05-31T10:16:59.908Z","type":"session_complete","day":10,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:16:59.911Z","type":"session_start","day":11,"date":"2026-06-15T00:00:00.000Z"}
+{"ts":"2026-05-31T10:17:19.243Z","type":"test_detect","day":11,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:17:19.249Z","type":"mcq_start","day":11}
+{"ts":"2026-05-31T10:17:21.699Z","type":"mcq_done","day":11,"questions":0,"words":0}
+{"ts":"2026-05-31T10:17:30.887Z","type":"session_complete","day":11,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:17:30.891Z","type":"session_start","day":12,"date":"2026-06-16T00:00:00.000Z"}
+{"ts":"2026-05-31T10:17:50.180Z","type":"test_detect","day":12,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:17:50.183Z","type":"mcq_start","day":12}
+{"ts":"2026-05-31T10:17:52.627Z","type":"mcq_done","day":12,"questions":0,"words":0}
+{"ts":"2026-05-31T10:18:01.859Z","type":"session_complete","day":12,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:18:01.862Z","type":"session_start","day":13,"date":"2026-06-17T00:00:00.000Z"}
+{"ts":"2026-05-31T10:18:21.251Z","type":"test_detect","day":13,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:18:21.254Z","type":"mcq_start","day":13}
+{"ts":"2026-05-31T10:18:23.712Z","type":"mcq_done","day":13,"questions":0,"words":0}
+{"ts":"2026-05-31T10:18:32.915Z","type":"session_complete","day":13,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:18:32.918Z","type":"session_start","day":14,"date":"2026-06-18T00:00:00.000Z"}
+{"ts":"2026-05-31T10:18:52.189Z","type":"test_detect","day":14,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:18:52.192Z","type":"mcq_start","day":14}
+{"ts":"2026-05-31T10:18:54.639Z","type":"mcq_done","day":14,"questions":0,"words":0}
+{"ts":"2026-05-31T10:19:03.827Z","type":"session_complete","day":14,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:19:03.830Z","type":"session_start","day":15,"date":"2026-06-19T00:00:00.000Z"}
+{"ts":"2026-05-31T10:19:23.157Z","type":"test_detect","day":15,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:19:23.160Z","type":"mcq_start","day":15}
+{"ts":"2026-05-31T10:19:25.608Z","type":"mcq_done","day":15,"questions":0,"words":0}
+{"ts":"2026-05-31T10:19:34.816Z","type":"session_complete","day":15,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:19:34.824Z","type":"session_start","day":16,"date":"2026-06-22T00:00:00.000Z"}
+{"ts":"2026-05-31T10:19:54.233Z","type":"test_detect","day":16,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:19:54.237Z","type":"mcq_start","day":16}
+{"ts":"2026-05-31T10:19:56.684Z","type":"mcq_done","day":16,"questions":0,"words":0}
+{"ts":"2026-05-31T10:20:05.869Z","type":"session_complete","day":16,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:20:05.874Z","type":"session_start","day":17,"date":"2026-06-23T00:00:00.000Z"}
+{"ts":"2026-05-31T10:20:25.103Z","type":"test_detect","day":17,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:20:25.106Z","type":"mcq_start","day":17}
+{"ts":"2026-05-31T10:20:27.541Z","type":"mcq_done","day":17,"questions":0,"words":0}
+{"ts":"2026-05-31T10:20:36.760Z","type":"session_complete","day":17,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:20:36.764Z","type":"session_start","day":18,"date":"2026-06-24T00:00:00.000Z"}
+{"ts":"2026-05-31T10:20:56.077Z","type":"test_detect","day":18,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:20:56.081Z","type":"mcq_start","day":18}
+{"ts":"2026-05-31T10:20:58.530Z","type":"mcq_done","day":18,"questions":0,"words":0}
+{"ts":"2026-05-31T10:21:07.699Z","type":"session_complete","day":18,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:21:07.703Z","type":"session_start","day":19,"date":"2026-06-25T00:00:00.000Z"}
+{"ts":"2026-05-31T10:21:26.920Z","type":"test_detect","day":19,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:21:26.925Z","type":"mcq_start","day":19}
+{"ts":"2026-05-31T10:21:29.373Z","type":"mcq_done","day":19,"questions":0,"words":0}
+{"ts":"2026-05-31T10:21:38.540Z","type":"session_complete","day":19,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:21:38.543Z","type":"session_start","day":20,"date":"2026-06-26T00:00:00.000Z"}
+{"ts":"2026-05-31T10:21:57.764Z","type":"test_detect","day":20,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:21:57.768Z","type":"mcq_start","day":20}
+{"ts":"2026-05-31T10:22:00.220Z","type":"mcq_done","day":20,"questions":0,"words":0}
+{"ts":"2026-05-31T10:22:09.446Z","type":"session_complete","day":20,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:22:09.452Z","type":"session_start","day":21,"date":"2026-06-29T00:00:00.000Z"}
+{"ts":"2026-05-31T10:22:28.657Z","type":"test_detect","day":21,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":2}
+{"ts":"2026-05-31T10:22:28.661Z","type":"mcq_start","day":21}
+{"ts":"2026-05-31T10:22:31.095Z","type":"mcq_done","day":21,"questions":0,"words":0}
+{"ts":"2026-05-31T10:22:40.298Z","type":"session_complete","day":21,"postCSD":1,"csdOk":false,"newViol":0,"revViol":0,"f01":0,"mastered":0,"newScore":null,"revScore":0}
+{"ts":"2026-05-31T10:22:40.302Z","type":"logout_login_start"}
+{"ts":"2026-05-31T10:22:58.524Z","type":"logout_login_no_typed","dt":{"hasInput":false,"isMCQ":true}}
+{"ts":"2026-05-31T10:22:58.592Z","type":"audit_complete","completed":20,"orphans":0,"badFmt":0,"dupes":0,"h2Count":0,"stopConditionHit":false}
+{"ts":"2026-05-31T10:23:25.000Z","type":"v5_restart","note":"fixed MCQ: lowercase buttons, no radio; fixed optButtons detection; browser restart"}
+{"ts":"2026-05-31T10:25:09.524Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T10:25:10.564Z","type":"initial_state","CSD":1,"TWI":160,"atts":2,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T10:25:10.746Z","type":"session_start","day":2,"date":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T10:25:30.251Z","type":"test_detect","day":2,"hasInput":false,"isStep2":false,"isStep4":true,"isMCQ":true,"defInputs":0,"optBtns":4}
+{"ts":"2026-05-31T10:25:30.256Z","type":"mcq_start","day":2}
+{"ts":"2026-05-31T10:25:30.878Z","type":"mcq_q","day":2,"q":1,"word":"deface","clicked":"to ruin or injure something's "}
+{"ts":"2026-05-31T10:25:32.002Z","type":"mcq_q","day":2,"q":2,"word":"inflammatory","clicked":"arousing anger or strong emoti"}
+{"ts":"2026-05-31T10:25:33.115Z","type":"mcq_q","day":2,"q":3,"word":"lurid","clicked":"ghastly, sensational"}
+{"ts":"2026-05-31T10:25:34.228Z","type":"mcq_q","day":2,"q":4,"word":"indigent","clicked":"poor, needy"}
+{"ts":"2026-05-31T10:25:35.341Z","type":"mcq_q","day":2,"q":5,"word":"multitude","clicked":"a large number or variety of p"}
+{"ts":"2026-05-31T10:25:36.455Z","type":"mcq_q","day":2,"q":6,"word":"inviolable","clicked":"to provide direction (especial"}
+{"ts":"2026-05-31T10:25:37.570Z","type":"mcq_q","day":2,"q":7,"word":"navigate","clicked":"to provide direction (especial"}
+{"ts":"2026-05-31T10:25:38.684Z","type":"mcq_q","day":2,"q":8,"word":"prohibitive","clicked":"preventing or hindering someth"}
+{"ts":"2026-05-31T10:25:39.798Z","type":"mcq_q","day":2,"q":9,"word":"thrifty","clicked":"a small amount of something th"}
+{"ts":"2026-05-31T10:25:40.911Z","type":"mcq_q","day":2,"q":10,"word":"debase","clicked":"to lower the quality or esteem"}
+{"ts":"2026-05-31T10:25:42.030Z","type":"mcq_q","day":2,"q":11,"word":"zeal\r\n(old English)","clicked":"great energy or enthusiasm in "}
+{"ts":"2026-05-31T10:25:43.145Z","type":"mcq_q","day":2,"q":12,"word":"lavish","clicked":"luxurious and expensive"}
+{"ts":"2026-05-31T10:25:44.262Z","type":"mcq_q","day":2,"q":13,"word":"repudiate","clicked":"to reject, deny, or refuse to "}
+{"ts":"2026-05-31T10:25:45.377Z","type":"mcq_q","day":2,"q":14,"word":"unbiased","clicked":"having many aspects or sides"}
+{"ts":"2026-05-31T10:25:46.490Z","type":"mcq_q","day":2,"q":15,"word":"elite","clicked":"the best or most select group"}
+{"ts":"2026-05-31T10:25:47.608Z","type":"mcq_q","day":2,"q":16,"word":"recondite","clicked":"to break down; to deteriorate"}
+{"ts":"2026-05-31T10:25:48.728Z","type":"mcq_q","day":2,"q":17,"word":"presumed","clicked":"assumed to be true"}
+{"ts":"2026-05-31T10:25:49.844Z","type":"mcq_q","day":2,"q":18,"word":"enigmatic","clicked":"mysterious, puzzling"}
+{"ts":"2026-05-31T10:25:50.972Z","type":"mcq_q","day":2,"q":19,"word":"harry","clicked":"ghastly, sensational"}
+{"ts":"2026-05-31T10:25:52.086Z","type":"mcq_q","day":2,"q":20,"word":"residue","clicked":"a small amount of something th"}
+{"ts":"2026-05-31T10:25:53.202Z","type":"mcq_no_option","day":2,"q":20,"count":1,"texts":["luxurious and expensive"]}
+{"ts":"2026-05-31T10:25:55.253Z","type":"mcq_done","day":2,"questions":20,"words":21}
+{"ts":"2026-05-31T10:26:04.435Z","type":"session_complete","day":2,"postCSD":2,"csdOk":true,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null,"revScore":50}
+{"ts":"2026-05-31T10:26:04.438Z","type":"session_start","day":3,"date":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T10:26:17.856Z","type":"h2_hit","day":3,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:26:26.797Z","type":"h2_hit","day":3,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:26:32.204Z","type":"session_complete","day":3,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:26:32.211Z","type":"session_start","day":4,"date":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T10:26:46.424Z","type":"h2_hit","day":4,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:26:55.337Z","type":"h2_hit","day":4,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:27:00.710Z","type":"session_complete","day":4,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:27:00.713Z","type":"session_start","day":5,"date":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T10:27:14.154Z","type":"h2_hit","day":5,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:27:23.052Z","type":"h2_hit","day":5,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:27:28.419Z","type":"session_complete","day":5,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:27:28.424Z","type":"session_start","day":6,"date":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T10:27:41.816Z","type":"h2_hit","day":6,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:27:50.729Z","type":"h2_hit","day":6,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:27:56.728Z","type":"session_complete","day":6,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:27:56.732Z","type":"session_start","day":7,"date":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T10:28:10.613Z","type":"h2_hit","day":7,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:28:19.530Z","type":"h2_hit","day":7,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:28:25.232Z","type":"session_complete","day":7,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:28:25.237Z","type":"session_start","day":8,"date":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T10:28:38.878Z","type":"h2_hit","day":8,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:28:47.812Z","type":"h2_hit","day":8,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:28:53.821Z","type":"session_complete","day":8,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:28:53.825Z","type":"session_start","day":9,"date":"2026-06-11T00:00:00.000Z"}
+{"ts":"2026-05-31T10:29:07.829Z","type":"h2_hit","day":9,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:29:16.759Z","type":"h2_hit","day":9,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:29:22.905Z","type":"session_complete","day":9,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:29:22.909Z","type":"session_start","day":10,"date":"2026-06-12T00:00:00.000Z"}
+{"ts":"2026-05-31T10:29:37.058Z","type":"h2_hit","day":10,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:29:45.989Z","type":"h2_hit","day":10,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:29:51.439Z","type":"session_complete","day":10,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:29:51.443Z","type":"session_start","day":11,"date":"2026-06-15T00:00:00.000Z"}
+{"ts":"2026-05-31T10:30:05.040Z","type":"h2_hit","day":11,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:30:13.967Z","type":"h2_hit","day":11,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:30:19.585Z","type":"session_complete","day":11,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:30:19.590Z","type":"session_start","day":12,"date":"2026-06-16T00:00:00.000Z"}
+{"ts":"2026-05-31T10:30:33.132Z","type":"h2_hit","day":12,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:30:42.066Z","type":"h2_hit","day":12,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:30:47.600Z","type":"session_complete","day":12,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:30:47.605Z","type":"session_start","day":13,"date":"2026-06-17T00:00:00.000Z"}
+{"ts":"2026-05-31T10:31:01.166Z","type":"h2_hit","day":13,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:31:10.116Z","type":"h2_hit","day":13,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:31:15.493Z","type":"session_complete","day":13,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:31:15.497Z","type":"session_start","day":14,"date":"2026-06-18T00:00:00.000Z"}
+{"ts":"2026-05-31T10:31:30.561Z","type":"h2_hit","day":14,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:31:39.477Z","type":"h2_hit","day":14,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:31:44.916Z","type":"session_complete","day":14,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:31:44.920Z","type":"session_start","day":15,"date":"2026-06-19T00:00:00.000Z"}
+{"ts":"2026-05-31T10:31:57.471Z","type":"session_complete","day":15,"postCSD":2,"csdOk":null,"newViol":0,"revViol":0,"f01":0,"mastered":50,"newScore":null}
+{"ts":"2026-05-31T10:31:57.476Z","type":"session_start","day":16,"date":"2026-06-22T00:00:00.000Z"}
+{"ts":"2026-05-31T10:52:52.856Z","type":"logout_login_scenario_start","note":"fresh context, post-walk, HARNESS FIX 2"}
+{"ts":"2026-05-31T10:53:02.387Z","type":"logout_login_blocked","reason":"session already completed today - cannot run logout/login on typed test","body":"Step 5 of 5\n✓\n\nDAY 3 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T10:53:02.391Z","type":"logout_login_done","verdict":"BLOCKED","answered":0,"recovVis":false,"lo":false,"lsRecBefore":[],"lsRecAfter":[],"lsRecPost":[]}
+{"ts":"2026-05-31T10:55:32.000Z","type":"audit_complete","agent":"ADV27","sessionsCompleted":1,"sessionsAttempted":15,"orphans":0,"h2Count":28,"f01Resolved":true,"stopConditionHit":false}
+{"ts":"2026-05-31T11:02:59.248Z","type":"audit_start","agent":"ADV27","persona":"advanced","class":"TOP","transform":"elaborated_verbose"}
+{"ts":"2026-05-31T11:03:00.126Z","type":"initial_state","CSD":2,"TWI":160,"atts":3,"cpDocs":["k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR"]}
+{"ts":"2026-05-31T11:03:00.293Z","type":"session_start","day":3,"date":"2026-06-02T00:00:00.000Z"}

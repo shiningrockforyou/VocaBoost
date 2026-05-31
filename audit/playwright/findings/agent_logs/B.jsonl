@@ -1,0 +1,60 @@
+{"ts":"2026-05-30T21:10:00Z","event":"agent_start","label":"B","claim":["B02"]}
+{"ts":"2026-05-30T21:10:05Z","event":"batch_start","batch":"B02"}
+{"ts":"2026-05-30T21:15:22.848Z","event":"scenario","batch":"B02","scenario":"S01","result":"error","severity":"BLOCKER","durationMs":23390,"error":"Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object."}
+{"ts":"2026-05-30T21:16:05.354Z","event":"scenario","batch":"B02","scenario":"S02","result":"blocked","severity":null,"durationMs":42503,"notes":"MCQ test not reachable for recovering student (fresh state, no study history)"}
+{"ts":"2026-05-30T21:16:47.940Z","event":"scenario","batch":"B02","scenario":"S03","result":"blocked","severity":null,"durationMs":42583,"notes":"MCQ test not reachable for hostile student"}
+{"ts":"2026-05-30T21:17:31.004Z","event":"scenario","batch":"B02","scenario":"S04","result":"blocked","severity":null,"durationMs":43061,"notes":"MCQ test not reachable for rushed student"}
+{"ts":"2026-05-30T21:18:13.593Z","event":"scenario","batch":"B02","scenario":"S05","result":"blocked","severity":null,"durationMs":42586,"notes":"MCQ test not reachable for recovering student"}
+{"ts":"2026-05-30T21:18:36.077Z","event":"scenario","batch":"B02","scenario":"S06","result":"blocked","severity":null,"durationMs":22481,"notes":"S06: Test not reachable - using previous S01 findings for this documentation scenario"}
+{"ts":"2026-05-30T21:18:40.597Z","event":"scenario","batch":"B02","scenario":"S07","result":"error","severity":"BLOCKER","durationMs":4518,"error":"Too many arguments. If you need to pass more than 1 argument to the function wrap them in an object."}
+{"ts":"2026-05-30T21:19:23.383Z","event":"scenario","batch":"B02","scenario":"S08","result":"blocked","severity":null,"durationMs":42782,"notes":"MCQ test not reachable for lazy student"}
+{"ts":"2026-05-30T21:20:06.048Z","event":"scenario","batch":"B02","scenario":"S09","result":"blocked","severity":null,"durationMs":42661,"notes":"MCQ test not reachable for rushed student (S09)"}
+{"ts":"2026-05-30T21:20:48.715Z","event":"scenario","batch":"B02","scenario":"S10","result":"blocked","severity":null,"durationMs":42664,"notes":"MCQ test not reachable for rushed student (S10)"}
+{"ts":"2026-05-30T21:21:31.274Z","event":"scenario","batch":"B02","scenario":"S11","result":"blocked","severity":null,"durationMs":42557,"notes":"S11: Test not reachable, cannot capture console"}
+{"ts":"2026-05-30T21:22:13.886Z","event":"scenario","batch":"B02","scenario":"S12","result":"blocked","severity":null,"durationMs":42606,"notes":"S12: Test not reachable"}
+{"ts":"2026-05-30T21:22:13.890Z","event":"batch_end","batch":"B02","trials":12,"pass":0,"fail":2,"blocked":10,"partial":0,"blockerCount":2,"highCount":0,"mediumCount":0,"lowCount":0,"haltedOnBlocker":false}
+{"ts":"2026-05-30T21:22:13.911Z","event":"agent_end","label":"B","trialsCompleted":12,"batchesCompleted":["B02"],"reason":"claimed batches done"}
+{"ts":"2026-05-30T21:34:19.490Z","event":"scenario","batch":"B02","scenario":"S01","result":"blocked","severity":null,"durationMs":57799}
+{"ts":"2026-05-30T21:34:41.879Z","event":"scenario","batch":"B02","scenario":"S02","result":"blocked","severity":null,"durationMs":22387}
+{"ts":"2026-05-30T21:35:04.485Z","event":"scenario","batch":"B02","scenario":"S03","result":"blocked","severity":null,"durationMs":22603}
+{"ts":"2026-05-30T21:35:27.051Z","event":"scenario","batch":"B02","scenario":"S04","result":"blocked","severity":null,"durationMs":22564}
+{"ts":"2026-05-30T21:35:49.654Z","event":"scenario","batch":"B02","scenario":"S05","result":"blocked","severity":null,"durationMs":22599}
+{"ts":"2026-05-30T21:36:12.209Z","event":"scenario","batch":"B02","scenario":"S06","result":"blocked","severity":null,"durationMs":22550}
+{"ts":"2026-05-30T21:36:16.823Z","event":"scenario","batch":"B02","scenario":"S07","result":"blocked","severity":null,"durationMs":4610}
+{"ts":"2026-05-30T21:36:39.450Z","event":"scenario","batch":"B02","scenario":"S08","result":"blocked","severity":null,"durationMs":22623}
+{"ts":"2026-05-30T21:37:01.991Z","event":"scenario","batch":"B02","scenario":"S09","result":"blocked","severity":null,"durationMs":22537}
+{"ts":"2026-05-30T21:37:24.482Z","event":"scenario","batch":"B02","scenario":"S10","result":"blocked","severity":null,"durationMs":22487}
+{"ts":"2026-05-30T21:37:46.932Z","event":"scenario","batch":"B02","scenario":"S11","result":"blocked","severity":null,"durationMs":22446}
+{"ts":"2026-05-30T21:38:09.502Z","event":"scenario","batch":"B02","scenario":"S12","result":"blocked","severity":null,"durationMs":22564}
+{"ts":"2026-05-30T21:38:09.515Z","event":"batch_end","batch":"B02","trials":12,"pass":0,"fail":0,"blocked":12,"partial":0,"blockerCount":0,"highCount":0,"mediumCount":0,"lowCount":0,"haltedOnBlocker":false}
+{"ts":"2026-05-30T21:38:09.536Z","event":"agent_end","label":"B","trialsCompleted":12,"batchesCompleted":["B02"],"reason":"claimed batches done"}
+{"ts":"2026-05-30T21:43:36.175Z","event":"scenario","batch":"B02","scenario":"S01","result":"blocked","severity":null,"durationMs":29281}
+{"ts":"2026-05-30T21:44:05.040Z","event":"scenario","batch":"B02","scenario":"S02","result":"blocked","severity":null,"durationMs":28854}
+{"ts":"2026-05-30T21:44:35.371Z","event":"scenario","batch":"B02","scenario":"S03","result":"blocked","severity":null,"durationMs":30326}
+{"ts":"2026-05-30T21:45:04.273Z","event":"scenario","batch":"B02","scenario":"S04","result":"blocked","severity":null,"durationMs":28896}
+{"ts":"2026-05-30T21:45:33.216Z","event":"scenario","batch":"B02","scenario":"S05","result":"blocked","severity":null,"durationMs":28936}
+{"ts":"2026-05-30T21:46:02.043Z","event":"scenario","batch":"B02","scenario":"S06","result":"blocked","severity":null,"durationMs":28823}
+{"ts":"2026-05-30T21:46:02.055Z","event":"scenario","batch":"B02","scenario":"S07","result":"blocked","severity":null,"durationMs":8}
+{"ts":"2026-05-30T21:46:31.050Z","event":"scenario","batch":"B02","scenario":"S08","result":"blocked","severity":null,"durationMs":28991}
+{"ts":"2026-05-30T21:47:00.073Z","event":"scenario","batch":"B02","scenario":"S09","result":"blocked","severity":null,"durationMs":28981}
+{"ts":"2026-05-30T21:47:29.082Z","event":"scenario","batch":"B02","scenario":"S10","result":"blocked","severity":null,"durationMs":29004}
+{"ts":"2026-05-30T21:47:59.538Z","event":"scenario","batch":"B02","scenario":"S11","result":"blocked","severity":null,"durationMs":30452}
+{"ts":"2026-05-30T21:48:28.500Z","event":"scenario","batch":"B02","scenario":"S12","result":"blocked","severity":null,"durationMs":28960}
+{"ts":"2026-05-30T21:48:28.504Z","event":"batch_end","batch":"B02","trials":12,"pass":0,"fail":0,"blocked":12,"partial":0,"blockerCount":0,"highCount":0,"mediumCount":0,"lowCount":0,"haltedOnBlocker":false}
+{"ts":"2026-05-30T21:48:28.518Z","event":"agent_end","label":"B","trialsCompleted":12,"batchesCompleted":["B02"],"reason":"claimed batches done"}
+{"ts":"2026-05-30T21:53:11.001Z","event":"scenario","batch":"B02","scenario":"S01","result":"pass","severity":null,"durationMs":21449}
+{"ts":"2026-05-30T21:53:24.645Z","event":"scenario","batch":"B02","scenario":"S02","result":"partial","severity":"MEDIUM","durationMs":13641}
+{"ts":"2026-05-30T21:53:45.367Z","event":"scenario","batch":"B02","scenario":"S03","result":"pass","severity":null,"durationMs":20718}
+{"ts":"2026-05-30T21:55:06.233Z","event":"scenario","batch":"B02","scenario":"S04","result":"pass","severity":null,"durationMs":80855}
+{"ts":"2026-05-30T21:55:27.353Z","event":"scenario","batch":"B02","scenario":"S05","result":"pass","severity":null,"durationMs":21117}
+{"ts":"2026-05-30T21:55:50.581Z","event":"scenario","batch":"B02","scenario":"S06","result":"pass","severity":null,"durationMs":23225}
+{"ts":"2026-05-30T21:55:50.589Z","event":"scenario","batch":"B02","scenario":"S07","result":"blocked","severity":null,"durationMs":5}
+{"ts":"2026-05-30T21:56:04.984Z","event":"scenario","batch":"B02","scenario":"S08","result":"partial","severity":"MEDIUM","durationMs":14393}
+{"ts":"2026-05-30T21:56:26.539Z","event":"scenario","batch":"B02","scenario":"S09","result":"pass","severity":null,"durationMs":21553}
+{"ts":"2026-05-30T21:56:47.494Z","event":"scenario","batch":"B02","scenario":"S10","result":"pass","severity":null,"durationMs":20952}
+{"ts":"2026-05-30T21:57:03.003Z","event":"scenario","batch":"B02","scenario":"S11","result":"pass","severity":null,"durationMs":15507}
+{"ts":"2026-05-30T21:57:41.301Z","event":"scenario","batch":"B02","scenario":"S12","result":"pass","severity":null,"durationMs":38295}
+{"ts":"2026-05-30T21:57:41.306Z","event":"batch_end","batch":"B02","trials":12,"pass":9,"fail":0,"blocked":1,"partial":2,"blockerCount":0,"highCount":0,"mediumCount":2,"lowCount":0,"haltedOnBlocker":false}
+{"ts":"2026-05-30T21:57:41.320Z","event":"agent_end","label":"B","trialsCompleted":12,"batchesCompleted":["B02"],"reason":"claimed batches done"}
+{"ts":"2026-05-30T22:15:00Z","event":"batch_end","batch":"B02","trials":11,"pass":9,"fail":0,"blocked":1,"partial":2,"blockerCount":0,"highCount":0,"mediumCount":2,"lowCount":0,"haltedOnBlocker":false,"notes":"Findings manually refined after deeper investigation of S02/S08"}
+{"ts":"2026-05-30T22:15:05Z","event":"agent_end","label":"B","trialsCompleted":11,"batchesCompleted":["B02"],"reason":"claimed batches done"}

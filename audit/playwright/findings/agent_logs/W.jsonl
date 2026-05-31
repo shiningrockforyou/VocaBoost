@@ -1,0 +1,14 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"W","claim":["B19"]}
+{"ts":"2026-05-31T00:00:05Z","event":"batch_start","batch":"B19"}
+{"ts":"2026-05-31T01:45:00Z","event":"scenario","batch":"B19","scenario":"S01","result":"partial","durationMs":600000}
+{"ts":"2026-05-31T01:45:01Z","event":"scenario","batch":"B19","scenario":"S02","result":"fail","severity":"HIGH","findingId":"F01","durationMs":600000}
+{"ts":"2026-05-31T01:45:02Z","event":"scenario","batch":"B19","scenario":"S03","result":"partial","durationMs":120000}
+{"ts":"2026-05-31T01:45:03Z","event":"scenario","batch":"B19","scenario":"S04","result":"fail","severity":"MEDIUM","findingId":"F02","durationMs":60000}
+{"ts":"2026-05-31T01:45:04Z","event":"scenario","batch":"B19","scenario":"S05","result":"pass","durationMs":30000}
+{"ts":"2026-05-31T01:45:05Z","event":"scenario","batch":"B19","scenario":"S06","result":"partial","severity":"LOW","findingId":"F05","durationMs":120000}
+{"ts":"2026-05-31T01:45:06Z","event":"scenario","batch":"B19","scenario":"S07","result":"partial","severity":"MEDIUM","findingId":"F03","durationMs":60000}
+{"ts":"2026-05-31T01:45:07Z","event":"scenario","batch":"B19","scenario":"S08","result":"pass","durationMs":60000}
+{"ts":"2026-05-31T01:45:08Z","event":"scenario","batch":"B19","scenario":"S09","result":"partial","severity":"LOW","durationMs":30000}
+{"ts":"2026-05-31T01:45:09Z","event":"scenario","batch":"B19","scenario":"S10","result":"pass","durationMs":30000}
+{"ts":"2026-05-31T01:45:10Z","event":"batch_end","batch":"B19","trials":10,"pass":4,"fail":2,"partial":4,"blocked":0,"highCount":1,"blockerCount":0}
+{"ts":"2026-05-31T01:45:11Z","event":"agent_end","label":"W","trialsCompleted":10,"batchesCompleted":["B19"],"reason":"claimed batches done"}

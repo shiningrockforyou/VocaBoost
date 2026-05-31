@@ -120,8 +120,17 @@ export async function saveSessionState(userId, classId, listId, state) {
   const docId = getSessionDocId(classId, listId);
   const sessionRef = doc(db, `users/${userId}/session_states`, docId);
 
+  // Strip undefined fields: Firestore rejects setDoc with any undefined value
+  // ("Unsupported field value: undefined"), which would fail the whole write and
+  // strand the session (e.g. newWordsTestScore undefined on a Day 2+ completion
+  // when no prior new-word attempt is found). Drop undefined so a single missing
+  // field can never block session-state persistence / day advancement.
+  const cleanState = Object.fromEntries(
+    Object.entries(state).filter(([, v]) => v !== undefined)
+  );
+
   const sessionData = {
-    ...state,
+    ...cleanState,
     classId,
     listId,
     lastUpdated: Timestamp.now()

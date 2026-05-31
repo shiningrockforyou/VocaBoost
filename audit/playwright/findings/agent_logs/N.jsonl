@@ -1,0 +1,20 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"N","claim":["B01"]}
+{"ts":"2026-05-31T00:00:05Z","event":"batch_start","batch":"B01"}
+{"ts":"2026-05-31T00:10:00Z","event":"scenario","batch":"B01","scenario":"S01","result":"pass","durationMs":18000}
+{"ts":"2026-05-31T00:11:00Z","event":"scenario","batch":"B01","scenario":"S02","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T00:12:00Z","event":"scenario","batch":"B01","scenario":"S03","result":"pass","durationMs":10000}
+{"ts":"2026-05-31T00:13:00Z","event":"scenario","batch":"B01","scenario":"S04","result":"pass","durationMs":9000}
+{"ts":"2026-05-31T00:14:00Z","event":"scenario","batch":"B01","scenario":"S05","result":"pass","durationMs":8000}
+{"ts":"2026-05-31T00:15:00Z","event":"scenario","batch":"B01","scenario":"S06","result":"pass","durationMs":7000}
+{"ts":"2026-05-31T00:16:00Z","event":"scenario","batch":"B01","scenario":"S07","result":"fail","severity":"MEDIUM","findingId":"F01","durationMs":9000}
+{"ts":"2026-05-31T00:20:00Z","event":"scenario","batch":"B01","scenario":"S08","result":"pass","durationMs":22000}
+{"ts":"2026-05-31T00:22:00Z","event":"scenario","batch":"B01","scenario":"S09","result":"pass","durationMs":11000}
+{"ts":"2026-05-31T00:24:00Z","event":"scenario","batch":"B01","scenario":"S10","result":"pass","durationMs":25000}
+{"ts":"2026-05-31T00:26:00Z","event":"scenario","batch":"B01","scenario":"S11","result":"pass","durationMs":16000}
+{"ts":"2026-05-31T00:28:00Z","event":"scenario","batch":"B01","scenario":"S12","result":"pass","durationMs":20000}
+{"ts":"2026-05-31T00:30:00Z","event":"scenario","batch":"B01","scenario":"S13","result":"pass","durationMs":19000}
+{"ts":"2026-05-31T00:35:00Z","event":"scenario","batch":"B01","scenario":"S14","result":"pass","durationMs":24000}
+{"ts":"2026-05-31T00:38:00Z","event":"scenario","batch":"B01","scenario":"S15","result":"pass","durationMs":12000}
+{"ts":"2026-05-31T00:40:00Z","event":"scenario","batch":"B01","scenario":"S16","result":"pass","durationMs":14000}
+{"ts":"2026-05-31T00:55:00Z","event":"batch_end","batch":"B01","trials":16,"pass":15,"fail":1,"blocked":0,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-31T00:55:00Z","event":"agent_end","label":"N","trialsCompleted":16,"batchesCompleted":["B01"],"reason":"claimed batches done"}

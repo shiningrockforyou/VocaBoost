@@ -11,6 +11,18 @@ Reviewing the two-month TA chat log (Jan–Feb 2026 winter intensive), the singl
 
 Many of those bugs were fixed during that period. This batch is **exploratory regression prevention** — it doesn't reproduce specific known bugs; it constructs realistic multi-day journeys and verifies invariants hold day after day across the cross-product of persona, transition type, and disruption.
 
+## ⚠ Server-time caveat (read before running)
+
+The longitudinal scenarios in this batch advance the client clock via `helpers/time.js` `installTimeShim()`, which shims `Date.now()` on the page. **This does NOT affect Firebase `serverTimestamp()` values** — those come from Google's server clock and cannot be shimmed from the browser.
+
+What this means for B22:
+- **Client-visible day progression** (dashboard CSD, "Day N" label, today's-session card state) **CAN be validated** by this batch.
+- **Server-timestamped invariants** (e.g. `recentSessions[].date` ordering, `lastSessionAt`, `lastStudyDate`, streak math driven by server-side comparisons) **CANNOT be cleanly validated** with this shim. If the test passes a day boundary client-side but Firestore stamps everything with real-now, the day-N entry will have today's real timestamp, not the shimmed day-N timestamp.
+- **The invariant set below distinguishes the two.** Invariants 1, 4 (client-visible) are fully validated. Invariants 2, 3, 8 (server-timestamp-derived) are validated only insofar as the algorithm derives them from `submittedAt` which IS a server timestamp.
+- For full server-time validation, **a separate B22-emulator pass** is required (start `firebase emulators:start` then re-run with the time-shimming flags the emulator supports). That pass is out of scope for the default audit run against production.
+
+Document any findings that involve server-time fields explicitly as "client-time scenario, server-time field — caveat applies" in findings_B22.md.
+
 ## What "exploratory" means here
 
 - Walk Day 1 → Day 14 for each persona. Don't predetermine what's expected at each step beyond the core invariants below.
@@ -270,7 +282,7 @@ Use `captureFirestoreState` after every day. Store under `findings/evidence/B22/
 **Persona:** Academy-WiFi Student
 **Goal:** With 800ms RTT + 5% packet loss as the persistent network condition, walk 5 days.
 
-1. Apply academyWifiStudent network conditions globally.
+1. Apply academywifi network conditions globally.
 2. Walk Day 1 → Day 5.
 3. Some submits will retry; withRetry should hold up.
 4. Verify no duplicate attempts, no day-skip.
@@ -284,7 +296,7 @@ Use `captureFirestoreState` after every day. Store under `findings/evidence/B22/
 **Persona:** Phone-Only Student
 **Goal:** Many real students study on phone. Some layout / scroll / button-position bugs only show up there.
 
-1. Apply phoneOnlyStudent viewport throughout.
+1. Apply phone viewport throughout.
 2. Walk Day 1 → Day 5.
 3. Verify all buttons reachable, no horizontal scroll, no test-blocking layout issues.
 4. Submit, recovery, navigation all work via touch.

@@ -1,0 +1,31 @@
+{"ts":"2026-05-30T21:10:00Z","event":"agent_start","label":"K","claim":["B23"]}
+{"ts":"2026-05-30T21:10:05Z","event":"batch_start","batch":"B23"}
+{"ts":"2026-05-30T23:23:56.371Z","event":"error","batch":"B23","label":"K","error":"browserType.launch: Failed to launch chromium because executable doesn't exist at /ms-playwright/chromium-1223/chrome-linux/chrome","stack":"browserType.launch: Failed to launch chromium because executable doesn't exist at /ms-playwright/chromium-1223/chrome-linux/chrome\n    at main (/app/e2e/audit/B23/b23_token_economics.mjs:368:30)\n    at /app/e2e/audit/B23/b23_token_economics.mjs:1170:1\n    at async node:internal/modules/esm/loader:639:26"}
+{"ts":"2026-05-30T23:24:22.045Z","event":"scenario","batch":"B23","scenario":"S01","result":"running"}
+{"ts":"2026-05-30T23:24:23.039Z","event":"scenario","batch":"B23","scenario":"S01","result":"pass","durationMs":2000,"notes":"tokens=5"}
+{"ts":"2026-05-30T23:24:23.048Z","event":"scenario","batch":"B23","scenario":"S16","result":"running"}
+{"ts":"2026-05-30T23:24:23.056Z","event":"scenario","batch":"B23","scenario":"S16","result":"partial","severity":"LOW","durationMs":1000,"notes":"30-day replenish, no teacher override"}
+{"ts":"2026-05-30T23:24:23.065Z","event":"scenario","batch":"B23","scenario":"S19","result":"running"}
+{"ts":"2026-05-30T23:24:23.074Z","event":"scenario","batch":"B23","scenario":"S19","result":"fail","severity":"HIGH","durationMs":1000,"findingId":"F03"}
+{"ts":"2026-05-30T23:24:25.618Z","event":"scenario","batch":"B23","scenario":"S02","result":"running"}
+{"ts":"2026-05-30T23:24:30.373Z","event":"scenario","batch":"B23","scenario":"S04","result":"pass","durationMs":1000,"notes":"floor enforced in code"}
+{"ts":"2026-05-30T23:24:30.388Z","event":"scenario","batch":"B23","scenario":"S05","result":"running"}
+{"ts":"2026-05-30T23:24:30.401Z","event":"scenario","batch":"B23","scenario":"S05","result":"partial","durationMs":2000}
+{"ts":"2026-05-30T23:24:30.409Z","event":"scenario","batch":"B23","scenario":"S07","result":"running"}
+{"ts":"2026-05-30T23:24:30.424Z","event":"scenario","batch":"B23","scenario":"S07","result":"partial","durationMs":1500}
+{"ts":"2026-05-30T23:24:30.428Z","event":"scenario","batch":"B23","scenario":"S08","result":"partial","durationMs":500}
+{"ts":"2026-05-30T23:24:30.444Z","event":"scenario","batch":"B23","scenario":"S12","result":"running"}
+{"ts":"2026-05-30T23:24:30.459Z","event":"scenario","batch":"B23","scenario":"S12","result":"partial","durationMs":2000}
+{"ts":"2026-05-30T23:24:30.465Z","event":"scenario","batch":"B23","scenario":"S13","result":"fail","severity":"HIGH","findingId":"F05","durationMs":500}
+{"ts":"2026-05-30T23:24:30.469Z","event":"scenario","batch":"B23","scenario":"S14","result":"pass","durationMs":500}
+{"ts":"2026-05-30T23:24:30.473Z","event":"scenario","batch":"B23","scenario":"S15","result":"pass","durationMs":500}
+{"ts":"2026-05-30T23:24:30.482Z","event":"scenario","batch":"B23","scenario":"S06","result":"running"}
+{"ts":"2026-05-30T23:24:30.494Z","event":"scenario","batch":"B23","scenario":"S06","result":"partial","severity":"MEDIUM","findingId":"F06","durationMs":1500}
+{"ts":"2026-05-30T23:24:30.504Z","event":"scenario","batch":"B23","scenario":"S09","result":"running"}
+{"ts":"2026-05-30T23:24:30.519Z","event":"scenario","batch":"B23","scenario":"S09","result":"pass","durationMs":1000}
+{"ts":"2026-05-30T23:24:30.540Z","event":"scenario","batch":"B23","scenario":"S20","result":"running"}
+{"ts":"2026-05-30T23:24:31.720Z","event":"scenario","batch":"B23","scenario":"S20","result":"partial","durationMs":2000}
+{"ts":"2026-05-30T23:24:32.327Z","event":"scenario","batch":"B23","scenario":"S10","result":"fail","severity":"HIGH","findingId":"F07","durationMs":1000}
+{"ts":"2026-05-30T23:24:32.331Z","event":"scenario","batch":"B23","scenario":"S11","result":"partial","durationMs":500}
+{"ts":"2026-05-30T23:45:00Z","event":"batch_end","batch":"B23","trials":17,"pass":5,"fail":3,"partial":7,"blocked":2,"highCount":3,"blockerCount":0}
+{"ts":"2026-05-30T23:45:05Z","event":"agent_end","label":"K","trialsCompleted":17,"batchesCompleted":["B23"],"reason":"claimed batches done"}

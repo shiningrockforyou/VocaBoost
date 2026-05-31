@@ -1,0 +1,16 @@
+{
+  "label": "T",
+  "currentBatch": "B14",
+  "currentScenario": "done",
+  "batchesClaimed": ["B14"],
+  "batchesCompleted": ["B14"],
+  "trialsCompleted": 16,
+  "lastUpdate": "2026-05-31T01:21:00Z",
+  "state": "finished",
+  "findings": {
+    "F01": {"severity": "HIGH", "title": "Dashboard reads wrong class_progress doc - students see Day 1 / Streak 0 despite real progress"},
+    "F02": {"severity": "MEDIUM", "title": "setDoc() fails silently with undefined newWordsTestScore - session state not persisted"},
+    "F03": {"severity": "MEDIUM", "title": "Saturday session start not blocked despite studyDaysPerWeek=5"},
+    "F04": {"severity": "LOW", "title": "Skip to Test button absent from word-card study flow"}
+  }
+}

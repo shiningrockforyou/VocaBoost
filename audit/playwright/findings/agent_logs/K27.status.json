@@ -1,0 +1,15 @@
+{
+  "label": "K27",
+  "status": "finished",
+  "updatedAt": "2026-05-31T09:58:24.749Z",
+  "realSessionsCompleted": 2,
+  "partialSessions": 1,
+  "realStartDay": 1,
+  "realEndDay": 3,
+  "f01Resolved": true,
+  "f01MasteredInReviewDays": [],
+  "orphanDocsCreated": 0,
+  "newBlocker": "F-K01",
+  "stopConditionHit": false,
+  "finishedAt": "2026-05-31T09:58:24.749Z"
+}

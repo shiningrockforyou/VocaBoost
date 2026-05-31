@@ -25,7 +25,7 @@ The recent fix moved `clearTestState` from line 618 (top of handleSubmit) to AFT
 **Persona:** Careful Student
 **Goal:** Baseline; the AI grading path works end-to-end.
 
-1. Log in as `carefulStudent`. Navigate to dashboard. Find a list with a typed-test option for new words.
+1. Log in as `careful`. Navigate to dashboard. Find a list with a typed-test option for new words.
 2. Begin a typed test (~5 questions on `tinyList`).
 3. For each prompt, type a correct definition. Use the actual definition text from the seeded list.
 4. Click "Submit."

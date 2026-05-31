@@ -15,13 +15,13 @@ Results screens render correctly. Challenge submission writes through. Audit-kno
 
 ### S01 — Results screen displays correctly after Typed test
 
-1. (From B03) Complete a typed test as `anxiousStudent`.
+1. (From B03) Complete a typed test as `anxious`.
 2. Results screen shows: per-question correctness, AI rationale, student response, expected answer.
 3. Verify the score percentage matches the attempt doc.
 
 ### S02 — Results screen displays correctly after MCQ test
 
-1. Complete MCQ as `carefulStudent`.
+1. Complete MCQ as `careful`.
 2. Results screen lists each question + correct/incorrect + correct answer + student response.
 
 ### S03 — Raise a challenge on a graded answer

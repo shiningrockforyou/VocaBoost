@@ -1,0 +1,420 @@
+{"ts":"2026-05-31T11:09:34.283Z","type":"audit_start","agent":"WALK20","persona":"careful","class":"TOP","transform":"canonical_en_verbatim"}
+{"ts":"2026-05-31T11:09:35.180Z","type":"initial_state","CSD":15,"TWI":1200,"attempts":45,"passedNew":19,"anchorDay":15}
+{"ts":"2026-05-31T11:09:35.184Z","type":"orphan_docs_pre_run","docs":["k8tzOiiwotBbtJS3uTiv"]}
+{"ts":"2026-05-31T11:09:35.362Z","type":"day_start","day":16,"fakeDate":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T11:09:35.595Z","type":"session_start","day":16,"fakeDate":"2026-06-02T00:00:00.000Z","fakeNowMs":1780358400000}
+{"ts":"2026-05-31T11:09:42.844Z","type":"logged_in"}
+{"ts":"2026-05-31T11:09:42.852Z","type":"date_shim_check","day":16,"shimCheck":{"now":1780358406878,"newDate":"2026-06-02T00:00:06.878Z","fakeNow":1780358400000,"offset":132624027}}
+{"ts":"2026-05-31T11:09:46.044Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:09:51.575Z","type":"dashboard_day","day":16,"dashDay":16}
+{"ts":"2026-05-31T11:09:52.417Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T11:09:56.148Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:09:56.152Z","type":"skip_result","day":16,"ok":true}
+{"ts":"2026-05-31T11:09:58.164Z","type":"page_state","day":16,"hasInput":true,"hasRadio":false,"isStep2":true,"isStep4":false,"inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 16\n\nProgress\n\n0 of 30 answered\n\n1.\nabate\n(v.)\n2.\nperception\n(n.)\n3.\nburnish\n(v.)\n4.\nre"}
+{"ts":"2026-05-31T11:09:58.168Z","type":"running_new_word_test","day":16}
+{"ts":"2026-05-31T11:09:59.175Z","type":"typed_inputs_found","day":16,"count":30}
+{"ts":"2026-05-31T11:10:26.363Z","type":"typed_filled","day":16,"count":30}
+{"ts":"2026-05-31T11:10:28.409Z","type":"typed_submitted","day":16,"count":30}
+{"ts":"2026-05-31T11:10:28.415Z","type":"typed_grading_wait","day":16}
+{"ts":"2026-05-31T11:11:01.426Z","type":"new_test_done","day":16,"score":100,"words":30}
+{"ts":"2026-05-31T11:11:06.444Z","type":"nav_review_not_found","day":16}
+{"ts":"2026-05-31T11:11:06.448Z","type":"review_nav_failed","day":16}
+{"ts":"2026-05-31T11:11:12.030Z","type":"session_complete","day":16,"csdBefore":15,"csdAfter":15,"csdAdvanced":false,"blocked":false,"newTestScore":100,"reviewTestScore":null}
+{"ts":"2026-05-31T11:11:12.043Z","type":"stop_condition","reason":"CSD did not advance on first session","dayRow":{"day":16,"fakeDate":"2026-06-02","csdBefore":15,"csdAfter":15,"csdAdvanced":"✗","expNewRange":"[1200,1279]","newPresentedCount":30,"newViolCount":0,"newMatch":"✓","expSegment":"[0,303]","reviewPresentedCount":0,"reviewViolCount":0,"reviewMatch":"✓","masteredCountPre":1077,"masteredCountPost":1077,"f01Count":0,"newTestScore":100,"reviewTestScore":null,"h2Hit":false,"blocked":false,"blockedReason":null,"consoleErrors":[],"warnings":["Review test navigation failed on Day 16"]}}
+{"ts":"2026-05-31T11:11:12.046Z","type":"day_start","day":17,"fakeDate":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T11:11:12.227Z","type":"session_start","day":17,"fakeDate":"2026-06-03T00:00:00.000Z","fakeNowMs":1780444800000}
+{"ts":"2026-05-31T11:11:19.422Z","type":"logged_in"}
+{"ts":"2026-05-31T11:11:19.428Z","type":"date_shim_check","day":17,"shimCheck":{"now":1780444806861,"newDate":"2026-06-03T00:00:06.861Z","fakeNow":1780444800000,"offset":218927433}}
+{"ts":"2026-05-31T11:11:22.626Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:11:28.167Z","type":"dashboard_day","day":17,"dashDay":16}
+{"ts":"2026-05-31T11:11:31.994Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:11:31.998Z","type":"skip_result","day":17,"ok":true}
+{"ts":"2026-05-31T11:11:34.011Z","type":"page_state","day":17,"hasInput":false,"hasRadio":false,"isStep2":false,"isStep4":true,"inputCount":0,"bodySnip":"Step 4 of 5\n\nReview Test — Day 16\n\nProgress\n\n0 of 30 answered\n\ntyranny\n\n(n.)\n\n🔊 Play Audio\nstrongly reminiscent or sugg"}
+{"ts":"2026-05-31T11:11:34.015Z","type":"running_review_test_direct","day":17}
+{"ts":"2026-05-31T11:11:34.019Z","type":"mcq_start","day":17}
+{"ts":"2026-05-31T11:11:34.633Z","type":"mcq_q","day":17,"q":1,"word":"tyranny","clicked":"oppressive government or rule"}
+{"ts":"2026-05-31T11:11:35.746Z","type":"mcq_q","day":17,"q":2,"word":"daunted","clicked":"caused to show discomposure"}
+{"ts":"2026-05-31T11:11:36.862Z","type":"mcq_q","day":17,"q":3,"word":"divers\r\n(old English","clicked":"various; several. not to be co"}
+{"ts":"2026-05-31T11:11:37.976Z","type":"mcq_q","day":17,"q":4,"word":"vituperate","clicked":"to berate"}
+{"ts":"2026-05-31T11:11:39.092Z","type":"mcq_q","day":17,"q":5,"word":"emend","clicked":"to correct or revise a written"}
+{"ts":"2026-05-31T11:11:40.208Z","type":"mcq_q","day":17,"q":6,"word":"inflammatory","clicked":"arousing anger or strong emoti"}
+{"ts":"2026-05-31T11:11:41.320Z","type":"mcq_q","day":17,"q":7,"word":"overcompensate","clicked":"to make up for something exces"}
+{"ts":"2026-05-31T11:11:42.434Z","type":"mcq_q","day":17,"q":8,"word":"redolent","clicked":"strongly reminiscent or sugges"}
+{"ts":"2026-05-31T11:11:43.551Z","type":"mcq_q","day":17,"q":9,"word":"yea\r\n(old English)","clicked":"to berate"}
+{"ts":"2026-05-31T11:11:44.663Z","type":"mcq_q","day":17,"q":10,"word":"extremity","clicked":"the extreme ends of something "}
+{"ts":"2026-05-31T11:11:45.778Z","type":"mcq_q","day":17,"q":11,"word":"degenerate","clicked":"to break down; to deteriorate"}
+{"ts":"2026-05-31T11:11:46.894Z","type":"mcq_q","day":17,"q":12,"word":"hover","clicked":"to float, linger"}
+{"ts":"2026-05-31T11:11:48.008Z","type":"mcq_q","day":17,"q":13,"word":"trace","clicked":"to follow the flow of somethin"}
+{"ts":"2026-05-31T11:11:49.123Z","type":"mcq_q","day":17,"q":14,"word":"compulsory","clicked":"required or mandatory"}
+{"ts":"2026-05-31T11:11:50.236Z","type":"mcq_q","day":17,"q":15,"word":"amalgamate","clicked":"to combine"}
+{"ts":"2026-05-31T11:11:51.349Z","type":"mcq_q","day":17,"q":16,"word":"consternation","clicked":"dismay, anxiety"}
+{"ts":"2026-05-31T11:11:52.462Z","type":"mcq_q","day":17,"q":17,"word":"lavish","clicked":"luxurious and expensive"}
+{"ts":"2026-05-31T11:11:53.574Z","type":"mcq_q","day":17,"q":18,"word":"recant","clicked":"strongly reminiscent or sugges"}
+{"ts":"2026-05-31T11:11:54.688Z","type":"mcq_q","day":17,"q":19,"word":"raucous","clicked":"stridently loud; harsh; rowdy"}
+{"ts":"2026-05-31T11:11:55.802Z","type":"mcq_q","day":17,"q":20,"word":"sentient","clicked":"able to perceive by the senses"}
+{"ts":"2026-05-31T11:11:56.918Z","type":"mcq_q","day":17,"q":21,"word":"multitude","clicked":"a large number or variety of p"}
+{"ts":"2026-05-31T11:11:58.033Z","type":"mcq_q","day":17,"q":22,"word":"droll\r\n(old English)","clicked":"curious or unusual in a way th"}
+{"ts":"2026-05-31T11:11:59.148Z","type":"mcq_q","day":17,"q":23,"word":"delinquent","clicked":"neglecting a duty or law; late"}
+{"ts":"2026-05-31T11:12:00.263Z","type":"mcq_q","day":17,"q":24,"word":"resentful","clicked":"having ill-will or hostility"}
+{"ts":"2026-05-31T11:12:01.376Z","type":"mcq_q","day":17,"q":25,"word":"blasphemy","clicked":"irreverence; an insult to some"}
+{"ts":"2026-05-31T11:12:02.490Z","type":"mcq_q","day":17,"q":26,"word":"celestial","clicked":"heavenly, relating to the sky"}
+{"ts":"2026-05-31T11:12:03.605Z","type":"mcq_q","day":17,"q":27,"word":"voluble","clicked":"talking a lot in an energetic "}
+{"ts":"2026-05-31T11:12:04.719Z","type":"mcq_q","day":17,"q":28,"word":"attribute","clicked":"a quality or characteristic be"}
+{"ts":"2026-05-31T11:12:05.833Z","type":"mcq_q","day":17,"q":29,"word":"allocate","clicked":"to distribute accordingly"}
+{"ts":"2026-05-31T11:12:06.946Z","type":"mcq_q","day":17,"q":30,"word":"deign","clicked":"to condescend; to think it in "}
+{"ts":"2026-05-31T11:12:09.492Z","type":"mcq_submitted_all_answered","day":17,"answered":"30"}
+{"ts":"2026-05-31T11:12:09.502Z","type":"mcq_done","day":17,"questions":30,"words":30}
+{"ts":"2026-05-31T11:12:12.511Z","type":"review_test_done_direct","day":17,"score":93}
+{"ts":"2026-05-31T11:12:20.845Z","type":"session_complete","day":17,"csdBefore":15,"csdAfter":16,"csdAdvanced":true,"blocked":false,"newTestScore":null,"reviewTestScore":93}
+{"ts":"2026-05-31T11:12:20.860Z","type":"day_start","day":18,"fakeDate":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T11:12:21.002Z","type":"session_start","day":18,"fakeDate":"2026-06-04T00:00:00.000Z","fakeNowMs":1780531200000}
+{"ts":"2026-05-31T11:12:28.056Z","type":"logged_in"}
+{"ts":"2026-05-31T11:12:28.063Z","type":"date_shim_check","day":18,"shimCheck":{"now":1780531206767,"newDate":"2026-06-04T00:00:06.767Z","fakeNow":1780531200000,"offset":305258704}}
+{"ts":"2026-05-31T11:12:31.258Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:12:36.790Z","type":"h2_stale_detected","day":18,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:12:36.797Z","type":"h2_hit","day":18}
+{"ts":"2026-05-31T11:12:40.007Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:12:45.540Z","type":"h2_stale_detected","day":18,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:12:45.544Z","type":"h2_unrecoverable","day":18}
+{"ts":"2026-05-31T11:12:48.732Z","type":"session_complete","day":18,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:12:48.741Z","type":"day_start","day":19,"fakeDate":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T11:12:48.891Z","type":"session_start","day":19,"fakeDate":"2026-06-05T00:00:00.000Z","fakeNowMs":1780617600000}
+{"ts":"2026-05-31T11:12:55.906Z","type":"logged_in"}
+{"ts":"2026-05-31T11:12:55.913Z","type":"date_shim_check","day":19,"shimCheck":{"now":1780617606721,"newDate":"2026-06-05T00:00:06.721Z","fakeNow":1780617600000,"offset":391630808}}
+{"ts":"2026-05-31T11:12:59.123Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:13:04.658Z","type":"h2_stale_detected","day":19,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:13:04.662Z","type":"h2_hit","day":19}
+{"ts":"2026-05-31T11:13:07.860Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:13:13.407Z","type":"h2_stale_detected","day":19,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:13:13.413Z","type":"h2_unrecoverable","day":19}
+{"ts":"2026-05-31T11:13:16.609Z","type":"session_complete","day":19,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:13:16.617Z","type":"day_start","day":20,"fakeDate":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T11:13:16.749Z","type":"session_start","day":20,"fakeDate":"2026-06-08T00:00:00.000Z","fakeNowMs":1780876800000}
+{"ts":"2026-05-31T11:13:23.900Z","type":"logged_in"}
+{"ts":"2026-05-31T11:13:23.908Z","type":"date_shim_check","day":20,"shimCheck":{"now":1780876806859,"newDate":"2026-06-08T00:00:06.859Z","fakeNow":1780876800000,"offset":650802952}}
+{"ts":"2026-05-31T11:13:27.113Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:13:32.657Z","type":"h2_stale_detected","day":20,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:13:32.661Z","type":"h2_hit","day":20}
+{"ts":"2026-05-31T11:13:35.858Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:13:41.403Z","type":"h2_stale_detected","day":20,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:13:41.406Z","type":"h2_unrecoverable","day":20}
+{"ts":"2026-05-31T11:13:44.659Z","type":"session_complete","day":20,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:13:44.672Z","type":"day_start","day":21,"fakeDate":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T11:13:44.862Z","type":"session_start","day":21,"fakeDate":"2026-06-09T00:00:00.000Z","fakeNowMs":1780963200000}
+{"ts":"2026-05-31T11:13:51.913Z","type":"logged_in"}
+{"ts":"2026-05-31T11:13:51.920Z","type":"date_shim_check","day":21,"shimCheck":{"now":1780963206749,"newDate":"2026-06-09T00:00:06.749Z","fakeNow":1780963200000,"offset":737174830}}
+{"ts":"2026-05-31T11:13:55.127Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:14:00.669Z","type":"h2_stale_detected","day":21,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:14:00.673Z","type":"h2_hit","day":21}
+{"ts":"2026-05-31T11:14:03.869Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:14:09.400Z","type":"h2_stale_detected","day":21,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:14:09.405Z","type":"h2_unrecoverable","day":21}
+{"ts":"2026-05-31T11:14:12.594Z","type":"session_complete","day":21,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:14:12.605Z","type":"day_start","day":22,"fakeDate":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T11:14:12.757Z","type":"session_start","day":22,"fakeDate":"2026-06-10T00:00:00.000Z","fakeNowMs":1781049600000}
+{"ts":"2026-05-31T11:14:19.825Z","type":"logged_in"}
+{"ts":"2026-05-31T11:14:19.836Z","type":"date_shim_check","day":22,"shimCheck":{"now":1781049606769,"newDate":"2026-06-10T00:00:06.769Z","fakeNow":1781049600000,"offset":823546934}}
+{"ts":"2026-05-31T11:14:23.042Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:14:28.582Z","type":"h2_stale_detected","day":22,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:14:28.586Z","type":"h2_hit","day":22}
+{"ts":"2026-05-31T11:14:31.783Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:14:37.312Z","type":"h2_stale_detected","day":22,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResu"}
+{"ts":"2026-05-31T11:14:37.323Z","type":"h2_unrecoverable","day":22}
+{"ts":"2026-05-31T11:14:40.515Z","type":"session_complete","day":22,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:14:40.594Z","type":"browser_closed"}
+{"ts":"2026-05-31T11:14:40.632Z","type":"final_state","finalCSD":16,"finalTWI":1280,"targetCSD":20,"targetReached":false,"csdAdvancedCount":1,"h2Count":5,"newOrphans":[]}
+{"ts":"2026-05-31T11:18:18.226Z","type":"audit_start","agent":"WALK20","persona":"careful","class":"TOP","transform":"canonical_en_verbatim"}
+{"ts":"2026-05-31T11:18:19.158Z","type":"initial_state","CSD":16,"TWI":1280,"attempts":47,"passedNew":20,"anchorDay":16}
+{"ts":"2026-05-31T11:18:19.162Z","type":"orphan_docs_pre_run","docs":["k8tzOiiwotBbtJS3uTiv"]}
+{"ts":"2026-05-31T11:18:19.343Z","type":"day_start","day":17,"fakeDate":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T11:18:19.602Z","type":"session_start","day":17,"fakeDate":"2026-06-02T00:00:00.000Z","fakeNowMs":1780358400000}
+{"ts":"2026-05-31T11:18:27.309Z","type":"logged_in"}
+{"ts":"2026-05-31T11:18:27.318Z","type":"date_shim_check","day":17,"shimCheck":{"now":1780358407342,"newDate":"2026-06-02T00:00:07.342Z","fakeNow":1780358400000,"offset":132100025}}
+{"ts":"2026-05-31T11:18:30.522Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:18:36.562Z","type":"h2_reentry_modal","day":17,"bodySnip":"Step 5 of 5\n✓\n\nDAY 17 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1280 / 3381\nBack to Dashboard\nℹ️\nResume Day 17?\n\nYou scored 93% on the review test. Wou"}
+{"ts":"2026-05-31T11:18:39.586Z","type":"h2_moved_on","day":17}
+{"ts":"2026-05-31T11:18:39.590Z","type":"h2_hit_attempt","day":17,"attempt":1}
+{"ts":"2026-05-31T11:18:43.787Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:18:49.828Z","type":"session_exception","day":17,"error":"h2Count is not defined","stack":"ReferenceError: h2Count is not defined\n    at runSession (file:///app/e2e/audit/B27/run_walk20.mjs:982:25)\n    at async main (file:///app/e2e/audit/B27/run_walk20.mjs:1164:29)"}
+{"ts":"2026-05-31T11:18:53.019Z","type":"session_complete","day":17,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:18:53.034Z","type":"day_start","day":18,"fakeDate":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T11:18:53.190Z","type":"session_start","day":18,"fakeDate":"2026-06-03T00:00:00.000Z","fakeNowMs":1780444800000}
+{"ts":"2026-05-31T11:19:00.270Z","type":"logged_in"}
+{"ts":"2026-05-31T11:19:00.278Z","type":"date_shim_check","day":18,"shimCheck":{"now":1780444806784,"newDate":"2026-06-03T00:00:06.784Z","fakeNow":1780444800000,"offset":218466507}}
+{"ts":"2026-05-31T11:19:03.478Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:19:04.839Z","type":"warn_score_undefined","day":18,"msg":"Failed to persist session state: FirebaseError: Function setDoc() called with invalid data. Unsuppor"}
+{"ts":"2026-05-31T11:19:09.509Z","type":"dashboard_day","day":18,"dashDay":17}
+{"ts":"2026-05-31T11:19:10.351Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T11:19:14.062Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:19:14.066Z","type":"skip_result","day":18,"ok":true}
+{"ts":"2026-05-31T11:19:16.079Z","type":"page_state","day":18,"hasInput":true,"hasRadio":false,"isStep2":true,"isStep4":false,"inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 17\n\nProgress\n\n0 of 30 answered\n\n1.\nendear\n(v.)\n2.\ncoherent\n(adj.)\n3.\nphlegmatic\n(adj.)"}
+{"ts":"2026-05-31T11:19:16.082Z","type":"running_new_word_test","day":18}
+{"ts":"2026-05-31T11:19:17.089Z","type":"typed_inputs_found","day":18,"count":30}
+{"ts":"2026-05-31T11:19:43.213Z","type":"typed_filled","day":18,"count":30}
+{"ts":"2026-05-31T11:19:45.259Z","type":"typed_submitted","day":18,"count":30}
+{"ts":"2026-05-31T11:19:45.266Z","type":"typed_grading_wait","day":18}
+{"ts":"2026-05-31T11:20:18.278Z","type":"new_test_done","day":18,"score":100,"words":30}
+{"ts":"2026-05-31T11:20:23.298Z","type":"nav_review_re_enter_session","day":18}
+{"ts":"2026-05-31T11:20:26.871Z","type":"nav_review_re_enter_bodytext","day":18,"bodySnip":"Page not found\n\nLooks like you’ve followed a broken link or entered a URL that doesn’t exist on this site.\n\nIf this is your site, and you weren’t expecting a 404 for this path, please visit Netlify’s "}
+{"ts":"2026-05-31T11:20:26.876Z","type":"nav_review_not_found","day":18,"bodySnip":"Page not found\n\nLooks like you’ve followed a broken link or entered a URL that doesn’t exist on this site.\n\nIf this is your site, and you weren’t expe"}
+{"ts":"2026-05-31T11:20:26.880Z","type":"review_nav_failed","day":18}
+{"ts":"2026-05-31T11:20:32.285Z","type":"session_complete","day":18,"csdBefore":16,"csdAfter":16,"csdAdvanced":false,"blocked":false,"newTestScore":100,"reviewTestScore":null}
+{"ts":"2026-05-31T11:20:32.294Z","type":"day_start","day":19,"fakeDate":"2026-06-04T00:00:00.000Z"}
+{"ts":"2026-05-31T11:20:32.443Z","type":"session_start","day":19,"fakeDate":"2026-06-04T00:00:00.000Z","fakeNowMs":1780531200000}
+{"ts":"2026-05-31T11:20:39.435Z","type":"logged_in"}
+{"ts":"2026-05-31T11:20:39.442Z","type":"date_shim_check","day":19,"shimCheck":{"now":1780531206707,"newDate":"2026-06-04T00:00:06.707Z","fakeNow":1780531200000,"offset":304767265}}
+{"ts":"2026-05-31T11:20:42.640Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:20:48.685Z","type":"dashboard_day","day":19,"dashDay":17}
+{"ts":"2026-05-31T11:20:52.512Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:20:52.517Z","type":"skip_result","day":19,"ok":true}
+{"ts":"2026-05-31T11:20:54.529Z","type":"page_state","day":19,"hasInput":false,"hasRadio":false,"isStep2":false,"isStep4":true,"inputCount":0,"bodySnip":"Step 4 of 5\n\nReview Test — Day 17\n\nProgress\n\n0 of 30 answered\n\nreservoir\n\n(n.)\n\n🔊 Play Audio\nprogram; the things to be "}
+{"ts":"2026-05-31T11:20:54.533Z","type":"running_review_test_direct","day":19}
+{"ts":"2026-05-31T11:20:54.538Z","type":"mcq_start","day":19}
+{"ts":"2026-05-31T11:20:55.149Z","type":"mcq_q","day":19,"q":1,"word":"reservoir","clicked":"reserves, large supply"}
+{"ts":"2026-05-31T11:20:56.262Z","type":"mcq_q","day":19,"q":2,"word":"belatedly","clicked":"okay to throw away; not absolu"}
+{"ts":"2026-05-31T11:20:57.379Z","type":"mcq_q","day":19,"q":3,"word":"ascendancy","clicked":"supremacy; domination"}
+{"ts":"2026-05-31T11:20:58.492Z","type":"mcq_q","day":19,"q":4,"word":"commend","clicked":"to express strong approval of;"}
+{"ts":"2026-05-31T11:20:59.604Z","type":"mcq_q","day":19,"q":5,"word":"hermetic","clicked":"impervious to external influen"}
+{"ts":"2026-05-31T11:21:00.720Z","type":"mcq_q","day":19,"q":6,"word":"putative","clicked":"commonly accepted; supposed; r"}
+{"ts":"2026-05-31T11:21:01.836Z","type":"mcq_q","day":19,"q":7,"word":"expiate","clicked":"to make amends for; to atone f"}
+{"ts":"2026-05-31T11:21:02.953Z","type":"mcq_q","day":19,"q":8,"word":"rivet","clicked":"to engross; to hold firmly"}
+{"ts":"2026-05-31T11:21:04.075Z","type":"mcq_q","day":19,"q":9,"word":"agenda","clicked":"program; the things to be done"}
+{"ts":"2026-05-31T11:21:05.188Z","type":"mcq_q","day":19,"q":10,"word":"ramification","clicked":"a consequence or branching out"}
+{"ts":"2026-05-31T11:21:06.300Z","type":"mcq_q","day":19,"q":11,"word":"ubiquitous","clicked":"present, appearing, or found e"}
+{"ts":"2026-05-31T11:21:07.412Z","type":"mcq_q","day":19,"q":12,"word":"retain","clicked":"according to the customs or us"}
+{"ts":"2026-05-31T11:21:08.525Z","type":"mcq_q","day":19,"q":13,"word":"adulation","clicked":"extreme praise"}
+{"ts":"2026-05-31T11:21:09.638Z","type":"mcq_q","day":19,"q":14,"word":"waver","clicked":"extravagantly or foolishly lov"}
+{"ts":"2026-05-31T11:21:10.750Z","type":"mcq_q","day":19,"q":15,"word":"retrieve","clicked":"a consequence or branching out"}
+{"ts":"2026-05-31T11:21:11.862Z","type":"mcq_q","day":19,"q":16,"word":"stereotype","clicked":"an often unfair and untrue bel"}
+{"ts":"2026-05-31T11:21:12.977Z","type":"mcq_q","day":19,"q":17,"word":"depict","clicked":"to show, illustrate"}
+{"ts":"2026-05-31T11:21:14.092Z","type":"mcq_q","day":19,"q":18,"word":"exhort","clicked":"to strongly urge, advise"}
+{"ts":"2026-05-31T11:21:15.205Z","type":"mcq_q","day":19,"q":19,"word":"ensure","clicked":"to make certain"}
+{"ts":"2026-05-31T11:21:16.317Z","type":"mcq_q","day":19,"q":20,"word":"fetish","clicked":"an object of obsessive reveren"}
+{"ts":"2026-05-31T11:21:17.432Z","type":"mcq_q","day":19,"q":21,"word":"apoplexy","clicked":"stroke"}
+{"ts":"2026-05-31T11:21:18.549Z","type":"mcq_q","day":19,"q":22,"word":"customary","clicked":"according to the customs or us"}
+{"ts":"2026-05-31T11:21:19.663Z","type":"mcq_q","day":19,"q":23,"word":"foray","clicked":"a quick raid or attack"}
+{"ts":"2026-05-31T11:21:20.776Z","type":"mcq_q","day":19,"q":24,"word":"nourish","clicked":"to provide (someone or somethi"}
+{"ts":"2026-05-31T11:21:21.888Z","type":"mcq_q","day":19,"q":25,"word":"doting","clicked":"extravagantly or foolishly lov"}
+{"ts":"2026-05-31T11:21:23.001Z","type":"mcq_q","day":19,"q":26,"word":"inexhaustible","clicked":"impossible to exhaust"}
+{"ts":"2026-05-31T11:21:24.112Z","type":"mcq_q","day":19,"q":27,"word":"eruption","clicked":"a sudden outburst or release"}
+{"ts":"2026-05-31T11:21:25.222Z","type":"mcq_q","day":19,"q":28,"word":"feminine","clicked":"of, relating to, or suited to "}
+{"ts":"2026-05-31T11:21:26.335Z","type":"mcq_q","day":19,"q":29,"word":"dispensable","clicked":"okay to throw away; not absolu"}
+{"ts":"2026-05-31T11:21:27.449Z","type":"mcq_q","day":19,"q":30,"word":"appeal","clicked":"to be attractive to; to ask fo"}
+{"ts":"2026-05-31T11:21:29.992Z","type":"mcq_submitted_all_answered","day":19,"answered":"30"}
+{"ts":"2026-05-31T11:21:30.001Z","type":"mcq_done","day":19,"questions":30,"words":30}
+{"ts":"2026-05-31T11:21:33.011Z","type":"review_test_done_direct","day":19,"score":87}
+{"ts":"2026-05-31T11:21:40.524Z","type":"session_complete","day":19,"csdBefore":16,"csdAfter":17,"csdAdvanced":true,"blocked":false,"newTestScore":null,"reviewTestScore":87}
+{"ts":"2026-05-31T11:21:40.535Z","type":"day_start","day":20,"fakeDate":"2026-06-05T00:00:00.000Z"}
+{"ts":"2026-05-31T11:21:40.688Z","type":"session_start","day":20,"fakeDate":"2026-06-05T00:00:00.000Z","fakeNowMs":1780617600000}
+{"ts":"2026-05-31T11:21:48.310Z","type":"logged_in"}
+{"ts":"2026-05-31T11:21:48.315Z","type":"date_shim_check","day":20,"shimCheck":{"now":1780617607327,"newDate":"2026-06-05T00:00:07.327Z","fakeNow":1780617600000,"offset":391099012}}
+{"ts":"2026-05-31T11:21:51.510Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:21:57.540Z","type":"h2_reentry_modal","day":20,"bodySnip":"Step 5 of 5\n✓\n\nDAY 18 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1360 / 3381\nBack to Dashboard\nℹ️\nResume Day 17?\n\nYou scored 87% on the review test. Wou"}
+{"ts":"2026-05-31T11:22:00.571Z","type":"h2_moved_on","day":20}
+{"ts":"2026-05-31T11:22:00.576Z","type":"h2_hit_attempt","day":20,"attempt":1}
+{"ts":"2026-05-31T11:22:04.794Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:22:10.821Z","type":"session_exception","day":20,"error":"h2Count is not defined","stack":"ReferenceError: h2Count is not defined\n    at runSession (file:///app/e2e/audit/B27/run_walk20.mjs:982:25)\n    at async main (file:///app/e2e/audit/B27/run_walk20.mjs:1164:29)"}
+{"ts":"2026-05-31T11:22:13.991Z","type":"session_complete","day":20,"csdBefore":17,"csdAfter":17,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:22:14.000Z","type":"day_start","day":21,"fakeDate":"2026-06-08T00:00:00.000Z"}
+{"ts":"2026-05-31T11:22:14.135Z","type":"session_start","day":21,"fakeDate":"2026-06-08T00:00:00.000Z","fakeNowMs":1780876800000}
+{"ts":"2026-05-31T11:22:21.216Z","type":"logged_in"}
+{"ts":"2026-05-31T11:22:21.222Z","type":"date_shim_check","day":21,"shimCheck":{"now":1780876806763,"newDate":"2026-06-08T00:00:06.763Z","fakeNow":1780876800000,"offset":650265542}}
+{"ts":"2026-05-31T11:22:24.424Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:22:25.807Z","type":"warn_score_undefined","day":21,"msg":"Failed to persist session state: FirebaseError: Function setDoc() called with invalid data. Unsuppor"}
+{"ts":"2026-05-31T11:22:30.459Z","type":"dashboard_day","day":21,"dashDay":18}
+{"ts":"2026-05-31T11:22:31.298Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T11:22:35.006Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:22:35.009Z","type":"skip_result","day":21,"ok":true}
+{"ts":"2026-05-31T11:22:37.019Z","type":"page_state","day":21,"hasInput":true,"hasRadio":false,"isStep2":true,"isStep4":false,"inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 18\n\nProgress\n\n0 of 30 answered\n\n1.\ngeneric\n(adj.)\n2.\nrefurbish\n(v.)\n3.\nleisure\n(n.)\n4."}
+{"ts":"2026-05-31T11:22:37.023Z","type":"running_new_word_test","day":21}
+{"ts":"2026-05-31T11:22:38.029Z","type":"typed_inputs_found","day":21,"count":30}
+{"ts":"2026-05-31T11:23:07.057Z","type":"typed_filled","day":21,"count":30}
+{"ts":"2026-05-31T11:23:09.106Z","type":"typed_submitted","day":21,"count":30}
+{"ts":"2026-05-31T11:23:09.114Z","type":"typed_grading_wait","day":21}
+{"ts":"2026-05-31T11:23:42.127Z","type":"new_test_done","day":21,"score":100,"words":30}
+{"ts":"2026-05-31T11:23:47.144Z","type":"nav_review_re_enter_session","day":21}
+{"ts":"2026-05-31T11:23:50.381Z","type":"nav_review_re_enter_bodytext","day":21,"bodySnip":"Page not found\n\nLooks like you’ve followed a broken link or entered a URL that doesn’t exist on this site.\n\nIf this is your site, and you weren’t expecting a 404 for this path, please visit Netlify’s "}
+{"ts":"2026-05-31T11:23:50.387Z","type":"nav_review_not_found","day":21,"bodySnip":"Page not found\n\nLooks like you’ve followed a broken link or entered a URL that doesn’t exist on this site.\n\nIf this is your site, and you weren’t expe"}
+{"ts":"2026-05-31T11:23:50.391Z","type":"review_nav_failed","day":21}
+{"ts":"2026-05-31T11:23:55.811Z","type":"session_complete","day":21,"csdBefore":17,"csdAfter":17,"csdAdvanced":false,"blocked":false,"newTestScore":100,"reviewTestScore":null}
+{"ts":"2026-05-31T11:23:55.821Z","type":"day_start","day":22,"fakeDate":"2026-06-09T00:00:00.000Z"}
+{"ts":"2026-05-31T11:23:55.982Z","type":"session_start","day":22,"fakeDate":"2026-06-09T00:00:00.000Z","fakeNowMs":1780963200000}
+{"ts":"2026-05-31T11:24:03.036Z","type":"logged_in"}
+{"ts":"2026-05-31T11:24:03.043Z","type":"date_shim_check","day":22,"shimCheck":{"now":1780963206760,"newDate":"2026-06-09T00:00:06.760Z","fakeNow":1780963200000,"offset":736563718}}
+{"ts":"2026-05-31T11:24:06.248Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:24:12.281Z","type":"dashboard_day","day":22,"dashDay":18}
+{"ts":"2026-05-31T11:24:16.115Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:24:16.118Z","type":"skip_result","day":22,"ok":true}
+{"ts":"2026-05-31T11:24:18.131Z","type":"page_state","day":22,"hasInput":false,"hasRadio":false,"isStep2":false,"isStep4":true,"inputCount":0,"bodySnip":"Step 4 of 5\n\nReview Test — Day 18\n\nProgress\n\n0 of 30 answered\n\noverly\n\n(adv.)\n\n🔊 Play Audio\ncharacterized by sick senti"}
+{"ts":"2026-05-31T11:24:18.135Z","type":"running_review_test_direct","day":22}
+{"ts":"2026-05-31T11:24:18.139Z","type":"mcq_start","day":22}
+{"ts":"2026-05-31T11:24:18.749Z","type":"mcq_q","day":22,"q":1,"word":"overly","clicked":"too (surpassing a reasonable l"}
+{"ts":"2026-05-31T11:24:19.873Z","type":"mcq_q","day":22,"q":2,"word":"effrontery","clicked":"impudence, nerve, insolence"}
+{"ts":"2026-05-31T11:24:20.986Z","type":"mcq_q","day":22,"q":3,"word":"mawkish","clicked":"characterized by sick sentimen"}
+{"ts":"2026-05-31T11:24:22.099Z","type":"mcq_q","day":22,"q":4,"word":"tender","clicked":"showing gentleness, kindness, "}
+{"ts":"2026-05-31T11:24:23.212Z","type":"mcq_q","day":22,"q":5,"word":"euphoria","clicked":"intense happiness, elation"}
+{"ts":"2026-05-31T11:24:24.325Z","type":"mcq_q","day":22,"q":6,"word":"pecuniary\r\n(old Engl","clicked":"relating to or consisting of m"}
+{"ts":"2026-05-31T11:24:25.440Z","type":"mcq_q","day":22,"q":7,"word":"stationary","clicked":"not moving or changing"}
+{"ts":"2026-05-31T11:24:26.557Z","type":"mcq_q","day":22,"q":8,"word":"inane","clicked":"lacking significance or meanin"}
+{"ts":"2026-05-31T11:24:27.672Z","type":"mcq_q","day":22,"q":9,"word":"channel","clicked":"to direct the flow of"}
+{"ts":"2026-05-31T11:24:28.785Z","type":"mcq_q","day":22,"q":10,"word":"dismiss","clicked":"to cease to consider; to cause"}
+{"ts":"2026-05-31T11:24:29.898Z","type":"mcq_q","day":22,"q":11,"word":"outlaw","clicked":"to make (something) illegal"}
+{"ts":"2026-05-31T11:24:31.010Z","type":"mcq_q","day":22,"q":12,"word":"waft","clicked":"to float; to drift; to blow"}
+{"ts":"2026-05-31T11:24:32.125Z","type":"mcq_q","day":22,"q":13,"word":"generalize","clicked":"to apply to other, broader con"}
+{"ts":"2026-05-31T11:24:33.240Z","type":"mcq_q","day":22,"q":14,"word":"aquatic","clicked":"relating to water"}
+{"ts":"2026-05-31T11:24:34.353Z","type":"mcq_q","day":22,"q":15,"word":"turbulent","clicked":"characterized by unrest or dis"}
+{"ts":"2026-05-31T11:24:35.465Z","type":"mcq_q","day":22,"q":16,"word":"nay\r\n(old English)","clicked":"showing gentleness, kindness, "}
+{"ts":"2026-05-31T11:24:36.578Z","type":"mcq_q","day":22,"q":17,"word":"incessant","clicked":"uninterrupted, not ending"}
+{"ts":"2026-05-31T11:24:37.690Z","type":"mcq_q","day":22,"q":18,"word":"solitude","clicked":"a state or situation in which "}
+{"ts":"2026-05-31T11:24:38.803Z","type":"mcq_q","day":22,"q":19,"word":"diffident","clicked":"lacking confidence"}
+{"ts":"2026-05-31T11:24:39.914Z","type":"mcq_q","day":22,"q":20,"word":"sensibility\r\n(old En","clicked":"used to refer to an acute perc"}
+{"ts":"2026-05-31T11:24:41.025Z","type":"mcq_q","day":22,"q":21,"word":"erode","clicked":"to gradually wear away or dimi"}
+{"ts":"2026-05-31T11:24:42.141Z","type":"mcq_q","day":22,"q":22,"word":"surreptitious","clicked":"kept secret, especially becaus"}
+{"ts":"2026-05-31T11:24:43.252Z","type":"mcq_q","day":22,"q":23,"word":"momentous","clicked":"of great importance or signifi"}
+{"ts":"2026-05-31T11:24:44.366Z","type":"mcq_q","day":22,"q":24,"word":"bombastic","clicked":"pompous, inflated"}
+{"ts":"2026-05-31T11:24:45.477Z","type":"mcq_q","day":22,"q":25,"word":"reticent","clicked":"not revealing one's thoughts o"}
+{"ts":"2026-05-31T11:24:46.590Z","type":"mcq_q","day":22,"q":26,"word":"thereafter","clicked":"from that time on; afterward"}
+{"ts":"2026-05-31T11:24:47.704Z","type":"mcq_q","day":22,"q":27,"word":"reproach","clicked":"to express criticism towards; "}
+{"ts":"2026-05-31T11:24:48.816Z","type":"mcq_q","day":22,"q":28,"word":"amnesty","clicked":"a decision that a group of peo"}
+{"ts":"2026-05-31T11:24:49.928Z","type":"mcq_q","day":22,"q":29,"word":"palette","clicked":"a range of colors or qualities"}
+{"ts":"2026-05-31T11:24:51.042Z","type":"mcq_q","day":22,"q":30,"word":"antedate","clicked":"to be older than; to have come"}
+{"ts":"2026-05-31T11:24:53.574Z","type":"mcq_submitted_all_answered","day":22,"answered":"30"}
+{"ts":"2026-05-31T11:24:53.658Z","type":"mcq_done","day":22,"questions":30,"words":30}
+{"ts":"2026-05-31T11:24:56.666Z","type":"review_test_done_direct","day":22,"score":97}
+{"ts":"2026-05-31T11:25:04.188Z","type":"session_complete","day":22,"csdBefore":17,"csdAfter":18,"csdAdvanced":true,"blocked":false,"newTestScore":null,"reviewTestScore":97}
+{"ts":"2026-05-31T11:25:04.201Z","type":"day_start","day":23,"fakeDate":"2026-06-10T00:00:00.000Z"}
+{"ts":"2026-05-31T11:25:04.346Z","type":"session_start","day":23,"fakeDate":"2026-06-10T00:00:00.000Z","fakeNowMs":1781049600000}
+{"ts":"2026-05-31T11:25:11.382Z","type":"logged_in"}
+{"ts":"2026-05-31T11:25:11.391Z","type":"date_shim_check","day":23,"shimCheck":{"now":1781049606742,"newDate":"2026-06-10T00:00:06.742Z","fakeNow":1781049600000,"offset":822895352}}
+{"ts":"2026-05-31T11:25:14.601Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:25:20.640Z","type":"h2_reentry_modal","day":23,"bodySnip":"Step 5 of 5\n✓\n\nDAY 19 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1440 / 3381\nBack to Dashboard\nℹ️\nResume Day 18?\n\nYou scored 97% on the review test. Wou"}
+{"ts":"2026-05-31T11:25:23.668Z","type":"h2_moved_on","day":23}
+{"ts":"2026-05-31T11:25:23.672Z","type":"h2_hit_attempt","day":23,"attempt":1}
+{"ts":"2026-05-31T11:25:27.871Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:25:33.909Z","type":"session_exception","day":23,"error":"h2Count is not defined","stack":"ReferenceError: h2Count is not defined\n    at runSession (file:///app/e2e/audit/B27/run_walk20.mjs:982:25)\n    at async main (file:///app/e2e/audit/B27/run_walk20.mjs:1164:29)"}
+{"ts":"2026-05-31T11:25:37.109Z","type":"session_complete","day":23,"csdBefore":18,"csdAfter":18,"csdAdvanced":false,"blocked":true,"newTestScore":null,"reviewTestScore":null}
+{"ts":"2026-05-31T11:25:37.181Z","type":"browser_closed"}
+{"ts":"2026-05-31T11:25:37.218Z","type":"final_state","finalCSD":18,"finalTWI":1440,"targetCSD":20,"targetReached":false,"csdAdvancedCount":2,"h2Count":3,"newOrphans":[]}
+{"ts":"2026-05-31T11:26:38.398Z","type":"audit_start","agent":"WALK20","persona":"careful","class":"TOP","transform":"canonical_en_verbatim"}
+{"ts":"2026-05-31T11:26:39.358Z","type":"initial_state","CSD":18,"TWI":1440,"attempts":51,"passedNew":22,"anchorDay":18}
+{"ts":"2026-05-31T11:26:39.363Z","type":"orphan_docs_pre_run","docs":["k8tzOiiwotBbtJS3uTiv"]}
+{"ts":"2026-05-31T11:26:39.585Z","type":"day_start","day":19,"fakeDate":"2026-06-02T00:00:00.000Z"}
+{"ts":"2026-05-31T11:26:39.918Z","type":"session_start","day":19,"fakeDate":"2026-06-02T00:00:00.000Z","fakeNowMs":1780358400000}
+{"ts":"2026-05-31T11:26:47.181Z","type":"logged_in"}
+{"ts":"2026-05-31T11:26:47.190Z","type":"date_shim_check","day":19,"shimCheck":{"now":1780358406885,"newDate":"2026-06-02T00:00:06.885Z","fakeNow":1780358400000,"offset":131599696}}
+{"ts":"2026-05-31T11:26:50.400Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:26:51.874Z","type":"warn_score_undefined","day":19,"msg":"Failed to persist session state: FirebaseError: Function setDoc() called with invalid data. Unsuppor"}
+{"ts":"2026-05-31T11:26:56.485Z","type":"dashboard_day","day":19,"dashDay":19}
+{"ts":"2026-05-31T11:26:57.325Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T11:27:01.039Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:27:01.043Z","type":"skip_result","day":19,"ok":true}
+{"ts":"2026-05-31T11:27:03.057Z","type":"page_state","day":19,"hasInput":true,"hasRadio":false,"isStep2":true,"isStep4":false,"inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 19\n\nProgress\n\n0 of 30 answered\n\n1.\naugment\n(v.)\n2.\nmortify\n(v.)\n3.\ndefy\n(v.)\n4.\nfaceti"}
+{"ts":"2026-05-31T11:27:03.062Z","type":"running_new_word_test","day":19}
+{"ts":"2026-05-31T11:27:04.070Z","type":"typed_inputs_found","day":19,"count":30}
+{"ts":"2026-05-31T11:27:35.093Z","type":"typed_filled","day":19,"count":30}
+{"ts":"2026-05-31T11:27:37.134Z","type":"typed_submitted","day":19,"count":30}
+{"ts":"2026-05-31T11:27:37.142Z","type":"typed_grading_wait","day":19}
+{"ts":"2026-05-31T11:28:10.157Z","type":"new_test_done","day":19,"score":100,"words":30}
+{"ts":"2026-05-31T11:28:15.175Z","type":"nav_review_re_enter_session","day":19}
+{"ts":"2026-05-31T11:28:20.519Z","type":"nav_review_re_enter_bodytext","day":19,"bodySnip":"Step 3 of 5\n\nReview Study — Day 19\n\nProgress\n\n0 of 320 mastered\n\nCard 1 of 320\n\nsporadic\n\n(adj.)\n\nsporadic\n\n(adj.)\n\noccurring at irregular intervals; scattered or isolated\n\n🇰🇷\n\nKorean\n\n때때로 일어나는\n\nSAM"}
+{"ts":"2026-05-31T11:28:20.524Z","type":"nav_review_at_step3","day":19}
+{"ts":"2026-05-31T11:28:24.358Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:28:26.366Z","type":"running_review_test","day":19}
+{"ts":"2026-05-31T11:28:26.370Z","type":"mcq_start","day":19}
+{"ts":"2026-05-31T11:28:26.982Z","type":"mcq_q","day":19,"q":1,"word":"ethos","clicked":"the fundamental character or s"}
+{"ts":"2026-05-31T11:28:28.099Z","type":"mcq_q","day":19,"q":2,"word":"deciduous","clicked":"having leaves that fall off ev"}
+{"ts":"2026-05-31T11:28:29.211Z","type":"mcq_q","day":19,"q":3,"word":"affirmation","clicked":"a statement asserting the exis"}
+{"ts":"2026-05-31T11:28:30.328Z","type":"mcq_q","day":19,"q":4,"word":"unconventional","clicked":"not based on or conforming to "}
+{"ts":"2026-05-31T11:28:31.442Z","type":"mcq_q","day":19,"q":5,"word":"capacious","clicked":"spacious; roomy; commodious"}
+{"ts":"2026-05-31T11:28:32.552Z","type":"mcq_q","day":19,"q":6,"word":"poignant","clicked":"arousing intense emotion"}
+{"ts":"2026-05-31T11:28:33.666Z","type":"mcq_q","day":19,"q":7,"word":"potentate","clicked":"one who has great power, a rul"}
+{"ts":"2026-05-31T11:28:34.778Z","type":"mcq_q","day":19,"q":8,"word":"wariness","clicked":"cautiousness and watchfulness"}
+{"ts":"2026-05-31T11:28:35.891Z","type":"mcq_q","day":19,"q":9,"word":"sociability","clicked":"the relative tendency or dispo"}
+{"ts":"2026-05-31T11:28:37.005Z","type":"mcq_q","day":19,"q":10,"word":"philistine","clicked":"spacious; roomy; commodious"}
+{"ts":"2026-05-31T11:28:38.116Z","type":"mcq_q","day":19,"q":11,"word":"increment","clicked":"an increase or addition"}
+{"ts":"2026-05-31T11:28:39.230Z","type":"mcq_q","day":19,"q":12,"word":"unrefined","clicked":"(used of persons and their beh"}
+{"ts":"2026-05-31T11:28:40.341Z","type":"mcq_q","day":19,"q":13,"word":"frock\r\n(old English)","clicked":"a woman's or girl's dress."}
+{"ts":"2026-05-31T11:28:41.454Z","type":"mcq_q","day":19,"q":14,"word":"obstinate","clicked":"not yielding easily, stubborn"}
+{"ts":"2026-05-31T11:28:42.566Z","type":"mcq_q","day":19,"q":15,"word":"forgo","clicked":"to do without; to forbear"}
+{"ts":"2026-05-31T11:28:43.678Z","type":"mcq_q","day":19,"q":16,"word":"pernicious\r\n(old Eng","clicked":"having a harmful effect, espec"}
+{"ts":"2026-05-31T11:28:44.790Z","type":"mcq_q","day":19,"q":17,"word":"gallant\r\n(old Englis","clicked":"brave; heroic"}
+{"ts":"2026-05-31T11:28:45.904Z","type":"mcq_q","day":19,"q":18,"word":"fiscal","clicked":"of or relating to money and es"}
+{"ts":"2026-05-31T11:28:47.019Z","type":"mcq_q","day":19,"q":19,"word":"entreat","clicked":"to ask (someone) in a serious "}
+{"ts":"2026-05-31T11:28:48.131Z","type":"mcq_q","day":19,"q":20,"word":"arrears","clicked":"the state of being in debt; un"}
+{"ts":"2026-05-31T11:28:49.243Z","type":"mcq_q","day":19,"q":21,"word":"consent","clicked":"permission for something to ha"}
+{"ts":"2026-05-31T11:28:50.359Z","type":"mcq_q","day":19,"q":22,"word":"aperture","clicked":"an opening"}
+{"ts":"2026-05-31T11:28:51.476Z","type":"mcq_q","day":19,"q":23,"word":"labyrinth","clicked":"a complicated network of passa"}
+{"ts":"2026-05-31T11:28:52.595Z","type":"mcq_q","day":19,"q":24,"word":"intensify","clicked":"to become or make more intense"}
+{"ts":"2026-05-31T11:28:53.712Z","type":"mcq_q","day":19,"q":25,"word":"sublime","clicked":"of such excellence, grandeur, "}
+{"ts":"2026-05-31T11:28:54.827Z","type":"mcq_q","day":19,"q":26,"word":"cherub","clicked":"a super cute chubby-cheeked ch"}
+{"ts":"2026-05-31T11:28:55.940Z","type":"mcq_q","day":19,"q":27,"word":"inhibit","clicked":"to suppress; to limit"}
+{"ts":"2026-05-31T11:28:57.053Z","type":"mcq_q","day":19,"q":28,"word":"panacea","clicked":"a solution or remedy for all d"}
+{"ts":"2026-05-31T11:28:58.165Z","type":"mcq_q","day":19,"q":29,"word":"testament","clicked":"a profession of belief; a stat"}
+{"ts":"2026-05-31T11:28:59.278Z","type":"mcq_q","day":19,"q":30,"word":"anomaly","clicked":"deviation from norm"}
+{"ts":"2026-05-31T11:29:01.820Z","type":"mcq_submitted_all_answered","day":19,"answered":"30"}
+{"ts":"2026-05-31T11:29:01.828Z","type":"mcq_done","day":19,"questions":30,"words":30}
+{"ts":"2026-05-31T11:29:04.836Z","type":"review_test_done","day":19,"score":97,"words":30}
+{"ts":"2026-05-31T11:29:12.441Z","type":"session_complete","day":19,"csdBefore":18,"csdAfter":19,"csdAdvanced":true,"blocked":false,"newTestScore":100,"reviewTestScore":97}
+{"ts":"2026-05-31T11:29:12.453Z","type":"day_start","day":20,"fakeDate":"2026-06-03T00:00:00.000Z"}
+{"ts":"2026-05-31T11:29:12.621Z","type":"session_start","day":20,"fakeDate":"2026-06-03T00:00:00.000Z","fakeNowMs":1780444800000}
+{"ts":"2026-05-31T11:29:19.770Z","type":"logged_in"}
+{"ts":"2026-05-31T11:29:19.776Z","type":"date_shim_check","day":20,"shimCheck":{"now":1780444806855,"newDate":"2026-06-03T00:00:06.855Z","fakeNow":1780444800000,"offset":217847080}}
+{"ts":"2026-05-31T11:29:22.975Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:29:29.022Z","type":"h2_reentry_modal","day":20,"bodySnip":"Step 5 of 5\n✓\n\nDAY 20 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n80\nWords Reviewed\n57\nTotal Progress\n1520 / 3381\nBack to Dashboard\nℹ️\nResume Day 19?\n\nYou scored 97% on the review test. Wou"}
+{"ts":"2026-05-31T11:29:32.048Z","type":"h2_moved_on","day":20}
+{"ts":"2026-05-31T11:29:32.051Z","type":"h2_hit_attempt","day":20,"attempt":1}
+{"ts":"2026-05-31T11:29:36.255Z","type":"nav_session_via_button","label":"Start Session"}
+{"ts":"2026-05-31T11:29:42.286Z","type":"dashboard_day","day":20,"dashDay":20}
+{"ts":"2026-05-31T11:29:43.110Z","type":"modal_dismissed","method":"start_studying"}
+{"ts":"2026-05-31T11:29:46.818Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:29:46.822Z","type":"skip_result","day":20,"ok":true}
+{"ts":"2026-05-31T11:29:48.835Z","type":"page_state","day":20,"hasInput":true,"hasRadio":false,"isStep2":true,"isStep4":false,"inputCount":30,"bodySnip":"Step 2 of 5\n\nNew Words Test — Day 20\n\nProgress\n\n0 of 30 answered\n\n1.\nbarrage\n(n.)\n2.\ntrounce\n(v.)\n3.\ntitillate\n(v.)\n4.\na"}
+{"ts":"2026-05-31T11:29:48.839Z","type":"running_new_word_test","day":20}
+{"ts":"2026-05-31T11:29:49.847Z","type":"typed_inputs_found","day":20,"count":30}
+{"ts":"2026-05-31T11:30:15.516Z","type":"typed_filled","day":20,"count":30}
+{"ts":"2026-05-31T11:30:17.571Z","type":"typed_submitted","day":20,"count":30}
+{"ts":"2026-05-31T11:30:17.577Z","type":"typed_grading_wait","day":20}
+{"ts":"2026-05-31T11:30:50.586Z","type":"new_test_done","day":20,"score":100,"words":30}
+{"ts":"2026-05-31T11:30:55.605Z","type":"nav_review_re_enter_session","day":20}
+{"ts":"2026-05-31T11:31:00.947Z","type":"nav_review_re_enter_bodytext","day":20,"bodySnip":"Step 3 of 5\n\nReview Study — Day 20\n\nProgress\n\n0 of 320 mastered\n\nCard 1 of 320\n\nheretic\n\n(n.)\n\nheretic\n\n(n.)\n\na person believing or practicing religious heresy\n\n🇰🇷\n\nKorean\n\n이단자\n\nSAMPLE SENTENCE\n\nThe"}
+{"ts":"2026-05-31T11:31:00.952Z","type":"nav_review_at_step3","day":20}
+{"ts":"2026-05-31T11:31:04.850Z","type":"skip_confirmed","button":"Start Test"}
+{"ts":"2026-05-31T11:31:06.855Z","type":"running_review_test","day":20}
+{"ts":"2026-05-31T11:31:06.859Z","type":"mcq_start","day":20}
+{"ts":"2026-05-31T11:31:07.471Z","type":"mcq_q","day":20,"q":1,"word":"infancy","clicked":"beginning"}
+{"ts":"2026-05-31T11:31:08.587Z","type":"mcq_q","day":20,"q":2,"word":"induce","clicked":"to cause to arise; to cause to"}
+{"ts":"2026-05-31T11:31:09.699Z","type":"mcq_q","day":20,"q":3,"word":"tremendous","clicked":"extraordinarily large or great"}
+{"ts":"2026-05-31T11:31:10.813Z","type":"mcq_q","day":20,"q":4,"word":"mystic","clicked":"otherworldly; mysterious; enig"}
+{"ts":"2026-05-31T11:31:11.927Z","type":"mcq_q","day":20,"q":5,"word":"ostracism","clicked":"exclusion from a group"}
+{"ts":"2026-05-31T11:31:13.043Z","type":"mcq_q","day":20,"q":6,"word":"facetious","clicked":"humorous; not serious; clumsil"}
+{"ts":"2026-05-31T11:31:14.157Z","type":"mcq_q","day":20,"q":7,"word":"misperception","clicked":"a misportrayal; a public's wro"}
+{"ts":"2026-05-31T11:31:15.272Z","type":"mcq_q","day":20,"q":8,"word":"commodious","clicked":"roomy"}
+{"ts":"2026-05-31T11:31:16.385Z","type":"mcq_q","day":20,"q":9,"word":"estimable","clicked":"worthy of admiration; capable "}
+{"ts":"2026-05-31T11:31:17.502Z","type":"mcq_q","day":20,"q":10,"word":"qualification","clicked":"a statement that limits or res"}
+{"ts":"2026-05-31T11:31:18.615Z","type":"mcq_q","day":20,"q":11,"word":"rebellion","clicked":"open opposition toward a perso"}
+{"ts":"2026-05-31T11:31:19.729Z","type":"mcq_q","day":20,"q":12,"word":"fatuous","clicked":"foolish; silly; idiotic"}
+{"ts":"2026-05-31T11:31:20.844Z","type":"mcq_q","day":20,"q":13,"word":"perplex","clicked":"to confuse"}
+{"ts":"2026-05-31T11:31:21.957Z","type":"mcq_q","day":20,"q":14,"word":"cabal","clicked":"a group of conspirators; the a"}
+{"ts":"2026-05-31T11:31:23.070Z","type":"mcq_q","day":20,"q":15,"word":"reservation","clicked":"an a feeling of doubt that pre"}
+{"ts":"2026-05-31T11:31:24.183Z","type":"mcq_q","day":20,"q":16,"word":"intoxicate","clicked":"to make (someone) unable to th"}
+{"ts":"2026-05-31T11:31:25.300Z","type":"mcq_q","day":20,"q":17,"word":"layman","clicked":"a nonprofessional; a person wh"}
+{"ts":"2026-05-31T11:31:26.418Z","type":"mcq_q","day":20,"q":18,"word":"aisle","clicked":"a passageway between rows of s"}
+{"ts":"2026-05-31T11:31:27.535Z","type":"mcq_q","day":20,"q":19,"word":"vestige\r\n(old Englis","clicked":"1. not prepared or improved by"}
+{"ts":"2026-05-31T11:31:28.649Z","type":"mcq_q","day":20,"q":20,"word":"deferential\r\n(old En","clicked":"showing respect and esteem"}
+{"ts":"2026-05-31T11:31:29.762Z","type":"mcq_q","day":20,"q":21,"word":"credulous","clicked":"gullible, easily fooled"}
+{"ts":"2026-05-31T11:31:30.876Z","type":"mcq_q","day":20,"q":22,"word":"uncultivated","clicked":"1. not prepared or improved by"}
+{"ts":"2026-05-31T11:31:31.989Z","type":"mcq_q","day":20,"q":23,"word":"prescient","clicked":"having or showing knowledge of"}
+{"ts":"2026-05-31T11:31:33.107Z","type":"mcq_q","day":20,"q":24,"word":"elaborate","clicked":"to complex, detailed, intricat"}
+{"ts":"2026-05-31T11:31:34.218Z","type":"mcq_q","day":20,"q":25,"word":"laceration","clicked":"a cut, tear"}
+{"ts":"2026-05-31T11:31:35.333Z","type":"mcq_q","day":20,"q":26,"word":"feature","clicked":"roomy"}
+{"ts":"2026-05-31T11:31:36.446Z","type":"mcq_q","day":20,"q":27,"word":"empower","clicked":"to give power or authority to"}
+{"ts":"2026-05-31T11:31:37.559Z","type":"mcq_q","day":20,"q":28,"word":"rapture\r\n(old Englis","clicked":"a feeling of intense pleasure "}
+{"ts":"2026-05-31T11:31:38.672Z","type":"mcq_q","day":20,"q":29,"word":"lampoon","clicked":"to satirize ; to mock ; to par"}
+{"ts":"2026-05-31T11:31:39.789Z","type":"mcq_q","day":20,"q":30,"word":"refute","clicked":"to prove that (something) is n"}
+{"ts":"2026-05-31T11:31:42.322Z","type":"mcq_submitted_all_answered","day":20,"answered":"30"}
+{"ts":"2026-05-31T11:31:42.345Z","type":"mcq_done","day":20,"questions":30,"words":30}
+{"ts":"2026-05-31T11:31:45.355Z","type":"review_test_done","day":20,"score":93,"words":30}
+{"ts":"2026-05-31T11:31:52.946Z","type":"session_complete","day":20,"csdBefore":19,"csdAfter":20,"csdAdvanced":true,"blocked":false,"newTestScore":100,"reviewTestScore":93}
+{"ts":"2026-05-31T11:31:52.960Z","type":"target_reached","CSD":20,"day":20}
+{"ts":"2026-05-31T11:31:53.033Z","type":"browser_closed"}
+{"ts":"2026-05-31T11:31:53.097Z","type":"final_state","finalCSD":20,"finalTWI":1600,"targetCSD":20,"targetReached":true,"csdAdvancedCount":2,"h2Count":1,"newOrphans":[]}

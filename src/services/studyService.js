@@ -1141,6 +1141,10 @@ export async function completeSessionFromTest({
         : newWordAttempt.score / 100;
     } else {
       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
+      // No prior new-word attempt found: keep newWordScore a valid number (0) rather
+      // than undefined, so the session_states write below succeeds and the day can
+      // complete. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
+      newWordScore = 0;
     }
 
     // Update session_states with final status (prevents race condition)

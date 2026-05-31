@@ -20,7 +20,7 @@ Every scenario below targets one or more of those invariants.
 
 Before scenarios, capture a Firestore baseline:
 - Read `attempts` for each of the seeded students (should be empty after B00 unless prior batches ran).
-- Read `study_states` for `carefulStudent` (should contain only NEW words from seeded list, no `timesTestedTotal` or `lastTestedAt`).
+- Read `study_states` for `careful` (should contain only NEW words from seeded list, no `timesTestedTotal` or `lastTestedAt`).
 - Snapshot to `evidence/B02/B02_baseline_firestore.json`.
 
 ## Scenarios
@@ -30,7 +30,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Careful Student
 **Goal:** Baseline success. If this fails, nothing else in the batch can be trusted.
 
-1. Log in as `carefulStudent`. Navigate to dashboard.
+1. Log in as `careful`. Navigate to dashboard.
 2. Pick primaryClass → tinyList. Click "Start Today's Session."
 3. Step through the new-word study phase (5 cards). Dismiss each card.
 4. Click into MCQ test for the new words.
@@ -44,7 +44,7 @@ Before scenarios, capture a Firestore baseline:
 
 **Assertions:**
 - Results screen shows correct count = 5/5.
-- Exactly ONE attempt doc exists in `attempts` with `studentId = carefulStudent.uid`, `testType = 'mcq'`, `sessionType = 'new'`, `score = 100`.
+- Exactly ONE attempt doc exists in `attempts` with `studentId = careful.uid`, `testType = 'mcq'`, `sessionType = 'new'`, `score = 100`.
 - Document ID matches the pattern `${uid}_${testId}_${nonce}` (deterministic — log the testId and verify the nonce came from localStorage during the test).
 - All 5 corresponding `study_states` for the tested words have `timesTestedTotal = 1`, `lastTestedAt ≈ now`, `status = PASSED`.
 - localStorage key for the test is gone (clearTestState ran).
@@ -58,7 +58,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Recovering Student
 **Goal:** Prove that a transient network failure during submit does NOT eat the student's answers.
 
-1. Log in as `recoveringStudent`. Start an MCQ test for `standardList` (50 questions).
+1. Log in as `recovering`. Start an MCQ test for `standardList` (50 questions).
 2. Answer 30 questions.
 3. Set up a Playwright route to FAIL the next call to the function that writes the attempt:
    ```js
@@ -90,7 +90,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Hostile Student (we're inspecting Firestore between writes; might as well use the introspection persona)
 **Goal:** Prove that study_states are mutated ONLY after the attempt doc lands.
 
-1. Log in as `hostileStudent`. Enroll in `primaryClass` (one-off, NOT persisted to audit_state). Start an MCQ test.
+1. Log in as `hostile`. Enroll in `primaryClass` (one-off, NOT persisted to audit_state). Start an MCQ test.
 2. Answer all questions.
 3. Set up a route to STALL (never call `route.continue()`) the attempt-write endpoint.
 4. Click Submit.
@@ -116,7 +116,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Rushed Student
 **Goal:** A failed-then-retried submit increments timesTestedTotal exactly once.
 
-1. Log in as `rushedStudent`. Start an MCQ test on `tinyList`.
+1. Log in as `rushed`. Start an MCQ test on `tinyList`.
 2. Answer all 5 questions.
 3. Configure route to fail submit twice, succeed on the third try (Playwright route callback with a counter).
 4. Click Submit. Observe "Failed to save…" error after the first failure.
@@ -174,7 +174,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Anxious Student (typical practice-mode user)
 **Goal:** Practice mode is local-only.
 
-1. Log in as `anxiousStudent`. Find a passed list with practice mode available.
+1. Log in as `anxious`. Find a passed list with practice mode available.
 2. Start an MCQ in practice mode.
 3. Answer all questions, submit, observe results.
 4. Confirm:
@@ -191,7 +191,7 @@ Before scenarios, capture a Firestore baseline:
 **Persona:** Lazy Student
 **Goal:** Empty / sparse submission doesn't crash and doesn't corrupt data.
 
-1. Log in as `lazyStudent`. Start MCQ for `tinyList`.
+1. Log in as `lazy`. Start MCQ for `tinyList`.
 2. Without answering any question, click Submit.
 3. Confirm:
    - Either: a validation error appears ("Please answer at least one question").

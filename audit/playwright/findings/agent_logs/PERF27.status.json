@@ -1,0 +1,25 @@
+{
+  "label": "PERF27",
+  "status": "complete",
+  "startedAt": "2026-05-31T09:54:10.178Z",
+  "completedAt": "2026-05-31T10:18:06.000Z",
+  "sessionsCompleted": 2,
+  "totalSessions": 20,
+  "startDay": 1,
+  "endDay": 20,
+  "h2StaleCount": 13,
+  "oomCrashes": 5,
+  "newOrphansCreated": 0,
+  "stopConditionHit": false,
+  "masteredInReviewDays": [],
+  "finalAnswerIntegrityFails": 0,
+  "logoutLoginSeverity": "MEDIUM",
+  "f01Resolved": "NOT_TRIGGERED (2 sessions only)",
+  "findings": {
+    "blockers": 0,
+    "high": 1,
+    "medium": 2,
+    "low": 0,
+    "nitpicks": 0
+  }
+}

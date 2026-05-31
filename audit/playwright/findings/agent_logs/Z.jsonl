@@ -1,0 +1,22 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"Z","claim":["B20"]}
+{"ts":"2026-05-31T00:00:05Z","event":"batch_start","batch":"B20"}
+{"ts":"2026-05-31T01:12:36.348Z","event":"scenario","batch":"B20","scenario":"S01","result":"pass","durationMs":6104}
+{"ts":"2026-05-31T01:12:42.399Z","event":"scenario","batch":"B20","scenario":"S02","result":"pass","durationMs":6035}
+{"ts":"2026-05-31T01:12:58.498Z","event":"scenario","batch":"B20","scenario":"S03","result":"fail","durationMs":16082}
+{"ts":"2026-05-31T01:13:13.817Z","event":"scenario","batch":"B20","scenario":"S04","result":"partial","durationMs":15304}
+{"ts":"2026-05-31T01:13:38.301Z","event":"scenario","batch":"B20","scenario":"S05","result":"pass","durationMs":24455}
+{"ts":"2026-05-31T01:14:02.761Z","event":"scenario","batch":"B20","scenario":"S06","result":"pass","durationMs":24445}
+{"ts":"2026-05-31T01:14:27.129Z","event":"scenario","batch":"B20","scenario":"S07","result":"partial","durationMs":24350}
+{"ts":"2026-05-31T01:14:52.426Z","event":"scenario","batch":"B20","scenario":"S08","result":"partial","durationMs":25282}
+{"ts":"2026-05-31T01:15:14.784Z","event":"scenario","batch":"B20","scenario":"S09","result":"partial","durationMs":22344}
+{"ts":"2026-05-31T01:15:31.672Z","event":"scenario","batch":"B20","scenario":"S10","result":"partial","durationMs":16876}
+{"ts":"2026-05-31T01:15:53.438Z","event":"scenario","batch":"B20","scenario":"S11","result":"partial","durationMs":21753}
+{"ts":"2026-05-31T01:16:15.492Z","event":"scenario","batch":"B20","scenario":"S12","result":"partial","durationMs":22017}
+{"ts":"2026-05-31T01:16:31.511Z","event":"scenario","batch":"B20","scenario":"S13","result":"partial","durationMs":16004}
+{"ts":"2026-05-31T01:17:13.236Z","event":"scenario","batch":"B20","scenario":"S14","result":"partial","durationMs":41703}
+{"ts":"2026-05-31T01:17:51.580Z","event":"scenario","batch":"B20","scenario":"S15","result":"pass","durationMs":38329}
+{"ts":"2026-05-31T01:18:29.778Z","event":"scenario","batch":"B20","scenario":"S16","result":"partial","durationMs":38174}
+{"ts":"2026-05-31T01:18:40.057Z","event":"scenario","batch":"B20","scenario":"S17","result":"pass","durationMs":10260}
+{"ts":"2026-05-31T01:18:48.427Z","event":"scenario","batch":"B20","scenario":"S18","result":"pass","durationMs":8353}
+{"ts":"2026-05-31T01:30:00Z","event":"batch_end","batch":"B20","trials":18,"pass":6,"fail":5,"partial":7,"blocked":0,"highCount":3,"blockerCount":0}
+{"ts":"2026-05-31T01:30:01Z","event":"agent_end","label":"Z","trialsCompleted":18,"batchesCompleted":["B20"],"reason":"claimed batches done"}

@@ -1,0 +1,14 @@
+{
+  "label": "AA",
+  "currentBatch": "B21",
+  "currentScenario": "complete",
+  "batchesClaimed": [
+    "B21"
+  ],
+  "batchesCompleted": [
+    "B21"
+  ],
+  "trialsCompleted": 13,
+  "lastUpdate": "2026-05-31T01:45:00Z",
+  "state": "finished"
+}

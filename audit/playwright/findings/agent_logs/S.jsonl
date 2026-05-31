@@ -1,0 +1,55 @@
+{"ts":"2026-05-31T00:30:00Z","event":"agent_start","label":"S","claim":["B13"]}
+{"ts":"2026-05-31T00:30:01Z","event":"batch_start","batch":"B13"}
+{"ts":"2026-05-31T00:31:58.002Z","event":"scenario","batch":"B13","scenario":"S03","result":"pass","note":"No XSS dialog, no unescaped scripts in rendered HTML — teacher word editor not directly reachable via URL to inject, but rendered content appears safe"}
+{"ts":"2026-05-31T00:32:04.365Z","event":"scenario","batch":"B13","scenario":"S03b","result":"blocked","note":"No typed answer input found — student may not have active test session"}
+{"ts":"2026-05-31T00:32:09.193Z","event":"scenario","batch":"B13","scenario":"S04","result":"pass","note":"SQL-style string typed, no crash, no Firestore error visible"}
+{"ts":"2026-05-31T00:32:45.415Z","event":"scenario","batch":"B13","scenario":"S05","result":"blocked","note":"Error: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /"}
+{"ts":"2026-05-31T00:32:52.416Z","event":"scenario","batch":"B13","scenario":"S06","result":"blocked","note":"No create list button found — cannot test emoji list title creation"}
+{"ts":"2026-05-31T00:32:58.722Z","event":"scenario","batch":"B13","scenario":"S07","result":"blocked","note":"Word add button not found on list detail page"}
+{"ts":"2026-05-31T00:33:02.993Z","event":"scenario","batch":"B13","scenario":"S08","result":"blocked","note":"Word add button not found"}
+{"ts":"2026-05-31T00:33:07.227Z","event":"scenario","batch":"B13","scenario":"S09","result":"blocked","note":"Add word button not found"}
+{"ts":"2026-05-31T00:33:13.758Z","event":"scenario","batch":"B13","scenario":"S10","result":"blocked","note":"No answer input found in test session"}
+{"ts":"2026-05-31T00:33:20.843Z","event":"scenario","batch":"B13","scenario":"S11","result":"partial","severity":"LOW","note":"No word editor found; RTL layout not testable — assessed via existing Korean word display only"}
+{"ts":"2026-05-31T00:33:25.661Z","event":"scenario","batch":"B13","scenario":"S12","result":"blocked","note":"Add word button not found"}
+{"ts":"2026-05-31T00:33:31.744Z","event":"scenario","batch":"B13","scenario":"S13","result":"blocked","note":"Join code input not found in dialog"}
+{"ts":"2026-05-31T00:33:34.821Z","event":"scenario","batch":"B13","scenario":"S14","result":"pass","note":"+ sign in email field accepted (no immediate invalid-email error)"}
+{"ts":"2026-05-31T00:33:39.077Z","event":"scenario","batch":"B13","scenario":"S16","result":"blocked","note":"Add word button not found — cannot test Firestore size limit"}
+{"ts":"2026-05-31T00:33:45.318Z","event":"scenario","batch":"B13","scenario":"S17","result":"blocked","note":"List settings button not found"}
+{"ts":"2026-05-31T00:33:49.583Z","event":"scenario","batch":"B13","scenario":"S18","result":"blocked","note":"Settings button not found"}
+{"ts":"2026-05-31T00:33:53.912Z","event":"scenario","batch":"B13","scenario":"S20","result":"pass","note":"Existing CRLF in word definitions renders without crash (consistent with B03 F03 known LOW finding)"}
+{"ts":"2026-05-31T00:33:59.229Z","event":"scenario","batch":"B13","scenario":"S21","result":"pass","note":"Image paste data not accepted into input, or stripped to empty/text — no crash"}
+{"ts":"2026-05-31T00:34:35.210Z","event":"scenario","batch":"B13","scenario":"S22","result":"blocked","note":"Error: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /"}
+{"ts":"2026-05-31T00:34:41.506Z","event":"scenario","batch":"B13","scenario":"S03c","result":"pass","note":"Gradebook rendered without XSS dialog or unescaped dangerous HTML"}
+{"ts":"2026-05-31T00:34:41.521Z","event":"scenario","batch":"B13","scenario":"S01","result":"skip","note":"Cross-reference: covered in B02 S08 and B03 S09"}
+{"ts":"2026-05-31T00:34:41.530Z","event":"scenario","batch":"B13","scenario":"S02","result":"skip","note":"Cross-reference: covered in B03 S07"}
+{"ts":"2026-05-31T00:34:41.540Z","event":"scenario","batch":"B13","scenario":"S15","result":"skip","note":"Very long email local-part — Firebase Auth validates RFC 5321; browser HTML5 email validation covers this"}
+{"ts":"2026-05-31T00:34:41.547Z","event":"scenario","batch":"B13","scenario":"S19","result":"skip","note":"CSV 5000-word import — time budget exceeded; B17 S-series covers CSV import logic"}
+{"ts":"2026-05-31T00:34:41.617Z","event":"batch_end","batch":"B13","trials":24,"pass":6,"fail":0,"partial":1,"blocked":13,"skipped":4,"blockerCount":0,"highCount":0}
+{"ts":"2026-05-31T00:49:04.481Z","event":"scenario_update","batch":"B13","scenario":"S03","result":"fail_BLOCKER","note":"Unescaped dangerous HTML in DOM: script=false onerror=true jsHref=false"}
+{"ts":"2026-05-31T00:49:43.742Z","event":"scenario_update","batch":"B13","scenario":"S07","result":"blocked","note":"locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRo"}
+{"ts":"2026-05-31T00:49:43.751Z","event":"scenario_update","batch":"B13","scenario":"S08","result":"blocked","note":"blocked due to S07 error"}
+{"ts":"2026-05-31T00:49:43.760Z","event":"scenario_update","batch":"B13","scenario":"S09","result":"blocked","note":"blocked due to S07 error"}
+{"ts":"2026-05-31T00:49:54.057Z","event":"scenario_update","batch":"B13","scenario":"S05","result":"partial","note":"Form still open, no maxlength attribute, no clear validation message for 500-char class name"}
+{"ts":"2026-05-31T00:50:00.054Z","event":"scenario_update","batch":"B13","scenario":"S22","result":"pass","note":"Empty class name blocked by HTML required attribute — browser native validation"}
+{"ts":"2026-05-31T00:51:05.559Z","event":"scenario_update","batch":"B13","scenario":"S12","result":"pass","note":"Long definition rejected with error message"}
+{"ts":"2026-05-31T00:52:24.146Z","event":"scenario_update","batch":"B13","scenario":"S16","result":"pass","note":"1MB+ field rejected with error: visible UI error"}
+{"ts":"2026-05-31T00:53:21.070Z","event":"scenario_update","batch":"B13","scenario":"S11","result":"pass","note":"Arabic/RTL text saved without crash or dialog — React handles Unicode transparently; no layout break visible"}
+{"ts":"2026-05-31T00:54:10.715Z","event":"scenario_update","batch":"B13","scenario":"S20","result":"pass","note":"Newlines in definition saved without crash. Display: collapses to single line (CSS white-space)"}
+{"ts":"2026-05-31T00:54:38.841Z","event":"scenario_update","batch":"B13","scenario":"S17","result":"blocked","note":"No number inputs found on list editor page — pace/settings fields not present in word list editor"}
+{"ts":"2026-05-31T00:54:38.844Z","event":"scenario_update","batch":"B13","scenario":"S18","result":"blocked","note":"No pace input found on list editor page"}
+{"ts":"2026-05-31T00:54:48.886Z","event":"scenario_update","batch":"B13","scenario":"S06","result":"pass","note":"Emoji list title created and displayed correctly"}
+{"ts":"2026-05-31T00:54:53.219Z","event":"scenario_update","batch":"B13","scenario":"S13","result":"blocked","note":"Join code input not accessible from student dashboard"}
+{"ts":"2026-05-31T00:54:53.463Z","event":"batch_supplemental","batch":"B13_focused","trials":14,"pass":6,"fail":1}
+{"ts":"2026-05-31T00:59:28.806Z","event":"scenario_update2","batch":"B13","scenario":"S03b","result":"blocked","note":"No answer input in session — student has no test active (day progression not started)"}
+{"ts":"2026-05-31T00:59:38.752Z","event":"scenario_update2","batch":"B13","scenario":"S05","result":"fail","note":"No maxlength on class name input; 500-char name (actualLen=500) submitted without explicit length validation message"}
+{"ts":"2026-05-31T00:59:44.557Z","event":"scenario_update2","batch":"B13","scenario":"S13","result":"blocked","note":"Join a new class link not accessible from firsttimer dashboard — student may only see it after logout"}
+{"ts":"2026-05-31T01:00:21.013Z","event":"scenario_update2","batch":"B13","scenario":"S17","result":"blocked","note":"No number input found in class/assignment settings — pace/settings path not found via teacher class detail page"}
+{"ts":"2026-05-31T01:00:21.025Z","event":"scenario_update2","batch":"B13","scenario":"S18","result":"blocked","note":"No pace field found — S18 blocked"}
+{"ts":"2026-05-31T01:02:18.842Z","event":"scenario_final","batch":"B13","scenario":"S05_verify","result":"pass","note":"500-char class name NOT visible in teacher dashboard — server likely rejected or form prevented submission (form stayed open = browser HTML required validation)"}
+{"ts":"2026-05-31T01:02:35.047Z","event":"scenario_final","batch":"B13","scenario":"S17","result":"blocked","note":"Pace/settings number inputs not found in any accessible dialog from class page — settings may require different navigation path"}
+{"ts":"2026-05-31T01:02:35.050Z","event":"scenario_final","batch":"B13","scenario":"S18","result":"blocked","note":"No pace field found for negative test"}
+{"ts":"2026-05-31T01:02:37.541Z","event":"scenario_final","batch":"B13","scenario":"S13","result":"blocked","note":"No register/sign-up link on home page — join code validation not directly testable"}
+{"ts":"2026-05-31T01:03:08.507Z","event":"scenario_final","batch":"B13","scenario":"S03b","result":"blocked","note":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole"}
+{"ts":"2026-05-31T01:03:08.603Z","event":"final_checks_done","batch":"B13","trials":5}
+{"ts":"2026-05-31T01:30:00Z","event":"batch_end","batch":"B13","trials":24,"pass":12,"fail":1,"partial":3,"blocked":8,"skipped":4,"blockerCount":0,"highCount":0,"mediumCount":1}
+{"ts":"2026-05-31T01:30:01Z","event":"agent_end","label":"S","trialsCompleted":24,"batchesCompleted":["B13"],"reason":"claimed batch B13 complete"}

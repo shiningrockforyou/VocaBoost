@@ -1,0 +1,10 @@
+{
+  "label": "J",
+  "currentBatch": "B05",
+  "currentScenario": "done",
+  "batchesClaimed": ["B05"],
+  "batchesCompleted": ["B05"],
+  "trialsCompleted": 11,
+  "lastUpdate": "2026-05-30T23:45:00Z",
+  "state": "finished"
+}

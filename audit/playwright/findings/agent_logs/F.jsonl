@@ -1,0 +1,18 @@
+{"ts":"2026-05-30T23:00:00Z","event":"agent_start","label":"F","claim":["B07"]}
+{"ts":"2026-05-30T23:00:05Z","event":"batch_start","batch":"B07"}
+{"ts":"2026-05-30T22:40:00Z","event":"scenario","batch":"B07","scenario":"S01","result":"partial","severity":null,"durationMs":4181}
+{"ts":"2026-05-30T22:40:06Z","event":"scenario","batch":"B07","scenario":"S02","result":"blocked","reason":"Account returned Class not found — no active test session","durationMs":5768}
+{"ts":"2026-05-30T22:40:15Z","event":"scenario","batch":"B07","scenario":"S03","result":"partial","severity":null,"durationMs":9166}
+{"ts":"2026-05-30T22:40:23Z","event":"scenario","batch":"B07","scenario":"S04","result":"blocked","reason":"No Active List for CORE rushed account","durationMs":8210}
+{"ts":"2026-05-30T22:40:29Z","event":"scenario","batch":"B07","scenario":"S05","result":"partial","severity":null,"durationMs":5744}
+{"ts":"2026-05-30T22:40:37Z","event":"scenario","batch":"B07","scenario":"S06","result":"pass","severity":null,"durationMs":8082}
+{"ts":"2026-05-30T22:41:00Z","event":"scenario","batch":"B07","scenario":"S07","result":"partial","severity":null,"durationMs":22712}
+{"ts":"2026-05-30T22:41:18Z","event":"scenario","batch":"B07","scenario":"S08","result":"pass","severity":null,"findingId":"F01","durationMs":18147}
+{"ts":"2026-05-30T22:41:30Z","event":"scenario","batch":"B07","scenario":"S09","result":"pass","severity":null,"durationMs":12211}
+{"ts":"2026-05-30T22:41:44Z","event":"scenario","batch":"B07","scenario":"S10","result":"pass","severity":null,"durationMs":13241}
+{"ts":"2026-05-30T22:41:49Z","event":"scenario","batch":"B07","scenario":"S11","result":"blocked","reason":"No /join route or form found","durationMs":5029}
+{"ts":"2026-05-30T22:42:00Z","event":"scenario","batch":"B07","scenario":"S13","result":"pass","severity":null,"durationMs":10740}
+{"ts":"2026-05-30T22:42:14Z","event":"scenario","batch":"B07","scenario":"S14","result":"partial","severity":null,"durationMs":14602}
+{"ts":"2026-05-30T22:42:35Z","event":"scenario","batch":"B07","scenario":"S16","result":"pass","severity":null,"notes":"initial false-positive rechecked","durationMs":20882}
+{"ts":"2026-05-30T22:52:00Z","event":"batch_end","batch":"B07","trials":14,"pass":5,"fail":0,"partial":5,"blocked":3,"skipped":2,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-30T22:52:00Z","event":"agent_end","label":"F","trialsCompleted":14,"batchesCompleted":["B07"],"reason":"claimed batches done"}

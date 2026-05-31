@@ -1,0 +1,14 @@
+{
+  "label": "BEG27",
+  "state": "finished",
+  "lastUpdate": "2026-05-31T11:47:24.474Z",
+  "sessionsDone": 20,
+  "startDay": 4,
+  "endDay": 23,
+  "f01DaysViolated": [],
+  "stopConditionHit": false,
+  "logoutLoginVerdict": "WORK_LOST",
+  "h2Count": 0,
+  "orphanDocs": [],
+  "totalAttempts": 40
+}

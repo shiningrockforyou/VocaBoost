@@ -19,13 +19,13 @@ The student dashboard handles many states: brand-new student, single class, mult
 
 ### S02 — Student enrolled in one class, one list
 
-1. Log in `lazyStudent` (one class).
+1. Log in `lazy` (one class).
 2. Dashboard renders: my classes (1), primary focus list, today's session card.
 3. No console errors.
 
 ### S03 — Student enrolled in multiple classes
 
-1. `carefulStudent` is in primaryClass + secondaryClass.
+1. `careful` is in primaryClass + secondaryClass.
 2. Dashboard shows both. Primary focus picked correctly (most recently assigned by default).
 
 ### S04 — Student switches primary focus
@@ -39,7 +39,7 @@ The student dashboard handles many states: brand-new student, single class, mult
 
 ### S05 — Teacher deletes a list student is studying
 
-1. (Setup with two contexts.) `powerTeacher` deletes `tinyList` while `lazyStudent` has it as primary focus.
+1. (Setup with two contexts.) `powerTeacher` deletes `tinyList` while `lazy` has it as primary focus.
 2. Student dashboard (refresh).
 3. Expected: graceful empty state OR fallback to another list as primary. No 404, no white screen.
 

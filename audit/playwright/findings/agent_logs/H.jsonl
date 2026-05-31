@@ -1,0 +1,21 @@
+{"ts":"2026-05-30T10:00:00Z","event":"agent_start","label":"H","claim":["B26"]}
+{"ts":"2026-05-30T10:00:05Z","event":"batch_start","batch":"B26"}
+{"ts":"2026-05-30T23:28:46.719Z","event":"scenario","batch":"B26","scenario":"S01","result":"pass","accepted":20,"rejected":0,"errored":0,"matched":20,"total":20,"durationMs":10251}
+{"ts":"2026-05-30T23:28:51.410Z","event":"scenario","batch":"B26","scenario":"S02","result":"pass","accepted":10,"rejected":0,"errored":0,"matched":10,"total":10,"durationMs":4674}
+{"ts":"2026-05-30T23:28:53.674Z","event":"scenario","batch":"B26","scenario":"S03","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2246}
+{"ts":"2026-05-30T23:28:57.915Z","event":"scenario","batch":"B26","scenario":"S04","result":"pass","accepted":10,"rejected":0,"errored":0,"matched":10,"total":10,"durationMs":4224}
+{"ts":"2026-05-30T23:29:02.539Z","event":"scenario","batch":"B26","scenario":"S06","result":"pass","accepted":10,"rejected":0,"errored":0,"matched":10,"total":10,"durationMs":4611}
+{"ts":"2026-05-30T23:29:04.751Z","event":"scenario","batch":"B26","scenario":"S07","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2199}
+{"ts":"2026-05-30T23:29:10.035Z","event":"scenario","batch":"B26","scenario":"S08","result":"pass","accepted":10,"rejected":0,"errored":0,"matched":10,"total":10,"durationMs":5269}
+{"ts":"2026-05-30T23:29:13.068Z","event":"scenario","batch":"B26","scenario":"S13","result":"pass","accepted":0,"rejected":5,"errored":0,"matched":5,"total":5,"durationMs":3020}
+{"ts":"2026-05-30T23:29:16.290Z","event":"scenario","batch":"B26","scenario":"S14","result":"pass","accepted":0,"rejected":5,"errored":0,"matched":5,"total":5,"durationMs":3211}
+{"ts":"2026-05-30T23:29:18.413Z","event":"scenario","batch":"B26","scenario":"S15","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2110}
+{"ts":"2026-05-30T23:29:19.439Z","event":"scenario","batch":"B26","scenario":"S16","result":"pass","accepted":0,"rejected":5,"errored":0,"matched":5,"total":5,"durationMs":1009}
+{"ts":"2026-05-30T23:29:21.591Z","event":"scenario","batch":"B26","scenario":"S17","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2140}
+{"ts":"2026-05-30T23:29:23.714Z","event":"scenario","batch":"B26","scenario":"S23","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2110}
+{"ts":"2026-05-30T23:29:25.887Z","event":"scenario","batch":"B26","scenario":"S24","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2156}
+{"ts":"2026-05-30T23:29:28.043Z","event":"scenario","batch":"B26","scenario":"S26","result":"pass","accepted":5,"rejected":0,"errored":0,"matched":5,"total":5,"durationMs":2144}
+{"ts":"2026-05-30T23:29:35.160Z","event":"scenario","batch":"B26","scenario":"S29","result":"pass","passes":5,"fails":0,"durationMs":0}
+{"ts":"2026-05-30T23:29:35.164Z","event":"scenario","batch":"B26","scenario":"S30","result":"pass","medianMs":1389,"p95Ms":2402,"maxMs":4316,"callCount":26,"durationMs":0}
+{"ts":"2026-05-30T23:29:35.179Z","event":"batch_end","batch":"B26","trials":17,"pass":17,"fail":0,"blocked":0,"highCount":0,"blockerCount":0}
+{"ts":"2026-05-30T23:29:35.183Z","event":"agent_end","label":"H","trialsCompleted":17,"batchesCompleted":["B26"],"reason":"claimed batches done"}

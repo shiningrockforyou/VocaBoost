@@ -1,0 +1,64 @@
+{
+  "status": "complete",
+  "agent": "RECOVER",
+  "batch": "B27",
+  "completedAt": "2026-05-31T11:55:34.355Z",
+  "scenarios": [
+    {
+      "scenario": 1,
+      "label": "S1_mid_new_word_test",
+      "account": "distracted_01",
+      "guardTriggered": "browser_restart_during_new_word_test",
+      "classification": "WORK_LOST_BUT_CORRECT_PATH",
+      "correctPath": true,
+      "progressRestored": false
+    },
+    {
+      "scenario": 2,
+      "label": "S2_mid_review_test",
+      "account": "rushed_01",
+      "guardTriggered": "browser_restart_during_review_test",
+      "classification": "WORK_LOST_BUT_CORRECT_PATH",
+      "correctPath": true,
+      "progressRestored": false
+    },
+    {
+      "scenario": 3,
+      "label": "S3_B2_strand_recovery",
+      "account": "advanced_01",
+      "guardTriggered": "B2_newWordsTestScore_undefined_strand",
+      "classification": "STUCK_OR_LOOPED",
+      "correctPath": false,
+      "progressRestored": false
+    },
+    {
+      "scenario": 4,
+      "label": "S4_H2_stale_complete",
+      "account": "careful_01",
+      "guardTriggered": "H2_stale_complete_reentry",
+      "classification": "CLEAN_RESTART",
+      "correctPath": true,
+      "progressRestored": false
+    },
+    {
+      "scenario": 5,
+      "label": "S5_logout_mid_test",
+      "account": "recovering_01",
+      "guardTriggered": "logout_mid_test",
+      "classification": "WORK_LOST_BUT_CORRECT_PATH",
+      "correctPath": true,
+      "progressRestored": false,
+      "note": "Initial run had signout timeout; S5v2 rerun confirmed correctPath=true"
+    },
+    {
+      "scenario": 6,
+      "label": "S6_duplicate_day_guard",
+      "account": "advanced_01",
+      "guardTriggered": "duplicate_day_guard_sequential",
+      "classification": "CLEAN_RESTART",
+      "correctPath": true,
+      "progressRestored": false
+    }
+  ],
+  "orphanDocs": "NONE"
+}

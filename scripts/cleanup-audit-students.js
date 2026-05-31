@@ -159,8 +159,13 @@ for (const t of targets) {
       await batch.commit()
     }
 
-    // 3) Remove from each class's members subcollection + decrement studentCount + remove from studentIds
-    for (const classId of t.enrolledClasses) {
+    // 3) Remove from each class's members subcollection + decrement studentCount + remove from studentIds.
+    //    Note: t.enrolledClasses currently comes from the subcollection (the legacy seed path).
+    //    To be safe, also union in keys from userData.enrolledClasses (the map field) if present.
+    const userDoc = await db.doc(`users/${t.uid}`).get()
+    const mapEnrolled = userDoc.exists ? Object.keys(userDoc.data().enrolledClasses || {}) : []
+    const allClassIds = [...new Set([...(t.enrolledClasses || []), ...mapEnrolled])]
+    for (const classId of allClassIds) {
       const classRef = db.doc(`classes/${classId}`)
       const memberRef = classRef.collection('members').doc(t.uid)
       if ((await memberRef.get()).exists) {
@@ -174,7 +179,7 @@ for (const t of targets) {
       })
     }
 
-    // 4) Delete user doc
+    // 4) Delete user doc (this drops the enrolledClasses map automatically).
     await db.doc(`users/${t.uid}`).delete()
 
     // 5) Delete Auth user (last — so if any of above fails we still have a recoverable identity)

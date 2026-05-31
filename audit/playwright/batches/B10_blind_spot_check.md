@@ -18,7 +18,7 @@ Every scenario here cross-checks one of those.
 
 ### S01 — Blind Spot happy path
 
-1. Log in as `anxiousStudent`. From dashboard, find "Check Blind Spots" or equivalent.
+1. Log in as `anxious`. From dashboard, find "Check Blind Spots" or equivalent.
 2. Click Start. Take the test (~30 questions; adjust if blind-spot pool is smaller).
 3. Answer all. Submit.
 4. Results screen. No attempt doc check (Blind Spot doesn't create one — confirmed).

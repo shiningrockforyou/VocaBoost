@@ -1,0 +1,18 @@
+{"ts":"2026-05-31T00:00:00Z","event":"agent_start","label":"V","claim":["B18"]}
+{"ts":"2026-05-31T00:01:00Z","event":"batch_start","batch":"B18"}
+{"ts":"2026-05-31T01:05:00Z","event":"scenario","batch":"B18","scenario":"S01","result":"pass","durationMs":45000,"notes":"Gradebook loads via SPA nav; 50+ attempts; filter/sort/export all present"}
+{"ts":"2026-05-31T01:10:00Z","event":"scenario","batch":"B18","scenario":"S02","result":"pass","durationMs":8000,"notes":"Class filter works; TOP OFFLINE isolates correctly; no CORE rows bleed through"}
+{"ts":"2026-05-31T01:12:00Z","event":"scenario","batch":"B18","scenario":"S03","result":"pass","durationMs":5000,"notes":"List filter works"}
+{"ts":"2026-05-31T01:14:00Z","event":"scenario","batch":"B18","scenario":"S04","result":"pass","durationMs":8000,"notes":"MCQ filter shows only MCQ rows; Written badge count drops to 0"}
+{"ts":"2026-05-31T01:16:00Z","event":"scenario","batch":"B18","scenario":"S05","result":"pass","durationMs":8000,"notes":"Past 7 days filter loads 10 rows for recent audit submissions"}
+{"ts":"2026-05-31T01:18:00Z","event":"scenario","batch":"B18","scenario":"S06","result":"pass","durationMs":5000,"notes":"Score sort ascending [7,10,13,17,20] confirmed; descending [33,27,...] confirmed"}
+{"ts":"2026-05-31T01:19:00Z","event":"scenario","batch":"B18","scenario":"S07","result":"pass","durationMs":3000,"notes":"Default newest-first sort confirmed via date header"}
+{"ts":"2026-05-31T01:22:00Z","event":"scenario","batch":"B18","scenario":"S08","result":"pass","durationMs":8000,"notes":"Detail drawer opens; Student/Score/Questions fields present; AI Reasoning absent for MCQ (correct); Challenge Pending UI buttons present"}
+{"ts":"2026-05-31T01:24:00Z","event":"scenario","batch":"B18","scenario":"S09","result":"pass","durationMs":3000,"notes":"No-filter state shows search prompt; adding class filter reveals data"}
+{"ts":"2026-05-31T01:25:00Z","event":"scenario","batch":"B18","scenario":"S10","result":"partial","durationMs":2000,"notes":"No auto-refresh is expected SPA behavior; documented"}
+{"ts":"2026-05-31T01:26:00Z","event":"scenario","batch":"B18","scenario":"S11","result":"pass","durationMs":5000,"notes":"No duplicate rows found in 50-row TOP class view; rowContents all unique"}
+{"ts":"2026-05-31T01:28:00Z","event":"scenario","batch":"B18","scenario":"S12","result":"pass","durationMs":3000,"notes":"networkidle after filter: 585ms well under 3s threshold"}
+{"ts":"2026-05-31T01:30:00Z","event":"scenario","batch":"B18","scenario":"S13","result":"pass","durationMs":2000,"notes":"Export (All) XLSX button present; produces VocaBoost_Gradebook_Export.xlsx"}
+{"ts":"2026-05-31T02:00:00Z","event":"scenario","batch":"B18","scenario":"chat_log_13_key_check","result":"fail","severity":"HIGH","findingId":"F01","durationMs":1800000,"notes":"Teacher-student day mismatch confirmed for 2 real accounts: uid dcq9 (teacher sees Day 5, student sees Day 4) and W19U (teacher sees Day 5, student sees Day 7)"}
+{"ts":"2026-05-31T02:30:00Z","event":"batch_end","batch":"B18","trials":13,"pass":11,"fail":1,"blocked":0,"partial":1,"highCount":2,"blockerCount":0}
+{"ts":"2026-05-31T02:30:00Z","event":"agent_end","label":"V","trialsCompleted":13,"batchesCompleted":["B18"],"reason":"claimed batches done"}
