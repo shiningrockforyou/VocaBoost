@@ -524,11 +524,12 @@
     <h2>목차</h2>
     <ul>
       <li><a href="#start">1. 시작하기</a></li>
-      <li><a href="#class">2. 클래스 관리</a></li>
-      <li><a href="#list">3. 단어장 관리</a></li>
-      <li><a href="#assign">4. 단어장 할당</a></li>
-      <li><a href="#gradebook">5. 성적표 활용</a></li>
-      <li><a href="#faq">6. 자주 묻는 질문</a></li>
+      <li><a href="#ta">2. TA / 관리자 접속</a></li>
+      <li><a href="#gradebook">3. 성적표 활용</a></li>
+      <li><a href="#class">4. 클래스 관리</a></li>
+      <li><a href="#list">5. 단어장 관리</a></li>
+      <li><a href="#assign">6. 단어장 할당</a></li>
+      <li><a href="#faq">7. 자주 묻는 질문</a></li>
     </ul>
   </nav>
 
@@ -559,9 +560,79 @@
     </ol>
   </section>
 
-  <!-- 2. 클래스 관리 -->
+  <!-- 2. TA / 관리자 접속 -->
+  <section id="ta">
+    <h2><span class="section-number">2</span>TA / 관리자 접속</h2>
+
+    <p>TA(조교)와 관리자는 <strong>교사(Teacher) 계정</strong>으로 로그인합니다. 이 가이드의 모든 기능(클래스 관리, 학생 추가, 성적표, 챌린지 검토)을 동일하게 사용할 수 있습니다.</p>
+
+    <div class="info-box tip">
+      <div class="info-box-title">공용 TA / 관리자 계정</div>
+      <p>아래 공용 교사 계정으로 로그인하세요:</p>
+      <p style="margin-top:8px;">이메일: <code>ta@vocaboost.com</code><br>비밀번호: <code>VocaTA2026!</code></p>
+      <p style="margin-top:8px;">이 계정은 여러 TA가 함께 사용하는 내부 공용 계정입니다. 비밀번호는 외부에 공유하지 마세요.</p>
+    </div>
+
+    <div class="info-box warning">
+      <div class="info-box-title">권한 안내</div>
+      <p>교사 계정은 모든 클래스의 성적표와 학생 데이터에 접근할 수 있습니다. 챌린지 승인/거절은 학생의 점수를 변경하므로 신중히 검토하세요.</p>
+    </div>
+  </section>
+
+  <!-- 3. 성적표 활용 -->
+  <section id="gradebook">
+    <h2><span class="section-number">3</span>성적표 활용</h2>
+
+    <h3>성적표 열기</h3>
+    <ol class="step-list">
+      <li>상단 네비게이션에서 <strong>Gradebook</strong>을 클릭합니다.</li>
+      <li>또는 클래스 상세 페이지에서 Gradebook 탭의 <strong>Open Gradebook</strong> 버튼을 클릭합니다.</li>
+    </ol>
+
+    <h3>성적표 필터링</h3>
+    <p>성적표 상단의 필터를 사용하여 원하는 기록만 볼 수 있습니다:</p>
+    <ul class="inline-list">
+      <li><strong>Class</strong>: 특정 클래스의 기록만 보기</li>
+      <li><strong>List</strong>: 특정 단어장의 기록만 보기</li>
+      <li><strong>Name</strong>: 특정 학생의 기록만 보기</li>
+      <li><strong>Test Type</strong>: Multiple Choice 또는 Written 테스트만 보기</li>
+      <li><strong>Date</strong>: Today, Yesterday, Past 7 days, Past 30 days, 또는 직접 범위 지정</li>
+    </ul>
+
+    <h3>테스트 상세 보기</h3>
+    <ol class="step-list">
+      <li>성적표에서 확인할 테스트 행의 <strong>View Details</strong> 버튼을 클릭합니다.</li>
+      <li>오른쪽에 상세 패널이 열립니다.</li>
+      <li>각 문제별로 학생의 답변과 정답을 확인할 수 있습니다.</li>
+    </ol>
+
+    <h3>성적 내보내기</h3>
+    <ol class="step-list">
+      <li>내보낼 기록들을 체크박스로 선택합니다.</li>
+      <li><strong>Export</strong> 버튼을 클릭합니다.</li>
+      <li>Excel 파일(.xlsx)이 자동으로 다운로드됩니다.</li>
+    </ol>
+
+    <h3>챌린지 검토하기</h3>
+    <p>학생이 타이핑 테스트에서 채점 결과에 이의를 제기하면 "Challenge" 상태로 표시됩니다.</p>
+    <ol class="step-list">
+      <li>성적표에서 챌린지 표시가 있는 테스트를 찾습니다.</li>
+      <li>View Details를 클릭해서 상세 내용을 확인합니다.</li>
+      <li>챌린지된 문제에서 학생의 답변과 AI 추론을 검토합니다.</li>
+      <li><strong>Accept</strong>(승인) 또는 <strong>Reject</strong>(거절)을 선택합니다.</li>
+    </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">챌린지 시스템 작동 방식</div>
+      <p>타이핑(Written) 테스트는 AI가 자동 채점합니다. 학생은 최대 <strong>5개의 챌린지 토큰</strong>을 가지며, 틀렸다고 표시된 답에 이의를 제기할 수 있습니다.</p>
+      <p style="margin-top:8px;"><strong>승인(Accept)</strong> 시: 해당 답이 정답 처리되고 점수가 다시 계산되며, 그 단어는 통과(PASSED) 상태가 됩니다. 점수가 통과 기준을 넘기면 그날의 진도가 올라갈 수 있습니다.</p>
+      <p style="margin-top:8px;"><strong>거절(Reject)</strong> 시: 점수는 바뀌지 않고, 해당 챌린지는 <strong>30일 동안</strong> 학생의 토큰을 차감한 상태로 유지됩니다(즉, 30일이 지나면 다시 사용할 수 있게 됩니다). 승인된 챌린지는 토큰을 차감하지 않습니다.</p>
+    </div>
+  </section>
+
+  <!-- 4. 클래스 관리 -->
   <section id="class">
-    <h2><span class="section-number">2</span>클래스 관리</h2>
+    <h2><span class="section-number">4</span>클래스 관리</h2>
 
     <h3>새 클래스 만들기</h3>
     <ol class="step-list">
@@ -612,9 +683,9 @@
     </ol>
   </section>
 
-  <!-- 3. 단어장 관리 -->
+  <!-- 5. 단어장 관리 -->
   <section id="list">
-    <h2><span class="section-number">3</span>단어장 관리</h2>
+    <h2><span class="section-number">5</span>단어장 관리</h2>
 
     <h3>새 단어장 만들기</h3>
     <ol class="step-list">
@@ -672,9 +743,9 @@
     </div>
   </section>
 
-  <!-- 4. 단어장 할당 -->
+  <!-- 6. 단어장 할당 -->
   <section id="assign">
-    <h2><span class="section-number">4</span>단어장 할당</h2>
+    <h2><span class="section-number">6</span>단어장 할당</h2>
 
     <h3>클래스에 단어장 할당하기</h3>
     <ol class="step-list">
@@ -695,8 +766,8 @@
         </tr>
         <tr>
           <td><strong>Daily New Words</strong></td>
-          <td>학생이 하루에 배울 새 단어 수</td>
-          <td>20개</td>
+          <td>학생이 하루에 배울 새 단어 수 (클래스마다 다르게 설정 가능)</td>
+          <td>20개 (기본값)</td>
         </tr>
         <tr>
           <td><strong>Test Mode</strong></td>
@@ -762,58 +833,9 @@
     </div>
   </section>
 
-  <!-- 5. 성적표 활용 -->
-  <section id="gradebook">
-    <h2><span class="section-number">5</span>성적표 활용</h2>
-
-    <h3>성적표 열기</h3>
-    <ol class="step-list">
-      <li>상단 네비게이션에서 <strong>Gradebook</strong>을 클릭합니다.</li>
-      <li>또는 클래스 상세 페이지에서 Gradebook 탭의 <strong>Open Gradebook</strong> 버튼을 클릭합니다.</li>
-    </ol>
-
-    <h3>성적표 필터링</h3>
-    <p>성적표 상단의 필터를 사용하여 원하는 기록만 볼 수 있습니다:</p>
-    <ul class="inline-list">
-      <li><strong>Class</strong>: 특정 클래스의 기록만 보기</li>
-      <li><strong>List</strong>: 특정 단어장의 기록만 보기</li>
-      <li><strong>Name</strong>: 특정 학생의 기록만 보기</li>
-      <li><strong>Test Type</strong>: Multiple Choice 또는 Written 테스트만 보기</li>
-      <li><strong>Date</strong>: Today, Yesterday, Past 7 days, Past 30 days, 또는 직접 범위 지정</li>
-    </ul>
-
-    <h3>테스트 상세 보기</h3>
-    <ol class="step-list">
-      <li>성적표에서 확인할 테스트 행의 <strong>View Details</strong> 버튼을 클릭합니다.</li>
-      <li>오른쪽에 상세 패널이 열립니다.</li>
-      <li>각 문제별로 학생의 답변과 정답을 확인할 수 있습니다.</li>
-    </ol>
-
-    <h3>성적 내보내기</h3>
-    <ol class="step-list">
-      <li>내보낼 기록들을 체크박스로 선택합니다.</li>
-      <li><strong>Export</strong> 버튼을 클릭합니다.</li>
-      <li>Excel 파일(.xlsx)이 자동으로 다운로드됩니다.</li>
-    </ol>
-
-    <h3>챌린지 검토하기</h3>
-    <p>학생이 타이핑 테스트에서 채점 결과에 이의를 제기하면 "Challenge" 상태로 표시됩니다.</p>
-    <ol class="step-list">
-      <li>성적표에서 챌린지 표시가 있는 테스트를 찾습니다.</li>
-      <li>View Details를 클릭해서 상세 내용을 확인합니다.</li>
-      <li>챌린지된 문제에서 학생의 답변과 AI 추론을 검토합니다.</li>
-      <li><strong>Accept</strong>(승인) 또는 <strong>Reject</strong>(거절)을 선택합니다.</li>
-    </ol>
-
-    <div class="info-box tip">
-      <div class="info-box-title">챌린지 시스템</div>
-      <p>타이핑 테스트는 AI가 자동 채점합니다. 학생이 자신의 답변이 맞다고 생각하면 챌린지 토큰(5개 보유)을 사용해 재검토를 요청할 수 있습니다. 교사가 승인하면 점수가 수정되고 토큰이 반환됩니다.</p>
-    </div>
-  </section>
-
-  <!-- 6. FAQ -->
+  <!-- 7. FAQ -->
   <section id="faq">
-    <h2><span class="section-number">6</span>자주 묻는 질문</h2>
+    <h2><span class="section-number">7</span>자주 묻는 질문</h2>
 
     <div class="faq-item">
       <div class="faq-question">Q. 학생이 참가 코드를 분실했다면?</div>

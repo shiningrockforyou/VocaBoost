@@ -1,0 +1,20 @@
+{
+  "label": "D1-04",
+  "account": "audit_trolling_01_top@vocaboost.test",
+  "classification": "COMPLETED_NOPASS",
+  "reachedTest": true,
+  "junkCorrectlyGradedWrong": true,
+  "b2Strand": false,
+  "crashOnJunk": false,
+  "csdBefore": 0,
+  "csdAfter": 0,
+  "csdHeld": true,
+  "exactlyOneAttempt": true,
+  "orphanDocs": "NONE",
+  "day1RobustToJunk": true,
+  "questionsAnswered": 30,
+  "correctCount": 0,
+  "incorrectCount": 30,
+  "consoleErrorCount": 0,
+  "ts": "2026-05-31T20:54:10.622Z"
+}

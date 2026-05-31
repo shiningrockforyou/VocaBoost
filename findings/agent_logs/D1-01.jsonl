@@ -1,0 +1,56 @@
+{"ts":"2026-05-31T21:05:35.290Z","step":"init_v5","account":"audit_speedrunner_01_top@vocaboost.test","pace":80,"testSize":30}
+{"ts":"2026-05-31T21:05:36.039Z","step":"uid","uid":"YWSfNes3g7Mdo6tcg7h6ql4Youv2"}
+{"ts":"2026-05-31T21:05:36.405Z","step":"pre_flight","csdBefore":0,"attCountBefore":14}
+{"ts":"2026-05-31T21:05:36.836Z","step":"login_start"}
+{"ts":"2026-05-31T21:05:39.139Z","step":"login_done","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:05:39.156Z","step":"localStorage_seeded"}
+{"ts":"2026-05-31T21:05:39.161Z","step":"navigate"}
+{"ts":"2026-05-31T21:05:42.356Z","step":"session_loaded","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:05:42.380Z","step":"modal_check","found":false}
+{"ts":"2026-05-31T21:05:42.385Z","step":"study_start"}
+{"ts":"2026-05-31T21:05:42.418Z","step":"study_state_start","bodyPreview":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n80 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE","firstWord":"inflammatory"}
+{"ts":"2026-05-31T21:05:42.438Z","step":"study_progress","cycles":1,"url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","h":[],"body":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n80 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE"}
+{"ts":"2026-05-31T21:05:48.726Z","step":"ready_dialog","h":["Ready for the Test?"],"cycles":91}
+{"ts":"2026-05-31T21:05:48.786Z","step":"ready_dialog_clicked"}
+{"ts":"2026-05-31T21:05:51.795Z","step":"test_start","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:05:51.804Z","step":"inputs_found","count":30}
+{"ts":"2026-05-31T21:05:51.811Z","step":"test_words","words":["forensic","revamp","agog\r\n(old English)","redolent","resentful"],"total":30}
+{"ts":"2026-05-31T21:05:52.029Z","step":"answer","n":1,"word":"forensic"}
+{"ts":"2026-05-31T21:05:52.298Z","step":"answer","n":2,"word":"revamp"}
+{"ts":"2026-05-31T21:05:52.656Z","step":"answer","n":3,"word":"agog\r\n(old English)"}
+{"ts":"2026-05-31T21:05:53.143Z","step":"answer","n":4,"word":"redolent"}
+{"ts":"2026-05-31T21:05:53.624Z","step":"answer","n":5,"word":"resentful"}
+{"ts":"2026-05-31T21:05:54.109Z","step":"answer","n":6,"word":"impervious"}
+{"ts":"2026-05-31T21:05:54.594Z","step":"answer","n":7,"word":"cull"}
+{"ts":"2026-05-31T21:05:55.010Z","step":"answer","n":8,"word":"navigate"}
+{"ts":"2026-05-31T21:05:55.491Z","step":"answer","n":9,"word":"preponderance"}
+{"ts":"2026-05-31T21:05:55.983Z","step":"answer","n":10,"word":"fetter"}
+{"ts":"2026-05-31T21:05:56.457Z","step":"answer","n":11,"word":"insolence\r\n(old English)"}
+{"ts":"2026-05-31T21:05:56.945Z","step":"answer","n":12,"word":"ponderous\r\n(old English)"}
+{"ts":"2026-05-31T21:05:57.424Z","step":"answer","n":13,"word":"zeal\r\n(old English)"}
+{"ts":"2026-05-31T21:05:57.911Z","step":"answer","n":14,"word":"infamy"}
+{"ts":"2026-05-31T21:05:58.389Z","step":"answer","n":15,"word":"unequivocal"}
+{"ts":"2026-05-31T21:05:58.874Z","step":"answer","n":16,"word":"transfix"}
+{"ts":"2026-05-31T21:05:59.358Z","step":"answer","n":17,"word":"rout"}
+{"ts":"2026-05-31T21:05:59.842Z","step":"answer","n":18,"word":"bourgeois"}
+{"ts":"2026-05-31T21:06:00.327Z","step":"answer","n":19,"word":"implacable"}
+{"ts":"2026-05-31T21:06:00.819Z","step":"answer","n":20,"word":"stoical"}
+{"ts":"2026-05-31T21:06:01.290Z","step":"answer","n":21,"word":"henceforth\r\n(old English)"}
+{"ts":"2026-05-31T21:06:01.776Z","step":"answer","n":22,"word":"offset"}
+{"ts":"2026-05-31T21:06:02.261Z","step":"answer","n":23,"word":"insular"}
+{"ts":"2026-05-31T21:06:02.744Z","step":"answer","n":24,"word":"dotage"}
+{"ts":"2026-05-31T21:06:03.232Z","step":"answer","n":25,"word":"inviolable"}
+{"ts":"2026-05-31T21:06:03.714Z","step":"answer","n":26,"word":"philanthropy"}
+{"ts":"2026-05-31T21:06:04.197Z","step":"answer","n":27,"word":"yea\r\n(old English)"}
+{"ts":"2026-05-31T21:06:04.568Z","step":"answer","n":28,"word":"attribute"}
+{"ts":"2026-05-31T21:06:04.857Z","step":"answer","n":29,"word":"debase"}
+{"ts":"2026-05-31T21:06:05.141Z","step":"answer","n":30,"word":"affable"}
+{"ts":"2026-05-31T21:06:05.145Z","step":"all_answers_typed","answeredCount":30,"totalInputs":30}
+{"ts":"2026-05-31T21:06:05.662Z","step":"clicking_submit_test"}
+{"ts":"2026-05-31T21:06:07.734Z","step":"await_grading","answeredCount":30}
+{"ts":"2026-05-31T21:06:26.653Z","step":"grading_complete"}
+{"ts":"2026-05-31T21:06:26.667Z","step":"test_final","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","headings":["Did not pass","Answers"],"body":"Step 2 of 3\n\nNew Words Test — Day 1\n\nDid not pass\n\nYour score is below 92%\n\n0%\n\n0 of 30 correct\n\nTry Again\nGo to Dashboard\nAnswers\n1\nforensic\n✗\n\nCorrect Answer\n\nrelated to or used in courts of law\n\nYour Answer\n\ntest\n\nChallenge\n2\nrevamp\n✗\n\nCorrect Answer\n\nto revise; to renovate\n\nYour Answer\n\ntest\n\nChallenge\n3\nagog (old English)\n✗\n\nCorrect Answer\n\nvery eager or curious to hear or see something.\n\nYour Answer\n\ntest\n\nChallenge\n4\nredolent\n✗\n\nCorrect Answer\n\nstrongly reminiscent or suggestive of something\n\nYour Answer\n\ntest\n\nChallenge\n5\nresentful\n✗\n\nCorrect Answer\n\nhaving ill-will or hostility\n\nYour Answer\n\ntest\n\nChallenge\n6\nimpervious\n✗\n\nCorrect Answer\n\nnot admitting of passage or capable of being affected\n\nYour Answer\n\ntest\n\nChallenge\n7\ncull\n✗\n\nCorrect Answer\n\nto pick out from among many; to se","testDone":true,"answeredCount":30}
+{"ts":"2026-05-31T21:06:26.677Z","step":"browser_final","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","headings":["Did not pass","Answers"]}
+{"ts":"2026-05-31T21:06:26.784Z","step":"browser_closed"}
+{"ts":"2026-05-31T21:06:26.860Z","step":"post_flight","csdBefore":0,"csdAfter":0,"totalAttempts":15,"newAttempts":[{"id":"YWSfNes3g7Mdo6tcg7h6ql4Youv2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780261586400_yzxvf5iyq","day":1,"type":"new","score":0,"passed":false,"nwei":79}],"day1Count":15}
+{"ts":"2026-05-31T21:06:26.880Z","step":"done"}

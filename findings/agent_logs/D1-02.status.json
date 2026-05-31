@@ -1,0 +1,28 @@
+{
+  "label": "D1-02",
+  "account": "audit_multidevice_01_top@vocaboost.test",
+  "classId": "k8tzOiiwotBbtJS3uTiv",
+  "listId": "8RMews2H7C3UJUAsOBzR",
+  "classification": "COMPLETED_PASS",
+  "reachedTest": true,
+  "b2StrandError": false,
+  "csdBefore": 0,
+  "csdAfter": 1,
+  "newWordSliceCorrect": true,
+  "exactlyOneAttempt": true,
+  "attemptsCountBefore": 0,
+  "attemptsCountAfter": 1,
+  "attemptDocs": [
+    {
+      "id": "oGsmh7KnI0XfU9xYixMJ7PbuVvq2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780261092287_3b27ofg5v",
+      "day": 1,
+      "score": 100
+    }
+  ],
+  "cardsDismissed": 5,
+  "questionsAnswered": 30,
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "orphanDocs": "NONE",
+  "completedAt": "2026-05-31T20:58:25.927Z"
+}

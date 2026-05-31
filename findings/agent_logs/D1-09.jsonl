@@ -1,0 +1,56 @@
+{"ts":"2026-05-31T21:06:33.752Z","event":"d1_09_start","account":"audit_perfectionist_01_core@vocaboost.test","classId":"LVjBTFuYE8FbPG34pVAt","listId":"aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:06:33.753Z","event":"firestore_read_core_config"}
+{"ts":"2026-05-31T21:06:39.608Z","event":"core_config","config":"{\"name\":\"25WT 2차 CORE OFFLINE\",\"ownerTeacherId\":\"9OcxdnYCCGZYOrzfs09pUTUoDOR2\",\"joinCode\":\"3VEHE8\",\"settings\":{\"allowStudentListImport\":false},\"mandatoryLists\":[],\"createdAt\":{\"_seconds\":1767578648,\"_nanoseconds\":1000000},\"assignments\":{\"aRGjnGXdU4aupiS8SlXR\":{\"pace\":60,\"testOptionsCount\":4,\"testMode\":\"typed\",\"passThreshold\":90,\"testSizeNew\":25,\"reviewTestType\":\"mcq\",\"reviewTestSizeMin\":20,\"review"}
+{"ts":"2026-05-31T21:06:39.608Z","event":"firestore_read_core_list"}
+{"ts":"2026-05-31T21:06:39.716Z","event":"core_list_words_no_order","wordCount":100,"sample":["amid","indispensable","instill"]}
+{"ts":"2026-05-31T21:06:39.717Z","event":"core_list_final","wordCount":100,"sample":["amid","indispensable","instill"]}
+{"ts":"2026-05-31T21:06:39.717Z","event":"lookup_uid"}
+{"ts":"2026-05-31T21:06:39.769Z","event":"uid_found","uid":"pGqG1GT5Y3ZU5WT7e0smwqWQWdb2"}
+{"ts":"2026-05-31T21:06:39.769Z","event":"firestore_baseline_start"}
+{"ts":"2026-05-31T21:06:39.847Z","event":"firestore_baseline","csdBefore":1,"classProgressDocs":1,"attemptsBefore":3,"studyStatesBefore":60,"orphansBefore":"{}"}
+{"ts":"2026-05-31T21:06:39.847Z","event":"browser_launch"}
+{"ts":"2026-05-31T21:06:40.189Z","event":"login_start","email":"audit_perfectionist_01_core@vocaboost.test"}
+{"ts":"2026-05-31T21:06:44.501Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:06:44.596Z","event":"screenshot","file":"01_dashboard.png"}
+{"ts":"2026-05-31T21:06:46.599Z","event":"dashboard_loaded","text":"Dashboard\nGradebook\nWelcome, Audit Perfectionist 01 (CORE)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 CORE Vocabulary (v2)\n0\n/\n300\nwords\nThis Week\n300 more to hit your goal\n\nDay 2\n\nStart Session\n\nWords Introduced\n\n60\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYTHM"}
+{"ts":"2026-05-31T21:06:46.599Z","event":"h2_guard_check"}
+{"ts":"2026-05-31T21:06:46.599Z","event":"h2_guard","blocked":true,"dashText":"Dashboard\nGradebook\nWelcome, Audit Perfectionist 01 (CORE)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 CORE Vocabulary (v2)\n0\n/\n300\nwords\nThis Week\n300 more to hit your goal"}
+{"ts":"2026-05-31T21:06:46.599Z","event":"find_start_button"}
+{"ts":"2026-05-31T21:06:47.615Z","event":"start_button","visible":true}
+{"ts":"2026-05-31T21:06:49.662Z","event":"session_started","url":"https://vocaboostone.netlify.app/session/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:06:49.720Z","event":"screenshot","file":"02_session_started.png"}
+{"ts":"2026-05-31T21:06:49.721Z","event":"study_phase_start"}
+{"ts":"2026-05-31T21:06:51.787Z","event":"screenshot","file":"02c_after_modal.png"}
+{"ts":"2026-05-31T21:06:51.790Z","event":"post_modal_page","text":"Step 5 of 5\n✓\n\nDAY 2 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n60\nWords Reviewed\n50\nTotal Progress\n60 / 3380\nBack to Dashboard"}
+{"ts":"2026-05-31T21:06:51.821Z","event":"visible_buttons_pre_study","buttons":["","Step 5 of 5","Back to Dashboard"],"attrs":[{"text":"","ariaLabel":"Quit session","classes":"p-2 -ml-2 rounded-lg text-text-secondary hover:text-text-pri"},{"text":"Step 5 of 5","ariaLabel":null,"classes":"flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted "},{"text":"Back to Dashboard","ariaLabel":null,"classes":"inline-flex items-center justify-center rounded-button font-"}]}
+{"ts":"2026-05-31T21:06:51.822Z","event":"all_mastered_check","allMastered":false,"postModalText":"Step 5 of 5\n✓\n\nDAY 2 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n60\nWords Reviewed\n50\nTot"}
+{"ts":"2026-05-31T21:06:51.874Z","event":"no_advance_button","iteration":0,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:52.448Z","event":"screenshot","file":"03_study_card_1.png"}
+{"ts":"2026-05-31T21:06:52.500Z","event":"no_advance_button","iteration":1,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:53.029Z","event":"no_advance_button","iteration":2,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:53.565Z","event":"no_advance_button","iteration":3,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:54.103Z","event":"no_advance_button","iteration":4,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:54.683Z","event":"screenshot","file":"03_study_card_5.png"}
+{"ts":"2026-05-31T21:06:54.708Z","event":"no_advance_button","iteration":5,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:55.212Z","event":"possible_stuck_cycling","sameCardCount":5,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:55.236Z","event":"no_advance_button","iteration":6,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:55.740Z","event":"possible_stuck_cycling","sameCardCount":6,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:55.766Z","event":"no_advance_button","iteration":7,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:56.270Z","event":"possible_stuck_cycling","sameCardCount":7,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:56.297Z","event":"no_advance_button","iteration":8,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:56.801Z","event":"possible_stuck_cycling","sameCardCount":8,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:56.836Z","event":"no_advance_button","iteration":9,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:57.341Z","event":"possible_stuck_cycling","sameCardCount":9,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:57.372Z","event":"no_advance_button","iteration":10,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:57.877Z","event":"possible_stuck_cycling","sameCardCount":10,"cardText":" Progress 60 / 3380 Back to Dashboard"}
+{"ts":"2026-05-31T21:06:57.904Z","event":"no_advance_button","iteration":11,"buttons":["","Step 5 of 5","Back to Dashboard"]}
+{"ts":"2026-05-31T21:06:58.407Z","event":"stuck_in_study_phase","iteration":11,"text":"Step 5 of 5\n✓\n\nDAY 2 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n60\nWords Reviewed\n50\nTotal Progress\n60 / 3380\nBack to Dashboard"}
+{"ts":"2026-05-31T21:06:58.479Z","event":"screenshot","file":"study_stuck_11.png"}
+{"ts":"2026-05-31T21:06:58.479Z","event":"study_phase_complete","cardsStudied":0}
+{"ts":"2026-05-31T21:06:58.555Z","event":"screenshot","file":"04_after_study.png"}
+{"ts":"2026-05-31T21:06:58.561Z","event":"test_phase_start"}
+{"ts":"2026-05-31T21:06:58.639Z","event":"screenshot","file":"05_test_phase_start.png"}
+{"ts":"2026-05-31T21:06:58.641Z","event":"test_page_text","text":"Step 5 of 5\n✓\n\nDAY 2 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n60\nWords Reviewed\n50\nTotal Progress\n60 / 3380\nBack to Dashboard"}
+{"ts":"2026-05-31T21:06:58.643Z","event":"test_input_not_found","pageText":"Step 5 of 5\n✓\n\nDAY 2 COMPLETE\n\nGreat Job!\nSession Summary\nNew Words Studied\n60\nWords Reviewed\n50\nTotal Progress\n60 / 3380\nBack to Dashboard"}
+{"ts":"2026-05-31T21:06:58.643Z","event":"fatal_error","message":"Could not reach test phase - input not visible","stack":"Error: Could not reach test phase - input not visible\n    at file:///app/e2e/audit/D1_09_perfectionist_core.mjs:801:11"}
+{"ts":"2026-05-31T21:06:58.742Z","event":"browser_closed"}

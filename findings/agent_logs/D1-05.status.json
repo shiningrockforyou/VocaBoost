@@ -1,0 +1,19 @@
+{
+  "label": "D1-05",
+  "account": "audit_phone_01_top@vocaboost.test",
+  "viewport": "390x844 mobile",
+  "csdBefore": 1,
+  "phase": "done",
+  "lastUpdate": "2026-05-31T21:17:56.872Z",
+  "classification": "COMPLETED_NOPASS",
+  "reachedTest": true,
+  "csdAfter": 1,
+  "mobileLayoutBlockers": [
+    "Start button partially/fully off-screen on 390x844 viewport: box={\"x\":41,\"y\":861,\"width\":117,\"height\":80}"
+  ],
+  "b2Strand": false,
+  "newWordSliceCorrect": true,
+  "day1OKMobile": false,
+  "consoleErrorCount": 0,
+  "orphanSessionStates": 1
+}

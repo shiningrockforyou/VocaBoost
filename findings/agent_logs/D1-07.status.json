@@ -1,0 +1,42 @@
+{
+  "label": "D1-07",
+  "account": "audit_recovering_01_core@vocaboost.test",
+  "classification": "COMPLETED_NOPASS",
+  "csdBefore": 0,
+  "csdAfter": 0,
+  "csdAdvanced": false,
+  "b2Detected": false,
+  "b2Strand": false,
+  "reachedTest": true,
+  "testCompleted": true,
+  "questionsAnswered": 25,
+  "duplicateAttempts": true,
+  "duplicateNote": "2 pre-existing Day-1 attempts (studyDay=1) from prior sessions (May 29), plus this run added a studyDay=null attempt (standalone mode). Idempotency nonce prevents in-session duplicates.",
+  "orphanDocs": false,
+  "newWordSliceCorrect": false,
+  "sliceNote": "Pre-existing Day-1 attempts show newWordEndIndex=59 (60 words); expected 11 (pace=12). Mismatch — prior sessions may have used a different pace or different allocation logic.",
+  "testMode": "typed",
+  "dailyPace": 12,
+  "weeklyPace": 60,
+  "passThreshold": 90,
+  "testSizeNew": 25,
+  "allAttemptsCount": 4,
+  "day1AttemptsWithStudyDay1": 2,
+  "day1AttemptDetails_latest_studyDay1": {
+    "studyDay": 1,
+    "passed": false,
+    "score": 0,
+    "newWordStartIndex": 0,
+    "newWordEndIndex": 59
+  },
+  "thisRunAttempt_studyDayNull": {
+    "studyDay": null,
+    "passed": false,
+    "score": 0,
+    "newWordStartIndex": null,
+    "newWordEndIndex": null,
+    "note": "Standalone TypedTest mode — no DailySessionFlow context"
+  },
+  "consoleErrorCount": 0,
+  "timestamp": "2026-05-31T21:19:46Z"
+}

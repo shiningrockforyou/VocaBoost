@@ -1,0 +1,70 @@
+{"ts":"2026-05-31T21:04:26.562Z","event":"phase","name":"BASELINE_FIRESTORE"}
+{"ts":"2026-05-31T21:04:31.910Z","event":"firestore_snapshot","label":"before","cp":0,"ss":0,"attempts":0}
+{"ts":"2026-05-31T21:04:31.910Z","event":"baseline","csd_before":"NO_DOC","attempts":0}
+{"ts":"2026-05-31T21:04:31.910Z","event":"phase","name":"BROWSER_LAUNCH"}
+{"ts":"2026-05-31T21:04:32.317Z","event":"phase","name":"LOGIN"}
+{"ts":"2026-05-31T21:04:34.560Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:04:36.564Z","event":"dashboard","preview":"Dashboard\nGradebook\nWelcome, Audit Confused First-Timer 01 (CORE)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 CORE Vocabulary (v2)\n0\n/\n300\nwords\nThis Week\n300 more to hit yo"}
+{"ts":"2026-05-31T21:04:36.564Z","event":"phase","name":"OPEN_SESSION"}
+{"ts":"2026-05-31T21:04:36.629Z","event":"start_session_clicked"}
+{"ts":"2026-05-31T21:04:39.630Z","event":"url_after_start","url":"https://vocaboostone.netlify.app/session/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:04:39.630Z","event":"phase","name":"ONBOARDING_DISMISS"}
+{"ts":"2026-05-31T21:04:39.670Z","event":"start_studying_clicked"}
+{"ts":"2026-05-31T21:04:41.174Z","event":"flashcard_ui_visible","knowBtnVisible":true}
+{"ts":"2026-05-31T21:04:41.174Z","event":"phase","name":"FLASHCARD_STUDY"}
+{"ts":"2026-05-31T21:04:43.940Z","event":"flashcard_progress","cardsDismissed":15,"mastered":60}
+{"ts":"2026-05-31T21:04:46.693Z","event":"flashcard_progress","cardsDismissed":30,"mastered":60}
+{"ts":"2026-05-31T21:04:49.442Z","event":"flashcard_progress","cardsDismissed":45,"mastered":60}
+{"ts":"2026-05-31T21:04:52.205Z","event":"flashcard_progress","cardsDismissed":60,"mastered":60}
+{"ts":"2026-05-31T21:04:52.207Z","event":"all_cards_reviewed","cardsDismissed":60}
+{"ts":"2026-05-31T21:04:52.207Z","event":"flashcard_done","cardsDismissed":60,"allCardsReviewed":true}
+{"ts":"2026-05-31T21:04:52.207Z","event":"phase","name":"NAVIGATE_TO_TEST"}
+{"ts":"2026-05-31T21:04:52.215Z","event":"js_click_take_test","succeeded":true}
+{"ts":"2026-05-31T21:04:55.718Z","event":"url_after_take_test","url":"https://vocaboostone.netlify.app/typedtest/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:04:55.719Z","event":"reached_test","reachedTest":true,"url":"https://vocaboostone.netlify.app/typedtest/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:04:55.719Z","event":"phase","name":"FILL_TEST_INPUTS"}
+{"ts":"2026-05-31T21:04:56.725Z","event":"test_questions_found","count":25,"questions":[{"idx":0,"rawText":"1.carcinogenic(adj.)","word":"carcinogenic","hasInput":true},{"idx":1,"rawText":"2.paradigm(n.)","word":"paradigm","hasInput":true},{"idx":2,"rawText":"3.infuse(v.)","word":"infuse","hasInput":true},{"idx":3,"rawText":"4.stalwart(adj.)","word":"stalwart","hasInput":true},{"idx":4,"rawText":"5.scruples\r\n(old English)(n.)","word":"scruples","hasInput":true},{"idx":5,"rawText":"6.progressive(adj.)","word":"progressive","hasInput":true},{"idx":6,"rawText":"7.critique(v.)","word":"critique","hasInput":true},{"idx":7,"rawText":"8.incorporate(v.)","word":"incorporate","hasInput":true},{"idx":8,"rawText":"9.empirical(adj.)","word":"empirical","hasInput":true},{"idx":9,"rawText":"10.vigilant(adj.)","word":"vigilant","hasInput":true},{"idx":10,"rawText":"11.strive(v.)","word":"strive","hasInput":true},{"idx":11,"rawText":"12.stratum(n.)","word":"stratum","hasInput":true},{"idx":12,"rawText":"13.earnest(adj.)","word":"earnest","hasInput":true},{"idx":13,"rawText":"14.camaraderie(n.)","word":"camaraderie","hasInput":true},{"idx":14,"rawText":"15.emaciate(v.)","word":"emaciate","hasInput":true},{"idx":15,"rawText":"16.triad(n.)","word":"triad","hasInput":true},{"idx":16,"rawText":"17.malign(v.)","word":"malign","hasInput":true},{"idx":17,"rawText":"18.scrupulous(adj.)","word":"scrupulous","hasInput":true},{"idx":18,"rawText":"19.champion(v.)","word":"champion","hasInput":true},{"idx":19,"rawText":"20.conciliatory(adj.)","word":"conciliatory","hasInput":true},{"idx":20,"rawText":"21.malady(n.)","word":"malady","hasInput":true},{"idx":21,"rawText":"22.blatant(adj.)","word":"blatant","hasInput":true},{"idx":22,"rawText":"23.arguably(adv.)","word":"arguably","hasInput":true},{"idx":23,"rawText":"24.superb(adj.)","word":"superb","hasInput":true},{"idx":24,"rawText":"25.archives(n.)","word":"archives","hasInput":true}]}
+{"ts":"2026-05-31T21:04:56.728Z","event":"input_count","count":25}
+{"ts":"2026-05-31T21:04:56.729Z","event":"filling","i":0,"word":"carcinogenic","def":"causing cancer"}
+{"ts":"2026-05-31T21:04:57.733Z","event":"filling","i":1,"word":"paradigm","def":"a typical example or pattern of something"}
+{"ts":"2026-05-31T21:05:00.598Z","event":"filling","i":2,"word":"infuse","def":"to fill or pervade with a quality or substance"}
+{"ts":"2026-05-31T21:05:03.837Z","event":"filling","i":3,"word":"stalwart","def":"sturdily built; robust; valiant; unwavering"}
+{"ts":"2026-05-31T21:05:06.812Z","event":"filling","i":4,"word":"scruples","def":"a feeling of doubt or hesitation with regard to th"}
+{"ts":"2026-05-31T21:05:13.459Z","event":"filling","i":5,"word":"progressive","def":"moving forward; favoring reform"}
+{"ts":"2026-05-31T21:05:15.623Z","event":"filling","i":6,"word":"critique","def":"to a serious examination and judgment of something"}
+{"ts":"2026-05-31T21:05:19.071Z","event":"filling","i":7,"word":"incorporate","def":"to include; to make a part of something"}
+{"ts":"2026-05-31T21:05:21.849Z","event":"filling","i":8,"word":"empirical","def":"derived from experiment and observation rather tha"}
+{"ts":"2026-05-31T21:05:25.957Z","event":"filling","i":9,"word":"vigilant","def":"keeping careful watch for possible danger or diffi"}
+{"ts":"2026-05-31T21:05:30.004Z","event":"filling","i":10,"word":"strive","def":"to make great efforts or work hard towards a goal "}
+{"ts":"2026-05-31T21:05:34.416Z","event":"filling","i":11,"word":"stratum","def":"a layer; a level"}
+{"ts":"2026-05-31T21:05:35.690Z","event":"filling","i":12,"word":"earnest","def":"genuine"}
+{"ts":"2026-05-31T21:05:36.214Z","event":"filling","i":13,"word":"camaraderie","def":"friendship"}
+{"ts":"2026-05-31T21:05:37.043Z","event":"filling","i":14,"word":"emaciate","def":"to make extremely thin through starvation or illne"}
+{"ts":"2026-05-31T21:05:40.992Z","event":"filling","i":15,"word":"triad","def":"a group of three related things or people"}
+{"ts":"2026-05-31T21:05:43.929Z","event":"filling","i":16,"word":"malign","def":"to cause or intend to cause harm"}
+{"ts":"2026-05-31T21:05:46.427Z","event":"filling","i":17,"word":"scrupulous","def":"diligent, thorough, and extremely attentive to det"}
+{"ts":"2026-05-31T21:05:50.334Z","event":"filling","i":18,"word":"champion","def":"to fight for or defend publicly"}
+{"ts":"2026-05-31T21:05:52.514Z","event":"filling","i":19,"word":"conciliatory","def":"intended to reconcile or pacify"}
+{"ts":"2026-05-31T21:05:54.699Z","event":"filling","i":20,"word":"malady","def":"a disease or illness"}
+{"ts":"2026-05-31T21:05:56.146Z","event":"filling","i":21,"word":"blatant","def":"conspicuously and offensively loud; with no attemp"}
+{"ts":"2026-05-31T21:06:00.486Z","event":"filling","i":22,"word":"arguably","def":"used to indicate that something is open to debate "}
+{"ts":"2026-05-31T21:06:04.904Z","event":"filling","i":23,"word":"superb","def":"excellent"}
+{"ts":"2026-05-31T21:06:05.566Z","event":"filling","i":24,"word":"archives","def":"a place where historical documents or materials ar"}
+{"ts":"2026-05-31T21:06:12.459Z","event":"all_inputs_filled","questionsAnswered":25}
+{"ts":"2026-05-31T21:06:12.461Z","event":"phase","name":"SUBMIT_TEST"}
+{"ts":"2026-05-31T21:06:12.464Z","event":"submit_btn_visible","visible":true}
+{"ts":"2026-05-31T21:06:13.029Z","event":"submit_clicked"}
+{"ts":"2026-05-31T21:06:15.031Z","event":"grading_wait_start"}
+{"ts":"2026-05-31T21:06:48.036Z","event":"grading_timeout_90s"}
+{"ts":"2026-05-31T21:06:48.036Z","event":"phase","name":"RESULTS"}
+{"ts":"2026-05-31T21:06:51.040Z","event":"results","hasResults":false,"preview":"Step 2 of 3\n\nNew Words Test — Day 1\n\nCompleted Day 1 session\n\n100%\n\n25 of 25 correct\n\nContinue\nAnswers\n1\ncarcinogenic\n✓\n\nCorrect Answer\n\ncausing cancer\n\nYour Answer\n\ncausing cancer\n\n2\nparadigm\n✓\n\nCorrect Answer\n\na typical example or pattern of something\n\nYour Answer\n\na typical example or pattern of something\n\n3\ninfuse\n✓\n\nCorrect Answer\n\nto fill or pervade with a quality or substance\n\nYour Answer\n\nto fill or pervade with a quality or substance\n\n4\nstalwart\n✓\n\nCorrect Answer\n\nsturdily built; robust; valiant; unwavering\n\nYour Answer\n\nsturdily built; robust; valiant; unwavering\n\n5\nscruples (old Eng"}
+{"ts":"2026-05-31T21:06:58.041Z","event":"phase","name":"POST_FIRESTORE"}
+{"ts":"2026-05-31T21:06:58.082Z","event":"firestore_snapshot","label":"after","cp":0,"ss":0,"attempts":1}
+{"ts":"2026-05-31T21:06:58.082Z","event":"post_state","csd_before":"NO_DOC","csd_after":"NO_DOC","attempts_after":1}
+{"ts":"2026-05-31T21:06:58.082Z","event":"phase","name":"ASSERTIONS"}
+{"ts":"2026-05-31T21:06:58.082Z","event":"assertions_done","reachedTest":true,"b2Strand":"NONE","wordSliceCorrect":"FAIL","csdAdvanced":false,"duplicate_attempts":false,"hasOrphans":false}
+{"ts":"2026-05-31T21:06:58.082Z","event":"phase","name":"CLASSIFICATION"}
+{"ts":"2026-05-31T21:06:58.082Z","event":"classification","classification":"COMPLETED_NOPASS","blockers":1,"highs":1}
+{"ts":"2026-05-31T21:06:58.094Z","event":"outputs_written"}
+{"ts":"2026-05-31T21:06:58.189Z","event":"browser_closed"}
+{"ts":"2026-05-31T21:09:00.000Z","event":"manual_correction","reason":"Script queried wrong Firestore paths (root class_progress instead of users/{uid}/class_progress subcollection, and newWordEndIndex=59 is inclusive not exclusive). All assertions PASS on manual Admin SDK verification.","classification":"COMPLETED_PASS"}

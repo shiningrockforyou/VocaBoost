@@ -1,0 +1,23 @@
+{
+  "label": "D1-08",
+  "account": "audit_rushed_01_core@vocaboost.test",
+  "uid": "QJ5AXP27u9exyxGRgnmU5ARsBRm2",
+  "classification": "COMPLETED_PASS",
+  "day1OK": true,
+  "csdBefore": 0,
+  "csdAfter": 1,
+  "b2Strand": false,
+  "newWordSliceCorrect": true,
+  "duplicateFromRush": false,
+  "skippedQuestions": false,
+  "consoleErrors": 0,
+  "orphanDocs": false,
+  "score": 100,
+  "passed": true,
+  "questionsAnswered": 25,
+  "questionCount": 25,
+  "attemptsBeforeCount": 1,
+  "attemptsAfterCount": 2,
+  "completedAt": "2026-05-31T20:46:51Z",
+  "note": "2 attempts: prior failed run (score 4/25, ~21h earlier) + this passing run (score 100/25). No duplicate from rushed clicking."
+}

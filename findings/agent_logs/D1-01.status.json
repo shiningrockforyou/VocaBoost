@@ -1,0 +1,32 @@
+{
+  "label": "D1-01",
+  "account": "audit_speedrunner_01_top@vocaboost.test",
+  "uid": "YWSfNes3g7Mdo6tcg7h6ql4Youv2",
+  "reachedNewWordTest": true,
+  "classification": "COMPLETED_NOPASS",
+  "b2StrandError": false,
+  "newWordSliceCorrect": true,
+  "nwei_found": 79,
+  "csdBefore": 0,
+  "csdAfter": 0,
+  "duplicateNote": "14 pre-existing Day-1 attempts before run; 1 new attempt(s) this run",
+  "thisRunDuplicate": false,
+  "consoleErrors": [],
+  "orphanDocs": "NONE",
+  "overallOk": true,
+  "newAttempts": [
+    {
+      "id": "YWSfNes3g7Mdo6tcg7h6ql4Youv2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780261586400_yzxvf5iyq",
+      "studyDay": 1,
+      "score": 0,
+      "passed": false,
+      "sessionType": "new",
+      "newWordEndIndex": 79
+    }
+  ],
+  "servedWords": [
+    "inflammatory"
+  ],
+  "answeredCount": 30,
+  "runAt": "2026-05-31T21:06:26.865Z"
+}

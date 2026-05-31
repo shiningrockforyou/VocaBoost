@@ -36,6 +36,7 @@ gcp-key.json
 
 # Audit-generated credentials (contains real Firebase passwords)
 audit/playwright/seeded_accounts.json
+audit/playwright/seeded_*.json
 audit/playwright/findings/evidence/
 audit/playwright/findings/findings_*.md
 audit/playwright/findings/SUMMARY.md

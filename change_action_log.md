@@ -4,7 +4,13 @@
 
 | Date | File | Change |
 |------|------|--------|
+| 2026-05-31 | `public/help-teacher-ko.html`, `public/help-teacher-en.html` | Resectioned both teacher guides to front-load top TA tasks: moved Gradebook from 6th to 3rd (now: 1 Getting Started, 2 TA/Admin Access, 3 Gradebook, 4 Class Management, 5 Word List Management, 6 Assigning Word Lists, 7 FAQ). Renumbered TOC, section-number spans, and section comments. EN file was missing the TA/Admin Access section so added it as section 2 (translated from KO) to keep the two files parallel. No prose rewrites. |
 | 2026-06-01 | `CODE_REVIEW_2026-06-01.md` | Added full multi-agent code audit report (vocaBoost excl. apBoost): 72 verified findings (0 blocker / 7 high), severity-ranked + systemic patterns |
+| 2026-05-31 | `scripts/seed-26sm-classes.js` | Created seeder that creates 28 26SM SAT classes in production with appropriate Base Camp (pace=60, size=25, threshold=90) or Ascent (pace=80, size=30, threshold=92) tier defaults; auto-assigns the matching VZIP 3K list; auto-detects weekend ([주말]) classes for studyDaysPerWeek=2 |
+| 2026-05-31 | Firebase production | Created 28 26SM SAT classes via seed-26sm-classes.js (16 Base Camp / 12 Ascent); each with auto-generated unique 6-char joinCode, veterans@vocaboost.com as ownerTeacherId, list assignment baked in. Join codes recorded in audit/playwright/seeded_26sm_classes.json (gitignored) |
+| 2026-05-31 | `.gitignore` | Added pattern `audit/playwright/seeded_*.json` so the new 26SM class output file (with join codes) doesn't get committed |
+| 2026-05-31 | `scripts/update-26sm-classes.js` | Created script + updated all 28 26SM SAT class assignments to corrected tier definitions: BRIDGE pace 60 (3 classes), INT/CORE pace 80 (12), ADV/Top pace 80 (10), FINAL pace 100 (3). Set testOptionsCount=6 for all (6-choice MCQ review). testMode=typed and reviewTestType=mcq preserved across all. studyDaysPerWeek preserved (2 for [주말], 5 otherwise) |
+| 2026-05-31 | `scripts/update-26sm-classes.js` + Firebase | Bumped FINAL tier testSizeNew from 30 → 35; reran update across all 28 (effective change on 3 FINAL classes only) |
 | 2026-01-02 | `src/pages/Dashboard.jsx` | Removed Panic Mode warning banner (lines 1300-1312) |
 | 2026-01-02 | `src/pages/DailySessionFlow.jsx` | Fixed daily pace calculation - changed `pace * 7` to `pace * studyDaysPerWeek` (line 467) |
 | 2026-01-02 | `src/pages/ClassDetail.jsx` | Added `studyDaysPerWeek` setting to Edit List Settings modal |

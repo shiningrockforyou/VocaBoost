@@ -1,0 +1,387 @@
+{
+  "label": "before",
+  "capturedAt": "2026-05-31T20:45:39.960Z",
+  "classProgress": [
+    {
+      "id": "LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR",
+      "classId": "LVjBTFuYE8FbPG34pVAt",
+      "listId": "aRGjnGXdU4aupiS8SlXR",
+      "currentStudyDay": 0,
+      "totalWordsIntroduced": 0,
+      "programStartDate": {
+        "_seconds": 1780183761,
+        "_nanoseconds": 907000000
+      },
+      "interventionLevel": 0,
+      "recentSessions": [],
+      "stats": {
+        "avgNewWordScore": null,
+        "avgReviewScore": null
+      },
+      "streakDays": 0,
+      "lastStudyDate": null,
+      "lastSessionAt": null,
+      "createdAt": {
+        "_seconds": 1780183761,
+        "_nanoseconds": 907000000
+      },
+      "updatedAt": {
+        "_seconds": 1780183761,
+        "_nanoseconds": 907000000
+      }
+    }
+  ],
+  "studyStates": 60,
+  "sessionStates": [
+    {
+      "id": "LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR",
+      "listId": "aRGjnGXdU4aupiS8SlXR",
+      "phase": "new-words-study",
+      "lastUpdated": {
+        "_seconds": 1780183763,
+        "_nanoseconds": 677000000
+      },
+      "classId": "LVjBTFuYE8FbPG34pVAt",
+      "currentStudyDay": 1,
+      "reviewDismissedIds": [],
+      "reviewTestAttempts": 0,
+      "reviewTestScore": null,
+      "newWordsDismissedIds": []
+    }
+  ],
+  "attempts": [
+    {
+      "id": "QJ5AXP27u9exyxGRgnmU5ARsBRm2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780184655699_7oyugwph2",
+      "studentId": "QJ5AXP27u9exyxGRgnmU5ARsBRm2",
+      "testId": "vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new",
+      "classId": "LVjBTFuYE8FbPG34pVAt",
+      "listId": "aRGjnGXdU4aupiS8SlXR",
+      "teacherId": "9OcxdnYCCGZYOrzfs09pUTUoDOR2",
+      "testType": "typed",
+      "sessionType": "new",
+      "studyDay": 1,
+      "score": 4,
+      "graded": true,
+      "answers": [
+        {
+          "wordId": "ZZd7ion6selDEw6BjDLi",
+          "word": "qualify",
+          "correctAnswer": "to limit (a claim); to specify a condition to make a claim narrower",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes vigilance or caution, but qualify means to limit or narrow a claim. These are unrelated meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "2lefRI2MYxLfqeH7DxWT",
+          "word": "apropos",
+          "correctAnswer": "appropriate; coming at the right time",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but apropos means appropriate or timely. These are different concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "GjWLcJN6yasxeCrZBtko",
+          "word": "fabricate",
+          "correctAnswer": "to invent, create falsely",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but fabricate means to invent or create falsely. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "yaN2oY2VwPMpNhEABkst",
+          "word": "progressive",
+          "correctAnswer": "moving forward; favoring reform",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but progressive means moving forward or favoring reform. These are unrelated.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "t1RJcrK7Sj032KAViKWD",
+          "word": "noxious",
+          "correctAnswer": "injurious to physical or mental health",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but noxious means injurious or harmful to health. These are different meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "0ZshqlVBEn2LVB00h4g7",
+          "word": "scrupulous",
+          "correctAnswer": "diligent, thorough, and extremely attentive to details",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": true,
+          "aiReasoning": "",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "Wi1TTuqqfJD2dlz70GYZ",
+          "word": "versatile",
+          "correctAnswer": "competent in many areas; useful in many situations or aspects",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but versatile means competent in many areas or useful in many situations. These don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "loTWOZJZh0Xq3DJHQ1RF",
+          "word": "reiterate",
+          "correctAnswer": "to say, state, or perform again",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but reiterate means to say or state again. These are unrelated meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "WAJdujIq6XQ1cgNW55CB",
+          "word": "earnest",
+          "correctAnswer": "genuine",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but earnest means genuine or sincere. These are different concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "ZFrOJnSDKSDnUE93xZUh",
+          "word": "incorporate",
+          "correctAnswer": "to include; to make a part of something",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but incorporate means to include or make part of something. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "kvi865ZloorljV7MvVEE",
+          "word": "superb",
+          "correctAnswer": "excellent",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but superb means excellent. These are unrelated meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "OOtDMCIDzUlbknyMO92A",
+          "word": "catalyst",
+          "correctAnswer": "something that causes an important event to happen; (chemistry) a substance that accelerates a chemical reaction",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but catalyst means something that causes an important event or accelerates a reaction. These don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "HSwebb2bR7Cwa8q3oMQv",
+          "word": "cherish",
+          "correctAnswer": "to be fond of; to be attached to",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but cherish means to be fond of or attached to. These are different meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "901A25KzYUCF1AkBUCdK",
+          "word": "sly",
+          "correctAnswer": "clever in a dishonest way",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but sly means clever in a dishonest way. These are unrelated concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "tm0bTZmpyG4ZvERdMgJj",
+          "word": "critique",
+          "correctAnswer": "to a serious examination and judgment of something",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but critique means to examine and judge something seriously. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "6E5E7W8j54hk3ttzKnIq",
+          "word": "defiance",
+          "correctAnswer": "a refusal to obey something or someone",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but defiance means a refusal to obey. These are different meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "bFVHednfk0dJBWz8OCPj",
+          "word": "catharsis",
+          "correctAnswer": "emotional release",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but catharsis means emotional release. These are unrelated concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "JRt7LHxf2VILmATMN5Ds",
+          "word": "conciliatory",
+          "correctAnswer": "intended to reconcile or pacify",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but conciliatory means intended to reconcile or pacify. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "qqpNbYAbHvxuXmYQKyj3",
+          "word": "whilst\r\n(old English)",
+          "correctAnswer": "while.",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but whilst means while or during the time that. These are unrelated meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "LUDUdHLtYhCvYF886prQ",
+          "word": "embark",
+          "correctAnswer": "1. to begin a journey especially on a ship or airplane\r\n2. to make a start",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but embark means to begin a journey or make a start. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "WSRYxPANq48QNLbWoKbb",
+          "word": "infuse",
+          "correctAnswer": "to fill or pervade with a quality or substance",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but infuse means to fill or pervade with a quality. These are different concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "S8n84P1O446HnwB0x93Y",
+          "word": "disobedient",
+          "correctAnswer": "not doing what someone or something with authority tells you to do",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but disobedient means not doing what someone with authority tells you to do. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "SwmF49GVZMcxRRSkj4Rp",
+          "word": "exposition",
+          "correctAnswer": "explanation; a large public exhibition",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but exposition means explanation or a large public exhibition. These are unrelated meanings.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "kvXJ2DdDyVuIQUpWKGfO",
+          "word": "archives",
+          "correctAnswer": "a place where historical documents or materials are stored; the documents or materials themselves",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer is about caution, but archives means a place where historical documents are stored. These meanings don't match.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        },
+        {
+          "wordId": "xGbH99nMVhVj20vWpnKG",
+          "word": "strive",
+          "correctAnswer": "to make great efforts or work hard towards a goal or objective",
+          "studentResponse": "keeping careful watch for possible danger",
+          "isCorrect": false,
+          "aiReasoning": "Your answer describes watchfulness, but strive means to make great efforts toward a goal. These are different concepts.",
+          "challengeStatus": null,
+          "challengeNote": null,
+          "challengeReviewedBy": null,
+          "challengeReviewedAt": null
+        }
+      ],
+      "skipped": 0,
+      "totalQuestions": 25,
+      "credibility": 0.04,
+      "retention": 0.04,
+      "passed": false,
+      "isFirstDay": true,
+      "listTitle": "25WT2 CORE Vocabulary (v2)",
+      "segmentStartIndex": null,
+      "segmentEndIndex": null,
+      "interventionLevel": 0,
+      "wordsIntroduced": 60,
+      "wordsReviewed": 0,
+      "newWordStartIndex": 0,
+      "newWordEndIndex": 59,
+      "submittedAt": {
+        "_seconds": 1780184654,
+        "_nanoseconds": 834000000
+      }
+    }
+  ]
+}

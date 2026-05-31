@@ -1,0 +1,74 @@
+{"ts":"2026-05-31T20:56:19.226Z","type":"start","account":"audit_multidevice_01_top@vocaboost.test"}
+{"ts":"2026-05-31T20:56:25.534Z","type":"uid","uid":"oGsmh7KnI0XfU9xYixMJ7PbuVvq2"}
+{"ts":"2026-05-31T20:56:25.584Z","type":"snapshot_before","csd":0,"attempts":0}
+{"ts":"2026-05-31T20:56:25.921Z","type":"step","step":"login"}
+{"ts":"2026-05-31T20:56:29.010Z","type":"logged_in","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:56:29.098Z","type":"screenshot","file":"/app/findings/evidence/D1-02/01_dashboard.png"}
+{"ts":"2026-05-31T20:56:29.098Z","type":"step","step":"open_session"}
+{"ts":"2026-05-31T20:56:31.144Z","type":"session_opened","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T20:56:34.215Z","type":"screenshot","file":"/app/findings/evidence/D1-02/02_session_loading.png"}
+{"ts":"2026-05-31T20:56:34.215Z","type":"step","step":"start_studying"}
+{"ts":"2026-05-31T20:56:35.756Z","type":"start_studying","clicked":true}
+{"ts":"2026-05-31T20:56:35.837Z","type":"screenshot","file":"/app/findings/evidence/D1-02/03_session_active.png"}
+{"ts":"2026-05-31T20:56:35.840Z","type":"step","step":"flashcard_study"}
+{"ts":"2026-05-31T20:56:39.690Z","type":"cards_dismissed","count":5}
+{"ts":"2026-05-31T20:56:39.762Z","type":"screenshot","file":"/app/findings/evidence/D1-02/04_after_cards.png"}
+{"ts":"2026-05-31T20:56:39.762Z","type":"step","step":"skip_to_test"}
+{"ts":"2026-05-31T20:56:40.685Z","type":"screenshot","file":"/app/findings/evidence/D1-02/05_session_menu.png"}
+{"ts":"2026-05-31T20:56:41.878Z","type":"screenshot","file":"/app/findings/evidence/D1-02/06_skip_modal.png"}
+{"ts":"2026-05-31T20:56:43.939Z","type":"start_test","clicked":true}
+{"ts":"2026-05-31T20:56:44.202Z","type":"screenshot","file":"/app/findings/evidence/D1-02/07_test_phase.png"}
+{"ts":"2026-05-31T20:56:44.202Z","type":"step","step":"test_phase"}
+{"ts":"2026-05-31T20:56:44.224Z","type":"test_inputs_found","count":30}
+{"ts":"2026-05-31T20:56:44.228Z","type":"question_words","words":["ponderous","devalue","impervious","unequivocal","affable","prithee","composure","determinant","degenerate","implacable","stoical","harry","repudiate","technical","engrave","effusion","fetter","paranormal","resentful","redolent","continuum","bourgeois","repea","zeal","rout","pathos","machination","visage","forensic","fathom"]}
+{"ts":"2026-05-31T20:56:44.228Z","type":"typing_answer","q":1,"word":"ponderous","def":"slow and clumsy because of great weight."}
+{"ts":"2026-05-31T20:56:46.874Z","type":"screenshot","file":"/app/findings/evidence/D1-02/08_first_answer_typed.png"}
+{"ts":"2026-05-31T20:56:46.874Z","type":"typing_answer","q":2,"word":"devalue","def":"to reduce or lower the value or worth of something"}
+{"ts":"2026-05-31T20:56:49.782Z","type":"typing_answer","q":3,"word":"impervious","def":"not admitting of passage or capable of being affec"}
+{"ts":"2026-05-31T20:56:52.845Z","type":"typing_answer","q":4,"word":"unequivocal","def":"clear, not ambiguous"}
+{"ts":"2026-05-31T20:56:54.246Z","type":"typing_answer","q":5,"word":"affable","def":"friendly"}
+{"ts":"2026-05-31T20:56:55.344Z","type":"screenshot","file":"/app/findings/evidence/D1-02/09_fifth_answer_typed.png"}
+{"ts":"2026-05-31T20:56:55.344Z","type":"typing_answer","q":6,"word":"prithee","def":"please"}
+{"ts":"2026-05-31T20:56:56.047Z","type":"typing_answer","q":7,"word":"composure","def":"calmness, self-control"}
+{"ts":"2026-05-31T20:56:57.534Z","type":"typing_answer","q":8,"word":"determinant","def":"a factor or element that determines an outcome"}
+{"ts":"2026-05-31T20:57:00.329Z","type":"typing_answer","q":9,"word":"degenerate","def":"to break down; to deteriorate"}
+{"ts":"2026-05-31T20:57:02.183Z","type":"typing_answer","q":10,"word":"implacable","def":"unable to be appeased or pacified"}
+{"ts":"2026-05-31T20:57:04.228Z","type":"typing_answer","q":11,"word":"stoical","def":"seeming unaffected by pleasure or pain; impassive,"}
+{"ts":"2026-05-31T20:57:08.228Z","type":"typing_answer","q":12,"word":"harry","def":"to harass; to annoy"}
+{"ts":"2026-05-31T20:57:09.636Z","type":"typing_answer","q":13,"word":"repudiate","def":"to reject, deny, or refuse to accept or support so"}
+{"ts":"2026-05-31T20:57:12.909Z","type":"typing_answer","q":14,"word":"technical","def":"relating to a particular subject, art, or craft, o"}
+{"ts":"2026-05-31T20:57:16.735Z","type":"typing_answer","q":15,"word":"engrave","def":"to cut or carve lines, letters, designs, etc., ont"}
+{"ts":"2026-05-31T20:57:20.861Z","type":"typing_answer","q":16,"word":"effusion","def":"a pouring forth"}
+{"ts":"2026-05-31T20:57:22.015Z","type":"typing_answer","q":17,"word":"fetter","def":"to restrain; to hamper"}
+{"ts":"2026-05-31T20:57:23.612Z","type":"typing_answer","q":18,"word":"paranormal","def":"having to do with an event or events that can't be"}
+{"ts":"2026-05-31T20:57:28.869Z","type":"typing_answer","q":19,"word":"resentful","def":"having ill-will or hostility"}
+{"ts":"2026-05-31T20:57:30.672Z","type":"typing_answer","q":20,"word":"redolent","def":"strongly reminiscent or suggestive of something"}
+{"ts":"2026-05-31T20:57:33.449Z","type":"typing_answer","q":21,"word":"continuum","def":"a continuous whole without clear division into par"}
+{"ts":"2026-05-31T20:57:36.423Z","type":"typing_answer","q":22,"word":"bourgeois","def":"middle class, usually in a pejorative sense; borin"}
+{"ts":"2026-05-31T20:57:40.185Z","type":"typing_answer","q":23,"word":"repea","def":"to officially make (a law) no longer valid"}
+{"ts":"2026-05-31T20:57:42.675Z","type":"typing_answer","q":24,"word":"zeal","def":"great energy or enthusiasm in pursuit of a cause o"}
+{"ts":"2026-05-31T20:57:46.295Z","type":"typing_answer","q":25,"word":"rout","def":"to put to flight; to scatter; to cause a huge defe"}
+{"ts":"2026-05-31T20:57:49.263Z","type":"typing_answer","q":26,"word":"pathos","def":"an emotion of sympathy"}
+{"ts":"2026-05-31T20:57:50.754Z","type":"typing_answer","q":27,"word":"machination","def":"scheming activity for an evil purpose"}
+{"ts":"2026-05-31T20:57:52.993Z","type":"typing_answer","q":28,"word":"visage","def":"a person's face."}
+{"ts":"2026-05-31T20:57:54.191Z","type":"typing_answer","q":29,"word":"forensic","def":"related to or used in courts of law"}
+{"ts":"2026-05-31T20:57:56.296Z","type":"typing_answer","q":30,"word":"fathom","def":"to understand, comprehend"}
+{"ts":"2026-05-31T20:57:57.970Z","type":"all_answers_typed","count":30}
+{"ts":"2026-05-31T20:57:58.612Z","type":"screenshot","file":"/app/findings/evidence/D1-02/10_all_answers_typed.png"}
+{"ts":"2026-05-31T20:57:58.612Z","type":"step","step":"submit_test"}
+{"ts":"2026-05-31T20:57:58.663Z","type":"submit_clicked"}
+{"ts":"2026-05-31T20:57:59.053Z","type":"screenshot","file":"/app/findings/evidence/D1-02/11_after_submit.png"}
+{"ts":"2026-05-31T20:57:59.053Z","type":"step","step":"grading_wait"}
+{"ts":"2026-05-31T20:57:59.053Z","type":"grading_started"}
+{"ts":"2026-05-31T20:58:12.879Z","type":"grading_done"}
+{"ts":"2026-05-31T20:58:13.577Z","type":"screenshot","file":"/app/findings/evidence/D1-02/12_after_grading.png"}
+{"ts":"2026-05-31T20:58:13.577Z","type":"step","step":"results"}
+{"ts":"2026-05-31T20:58:17.076Z","type":"screenshot","file":"/app/findings/evidence/D1-02/13_results.png"}
+{"ts":"2026-05-31T20:58:17.079Z","type":"results_text","text":"Step 2 of 3\n\nNew Words Test — Day 1\n\nCompleted Day 1 session\n\n100%\n\n30 of 30 correct\n\nContinue\nAnswers\n1\nponderous (old English)\n✓\n\nCorrect Answer\n\nslow and clumsy because of great weight.\n\nYour Answer\n\nslow and clumsy because of great weight.\n\n2\ndevalue\n✓\n\nCorrect Answer\n\nto reduce or lower the value or worth of something\n\nYour Answer\n\nto reduce or lower the value or worth of something\n\n3\nimpervious\n✓\n\nCorrect Answer\n\nnot admitting of passage or capable of being affected\n\nYour Answer\n\nnot admitting of passage or capable of being affected\n\n4\nunequivocal\n✓\n\nCorrect Answer\n\nclear, not ambiguous\n"}
+{"ts":"2026-05-31T20:58:17.079Z","type":"result_detection","isPass":true,"isFail":false}
+{"ts":"2026-05-31T20:58:17.079Z","type":"step","step":"post_snapshot"}
+{"ts":"2026-05-31T20:58:25.132Z","type":"snapshot_after","csd":1,"attempts":1,"attemptIds":["oGsmh7KnI0XfU9xYixMJ7PbuVvq2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780261092287_3b27ofg5v"]}
+{"ts":"2026-05-31T20:58:25.132Z","type":"assertions","csdBefore":0,"csdAfter":1,"csdAdvanced":true,"attsBefore":0,"attsAfter":1,"newAttempts":1,"exactlyOneAttempt":true,"b2Strand":false,"wordSliceCorrect":true}
+{"ts":"2026-05-31T20:58:25.132Z","type":"classification","classification":"COMPLETED_PASS"}
+{"ts":"2026-05-31T20:58:25.792Z","type":"screenshot","file":"/app/findings/evidence/D1-02/14_final.png"}
+{"ts":"2026-05-31T20:58:25.922Z","type":"browser_closed"}

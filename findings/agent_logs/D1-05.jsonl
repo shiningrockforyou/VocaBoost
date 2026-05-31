@@ -1,0 +1,362 @@
+{"ts":"2026-05-31T20:45:15.692Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T20:45:21.230Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T20:45:21.239Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T20:45:21.618Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T20:45:21.623Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T20:45:24.524Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T20:45:25.743Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:45:25.997Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T20:45:28.009Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T20:45:28.013Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T20:45:29.041Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T20:45:29.486Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T20:45:29.541Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T20:45:31.701Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T20:45:32.016Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T20:45:32.020Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T20:45:34.029Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)\n\nCustomize Your Flashcards\n\nChoose what to show on the back of each card.\n\n🇰🇷\nKorean Definition\n💬\nSample Sentence\n\nYou can change these anytime in the menu (⋮)\n\nS"}
+{"ts":"2026-05-31T20:45:34.044Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T20:45:34.054Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T20:45:34.282Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T20:46:04.607Z","msg":"FATAL ERROR: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /got it|i know|know this|dismiss|next/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"Next card\" class=\"p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n","stack":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /got it|i know|know this|dismiss|next/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button aria-label=\"Next card\" class=\"p-2 rounded-full text-text-muted hover:text-text-primary hover:bg-muted active:scale-95 transition flex-shrink-0\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"w-full max-w-sm rounded-2xl bg-surface p-6 shadow-xl\">…</div> from <div class=\"fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /app/d1_05_mobile_audit.mjs:389:26"}
+{"ts":"2026-05-31T20:46:04.666Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T20:47:32.446Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T20:47:37.951Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T20:47:37.963Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T20:47:38.364Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T20:47:38.367Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T20:47:41.230Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T20:47:42.464Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:47:42.662Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T20:47:44.668Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T20:47:44.671Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T20:47:45.693Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T20:47:45.954Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T20:47:45.988Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T20:47:45.992Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T20:47:48.588Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T20:47:48.807Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T20:47:48.811Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T20:47:50.319Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T20:47:52.024Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T20:47:52.027Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T20:47:54.034Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T20:47:54.038Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T20:47:54.043Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T20:47:54.254Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T20:47:58.050Z","msg":"Screenshot: 05_study_phase_card10.png"}
+{"ts":"2026-05-31T20:48:36.639Z","msg":"Flashcard study: dismissed 120 cards"}
+{"ts":"2026-05-31T20:48:36.934Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T20:48:36.938Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T20:48:39.105Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T20:48:39.110Z","msg":"Test start page text (first 400):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 6 of 80\n\nfiat\n\n(n.)\n\nfiat\n\n(n.)\n\nan arbitrary decree or order\n\n🇰🇷\n\nKorean\n\n법령, 명령, 엄명, 인가\n\nSAMPLE SENTENCE\n\nThe principal issued a fiat requiring all students to wear uniforms starting next semester. (1606)"}
+{"ts":"2026-05-31T20:48:39.113Z","msg":"Test not visible after study phase. Mobile layout may be blocking input.","body":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 6 of 80\n\nfiat\n\n(n.)\n\nfiat\n\n(n.)\n\nan arbitrary decree or order\n\n🇰🇷\n\nKorean\n\n법령, 명령, 엄명, 인가\n\nSAMPLE SENTENCE\n\nThe principal issued a fiat requiring all students to wear uniforms starting next semester. (1606)"}
+{"ts":"2026-05-31T20:48:39.227Z","msg":"FATAL ERROR: Test not reachable on mobile","stack":"Error: Test not reachable on mobile\n    at file:///app/d1_05_mobile_audit.mjs:492:15"}
+{"ts":"2026-05-31T20:48:39.271Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T20:53:08.238Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T20:53:13.896Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T20:53:13.903Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T20:53:14.225Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T20:53:14.230Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T20:53:17.116Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T20:53:18.254Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:53:18.438Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T20:53:20.448Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T20:53:20.450Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T20:53:21.472Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T20:53:21.712Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T20:53:21.743Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T20:53:21.746Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T20:53:24.358Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T20:53:24.580Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T20:53:24.583Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T20:53:26.093Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T20:53:27.804Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T20:53:27.807Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T20:53:29.813Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T20:53:29.818Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T20:53:29.821Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T20:53:30.083Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T20:53:30.104Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T20:53:30.603Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T20:53:31.174Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T20:53:31.637Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T20:53:32.079Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T20:53:32.528Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T20:53:32.693Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T20:53:32.700Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T20:53:34.140Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T20:53:34.160Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T20:53:38.428Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T20:53:38.434Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T20:53:38.438Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T20:53:41.051Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T20:53:41.059Z","msg":"Test start page text (first 400):","excerpt":"Step 1 of 3\n5\n\nNew Words Study — Day 1\n\nProgress\n\n5 of 80 mastered\n\nCard 1 of 75\n\nfiat\n\n(n.)\n\nfiat\n\n(n.)\n\nan arbitrary decree or order\n\n🇰🇷\n\nKorean\n\n법령, 명령, 엄명, 인가\n\nSAMPLE SENTENCE\n\nThe principal issued a fiat requiring all students to wear uniforms starting next semester. (1606)\n\n⚡\nReady for the Test?\n\nYou still have 75 cards remaining. If you don't pass, you can study again and retake.\n\nKeep St"}
+{"ts":"2026-05-31T20:53:41.068Z","msg":"Already at results page (skipped test or test was empty)"}
+{"ts":"2026-05-31T20:53:41.073Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T20:53:41.079Z","msg":"Results reached after 0 questions"}
+{"ts":"2026-05-31T20:53:41.083Z","msg":"Total questions answered: 0"}
+{"ts":"2026-05-31T20:53:41.598Z","msg":"Screenshot: 10_after_all_questions.png"}
+{"ts":"2026-05-31T20:53:41.604Z","msg":"=== CHECKING RESULTS ==="}
+{"ts":"2026-05-31T20:53:44.624Z","msg":"Results text (first 500):","excerpt":"Step 1 of 3\n5\n\nNew Words Study — Day 1\n\nProgress\n\n5 of 80 mastered\n\nCard 1 of 75\n\nfiat\n\n(n.)\n\nfiat\n\n(n.)\n\nan arbitrary decree or order\n\n🇰🇷\n\nKorean\n\n법령, 명령, 엄명, 인가\n\nSAMPLE SENTENCE\n\nThe principal issued a fiat requiring all students to wear uniforms starting next semester. (1606)\n\n⚡\nReady for the Test?\n\nYou still have 75 cards remaining. If you don't pass, you can study again and retake.\n\nKeep Studying\nStart Test"}
+{"ts":"2026-05-31T20:53:45.222Z","msg":"Screenshot: 11_results_page.png"}
+{"ts":"2026-05-31T20:53:45.226Z","msg":"Results: pass=true fail=false"}
+{"ts":"2026-05-31T20:53:45.229Z","msg":"=== FIRESTORE VERIFICATION ==="}
+{"ts":"2026-05-31T20:53:50.287Z","msg":"AFTER: CSD=1, attempts=0"}
+{"ts":"2026-05-31T20:53:50.291Z","msg":"CSD before→after: 1→1"}
+{"ts":"2026-05-31T20:53:50.295Z","msg":"CSD still at 1 — Day 1 not completed"}
+{"ts":"2026-05-31T20:53:50.298Z","msg":"New-word slice: expected 30 words, list has 30, Day-1 slice = 30"}
+{"ts":"2026-05-31T20:53:50.302Z","msg":"Session states after: 1 docs"}
+{"ts":"2026-05-31T20:53:51.016Z","msg":"Screenshot: 12_final_state.png"}
+{"ts":"2026-05-31T20:53:51.260Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T20:55:11.578Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T20:55:17.429Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T20:55:17.439Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T20:55:17.814Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T20:55:17.822Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T20:55:20.717Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T20:55:21.835Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:55:22.035Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T20:55:24.041Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T20:55:24.044Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T20:55:25.061Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T20:55:25.303Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T20:55:25.331Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T20:55:25.334Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T20:55:27.934Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T20:55:28.134Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T20:55:28.137Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T20:55:29.646Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T20:55:31.322Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T20:55:31.324Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T20:55:33.329Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T20:55:33.333Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T20:55:33.336Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T20:55:33.508Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T20:55:33.522Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T20:55:33.971Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T20:55:34.422Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T20:55:34.869Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T20:55:35.317Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T20:55:35.766Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T20:55:35.909Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T20:55:35.913Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T20:55:37.158Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T20:55:37.165Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T20:55:41.176Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T20:55:41.180Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T20:55:41.182Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T20:55:43.196Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T20:55:43.211Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}
+{"ts":"2026-05-31T20:55:45.446Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T20:55:45.456Z","msg":"Test start page text (first 400):","excerpt":"Step 2 of 3\n\nNew Words Test — Day 1\n\nProgress\n\n0 of 30 answered\n\n1.\ndebase\n(v.)\n2.\nstalemate\n(n.)\n3.\noffset\n(v.)\n4.\nprohibitive\n(adj.)\n5.\ninfamy\n(n.)\n6.\novercompensate\n(v.)\n7.\ndelectable\n(adj.)\n8.\nmachination\n(n.)\n9.\npresumed\n(adj.)\n10.\nintractable\n(adj.)\n11.\numbrage (old English)\n(n.)\n12.\nrepudiate\n(v.)\n13.\ndegenerate\n(v.)\n14.\ninsular\n(adj.)\n15.\nharry\n(v.)\n16.\neffusion\n(n.)\n17.\nfathom\n(v.)\n18.\npr"}
+{"ts":"2026-05-31T20:55:45.459Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T20:55:45.478Z","msg":"Q1 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:55:45.482Z","msg":"Q1 word: \"null\""}
+{"ts":"2026-05-31T20:55:48.506Z","msg":"Screenshot: 08_first_answer_typed.png"}
+{"ts":"2026-05-31T20:55:49.868Z","msg":"Q2 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:55:49.871Z","msg":"Q2 word: \"null\""}
+{"ts":"2026-05-31T20:56:23.999Z","msg":"Q3 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:56:24.003Z","msg":"Q3 word: \"null\""}
+{"ts":"2026-05-31T20:56:58.188Z","msg":"Q4 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:56:58.193Z","msg":"Q4 word: \"null\""}
+{"ts":"2026-05-31T20:57:32.404Z","msg":"Q5 input box: {\"x\":76,\"y\":0,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:57:32.412Z","msg":"Q5 word: \"null\""}
+{"ts":"2026-05-31T20:58:08.099Z","msg":"Screenshot: 09_q5_progress.png"}
+{"ts":"2026-05-31T20:58:08.128Z","msg":"Q6 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:58:08.132Z","msg":"Q6 word: \"null\""}
+{"ts":"2026-05-31T20:58:42.395Z","msg":"Q7 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:58:42.399Z","msg":"Q7 word: \"null\""}
+{"ts":"2026-05-31T20:59:16.618Z","msg":"Q8 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:59:16.621Z","msg":"Q8 word: \"null\""}
+{"ts":"2026-05-31T20:59:50.757Z","msg":"Q9 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T20:59:50.760Z","msg":"Q9 word: \"null\""}
+{"ts":"2026-05-31T21:00:25.022Z","msg":"Q10 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:00:25.026Z","msg":"Q10 word: \"null\""}
+{"ts":"2026-05-31T21:00:59.802Z","msg":"Screenshot: 09_q10_progress.png"}
+{"ts":"2026-05-31T21:00:59.823Z","msg":"Q11 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:00:59.826Z","msg":"Q11 word: \"null\""}
+{"ts":"2026-05-31T21:01:34.007Z","msg":"Q12 input box: {\"x\":76,\"y\":0,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:01:34.013Z","msg":"Q12 word: \"null\""}
+{"ts":"2026-05-31T21:02:08.354Z","msg":"Q13 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:02:08.358Z","msg":"Q13 word: \"null\""}
+{"ts":"2026-05-31T21:02:42.742Z","msg":"Q14 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:02:42.744Z","msg":"Q14 word: \"null\""}
+{"ts":"2026-05-31T21:03:16.866Z","msg":"Q15 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:03:16.870Z","msg":"Q15 word: \"null\""}
+{"ts":"2026-05-31T21:03:51.672Z","msg":"Screenshot: 09_q15_progress.png"}
+{"ts":"2026-05-31T21:03:51.693Z","msg":"Q16 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:03:51.700Z","msg":"Q16 word: \"null\""}
+{"ts":"2026-05-31T21:04:25.777Z","msg":"Q17 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:04:25.780Z","msg":"Q17 word: \"null\""}
+{"ts":"2026-05-31T21:04:59.975Z","msg":"Q18 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:04:59.978Z","msg":"Q18 word: \"null\""}
+{"ts":"2026-05-31T21:05:34.112Z","msg":"Q19 input box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:05:34.114Z","msg":"Q19 word: \"null\""}
+{"ts":"2026-05-31T21:05:34.709Z","msg":"FATAL ERROR: locator.type: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('textbox').first()\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" type=\"text\" placeholder=\"Type your definition...\" class=\"ml-11 rounded-lg border border-border-default bg-muted px-4 py-3 text-text-primary outline-none ring-border-strong transition focus:bg-surface focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60\"/>\u001b[22m\n\u001b[2m  - elementHandle.type(\"a\")\u001b[22m\n","stack":"locator.type: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for getByRole('textbox').first()\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" type=\"text\" placeholder=\"Type your definition...\" class=\"ml-11 rounded-lg border border-border-default bg-muted px-4 py-3 text-text-primary outline-none ring-border-strong transition focus:bg-surface focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60\"/>\u001b[22m\n\u001b[2m  - elementHandle.type(\"a\")\u001b[22m\n\n    at /app/d1_05_mobile_audit.mjs:594:27"}
+{"ts":"2026-05-31T21:05:34.908Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T21:15:03.303Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:15:08.526Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:15:08.537Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:15:08.893Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:15:08.896Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:15:11.842Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:15:13.049Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:15:29.797Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:15:35.193Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:15:35.203Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:15:35.516Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:15:35.521Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:15:38.385Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:15:39.585Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:15:39.782Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T21:15:41.787Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T21:15:41.790Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T21:15:42.812Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T21:15:43.049Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T21:15:43.082Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T21:15:43.085Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T21:15:45.685Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:15:45.873Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T21:15:45.875Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T21:15:47.384Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T21:15:49.059Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T21:15:49.062Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T21:15:51.066Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T21:15:51.070Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T21:15:51.073Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T21:15:51.227Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T21:15:51.239Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T21:15:51.701Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T21:15:52.152Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T21:15:52.598Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T21:15:53.029Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T21:15:53.481Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T21:15:53.611Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T21:15:53.613Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T21:15:54.824Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T21:15:54.829Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T21:15:58.815Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T21:15:58.818Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T21:15:58.821Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T21:16:00.834Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T21:16:00.853Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}
+{"ts":"2026-05-31T21:16:03.074Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T21:16:03.086Z","msg":"Test start page text (first 400):","excerpt":"Step 2 of 3\n\nNew Words Test — Day 1\n\nProgress\n\n0 of 30 answered\n\n1.\nprithee (old English)\n(adv.)\n2.\nrevamp\n(v.)\n3.\nsatiate\n(v.)\n4.\nimplacable\n(adj.)\n5.\nredolent\n(adj.)\n6.\nzeal (old English)\n(n.)\n7.\ndegenerate\n(v.)\n8.\npresumed\n(adj.)\n9.\nhaughty\n(adj.)\n10.\nfathom\n(v.)\n11.\njilt (old English)\n(v.)\n12.\nmachination\n(n.)\n13.\ntrepidation (old English)\n(n.)\n14.\ncull\n(v.)\n15.\ndotage\n(n.)\n16.\nagog (old Engli"}
+{"ts":"2026-05-31T21:16:03.096Z","msg":"Test phase reached: 30 inputs visible"}
+{"ts":"2026-05-31T21:16:03.099Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T21:16:05.134Z","msg":"Found 30 questions on page"}
+{"ts":"2026-05-31T21:16:05.137Z","msg":"Q1: word=\"prithee\" def=please"}
+{"ts":"2026-05-31T21:16:05.141Z","msg":"Q2: word=\"revamp\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.144Z","msg":"Q3: word=\"satiate\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.147Z","msg":"Q4: word=\"implacable\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.151Z","msg":"Q5: word=\"redolent\" def=strongly reminiscent or suggestive of something"}
+{"ts":"2026-05-31T21:16:05.154Z","msg":"Q6: word=\"zeal\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.156Z","msg":"Q7: word=\"degenerate\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.159Z","msg":"Q8: word=\"presumed\" def=assumed to be true"}
+{"ts":"2026-05-31T21:16:05.162Z","msg":"Q9: word=\"haughty\" def=arrogantly superior, disdainful"}
+{"ts":"2026-05-31T21:16:05.164Z","msg":"Q10: word=\"fathom\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.167Z","msg":"Q11: word=\"jilt\" def=to suddenly reject or abandon (a lover)."}
+{"ts":"2026-05-31T21:16:05.170Z","msg":"Q12: word=\"machination\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.173Z","msg":"Q13: word=\"trepidation\" def=a feeling of fear or agitation about something tha"}
+{"ts":"2026-05-31T21:16:05.176Z","msg":"Q14: word=\"cull\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.179Z","msg":"Q15: word=\"dotage\" def=senility; foolish affection"}
+{"ts":"2026-05-31T21:16:05.182Z","msg":"Q16: word=\"agog\" def=very eager or curious to hear or see something."}
+{"ts":"2026-05-31T21:16:05.185Z","msg":"Q17: word=\"engrave\" def=to cut or carve lines, letters, designs, etc., ont"}
+{"ts":"2026-05-31T21:16:05.188Z","msg":"Q18: word=\"multitude\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.190Z","msg":"Q19: word=\"paranormal\" def=having to do with an event or events that can't be"}
+{"ts":"2026-05-31T21:16:05.193Z","msg":"Q20: word=\"continuum\" def=a continuous whole without clear division into par"}
+{"ts":"2026-05-31T21:16:05.196Z","msg":"Q21: word=\"recondite\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.199Z","msg":"Q22: word=\"composure\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.202Z","msg":"Q23: word=\"affable\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.207Z","msg":"Q24: word=\"forensic\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.210Z","msg":"Q25: word=\"infamy\" def=notoriety, extreme ill repute"}
+{"ts":"2026-05-31T21:16:05.215Z","msg":"Q26: word=\"repudiate\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.218Z","msg":"Q27: word=\"intractable\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.221Z","msg":"Q28: word=\"disservice\" def=a harmful action; an ill turn"}
+{"ts":"2026-05-31T21:16:05.225Z","msg":"Q29: word=\"philanthropy\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.228Z","msg":"Q30: word=\"resentful\" def=NOT FOUND"}
+{"ts":"2026-05-31T21:16:05.244Z","msg":"Total inputs on page: 30"}
+{"ts":"2026-05-31T21:16:05.480Z","msg":"Input 1 box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:05.484Z","msg":"Input 1: word=\"prithee\" → \"please\""}
+{"ts":"2026-05-31T21:16:06.263Z","msg":"Screenshot: 08_first_answer_typed.png"}
+{"ts":"2026-05-31T21:16:06.513Z","msg":"Input 2 box: {\"x\":76,\"y\":363,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:06.517Z","msg":"Input 2: word=\"revamp\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:09.078Z","msg":"Input 3 box: {\"x\":76,\"y\":493,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:09.082Z","msg":"Input 3: word=\"satiate\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:11.653Z","msg":"Input 4 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:11.657Z","msg":"Input 4: word=\"implacable\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:14.191Z","msg":"Input 5 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:14.194Z","msg":"Input 5: word=\"redolent\" → \"strongly reminiscent or suggestive of something\""}
+{"ts":"2026-05-31T21:16:17.441Z","msg":"Input 6 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:17.446Z","msg":"Input 6: word=\"zeal\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:19.973Z","msg":"Input 7 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:19.976Z","msg":"Input 7: word=\"degenerate\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:22.524Z","msg":"Input 8 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:22.527Z","msg":"Input 8: word=\"presumed\" → \"assumed to be true\""}
+{"ts":"2026-05-31T21:16:24.040Z","msg":"Input 9 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:24.042Z","msg":"Input 9: word=\"haughty\" → \"arrogantly superior, disdainful\""}
+{"ts":"2026-05-31T21:16:26.324Z","msg":"Input 10 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:26.326Z","msg":"Input 10: word=\"fathom\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:28.857Z","msg":"Input 11 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:28.860Z","msg":"Input 11: word=\"jilt\" → \"to suddenly reject or abandon (a lover).\""}
+{"ts":"2026-05-31T21:16:31.742Z","msg":"Input 12 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:31.745Z","msg":"Input 12: word=\"machination\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:34.286Z","msg":"Input 13 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:34.288Z","msg":"Input 13: word=\"trepidation\" → \"a feeling of fear or agitation about something that may happ\""}
+{"ts":"2026-05-31T21:16:38.490Z","msg":"Input 14 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:38.494Z","msg":"Input 14: word=\"cull\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:41.022Z","msg":"Input 15 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:41.025Z","msg":"Input 15: word=\"dotage\" → \"senility; foolish affection\""}
+{"ts":"2026-05-31T21:16:43.076Z","msg":"Screenshot: 08b_halfway_answered.png"}
+{"ts":"2026-05-31T21:16:43.304Z","msg":"Input 16 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:43.308Z","msg":"Input 16: word=\"agog\" → \"very eager or curious to hear or see something.\""}
+{"ts":"2026-05-31T21:16:46.570Z","msg":"Input 17 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:46.574Z","msg":"Input 17: word=\"engrave\" → \"to cut or carve lines, letters, designs, etc., onto or into \""}
+{"ts":"2026-05-31T21:16:51.489Z","msg":"Input 18 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:51.492Z","msg":"Input 18: word=\"multitude\" not matched, using fallback"}
+{"ts":"2026-05-31T21:16:54.037Z","msg":"Input 19 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:54.040Z","msg":"Input 19: word=\"paranormal\" → \"having to do with an event or events that can't be explained\""}
+{"ts":"2026-05-31T21:16:59.856Z","msg":"Input 20 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:16:59.859Z","msg":"Input 20: word=\"continuum\" → \"a continuous whole without clear division into parts\""}
+{"ts":"2026-05-31T21:17:03.389Z","msg":"Input 21 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:03.393Z","msg":"Input 21: word=\"recondite\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:05.971Z","msg":"Input 22 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:05.974Z","msg":"Input 22: word=\"composure\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:08.521Z","msg":"Input 23 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:08.524Z","msg":"Input 23: word=\"affable\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:11.120Z","msg":"Input 24 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:11.124Z","msg":"Input 24: word=\"forensic\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:13.636Z","msg":"Input 25 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:13.640Z","msg":"Input 25: word=\"infamy\" → \"notoriety, extreme ill repute\""}
+{"ts":"2026-05-31T21:17:15.786Z","msg":"Input 26 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:15.790Z","msg":"Input 26: word=\"repudiate\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:18.301Z","msg":"Input 27 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:18.304Z","msg":"Input 27: word=\"intractable\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:20.800Z","msg":"Input 28 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:20.803Z","msg":"Input 28: word=\"disservice\" → \"a harmful action; an ill turn\""}
+{"ts":"2026-05-31T21:17:22.952Z","msg":"Input 29 box: {\"x\":76,\"y\":552,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:22.954Z","msg":"Input 29: word=\"philanthropy\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:25.452Z","msg":"Input 30 box: {\"x\":76,\"y\":682,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:17:25.455Z","msg":"Input 30: word=\"resentful\" not matched, using fallback"}
+{"ts":"2026-05-31T21:17:27.727Z","msg":"Typed answers for 30 questions, now checking for submit button"}
+{"ts":"2026-05-31T21:17:27.908Z","msg":"Screenshot: 09_all_answers_typed.png"}
+{"ts":"2026-05-31T21:17:27.935Z","msg":"Submit Test button box: {\"x\":139.15625,\"y\":780,\"width\":111.671875,\"height\":48}"}
+{"ts":"2026-05-31T21:17:27.938Z","msg":"Clicking Submit Test..."}
+{"ts":"2026-05-31T21:17:30.007Z","msg":"Waiting for grading to complete..."}
+{"ts":"2026-05-31T21:17:35.012Z","msg":"Grading in progress... waiting up to 5 minutes"}
+{"ts":"2026-05-31T21:17:45.845Z","msg":"Total questions answered: 30"}
+{"ts":"2026-05-31T21:17:46.114Z","msg":"Screenshot: 10_after_submit_grading.png"}
+{"ts":"2026-05-31T21:17:46.118Z","msg":"=== CHECKING RESULTS ==="}
+{"ts":"2026-05-31T21:17:51.137Z","msg":"Results text (first 500):","excerpt":"Step 2 of 3\n\nNew Words Test — Day 1\n\nDid not pass\n\nYour score is below 92%\n\n43%\n\n13 of 30 correct\n\nTry Again\nGo to Dashboard\nAnswers\n1\nprithee (old English)\n✓\n\nCorrect Answer\n\nplease\n\nYour Answer\n\nplease\n\n2\nrevamp\n✗\n\nCorrect Answer\n\nto revise; to renovate\n\nYour Answer\n\na notable quality or characteristic\n\nChallenge\n3\nsatiate\n✗\n\nCorrect Answer\n\nto satisfy (a need, desire, etc.) fully\n\nYour Answer\n\na notable quality or characteristic\n\nChallenge\n4\nimplacable\n✗\n\nCorrect Answer\n\nunable to be appeased"}
+{"ts":"2026-05-31T21:17:51.368Z","msg":"Screenshot: 11_results_page.png"}
+{"ts":"2026-05-31T21:17:51.371Z","msg":"Results page: hasPassResults=true hasFailResults=true hasAnyResults=true"}
+{"ts":"2026-05-31T21:17:51.374Z","msg":"=== FIRESTORE VERIFICATION ==="}
+{"ts":"2026-05-31T21:17:56.424Z","msg":"AFTER: CSD=1, attempts=1"}
+{"ts":"2026-05-31T21:17:56.427Z","msg":"CSD before→after: 1→1"}
+{"ts":"2026-05-31T21:17:56.430Z","msg":"CSD still at 1 — Day 1 not completed"}
+{"ts":"2026-05-31T21:17:56.433Z","msg":"Attempt doc created: b6pQOxFd6kcovH0jtNuSwnHQOqo2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780262262429_m9w63aqjx"}
+{"ts":"2026-05-31T21:17:56.436Z","msg":"New-word slice: expected 30 words, list has 30, Day-1 slice = 30"}
+{"ts":"2026-05-31T21:17:56.438Z","msg":"Session states after: 1 docs"}
+{"ts":"2026-05-31T21:17:56.692Z","msg":"Screenshot: 12_final_state.png"}
+{"ts":"2026-05-31T21:17:56.865Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}

@@ -1,0 +1,74 @@
+{"ts":"2026-05-31T21:17:52.782Z","event":"D1-07:start","account":"audit_recovering_01_core@vocaboost.test","classId":"LVjBTFuYE8FbPG34pVAt","listId":"aRGjnGXdU4aupiS8SlXR","dailyPace":12,"testMode":"typed"}
+{"ts":"2026-05-31T21:18:01.347Z","event":"admin:uid","uid":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2"}
+{"ts":"2026-05-31T21:18:06.524Z","event":"admin:progress-before","csd":0,"twi":0}
+{"ts":"2026-05-31T21:18:06.541Z","event":"admin:session-before","phase":"new-words-study","currentStudyDay":1,"dismissedCount":60,"newWordsTestPassed":false}
+{"ts":"2026-05-31T21:18:06.594Z","event":"admin:attempts-before","count":3,"list":[{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780178262415_byv63p3dg","day":1,"type":"new","passed":false,"score":4,"startIdx":0,"endIdx":59},{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780179039215_exnnro7la","day":1,"type":"new","passed":false,"score":0,"startIdx":0,"endIdx":59},{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780262062455_db5b12yp6","day":null,"type":"new","passed":false,"score":0,"startIdx":null,"endIdx":null}]}
+{"ts":"2026-05-31T21:18:06.899Z","event":"step:login"}
+{"ts":"2026-05-31T21:18:10.526Z","event":"step:login-ok","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:18:10.534Z","event":"step:navigate-session"}
+{"ts":"2026-05-31T21:18:16.785Z","event":"page:session-loaded","url":"https://vocaboostone.netlify.app/session/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR","sample":"\n    Step 1 of 3\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 1Progress60 of 60 masteredCard 1 of 60vigilant(adj."}
+{"ts":"2026-05-31T21:18:16.852Z","event":"page:post-modal","sample":"\n    Step 1 of 3\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 1Progress60 of 60 masteredCard 1 of 60vigilant(adj."}
+{"ts":"2026-05-31T21:18:16.918Z","event":"page:after-reentry","sample":"\n    Step 1 of 3\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s ease-out;\n        }\n      New Words Study — Day 1Progress60 of 60 masteredCard 1 of 60vigilant(adj."}
+{"ts":"2026-05-31T21:18:16.918Z","event":"step:study-phase"}
+{"ts":"2026-05-31T21:18:16.920Z","event":"study:has-take-test","hasTakeTest":false}
+{"ts":"2026-05-31T21:18:40.006Z","event":"step:take-test"}
+{"ts":"2026-05-31T21:18:40.084Z","event":"nav:after-take-test","url":"https://vocaboostone.netlify.app/session/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR"}
+{"ts":"2026-05-31T21:18:40.084Z","event":"nav:direct-to-typedtest"}
+{"ts":"2026-05-31T21:18:45.279Z","event":"nav:typedtest-direct","url":"https://vocaboostone.netlify.app/typedtest/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR?type=new"}
+{"ts":"2026-05-31T21:18:45.558Z","event":"page:test-page","url":"https://vocaboostone.netlify.app/typedtest/LVjBTFuYE8FbPG34pVAt/aRGjnGXdU4aupiS8SlXR?type=new","sample":"\n    Step 2 of 5New Words Test — Day 1Progress0 of 25 answered1.stratum(n.)2.deem(v.)3.carcinogenic(adj.)4.catalyst(n.)5.trivial(adj.)6.assure(v.)7.corrosive(adj.)8.wonder(n.)9.coalesce(v.)10.exposition(n.)11.blatant(adj.)12.dignity(n.)13.incorporate(v.)14.fabricate(v.)15.brevity(n.)16.contention(n.)17.versatile(adj.)18.embark(v.)19.infuse(v.)20.arguably(adv.)21.parity(n.)22.adequate(adj.)23.scrupulous(adj.)24.rupture(n.)25.superb(adj.)Submit Test\n  \n\n"}
+{"ts":"2026-05-31T21:18:49.878Z","event":"page:test-loaded","sample":"\n    Step 2 of 5New Words Test — Day 1Progress0 of 25 answered1.stratum(n.)2.deem(v.)3.carcinogenic(adj.)4.catalyst(n.)5.trivial(adj.)6.assure(v.)7.corrosive(adj.)8.wonder(n.)9.coalesce(v.)10.exposition(n.)11.blatant(adj.)12.dignity(n.)13.incorporate(v.)14.fabricate(v.)15.brevity(n.)16.contention(n.)17.versatile(adj.)18.embark(v.)19.infuse(v.)20.arguably(adv.)21.parity(n.)22.adequate(adj.)23.scrupulous(adj.)24.rupture(n.)25.superb(adj.)Submit Test\n  \n\n"}
+{"ts":"2026-05-31T21:18:49.883Z","event":"test:reached","reachedTest":true,"inputCount":25}
+{"ts":"2026-05-31T21:18:49.883Z","event":"step:answer-questions"}
+{"ts":"2026-05-31T21:18:49.889Z","event":"test:inputs-found","count":25}
+{"ts":"2026-05-31T21:18:50.700Z","event":"test:typed","i":0,"len":7}
+{"ts":"2026-05-31T21:18:51.512Z","event":"test:typed","i":1,"len":6}
+{"ts":"2026-05-31T21:18:52.269Z","event":"test:typed","i":2,"len":5}
+{"ts":"2026-05-31T21:18:53.929Z","event":"test:typed","i":3,"len":6}
+{"ts":"2026-05-31T21:18:55.571Z","event":"test:typed","i":4,"len":6}
+{"ts":"2026-05-31T21:18:55.661Z","event":"test:skip","i":5}
+{"ts":"2026-05-31T21:18:57.890Z","event":"test:typed","i":6,"len":8}
+{"ts":"2026-05-31T21:18:58.864Z","event":"test:typed","i":7,"len":7}
+{"ts":"2026-05-31T21:18:59.791Z","event":"test:typed","i":8,"len":7}
+{"ts":"2026-05-31T21:19:00.562Z","event":"test:typed","i":9,"len":5}
+{"ts":"2026-05-31T21:19:01.310Z","event":"test:typed","i":10,"len":4}
+{"ts":"2026-05-31T21:19:01.406Z","event":"test:skip","i":11}
+{"ts":"2026-05-31T21:19:02.180Z","event":"test:typed","i":12,"len":6}
+{"ts":"2026-05-31T21:19:03.172Z","event":"test:typed","i":13,"len":7}
+{"ts":"2026-05-31T21:19:03.264Z","event":"test:skip","i":14}
+{"ts":"2026-05-31T21:19:03.981Z","event":"test:typed","i":15,"len":6}
+{"ts":"2026-05-31T21:19:04.718Z","event":"test:typed","i":16,"len":6}
+{"ts":"2026-05-31T21:19:05.564Z","event":"test:typed","i":17,"len":7}
+{"ts":"2026-05-31T21:19:06.393Z","event":"test:typed","i":18,"len":6}
+{"ts":"2026-05-31T21:19:06.480Z","event":"test:skip","i":19}
+{"ts":"2026-05-31T21:19:07.427Z","event":"test:typed","i":20,"len":8}
+{"ts":"2026-05-31T21:19:08.070Z","event":"test:typed","i":21,"len":4}
+{"ts":"2026-05-31T21:19:08.158Z","event":"test:skip","i":22}
+{"ts":"2026-05-31T21:19:09.029Z","event":"test:typed","i":23,"len":7}
+{"ts":"2026-05-31T21:19:09.788Z","event":"test:typed","i":24,"len":7}
+{"ts":"2026-05-31T21:19:10.393Z","event":"test:answered-all","questionsAnswered":25}
+{"ts":"2026-05-31T21:19:10.623Z","event":"step:submit"}
+{"ts":"2026-05-31T21:19:11.164Z","event":"submit:answered-count","total":25,"answered":20}
+{"ts":"2026-05-31T21:19:11.168Z","event":"submit:js-click","found":true,"disabled":false,"text":"Submit Test","x":664.15625,"y":836,"w":111.671875,"h":48,"clicked":true}
+{"ts":"2026-05-31T21:19:14.170Z","event":"submit:confirm-modal-found"}
+{"ts":"2026-05-31T21:19:14.179Z","event":"submit:confirm-clicked","clicked":true,"text":"Submit"}
+{"ts":"2026-05-31T21:19:17.509Z","event":"submit:done","submitted":true}
+{"ts":"2026-05-31T21:19:17.509Z","event":"step:wait-grading"}
+{"ts":"2026-05-31T21:19:20.514Z","event":"grading:in-progress","t":0}
+{"ts":"2026-05-31T21:19:20.808Z","event":"grading:wait","t":0,"snippet":"\n    Step 2 of 5New Words Test — Day 1Progress20 of 25 answered1.stratum(n.)2.deem(v.)3.carcinogenic(adj.)4.catalyst(n.)5.trivial(adj.)6.assure(v.)7.corrosive(adj.)8.wonder(n.)9.coalesce(v.)10.exposition(n.)11.blatant(adj.)12.dignity(n.)13.incorporate(v.)14.fabricate(v.)15.brevity(n.)16.contention(n"}
+{"ts":"2026-05-31T21:19:21.816Z","event":"grading:in-progress","t":1}
+{"ts":"2026-05-31T21:19:22.820Z","event":"grading:in-progress","t":2}
+{"ts":"2026-05-31T21:19:23.823Z","event":"grading:in-progress","t":3}
+{"ts":"2026-05-31T21:19:24.826Z","event":"grading:results-found","t":4}
+{"ts":"2026-05-31T21:19:28.240Z","event":"page:results","sample":"\n    Step 2 of 5New Words Test — Day 1Did not passYour score is below 90%0%0 of 25 correctTry AgainGo to DashboardAnswers1stratum✗Correct Answera layer; a levelYour AnswereconomyChallenge2deem✗Correct Answerto think of (someone or something) in a particular wayYour AnswermarketChallenge3carcinogenic✗Correct Answercausing cancerYour AnswertradeChallenge4catalyst✗Correct Answersomething that causes an important event to happen; (chemistry) a substance that accelerates a chemical reactionYour AnswersupplyChallenge5trivial✗Correct Answersmall, insignificantYour AnswerdemandChallenge6assure✗Correct Answerto make certain of; to confirm positively that something is sure or trueYour Answer(no answer)Challenge7corrosive✗Correct Answercausing damage or erosion by chemical actionYour AnswermonetaryCh"}
+{"ts":"2026-05-31T21:19:28.240Z","event":"step:firestore-settle"}
+{"ts":"2026-05-31T21:19:36.361Z","event":"browser:closed"}
+{"ts":"2026-05-31T21:19:36.361Z","event":"step:post-test-read"}
+{"ts":"2026-05-31T21:19:46.380Z","event":"admin:progress-after","csd":0,"twi":0}
+{"ts":"2026-05-31T21:19:46.408Z","event":"admin:session-after","phase":"new-words-study","currentStudyDay":1,"newWordsTestPassed":false}
+{"ts":"2026-05-31T21:19:46.446Z","event":"admin:attempts-after","count":4,"list":[{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780178262415_byv63p3dg","day":1,"type":"new","passed":false,"score":4,"startIdx":0,"endIdx":59},{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780179039215_exnnro7la","day":1,"type":"new","passed":false,"score":0,"startIdx":0,"endIdx":59},{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780262062455_db5b12yp6","day":null,"type":"new","passed":false,"score":0,"startIdx":null,"endIdx":null},{"id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780262364072_iqdzdkbe3","day":null,"type":"new","passed":false,"score":0,"startIdx":null,"endIdx":null}]}
+{"ts":"2026-05-31T21:19:46.463Z","event":"admin:our-attempt","id":"Hytd6W6L1HOCJLCc2j9fHr3pXwN2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780262062455_db5b12yp6","studyDay":null,"score":0,"startIdx":null,"endIdx":null}
+{"ts":"2026-05-31T21:19:46.464Z","event":"admin:dup-orphan","day1New":2,"day1Review":0,"duplicateAttempts":true,"orphanDocs":false,"ourAttemptDayNull":true}
+{"ts":"2026-05-31T21:19:46.464Z","event":"admin:slice","dailyPace":12,"start":0,"end":59,"expectedEnd":11}
+{"ts":"2026-05-31T21:19:46.464Z","event":"admin:slice-check","startOk":true,"endOk":false,"newWordSliceCorrect":false,"note":"FAIL: expected endIdx=11 got 59"}
+{"ts":"2026-05-31T21:19:46.464Z","event":"final:classification","classification":"COMPLETED_NOPASS","csdBefore":0,"csdAfter":0}
+{"ts":"2026-05-31T21:19:46.472Z","event":"report:written","path":"/app/findings/day1/D1-07_recovering_core.md"}

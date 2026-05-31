@@ -1,0 +1,91 @@
+{"ts":"2026-05-31T21:03:10.546Z","event":"INIT","label":"D1-03","account":"audit_slowlaptop_01_top@vocaboost.test","bundle":"index-CflgDyCK.js"}
+{"ts":"2026-05-31T21:03:10.909Z","event":"STEP","n":1,"name":"FIRESTORE_BEFORE"}
+{"ts":"2026-05-31T21:03:16.026Z","event":"FIRESTORE_BEFORE","classProgress":1,"studyStates":80,"attempts":2,"csdBefore":0,"sessionStates":1}
+{"ts":"2026-05-31T21:03:16.026Z","event":"STEP","n":2,"name":"LOGIN"}
+{"ts":"2026-05-31T21:03:21.518Z","event":"LOGIN_OK","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:03:23.520Z","event":"STEP","n":3,"name":"OPEN_SESSION"}
+{"ts":"2026-05-31T21:03:23.522Z","event":"DASHBOARD","preview":"Dashboard\nGradebook\nWelcome, Audit Slow-Laptop Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYTHM\n\nMy Classes\n\n1 enrolled\n\nJoin a new class\nJoin\n25WT 2차 TOP OFFLINE\n\nJoined: 5/30/2026\n\n1 assigne"}
+{"ts":"2026-05-31T21:03:23.523Z","event":"H2_GUARD","hasClassCard":true}
+{"ts":"2026-05-31T21:03:24.529Z","event":"START_BTN","visible":true}
+{"ts":"2026-05-31T21:03:24.583Z","event":"START_CLICKED"}
+{"ts":"2026-05-31T21:03:26.584Z","event":"SESSION_URL","url":"https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:03:26.584Z","event":"STEP","n":4,"name":"DISMISS_CUSTOMIZE_MODAL"}
+{"ts":"2026-05-31T21:03:28.408Z","event":"MODAL_DISMISSED","attempt":0}
+{"ts":"2026-05-31T21:03:29.909Z","event":"STEP","n":5,"name":"STUDY_PHASE"}
+{"ts":"2026-05-31T21:03:29.911Z","event":"POST_MODAL_TEXT","preview":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n80 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T21:03:29.916Z","event":"FLASHCARD_PHASE","confirmed":true}
+{"ts":"2026-05-31T21:03:29.916Z","event":"STUDY_LOOP_START","note":"Using keyboard C to advance cards, slow cadence"}
+{"ts":"2026-05-31T21:03:34.956Z","event":"STUDY_PROGRESS","cards":10,"progress":"Card 1 of 70"}
+{"ts":"2026-05-31T21:03:41.221Z","event":"STUDY_PROGRESS","cards":20,"progress":"Card 1 of 60"}
+{"ts":"2026-05-31T21:03:46.438Z","event":"STUDY_PROGRESS","cards":30,"progress":"Card 1 of 50"}
+{"ts":"2026-05-31T21:03:52.066Z","event":"STUDY_PROGRESS","cards":40,"progress":"Card 1 of 40"}
+{"ts":"2026-05-31T21:03:58.115Z","event":"STUDY_PROGRESS","cards":50,"progress":"Card 1 of 30"}
+{"ts":"2026-05-31T21:04:03.111Z","event":"STUDY_PROGRESS","cards":60,"progress":"Card 1 of 20"}
+{"ts":"2026-05-31T21:04:08.982Z","event":"STUDY_PROGRESS","cards":70,"progress":"Card 1 of 10"}
+{"ts":"2026-05-31T21:04:15.163Z","event":"STUDY_PROGRESS","cards":80,"progress":"unknown"}
+{"ts":"2026-05-31T21:04:15.165Z","event":"TAKE_TEST_BTN_VISIBLE","cards":80}
+{"ts":"2026-05-31T21:04:15.166Z","event":"STUDY_PHASE_DONE","cards":80,"takeTestBtnAppeared":true,"testPageReached":false}
+{"ts":"2026-05-31T21:04:15.166Z","event":"STEP","n":6,"name":"TAKE_TEST_CLICK"}
+{"ts":"2026-05-31T21:04:16.169Z","event":"PAGE_AFTER_ALL_CARDS","text":"Step 1 of 3\n80\n\nNew Words Study — Day 1\n\nProgress\n\n80 of 80 mastered\n\nAll cards reviewed!\n\nYou're ready to take the test.\n\nTake Test\nStudy Again\n⚡\nReady for the Test?\n\nIf you don't pass, you can study again and retake the test.\n\nKeep Studying\nStart Test"}
+{"ts":"2026-05-31T21:04:16.171Z","event":"MODAL_STATE","visible":true}
+{"ts":"2026-05-31T21:04:16.174Z","event":"MODAL_TAKE_TEST_BTN","visible":false}
+{"ts":"2026-05-31T21:04:16.228Z","event":"MODAL_CONFIRM_CLICKED"}
+{"ts":"2026-05-31T21:04:19.229Z","event":"POST_TAKE_TEST_URL","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:04:19.229Z","event":"TYPEDTEST_CONFIRMED","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:04:19.229Z","event":"STEP","n":7,"name":"FILL_TEST"}
+{"ts":"2026-05-31T21:04:21.232Z","event":"TEST_PAGE_TEXT","preview":"Step 2 of 3\n\nNew Words Test — Day 1\n\nProgress\n\n0 of 30 answered\n\n1.\nfiat\n(n.)\n2.\ndegenerate\n(v.)\n3.\nattendant\n(adj..)\n4.\ninviolable\n(adj.)\n5.\neffusion\n(n.)\n6.\nredolent\n(adj.)\n7.\nelite\n(n.)\n8.\npathos\n(n.)\n9.\nagog (old English)\n(adj.)\n10.\nimplacable\n(adj.)\n11.\nengrave\n(v.)\n12.\nzeal (old English)\n(n.)\n13.\nlurid\n(adj.)\n14.\naffable\n(adj.)\n15.\ndevalue\n(v.)\n16.\nattribute\n(n.)\n17.\nruse\n(n.)\n18.\ncontinuum\n(n.)\n19.\ndeterminant\n(n.)\n20.\nfetter\n(v.)\n21.\nhaughty\n(adj.)\n22.\ninsular\n(adj.)\n23.\ndebase\n(v.)\n24.\nharry\n(v.)\n25.\ntoxic\n(adj.)\n26.\ndisservice\n(n.)\n27.\njilt (old English)\n(v.)\n28.\ncomposure\n(n.)\n29.\ns"}
+{"ts":"2026-05-31T21:04:21.235Z","event":"ALL_INPUTS","count":30}
+{"ts":"2026-05-31T21:04:21.235Z","event":"TEST_FILL_START","inputs":30}
+{"ts":"2026-05-31T21:04:21.269Z","event":"FILLING","i":0,"rawLabel":"1.fiat(n.)","word":"fiat","def":"an arbitrary decree or order","known":true}
+{"ts":"2026-05-31T21:04:25.715Z","event":"FILLING","i":1,"rawLabel":"2.degenerate(v.)","word":"degenerate","def":"to break down; to deteriorate","known":true}
+{"ts":"2026-05-31T21:04:30.376Z","event":"FILLING","i":2,"rawLabel":"3.attendant(adj..)","word":"attendant","def":"accompanying or following as a consequence","known":true}
+{"ts":"2026-05-31T21:04:36.744Z","event":"FILLING","i":3,"rawLabel":"4.inviolable(adj.)","word":"inviolable","def":"never to be broken, infringed, or dishonored","known":true}
+{"ts":"2026-05-31T21:04:43.233Z","event":"FILLING","i":4,"rawLabel":"5.effusion(n.)","word":"effusion","def":"a pouring forth","known":true}
+{"ts":"2026-05-31T21:04:45.995Z","event":"FILLING","i":5,"rawLabel":"6.redolent(adj.)","word":"redolent","def":"strongly reminiscent or suggestive of something","known":true}
+{"ts":"2026-05-31T21:04:53.071Z","event":"FILLING","i":6,"rawLabel":"7.elite(n.)","word":"elite","def":"the best or most select group","known":true}
+{"ts":"2026-05-31T21:04:57.637Z","event":"FILLING","i":7,"rawLabel":"8.pathos(n.)","word":"pathos","def":"an emotion of sympathy","known":true}
+{"ts":"2026-05-31T21:05:01.322Z","event":"FILLING","i":8,"rawLabel":"9.agog\r\n(old English)(adj.)","word":"agog","def":"very eager or curious to hear or see something.","known":true}
+{"ts":"2026-05-31T21:05:08.240Z","event":"FILLING","i":9,"rawLabel":"10.implacable(adj.)","word":"implacable","def":"unable to be appeased or pacified","known":true}
+{"ts":"2026-05-31T21:05:13.283Z","event":"FILLING","i":10,"rawLabel":"11.engrave(v.)","word":"engrave","def":"to cut or carve lines, letters, designs, etc., onto or into ","known":true}
+{"ts":"2026-05-31T21:05:23.709Z","event":"FILLING","i":11,"rawLabel":"12.zeal\r\n(old English)(n.)","word":"zeal","def":"great energy or enthusiasm in pursuit of a cause or an objec","known":true}
+{"ts":"2026-05-31T21:05:33.058Z","event":"FILLING","i":12,"rawLabel":"13.lurid(adj.)","word":"lurid","def":"ghastly, sensational","known":true}
+{"ts":"2026-05-31T21:05:36.597Z","event":"FILLING","i":13,"rawLabel":"14.affable(adj.)","word":"affable","def":"friendly","known":true}
+{"ts":"2026-05-31T21:05:38.609Z","event":"FILLING","i":14,"rawLabel":"15.devalue(v.)","word":"devalue","def":"to reduce or lower the value or worth of something","known":true}
+{"ts":"2026-05-31T21:05:46.211Z","event":"FILLING","i":15,"rawLabel":"16.attribute(n.)","word":"attribute","def":"a quality or characteristic belonging to or associated with ","known":true}
+{"ts":"2026-05-31T21:05:57.503Z","event":"FILLING","i":16,"rawLabel":"17.ruse(n.)","word":"ruse","def":"a trick","known":true}
+{"ts":"2026-05-31T21:05:59.246Z","event":"FILLING","i":17,"rawLabel":"18.continuum(n.)","word":"continuum","def":"a continuous whole without clear division into parts","known":true}
+{"ts":"2026-05-31T21:06:06.889Z","event":"FILLING","i":18,"rawLabel":"19.determinant(n.)","word":"determinant","def":"a factor or element that determines an outcome","known":true}
+{"ts":"2026-05-31T21:06:13.829Z","event":"FILLING","i":19,"rawLabel":"20.fetter(v.)","word":"fetter","def":"to restrain; to hamper","known":true}
+{"ts":"2026-05-31T21:06:17.601Z","event":"FILLING","i":20,"rawLabel":"21.haughty(adj.)","word":"haughty","def":"arrogantly superior, disdainful","known":true}
+{"ts":"2026-05-31T21:06:22.556Z","event":"FILLING","i":21,"rawLabel":"22.insular(adj.)","word":"insular","def":"narrowly restricted in outlook or scope; suggestive of the i","known":true}
+{"ts":"2026-05-31T21:06:42.192Z","event":"FILLING","i":22,"rawLabel":"23.debase(v.)","word":"debase","def":"to lower the quality or esteem of something","known":true}
+{"ts":"2026-05-31T21:06:48.536Z","event":"FILLING","i":23,"rawLabel":"24.harry(v.)","word":"harry","def":"to harass; to annoy","known":true}
+{"ts":"2026-05-31T21:06:51.791Z","event":"FILLING","i":24,"rawLabel":"25.toxic(adj.)","word":"toxic","def":"poisonous","known":true}
+{"ts":"2026-05-31T21:06:53.811Z","event":"FILLING","i":25,"rawLabel":"26.disservice(n.)","word":"disservice","def":"a harmful action; an ill turn","known":true}
+{"ts":"2026-05-31T21:06:58.442Z","event":"FILLING","i":26,"rawLabel":"27.jilt\r\n(old English)(v.)","word":"jilt","def":"to suddenly reject or abandon (a lover).","known":true}
+{"ts":"2026-05-31T21:07:04.441Z","event":"FILLING","i":27,"rawLabel":"28.composure(n.)","word":"composure","def":"calmness, self-control","known":true}
+{"ts":"2026-05-31T21:07:08.197Z","event":"FILLING","i":28,"rawLabel":"29.stalemate(n.)","word":"stalemate","def":"a contest, dispute, competition, etc., in which neither side","known":true}
+{"ts":"2026-05-31T21:07:20.685Z","event":"FILLING","i":29,"rawLabel":"30.visage\r\n(old English)(n.)","word":"visage","def":"a person's face.","known":true}
+{"ts":"2026-05-31T21:07:23.692Z","event":"ALL_INPUTS_FILLED","questionsAnswered":30}
+{"ts":"2026-05-31T21:07:25.698Z","event":"BOTTOM_OF_PAGE","text":"Step 2 of 3\n\nNew Words Test — Day 1\n\nProgress\n\n30 of 30 answered\n\n1.\nfiat\n(n.)\n2.\ndegenerate\n(v.)\n3.\nattendant\n(adj..)\n4.\ninviolable\n(adj.)\n5.\neffusion\n(n.)\n6.\nredolent\n(adj.)\n7.\nelite\n(n.)\n8.\npathos\n(n.)\n9.\nagog (old English)\n(adj.)\n10.\nimplacable\n(adj.)\n11.\nengrave\n(v.)\n12.\nzeal (old English)\n(n.)\n13.\nlurid\n(adj.)\n14.\naffable\n(adj.)\n15.\ndevalue\n(v.)\n16.\nattribute\n(n.)\n17.\nruse\n(n.)\n18.\ncontinuum"}
+{"ts":"2026-05-31T21:07:26.302Z","event":"SUBMIT_CLICKED"}
+{"ts":"2026-05-31T21:07:26.302Z","event":"STEP","n":8,"name":"GRADING_WAIT"}
+{"ts":"2026-05-31T21:07:30.307Z","event":"GRADING_STARTED"}
+{"ts":"2026-05-31T21:07:44.341Z","event":"GRADING_STILL_WAITING","seconds":17}
+{"ts":"2026-05-31T21:07:59.385Z","event":"GRADING_STILL_WAITING","seconds":32}
+{"ts":"2026-05-31T21:08:14.423Z","event":"GRADING_STILL_WAITING","seconds":47}
+{"ts":"2026-05-31T21:08:29.458Z","event":"GRADING_STILL_WAITING","seconds":62}
+{"ts":"2026-05-31T21:08:44.494Z","event":"GRADING_STILL_WAITING","seconds":77}
+{"ts":"2026-05-31T21:08:59.535Z","event":"GRADING_STILL_WAITING","seconds":92}
+{"ts":"2026-05-31T21:09:14.571Z","event":"GRADING_STILL_WAITING","seconds":107}
+{"ts":"2026-05-31T21:09:29.611Z","event":"GRADING_STILL_WAITING","seconds":122}
+{"ts":"2026-05-31T21:09:29.611Z","event":"STEP","n":9,"name":"RESULTS_CHECK"}
+{"ts":"2026-05-31T21:09:32.614Z","event":"RESULTS_PAGE","url":"https://vocaboostone.netlify.app/typedtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR","text":"Step 2 of 3\n\nNew Words Test — Day 1\n\nCompleted Day 1 session\n\n100%\n\n30 of 30 correct\n\nContinue\nAnswers\n1\nfiat\n✓\n\nCorrect Answer\n\nan arbitrary decree or order\n\nYour Answer\n\nan arbitrary decree or order\n\n2\ndegenerate\n✓\n\nCorrect Answer\n\nto break down; to deteriorate\n\nYour Answer\n\nto break down; to deteriorate\n\n3\nattendant\n✓\n\nCorrect Answer\n\naccompanying or following as a consequence\n\nYour Answer\n\naccompanying or following as a consequence\n\n4\ninviolable\n✓\n\nCorrect Answer\n\nnever to be broken, infringed, or dishonored\n\nYour Answer\n\nnever to be broken, infringed, or dishonored\n\n5\neffusion\n✓\n\nCorrect "}
+{"ts":"2026-05-31T21:09:32.614Z","event":"STEP","n":10,"name":"FIRESTORE_AFTER"}
+{"ts":"2026-05-31T21:09:32.720Z","event":"FIRESTORE_AFTER","classProgress":1,"studyStates":80,"attempts":3,"newAttempts":1,"csdAfter":1,"sessionStates":1}
+{"ts":"2026-05-31T21:09:32.720Z","event":"STEP","n":11,"name":"ASSERTIONS"}
+{"ts":"2026-05-31T21:09:32.720Z","event":"B2_CHECK","found":false,"count":0,"errors":[]}
+{"ts":"2026-05-31T21:09:32.720Z","event":"ATTEMPTS","before":2,"after":3,"new":1,"day1Count":3}
+{"ts":"2026-05-31T21:09:32.720Z","event":"CSD","before":0,"after":1,"advanced":true}
+{"ts":"2026-05-31T21:09:32.720Z","event":"CLASSIFICATION","classification":"COMPLETED_PASS"}
+{"ts":"2026-05-31T21:09:32.726Z","event":"FINDINGS_WRITTEN"}

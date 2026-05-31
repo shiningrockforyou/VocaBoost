@@ -1,0 +1,51 @@
+{"ts":"2026-05-31T20:45:39.628Z","step":"S0","event":"baseline_firestore"}
+{"ts":"2026-05-31T20:45:39.964Z","event":"snapshot","label":"before","classProgressDocs":1,"studyStatesDocs":60,"sessionStatesDocs":1,"attemptsDocs":1}
+{"ts":"2026-05-31T20:45:39.967Z","event":"baseline","csdBefore":0,"attemptsBeforeCount":1}
+{"ts":"2026-05-31T20:45:40.299Z","step":"S1","event":"login"}
+{"ts":"2026-05-31T20:45:40.307Z","event":"login_start","email":"audit_rushed_01_core@vocaboost.test"}
+{"ts":"2026-05-31T20:45:42.641Z","event":"login_success","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T20:45:42.842Z","event":"screenshot","name":"01_dashboard"}
+{"ts":"2026-05-31T20:45:44.858Z","event":"h2_guard","hasClassCard":true,"dashTextSnippet":"\n    DashboardGradebookWelcome, Audit Rushed Student 01 (CORE)Your personalized vocabulary journey starts here.Weekly Goals25WT2 CORE Vocabulary (v2)0/300wordsThis Week300 more to hit your goalDay 1Start SessionWords Introduced0Mastery Rate0%Current Streak0 days7-DAY RHYTHMMy Classes1 enrolledJoin a"}
+{"ts":"2026-05-31T20:45:44.861Z","step":"S2","event":"start_session"}
+{"ts":"2026-05-31T20:45:45.877Z","event":"start_session_buttons_found","count":2}
+{"ts":"2026-05-31T20:45:49.007Z","event":"screenshot","name":"02_session_opened"}
+{"ts":"2026-05-31T20:45:49.016Z","event":"flashcard_modal_dismiss"}
+{"ts":"2026-05-31T20:45:49.555Z","step":"S3","event":"study_phase_start"}
+{"ts":"2026-05-31T20:45:49.737Z","event":"screenshot","name":"03_study_phase"}
+{"ts":"2026-05-31T20:45:49.746Z","event":"study_phase_check","isStudyPhase":true,"pageSnippet":"\n    Step 1 of 3\n        @keyframes fade-in {\n          from {\n            opacity: 0;\n            transform: translateY(-8px);\n          }\n          to {\n            opacity: 1;\n            transform: translateY(0);\n          }\n        }\n        .animate-fade-in {\n          animation: fade-in 0.15s"}
+{"ts":"2026-05-31T20:45:49.750Z","event":"phase_detect","isAlreadyAtTest":false,"isAtResults":false}
+{"ts":"2026-05-31T20:45:49.777Z","event":"session_menu_visible_using_skip","cardsDismissed":0}
+{"ts":"2026-05-31T20:45:53.130Z","event":"study_phase_end","cardsDismissed":0}
+{"ts":"2026-05-31T20:45:53.561Z","event":"screenshot","name":"04_after_study"}
+{"ts":"2026-05-31T20:45:53.566Z","step":"S4","event":"test_phase_check"}
+{"ts":"2026-05-31T20:45:55.869Z","event":"screenshot","name":"05_test_phase_start"}
+{"ts":"2026-05-31T20:45:55.876Z","event":"test_phase_detected","atTest":true,"textSnippet":"\n    Step 2 of 3New Words Test — Day 1Progress0 of 25 answered1.scrupulous(adj.)2.paradigm(n.)3.critique(v.)4.triad(n.)5.stalwart(adj.)6.camaraderie(n.)7.stratum(n.)8.champion(v.)9.blatant(adj.)10.grandiloquent(adj.)11.fabricate(v.)12.noxious(adj.)13.incorporate(v.)14.parity(n.)15.archives(n.)16.defiance(n.)17.somnolent(adj.)18.emaciate(v.)19.sly(adj.)20.chaff(n.)21.vigilant(adj.)22.progressive(ad"}
+{"ts":"2026-05-31T20:45:55.880Z","event":"test_reached"}
+{"ts":"2026-05-31T20:45:55.884Z","step":"S5","event":"typed_test_start"}
+{"ts":"2026-05-31T20:45:56.890Z","event":"typed_inputs_count","inputCount":25}
+{"ts":"2026-05-31T20:45:56.901Z","event":"test_items_extracted","count":25,"sample":[{"index":0,"word":"scrupulous","pos":"1."},{"index":1,"word":"paradigm","pos":"2."},{"index":2,"word":"critique","pos":"3."}]}
+{"ts":"2026-05-31T20:45:56.906Z","event":"slice_validation","presentedPositions":[19,56,24,33,52,29,27,40,38,31,4,51,57,25,39,16,46,47,3,9,0,58,34,43,20],"sliceViolations":[],"newWordSliceCorrect":true}
+{"ts":"2026-05-31T20:45:57.912Z","event":"screenshot","name":"06_first_answer_typed"}
+{"ts":"2026-05-31T20:46:13.705Z","event":"screenshot","name":"07_last_answer_typed"}
+{"ts":"2026-05-31T20:46:13.710Z","event":"all_inputs_filled","answeredCount":25,"totalInputs":25}
+{"ts":"2026-05-31T20:46:13.716Z","event":"skip_check","emptyInputsRemaining":0,"skippedQuestions":false}
+{"ts":"2026-05-31T20:46:13.966Z","event":"screenshot","name":"08_before_submit"}
+{"ts":"2026-05-31T20:46:13.975Z","event":"submit_click","rushed":true}
+{"ts":"2026-05-31T20:46:44.550Z","event":"submit_button_state_after_click","submitStillEnabled":false}
+{"ts":"2026-05-31T20:46:44.555Z","step":"S6","event":"wait_for_grading"}
+{"ts":"2026-05-31T20:46:45.112Z","event":"screenshot","name":"09_post_submit"}
+{"ts":"2026-05-31T20:46:45.119Z","event":"grading_done","elapsedMs":4}
+{"ts":"2026-05-31T20:46:45.600Z","event":"screenshot","name":"10_results"}
+{"ts":"2026-05-31T20:46:45.605Z","step":"S7","event":"results_extraction"}
+{"ts":"2026-05-31T20:46:45.614Z","event":"results_page_text","text":"\n    Step 2 of 3New Words Test — Day 1Completed Day 1 session100%25 of 25 correctContinueAnswers1scrupulous✓Correct Answerdiligent, thorough, and extremely attentive to detailsYour Answera specific word with meaning2paradigm✓Correct Answera typical example or pattern of somethingYour Answera specific word with meaning3critique✓Correct Answerto a serious examination and judgment of somethingYour Answera specific word with meaning4triad✓Correct Answera group of three related things or peopleYour Answera specific word with meaning5stalwart✓Correct Answersturdily built; robust; valiant; unwaveringYour Answera specific word with meaning6camaraderie✓Correct AnswerfriendshipYour Answera specific word with meaning7stratum✓Correct Answera layer; a levelYour Answera specific word with meaning8champion✓Correct Answerto fight for or defend publiclyYour Answera specific word with meaning9blatant✓Correct Answerconspicuously and offensively loud; with no attempt to concealYour Answera specific word w"}
+{"ts":"2026-05-31T20:46:45.619Z","event":"results_parsed","score":100,"passed":null,"testCompleted":true,"completedMatch":true}
+{"ts":"2026-05-31T20:46:45.628Z","step":"S8","event":"post_test_firestore"}
+{"ts":"2026-05-31T20:46:50.698Z","event":"snapshot","label":"after","classProgressDocs":1,"studyStatesDocs":60,"sessionStatesDocs":1,"attemptsDocs":2}
+{"ts":"2026-05-31T20:46:50.701Z","event":"console_errors","total":0,"b2Errors":0,"errors":[]}
+{"ts":"2026-05-31T20:46:50.704Z","event":"duplicate_check","day1AttemptsTotal":2,"duplicateAttempts":true,"attemptIds":["QJ5AXP27u9exyxGRgnmU5ARsBRm2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780184655699_7oyugwph2","QJ5AXP27u9exyxGRgnmU5ARsBRm2_vocaboost_test_LVjBTFuYE8FbPG34pVAt_aRGjnGXdU4aupiS8SlXR_new_1780260385078_u4hwus0qp"]}
+{"ts":"2026-05-31T20:46:50.708Z","event":"csd_check","csdBefore":0,"csdAfter":1,"passed":null,"expectedCsdAfter":0,"csdCorrect":false}
+{"ts":"2026-05-31T20:46:50.711Z","event":"orphan_check","sessionStatesAfter":1,"orphanDocs":false}
+{"ts":"2026-05-31T20:46:50.713Z","event":"classification","classification":"COMPLETED_NOPASS","day1OK":false}
+{"ts":"2026-05-31T20:46:51.187Z","event":"screenshot","name":"11_final_state"}
+{"ts":"2026-05-31T20:46:51.329Z","event":"browser_closed"}
+{"ts":"2026-05-31T20:46:51.347Z","event":"output_written","findingsPath":"/app/findings/day1/D1-08_rushed_core.md","statusPath":"/app/findings/agent_logs/D1-08.status.json"}
