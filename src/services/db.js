@@ -2611,9 +2611,15 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
     updatedAnswers[answerIndex].isCorrect = true
   }
 
-  // Recalculate score
+  // Recalculate score using the SAME denominator the original score used.
+  // submitTestAttempt computes score = correctCount / answeredWords.length and
+  // persists that count as `totalQuestions`. Using updatedAnswers.length here
+  // can use a smaller denominator (skipped/partial attempts), silently inflating
+  // the score and flipping passed false->true even on rejection. Use the
+  // persisted totalQuestions as the canonical denominator.
   const correctCount = updatedAnswers.filter((a) => a.isCorrect).length
-  const newScore = Math.round((correctCount / updatedAnswers.length) * 100)
+  const denom = attemptData.totalQuestions || updatedAnswers.length
+  const newScore = denom > 0 ? Math.round((correctCount / denom) * 100) : 0
 
   // Fetch pass threshold to recalculate passed status
   let passThreshold = 95 // Default
@@ -2707,7 +2713,17 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
                 const currentDay = progress.currentStudyDay || 0
                 const isFirstDay = currentDay === 0
 
-                if (phase === 'new' && !isFirstDay) {
+                // Stale-day guard: only progress the day when the CHALLENGED attempt is
+                // the student's current day boundary (its studyDay is exactly the next
+                // day to complete: studyDay === currentDay + 1). Without this, an
+                // accepted challenge for an OLD test still bumped the student's CURRENT
+                // day (over-advance). When the attempt is NOT the current boundary, the
+                // score/study_state are still corrected above; only the day stays put.
+                const attemptStudyDay = attemptData.studyDay
+                const isCurrentBoundary =
+                  Number.isInteger(attemptStudyDay) && attemptStudyDay === currentDay + 1
+
+                if (isCurrentBoundary && phase === 'new' && !isFirstDay) {
                   // Day 2+ New Word Test pass: Advance to Review Study phase (don't increment day)
                   // The student still needs to complete the Review Test
                   const sessionDocId = `${attemptData.classId}_${listId}`
@@ -2718,7 +2734,7 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
                     newWordsTestScore: newScore / 100,
                     lastUpdated: serverTimestamp()
                   }, { merge: true })
-                } else {
+                } else if (isCurrentBoundary) {
                   // Day 1 New Word Test pass OR Review Test pass: Complete session
                   // Increment day and totalWordsIntroduced
                   const interventionLevel = progress.interventionLevel || 0

@@ -1,0 +1,68 @@
+{"ts":"2026-05-31T19:32:04.582Z","level":"INFO","msg":"JOINVERIFY agent started"}
+{"ts":"2026-05-31T19:32:04.592Z","level":"INFO","msg":"Reading class documents from Firestore (Admin SDK)"}
+{"ts":"2026-05-31T19:32:09.537Z","level":"INFO","msg":"TOP class fetched","classId":"k8tzOiiwotBbtJS3uTiv","studentCount":63,"studentIdsLength":63,"name":"25WT 2차 TOP OFFLINE"}
+{"ts":"2026-05-31T19:32:09.540Z","level":"INFO","msg":"CORE class fetched","classId":"LVjBTFuYE8FbPG34pVAt","studentCount":66,"studentIdsLength":66,"name":"25WT 2차 CORE OFFLINE"}
+{"ts":"2026-05-31T19:32:09.629Z","level":"INFO","msg":"Found clean pair: CORE student NOT in TOP class","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","email":"audit_distracted_01_core@vocaboost.test","persona":"distracted","targetClass":"CORE","classId":"k8tzOiiwotBbtJS3uTiv","joinCode":"QSTRZL","inStudentIds":false,"memberExists":false}
+{"ts":"2026-05-31T19:32:09.632Z","level":"INFO","msg":"Chosen pair","studentUid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","studentEmail":"audit_distracted_01_core@vocaboost.test","studentPersona":"distracted","classId":"k8tzOiiwotBbtJS3uTiv","className":"25WT 2차 TOP OFFLINE","joinCode":"QSTRZL","beforeStudentIdsLength":63,"beforeStudentCount":63,"beforeInStudentIds":false,"beforeMemberExists":false}
+{"ts":"2026-05-31T19:32:09.639Z","level":"INFO","msg":"Launching Playwright browser","executablePath":"/ms-playwright/chromium-1223/chrome-linux/chrome"}
+{"ts":"2026-05-31T19:32:09.648Z","level":"ERROR","msg":"Fatal error in JOINVERIFY","error":"browserType.launch: Failed to launch chromium because executable doesn't exist at /ms-playwright/chromium-1223/chrome-linux/chrome","stack":"browserType.launch: Failed to launch chromium because executable doesn't exist at /ms-playwright/chromium-1223/chrome-linux/chrome\n    at performJoinViaUI (/app/scripts/joinverify.mjs:180:34)\n    at main (/app/scripts/joinverify.mjs:530:24)"}
+{"ts":"2026-05-31T19:32:09.655Z","level":"WARN","msg":"Attempting emergency cleanup after fatal error","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:32:09.658Z","level":"INFO","msg":"Starting cleanup","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:32:09.734Z","level":"INFO","msg":"Cleanup batch committed"}
+{"ts":"2026-05-31T19:32:09.763Z","level":"INFO","msg":"Cleanup verification","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv","memberGone":true,"uidGone":true,"classRemovedFromUser":true,"afterStudentCount":62,"afterStudentIdsLength":63,"expectedStudentCount":63,"expectedStudentIdsLength":63}
+{"ts":"2026-05-31T19:32:09.770Z","level":"INFO","msg":"Emergency cleanup result","cleanupComplete":true}
+{"ts":"2026-05-31T19:33:43.936Z","level":"INFO","msg":"JOINVERIFY agent started"}
+{"ts":"2026-05-31T19:33:43.947Z","level":"INFO","msg":"Reading class documents from Firestore (Admin SDK)"}
+{"ts":"2026-05-31T19:33:48.704Z","level":"INFO","msg":"TOP class fetched","classId":"k8tzOiiwotBbtJS3uTiv","studentCount":63,"studentIdsLength":63,"name":"25WT 2차 TOP OFFLINE"}
+{"ts":"2026-05-31T19:33:48.707Z","level":"INFO","msg":"CORE class fetched","classId":"LVjBTFuYE8FbPG34pVAt","studentCount":66,"studentIdsLength":66,"name":"25WT 2차 CORE OFFLINE"}
+{"ts":"2026-05-31T19:33:48.767Z","level":"INFO","msg":"Found clean pair: CORE student NOT in TOP class","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","email":"audit_distracted_01_core@vocaboost.test","persona":"distracted","targetClass":"CORE","classId":"k8tzOiiwotBbtJS3uTiv","joinCode":"QSTRZL","inStudentIds":false,"memberExists":false}
+{"ts":"2026-05-31T19:33:48.770Z","level":"INFO","msg":"Chosen pair","studentUid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","studentEmail":"audit_distracted_01_core@vocaboost.test","studentPersona":"distracted","classId":"k8tzOiiwotBbtJS3uTiv","className":"25WT 2차 TOP OFFLINE","joinCode":"QSTRZL","beforeStudentIdsLength":63,"beforeStudentCount":63,"beforeInStudentIds":false,"beforeMemberExists":false}
+{"ts":"2026-05-31T19:33:48.776Z","level":"INFO","msg":"Launching Playwright browser","executablePath":"/ms-playwright/chromium-1223/chrome-linux/chrome"}
+{"ts":"2026-05-31T19:33:49.749Z","level":"INFO","msg":"Navigating to app root","url":"https://vocaboostone.netlify.app"}
+{"ts":"2026-05-31T19:33:52.715Z","level":"INFO","msg":"Logging in as student","email":"audit_distracted_01_core@vocaboost.test"}
+{"ts":"2026-05-31T19:33:54.040Z","level":"INFO","msg":"Login successful","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T19:33:54.147Z","level":"INFO","msg":"Looking for join class UI element"}
+{"ts":"2026-05-31T19:33:54.155Z","level":"INFO","msg":"Join elements found","buttons":0,"links":0}
+{"ts":"2026-05-31T19:33:54.159Z","level":"INFO","msg":"No join button/link found, trying page snapshot to understand layout"}
+{"ts":"2026-05-31T19:33:54.168Z","level":"INFO","msg":"Page has join text","hasJoin":false}
+{"ts":"2026-05-31T19:33:55.794Z","level":"INFO","msg":"Current URL after trying to navigate to join","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T19:33:55.801Z","level":"INFO","msg":"Found code input by label"}
+{"ts":"2026-05-31T19:33:55.804Z","level":"INFO","msg":"Entering join code","code":"QSTRZL"}
+{"ts":"2026-05-31T19:33:55.983Z","level":"INFO","msg":"Clicked submit/join button"}
+{"ts":"2026-05-31T19:33:59.130Z","level":"INFO","msg":"After join state","url":"https://vocaboostone.netlify.app/","bodyText":"Dashboard\nGradebook\nWelcome, Audit Distracted Student 01 (CORE)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYTHM\n\nMy Classes\n\n1 enrolled\n\nJoin a new class\nJoin\n\nClass joined successfully.\n\n25WT 2차 TOP OFFLINE\n\nJoined: 5/31/2026\n\n1 assigned lists\n\n25WT2 TOP Vocabulary (v2)\n\n3381 words\n\n0 introduced\n3381 total\n0%\nDAY\n1\n1 behind\nStart Session\nBlind Spots\nPDF\nToday\nPDF\nFull"}
+{"ts":"2026-05-31T19:33:59.137Z","level":"INFO","msg":"Join UI flow completed successfully"}
+{"ts":"2026-05-31T19:33:59.268Z","level":"INFO","msg":"Verifying join result via Admin SDK","classId":"k8tzOiiwotBbtJS3uTiv","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1"}
+{"ts":"2026-05-31T19:33:59.334Z","level":"ERROR","msg":"Fatal error in JOINVERIFY","error":"enrolledClasses.includes is not a function","stack":"TypeError: enrolledClasses.includes is not a function\n    at verifyJoinResult (file:///app/scripts/joinverify.mjs:395:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async main (file:///app/scripts/joinverify.mjs:534:20)"}
+{"ts":"2026-05-31T19:33:59.340Z","level":"WARN","msg":"Attempting emergency cleanup after fatal error","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:33:59.365Z","level":"INFO","msg":"Starting cleanup","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:33:59.453Z","level":"INFO","msg":"Cleanup batch committed"}
+{"ts":"2026-05-31T19:33:59.478Z","level":"INFO","msg":"Cleanup verification","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv","memberGone":true,"uidGone":true,"classRemovedFromUser":true,"afterStudentCount":63,"afterStudentIdsLength":63,"expectedStudentCount":63,"expectedStudentIdsLength":63}
+{"ts":"2026-05-31T19:33:59.486Z","level":"INFO","msg":"Emergency cleanup result","cleanupComplete":true}
+{"ts":"2026-05-31T19:34:44.442Z","level":"INFO","msg":"JOINVERIFY agent started"}
+{"ts":"2026-05-31T19:34:44.454Z","level":"INFO","msg":"Reading class documents from Firestore (Admin SDK)"}
+{"ts":"2026-05-31T19:34:49.272Z","level":"INFO","msg":"TOP class fetched","classId":"k8tzOiiwotBbtJS3uTiv","studentCount":63,"studentIdsLength":63,"name":"25WT 2차 TOP OFFLINE"}
+{"ts":"2026-05-31T19:34:49.275Z","level":"INFO","msg":"CORE class fetched","classId":"LVjBTFuYE8FbPG34pVAt","studentCount":66,"studentIdsLength":66,"name":"25WT 2차 CORE OFFLINE"}
+{"ts":"2026-05-31T19:34:49.333Z","level":"INFO","msg":"Found clean pair: CORE student NOT in TOP class","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","email":"audit_distracted_01_core@vocaboost.test","persona":"distracted","targetClass":"CORE","classId":"k8tzOiiwotBbtJS3uTiv","joinCode":"QSTRZL","inStudentIds":false,"memberExists":false}
+{"ts":"2026-05-31T19:34:49.335Z","level":"INFO","msg":"Chosen pair","studentUid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","studentEmail":"audit_distracted_01_core@vocaboost.test","studentPersona":"distracted","classId":"k8tzOiiwotBbtJS3uTiv","className":"25WT 2차 TOP OFFLINE","joinCode":"QSTRZL","beforeStudentIdsLength":63,"beforeStudentCount":63,"beforeInStudentIds":false,"beforeMemberExists":false}
+{"ts":"2026-05-31T19:34:49.341Z","level":"INFO","msg":"Launching Playwright browser","executablePath":"/ms-playwright/chromium-1223/chrome-linux/chrome"}
+{"ts":"2026-05-31T19:34:49.603Z","level":"INFO","msg":"Navigating to app root","url":"https://vocaboostone.netlify.app"}
+{"ts":"2026-05-31T19:34:51.070Z","level":"INFO","msg":"Logging in as student","email":"audit_distracted_01_core@vocaboost.test"}
+{"ts":"2026-05-31T19:34:52.259Z","level":"INFO","msg":"Login successful","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T19:34:52.336Z","level":"INFO","msg":"Looking for join class UI element"}
+{"ts":"2026-05-31T19:34:52.348Z","level":"INFO","msg":"Join elements found","buttons":0,"links":0}
+{"ts":"2026-05-31T19:34:52.359Z","level":"INFO","msg":"No join button/link found, trying page snapshot to understand layout"}
+{"ts":"2026-05-31T19:34:52.365Z","level":"INFO","msg":"Page has join text","hasJoin":false}
+{"ts":"2026-05-31T19:34:53.990Z","level":"INFO","msg":"Current URL after trying to navigate to join","url":"https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T19:34:53.997Z","level":"INFO","msg":"Found code input by label"}
+{"ts":"2026-05-31T19:34:54.000Z","level":"INFO","msg":"Entering join code","code":"QSTRZL"}
+{"ts":"2026-05-31T19:34:54.174Z","level":"INFO","msg":"Clicked submit/join button"}
+{"ts":"2026-05-31T19:34:57.320Z","level":"INFO","msg":"After join state","url":"https://vocaboostone.netlify.app/","bodyText":"Dashboard\nGradebook\nWelcome, Audit Distracted Student 01 (CORE)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYTHM\n\nMy Classes\n\n1 enrolled\n\nJoin a new class\nJoin\n\nClass joined successfully.\n\n25WT 2차 TOP OFFLINE\n\nJoined: 5/31/2026\n\n1 assigned lists\n\n25WT2 TOP Vocabulary (v2)\n\n3381 words\n\n0 introduced\n3381 total\n0%\nDAY\n1\n1 behind\nStart Session\nBlind Spots\nPDF\nToday\nPDF\nFull"}
+{"ts":"2026-05-31T19:34:57.325Z","level":"INFO","msg":"Join UI flow completed successfully"}
+{"ts":"2026-05-31T19:34:57.427Z","level":"INFO","msg":"Verifying join result via Admin SDK","classId":"k8tzOiiwotBbtJS3uTiv","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1"}
+{"ts":"2026-05-31T19:34:57.475Z","level":"INFO","msg":"After join verification","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv","uidInStudentIds":true,"afterStudentIdsLength":64,"afterStudentCount":64,"memberExists":true,"classInEnrolled":true,"studentCountDelta":1,"studentIdsDelta":1}
+{"ts":"2026-05-31T19:34:57.485Z","level":"INFO","msg":"KEY ASSERTION: uid in studentIds after join","verdict":"PASS","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:34:57.491Z","level":"INFO","msg":"Starting cleanup","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv"}
+{"ts":"2026-05-31T19:34:57.581Z","level":"INFO","msg":"Cleanup batch committed"}
+{"ts":"2026-05-31T19:34:57.609Z","level":"INFO","msg":"Cleanup verification","uid":"wPsFGQMdtJOmZ0h7MF5GlUcXKqx1","classId":"k8tzOiiwotBbtJS3uTiv","memberGone":true,"uidGone":true,"classRemovedFromUser":true,"afterStudentCount":63,"afterStudentIdsLength":63,"expectedStudentCount":63,"expectedStudentIdsLength":63}
+{"ts":"2026-05-31T19:34:57.619Z","level":"INFO","msg":"Findings written","path":"/app/findings/findings_joinverify.md"}
+{"ts":"2026-05-31T19:34:57.625Z","level":"INFO","msg":"JOINVERIFY completed","verdict":"CONFIRMED_WORKING"}

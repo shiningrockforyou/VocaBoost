@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "verdict": "CONFIRMED_WORKING",
+  "chosen": {
+    "studentUid": "wPsFGQMdtJOmZ0h7MF5GlUcXKqx1",
+    "studentEmail": "audit_distracted_01_core@vocaboost.test",
+    "studentPersona": "distracted",
+    "classId": "k8tzOiiwotBbtJS3uTiv",
+    "className": "25WT 2차 TOP OFFLINE",
+    "whySafe": "Seeded audit student, cross-class join (own=CORE, tested=TOP)"
+  },
+  "before": {
+    "uidInStudentIds": false,
+    "memberExists": false,
+    "studentIdsLength": 63,
+    "studentCount": 63
+  },
+  "join": {
+    "performedViaRealUI": true,
+    "error": null,
+    "permissionDeniedErrors": [],
+    "consoleErrorCount": 0
+  },
+  "after": {
+    "uidNowInStudentIds": true,
+    "studentCountIncremented": true,
+    "memberDocCreated": true,
+    "permissionDeniedInConsole": false
+  },
+  "cleanup": {
+    "done": true,
+    "memberGone": true,
+    "uidGone": true,
+    "classRemovedFromUser": true,
+    "afterStudentCount": 63,
+    "afterStudentIdsLength": 63,
+    "restoredToBeforeState": true
+  },
+  "updatedAt": "2026-05-31T19:34:57.622Z"
+}
