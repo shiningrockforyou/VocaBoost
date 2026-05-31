@@ -572,8 +572,17 @@ export async function buildReviewQueue(userId, listId, segment, reviewCount, tod
     segment.endIndex
   );
 
+  // Exclude words still retired as MASTERED. selectReviewQueue has no MASTERED
+  // branch, so without this filter mastered words leak into review (and get
+  // re-tested/downgraded) once the eligible pool is smaller than reviewCount.
+  // Expired MASTERED words are flipped to NEEDS_CHECK by returnMasteredWords at
+  // session init, so any word still MASTERED here is within its 21-day rest.
+  const eligibleSegmentWords = segmentWords.filter(
+    w => w.studyState?.status !== WORD_STATUS.MASTERED
+  );
+
   // Map to format expected by selectReviewQueue
-  const wordsWithState = segmentWords.map(w => ({
+  const wordsWithState = eligibleSegmentWords.map(w => ({
     ...w,
     id: w.id,
     status: w.studyState?.status || WORD_STATUS.NEVER_TESTED,
