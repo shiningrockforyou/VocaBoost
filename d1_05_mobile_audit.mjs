@@ -761,10 +761,314 @@ try {
 
     log(`Results page: hasPassResults=${hasPassResults} hasFailResults=${hasFailResults} hasAnyResults=${hasAnyResults}`);
 
-    if (hasPassResults) {
+    // ── NAVIGATE TO STEP 3 (Day completion) ──────────────────────────────────
+    // After reviewing results, need to scroll to bottom and find Continue/Next button
+    // This advances to Step 3 which completes the day and updates CSD
+    log('=== NAVIGATING TO STEP 3 (Day completion) ===');
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+    await screenshot(page, '11b_results_bottom');
+
+    // Look for Continue / Next Step / Proceed button
+    const continueBtn = page.getByRole('button', { name: /continue|next step|next|proceed|done|finish|go to/i }).first();
+    const continueBtnVisible = await continueBtn.isVisible({ timeout: 3000 }).catch(() => false);
+
+    if (continueBtnVisible) {
+      const continueBtnText = await continueBtn.textContent().catch(() => '?');
+      log(`Found continue button: "${continueBtnText}"`);
+      const box = await continueBtn.boundingBox().catch(() => null);
+      if (box && box.y > 844) {
+        mobileLayoutBlockers.push(`Continue button off-screen y=${box.y} on results page`);
+        await continueBtn.scrollIntoViewIfNeeded().catch(() => {});
+        await page.waitForTimeout(500);
+      }
+      await continueBtn.click();
+      await page.waitForTimeout(3000);
+      log(`After continue click, URL: ${page.url()}`);
+      await screenshot(page, '11c_after_continue');
+
+      // ── HANDLE REMAINING STEPS (Review Study, Review Test, etc.) ─────────
+      let stepLoopCount = 0;
+      const maxSteps = 30;
+
+      while (stepLoopCount < maxSteps) {
+        stepLoopCount++;
+        await page.waitForTimeout(2000);
+
+        const stepText = await page.evaluate(() => document.body.innerText.slice(0, 3000));
+        const currentUrl = page.url();
+        log(`Step loop ${stepLoopCount}: URL=${currentUrl} text=${stepText.slice(0, 150)}`);
+
+        const isDayComplete = /day.*complete|great job|well done|completed|congratulations|you.*finished|session complete/i.test(stepText);
+        // Check for actual dashboard/home - not session, mcqtest, or other session-related URLs
+        const isSessionURL = currentUrl.includes('/session/') || currentUrl.includes('/mcqtest/') || currentUrl.includes('/test/');
+        const isDashboard = !isSessionURL && (currentUrl.endsWith('.app/') || currentUrl.endsWith('.app') || currentUrl.includes('/dashboard'));
+
+        if (isDayComplete || isDashboard) {
+          log(`Day complete or dashboard reached! isDayComplete=${isDayComplete} isDashboard=${isDashboard}`);
+          await screenshot(page, `13_step${stepLoopCount}_complete`);
+          break;
+        }
+
+        // Handle "I know this word" flashcard phase (Review Study)
+        const iKnowBtn = page.getByRole('button', { name: /i know this word/i }).first();
+        if (await iKnowBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+          log(`Step ${stepLoopCount}: In study/review phase, using Skip to Test via menu`);
+          const menuBtn2 = page.getByRole('button', { name: /session menu/i }).first();
+          if (await menuBtn2.isVisible().catch(() => false)) {
+            await menuBtn2.click();
+            await page.waitForTimeout(1000);
+            const skipText2 = page.getByText(/skip to test/i).first();
+            if (await skipText2.isVisible({ timeout: 2000 }).catch(() => false)) {
+              await skipText2.click();
+              await page.waitForTimeout(2000);
+              const startTestBtn2 = page.getByRole('button', { name: /start test/i }).first();
+              if (await startTestBtn2.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await startTestBtn2.click();
+                await page.waitForTimeout(2000);
+              }
+            } else {
+              await page.keyboard.press('Escape');
+              await page.waitForTimeout(500);
+              for (let i = 0; i < 10; i++) {
+                const btn2 = page.getByRole('button', { name: /i know this word/i }).first();
+                if (await btn2.isVisible({ timeout: 1000 }).catch(() => false)) {
+                  await btn2.click();
+                  await page.waitForTimeout(300);
+                }
+              }
+            }
+          }
+          await screenshot(page, `13_step${stepLoopCount}_study`);
+          continue;
+        }
+
+        // Handle MCQ test (Review Test on /mcqtest/ URL)
+        const isMCQPage = currentUrl.includes('/mcqtest/');
+        if (isMCQPage) {
+          log(`Step ${stepLoopCount}: MCQ Review Test page`);
+          await screenshot(page, `13_step${stepLoopCount}_mcq_start`);
+
+          // The MCQ test shows one word at a time with 4 choices
+          // Navigate through all questions clicking the correct answer
+          let mcqAnswered = 0;
+          const maxMCQ = 35;
+
+          for (let q = 0; q < maxMCQ; q++) {
+            // Get current page state
+            const mcqText = await page.evaluate(() => document.body.innerText.slice(0, 2000));
+            const isSubmitPhase = /submit test/i.test(mcqText) && /\d+ of 30 answered/i.test(mcqText);
+            const isComplete = /complete|great job|well done|finished/i.test(mcqText);
+            const isResultsPage = !currentUrl.includes('/mcqtest/') && !currentUrl.includes('/session/');
+
+            if (isComplete) {
+              log(`MCQ: Complete detected after ${mcqAnswered} questions`);
+              break;
+            }
+
+            // Get the word being tested
+            const wordOnMCQ = await page.evaluate(() => {
+              const els = document.querySelectorAll('h1, h2, h3, strong, [class*="word"]');
+              for (const el of els) {
+                const txt = el.textContent?.trim();
+                if (txt && txt.length < 60 && !txt.match(/step|review test|day|progress|answered|submit|play audio/i)) {
+                  return txt;
+                }
+              }
+              return null;
+            });
+            log(`MCQ Q${q+1}: word="${wordOnMCQ}"`);
+
+            // Find the correct answer and click it
+            // The choices are div/button elements with definition text
+            const choices = await page.evaluate((wordName, wordList) => {
+              // Find all clickable choice containers
+              const allEls = [...document.querySelectorAll('div, button, li')];
+              const choices = [];
+              for (const el of allEls) {
+                const txt = el.textContent?.trim();
+                if (txt && txt.length > 10 && txt.length < 200 &&
+                    !txt.match(/^Step |^Review Test|^Progress|^Day |^Play Audio|submit test|Unanswered|answered/i) &&
+                    el.children.length < 5 &&
+                    !el.querySelector('input, button, select')) {
+                  const rect = el.getBoundingClientRect();
+                  if (rect.width > 50 && rect.height > 20 && rect.top > 100) {
+                    choices.push({ text: txt, rect: { top: rect.top, left: rect.left, width: rect.width } });
+                  }
+                }
+              }
+              return choices.slice(0, 8); // Get first 8 candidates
+            }, wordOnMCQ, DAY1_WORDS);
+
+            log(`MCQ Q${q+1}: choices found: ${JSON.stringify(choices.map(c => c.text.slice(0, 40)))}`);
+
+            // Look up the correct definition
+            let correctDef = null;
+            if (wordOnMCQ) {
+              const cleanWordMCQ = wordOnMCQ.replace(/\(.*?\)/g, '').trim();
+              // Try from Firestore definitions fetched earlier (re-fetch if needed)
+              try {
+                const defSnap = await db.collection('lists').doc(LIST_ID).collection('words')
+                  .where('word', '>=', cleanWordMCQ)
+                  .where('word', '<', cleanWordMCQ + '￿')
+                  .limit(3).get();
+                for (const d of defSnap.docs) {
+                  const cleanW = d.data().word?.replace(/\r?\n.*/g, '').trim().toLowerCase();
+                  if (cleanW === cleanWordMCQ.toLowerCase()) {
+                    correctDef = d.data().definitions?.en || d.data().definition;
+                    break;
+                  }
+                }
+              } catch (e) { /* ignore */ }
+            }
+            log(`MCQ Q${q+1}: correctDef="${correctDef?.slice(0, 60)}"`);
+
+            // Find and click the choice that matches the correct definition
+            let clicked = false;
+            if (correctDef) {
+              const choiceEls = page.locator('div, button').filter({ hasText: correctDef.slice(0, 20) });
+              for (let c = 0; c < await choiceEls.count(); c++) {
+                const choice = choiceEls.nth(c);
+                const txt = await choice.textContent().catch(() => '');
+                if (txt.trim().slice(0, 50).toLowerCase().includes(correctDef.slice(0, 30).toLowerCase())) {
+                  await choice.scrollIntoViewIfNeeded().catch(() => {});
+                  await choice.click().catch(() => {});
+                  clicked = true;
+                  mcqAnswered++;
+                  log(`MCQ Q${q+1}: Clicked correct answer`);
+                  await page.waitForTimeout(300);
+                  break;
+                }
+              }
+            }
+
+            if (!clicked) {
+              // Fallback: click the first visible choice-like element
+              const anyChoice = page.locator('div').filter({ hasText: /\w{5,}/ }).nth(3);
+              if (await anyChoice.isVisible().catch(() => false)) {
+                await anyChoice.click().catch(() => {});
+                mcqAnswered++;
+                log(`MCQ Q${q+1}: Clicked fallback choice`);
+                await page.waitForTimeout(300);
+              }
+            }
+
+            // Navigate to next question using ">" button
+            const nextArrow = page.getByRole('button', { name: /next|>/i }).last();
+            if (await nextArrow.isVisible({ timeout: 1000 }).catch(() => false)) {
+              await nextArrow.click().catch(() => {});
+              await page.waitForTimeout(400);
+            } else {
+              // Try clicking the right arrow
+              const rightArrow = page.locator('button').filter({ hasText: '>' }).first();
+              if (await rightArrow.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await rightArrow.click().catch(() => {});
+                await page.waitForTimeout(400);
+              }
+            }
+
+            // Check if Submit Test button appeared (all answered)
+            const progressText = await page.evaluate(() => document.body.innerText.match(/(\d+) of 30 answered/)?.[0] || '');
+            log(`MCQ progress: ${progressText}`);
+            if (/30 of 30 answered/i.test(progressText)) {
+              log('All 30 MCQ answered, submitting...');
+              break;
+            }
+          }
+
+          log(`MCQ: Answered ${mcqAnswered} questions`);
+          await screenshot(page, `13_step${stepLoopCount}_mcq_done`);
+
+          // Submit the MCQ test
+          const mcqSubmitBtn = page.getByRole('button', { name: /submit test/i }).first();
+          if (await mcqSubmitBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+            log('Clicking Submit Test for MCQ...');
+            await mcqSubmitBtn.click();
+            await page.waitForTimeout(5000); // Grading
+
+            // Check for grading
+            const gradingCheck = await page.evaluate(() => document.body.innerText.slice(0, 500));
+            if (/grading|evaluating|please wait/i.test(gradingCheck)) {
+              await page.waitForFunction(() => {
+                const text = document.body.innerText;
+                return !/(grading|evaluating|please wait)/i.test(text);
+              }, { timeout: 120000 }).catch(() => {});
+              await page.waitForTimeout(3000);
+            }
+          }
+          await screenshot(page, `13_step${stepLoopCount}_mcq_submitted`);
+          continue;
+        }
+
+        // Handle MCQ test (in-session, role="radio")
+        const mcqOptions = page.locator('[role="radio"], input[type="radio"]');
+        if (await mcqOptions.count() > 0) {
+          log(`Step ${stepLoopCount}: MCQ choices detected`);
+          const firstOpt = mcqOptions.first();
+          if (await firstOpt.isVisible().catch(() => false)) {
+            await firstOpt.click().catch(() => {});
+            await page.waitForTimeout(500);
+          }
+          const submitBtn = page.getByRole('button', { name: /submit|next|confirm/i }).first();
+          if (await submitBtn.isVisible().catch(() => false)) {
+            await submitBtn.click();
+            await page.waitForTimeout(2000);
+          }
+          await screenshot(page, `13_step${stepLoopCount}_mcq`);
+          continue;
+        }
+
+        // Handle Continue/Next buttons
+        const nextBtn = page.getByRole('button', { name: /continue|next|done|finish|go home|back to dashboard/i }).first();
+        if (await nextBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          const btnTxt = await nextBtn.textContent().catch(() => '?');
+          log(`Step ${stepLoopCount}: Clicking "${btnTxt}"`);
+          await nextBtn.scrollIntoViewIfNeeded().catch(() => {});
+          await nextBtn.click();
+          await page.waitForTimeout(2000);
+          await screenshot(page, `13_step${stepLoopCount}_next`);
+          continue;
+        }
+
+        // Look for any button
+        const anyBtn = page.locator('button').first();
+        const anyBtnTxt = await anyBtn.textContent().catch(() => '');
+        if (anyBtnTxt && !anyBtnTxt.match(/session menu|study help|quit|audio|previous|next card/i)) {
+          log(`Step ${stepLoopCount}: Clicking generic button "${anyBtnTxt.slice(0, 30)}"`);
+          await anyBtn.click().catch(() => {});
+          await page.waitForTimeout(2000);
+          await screenshot(page, `13_step${stepLoopCount}_generic`);
+          continue;
+        }
+
+        log(`Step ${stepLoopCount}: No recognized state. Breaking.`);
+        await screenshot(page, `13_step${stepLoopCount}_unknown`);
+        break;
+      }
+
+    } else {
+      // Check the full results page text for other navigation options
+      const fullText = await page.evaluate(() => document.body.innerText);
+      log('No continue button found on results page. Full text (500):', { text: fullText.slice(0, 500) });
+
+      // Try scrolling up to find a button at the top
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(500);
+      const allBtns = await page.locator('button').all();
+      log(`Buttons visible: ${allBtns.length}`);
+      for (const btn of allBtns) {
+        const txt = await btn.textContent().catch(() => '');
+        const vis = await btn.isVisible().catch(() => false);
+        const box = await btn.boundingBox().catch(() => null);
+        log(`  btn: "${txt.trim().slice(0,30)}" vis=${vis} box=${JSON.stringify(box)}`);
+      }
+    }
+
+    // Set classification based on grading before Firestore check
+    if (hasPassResults && !hasFailResults) {
       classification = 'COMPLETED_PASS';
       day1OKMobile = true;
-    } else if (hasFailResults) {
+    } else if (hasFailResults && !hasPassResults) {
       classification = 'COMPLETED_NOPASS';
       day1OKMobile = false;
     } else if (questionsAnswered > 0) {
@@ -775,7 +1079,7 @@ try {
 
     // ── FIRESTORE VERIFICATION ────────────────────────────────────────────────
     log('=== FIRESTORE VERIFICATION ===');
-    await page.waitForTimeout(5000); // let writes propagate
+    await page.waitForTimeout(8000); // let writes propagate after step 3
 
     const afterSnap = await captureFirestoreSnapshot('after');
     csdAfter = afterSnap.class_progress?.currentStudyDay ?? null;

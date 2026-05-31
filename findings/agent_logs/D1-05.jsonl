@@ -360,3 +360,538 @@
 {"ts":"2026-05-31T21:17:56.438Z","msg":"Session states after: 1 docs"}
 {"ts":"2026-05-31T21:17:56.692Z","msg":"Screenshot: 12_final_state.png"}
 {"ts":"2026-05-31T21:17:56.865Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T21:23:54.079Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:23:59.387Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:23:59.397Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:23:59.694Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:23:59.697Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:24:02.643Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:24:04.008Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:24:04.199Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T21:24:06.206Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 1\n\nStart Session\n\nWords Introduced\n\n0\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHYT"}
+{"ts":"2026-05-31T21:24:06.209Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T21:24:07.229Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T21:24:07.444Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T21:24:07.473Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T21:24:07.476Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T21:24:10.068Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:24:10.266Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T21:24:10.268Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T21:24:11.774Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T21:24:13.456Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T21:24:13.458Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T21:24:15.463Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 3\n\nNew Words Study — Day 1\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emotion\n\n🇰🇷\n\nKorean\n\n염려를 불러일으키는\n\nSAMPLE SENTENCE\n\nThe teacher's inflammatory remarks during the debate caused several students to feel upset and defensive about their opinions. (1601)"}
+{"ts":"2026-05-31T21:24:15.467Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T21:24:15.469Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T21:24:15.627Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T21:24:15.639Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T21:24:16.102Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T21:24:16.547Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T21:24:16.998Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T21:24:17.447Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T21:24:17.895Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T21:24:18.036Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T21:24:18.039Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T21:24:19.249Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T21:24:19.255Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T21:24:23.239Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T21:24:23.243Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T21:24:23.245Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T21:24:25.264Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T21:24:25.278Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}
+{"ts":"2026-05-31T21:24:27.492Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T21:24:27.502Z","msg":"Test start page text (first 400):","excerpt":"Step 2 of 3\n\nNew Words Test — Day 1\n\nProgress\n\n0 of 30 answered\n\n1.\ndisservice\n(n.)\n2.\nfetter\n(v.)\n3.\nfiat\n(n.)\n4.\nyea (old English)\n(n.)\n5.\novercompensate\n(v.)\n6.\nprithee (old English)\n(adv.)\n7.\nrout\n(v.)\n8.\nbourgeois\n(adj.)\n9.\nforensic\n(adj.)\n10.\nintractable\n(adj.)\n11.\nruse\n(n.)\n12.\ndeterminant\n(n.)\n13.\nstalemate\n(n.)\n14.\noffset\n(v.)\n15.\nimpervious\n(adj.)\n16.\nponderous (old English)\n(adj.)\n17.\ne"}
+{"ts":"2026-05-31T21:24:27.510Z","msg":"Test phase reached: 30 inputs visible"}
+{"ts":"2026-05-31T21:24:27.513Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T21:24:29.550Z","msg":"Found 30 questions on page"}
+{"ts":"2026-05-31T21:24:29.558Z","msg":"Fetching Firestore definitions for 30 words..."}
+{"ts":"2026-05-31T21:24:30.154Z","msg":"Firestore definitions loaded: 30/30"}
+{"ts":"2026-05-31T21:24:30.157Z","msg":"Q1: word=\"disservice\" def=a harmful action; an ill turn"}
+{"ts":"2026-05-31T21:24:30.160Z","msg":"Q2: word=\"fetter\" def=to restrain; to hamper"}
+{"ts":"2026-05-31T21:24:30.162Z","msg":"Q3: word=\"fiat\" def=an arbitrary decree or order"}
+{"ts":"2026-05-31T21:24:30.164Z","msg":"Q4: word=\"yea\" def=yes."}
+{"ts":"2026-05-31T21:24:30.167Z","msg":"Q5: word=\"overcompensate\" def=to make up for something excessively, at times due"}
+{"ts":"2026-05-31T21:24:30.169Z","msg":"Q6: word=\"prithee\" def=please"}
+{"ts":"2026-05-31T21:24:30.172Z","msg":"Q7: word=\"rout\" def=to put to flight; to scatter; to cause a huge defe"}
+{"ts":"2026-05-31T21:24:30.174Z","msg":"Q8: word=\"bourgeois\" def=middle class, usually in a pejorative sense; borin"}
+{"ts":"2026-05-31T21:24:30.176Z","msg":"Q9: word=\"forensic\" def=related to or used in courts of law"}
+{"ts":"2026-05-31T21:24:30.179Z","msg":"Q10: word=\"intractable\" def=difficult to control, manage, or manipulate"}
+{"ts":"2026-05-31T21:24:30.181Z","msg":"Q11: word=\"ruse\" def=a trick"}
+{"ts":"2026-05-31T21:24:30.183Z","msg":"Q12: word=\"determinant\" def=a factor or element that determines an outcome"}
+{"ts":"2026-05-31T21:24:30.186Z","msg":"Q13: word=\"stalemate\" def=a contest, dispute, competition, etc., in which ne"}
+{"ts":"2026-05-31T21:24:30.188Z","msg":"Q14: word=\"offset\" def=to compensate for or counterbalance"}
+{"ts":"2026-05-31T21:24:30.191Z","msg":"Q15: word=\"impervious\" def=not admitting of passage or capable of being affec"}
+{"ts":"2026-05-31T21:24:30.193Z","msg":"Q16: word=\"ponderous\" def=slow and clumsy because of great weight."}
+{"ts":"2026-05-31T21:24:30.196Z","msg":"Q17: word=\"effusion\" def=a pouring forth"}
+{"ts":"2026-05-31T21:24:30.198Z","msg":"Q18: word=\"presumed\" def=assumed to be true"}
+{"ts":"2026-05-31T21:24:30.200Z","msg":"Q19: word=\"lurid\" def=ghastly, sensational"}
+{"ts":"2026-05-31T21:24:30.202Z","msg":"Q20: word=\"maternal\" def=of or relating to a mother"}
+{"ts":"2026-05-31T21:24:30.205Z","msg":"Q21: word=\"compulsory\" def=required or mandatory"}
+{"ts":"2026-05-31T21:24:30.207Z","msg":"Q22: word=\"philanthropy\" def=the desire to promote the welfare of others, usual"}
+{"ts":"2026-05-31T21:24:30.210Z","msg":"Q23: word=\"navigate\" def=to provide direction (especially when moving forwa"}
+{"ts":"2026-05-31T21:24:30.213Z","msg":"Q24: word=\"continuum\" def=a continuous whole without clear division into par"}
+{"ts":"2026-05-31T21:24:30.216Z","msg":"Q25: word=\"redolent\" def=strongly reminiscent or suggestive of something"}
+{"ts":"2026-05-31T21:24:30.219Z","msg":"Q26: word=\"devalue\" def=to reduce or lower the value or worth of something"}
+{"ts":"2026-05-31T21:24:30.221Z","msg":"Q27: word=\"engrave\" def=to cut or carve lines, letters, designs, etc., ont"}
+{"ts":"2026-05-31T21:24:30.224Z","msg":"Q28: word=\"agog\" def=very eager or curious to hear or see something."}
+{"ts":"2026-05-31T21:24:30.227Z","msg":"Q29: word=\"composure\" def=calmness, self-control"}
+{"ts":"2026-05-31T21:24:30.229Z","msg":"Q30: word=\"stoical\" def=seeming unaffected by pleasure or pain; impassive,"}
+{"ts":"2026-05-31T21:24:30.235Z","msg":"Total inputs on page: 30"}
+{"ts":"2026-05-31T21:24:30.476Z","msg":"Input 1 box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:30.479Z","msg":"Input 1: word=\"disservice\" → \"a harmful action; an ill turn\""}
+{"ts":"2026-05-31T21:24:32.604Z","msg":"Screenshot: 08_first_answer_typed.png"}
+{"ts":"2026-05-31T21:24:32.858Z","msg":"Input 2 box: {\"x\":76,\"y\":363,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:32.861Z","msg":"Input 2: word=\"fetter\" → \"to restrain; to hamper\""}
+{"ts":"2026-05-31T21:24:34.625Z","msg":"Input 3 box: {\"x\":76,\"y\":493,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:34.628Z","msg":"Input 3: word=\"fiat\" → \"an arbitrary decree or order\""}
+{"ts":"2026-05-31T21:24:36.744Z","msg":"Input 4 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:36.747Z","msg":"Input 4: word=\"yea\" → \"yes.\""}
+{"ts":"2026-05-31T21:24:37.441Z","msg":"Input 5 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:37.444Z","msg":"Input 5: word=\"overcompensate\" → \"to make up for something excessively, at times due to guilt \""}
+{"ts":"2026-05-31T21:24:41.855Z","msg":"Input 6 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:41.863Z","msg":"Input 6: word=\"prithee\" → \"please\""}
+{"ts":"2026-05-31T21:24:42.672Z","msg":"Input 7 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:42.675Z","msg":"Input 7: word=\"rout\" → \"to put to flight; to scatter; to cause a huge defeat\""}
+{"ts":"2026-05-31T21:24:46.239Z","msg":"Input 8 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:46.242Z","msg":"Input 8: word=\"bourgeois\" → \"middle class, usually in a pejorative sense; boringly conven\""}
+{"ts":"2026-05-31T21:24:50.623Z","msg":"Input 9 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:50.625Z","msg":"Input 9: word=\"forensic\" → \"related to or used in courts of law\""}
+{"ts":"2026-05-31T21:24:53.138Z","msg":"Input 10 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:53.141Z","msg":"Input 10: word=\"intractable\" → \"difficult to control, manage, or manipulate\""}
+{"ts":"2026-05-31T21:24:56.121Z","msg":"Input 11 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:56.124Z","msg":"Input 11: word=\"ruse\" → \"a trick\""}
+{"ts":"2026-05-31T21:24:56.970Z","msg":"Input 12 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:24:56.972Z","msg":"Input 12: word=\"determinant\" → \"a factor or element that determines an outcome\""}
+{"ts":"2026-05-31T21:25:00.138Z","msg":"Input 13 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:00.142Z","msg":"Input 13: word=\"stalemate\" → \"a contest, dispute, competition, etc., in which neither side\""}
+{"ts":"2026-05-31T21:25:05.905Z","msg":"Input 14 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:05.908Z","msg":"Input 14: word=\"offset\" → \"to compensate for or counterbalance\""}
+{"ts":"2026-05-31T21:25:08.421Z","msg":"Input 15 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:08.425Z","msg":"Input 15: word=\"impervious\" → \"not admitting of passage or capable of being affected\""}
+{"ts":"2026-05-31T21:25:11.972Z","msg":"Screenshot: 08b_halfway_answered.png"}
+{"ts":"2026-05-31T21:25:12.202Z","msg":"Input 16 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:12.205Z","msg":"Input 16: word=\"ponderous\" → \"slow and clumsy because of great weight.\""}
+{"ts":"2026-05-31T21:25:15.034Z","msg":"Input 17 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:15.038Z","msg":"Input 17: word=\"effusion\" → \"a pouring forth\""}
+{"ts":"2026-05-31T21:25:16.368Z","msg":"Input 18 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:16.371Z","msg":"Input 18: word=\"presumed\" → \"assumed to be true\""}
+{"ts":"2026-05-31T21:25:17.885Z","msg":"Input 19 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:17.888Z","msg":"Input 19: word=\"lurid\" → \"ghastly, sensational\""}
+{"ts":"2026-05-31T21:25:19.502Z","msg":"Input 20 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:19.505Z","msg":"Input 20: word=\"maternal\" → \"of or relating to a mother\""}
+{"ts":"2026-05-31T21:25:21.467Z","msg":"Input 21 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:21.470Z","msg":"Input 21: word=\"compulsory\" → \"required or mandatory\""}
+{"ts":"2026-05-31T21:25:23.134Z","msg":"Input 22 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:23.137Z","msg":"Input 22: word=\"philanthropy\" → \"the desire to promote the welfare of others, usually through\""}
+{"ts":"2026-05-31T21:25:28.869Z","msg":"Input 23 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:28.872Z","msg":"Input 23: word=\"navigate\" → \"to provide direction (especially when moving forward)\""}
+{"ts":"2026-05-31T21:25:32.435Z","msg":"Input 24 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:32.439Z","msg":"Input 24: word=\"continuum\" → \"a continuous whole without clear division into parts\""}
+{"ts":"2026-05-31T21:25:35.950Z","msg":"Input 25 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:35.953Z","msg":"Input 25: word=\"redolent\" → \"strongly reminiscent or suggestive of something\""}
+{"ts":"2026-05-31T21:25:39.152Z","msg":"Input 26 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:39.155Z","msg":"Input 26: word=\"devalue\" → \"to reduce or lower the value or worth of something\""}
+{"ts":"2026-05-31T21:25:42.599Z","msg":"Input 27 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:42.602Z","msg":"Input 27: word=\"engrave\" → \"to cut or carve lines, letters, designs, etc., onto or into \""}
+{"ts":"2026-05-31T21:25:47.415Z","msg":"Input 28 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:47.417Z","msg":"Input 28: word=\"agog\" → \"very eager or curious to hear or see something.\""}
+{"ts":"2026-05-31T21:25:50.632Z","msg":"Input 29 box: {\"x\":76,\"y\":552,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:50.635Z","msg":"Input 29: word=\"composure\" → \"calmness, self-control\""}
+{"ts":"2026-05-31T21:25:52.381Z","msg":"Input 30 box: {\"x\":76,\"y\":682,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:25:52.384Z","msg":"Input 30: word=\"stoical\" → \"seeming unaffected by pleasure or pain; impassive, not showi\""}
+{"ts":"2026-05-31T21:25:56.718Z","msg":"Typed answers for 30 questions, now checking for submit button"}
+{"ts":"2026-05-31T21:25:56.915Z","msg":"Screenshot: 09_all_answers_typed.png"}
+{"ts":"2026-05-31T21:25:56.929Z","msg":"Submit Test button box: {\"x\":139.15625,\"y\":780,\"width\":111.671875,\"height\":48}"}
+{"ts":"2026-05-31T21:25:56.933Z","msg":"Clicking Submit Test..."}
+{"ts":"2026-05-31T21:25:59.001Z","msg":"Waiting for grading to complete..."}
+{"ts":"2026-05-31T21:26:04.007Z","msg":"Grading in progress... waiting up to 5 minutes"}
+{"ts":"2026-05-31T21:26:11.881Z","msg":"Total questions answered: 30"}
+{"ts":"2026-05-31T21:26:12.062Z","msg":"Screenshot: 10_after_submit_grading.png"}
+{"ts":"2026-05-31T21:26:12.064Z","msg":"=== CHECKING RESULTS ==="}
+{"ts":"2026-05-31T21:26:17.076Z","msg":"Results text (first 500):","excerpt":"Step 2 of 3\n\nNew Words Test — Day 1\n\nCompleted Day 1 session\n\n100%\n\n30 of 30 correct\n\nContinue\nAnswers\n1\ndisservice\n✓\n\nCorrect Answer\n\na harmful action; an ill turn\n\nYour Answer\n\na harmful action; an ill turn\n\n2\nfetter\n✓\n\nCorrect Answer\n\nto restrain; to hamper\n\nYour Answer\n\nto restrain; to hamper\n\n3\nfiat\n✓\n\nCorrect Answer\n\nan arbitrary decree or order\n\nYour Answer\n\nan arbitrary decree or order\n\n4\nyea (old English)\n✓\n\nCorrect Answer\n\nyes.\n\nYour Answer\n\nyes.\n\n5\novercompensate\n✓\n\nCorrect Answer\n\nto"}
+{"ts":"2026-05-31T21:26:17.275Z","msg":"Screenshot: 11_results_page.png"}
+{"ts":"2026-05-31T21:26:17.279Z","msg":"Results page: hasPassResults=true hasFailResults=true hasAnyResults=true"}
+{"ts":"2026-05-31T21:26:17.281Z","msg":"=== FIRESTORE VERIFICATION ==="}
+{"ts":"2026-05-31T21:26:22.324Z","msg":"AFTER: CSD=1, attempts=1"}
+{"ts":"2026-05-31T21:26:22.326Z","msg":"CSD before→after: 1→1"}
+{"ts":"2026-05-31T21:26:22.328Z","msg":"CSD still at 1 — Day 1 not completed"}
+{"ts":"2026-05-31T21:26:22.331Z","msg":"Attempt doc created: b6pQOxFd6kcovH0jtNuSwnHQOqo2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780262768178_2hlf6r30u"}
+{"ts":"2026-05-31T21:26:22.333Z","msg":"New-word slice: test showed 30 questions (expected 30 for Day-1 new words)"}
+{"ts":"2026-05-31T21:26:22.335Z","msg":"Session states after: 1 docs"}
+{"ts":"2026-05-31T21:26:22.524Z","msg":"Screenshot: 12_final_state.png"}
+{"ts":"2026-05-31T21:26:22.676Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T21:28:32.686Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:28:37.615Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:28:37.623Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:28:37.963Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:28:37.969Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:28:41.455Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:28:42.690Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:28:42.898Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T21:28:44.905Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 2\n\nStart Session\n\nWords Introduced\n\n80\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHY"}
+{"ts":"2026-05-31T21:28:44.910Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T21:28:45.927Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T21:28:46.108Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T21:28:46.133Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T21:28:46.136Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T21:28:48.734Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:28:48.950Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T21:28:48.953Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T21:28:50.462Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T21:28:52.150Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T21:28:52.153Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T21:28:54.158Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 5\n\nNew Words Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\nanthology\n\n(n.)\n\nanthology\n\n(n.)\n\na collection, especially of literary works\n\n🇰🇷\n\nKorean\n\n명시 전집, 작품집, [한 작가의]전작, 작품집, 수집\n\nSAMPLE SENTENCE\n\nThe teacher assigned us to read an anthology of contemporary poetry that features various voices and styles. (1681)"}
+{"ts":"2026-05-31T21:28:54.162Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T21:28:54.165Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T21:28:54.329Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T21:28:54.342Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T21:28:54.808Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T21:28:55.276Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T21:28:55.716Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T21:28:56.168Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T21:28:56.618Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T21:28:56.741Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T21:28:56.744Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T21:28:57.955Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T21:28:57.962Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T21:29:01.968Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T21:29:01.970Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T21:29:01.973Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T21:29:03.986Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T21:29:04.001Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}
+{"ts":"2026-05-31T21:29:06.237Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T21:29:06.248Z","msg":"Test start page text (first 400):","excerpt":"Step 2 of 5\n\nNew Words Test — Day 2\n\nProgress\n\n0 of 30 answered\n\n1.\nvital\n(adj.)\n2.\nimpotent\n(adj.)\n3.\nreluctant\n(adj.)\n4.\nimpose\n(v.)\n5.\nextremity\n(n.)\n6.\nvagary\n(n.)\n7.\nscarcity\n(n.)\n8.\nsentient\n(adj.)\n9.\nagrarian\n(adj.)\n10.\nraucous\n(adj.)\n11.\nconspicuous\n(adj.)\n12.\nprevail\n(v.)\n13.\nadjunct\n(n.)\n14.\nderisive\n(adj.)\n15.\neffluvia\n(n.)\n16.\nsurpass\n(v.)\n17.\ngenial\n(adj.)\n18.\ncredit\n(v.)\n19.\ndelinque"}
+{"ts":"2026-05-31T21:29:06.258Z","msg":"Test phase reached: 30 inputs visible"}
+{"ts":"2026-05-31T21:29:06.262Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T21:29:08.299Z","msg":"Found 30 questions on page"}
+{"ts":"2026-05-31T21:29:08.307Z","msg":"Fetching Firestore definitions for 30 words..."}
+{"ts":"2026-05-31T21:29:08.917Z","msg":"Firestore definitions loaded: 30/30"}
+{"ts":"2026-05-31T21:29:08.920Z","msg":"Q1: word=\"vital\" def=essential; necessary for life or existence"}
+{"ts":"2026-05-31T21:29:08.923Z","msg":"Q2: word=\"impotent\" def=powerless; helpless; unable to perform sexual inte"}
+{"ts":"2026-05-31T21:29:08.926Z","msg":"Q3: word=\"reluctant\" def=not eager; unwilling to become involved"}
+{"ts":"2026-05-31T21:29:08.929Z","msg":"Q4: word=\"impose\" def=to force or place a burden on someone"}
+{"ts":"2026-05-31T21:29:08.931Z","msg":"Q5: word=\"extremity\" def=the extreme ends of something (in a body, your fin"}
+{"ts":"2026-05-31T21:29:08.934Z","msg":"Q6: word=\"vagary\" def=whim; unpredictable action; wild notion"}
+{"ts":"2026-05-31T21:29:08.936Z","msg":"Q7: word=\"scarcity\" def=a state of being in short supply or lacking"}
+{"ts":"2026-05-31T21:29:08.939Z","msg":"Q8: word=\"sentient\" def=able to perceive by the senses; conscious"}
+{"ts":"2026-05-31T21:29:08.942Z","msg":"Q9: word=\"agrarian\" def=relating to land; relating to the management or fa"}
+{"ts":"2026-05-31T21:29:08.944Z","msg":"Q10: word=\"raucous\" def=stridently loud; harsh; rowdy"}
+{"ts":"2026-05-31T21:29:08.947Z","msg":"Q11: word=\"conspicuous\" def=easily seen, noticeable"}
+{"ts":"2026-05-31T21:29:08.950Z","msg":"Q12: word=\"prevail\" def=to win, convince, survive; to show the superiority"}
+{"ts":"2026-05-31T21:29:08.952Z","msg":"Q13: word=\"adjunct\" def=something added to or connected with something els"}
+{"ts":"2026-05-31T21:29:08.956Z","msg":"Q14: word=\"derisive\" def=mocking, ridiculing"}
+{"ts":"2026-05-31T21:29:08.959Z","msg":"Q15: word=\"effluvia\" def=unpleasant odor"}
+{"ts":"2026-05-31T21:29:08.961Z","msg":"Q16: word=\"surpass\" def=to pass or go beyond"}
+{"ts":"2026-05-31T21:29:08.964Z","msg":"Q17: word=\"genial\" def=friendly, cheerful"}
+{"ts":"2026-05-31T21:29:08.966Z","msg":"Q18: word=\"credit\" def=to acknowledge contributions of someone or somethi"}
+{"ts":"2026-05-31T21:29:08.969Z","msg":"Q19: word=\"delinquent\" def=neglecting a duty or law; late in payment"}
+{"ts":"2026-05-31T21:29:08.972Z","msg":"Q20: word=\"residue\" def=a small amount of something that remains after the"}
+{"ts":"2026-05-31T21:29:08.974Z","msg":"Q21: word=\"antagonism\" def=hostility"}
+{"ts":"2026-05-31T21:29:08.977Z","msg":"Q22: word=\"lavish\" def=luxurious and expensive"}
+{"ts":"2026-05-31T21:29:08.980Z","msg":"Q23: word=\"impute\" def=to say or suggest that someone or something has or"}
+{"ts":"2026-05-31T21:29:08.982Z","msg":"Q24: word=\"stupefy\" def=to astonish, make insensible"}
+{"ts":"2026-05-31T21:29:08.984Z","msg":"Q25: word=\"magnanimous\" def=generous and forgiving, especially toward a rival "}
+{"ts":"2026-05-31T21:29:08.987Z","msg":"Q26: word=\"carouse\" def=to drink and party in a lively way"}
+{"ts":"2026-05-31T21:29:08.989Z","msg":"Q27: word=\"inertia\" def=a tendency to do nothing or remain unchanged"}
+{"ts":"2026-05-31T21:29:08.992Z","msg":"Q28: word=\"colossus\" def=a gigantic statue or thing"}
+{"ts":"2026-05-31T21:29:08.995Z","msg":"Q29: word=\"garrulous\" def=excessively talkative, especially on trivial matte"}
+{"ts":"2026-05-31T21:29:08.997Z","msg":"Q30: word=\"circumnavigate\" def=to sail or travel all the way around"}
+{"ts":"2026-05-31T21:29:09.005Z","msg":"Total inputs on page: 30"}
+{"ts":"2026-05-31T21:29:09.246Z","msg":"Input 1 box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:09.249Z","msg":"Input 1: word=\"vital\" → \"essential; necessary for life or existence\""}
+{"ts":"2026-05-31T21:29:12.201Z","msg":"Screenshot: 08_first_answer_typed.png"}
+{"ts":"2026-05-31T21:29:12.426Z","msg":"Input 2 box: {\"x\":76,\"y\":363,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:12.432Z","msg":"Input 2: word=\"impotent\" → \"powerless; helpless; unable to perform sexual intercourse\""}
+{"ts":"2026-05-31T21:29:16.276Z","msg":"Input 3 box: {\"x\":76,\"y\":493,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:16.279Z","msg":"Input 3: word=\"reluctant\" → \"not eager; unwilling to become involved\""}
+{"ts":"2026-05-31T21:29:19.043Z","msg":"Input 4 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:19.046Z","msg":"Input 4: word=\"impose\" → \"to force or place a burden on someone\""}
+{"ts":"2026-05-31T21:29:21.692Z","msg":"Input 5 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:21.694Z","msg":"Input 5: word=\"extremity\" → \"the extreme ends of something (in a body, your fingers, toes\""}
+{"ts":"2026-05-31T21:29:26.658Z","msg":"Input 6 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:26.665Z","msg":"Input 6: word=\"vagary\" → \"whim; unpredictable action; wild notion\""}
+{"ts":"2026-05-31T21:29:29.408Z","msg":"Input 7 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:29.411Z","msg":"Input 7: word=\"scarcity\" → \"a state of being in short supply or lacking\""}
+{"ts":"2026-05-31T21:29:32.392Z","msg":"Input 8 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:32.396Z","msg":"Input 8: word=\"sentient\" → \"able to perceive by the senses; conscious\""}
+{"ts":"2026-05-31T21:29:35.275Z","msg":"Input 9 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:35.278Z","msg":"Input 9: word=\"agrarian\" → \"relating to land; relating to the management or farming of l\""}
+{"ts":"2026-05-31T21:29:39.525Z","msg":"Input 10 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:39.528Z","msg":"Input 10: word=\"raucous\" → \"stridently loud; harsh; rowdy\""}
+{"ts":"2026-05-31T21:29:41.690Z","msg":"Input 11 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:41.693Z","msg":"Input 11: word=\"conspicuous\" → \"easily seen, noticeable\""}
+{"ts":"2026-05-31T21:29:43.488Z","msg":"Input 12 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:43.492Z","msg":"Input 12: word=\"prevail\" → \"to win, convince, survive; to show the superiority over some\""}
+{"ts":"2026-05-31T21:29:47.790Z","msg":"Input 13 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:47.793Z","msg":"Input 13: word=\"adjunct\" → \"something added to or connected with something else; an assi\""}
+{"ts":"2026-05-31T21:29:52.089Z","msg":"Input 14 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:52.092Z","msg":"Input 14: word=\"derisive\" → \"mocking, ridiculing\""}
+{"ts":"2026-05-31T21:29:53.656Z","msg":"Input 15 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:53.659Z","msg":"Input 15: word=\"effluvia\" → \"unpleasant odor\""}
+{"ts":"2026-05-31T21:29:54.957Z","msg":"Screenshot: 08b_halfway_answered.png"}
+{"ts":"2026-05-31T21:29:55.188Z","msg":"Input 16 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:55.191Z","msg":"Input 16: word=\"surpass\" → \"to pass or go beyond\""}
+{"ts":"2026-05-31T21:29:56.823Z","msg":"Input 17 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:56.826Z","msg":"Input 17: word=\"genial\" → \"friendly, cheerful\""}
+{"ts":"2026-05-31T21:29:58.338Z","msg":"Input 18 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:29:58.342Z","msg":"Input 18: word=\"credit\" → \"to acknowledge contributions of someone or something\""}
+{"ts":"2026-05-31T21:30:01.872Z","msg":"Input 19 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:01.874Z","msg":"Input 19: word=\"delinquent\" → \"neglecting a duty or law; late in payment\""}
+{"ts":"2026-05-31T21:30:04.737Z","msg":"Input 20 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:04.741Z","msg":"Input 20: word=\"residue\" → \"a small amount of something that remains after the main part\""}
+{"ts":"2026-05-31T21:30:09.255Z","msg":"Input 21 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:09.258Z","msg":"Input 21: word=\"antagonism\" → \"hostility\""}
+{"ts":"2026-05-31T21:30:10.238Z","msg":"Input 22 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:10.241Z","msg":"Input 22: word=\"lavish\" → \"luxurious and expensive\""}
+{"ts":"2026-05-31T21:30:12.054Z","msg":"Input 23 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:12.058Z","msg":"Input 23: word=\"impute\" → \"to say or suggest that someone or something has or is guilty\""}
+{"ts":"2026-05-31T21:30:16.920Z","msg":"Input 24 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:16.923Z","msg":"Input 24: word=\"stupefy\" → \"to astonish, make insensible\""}
+{"ts":"2026-05-31T21:30:19.037Z","msg":"Input 25 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:19.041Z","msg":"Input 25: word=\"magnanimous\" → \"generous and forgiving, especially toward a rival or less po\""}
+{"ts":"2026-05-31T21:30:23.803Z","msg":"Input 26 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:23.806Z","msg":"Input 26: word=\"carouse\" → \"to drink and party in a lively way\""}
+{"ts":"2026-05-31T21:30:26.250Z","msg":"Input 27 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:26.253Z","msg":"Input 27: word=\"inertia\" → \"a tendency to do nothing or remain unchanged\""}
+{"ts":"2026-05-31T21:30:29.284Z","msg":"Input 28 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:29.287Z","msg":"Input 28: word=\"colossus\" → \"a gigantic statue or thing\""}
+{"ts":"2026-05-31T21:30:31.250Z","msg":"Input 29 box: {\"x\":76,\"y\":552,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:31.255Z","msg":"Input 29: word=\"garrulous\" → \"excessively talkative, especially on trivial matters.\""}
+{"ts":"2026-05-31T21:30:34.868Z","msg":"Input 30 box: {\"x\":76,\"y\":682,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:30:34.876Z","msg":"Input 30: word=\"circumnavigate\" → \"to sail or travel all the way around\""}
+{"ts":"2026-05-31T21:30:37.228Z","msg":"Typed answers for 30 questions, now checking for submit button"}
+{"ts":"2026-05-31T21:30:37.415Z","msg":"Screenshot: 09_all_answers_typed.png"}
+{"ts":"2026-05-31T21:30:37.439Z","msg":"Submit Test button box: {\"x\":139.15625,\"y\":780,\"width\":111.671875,\"height\":48}"}
+{"ts":"2026-05-31T21:30:37.443Z","msg":"Clicking Submit Test..."}
+{"ts":"2026-05-31T21:30:39.500Z","msg":"Waiting for grading to complete..."}
+{"ts":"2026-05-31T21:30:44.508Z","msg":"Grading in progress... waiting up to 5 minutes"}
+{"ts":"2026-05-31T21:30:52.078Z","msg":"Total questions answered: 30"}
+{"ts":"2026-05-31T21:30:52.285Z","msg":"Screenshot: 10_after_submit_grading.png"}
+{"ts":"2026-05-31T21:30:52.288Z","msg":"=== CHECKING RESULTS ==="}
+{"ts":"2026-05-31T21:30:57.299Z","msg":"Results text (first 500):","excerpt":"Step 2 of 5\n\nNew Words Test — Day 2\n\nCompleted Day 2 session\n\n100%\n\n30 of 30 correct\n\nContinue\nAnswers\n1\nvital\n✓\n\nCorrect Answer\n\nessential; necessary for life or existence\n\nYour Answer\n\nessential; necessary for life or existence\n\n2\nimpotent\n✓\n\nCorrect Answer\n\npowerless; helpless; unable to perform sexual intercourse\n\nYour Answer\n\npowerless; helpless; unable to perform sexual intercourse\n\n3\nreluctant\n✓\n\nCorrect Answer\n\nnot eager; unwilling to become involved\n\nYour Answer\n\nnot eager; unwilling to"}
+{"ts":"2026-05-31T21:30:57.488Z","msg":"Screenshot: 11_results_page.png"}
+{"ts":"2026-05-31T21:30:57.491Z","msg":"Results page: hasPassResults=true hasFailResults=false hasAnyResults=true"}
+{"ts":"2026-05-31T21:30:57.493Z","msg":"=== NAVIGATING TO STEP 3 (Day completion) ==="}
+{"ts":"2026-05-31T21:30:58.641Z","msg":"Screenshot: 11b_results_bottom.png"}
+{"ts":"2026-05-31T21:30:58.652Z","msg":"Found continue button: \"Continue\""}
+{"ts":"2026-05-31T21:31:01.702Z","msg":"After continue click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:31:01.860Z","msg":"Screenshot: 11c_after_continue.png"}
+{"ts":"2026-05-31T21:31:01.863Z","msg":"=== FIRESTORE VERIFICATION ==="}
+{"ts":"2026-05-31T21:31:09.905Z","msg":"AFTER: CSD=1, attempts=1"}
+{"ts":"2026-05-31T21:31:09.907Z","msg":"CSD before→after: 1→1"}
+{"ts":"2026-05-31T21:31:09.910Z","msg":"CSD still at 1 — Day 1 not completed"}
+{"ts":"2026-05-31T21:31:09.913Z","msg":"Attempt doc created: b6pQOxFd6kcovH0jtNuSwnHQOqo2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780263048675_jxr23sbdw"}
+{"ts":"2026-05-31T21:31:09.915Z","msg":"New-word slice: test showed 30 questions (expected 30 for Day-1 new words)"}
+{"ts":"2026-05-31T21:31:09.918Z","msg":"Session states after: 1 docs"}
+{"ts":"2026-05-31T21:31:10.098Z","msg":"Screenshot: 12_final_state.png"}
+{"ts":"2026-05-31T21:31:10.248Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T21:34:10.384Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:34:15.384Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:34:15.392Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:34:15.737Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:34:15.741Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:34:18.627Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:34:19.814Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:34:20.010Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T21:34:22.016Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 2\n\nStart Session\n\nWords Introduced\n\n80\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHY"}
+{"ts":"2026-05-31T21:34:22.019Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T21:34:23.039Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T21:34:23.252Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T21:34:23.279Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T21:34:23.282Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T21:34:25.882Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:34:26.091Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T21:34:26.094Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T21:34:27.602Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T21:34:29.256Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T21:34:29.259Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T21:34:31.265Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 5\n\nNew Words Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\nanthology\n\n(n.)\n\nanthology\n\n(n.)\n\na collection, especially of literary works\n\n🇰🇷\n\nKorean\n\n명시 전집, 작품집, [한 작가의]전작, 작품집, 수집\n\nSAMPLE SENTENCE\n\nThe teacher assigned us to read an anthology of contemporary poetry that features various voices and styles. (1681)"}
+{"ts":"2026-05-31T21:34:31.268Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T21:34:31.273Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T21:34:31.408Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T21:34:31.419Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T21:34:31.866Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T21:34:32.317Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T21:34:32.764Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T21:34:33.213Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T21:34:33.664Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T21:34:33.795Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T21:34:33.797Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T21:34:35.020Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T21:34:35.026Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T21:34:39.015Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T21:34:39.017Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T21:34:39.019Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T21:34:41.031Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T21:34:41.044Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}
+{"ts":"2026-05-31T21:34:43.247Z","msg":"Screenshot: 07_test_start.png"}
+{"ts":"2026-05-31T21:34:43.257Z","msg":"Test start page text (first 400):","excerpt":"Step 2 of 5\n\nNew Words Test — Day 2\n\nProgress\n\n0 of 30 answered\n\n1.\ncredit\n(v.)\n2.\ncarouse\n(v.)\n3.\nimpotent\n(adj.)\n4.\ngenial\n(adj.)\n5.\nvituperate\n(v.)\n6.\nagnostic\n(n.)\n7.\nweigh\n(v.)\n8.\nmultifaceted\n(adj.)\n9.\nhover\n(v.)\n10.\nprevail\n(v.)\n11.\ndelinquent\n(adj.)\n12.\nrecant\n(v.)\n13.\nturbid\n(adj.)\n14.\nadjunct\n(n.)\n15.\nplacate\n(v.)\n16.\nfain (old English)\n(adv.)\n17.\nvital\n(adj.)\n18.\ninvestigate\n(v.)\n19.\nnu"}
+{"ts":"2026-05-31T21:34:43.266Z","msg":"Test phase reached: 30 inputs visible"}
+{"ts":"2026-05-31T21:34:43.270Z","msg":"=== ANSWERING TEST QUESTIONS ==="}
+{"ts":"2026-05-31T21:34:45.307Z","msg":"Found 30 questions on page"}
+{"ts":"2026-05-31T21:34:45.311Z","msg":"Fetching Firestore definitions for 30 words..."}
+{"ts":"2026-05-31T21:34:45.890Z","msg":"Firestore definitions loaded: 30/30"}
+{"ts":"2026-05-31T21:34:45.892Z","msg":"Q1: word=\"credit\" def=to acknowledge contributions of someone or somethi"}
+{"ts":"2026-05-31T21:34:45.894Z","msg":"Q2: word=\"carouse\" def=to drink and party in a lively way"}
+{"ts":"2026-05-31T21:34:45.897Z","msg":"Q3: word=\"impotent\" def=powerless; helpless; unable to perform sexual inte"}
+{"ts":"2026-05-31T21:34:45.899Z","msg":"Q4: word=\"genial\" def=friendly, cheerful"}
+{"ts":"2026-05-31T21:34:45.902Z","msg":"Q5: word=\"vituperate\" def=to berate"}
+{"ts":"2026-05-31T21:34:45.904Z","msg":"Q6: word=\"agnostic\" def=one who believes that the existence of a god can b"}
+{"ts":"2026-05-31T21:34:45.906Z","msg":"Q7: word=\"weigh\" def=to take into account; to consider (especially in c"}
+{"ts":"2026-05-31T21:34:45.908Z","msg":"Q8: word=\"multifaceted\" def=having many aspects or sides"}
+{"ts":"2026-05-31T21:34:45.910Z","msg":"Q9: word=\"hover\" def=to float, linger"}
+{"ts":"2026-05-31T21:34:45.913Z","msg":"Q10: word=\"prevail\" def=to win, convince, survive; to show the superiority"}
+{"ts":"2026-05-31T21:34:45.915Z","msg":"Q11: word=\"delinquent\" def=neglecting a duty or law; late in payment"}
+{"ts":"2026-05-31T21:34:45.918Z","msg":"Q12: word=\"recant\" def=to publicly say that you no longer have an opinion"}
+{"ts":"2026-05-31T21:34:45.920Z","msg":"Q13: word=\"turbid\" def=murky; opaque; unclear"}
+{"ts":"2026-05-31T21:34:45.923Z","msg":"Q14: word=\"adjunct\" def=something added to or connected with something els"}
+{"ts":"2026-05-31T21:34:45.925Z","msg":"Q15: word=\"placate\" def=to make someone less angry or hostile"}
+{"ts":"2026-05-31T21:34:45.927Z","msg":"Q16: word=\"fain\" def=pleased or willing under the circumstances"}
+{"ts":"2026-05-31T21:34:45.931Z","msg":"Q17: word=\"vital\" def=essential; necessary for life or existence"}
+{"ts":"2026-05-31T21:34:45.933Z","msg":"Q18: word=\"investigate\" def=to carry out a systematic or formal inquiry"}
+{"ts":"2026-05-31T21:34:45.936Z","msg":"Q19: word=\"nuance\" def=a subtle difference or distinction"}
+{"ts":"2026-05-31T21:34:45.938Z","msg":"Q20: word=\"amalgamate\" def=to combine"}
+{"ts":"2026-05-31T21:34:45.940Z","msg":"Q21: word=\"fervor\" def=a strong feeling of excitement and enthusiasm"}
+{"ts":"2026-05-31T21:34:45.943Z","msg":"Q22: word=\"artisan\" def=craftsman"}
+{"ts":"2026-05-31T21:34:45.945Z","msg":"Q23: word=\"anthology\" def=a collection, especially of literary works"}
+{"ts":"2026-05-31T21:34:45.948Z","msg":"Q24: word=\"circumnavigate\" def=to sail or travel all the way around"}
+{"ts":"2026-05-31T21:34:45.950Z","msg":"Q25: word=\"straightforward\" def=without confusion or complexity"}
+{"ts":"2026-05-31T21:34:45.952Z","msg":"Q26: word=\"quay\" def=a landing on the edge of the water; wharf; pier"}
+{"ts":"2026-05-31T21:34:45.955Z","msg":"Q27: word=\"anonymous\" def=not named or identified"}
+{"ts":"2026-05-31T21:34:45.957Z","msg":"Q28: word=\"indignation\" def=anger due to injustice"}
+{"ts":"2026-05-31T21:34:45.960Z","msg":"Q29: word=\"chimerical\" def=imaginary, fanciful"}
+{"ts":"2026-05-31T21:34:45.962Z","msg":"Q30: word=\"magnanimous\" def=generous and forgiving, especially toward a rival "}
+{"ts":"2026-05-31T21:34:45.969Z","msg":"Total inputs on page: 30"}
+{"ts":"2026-05-31T21:34:46.209Z","msg":"Input 1 box: {\"x\":76,\"y\":233,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:46.212Z","msg":"Input 1: word=\"credit\" → \"to acknowledge contributions of someone or something\""}
+{"ts":"2026-05-31T21:34:49.744Z","msg":"Screenshot: 08_first_answer_typed.png"}
+{"ts":"2026-05-31T21:34:49.974Z","msg":"Input 2 box: {\"x\":76,\"y\":363,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:49.978Z","msg":"Input 2: word=\"carouse\" → \"to drink and party in a lively way\""}
+{"ts":"2026-05-31T21:34:52.439Z","msg":"Input 3 box: {\"x\":76,\"y\":493,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:52.442Z","msg":"Input 3: word=\"impotent\" → \"powerless; helpless; unable to perform sexual intercourse\""}
+{"ts":"2026-05-31T21:34:56.272Z","msg":"Input 4 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:56.275Z","msg":"Input 4: word=\"genial\" → \"friendly, cheerful\""}
+{"ts":"2026-05-31T21:34:57.789Z","msg":"Input 5 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:57.792Z","msg":"Input 5: word=\"vituperate\" → \"to berate\""}
+{"ts":"2026-05-31T21:34:58.755Z","msg":"Input 6 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:34:58.757Z","msg":"Input 6: word=\"agnostic\" → \"one who believes that the existence of a god can be neither \""}
+{"ts":"2026-05-31T21:35:03.955Z","msg":"Input 7 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:03.959Z","msg":"Input 7: word=\"weigh\" → \"to take into account; to consider (especially in comparison \""}
+{"ts":"2026-05-31T21:35:08.988Z","msg":"Input 8 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:08.991Z","msg":"Input 8: word=\"multifaceted\" → \"having many aspects or sides\""}
+{"ts":"2026-05-31T21:35:11.090Z","msg":"Input 9 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:11.093Z","msg":"Input 9: word=\"hover\" → \"to float, linger\""}
+{"ts":"2026-05-31T21:35:12.487Z","msg":"Input 10 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:12.490Z","msg":"Input 10: word=\"prevail\" → \"to win, convince, survive; to show the superiority over some\""}
+{"ts":"2026-05-31T21:35:16.771Z","msg":"Input 11 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:16.774Z","msg":"Input 11: word=\"delinquent\" → \"neglecting a duty or law; late in payment\""}
+{"ts":"2026-05-31T21:35:19.618Z","msg":"Input 12 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:19.625Z","msg":"Input 12: word=\"recant\" → \"to publicly say that you no longer have an opinion or belief\""}
+{"ts":"2026-05-31T21:35:24.652Z","msg":"Input 13 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:24.655Z","msg":"Input 13: word=\"turbid\" → \"murky; opaque; unclear\""}
+{"ts":"2026-05-31T21:35:26.386Z","msg":"Input 14 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:26.389Z","msg":"Input 14: word=\"adjunct\" → \"something added to or connected with something else; an assi\""}
+{"ts":"2026-05-31T21:35:30.668Z","msg":"Input 15 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:30.671Z","msg":"Input 15: word=\"placate\" → \"to make someone less angry or hostile\""}
+{"ts":"2026-05-31T21:35:33.280Z","msg":"Screenshot: 08b_halfway_answered.png"}
+{"ts":"2026-05-31T21:35:33.536Z","msg":"Input 16 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:33.539Z","msg":"Input 16: word=\"fain\" → \"pleased or willing under the circumstances\""}
+{"ts":"2026-05-31T21:35:36.451Z","msg":"Input 17 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:36.454Z","msg":"Input 17: word=\"vital\" → \"essential; necessary for life or existence\""}
+{"ts":"2026-05-31T21:35:39.385Z","msg":"Input 18 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:39.388Z","msg":"Input 18: word=\"investigate\" → \"to carry out a systematic or formal inquiry\""}
+{"ts":"2026-05-31T21:35:42.367Z","msg":"Input 19 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:42.370Z","msg":"Input 19: word=\"nuance\" → \"a subtle difference or distinction\""}
+{"ts":"2026-05-31T21:35:44.800Z","msg":"Input 20 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:44.803Z","msg":"Input 20: word=\"amalgamate\" → \"to combine\""}
+{"ts":"2026-05-31T21:35:45.834Z","msg":"Input 21 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:45.839Z","msg":"Input 21: word=\"fervor\" → \"a strong feeling of excitement and enthusiasm\""}
+{"ts":"2026-05-31T21:35:48.918Z","msg":"Input 22 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:48.921Z","msg":"Input 22: word=\"artisan\" → \"craftsman\""}
+{"ts":"2026-05-31T21:35:49.883Z","msg":"Input 23 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:49.886Z","msg":"Input 23: word=\"anthology\" → \"a collection, especially of literary works\""}
+{"ts":"2026-05-31T21:35:52.783Z","msg":"Input 24 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:52.786Z","msg":"Input 24: word=\"circumnavigate\" → \"to sail or travel all the way around\""}
+{"ts":"2026-05-31T21:35:55.350Z","msg":"Input 25 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:55.354Z","msg":"Input 25: word=\"straightforward\" → \"without confusion or complexity\""}
+{"ts":"2026-05-31T21:35:57.617Z","msg":"Input 26 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:35:57.620Z","msg":"Input 26: word=\"quay\" → \"a landing on the edge of the water; wharf; pier\""}
+{"ts":"2026-05-31T21:36:00.817Z","msg":"Input 27 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:36:00.819Z","msg":"Input 27: word=\"anonymous\" → \"not named or identified\""}
+{"ts":"2026-05-31T21:36:02.617Z","msg":"Input 28 box: {\"x\":76,\"y\":527,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:36:02.620Z","msg":"Input 28: word=\"indignation\" → \"anger due to injustice\""}
+{"ts":"2026-05-31T21:36:04.350Z","msg":"Input 29 box: {\"x\":76,\"y\":552,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:36:04.353Z","msg":"Input 29: word=\"chimerical\" → \"imaginary, fanciful\""}
+{"ts":"2026-05-31T21:36:05.899Z","msg":"Input 30 box: {\"x\":76,\"y\":682,\"width\":282,\"height\":50}"}
+{"ts":"2026-05-31T21:36:05.904Z","msg":"Input 30: word=\"magnanimous\" → \"generous and forgiving, especially toward a rival or less po\""}
+{"ts":"2026-05-31T21:36:10.409Z","msg":"Typed answers for 30 questions, now checking for submit button"}
+{"ts":"2026-05-31T21:36:10.579Z","msg":"Screenshot: 09_all_answers_typed.png"}
+{"ts":"2026-05-31T21:36:10.591Z","msg":"Submit Test button box: {\"x\":139.15625,\"y\":780,\"width\":111.671875,\"height\":48}"}
+{"ts":"2026-05-31T21:36:10.594Z","msg":"Clicking Submit Test..."}
+{"ts":"2026-05-31T21:36:12.635Z","msg":"Waiting for grading to complete..."}
+{"ts":"2026-05-31T21:36:17.641Z","msg":"Grading in progress... waiting up to 5 minutes"}
+{"ts":"2026-05-31T21:36:25.129Z","msg":"Total questions answered: 30"}
+{"ts":"2026-05-31T21:36:25.317Z","msg":"Screenshot: 10_after_submit_grading.png"}
+{"ts":"2026-05-31T21:36:25.320Z","msg":"=== CHECKING RESULTS ==="}
+{"ts":"2026-05-31T21:36:30.330Z","msg":"Results text (first 500):","excerpt":"Step 2 of 5\n\nNew Words Test — Day 2\n\nCompleted Day 2 session\n\n100%\n\n30 of 30 correct\n\nContinue\nAnswers\n1\ncredit\n✓\n\nCorrect Answer\n\nto acknowledge contributions of someone or something\n\nYour Answer\n\nto acknowledge contributions of someone or something\n\n2\ncarouse\n✓\n\nCorrect Answer\n\nto drink and party in a lively way\n\nYour Answer\n\nto drink and party in a lively way\n\n3\nimpotent\n✓\n\nCorrect Answer\n\npowerless; helpless; unable to perform sexual intercourse\n\nYour Answer\n\npowerless; helpless; unable to p"}
+{"ts":"2026-05-31T21:36:30.506Z","msg":"Screenshot: 11_results_page.png"}
+{"ts":"2026-05-31T21:36:30.509Z","msg":"Results page: hasPassResults=true hasFailResults=false hasAnyResults=true"}
+{"ts":"2026-05-31T21:36:30.511Z","msg":"=== NAVIGATING TO STEP 3 (Day completion) ==="}
+{"ts":"2026-05-31T21:36:31.662Z","msg":"Screenshot: 11b_results_bottom.png"}
+{"ts":"2026-05-31T21:36:31.672Z","msg":"Found continue button: \"Continue\""}
+{"ts":"2026-05-31T21:36:34.715Z","msg":"After continue click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:36:34.861Z","msg":"Screenshot: 11c_after_continue.png"}
+{"ts":"2026-05-31T21:36:36.865Z","msg":"Step loop 1: URL=https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR text=Step 3 of 5\n\nReview Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\ninflammatory\n\n(adj.)\n\ninflammatory\n\n(adj.)\n\narousing anger or strong emot"}
+{"ts":"2026-05-31T21:36:36.872Z","msg":"Step 1: In study/review phase, using Skip to Test via menu"}
+{"ts":"2026-05-31T21:36:42.209Z","msg":"Screenshot: 13_step1_study.png"}
+{"ts":"2026-05-31T21:36:44.220Z","msg":"Step loop 2: URL=https://vocaboostone.netlify.app/mcqtest/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR text=Step 4 of 5\n\nReview Test — Day 2\n\nProgress\n\n0 of 30 answered\n\nsatiate\n\n(v.)\n\n🔊 Play Audio\na contest, dispute, competition, etc., in which neither sid"}
+{"ts":"2026-05-31T21:36:44.223Z","msg":"Day complete or dashboard reached! isDayComplete=false isDashboard=true"}
+{"ts":"2026-05-31T21:36:44.406Z","msg":"Screenshot: 13_step2_complete.png"}
+{"ts":"2026-05-31T21:36:44.408Z","msg":"=== FIRESTORE VERIFICATION ==="}
+{"ts":"2026-05-31T21:36:52.455Z","msg":"AFTER: CSD=1, attempts=1"}
+{"ts":"2026-05-31T21:36:52.458Z","msg":"CSD before→after: 1→1"}
+{"ts":"2026-05-31T21:36:52.460Z","msg":"CSD still at 1 — Day 1 not completed"}
+{"ts":"2026-05-31T21:36:52.463Z","msg":"Attempt doc created: b6pQOxFd6kcovH0jtNuSwnHQOqo2_vocaboost_test_k8tzOiiwotBbtJS3uTiv_8RMews2H7C3UJUAsOBzR_new_1780263381712_jjzthl6v2"}
+{"ts":"2026-05-31T21:36:52.465Z","msg":"New-word slice: test showed 30 questions (expected 30 for Day-1 new words)"}
+{"ts":"2026-05-31T21:36:52.468Z","msg":"Session states after: 1 docs"}
+{"ts":"2026-05-31T21:36:52.712Z","msg":"Screenshot: 12_final_state.png"}
+{"ts":"2026-05-31T21:36:52.873Z","msg":"Report written to /app/findings/day1/D1-05_phone_top.md"}
+{"ts":"2026-05-31T21:38:43.799Z","msg":"Capturing Firestore state BEFORE test..."}
+{"ts":"2026-05-31T21:38:48.773Z","msg":"BEFORE: CSD=1, attempts=0"}
+{"ts":"2026-05-31T21:38:48.782Z","msg":"Launching headless Chromium with mobile viewport..."}
+{"ts":"2026-05-31T21:38:49.089Z","msg":"=== LOGIN ==="}
+{"ts":"2026-05-31T21:38:49.092Z","msg":"Navigating to root to warm SPA..."}
+{"ts":"2026-05-31T21:38:51.967Z","msg":"Waiting for email field..."}
+{"ts":"2026-05-31T21:38:53.122Z","msg":"Login successful. URL: https://vocaboostone.netlify.app/"}
+{"ts":"2026-05-31T21:38:53.329Z","msg":"Screenshot: 01_dashboard.png"}
+{"ts":"2026-05-31T21:38:55.336Z","msg":"Dashboard text (first 300):","excerpt":"Dashboard\nGradebook\nWelcome, Audit Phone-Only Student 01 (TOP)\n\nYour personalized vocabulary journey starts here.\n\nWeekly Goals\n25WT2 TOP Vocabulary (v2)\n0\n/\n400\nwords\nThis Week\n400 more to hit your goal\n\nDay 2\n\nStart Session\n\nWords Introduced\n\n80\n\nMastery Rate\n\n0%\n\nCurrent Streak\n\n0 days\n\n7-DAY RHY"}
+{"ts":"2026-05-31T21:38:55.339Z","msg":"=== FINDING SESSION START ==="}
+{"ts":"2026-05-31T21:38:56.359Z","msg":"Found start button: Start Session"}
+{"ts":"2026-05-31T21:38:56.581Z","msg":"Screenshot: 02_before_start.png"}
+{"ts":"2026-05-31T21:38:56.608Z","msg":"Start button bounding box: {\"x\":41,\"y\":861,\"width\":117,\"height\":80}"}
+{"ts":"2026-05-31T21:38:56.611Z","msg":"MOBILE LAYOUT ISSUE: Start button at y=861 is below 844px viewport height"}
+{"ts":"2026-05-31T21:38:59.206Z","msg":"After start click, URL: https://vocaboostone.netlify.app/session/k8tzOiiwotBbtJS3uTiv/8RMews2H7C3UJUAsOBzR"}
+{"ts":"2026-05-31T21:38:59.402Z","msg":"Screenshot: 03_after_start_click.png"}
+{"ts":"2026-05-31T21:38:59.404Z","msg":"=== CHECKING FOR INTRO MODAL ==="}
+{"ts":"2026-05-31T21:39:00.911Z","msg":"Intro modal detected: \"Customize Your Flashcards\" — clicking Start Studying"}
+{"ts":"2026-05-31T21:39:02.560Z","msg":"Screenshot: 03b_after_intro_modal.png"}
+{"ts":"2026-05-31T21:39:02.563Z","msg":"=== DETECTING SESSION STATE (H2 guard, study phase, test phase) ==="}
+{"ts":"2026-05-31T21:39:04.568Z","msg":"Session page text (first 500):","excerpt":"Step 1 of 5\n\nNew Words Study — Day 2\n\nProgress\n\n0 of 80 mastered\n\nCard 1 of 80\n\nanthology\n\n(n.)\n\nanthology\n\n(n.)\n\na collection, especially of literary works\n\n🇰🇷\n\nKorean\n\n명시 전집, 작품집, [한 작가의]전작, 작품집, 수집\n\nSAMPLE SENTENCE\n\nThe teacher assigned us to read an anthology of contemporary poetry that features various voices and styles. (1681)"}
+{"ts":"2026-05-31T21:39:04.571Z","msg":"Phase detection: H2=false study=false test=false results=false"}
+{"ts":"2026-05-31T21:39:04.573Z","msg":"=== STUDY PHASE (flashcards) ==="}
+{"ts":"2026-05-31T21:39:04.725Z","msg":"Screenshot: 04_study_phase_start.png"}
+{"ts":"2026-05-31T21:39:04.738Z","msg":"\"I know this word\" button box: {\"x\":227,\"y\":705,\"width\":128,\"height\":64}"}
+{"ts":"2026-05-31T21:39:05.203Z","msg":"After card 1: mastery=\"1 of 80 mastered\""}
+{"ts":"2026-05-31T21:39:05.653Z","msg":"After card 2: mastery=\"2 of 80 mastered\""}
+{"ts":"2026-05-31T21:39:06.114Z","msg":"After card 3: mastery=\"3 of 80 mastered\""}
+{"ts":"2026-05-31T21:39:06.551Z","msg":"After card 4: mastery=\"4 of 80 mastered\""}
+{"ts":"2026-05-31T21:39:06.985Z","msg":"After card 5: mastery=\"5 of 80 mastered\""}
+{"ts":"2026-05-31T21:39:07.112Z","msg":"Screenshot: 05_study_phase_after5cards.png"}
+{"ts":"2026-05-31T21:39:07.114Z","msg":"Dismissed 5 cards, now using Skip to Test via session menu"}
+{"ts":"2026-05-31T21:39:08.342Z","msg":"Screenshot: 05b_session_menu_open.png"}
+{"ts":"2026-05-31T21:39:08.361Z","msg":"Found \"Skip to Test\" in session menu, clicking..."}
+{"ts":"2026-05-31T21:39:12.376Z","msg":"Screenshot: 06_study_phase_end.png"}
+{"ts":"2026-05-31T21:39:12.379Z","msg":"Flashcard study complete: dismissed 5 cards + used Skip to Test"}
+{"ts":"2026-05-31T21:39:12.381Z","msg":"=== TEST PHASE ==="}
+{"ts":"2026-05-31T21:39:14.393Z","msg":"Found \"Ready for the Test?\" dialog — clicking Start Test"}
+{"ts":"2026-05-31T21:39:14.406Z","msg":"\"Start Test\" button box: {\"x\":40,\"y\":510,\"width\":310,\"height\":48}"}

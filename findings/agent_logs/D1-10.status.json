@@ -6,7 +6,7 @@
   "uid": "wtNBd4T7VPhgqHe2JaNDCjKn0fd2",
   "reachedNewWordTest": true,
   "classification": "COMPLETED_NOPASS",
-  "injectionAcceptedAsCorrect": true,
+  "injectionAcceptedAsCorrect": false,
   "crashedOrXss": false,
   "xssExecuted": false,
   "xssAlerts": [],
@@ -46,7 +46,7 @@
     {
       "inputIdx": 4,
       "payloadIndex": 4,
-      "answerPreview": "正しい答え 🎯 ✓ correct answer παγκόσμια",
+      "answerPreview": "\u6b63\u3057\u3044\u7b54\u3048 \ud83c\udfaf \u2713 correct answer \u03c0\u03b1\u03b3\u03ba\u03cc\u03c3\u03bc\u03b9\u03b1",
       "storedLength": 35
     },
     {
@@ -70,7 +70,7 @@
     {
       "inputIdx": 8,
       "payloadIndex": 8,
-      "answerPreview": "한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국",
+      "answerPreview": "\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d",
       "storedLength": 200
     },
     {
@@ -106,7 +106,7 @@
     {
       "inputIdx": 14,
       "payloadIndex": 4,
-      "answerPreview": "正しい答え 🎯 ✓ correct answer παγκόσμια",
+      "answerPreview": "\u6b63\u3057\u3044\u7b54\u3048 \ud83c\udfaf \u2713 correct answer \u03c0\u03b1\u03b3\u03ba\u03cc\u03c3\u03bc\u03b9\u03b1",
       "storedLength": 35
     },
     {
@@ -130,7 +130,7 @@
     {
       "inputIdx": 18,
       "payloadIndex": 8,
-      "answerPreview": "한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국어한국",
+      "answerPreview": "\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d\uc5b4\ud55c\uad6d",
       "storedLength": 200
     },
     {
@@ -166,7 +166,7 @@
     {
       "inputIdx": 24,
       "payloadIndex": 4,
-      "answerPreview": "正しい答え 🎯 ✓ correct answer παγκόσμια",
+      "answerPreview": "\u6b63\u3057\u3044\u7b54\u3048 \ud83c\udfaf \u2713 correct answer \u03c0\u03b1\u03b3\u03ba\u03cc\u03c3\u03bc\u03b9\u03b1",
       "storedLength": 35
     }
   ],
@@ -239,6 +239,14 @@
     "progressive",
     "empirical"
   ],
-  "overallRobust": false,
-  "runAt": "2026-05-31T21:22:56.061Z"
+  "overallRobust": true,
+  "runAt": "2026-05-31T21:22:56.061Z",
+  "injectionFalsePositiveNote": "Score heuristic extracted 90 from pass-threshold text; actual score was 0% (0/25 correct). Grader correctly rejected all adversarial inputs.",
+  "actualScore": "0%",
+  "actualScoreRaw": "0 of 25 correct",
+  "resultsHeadings": [
+    "Did not pass",
+    "Answers"
+  ],
+  "rawScriptInDomNote": "onerror=alert found in escaped display text of results page (showing adversarial input as plain text). xssExecuted=false confirms no XSS execution. Input properly sanitized."
 }
