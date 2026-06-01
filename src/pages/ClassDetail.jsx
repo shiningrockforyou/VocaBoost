@@ -29,7 +29,8 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
 import { Button, IconButton, TabButton, LinkButton } from '../components/ui'
-import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download } from 'lucide-react'
+import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download, Pencil } from 'lucide-react'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 
 // Component to display previous session info
 const PreviousSessionCell = ({ sessions }) => {
@@ -115,6 +116,11 @@ const ClassDetail = () => {
 
   const [classInfo, setClassInfo] = useState(null)
   const [members, setMembers] = useState([])
+  // Student rename (teacher action, via renameStudent Cloud Function)
+  const [editingNameId, setEditingNameId] = useState(null)
+  const [editingNameValue, setEditingNameValue] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState('')
   const [assignedLists, setAssignedLists] = useState([])
   const [teacherLists, setTeacherLists] = useState([])
   const [loading, setLoading] = useState(true)
@@ -393,6 +399,41 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       setFeedback(err.message ?? 'Unable to remove list.')
     } finally {
       setUnassigningListId(null)
+    }
+  }
+
+  const startEditName = (member) => {
+    setEditingNameId(member.id)
+    setEditingNameValue(member.displayName || '')
+    setNameError('')
+  }
+
+  const cancelEditName = () => {
+    setEditingNameId(null)
+    setEditingNameValue('')
+    setNameError('')
+  }
+
+  const saveEditName = async (studentId) => {
+    const name = editingNameValue.trim()
+    if (name.length < 1 || name.length > 60) {
+      setNameError('Name must be 1–60 characters.')
+      return
+    }
+    setSavingName(true)
+    setNameError('')
+    try {
+      const functions = getFunctions()
+      const renameStudent = httpsCallable(functions, 'renameStudent')
+      await renameStudent({ studentId, newName: name })
+      // optimistic local update so the roster reflects it without a full reload
+      setMembers((prev) => prev.map((m) => (m.id === studentId ? { ...m, displayName: name } : m)))
+      setEditingNameId(null)
+      setEditingNameValue('')
+    } catch (err) {
+      setNameError(err.message || 'Failed to rename student.')
+    } finally {
+      setSavingName(false)
     }
   }
 
@@ -849,7 +890,52 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                           />
                         </td>
                         <td className="px-4 py-3 font-medium text-text-primary">
-                          {member.displayName || 'N/A'}
+                          {editingNameId === member.id ? (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={editingNameValue}
+                                  onChange={(e) => setEditingNameValue(e.target.value)}
+                                  maxLength={80}
+                                  autoFocus
+                                  disabled={savingName}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveEditName(member.id)
+                                    if (e.key === 'Escape') cancelEditName()
+                                  }}
+                                  className="w-40 rounded-input border border-border-strong bg-surface px-2 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+                                />
+                                <IconButton
+                                  aria-label="Save name"
+                                  onClick={() => saveEditName(member.id)}
+                                  disabled={savingName}
+                                >
+                                  <Check size={16} />
+                                </IconButton>
+                                <IconButton
+                                  aria-label="Cancel"
+                                  onClick={cancelEditName}
+                                  disabled={savingName}
+                                >
+                                  <X size={16} />
+                                </IconButton>
+                              </div>
+                              {nameError && <span className="text-xs text-red-600">{nameError}</span>}
+                            </div>
+                          ) : (
+                            <div className="group flex items-center gap-1.5">
+                              <span>{member.displayName || 'N/A'}</span>
+                              <button
+                                type="button"
+                                onClick={() => startEditName(member)}
+                                aria-label="Edit name"
+                                className="text-text-faint opacity-0 group-hover:opacity-100 hover:text-brand-primary transition-opacity"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-text-secondary">
                           {member.email || 'N/A'}

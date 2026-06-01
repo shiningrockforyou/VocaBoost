@@ -881,14 +881,14 @@ try {
 
             // Find the correct answer and click it
             // The choices are div/button elements with definition text
-            const choices = await page.evaluate((wordName, wordList) => {
+            const choices = await page.evaluate(() => {
               // Find all clickable choice containers
               const allEls = [...document.querySelectorAll('div, button, li')];
               const choices = [];
               for (const el of allEls) {
                 const txt = el.textContent?.trim();
                 if (txt && txt.length > 10 && txt.length < 200 &&
-                    !txt.match(/^Step |^Review Test|^Progress|^Day |^Play Audio|submit test|Unanswered|answered/i) &&
+                    !txt.match(/^Step |^Review Test|^Progress|^Day |^Play Audio|submit test|Unanswered|answered|^[0-9]/i) &&
                     el.children.length < 5 &&
                     !el.querySelector('input, button, select')) {
                   const rect = el.getBoundingClientRect();
@@ -898,7 +898,7 @@ try {
                 }
               }
               return choices.slice(0, 8); // Get first 8 candidates
-            }, wordOnMCQ, DAY1_WORDS);
+            });
 
             log(`MCQ Q${q+1}: choices found: ${JSON.stringify(choices.map(c => c.text.slice(0, 40)))}`);
 

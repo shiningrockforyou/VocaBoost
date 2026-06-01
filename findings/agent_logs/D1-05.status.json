@@ -1,19 +1,39 @@
 {
   "label": "D1-05",
   "account": "audit_phone_01_top@vocaboost.test",
-  "viewport": "390x844 mobile",
-  "csdBefore": 1,
-  "phase": "test",
-  "lastUpdate": "2026-05-31T21:39:12.387Z",
+  "uid": "b6pQOxFd6kcovH0jtNuSwnHQOqo2",
+  "classId": "k8tzOiiwotBbtJS3uTiv",
+  "listId": "8RMews2H7C3UJUAsOBzR",
+  "viewport": "390x844 mobile (isMobile, dPR=3)",
+  "bundle": "index-CflgDyCK.js",
+  "runDate": "2026-05-31T21:52:00Z",
   "classification": "COMPLETED_NOPASS",
   "reachedTest": true,
+  "csdBefore": 1,
   "csdAfter": 1,
+  "sessionStateCSD": 2,
+  "sessionStatePhase": "complete",
   "mobileLayoutBlockers": [
-    "Start button partially/fully off-screen on 390x844 viewport: box={\"x\":41,\"y\":861,\"width\":117,\"height\":80}"
+    "Start Session button at y=861, below 390x844 viewport boundary (17px off-screen)"
   ],
   "b2Strand": false,
   "newWordSliceCorrect": true,
-  "day1OKMobile": false,
+  "newWordSliceCount": 30,
+  "newWordsTestScore": 100,
+  "newWordsTestPassed": true,
+  "mcqReviewScore": 23,
+  "mcqReviewPassed": true,
   "consoleErrorCount": 0,
-  "orphanSessionStates": 1
+  "attemptDocs": 2,
+  "orphanDocs": "NONE (1 session_state with phase=complete is expected state)",
+  "day1OKMobile": false,
+  "findings": [
+    "F1[BLOCKER]: class_progress.currentStudyDay not advanced from 1 to 2 after session completion; session_state shows phase=complete/CSD=2 but class_progress CSD=1, recentSessions=[], streakDays=0",
+    "F2[HIGH]: Start Session button at y=861 is 17px below 390x844 viewport — requires scroll on standard iPhone",
+    "F3[INFO]: studyDay=2 in both attempt docs for a Day 1 session (possible off-by-one in day index)",
+    "F4[INFO]: session_state.reviewTestAttempts=0 after MCQ submission",
+    "F5[INFO]: First-session intro modal (Customize Your Flashcards) blocks card interaction until dismissed"
+  ],
+  "phase": "done",
+  "lastUpdate": "2026-05-31T22:00:00Z"
 }

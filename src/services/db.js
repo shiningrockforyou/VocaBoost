@@ -232,6 +232,41 @@ export const createUserDocument = async (user, payload = {}) => {
   return userDocRef
 }
 
+/**
+ * Update a user's display name in BOTH the user profile (source of truth) and
+ * every class member doc (denormalized copy that the teacher roster + gradebook
+ * read). Must update both or those views show a stale name.
+ * Used by student self-edit (Profile page); the teacher path uses the
+ * renameStudent Cloud Function instead (Admin SDK, rules-scoped).
+ * @param {string} userId
+ * @param {string} newName
+ * @returns {Promise<string>} the trimmed name actually saved
+ */
+export const updateDisplayName = async (userId, newName) => {
+  const name = (newName || '').trim()
+  if (!userId) throw new Error('userId is required.')
+  if (name.length < 1) throw new Error('Name cannot be empty.')
+  if (name.length > 60) throw new Error('Name must be 60 characters or fewer.')
+
+  // 1) Source of truth
+  await setDoc(doc(db, 'users', userId), { profile: { displayName: name } }, { merge: true })
+
+  // 2) Denormalized copies in each enrolled class's members subcollection
+  const userSnap = await getDoc(doc(db, 'users', userId))
+  const enrolled = userSnap.exists() ? Object.keys(userSnap.data().enrolledClasses || {}) : []
+  await Promise.all(
+    enrolled.map((classId) =>
+      setDoc(
+        doc(db, 'classes', classId, 'members', userId),
+        { displayName: name },
+        { merge: true },
+      ).catch((err) => console.warn(`member displayName sync failed for class ${classId}:`, err)),
+    ),
+  )
+
+  return name
+}
+
 export const updateUserSettings = async (userId, settings = {}) => {
   if (!userId) {
     throw new Error('userId is required.')

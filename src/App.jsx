@@ -13,6 +13,7 @@ import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
 import MCQTest from './pages/MCQTest.jsx'
 import TypedTest from './pages/TypedTest.jsx'
 import Settings from './pages/Settings.jsx'
+import Profile from './pages/Profile.jsx'
 import { queryStudentAttempts } from './services/db'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
@@ -147,6 +148,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Settings />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
               </PrivateRoute>
             }
           />

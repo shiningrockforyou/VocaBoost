@@ -1,0 +1,483 @@
+diff --git a/functions/index.js b/functions/index.js
+index 961a385..ae15c60 100644
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -726,3 +726,84 @@ exports.pauseStaleSessions = onSchedule(
+     }
+   }
+ );
++
++/**
++ * Cloud Function to rename a student (teacher/TA action).
++ *
++ * Why a function: Firestore rules only let a teacher write the `challenges`
++ * field on a user doc and don't let them update member docs. Rather than
++ * broaden the rules (which would let any teacher rename any user), this
++ * function runs server-side with the Admin SDK and verifies the caller is a
++ * teacher who owns a class the target student is enrolled in.
++ *
++ * data: { studentId: string, newName: string }
++ */
++exports.renameStudent = onCall(
++  {
++    enforceAppCheck: false,
++  },
++  async (request) => {
++    if (!request.auth) {
++      throw new HttpsError("unauthenticated", "Authentication required");
++    }
++    const callerId = request.auth.uid;
++    const {studentId, newName} = request.data || {};
++
++    if (!studentId || typeof studentId !== "string") {
++      throw new HttpsError("invalid-argument", "studentId is required");
++    }
++    const name = (newName || "").trim();
++    if (name.length < 1 || name.length > 60) {
++      throw new HttpsError("invalid-argument", "Name must be 1–60 characters.");
++    }
++
++    const firestore = admin.firestore();
++
++    // 1. Caller must be a teacher
++    const callerSnap = await firestore.doc(`users/${callerId}`).get();
++    if (!callerSnap.exists || callerSnap.data().role !== "teacher") {
++      throw new HttpsError("permission-denied", "Only teachers can rename students.");
++    }
++
++    // 2. Target student must exist
++    const studentRef = firestore.doc(`users/${studentId}`);
++    const studentSnap = await studentRef.get();
++    if (!studentSnap.exists) {
++      throw new HttpsError("not-found", "Student not found.");
++    }
++
++    // 3. Caller must own at least one class the student is enrolled in
++    const enrolled = Object.keys(studentSnap.data().enrolledClasses || {});
++    let authorizedClass = false;
++    const ownedEnrolled = [];
++    for (const classId of enrolled) {
++      const classSnap = await firestore.doc(`classes/${classId}`).get();
++      if (classSnap.exists && classSnap.data().ownerTeacherId === callerId) {
++        authorizedClass = true;
++        ownedEnrolled.push(classId);
++      }
++    }
++    if (!authorizedClass) {
++      throw new HttpsError(
++        "permission-denied",
++        "You can only rename students in your own classes.",
++      );
++    }
++
++    // 4. Write profile (source of truth) + denormalized member copies in
++    //    every class the student is enrolled in (so all rosters stay in sync).
++    const batch = firestore.batch();
++    batch.set(studentRef, {profile: {displayName: name}}, {merge: true});
++    for (const classId of enrolled) {
++      batch.set(
++        firestore.doc(`classes/${classId}/members/${studentId}`),
++        {displayName: name},
++        {merge: true},
++      );
++    }
++    await batch.commit();
++
++    logger.info(`Teacher ${callerId} renamed student ${studentId} to "${name}"`);
++    return {success: true, name};
++  },
++);
+diff --git a/src/App.jsx b/src/App.jsx
+index b022927..bc09c23 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -13,6 +13,7 @@ import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
+ import MCQTest from './pages/MCQTest.jsx'
+ import TypedTest from './pages/TypedTest.jsx'
+ import Settings from './pages/Settings.jsx'
++import Profile from './pages/Profile.jsx'
+ import { queryStudentAttempts } from './services/db'
+ import PrivateRoute from './components/PrivateRoute.jsx'
+ import TeacherRoute from './components/TeacherRoute.jsx'
+@@ -150,6 +151,14 @@ function App() {
+               </PrivateRoute>
+             }
+           />
++          <Route
++            path="/profile"
++            element={
++              <PrivateRoute>
++                <Profile />
++              </PrivateRoute>
++            }
++          />
+           {/* AP Boost Routes */}
+           {apBoostRoutes}
+           <Route path="*" element={<Navigate to="/" replace />} />
+diff --git a/src/components/HeaderBar.jsx b/src/components/HeaderBar.jsx
+index be2818a..27ab92c 100644
+--- a/src/components/HeaderBar.jsx
++++ b/src/components/HeaderBar.jsx
+@@ -23,7 +23,7 @@ const HeaderBar = () => {
+   const classesDropdownRef = useRef(null)
+   
+   const isTeacher = user?.role === 'teacher'
+-  const displayName = user?.displayName || user?.email?.split('@')[0] || 'User'
++  const displayName = user?.profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'User'
+ 
+   // Fetch teacher classes for dropdown
+   useEffect(() => {
+diff --git a/src/contexts/AuthContext.jsx b/src/contexts/AuthContext.jsx
+index e4ae1f5..00e8cd9 100644
+--- a/src/contexts/AuthContext.jsx
++++ b/src/contexts/AuthContext.jsx
+@@ -10,7 +10,7 @@ import {
+ } from 'firebase/auth'
+ import { doc, getDoc } from 'firebase/firestore'
+ import { auth, db, googleProvider } from '../firebase'
+-import { createUserDocument } from '../services/db'
++import { createUserDocument, updateDisplayName } from '../services/db'
+ 
+ const AuthContext = createContext(undefined)
+ 
+@@ -144,6 +144,19 @@ export const AuthProvider = ({ children }) => {
+     }
+   }
+ 
++  // Update the current user's display name (profile + denormalized member copies)
++  // and reflect it immediately in context so the header/dashboard update live.
++  const updateUserName = async (newName) => {
++    if (!user?.uid) throw new Error('Not signed in.')
++    const saved = await updateDisplayName(user.uid, newName)
++    // keep Firebase-auth displayName in sync (best-effort; app reads profile.displayName)
++    if (auth.currentUser) {
++      updateProfile(auth.currentUser, { displayName: saved }).catch(() => {})
++    }
++    setUser((u) => (u ? { ...u, displayName: saved, profile: { ...(u.profile || {}), displayName: saved } } : u))
++    return saved
++  }
++
+   const value = useMemo(
+     () => ({
+       user,
+@@ -153,6 +166,7 @@ export const AuthProvider = ({ children }) => {
+       logout,
+       signInWithGoogle,
+       linkGoogleAccount,
++      updateUserName,
+     }),
+     [user, initializing],
+   )
+diff --git a/src/pages/ClassDetail.jsx b/src/pages/ClassDetail.jsx
+index f6cedbb..908e6bb 100644
+--- a/src/pages/ClassDetail.jsx
++++ b/src/pages/ClassDetail.jsx
+@@ -29,7 +29,8 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx'
+ import HeaderBar from '../components/HeaderBar.jsx'
+ import { downloadListAsPDF } from '../utils/pdfGenerator.js'
+ import { Button, IconButton, TabButton, LinkButton } from '../components/ui'
+-import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download } from 'lucide-react'
++import { X, Settings, Copy, Check, RefreshCw, FileText, Trash2, Download, Pencil } from 'lucide-react'
++import { getFunctions, httpsCallable } from 'firebase/functions'
+ 
+ // Component to display previous session info
+ const PreviousSessionCell = ({ sessions }) => {
+@@ -115,6 +116,11 @@ const ClassDetail = () => {
+ 
+   const [classInfo, setClassInfo] = useState(null)
+   const [members, setMembers] = useState([])
++  // Student rename (teacher action, via renameStudent Cloud Function)
++  const [editingNameId, setEditingNameId] = useState(null)
++  const [editingNameValue, setEditingNameValue] = useState('')
++  const [savingName, setSavingName] = useState(false)
++  const [nameError, setNameError] = useState('')
+   const [assignedLists, setAssignedLists] = useState([])
+   const [teacherLists, setTeacherLists] = useState([])
+   const [loading, setLoading] = useState(true)
+@@ -396,6 +402,41 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+     }
+   }
+ 
++  const startEditName = (member) => {
++    setEditingNameId(member.id)
++    setEditingNameValue(member.displayName || '')
++    setNameError('')
++  }
++
++  const cancelEditName = () => {
++    setEditingNameId(null)
++    setEditingNameValue('')
++    setNameError('')
++  }
++
++  const saveEditName = async (studentId) => {
++    const name = editingNameValue.trim()
++    if (name.length < 1 || name.length > 60) {
++      setNameError('Name must be 1–60 characters.')
++      return
++    }
++    setSavingName(true)
++    setNameError('')
++    try {
++      const functions = getFunctions()
++      const renameStudent = httpsCallable(functions, 'renameStudent')
++      await renameStudent({ studentId, newName: name })
++      // optimistic local update so the roster reflects it without a full reload
++      setMembers((prev) => prev.map((m) => (m.id === studentId ? { ...m, displayName: name } : m)))
++      setEditingNameId(null)
++      setEditingNameValue('')
++    } catch (err) {
++      setNameError(err.message || 'Failed to rename student.')
++    } finally {
++      setSavingName(false)
++    }
++  }
++
+   const handleRemoveStudent = async (studentId) => {
+     if (!window.confirm('Are you sure you want to remove this student from the class?')) {
+       return
+@@ -849,7 +890,52 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+                           />
+                         </td>
+                         <td className="px-4 py-3 font-medium text-text-primary">
+-                          {member.displayName || 'N/A'}
++                          {editingNameId === member.id ? (
++                            <div className="flex flex-col gap-1">
++                              <div className="flex items-center gap-1.5">
++                                <input
++                                  type="text"
++                                  value={editingNameValue}
++                                  onChange={(e) => setEditingNameValue(e.target.value)}
++                                  maxLength={80}
++                                  autoFocus
++                                  disabled={savingName}
++                                  onKeyDown={(e) => {
++                                    if (e.key === 'Enter') saveEditName(member.id)
++                                    if (e.key === 'Escape') cancelEditName()
++                                  }}
++                                  className="w-40 rounded-input border border-border-strong bg-surface px-2 py-1 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
++                                />
++                                <IconButton
++                                  aria-label="Save name"
++                                  onClick={() => saveEditName(member.id)}
++                                  disabled={savingName}
++                                >
++                                  <Check size={16} />
++                                </IconButton>
++                                <IconButton
++                                  aria-label="Cancel"
++                                  onClick={cancelEditName}
++                                  disabled={savingName}
++                                >
++                                  <X size={16} />
++                                </IconButton>
++                              </div>
++                              {nameError && <span className="text-xs text-red-600">{nameError}</span>}
++                            </div>
++                          ) : (
++                            <div className="group flex items-center gap-1.5">
++                              <span>{member.displayName || 'N/A'}</span>
++                              <button
++                                type="button"
++                                onClick={() => startEditName(member)}
++                                aria-label="Edit name"
++                                className="text-text-faint opacity-0 group-hover:opacity-100 hover:text-brand-primary transition-opacity"
++                              >
++                                <Pencil size={14} />
++                              </button>
++                            </div>
++                          )}
+                         </td>
+                         <td className="px-4 py-3 text-text-secondary">
+                           {member.email || 'N/A'}
+diff --git a/src/pages/Dashboard.jsx b/src/pages/Dashboard.jsx
+index 7e8b657..541cc7f 100644
+--- a/src/pages/Dashboard.jsx
++++ b/src/pages/Dashboard.jsx
+@@ -229,7 +229,7 @@ const Dashboard = () => {
+   const [classesLoading, setClassesLoading] = useState(false)
+   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+   const displayName =
+-    user?.displayName || user?.email?.split('@')[0] || user?.email || 'Student'
++    user?.profile?.displayName || user?.displayName || user?.email?.split('@')[0] || user?.email || 'Student'
+   const isTeacher = user?.role === 'teacher'
+   const [studentClasses, setStudentClasses] = useState([])
+   const [studentClassesLoading, setStudentClassesLoading] = useState(false)
+diff --git a/src/pages/Profile.jsx b/src/pages/Profile.jsx
+new file mode 100644
+index 0000000..a35423a
+--- /dev/null
++++ b/src/pages/Profile.jsx
+@@ -0,0 +1,126 @@
++import { useState } from 'react'
++import { useNavigate } from 'react-router-dom'
++import { ArrowLeft, User, Mail, Shield, Check } from 'lucide-react'
++import { useAuth } from '../contexts/AuthContext'
++import HeaderBar from '../components/HeaderBar'
++import { Card, Button } from '../components/ui'
++
++const Profile = () => {
++  const { user, updateUserName } = useAuth()
++  const navigate = useNavigate()
++
++  const currentName = user?.profile?.displayName || user?.displayName || ''
++  const [name, setName] = useState(currentName)
++  const [saving, setSaving] = useState(false)
++  const [success, setSuccess] = useState('')
++  const [error, setError] = useState('')
++
++  const trimmed = name.trim()
++  const dirty = trimmed !== currentName.trim()
++  const valid = trimmed.length >= 1 && trimmed.length <= 60
++
++  const handleSave = async () => {
++    setSuccess('')
++    setError('')
++    if (!valid) {
++      setError('Name must be between 1 and 60 characters.')
++      return
++    }
++    setSaving(true)
++    try {
++      await updateUserName(trimmed)
++      setSuccess('Your name has been updated.')
++    } catch (err) {
++      setError(err.message || 'Failed to update name.')
++    } finally {
++      setSaving(false)
++    }
++  }
++
++  return (
++    <main className="min-h-screen bg-base px-4 py-10 transition-colors">
++      <div className="mx-auto max-w-3xl">
++        <HeaderBar />
++
++        <button
++          onClick={() => navigate(-1)}
++          className="flex items-center gap-1 text-sm font-medium text-text-muted hover:text-text-primary transition-colors mb-4"
++        >
++          <ArrowLeft size={16} />
++          Back
++        </button>
++
++        <div className="mb-8">
++          <h1 className="text-3xl font-heading font-bold text-brand-text">Profile</h1>
++          <p className="font-body mt-1 text-base text-text-muted">
++            Manage your account details.
++          </p>
++        </div>
++
++        <Card variant="section" className="space-y-8">
++          {/* Display Name (editable) */}
++          <div>
++            <h2 className="text-lg font-heading font-bold text-text-primary mb-2 flex items-center gap-2">
++              <User size={18} className="text-text-faint" />
++              Display Name
++            </h2>
++            <p className="text-sm text-text-muted mb-4">
++              This is the name your teacher sees in the gradebook and class roster.
++            </p>
++
++            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
++              <input
++                type="text"
++                value={name}
++                onChange={(e) => { setName(e.target.value); setSuccess(''); setError('') }}
++                maxLength={80}
++                placeholder="Your name"
++                className="w-full sm:max-w-sm rounded-input border border-border-strong bg-surface px-4 py-2.5 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
++              />
++              <Button
++                variant="primary-blue"
++                onClick={handleSave}
++                disabled={saving || !dirty || !valid}
++              >
++                {saving ? 'Saving...' : 'Save'}
++              </Button>
++            </div>
++
++            {success && (
++              <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-green-600">
++                <Check size={16} /> {success}
++              </p>
++            )}
++            {error && (
++              <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
++            )}
++          </div>
++
++          <hr className="border-border-default" />
++
++          {/* Email (read-only) */}
++          <div>
++            <h2 className="text-lg font-heading font-bold text-text-primary mb-2 flex items-center gap-2">
++              <Mail size={18} className="text-text-faint" />
++              Email
++            </h2>
++            <p className="text-sm text-text-secondary">{user?.email || '—'}</p>
++          </div>
++
++          <hr className="border-border-default" />
++
++          {/* Role (read-only) */}
++          <div>
++            <h2 className="text-lg font-heading font-bold text-text-primary mb-2 flex items-center gap-2">
++              <Shield size={18} className="text-text-faint" />
++              Role
++            </h2>
++            <p className="text-sm text-text-secondary capitalize">{user?.role || 'student'}</p>
++          </div>
++        </Card>
++      </div>
++    </main>
++  )
++}
++
++export default Profile
+diff --git a/src/services/db.js b/src/services/db.js
+index f7e9de0..4e70fc2 100644
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -232,6 +232,41 @@ export const createUserDocument = async (user, payload = {}) => {
+   return userDocRef
+ }
+ 
++/**
++ * Update a user's display name in BOTH the user profile (source of truth) and
++ * every class member doc (denormalized copy that the teacher roster + gradebook
++ * read). Must update both or those views show a stale name.
++ * Used by student self-edit (Profile page); the teacher path uses the
++ * renameStudent Cloud Function instead (Admin SDK, rules-scoped).
++ * @param {string} userId
++ * @param {string} newName
++ * @returns {Promise<string>} the trimmed name actually saved
++ */
++export const updateDisplayName = async (userId, newName) => {
++  const name = (newName || '').trim()
++  if (!userId) throw new Error('userId is required.')
++  if (name.length < 1) throw new Error('Name cannot be empty.')
++  if (name.length > 60) throw new Error('Name must be 60 characters or fewer.')
++
++  // 1) Source of truth
++  await setDoc(doc(db, 'users', userId), { profile: { displayName: name } }, { merge: true })
++
++  // 2) Denormalized copies in each enrolled class's members subcollection
++  const userSnap = await getDoc(doc(db, 'users', userId))
++  const enrolled = userSnap.exists() ? Object.keys(userSnap.data().enrolledClasses || {}) : []
++  await Promise.all(
++    enrolled.map((classId) =>
++      setDoc(
++        doc(db, 'classes', classId, 'members', userId),
++        { displayName: name },
++        { merge: true },
++      ).catch((err) => console.warn(`member displayName sync failed for class ${classId}:`, err)),
++    ),
++  )
++
++  return name
++}
++
+ export const updateUserSettings = async (userId, settings = {}) => {
+   if (!userId) {
+     throw new Error('userId is required.')

@@ -726,3 +726,84 @@ exports.pauseStaleSessions = onSchedule(
     }
   }
 );
+
+/**
+ * Cloud Function to rename a student (teacher/TA action).
+ *
+ * Why a function: Firestore rules only let a teacher write the `challenges`
+ * field on a user doc and don't let them update member docs. Rather than
+ * broaden the rules (which would let any teacher rename any user), this
+ * function runs server-side with the Admin SDK and verifies the caller is a
+ * teacher who owns a class the target student is enrolled in.
+ *
+ * data: { studentId: string, newName: string }
+ */
+exports.renameStudent = onCall(
+  {
+    enforceAppCheck: false,
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Authentication required");
+    }
+    const callerId = request.auth.uid;
+    const {studentId, newName} = request.data || {};
+
+    if (!studentId || typeof studentId !== "string") {
+      throw new HttpsError("invalid-argument", "studentId is required");
+    }
+    const name = (newName || "").trim();
+    if (name.length < 1 || name.length > 60) {
+      throw new HttpsError("invalid-argument", "Name must be 1–60 characters.");
+    }
+
+    const firestore = admin.firestore();
+
+    // 1. Caller must be a teacher
+    const callerSnap = await firestore.doc(`users/${callerId}`).get();
+    if (!callerSnap.exists || callerSnap.data().role !== "teacher") {
+      throw new HttpsError("permission-denied", "Only teachers can rename students.");
+    }
+
+    // 2. Target student must exist
+    const studentRef = firestore.doc(`users/${studentId}`);
+    const studentSnap = await studentRef.get();
+    if (!studentSnap.exists) {
+      throw new HttpsError("not-found", "Student not found.");
+    }
+
+    // 3. Caller must own at least one class the student is enrolled in
+    const enrolled = Object.keys(studentSnap.data().enrolledClasses || {});
+    let authorizedClass = false;
+    const ownedEnrolled = [];
+    for (const classId of enrolled) {
+      const classSnap = await firestore.doc(`classes/${classId}`).get();
+      if (classSnap.exists && classSnap.data().ownerTeacherId === callerId) {
+        authorizedClass = true;
+        ownedEnrolled.push(classId);
+      }
+    }
+    if (!authorizedClass) {
+      throw new HttpsError(
+        "permission-denied",
+        "You can only rename students in your own classes.",
+      );
+    }
+
+    // 4. Write profile (source of truth) + denormalized member copies in
+    //    every class the student is enrolled in (so all rosters stay in sync).
+    const batch = firestore.batch();
+    batch.set(studentRef, {profile: {displayName: name}}, {merge: true});
+    for (const classId of enrolled) {
+      batch.set(
+        firestore.doc(`classes/${classId}/members/${studentId}`),
+        {displayName: name},
+        {merge: true},
+      );
+    }
+    await batch.commit();
+
+    logger.info(`Teacher ${callerId} renamed student ${studentId} to "${name}"`);
+    return {success: true, name};
+  },
+);

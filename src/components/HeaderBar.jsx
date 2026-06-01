@@ -23,7 +23,7 @@ const HeaderBar = () => {
   const classesDropdownRef = useRef(null)
   
   const isTeacher = user?.role === 'teacher'
-  const displayName = user?.displayName || user?.email?.split('@')[0] || 'User'
+  const displayName = user?.profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'User'
 
   // Fetch teacher classes for dropdown
   useEffect(() => {

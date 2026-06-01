@@ -229,7 +229,7 @@ const Dashboard = () => {
   const [classesLoading, setClassesLoading] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const displayName =
-    user?.displayName || user?.email?.split('@')[0] || user?.email || 'Student'
+    user?.profile?.displayName || user?.displayName || user?.email?.split('@')[0] || user?.email || 'Student'
   const isTeacher = user?.role === 'teacher'
   const [studentClasses, setStudentClasses] = useState([])
   const [studentClassesLoading, setStudentClassesLoading] = useState(false)

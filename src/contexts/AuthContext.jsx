@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db, googleProvider } from '../firebase'
-import { createUserDocument } from '../services/db'
+import { createUserDocument, updateDisplayName } from '../services/db'
 
 const AuthContext = createContext(undefined)
 
@@ -144,6 +144,19 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Update the current user's display name (profile + denormalized member copies)
+  // and reflect it immediately in context so the header/dashboard update live.
+  const updateUserName = async (newName) => {
+    if (!user?.uid) throw new Error('Not signed in.')
+    const saved = await updateDisplayName(user.uid, newName)
+    // keep Firebase-auth displayName in sync (best-effort; app reads profile.displayName)
+    if (auth.currentUser) {
+      updateProfile(auth.currentUser, { displayName: saved }).catch(() => {})
+    }
+    setUser((u) => (u ? { ...u, displayName: saved, profile: { ...(u.profile || {}), displayName: saved } } : u))
+    return saved
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -153,6 +166,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       signInWithGoogle,
       linkGoogleAccount,
+      updateUserName,
     }),
     [user, initializing],
   )
