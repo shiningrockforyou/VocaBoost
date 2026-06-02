@@ -60,6 +60,11 @@ function determineStartingPhase(attempts, dayNumber) {
   console.log('[PHASE] Day Number:', dayNumber);
   console.log('[PHASE] Total attempts provided:', attempts?.length || 0);
 
+  // Attempts store score as a percent (0-100); the session/UI domain uses a
+  // fraction (0-1). Normalize here so a resumed mid-session score isn't
+  // persisted/rendered as e.g. 9700% (newWordsTestScore unit bug).
+  const toFraction = (s) => (s == null ? s : (s > 1 ? s / 100 : s));
+
   const dayAttempts = attempts.filter(a => a.studyDay === dayNumber);
   const newTest = dayAttempts.find(a => a.sessionType === 'new');
   const reviewTest = dayAttempts.find(a => a.sessionType === 'review');
@@ -80,7 +85,7 @@ function determineStartingPhase(attempts, dayNumber) {
     console.log('[PHASE] ═══════════════════════════════════════');
     return {
       phase: SESSION_PHASE.REVIEW_STUDY,
-      newWordScore: newTest.score
+      newWordScore: toFraction(newTest.score)
     };
   }
 
@@ -97,7 +102,7 @@ function determineStartingPhase(attempts, dayNumber) {
     });
     return {
       phase: SESSION_PHASE.COMPLETE,
-      newWordScore: newTest.score
+      newWordScore: toFraction(newTest.score)
     };
   }
 
@@ -108,8 +113,8 @@ function determineStartingPhase(attempts, dayNumber) {
     // This is actually a normal completed state, not impossible
     return {
       phase: SESSION_PHASE.COMPLETE,
-      newWordScore: newTest.score,
-      reviewScore: reviewTest.score
+      newWordScore: toFraction(newTest.score),
+      reviewScore: toFraction(reviewTest.score)
     };
   }
 
