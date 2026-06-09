@@ -1,0 +1,98 @@
+{
+  "loginOk": true,
+  "findings": [
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge indicator absent from roster/class header (Issue #12)",
+      "where": "25WT 2차 TOP ONLINE / class header and roster",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/001_class_GNktwcqI18vyAps3iJDf_desktop.png",
+      "repro": "Navigate to /classes/GNktwcqI18vyAps3iJDf and inspect for pending challenge badge",
+      "expected": "Pending-challenge count/badge should appear on roster or class header",
+      "actual": "No pending-challenge indicator or badge found in the DOM"
+    },
+    {
+      "severity": "Medium",
+      "title": "Name-edit pencil/button not found or not functional",
+      "where": "25WT 2차 TOP ONLINE / student name cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/002_pre_name_edit_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Navigate to /classes/GNktwcqI18vyAps3iJDf, look for pencil/edit icon on student names",
+      "expected": "Clicking pencil icon opens inline editor with input + Cancel/Check buttons",
+      "actual": "Edit button clicked but no text input appeared"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge indicator absent from roster/class header (Issue #12)",
+      "where": "25WT 2차 CORE OFFLINE / class header and roster",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/003_class_LVjBTFuYE8FbPG34pVAt_desktop.png",
+      "repro": "Navigate to /classes/LVjBTFuYE8FbPG34pVAt and inspect for pending challenge badge",
+      "expected": "Pending-challenge count/badge should appear on roster or class header",
+      "actual": "No pending-challenge indicator or badge found in the DOM"
+    },
+    {
+      "severity": "Medium",
+      "title": "Name-edit pencil/button not found or not functional",
+      "where": "25WT 2차 CORE OFFLINE / student name cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/004_pre_name_edit_LVjBTFuYE8FbPG34pVAt.png",
+      "repro": "Navigate to /classes/LVjBTFuYE8FbPG34pVAt, look for pencil/edit icon on student names",
+      "expected": "Clicking pencil icon opens inline editor with input + Cancel/Check buttons",
+      "actual": "Edit button clicked but no text input appeared"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge indicator absent from roster/class header (Issue #12)",
+      "where": "25WT 2차 CORE ONLINE / class header and roster",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/005_class_OMMwcLz3FlOiKBYjBMla_desktop.png",
+      "repro": "Navigate to /classes/OMMwcLz3FlOiKBYjBMla and inspect for pending challenge badge",
+      "expected": "Pending-challenge count/badge should appear on roster or class header",
+      "actual": "No pending-challenge indicator or badge found in the DOM"
+    },
+    {
+      "severity": "Medium",
+      "title": "Name-edit pencil/button not found or not functional",
+      "where": "25WT 2차 CORE ONLINE / student name cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/006_pre_name_edit_OMMwcLz3FlOiKBYjBMla.png",
+      "repro": "Navigate to /classes/OMMwcLz3FlOiKBYjBMla, look for pencil/edit icon on student names",
+      "expected": "Clicking pencil icon opens inline editor with input + Cancel/Check buttons",
+      "actual": "Edit button clicked but no text input appeared"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge indicator absent from roster/class header (Issue #12)",
+      "where": "25WT 2차 TOP OFFLINE / class header and roster",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/007_class_k8tzOiiwotBbtJS3uTiv_desktop.png",
+      "repro": "Navigate to /classes/k8tzOiiwotBbtJS3uTiv and inspect for pending challenge badge",
+      "expected": "Pending-challenge count/badge should appear on roster or class header",
+      "actual": "No pending-challenge indicator or badge found in the DOM"
+    },
+    {
+      "severity": "Medium",
+      "title": "Name-edit pencil/button not found or not functional",
+      "where": "25WT 2차 TOP OFFLINE / student name cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/008_pre_name_edit_k8tzOiiwotBbtJS3uTiv.png",
+      "repro": "Navigate to /classes/k8tzOiiwotBbtJS3uTiv, look for pencil/edit icon on student names",
+      "expected": "Clicking pencil icon opens inline editor with input + Cancel/Check buttons",
+      "actual": "Edit button clicked but no text input appeared"
+    },
+    {
+      "severity": "Medium",
+      "title": "Horizontal overflow at mobile viewport (375px)",
+      "where": "25WT 2차 TOP ONLINE / roster at mobile",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/011_responsive_mobile_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Open /classes/GNktwcqI18vyAps3iJDf at 375px viewport width",
+      "expected": "No horizontal scrollbar, layout fits viewport",
+      "actual": "scrollWidth=746, clientWidth=375, overflow=371px"
+    }
+  ],
+  "bySeverity": {
+    "Blocker": 0,
+    "High": 0,
+    "Medium": 9,
+    "Nitpick": 0
+  },
+  "consoleErrors": {
+    "GNktwcqI18vyAps3iJDf": [],
+    "LVjBTFuYE8FbPG34pVAt": [],
+    "OMMwcLz3FlOiKBYjBMla": [],
+    "k8tzOiiwotBbtJS3uTiv": []
+  }
+}

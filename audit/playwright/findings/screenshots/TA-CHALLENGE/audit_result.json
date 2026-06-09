@@ -1,0 +1,36 @@
+{
+  "loginStudentOK": true,
+  "loginTeacherOK": true,
+  "challengeFiledWordId": "filed_via_ui",
+  "acceptResult": null,
+  "rejectResult": null,
+  "stateBeforeAll": {
+    "label": "BEFORE_ANY",
+    "availableTokens": 5,
+    "challengeHistoryCount": 0,
+    "activeRejections": 0,
+    "csd": 0,
+    "score": 0,
+    "passed": false,
+    "totalQuestions": 25,
+    "correctCount": 0,
+    "pendingChallenges": 0,
+    "acceptedChallenges": 0,
+    "rejectedChallenges": 0
+  },
+  "stateFinal": {
+    "label": "FINAL",
+    "availableTokens": 5,
+    "challengeHistoryCount": 1,
+    "activeRejections": 0,
+    "csd": 0,
+    "score": 0,
+    "passed": false,
+    "totalQuestions": 25,
+    "correctCount": 0,
+    "pendingChallenges": 1,
+    "acceptedChallenges": 0,
+    "rejectedChallenges": 0
+  },
+  "findings": []
+}

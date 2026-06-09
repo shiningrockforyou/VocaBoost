@@ -1161,6 +1161,23 @@ export async function completeSessionFromTest({
     });
   }
 
+  // Gate (Day 2+): never complete/advance the day unless the day's new-word test
+  // was passed. Day 1 is already gated by the test component (completeSessionFromTest
+  // only runs on pass). For Day 2+ the review test is the "final" test and always
+  // passes, so without this gate a student who failed the new-word test but reached
+  // review would advance CSD anyway. Block completion and signal a required retake.
+  if (!isFirstDay && newWordScore < threshold) {
+    console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
+      dayNumber, newWordScore, threshold
+    });
+    return {
+      sessionId: null,
+      progress: null,
+      graduated: 0,
+      requiresNewWordRetake: true
+    };
+  }
+
   // Build session summary
   const summary = {
     classId,

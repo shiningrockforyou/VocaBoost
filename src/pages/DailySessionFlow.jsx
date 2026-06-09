@@ -798,8 +798,15 @@ export default function DailySessionFlow() {
         // Determine starting phase
         // Only restore to review phase if saved state is from the SAME day (prevents stale state from previous day)
         const isSameDay = existingState?.currentStudyDay === config.dayNumber
+        // ...AND only if the new-word test was actually PASSED. A failed new-word
+        // test must be retaken before review — otherwise a student who failed gets
+        // carried into review and can complete/advance the day without ever passing
+        // the new-word gate (Day 2+ bypass bug). Mirrors Day 1, which holds on failure.
+        const resumeNewWordThreshold = config?.retakeThreshold ?? 0.95
+        const resumeNewWordsPassed = existingState?.newWordsTestScore != null &&
+          existingState.newWordsTestScore >= resumeNewWordThreshold
 
-        if (isSameDay && (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)) {
+        if (isSameDay && resumeNewWordsPassed && (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)) {
           // Resume at review phase (same day only)
           // Use full segment for study flashcards
           if (config.segment) {

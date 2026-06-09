@@ -1,0 +1,75 @@
+{
+  "findings": [],
+  "results": {
+    "emptyState": {
+      "showing": 0,
+      "hasMessage": true
+    },
+    "filter_class_exact": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_class_short": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_class_top": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_name": {
+      "showing": 0,
+      "rows": 0
+    }
+  },
+  "consoleMsgs": [
+    {
+      "type": "verbose",
+      "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"current-password\"): (More info: https://goo.gl/9p2vKq) %o",
+      "ts": 1780410882452
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410885517
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410892420
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410894580
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410896932
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410899052
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410900966
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410907575
+    },
+    {
+      "type": "log",
+      "text": "Query returned: 0 attempts",
+      "ts": 1780410909692
+    }
+  ],
+  "csvPath": null,
+  "csvInjectionVerdict": "NOT TESTED (download failed)",
+  "paginationVerdict": "NOT TESTED (no data loaded)"
+}

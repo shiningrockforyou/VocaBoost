@@ -1,0 +1,127 @@
+{
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "title": "Class filter returns Showing: 0 for ALL 4 classes — gradebook has no data for ta@vocaboost.com",
+      "where": "/teacher/gradebook Class filter",
+      "evidence": "All 4 class filters tested (25WT 2차 TOP ONLINE, 25WT 2차 CORE OFFLINE, 25WT 2차 CORE ONLINE, 25WT 2차 TOP OFFLINE) — every one returned Showing: 0 after 4+ second wait. Firestore requests are made. Teacher dashboard shows 36/66/37/63 students enrolled in these classes.",
+      "repro": "1. Login as ta@vocaboost.com\n2. /teacher/gradebook\n3. Click \"Class\" chip\n4. Type class name\n5. Click \"Add Filter\"\n6. Wait 5+ seconds",
+      "expected": "Student test submission records appear (Showing: N > 0)",
+      "actual": "Showing: 0 — \"Your search returned no results\" for all class filters"
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Export (All) did not trigger download (Showing: 0)",
+      "where": "/teacher/gradebook Export (All)",
+      "evidence": "No download event fired within 15s after clicking Export (All). Showing was: 0. Error: page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"download\"\n=",
+      "repro": "1. Apply class filter\n2. Click \"Export (All)\"\n3. Check for file download",
+      "expected": "CSV file downloads",
+      "actual": "Timeout — no download event"
+    }
+  ],
+  "R": {
+    "scope_26SM_dashboard": false,
+    "dashboardClassIds": [
+      "GNktwcqI18vyAps3iJDf",
+      "LVjBTFuYE8FbPG34pVAt",
+      "OMMwcLz3FlOiKBYjBMla",
+      "k8tzOiiwotBbtJS3uTiv"
+    ],
+    "dashboardInvalidIds": [],
+    "emptyShowing": 0,
+    "emptyStateHasMsg": true,
+    "scope_26SM_gradebook": false,
+    "class_25WT 2차 TOP ONLINE": {
+      "showing": 0,
+      "rows": 0
+    },
+    "class_25WT 2차 CORE OFFLINE": {
+      "showing": 0,
+      "rows": 0
+    },
+    "class_25WT 2차 CORE ONLINE": {
+      "showing": 0,
+      "rows": 0
+    },
+    "class_25WT 2차 TOP OFFLINE": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_name_korean": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_name_english": {
+      "showing": 0,
+      "rows": 0
+    },
+    "filter_list": {
+      "showing": 0,
+      "rows": 0
+    },
+    "testTypeOptions": [
+      "MCQ",
+      "Written"
+    ],
+    "filter_testtype_mcq": {
+      "showing": 0,
+      "rows": 0
+    },
+    "dateFilterOptions": [
+      "Today",
+      "Yesterday",
+      "Past 7 days",
+      "Past 30 days",
+      "Custom"
+    ],
+    "filter_date_past30": {
+      "showing": 0,
+      "rows": 0
+    },
+    "combined_class_name": {
+      "afterClass": 0,
+      "afterBoth": 0
+    },
+    "filterClear": {
+      "before": 0,
+      "after": 0
+    },
+    "pageSizeOptions": [
+      "10",
+      "50",
+      "100"
+    ],
+    "checkAllExists": true,
+    "checkAll": {
+      "exists": true,
+      "emptyChecked": 0,
+      "btnChanges": false,
+      "withFilter": {
+        "showing": 0,
+        "rows": 0,
+        "checked": 0,
+        "btnChanges": false
+      },
+      "exportSelectedAppears": false
+    },
+    "exportAllExists": true,
+    "exportEmpty": {
+      "downloaded": false
+    },
+    "csv": {
+      "downloaded": false,
+      "error": "page.waitForEvent: Timeout 15000ms exceeded while waiting for event \"download\"\n====================="
+    },
+    "scope_26SM_classFilter": false,
+    "scores": {
+      "note": "No data loaded — scores not testable"
+    },
+    "consoleErrors": {
+      "total": 0,
+      "serious": 0,
+      "samples": []
+    }
+  },
+  "csvInjVerdict": "NOT TESTED (no CSV download occurred)",
+  "paginationVerdict": "Check All clicked; showing was 0, checked 0"
+}

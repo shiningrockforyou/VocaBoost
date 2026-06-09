@@ -1,0 +1,98 @@
+{
+  "loginOk": true,
+  "findings": [
+    {
+      "severity": "Blocker",
+      "title": "Score percentage exceeds 100% (newWordsTestScore ×100 bug confirmed)",
+      "where": "25WT 2차 TOP ONLINE / Students tab — score cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/202_v3_overflow_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Navigate to /classes/GNktwcqI18vyAps3iJDf, Students tab, inspect \"New:\" score in Current Session column",
+      "expected": "New word test scores should be 0–100%; e.g. \"New: ✓ 97%\"",
+      "actual": "Found 1 value(s) > 100%: \"9700%\" (context: ✓ 9700%)"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge badge/count absent from class header and roster (Issue #12)",
+      "where": "25WT 2차 TOP ONLINE / class header + roster header",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/201_v3_class_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Navigate to /classes/GNktwcqI18vyAps3iJDf, Students tab — look for any challenge count, badge, or indicator",
+      "expected": "A pending-challenge count or badge should appear (e.g., \"2 pending challenges\") on the class header or roster",
+      "actual": "No challenge-related DOM elements at all on Students tab"
+    },
+    {
+      "severity": "Blocker",
+      "title": "Score percentage exceeds 100% (newWordsTestScore ×100 bug confirmed)",
+      "where": "25WT 2차 CORE OFFLINE / Students tab — score cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/206_v3_overflow_LVjBTFuYE8FbPG34pVAt.png",
+      "repro": "Navigate to /classes/LVjBTFuYE8FbPG34pVAt, Students tab, inspect \"New:\" score in Current Session column",
+      "expected": "New word test scores should be 0–100%; e.g. \"New: ✓ 97%\"",
+      "actual": "Found 1 value(s) > 100%: \"9200%\" (context: ✓ 9200%)"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge badge/count absent from class header and roster (Issue #12)",
+      "where": "25WT 2차 CORE OFFLINE / class header + roster header",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/205_v3_class_LVjBTFuYE8FbPG34pVAt.png",
+      "repro": "Navigate to /classes/LVjBTFuYE8FbPG34pVAt, Students tab — look for any challenge count, badge, or indicator",
+      "expected": "A pending-challenge count or badge should appear (e.g., \"2 pending challenges\") on the class header or roster",
+      "actual": "No challenge-related DOM elements at all on Students tab"
+    },
+    {
+      "severity": "Blocker",
+      "title": "Score percentage exceeds 100% (newWordsTestScore ×100 bug confirmed)",
+      "where": "25WT 2차 CORE ONLINE / Students tab — score cells",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/210_v3_overflow_OMMwcLz3FlOiKBYjBMla.png",
+      "repro": "Navigate to /classes/OMMwcLz3FlOiKBYjBMla, Students tab, inspect \"New:\" score in Current Session column",
+      "expected": "New word test scores should be 0–100%; e.g. \"New: ✓ 97%\"",
+      "actual": "Found 2 value(s) > 100%: \"9600%\" (context: ✓ 9600%) || \"10000%\" (context: ✓ 10000%)"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge badge/count absent from class header and roster (Issue #12)",
+      "where": "25WT 2차 CORE ONLINE / class header + roster header",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/209_v3_class_OMMwcLz3FlOiKBYjBMla.png",
+      "repro": "Navigate to /classes/OMMwcLz3FlOiKBYjBMla, Students tab — look for any challenge count, badge, or indicator",
+      "expected": "A pending-challenge count or badge should appear (e.g., \"2 pending challenges\") on the class header or roster",
+      "actual": "No challenge-related DOM elements at all on Students tab"
+    },
+    {
+      "severity": "Medium",
+      "title": "Pending-challenge badge/count absent from class header and roster (Issue #12)",
+      "where": "25WT 2차 TOP OFFLINE / class header + roster header",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/213_v3_class_k8tzOiiwotBbtJS3uTiv.png",
+      "repro": "Navigate to /classes/k8tzOiiwotBbtJS3uTiv, Students tab — look for any challenge count, badge, or indicator",
+      "expected": "A pending-challenge count or badge should appear (e.g., \"2 pending challenges\") on the class header or roster",
+      "actual": "No challenge-related DOM elements at all on Students tab"
+    },
+    {
+      "severity": "Nitpick",
+      "title": "Raw Tailwind classes used instead of design tokens",
+      "where": "25WT 2차 TOP ONLINE / Students tab elements",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/216_v3_resp_desktop_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Open /classes/GNktwcqI18vyAps3iJDf, Students tab, inspect element classes",
+      "expected": "All styling should use project design tokens (bg-base, text-text-primary, etc.)",
+      "actual": "Found 15 violation(s): shadow-md(12), shadow-lg(2), rounded-lg(1)"
+    },
+    {
+      "severity": "Medium",
+      "title": "Horizontal overflow at mobile viewport (375px)",
+      "where": "25WT 2차 TOP ONLINE / Students tab at mobile",
+      "evidence": "/app/audit/playwright/findings/screenshots/TA-ROSTER/218_v3_resp_mobile_GNktwcqI18vyAps3iJDf.png",
+      "repro": "Open /classes/GNktwcqI18vyAps3iJDf, Students tab at 375px viewport",
+      "expected": "No horizontal overflow; content fits within viewport width",
+      "actual": "scrollWidth=746, clientWidth=375, overflow=371px"
+    }
+  ],
+  "bySeverity": {
+    "Blocker": 3,
+    "High": 0,
+    "Medium": 5,
+    "Nitpick": 1
+  },
+  "allConsoleErrors": {
+    "GNktwcqI18vyAps3iJDf": [],
+    "LVjBTFuYE8FbPG34pVAt": [],
+    "OMMwcLz3FlOiKBYjBMla": [],
+    "k8tzOiiwotBbtJS3uTiv": []
+  }
+}

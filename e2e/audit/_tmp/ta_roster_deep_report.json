@@ -1,0 +1,426 @@
+{
+  "GNktwcqI18vyAps3iJDf": {
+    "name": "25WT 2차 TOP ONLINE",
+    "studentCount": 36,
+    "overflowScores": [
+      {
+        "val": 9700,
+        "text": "9700%",
+        "textContext": "✓ 9700%",
+        "rowText": "Isabelle Yang\n\tisabelle01033010@gmail.com\t\n25WT2 TOP Vocabulary (v2)\nDay 1\n160/3381\n\tNo History\t\nDay 2\nNew: ✓ 9700%\nReview: ✗ -\n\t2/2/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      }
+    ],
+    "normalScores": 29,
+    "sampleNormalScores": [
+      "93%",
+      "90%",
+      "97%",
+      "100%",
+      "93%"
+    ],
+    "sampleRows": [
+      [
+        "",
+        "Yeonhee Lee",
+        "yeonhee314@naver.com",
+        "25WT2 TOP Vocabulary (v2)\nDay 4\n320/3381",
+        "No History",
+        "Day 5\nNew: ✓ 93%\nReview: ✗ -",
+        "2/23/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "정재민",
+        "cyjjjh430@gmail.com",
+        "25WT2 TOP Vocabulary (v2)\nDay 6\n480/3381",
+        "Day 3\nNew: 90%\nReview: 97%",
+        "Day 7\nNew: ✓ 100%\nReview: ✗ -",
+        "2/16/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Choi Park",
+        "skypci090101@gmail.com",
+        "25WT2 TOP Vocabulary (v2)\nDay 9\n720/3381",
+        "No History",
+        "Not Started",
+        "2/16/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "yumin",
+        "hazemwo056@gmail.com",
+        "25WT2 TOP Vocabulary (v2)\nDay 2\n160/3381",
+        "No History",
+        "Day 3\nNew: ✓ 93%\nReview: ✗ -",
+        "2/16/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Taejun Hong",
+        "hongtaejun10030100@gmail.com",
+        "25WT2 TOP Vocabulary (v2)\nDay 3\n240/3381",
+        "Day 4\nNew: 77%\nReview: 100%",
+        "Day 4\nNew: ✓ 77%\nReview: ✗ -",
+        "2/16/2026",
+        "Grades\nRemove"
+      ]
+    ],
+    "screenshot": "/app/audit/playwright/findings/screenshots/TA-ROSTER/300_deep_GNktwcqI18vyAps3iJDf.png"
+  },
+  "LVjBTFuYE8FbPG34pVAt": {
+    "name": "25WT 2차 CORE OFFLINE",
+    "studentCount": 66,
+    "overflowScores": [
+      {
+        "val": 9200,
+        "text": "9200%",
+        "textContext": "✓ 9200%",
+        "rowText": "ChiyoonSong\n\tchiyuns424@gmail.com\t\n25WT2 CORE Vocabulary (v2)\nDay 8\n600/3380\n\t\nDay 1\nNew: 92%\nReview: -\n\t\nDay 9\nNew: ✓ 9200%\nReview: ✗ -\n\t1/18/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      }
+    ],
+    "normalScores": 32,
+    "sampleNormalScores": [
+      "100%",
+      "100%",
+      "100%",
+      "92%",
+      "92%"
+    ],
+    "sampleRows": [
+      [
+        "",
+        "Audit Class-Switcher 01 (CORE)",
+        "audit_classswitcher_01_core@vocaboost.test",
+        "25WT2 CORE Vocabulary (v2)\nNot started\n0/3380",
+        "No History",
+        "Not Started",
+        "5/31/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Audit Confused First-Timer 01 (CORE)",
+        "N/A",
+        "25WT2 CORE Vocabulary (v2)\nDay 1\n60/3380",
+        "No History",
+        "Day 1\nNew: ✓ 100%\nReview: ✗ -",
+        "5/30/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "N/A",
+        "N/A",
+        "25WT2 CORE Vocabulary (v2)\nNot started\n0/3380",
+        "No History",
+        "Not Started",
+        "5/30/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "N/A",
+        "N/A",
+        "25WT2 CORE Vocabulary (v2)\nNot started\n0/3380",
+        "No History",
+        "Not Started",
+        "5/30/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "N/A",
+        "N/A",
+        "25WT2 CORE Vocabulary (v2)\nNot started\n0/3380",
+        "No History",
+        "Not Started",
+        "5/30/2026",
+        "Grades\nRemove"
+      ]
+    ],
+    "screenshot": "/app/audit/playwright/findings/screenshots/TA-ROSTER/301_deep_LVjBTFuYE8FbPG34pVAt.png"
+  },
+  "OMMwcLz3FlOiKBYjBMla": {
+    "name": "25WT 2차 CORE ONLINE",
+    "studentCount": 37,
+    "overflowScores": [
+      {
+        "val": 9600,
+        "text": "9600%",
+        "textContext": "✓ 9600%",
+        "rowText": "이Lee李준혁Junhyeok峻赫\n\tljh100618@gmail.com\t\n25WT2 CORE Vocabulary (v2)\nDay 19\n1320/3380\n\tNo History\t\nDay 20\nNew: ✓ 9600%\nReview: ✗ -\n\t1/26/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      },
+      {
+        "val": 10000,
+        "text": "10000%",
+        "textContext": "✓ 10000%",
+        "rowText": "Siwoo Kim\n\tstellakim470@gmail.com\t\n25WT2 CORE Vocabulary (v2)\nDay 10\n600/3380\n\t\nDay 4\nNew: 100%\nReview: 97%\n\t\nDay 10\nNew: ✓ 10000%\nReview: ✓ 100%\n\t1/12/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      }
+    ],
+    "normalScores": 27,
+    "sampleNormalScores": [
+      "92%",
+      "93%",
+      "92%",
+      "88%",
+      "93%"
+    ],
+    "sampleRows": [
+      [
+        "",
+        "111O6 남예진 nam yejin",
+        "hellobye18e@gmail.com",
+        "25WT2 CORE Vocabulary (v2)\nDay 3\n180/3380",
+        "No History",
+        "Day 4\nNew: ✗ -\nReview: ✗ -",
+        "2/24/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "오윤재",
+        "yoonjae20102@gmail.com",
+        "25WT2 CORE Vocabulary (v2)\nDay 4\n240/3380",
+        "No History",
+        "Day 5\nNew: ✗ -\nReview: ✗ -",
+        "2/23/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "songseonmin",
+        "songseonmin1126@gmail.com",
+        "25WT2 CORE Vocabulary (v2)\nDay 5\n300/3380",
+        "No History",
+        "Day 5\nNew: ✓ 92%\nReview: ✓ 93%",
+        "2/23/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Suhyun Jeon",
+        "amyjeon101125@gmail.com",
+        "25WT2 CORE Vocabulary (v2)\nDay 4\n240/3380",
+        "No History",
+        "Day 5\nNew: ✓ 92%\nReview: ✗ -",
+        "2/23/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "주사랑",
+        "sarangjoo1119@gmail.com",
+        "25WT2 CORE Vocabulary (v2)\nDay 4\n240/3380",
+        "No History",
+        "Day 5\nNew: ✗ -\nReview: ✗ -",
+        "2/22/2026",
+        "Grades\nRemove"
+      ]
+    ],
+    "screenshot": "/app/audit/playwright/findings/screenshots/TA-ROSTER/302_deep_OMMwcLz3FlOiKBYjBMla.png"
+  },
+  "k8tzOiiwotBbtJS3uTiv": {
+    "name": "25WT 2차 TOP OFFLINE",
+    "studentCount": 63,
+    "overflowScores": [
+      {
+        "val": 10000,
+        "text": "10000%",
+        "textContext": "✓ 10000%",
+        "rowText": "N/A\n\tN/A\t\n25WT2 TOP Vocabulary (v2)\nDay 2\n110/3381\n\t\nDay\nNew: 95%\nReview: -\n\t\nDay 3\nNew: ✓ 10000%\nReview: ✗ -\n\t5/30/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      },
+      {
+        "val": 10000,
+        "text": "10000%",
+        "textContext": "✓ 10000%",
+        "rowText": "N/A\n\tN/A\t\n25WT2 TOP Vocabulary (v2)\nDay 27\n2240/3381\n\t\nDay 3\nNew: 97%\nReview: 95%\n\t\nDay 28\nNew: ✓ 10000%\nReview: ✗ -\n\t5/30/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      },
+      {
+        "val": 9300,
+        "text": "9300%",
+        "textContext": "✓ 9300%",
+        "rowText": "jennifer jung\n\tjenniferhjjung@gmail.com\t\n25WT2 TOP Vocabulary (v2)\nDay 3\n320/3381\n\t\nDay 2\nNew: 90%\nReview: 97%\n\t\nDay 4\nNew: ✓ 9300%\nReview: ✗ -\n\t2/16/2026\t\nGrades\nRemove",
+        "parentClass": "text-green-600"
+      }
+    ],
+    "normalScores": 62,
+    "sampleNormalScores": [
+      "100%",
+      "97%",
+      "100%",
+      "100%",
+      "100%"
+    ],
+    "sampleRows": [
+      [
+        "",
+        "Audit Careful Student 01 (CORE)",
+        "audit_careful_01_core@vocaboost.test",
+        "25WT2 TOP Vocabulary (v2)\nDay 0\n0/3381",
+        "No History",
+        "Not Started",
+        "5/31/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Audit Class-Switcher 02 (CORE)",
+        "audit_classswitcher_02_core@vocaboost.test",
+        "25WT2 TOP Vocabulary (v2)\nNot started\n0/3381",
+        "No History",
+        "Not Started",
+        "5/31/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "Audit Class-Switcher 01 (CORE)",
+        "audit_classswitcher_01_core@vocaboost.test",
+        "25WT2 TOP Vocabulary (v2)\nNot started\n0/3381",
+        "No History",
+        "Not Started",
+        "5/31/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "N/A",
+        "N/A",
+        "25WT2 TOP Vocabulary (v2)\nDay 0\n0/3381",
+        "No History",
+        "Day 1\nNew: ✗ -\nReview: ✗ -",
+        "5/30/2026",
+        "Grades\nRemove"
+      ],
+      [
+        "",
+        "N/A",
+        "N/A",
+        "25WT2 TOP Vocabulary (v2)\nNot started\n0/3381",
+        "No History",
+        "Not Started",
+        "5/30/2026",
+        "Grades\nRemove"
+      ]
+    ],
+    "screenshot": "/app/audit/playwright/findings/screenshots/TA-ROSTER/303_deep_k8tzOiiwotBbtJS3uTiv.png"
+  },
+  "k8tzOiiwotBbtJS3uTiv_recheck": {
+    "rowCount": 63,
+    "overflowScores": [
+      {
+        "val": 10000,
+        "text": "10000%",
+        "context": "✓ 10000%"
+      },
+      {
+        "val": 10000,
+        "text": "10000%",
+        "context": "✓ 10000%"
+      },
+      {
+        "val": 9300,
+        "text": "9300%",
+        "context": "✓ 9300%"
+      }
+    ],
+    "screenshot": "/app/audit/playwright/findings/screenshots/TA-ROSTER/304_deep_TOP_OFFLINE_wait.png"
+  },
+  "mobile_overflow": {
+    "windowWidth": 375,
+    "bodyScrollWidth": 746,
+    "overflowElements": [
+      {
+        "tag": "DIV",
+        "cls": "flex items-center gap-3",
+        "text": "Dashboard\nClasses\nGradebook\nLists",
+        "left": 16,
+        "right": 746,
+        "width": 730
+      },
+      {
+        "tag": "A",
+        "cls": "h-12 flex items-center gap-2 px-5 rounded-button shadow-sm font-heading font-bol",
+        "text": "Gradebook",
+        "left": 348,
+        "right": 508,
+        "width": 160
+      },
+      {
+        "tag": "svg",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 369,
+        "right": 389,
+        "width": 20
+      },
+      {
+        "tag": "rect",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 376,
+        "right": 383,
+        "width": 7
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 373,
+        "right": 386,
+        "width": 13
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 379,
+        "right": 383,
+        "width": 3
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 379,
+        "right": 383,
+        "width": 3
+      },
+      {
+        "tag": "SPAN",
+        "cls": "",
+        "text": "Gradebook",
+        "left": 397,
+        "right": 487,
+        "width": 90
+      },
+      {
+        "tag": "A",
+        "cls": "h-12 flex items-center gap-2 px-5 rounded-button shadow-sm font-heading font-bol",
+        "text": "Lists",
+        "left": 520,
+        "right": 626,
+        "width": 106
+      },
+      {
+        "tag": "svg",
+        "cls": "[object SVGAnimatedString]",
+        "text": "",
+        "left": 541,
+        "right": 561,
+        "width": 20
+      }
+    ]
+  }
+}

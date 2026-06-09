@@ -1,0 +1,17 @@
+{
+  "loginOk": true,
+  "csvPath": null,
+  "auditData": {
+    "filters": {},
+    "pagination": {},
+    "csv": {},
+    "counts": {},
+    "emptyState": {
+      "showingOnLoad": 0,
+      "hasEmptyMessage": true
+    },
+    "scopeCheck": {}
+  },
+  "findings": [],
+  "consoleErrors": []
+}
