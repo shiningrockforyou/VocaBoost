@@ -66,7 +66,16 @@ function determineStartingPhase(attempts, dayNumber) {
   const toFraction = (s) => (s == null ? s : (s > 1 ? s / 100 : s));
 
   const dayAttempts = attempts.filter(a => a.studyDay === dayNumber);
-  const newTest = dayAttempts.find(a => a.sessionType === 'new');
+  // Pick the BEST new-word attempt for the day, not just the first match. A student
+  // who failed then retook-and-passed has multiple 'new' attempts; .find() can return
+  // the earlier FAILED one, so we'd conclude they still owe the test and resume them to
+  // the new-word phase instead of review — even though they passed. Prefer a passed
+  // attempt; otherwise the highest score.
+  const newAttempts = dayAttempts.filter(a => a.sessionType === 'new');
+  const newTest = newAttempts.slice().sort((a, b) =>
+    (Number(b.passed === true) - Number(a.passed === true)) ||
+    ((b.score ?? 0) - (a.score ?? 0))
+  )[0] || null;
   const reviewTest = dayAttempts.find(a => a.sessionType === 'review');
 
   console.log('[PHASE] Attempts for day', dayNumber + ':', {
@@ -767,7 +776,8 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
     weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK) || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
     studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
-    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold ||
+      (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
   });
 
   // Get new words (already have wordIndex from getNewWords)
@@ -817,7 +827,8 @@ export async function getCompleteBatchForPDF(userId, classId, listId, assignment
     weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK) || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
     studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
-    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold ||
+      (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
   });
 
   // Get new words
@@ -1011,7 +1022,8 @@ export async function getDebugSessionData(userId, classId, listId, assignment) {
     weeklyPace: assignment.pace * (assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK) || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE,
     studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
     testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
-    newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
+    newWordRetakeThreshold: assignment.newWordRetakeThreshold ||
+      (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
   });
 
   let reviewQueue = [];
@@ -1118,6 +1130,7 @@ export async function completeSessionFromTest({
   let newWordScore = null;
   let reviewScore = null;
   let reviewFailed = [];
+  let newWordAttemptPassed = null; // authoritative passed flag from the attempt doc
 
   // Get threshold from sessionStorage config, fallback to constant
   const threshold = sessionState?.sessionConfig?.retakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD;
@@ -1144,6 +1157,11 @@ export async function completeSessionFromTest({
       newWordScore = newWordAttempt.score <= 1
         ? newWordAttempt.score
         : newWordAttempt.score / 100;
+      // The attempt's `passed` flag is authoritative: it was computed at submission
+      // against the CLASS's real passThreshold (and covers teacher manual overrides
+      // where passed=true with a lower score). The local `threshold` may be a wrong
+      // default (0.95) because assignments don't store newWordRetakeThreshold.
+      newWordAttemptPassed = newWordAttempt.passed === true;
     } else {
       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
       // No prior new-word attempt found: keep newWordScore a valid number (0) rather
@@ -1166,9 +1184,9 @@ export async function completeSessionFromTest({
   // only runs on pass). For Day 2+ the review test is the "final" test and always
   // passes, so without this gate a student who failed the new-word test but reached
   // review would advance CSD anyway. Block completion and signal a required retake.
-  if (!isFirstDay && newWordScore < threshold) {
+  if (!isFirstDay && newWordAttemptPassed !== true && newWordScore < threshold) {
     console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
-      dayNumber, newWordScore, threshold
+      dayNumber, newWordScore, threshold, newWordAttemptPassed
     });
     return {
       sessionId: null,
