@@ -14,7 +14,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
@@ -588,7 +588,8 @@ export default function DailySessionFlow() {
             studyDaysPerWeek: assignment.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
             testSizeNew: assignment.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
             testSizeReview: assignment.testSizeReview || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_REVIEW,
-            newWordRetakeThreshold: assignment.newWordRetakeThreshold || STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD
+            newWordRetakeThreshold: assignment.newWordRetakeThreshold ||
+              (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
           }
         )
 
@@ -625,6 +626,15 @@ export default function DailySessionFlow() {
               config.segment.startIndex,
               config.segment.endIndex
             ))
+
+            if (segmentWords.length === 0) {
+              // Empty review segment (all words MASTERED & resting) — valid state.
+              // Same designed outcome as the in-session path: "all mastered" success
+              // modal -> completeSession() finishes the day. Without this, the student
+              // lands in the review test with 0 words ("No Test Content" dead end).
+              setShowNoReviewModal(true)
+              return
+            }
 
             setReviewQueue(segmentWords)
             setReviewQueueCurrent(segmentWords)
@@ -805,8 +815,18 @@ export default function DailySessionFlow() {
         const resumeNewWordThreshold = config?.retakeThreshold ?? 0.95
         const resumeNewWordsPassed = existingState?.newWordsTestScore != null &&
           existingState.newWordsTestScore >= resumeNewWordThreshold
+        // Attempt-derived source of truth: determineStartingPhase returns REVIEW_STUDY
+        // when the day's new-word test was PASSED (server-computed flag) but the review
+        // isn't done. Honor it even when the saved session_state.phase is stale (e.g.
+        // passed on a retake, or left before "Continue"), so a confirmed passer is never
+        // sent back to redo a test they passed. NOTE: normally the startPhase ===
+        // REVIEW_STUDY recovery branch above already returns first; this is
+        // defense-in-depth for any path that reaches here.
+        const attemptsSayReviewPending = config?.startPhase === SESSION_PHASE.REVIEW_STUDY
+        const sessionSaysReviewResume = isSameDay && resumeNewWordsPassed &&
+          (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)
 
-        if (isSameDay && resumeNewWordsPassed && (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)) {
+        if (attemptsSayReviewPending || sessionSaysReviewResume) {
           // Resume at review phase (same day only)
           // Use full segment for study flashcards
           if (config.segment) {
@@ -816,6 +836,12 @@ export default function DailySessionFlow() {
               config.segment.startIndex,
               config.segment.endIndex
             ))
+            if (allWords.length === 0) {
+              // Empty review segment (all words MASTERED & resting): designed outcome
+              // is the "all mastered" modal -> completeSession(), not the review phase.
+              setShowNoReviewModal(true)
+              return
+            }
             setReviewQueue(allWords)
             setReviewQueueCurrent(allWords)
           }
@@ -984,6 +1010,40 @@ export default function DailySessionFlow() {
   const handleNoReviewModalClose = async () => {
     setShowNoReviewModal(false)
     await completeSession()
+    // Record a marker review attempt for this day. CSD reconciliation
+    // (getOrCreateClassProgress -> getReviewForDay) only counts a Day 2+ day as
+    // complete when a day-N review attempt exists — without this marker the
+    // auto-completed day is REVERTED on the next session entry.
+    try {
+      const dayNumber = sessionConfig?.dayNumber
+      if (user?.uid && classId && listId && Number.isInteger(dayNumber) && dayNumber > 1) {
+        const classSnap = await getDoc(doc(db, 'classes', classId))
+        const ownerTeacherId = classSnap.exists() ? (classSnap.data().ownerTeacherId ?? null) : null
+        // Deterministic id => idempotent (re-entry can't duplicate the marker)
+        const markerId = `${user.uid}_${classId}_${listId}_day${dayNumber}_review_automarker`
+        await setDoc(doc(db, 'attempts', markerId), {
+          studentId: user.uid,
+          teacherId: ownerTeacherId,
+          classId,
+          listId,
+          studyDay: dayNumber,
+          testType: 'mcq',
+          sessionType: 'review',
+          score: 100,
+          passed: true,
+          totalQuestions: 0,
+          correctCount: 0,
+          answers: [],
+          autoCompleted: true,
+          manualReviewNote: 'Auto-completed: no review available — all segment words mastered (21-day rest).',
+          submittedAt: Timestamp.now()
+        })
+      }
+    } catch (err) {
+      // Non-fatal: the day still completed; reconciliation may revert it until the
+      // student produces a real review attempt. Log for visibility.
+      console.error('Failed to write empty-review marker attempt:', err)
+    }
   }
 
   const currentReviewWord = reviewQueueCurrent[currentIndex]

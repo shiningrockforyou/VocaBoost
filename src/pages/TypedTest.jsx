@@ -958,7 +958,7 @@ const TypedTest = () => {
         <Watermark />
         <div className="relative z-10 max-w-md rounded-2xl bg-surface p-8 text-center shadow-lg">
           <p className="text-lg font-semibold text-text-primary">No Test Content</p>
-          <p className="mt-3 text-sm text-text-muted">Your teacher hasn't assigned enough words yet.</p>
+          <p className="mt-3 text-sm text-text-muted">No words are available for this test right now. If you just finished a test, go back and continue from the dashboard.</p>
           <Button variant="outline" size="lg" onClick={() => navigate(-1)} className="mt-6">
             Go Back
           </Button>
