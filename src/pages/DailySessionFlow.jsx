@@ -1633,6 +1633,20 @@ export default function DailySessionFlow() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-base">
         <Watermark />
+        {/* The empty-review auto-complete (Change E) fires during init, while phase
+            is still LOADING — this early return renders before the modal JSX at the
+            bottom of the component, so the modal must ALSO be rendered here or the
+            student is stuck on an infinite spinner. */}
+        <ConfirmModal
+          isOpen={showNoReviewModal}
+          title="Review Complete"
+          message="No words need review today - all mastered!"
+          confirmLabel="OK"
+          onConfirm={handleNoReviewModalClose}
+          onCancel={handleNoReviewModalClose}
+          variant="success"
+          showCancel={false}
+        />
         <div className="relative z-10 text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
           <p className="mt-4 text-text-secondary">Preparing your session...</p>
