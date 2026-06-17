@@ -223,3 +223,18 @@ Because Tier 3 changes UX, timing, states, rules, and adds a Cloud Function, rea
   attempts + system_logs.
 - Per-list progress refactor (`DESIGN_per_list_progress.md`) + interim "move student" tool.
 - 7 same-list dual-enrollments cleanup.
+- **Review-test pass threshold.** Today review tests auto-pass (`passed` always true), so they have no
+  real pass/fail verdict. Consequence already visible: the gradebook score color (2026-06-17) colors by
+  `passed`, so review rows are ALWAYS green regardless of score (owner chose option A for now). To add a
+  real threshold:
+  1. Decide source: reuse the assignment `passThreshold`, or a separate `reviewPassThreshold` (review and
+     new-word mastery bars may differ pedagogically).
+  2. Decide the CONSEQUENCE of a failing review — this is the hard part: today review completes the day
+     unconditionally. Options: (a) require a review retake before the day completes (mirrors the new-word
+     gate — big change to the day-completion state machine + `completeSessionFromTest`), or (b) let the day
+     complete but record `passed:false` for reporting only (low-risk; unlocks correct gradebook color with
+     no flow change). Recommend starting with (b).
+  3. Once review attempts carry a real `passed`, the gradebook color "option B" (color reviews by verdict)
+     becomes automatic — no extra UI work; just flip the behavior chosen on 2026-06-17.
+  4. Interacts with async grading (Tier 3) completion logic and with `determineStartingPhase` — sequence
+     AFTER Tier 3 if pursuing consequence-option (a).

@@ -2028,6 +2028,7 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
       score: score,
       totalQuestions: totalQuestions,
       correctAnswers: correctAnswers,
+      passed: attemptData.passed ?? null, // authoritative pass verdict (for threshold-based score color)
       answers: [], // Lazy load on demand
       studentId: studentId,
       listId: listId,
@@ -2206,6 +2207,7 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
       score: score,
       totalQuestions: totalQuestions,
       correctAnswers: correctAnswers,
+      passed: attemptData.passed ?? null, // authoritative pass verdict (for threshold-based score color)
       answers: [],
       listId: listId,
       testId: testId,
@@ -2387,6 +2389,7 @@ export const fetchAttemptDetails = async (attemptId) => {
       score: attemptData.score || 0,
       totalQuestions: attemptData.totalQuestions || answers.length,
       correctAnswers: correctAnswers,
+      passed: attemptData.passed ?? null, // authoritative pass verdict (for threshold-based score color)
       testType: attemptData.testType || 'mcq',
       answers: formattedAnswers,
     }

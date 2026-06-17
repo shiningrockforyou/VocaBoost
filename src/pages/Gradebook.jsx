@@ -648,11 +648,17 @@ const Gradebook = ({
     })
   }
 
-  // Get score color
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-emerald-600 font-bold'
-    if (score >= 60) return 'text-amber-600 font-bold'
-    return 'text-red-600 font-bold'
+  // Get score color — tied to the class pass threshold, not an arbitrary 80/60 band.
+  // `passed` is authoritative: computed at submission against the class's real
+  // passThreshold (and respects teacher manual overrides), so a 90% in a 92% class
+  // correctly shows as not-passed. Falls back to a neutral score gradient only for
+  // legacy attempts that predate the `passed` flag.
+  const getScoreColor = (score, passed) => {
+    if (passed === true) return 'text-success font-bold'
+    if (passed === false) return 'text-error font-bold'
+    if (score >= 80) return 'text-success font-bold'
+    if (score >= 60) return 'text-warning font-bold'
+    return 'text-error font-bold'
   }
 
   // Get tag color classes
@@ -1102,7 +1108,7 @@ const Gradebook = ({
                         )}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <span className={`text-sm ${getScoreColor(attempt.score)}`}>
+                            <span className={`text-sm ${getScoreColor(attempt.score, attempt.passed)}`}>
                               {attempt.score}% ({attempt.correctAnswers}/{attempt.totalQuestions})
                             </span>
                             {attempt.answers?.some((a) => a.challengeStatus === 'pending') && (
@@ -1290,7 +1296,7 @@ const Gradebook = ({
                     </div>
                     <div className="mt-4">
                       <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">Score</p>
-                      <p className={`text-2xl font-heading font-bold ${getScoreColor(attemptDetails.score || 0)}`}>
+                      <p className={`text-2xl font-heading font-bold ${getScoreColor(attemptDetails.score || 0, attemptDetails.passed)}`}>
                         {attemptDetails.score || 0}% ({attemptDetails.correctAnswers || 0}/{attemptDetails.totalQuestions || 0})
                       </p>
                     </div>
