@@ -1150,8 +1150,8 @@ export async function completeSessionFromTest({
     reviewScore = testResults.score;
     reviewFailed = testResults.failed || [];
 
-    // Query the new word attempt for this day
-    const newWordAttempt = await getNewWordAttemptForDay(userId, classId, dayNumber);
+    // Query the new word attempt for this day (list-scoped — see getNewWordAttemptForDay)
+    const newWordAttempt = await getNewWordAttemptForDay(userId, classId, listId, dayNumber);
     if (newWordAttempt) {
       // Convert score from 0-100 to 0-1 if needed
       newWordScore = newWordAttempt.score <= 1
@@ -1165,35 +1165,38 @@ export async function completeSessionFromTest({
     } else {
       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
       // No prior new-word attempt found: keep newWordScore a valid number (0) rather
-      // than undefined, so the session_states write below succeeds and the day can
-      // complete. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
+      // than undefined, so the gate below evaluates as not-passed and the session
+      // write (if reached) succeeds. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
       newWordScore = 0;
     }
 
-    // Update session_states with final status (prevents race condition)
+    // Gate (Day 2+) — CHECKED BEFORE writing COMPLETE. Never complete/advance the day
+    // unless the day's new-word test was passed. The review test is the "final" test and
+    // always passes, so without this a student who failed the new-word test but reached
+    // review would advance CSD anyway. CRITICAL ORDERING: this must run before the
+    // saveSessionState(... phase: COMPLETE ...) below — otherwise the durable session_state
+    // cache gets stamped COMPLETE even though we return requiresNewWordRetake, leaving
+    // contradictory state for UI/support/admin tooling (audit Blocker, 2026-06-17).
+    if (newWordAttemptPassed !== true && newWordScore < threshold) {
+      console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
+        dayNumber, newWordScore, threshold, newWordAttemptPassed
+      });
+      return {
+        sessionId: null,
+        progress: null,
+        graduated: 0,
+        requiresNewWordRetake: true
+      };
+    }
+
+    // Update session_states with final status (prevents race condition). Only reached
+    // once the Day-2+ gate above has confirmed the new-word test was passed.
     await saveSessionState(userId, classId, listId, {
       newWordsTestScore: newWordScore,
       newWordsTestPassed: newWordScore >= threshold,
       reviewTestScore: reviewScore,
       phase: SESSION_PHASE.COMPLETE
     });
-  }
-
-  // Gate (Day 2+): never complete/advance the day unless the day's new-word test
-  // was passed. Day 1 is already gated by the test component (completeSessionFromTest
-  // only runs on pass). For Day 2+ the review test is the "final" test and always
-  // passes, so without this gate a student who failed the new-word test but reached
-  // review would advance CSD anyway. Block completion and signal a required retake.
-  if (!isFirstDay && newWordAttemptPassed !== true && newWordScore < threshold) {
-    console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
-      dayNumber, newWordScore, threshold, newWordAttemptPassed
-    });
-    return {
-      sessionId: null,
-      progress: null,
-      graduated: 0,
-      requiresNewWordRetake: true
-    };
   }
 
   // Build session summary

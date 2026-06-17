@@ -298,6 +298,11 @@ export default function DailySessionFlow() {
 
     try {
       await saveSessionState(user.uid, classId, listId, {
+        // NOTE: `phase` is a NON-AUTHORITATIVE display/UX cache only. Resume routing
+        // derives the real phase from durable attempts (determineStartingPhase →
+        // the attemptsSayReviewPending branch in init). Do NOT reintroduce trust in
+        // this field for routing: the auto-save effect re-writes it on every phase
+        // change, so a stale value used to fight admin/server resets (#7).
         phase: currentPhaseMap[phase] || SESSION_PHASE.NEW_WORDS_STUDY,
         currentStudyDay: sessionConfig?.dayNumber || 1,
         // Only update newWordsTestPassed if we have actual results (prevents overwriting true with false)
@@ -805,28 +810,21 @@ export default function DailySessionFlow() {
           }
         }
 
-        // Determine starting phase
-        // Only restore to review phase if saved state is from the SAME day (prevents stale state from previous day)
-        const isSameDay = existingState?.currentStudyDay === config.dayNumber
-        // ...AND only if the new-word test was actually PASSED. A failed new-word
-        // test must be retaken before review — otherwise a student who failed gets
-        // carried into review and can complete/advance the day without ever passing
-        // the new-word gate (Day 2+ bypass bug). Mirrors Day 1, which holds on failure.
-        const resumeNewWordThreshold = config?.retakeThreshold ?? 0.95
-        const resumeNewWordsPassed = existingState?.newWordsTestScore != null &&
-          existingState.newWordsTestScore >= resumeNewWordThreshold
-        // Attempt-derived source of truth: determineStartingPhase returns REVIEW_STUDY
-        // when the day's new-word test was PASSED (server-computed flag) but the review
-        // isn't done. Honor it even when the saved session_state.phase is stale (e.g.
-        // passed on a retake, or left before "Continue"), so a confirmed passer is never
-        // sent back to redo a test they passed. NOTE: normally the startPhase ===
-        // REVIEW_STUDY recovery branch above already returns first; this is
-        // defense-in-depth for any path that reaches here.
+        // Determine starting phase — ATTEMPTS ARE THE SOLE AUTHORITY (#7).
+        // determineStartingPhase (surfaced as config.startPhase) returns REVIEW_STUDY
+        // only when the day's new-word test was PASSED (a durable passing 'new' attempt
+        // exists) and no review attempt exists yet. We deliberately DO NOT consult
+        // session_state.phase for routing: the auto-save effect continuously re-writes
+        // an open tab's in-memory phase, so a stale/poisoned session_state.phase used to
+        // (a) carry a failed student into review and (b) silently revert admin/server
+        // resets within minutes — the "bad session state persisting" bug. If attempts
+        // say NOT review (e.g. a passing new attempt was never written), routing to the
+        // new-word phase is self-healing (the student retakes a test they can pass and
+        // the attempt gets written) and can never strand them in review. session_state
+        // is still read above purely for DISPLAY values (scores, dismissed words).
         const attemptsSayReviewPending = config?.startPhase === SESSION_PHASE.REVIEW_STUDY
-        const sessionSaysReviewResume = isSameDay && resumeNewWordsPassed &&
-          (existingState?.phase === SESSION_PHASE.REVIEW_STUDY || existingState?.phase === SESSION_PHASE.REVIEW_TEST)
 
-        if (attemptsSayReviewPending || sessionSaysReviewResume) {
+        if (attemptsSayReviewPending) {
           // Resume at review phase (same day only)
           // Use full segment for study flashcards
           if (config.segment) {

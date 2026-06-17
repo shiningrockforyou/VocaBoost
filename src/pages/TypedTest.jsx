@@ -4,7 +4,7 @@ import { doc, getDoc, updateDoc, Timestamp, collection, query, orderBy, getDocs 
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
-import { submitTypedTestAttempt, withRetry } from '../services/db'
+import { submitTypedTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -303,9 +303,20 @@ const TypedTest = () => {
 
       // PATH B: Legacy wordPool provided (backwards compatibility)
       if (wordPool && wordPool.length > 0) {
-        // Apply assignment settings if provided
-        if (assignmentSettings) {
-          setRetakeThreshold((assignmentSettings.passThreshold || 95) / 100)
+        // Resolve the pass threshold from the class doc when the navigation state
+        // doesn't carry it. Defaulting to 95 here both mislabels the result card
+        // ("Your score is below 95%") and makes the UI fail 92–94% scorers whose
+        // attempts the server correctly marks passed (server reads the class doc).
+        if (assignmentSettings?.passThreshold != null) {
+          setRetakeThreshold((Number(assignmentSettings.passThreshold) || 95) / 100)
+        } else if (classIdParam && listId) {
+          try {
+            const thrSnap = await getDoc(doc(db, 'classes', classIdParam))
+            const thr = thrSnap.exists() ? thrSnap.data()?.assignments?.[listId]?.passThreshold : null
+            setRetakeThreshold(((Number(thr) > 0 ? Number(thr) : 95)) / 100)
+          } catch (thrErr) {
+            console.warn('PATH B: could not resolve class passThreshold, using default', thrErr)
+          }
         }
         const shuffled = shuffleArray([...wordPool])
         const cappedWords = shuffled.slice(0, MAX_TYPED_TEST_WORDS)
@@ -576,13 +587,32 @@ const TypedTest = () => {
     }
   }
 
-  // AI grading with retry logic
+  // AI grading with retry logic + diagnostic logging (connection-error investigation).
+  // Logs go to system_logs via logSystemEvent (non-blocking). No behavior change.
   const gradeWithRetry = async (answersToGrade) => {
     const MAX_RETRIES = 3
     const RETRY_DELAY_MS = 10000  // 10 seconds
     const TIMEOUT_MS = 90000      // 90 seconds per attempt
 
+    // Shared diagnostic context for this submission
+    let payloadChars = -1
+    try { payloadChars = JSON.stringify(answersToGrade).length } catch { /* ignore */ }
+    const conn = (typeof navigator !== 'undefined' && navigator.connection) || {}
+    const diagBase = {
+      classId: classIdParam || null,
+      listId: listId || null,
+      testId: testId || null,
+      studyDay: sessionContext?.dayNumber ?? null,
+      testType: currentTestType || null,
+      wordCount: Array.isArray(answersToGrade) ? answersToGrade.length : null,
+      payloadChars,
+      effectiveType: conn.effectiveType || null,   // '4g','3g','2g','slow-2g'
+      downlinkMbps: (conn.downlink ?? null),        // approx bandwidth
+      rttMs: (conn.rtt ?? null),                    // approx round-trip time
+    }
+
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const startedAt = Date.now()
       try {
         const functions = getFunctions()
         const gradeTypedTest = httpsCallable(functions, 'gradeTypedTest', {
@@ -590,10 +620,33 @@ const TypedTest = () => {
         })
 
         const result = await gradeTypedTest({ answers: answersToGrade })
+
+        // Succeeded — if it needed a retry, record that (tells us retries are saving people)
+        if (attempt > 1) {
+          logSystemEvent('grading_recovered', {
+            ...diagBase, attempt, elapsedMs: Date.now() - startedAt,
+            studentId: user?.uid || null,
+          }, 'warning')
+        }
         return result  // Success!
 
       } catch (error) {
-        console.error(`Grading attempt ${attempt}/${MAX_RETRIES} failed:`, error)
+        const elapsedMs = Date.now() - startedAt
+        // The key diagnostic write — this is what we query to classify failures.
+        logSystemEvent('grading_attempt_failed', {
+          ...diagBase,
+          studentId: user?.uid || null,
+          attempt,
+          isFinal: attempt === MAX_RETRIES,
+          elapsedMs,
+          timedOut: elapsedMs >= (TIMEOUT_MS - 1500),   // ran the full window => slow/timeout
+          failedFast: elapsedMs < 2000,                 // died immediately => unreachable/offline
+          online: (typeof navigator !== 'undefined') ? navigator.onLine : null,
+          errCode: error?.code || null,                 // e.g. functions/deadline-exceeded, unavailable
+          errName: error?.name || null,
+          errMessage: String(error?.message || '').slice(0, 300),
+        }, 'error')
+        console.error(`Grading attempt ${attempt}/${MAX_RETRIES} failed [${error?.code || '?'}, ${elapsedMs}ms]:`, error)
 
         // Last attempt - throw error
         if (attempt === MAX_RETRIES) {
@@ -657,17 +710,49 @@ const TypedTest = () => {
         // Determine if student passed (review tests always pass)
         const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
 
-        // Get studyDay from sessionContext, or fetch from progress if standalone test
+        // Get studyDay from sessionContext, or derive it if the launch lost context.
         let studyDay = sessionContext?.dayNumber
         if (!studyDay && user?.uid && classIdParam && listId) {
           try {
             const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
-            // For standalone tests (retakes, direct navigation), use currentStudyDay as-is
-            // DO NOT increment - only DailySessionFlow increments via sessionContext
-            studyDay = progress.currentStudyDay || 0
+            const csd = progress.currentStudyDay || 0
+            if (currentTestType === 'new') {
+              // A new-word test always concerns the in-progress day.
+              studyDay = csd + 1
+            } else {
+              // Review: stamping the wrong day makes the in-progress day impossible to
+              // complete (reconciliation requires a review attempt for day N). If the
+              // in-progress day's new test is already passed, this review belongs to
+              // it; otherwise it's a retake of the last completed day.
+              const nextDayNew = await getNewWordAttemptForDay(user.uid, classIdParam, listId, csd + 1)
+              studyDay = (nextDayNew && nextDayNew.passed === true) ? csd + 1 : csd
+            }
+            logSystemEvent('attempt_day_fallback', {
+              testType: currentTestType, stamped: studyDay, csd,
+              classId: classIdParam, listId, testId
+            })
           } catch (err) {
-            console.error('Failed to fetch studyDay from progress:', err)
+            console.error('Failed to derive studyDay from progress:', err)
           }
+        }
+
+        // Stale-context guard: a provided dayNumber can also be wrong (old tab /
+        // restored sessionStorage). Only CSD (review retake of the completed day)
+        // and CSD+1 (the in-progress day) are legitimate stamps; anything else
+        // would corrupt day-completion inference. Re-derive when clearly invalid.
+        if (sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
+          try {
+            const cpSnap = await getDoc(doc(db, `users/${user.uid}/class_progress`, `${classIdParam}_${listId}`))
+            const csdNow = cpSnap.exists() ? (cpSnap.data().currentStudyDay || 0) : 0
+            if (studyDay > csdNow + 1 || studyDay < csdNow) {
+              const original = studyDay
+              studyDay = currentTestType === 'new' ? csdNow + 1 : csdNow + ((await getNewWordAttemptForDay(user.uid, classIdParam, listId, csdNow + 1))?.passed === true ? 1 : 0)
+              logSystemEvent('attempt_day_context_invalid', {
+                testType: currentTestType, provided: original, corrected: studyDay, csd: csdNow,
+                classId: classIdParam, listId
+              }, 'error')
+            }
+          } catch (e) { console.warn('stale-context day validation skipped:', e) }
         }
 
         // [PHASE 1] Write the attempt doc FIRST.

@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc, updateDoc, Timestamp, collection, query, orderBy, getDocs } from 'firebase/firestore'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
-import { submitTestAttempt, withRetry } from '../services/db'
+import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -255,9 +255,21 @@ const MCQTest = () => {
       if (wordPool && wordPool.length > 0) {
         // Apply assignment settings if provided
         const numOptions = assignmentSettings?.testOptionsCount || 4
-        const threshold = (assignmentSettings?.passThreshold || 95) / 100
         setOptionsCount(numOptions)
-        setRetakeThreshold(threshold)
+        // Resolve the pass threshold from the class doc when navigation state lacks
+        // it (see TypedTest PATH B note: prevents the false "below 95%" label and a
+        // UI fail-verdict that contradicts the server's pass for 92–94% scorers).
+        if (assignmentSettings?.passThreshold != null) {
+          setRetakeThreshold((Number(assignmentSettings.passThreshold) || 95) / 100)
+        } else if (classIdParam && listId) {
+          try {
+            const thrSnap = await getDoc(doc(db, 'classes', classIdParam))
+            const thr = thrSnap.exists() ? thrSnap.data()?.assignments?.[listId]?.passThreshold : null
+            setRetakeThreshold(((Number(thr) > 0 ? Number(thr) : 95)) / 100)
+          } catch (thrErr) {
+            console.warn('PATH B: could not resolve class passThreshold, using default', thrErr)
+          }
+        }
         setOriginalWords(wordPool)
         generateQuestions(wordPool, numOptions)
         setLoading(false)
@@ -532,20 +544,51 @@ const MCQTest = () => {
         if (!studyDay && user?.uid && classIdParam && listId) {
           try {
             const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
-            // For standalone tests (retakes, direct navigation), use currentStudyDay as-is
-            // DO NOT increment - only DailySessionFlow increments via sessionContext
-            studyDay = progress.currentStudyDay || 0
-            console.log('[DEBUG STUDYDAY] Using fallback:', {
-              progressCurrentStudyDay: progress.currentStudyDay,
+            const csd = progress.currentStudyDay || 0
+            if (currentTestType === 'new') {
+              // A new-word test always concerns the in-progress day.
+              studyDay = csd + 1
+            } else {
+              // Review: if the in-progress day's new test is passed, this review
+              // belongs to it (stamping the previous day would make the day
+              // impossible to complete); otherwise it's a retake of the completed day.
+              const nextDayNew = await getNewWordAttemptForDay(user.uid, classIdParam, listId, csd + 1)
+              studyDay = (nextDayNew && nextDayNew.passed === true) ? csd + 1 : csd
+            }
+            logSystemEvent('attempt_day_fallback', {
+              testType: currentTestType, stamped: studyDay, csd,
+              classId: classIdParam, listId
+            })
+            console.log('[DEBUG STUDYDAY] Using derived fallback:', {
+              progressCurrentStudyDay: csd,
               calculatedStudyDay: studyDay
             });
           } catch (err) {
-            console.error('Failed to fetch studyDay from progress:', err)
+            console.error('Failed to derive studyDay from progress:', err)
           }
         } else {
           console.log('[DEBUG STUDYDAY] Using sessionContext:', {
             studyDay
           });
+        }
+
+        // Stale-context guard: a provided dayNumber can also be wrong (old tab /
+        // restored sessionStorage). Only CSD (review retake of the completed day)
+        // and CSD+1 (the in-progress day) are legitimate stamps; anything else
+        // would corrupt day-completion inference. Re-derive when clearly invalid.
+        if (sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
+          try {
+            const cpSnap = await getDoc(doc(db, `users/${user.uid}/class_progress`, `${classIdParam}_${listId}`))
+            const csdNow = cpSnap.exists() ? (cpSnap.data().currentStudyDay || 0) : 0
+            if (studyDay > csdNow + 1 || studyDay < csdNow) {
+              const original = studyDay
+              studyDay = currentTestType === 'new' ? csdNow + 1 : csdNow + ((await getNewWordAttemptForDay(user.uid, classIdParam, listId, csdNow + 1))?.passed === true ? 1 : 0)
+              logSystemEvent('attempt_day_context_invalid', {
+                testType: currentTestType, provided: original, corrected: studyDay, csd: csdNow,
+                classId: classIdParam, listId
+              }, 'error')
+            }
+          } catch (e) { console.warn('stale-context day validation skipped:', e) }
         }
 
         console.log('[DEBUG STUDYDAY] Final studyDay for attempt:', studyDay);

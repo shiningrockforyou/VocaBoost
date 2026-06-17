@@ -2977,18 +2977,23 @@ export async function resetStudentProgress(userId, classId, listId) {
  * @param {number} studyDay - The study day number to find the attempt for
  * @returns {Promise<Object|null>} The attempt data or null if not found
  */
-export const getNewWordAttemptForDay = async (userId, classId, studyDay) => {
-  if (!userId || !classId || studyDay === undefined) {
+export const getNewWordAttemptForDay = async (userId, classId, listId, studyDay) => {
+  if (!userId || !classId || !listId || studyDay === undefined) {
     console.warn('getNewWordAttemptForDay: Missing required parameters')
     return null
   }
 
   try {
     const attemptsRef = collection(db, 'attempts')
+    // MUST filter by listId: a same-class multi-list student can have two 'new'
+    // attempts with the same studyDay (one per list). Without listId, the
+    // orderBy-submittedAt/limit-1 returns whichever list was submitted last, so a
+    // review on list A could be gated/stamped against list B's new-word pass.
     const q = query(
       attemptsRef,
       where('studentId', '==', userId),
       where('classId', '==', classId),
+      where('listId', '==', listId),
       where('sessionType', '==', 'new'),
       where('studyDay', '==', studyDay),
       orderBy('submittedAt', 'desc'),
