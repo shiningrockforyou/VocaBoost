@@ -1345,8 +1345,17 @@ export default function DailySessionFlow() {
             })
             setPhase(PHASES.COMPLETE)
           } else {
-            // Day 2+: Move to review phase (session not complete yet)
-            await moveToReviewPhase(state.sessionConfig)
+            // Day 2+: only carry into review if the new-word test PASSED. A failed
+            // test (incl. reaching here via the results back button) must be retaken,
+            // not advanced into review. Mirrors Day 1, which holds on failure.
+            const passThreshold = state.sessionConfig?.retakeThreshold ?? 0.95
+            if ((results?.score ?? 0) >= passThreshold) {
+              await moveToReviewPhase(state.sessionConfig)
+            } else {
+              setNewWordTestResults(results)
+              setNewWordFailedIds(results?.failed || [])
+              setPhase(PHASES.NEW_WORDS)
+            }
           }
         } else {
           // Review test completed - session was already completed by test component

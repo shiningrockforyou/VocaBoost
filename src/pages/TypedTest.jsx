@@ -766,7 +766,7 @@ const TypedTest = () => {
             });
 
             // [3] Complete session (CSD will increment)
-            await completeSessionFromTest({
+            const completion = await completeSessionFromTest({
               userId: user.uid,
               classId: classIdParam,
               listId,
@@ -782,6 +782,13 @@ const TypedTest = () => {
               // segment, interventionLevel, wordsIntroduced, wordsReviewed
               // are now read from sessionStorage in completeSessionFromTest
             })
+            // Day-2+ gate: if this day's new-word test wasn't passed, the day does NOT
+            // complete. Don't present as finished — block and require a retake.
+            if (completion?.requiresNewWordRetake) {
+              console.warn('completeSessionFromTest: day not complete — new-word retake required')
+              setGradingError('이 날을 완료하려면 먼저 새 단어 시험을 통과해야 합니다.\n(Day not complete — pass the new-word test first.)')
+              return
+            }
             console.log('Session completed successfully from TypedTest')
           } catch (completionErr) {
             console.error('Failed to complete session from test:', completionErr)
