@@ -371,7 +371,17 @@ export default function DailySessionFlow() {
       currentIndex,
       isFlipped,
       testType: phaseType,
-      wordPool: wordPool.map(w => ({ id: w.id, word: w.word })),
+      // Persist the fields grading needs (definition/definitions), not just id+word.
+      // Storing only {id, word} dropped `definition`, so a test resumed from this
+      // recovery snapshot submitted answers with correctDefinition=undefined, which
+      // the grading function rejected as a malformed batch ("Grading Failed").
+      wordPool: wordPool.map(w => ({
+        id: w.id,
+        word: w.word,
+        definition: w.definition,
+        definitions: w.definitions,
+        partOfSpeech: w.partOfSpeech,
+      })),
       sessionContext: {
         dayNumber: sessionConfig.dayNumber,
         phase: phaseType,
@@ -396,7 +406,17 @@ export default function DailySessionFlow() {
     saveLocalSessionState(sessionId, {
       lastPhase: phase === PHASES.NEW_WORD_TEST ? 'NEW_TEST' : 'REVIEW_TEST',
       testType: phaseType,
-      wordPool: wordPool.map(w => ({ id: w.id, word: w.word })),
+      // Persist the fields grading needs (definition/definitions), not just id+word.
+      // Storing only {id, word} dropped `definition`, so a test resumed from this
+      // recovery snapshot submitted answers with correctDefinition=undefined, which
+      // the grading function rejected as a malformed batch ("Grading Failed").
+      wordPool: wordPool.map(w => ({
+        id: w.id,
+        word: w.word,
+        definition: w.definition,
+        definitions: w.definitions,
+        partOfSpeech: w.partOfSpeech,
+      })),
       sessionContext: {
         dayNumber: sessionConfig.dayNumber,
         phase: phaseType,

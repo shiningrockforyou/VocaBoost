@@ -93,11 +93,28 @@ exports.gradeTypedTest = onCall(
       throw new Error("Invalid input: maximum 100 answers per request");
     }
 
-    // Validate answer structure
-    for (const answer of answers) {
-      if (!answer.wordId || !answer.word || !answer.correctDefinition || answer.studentResponse === undefined) {
-        throw new Error("Invalid input: each answer must have wordId, word, correctDefinition, and studentResponse");
-      }
+    // Validate answer structure. Collect ALL malformed answers instead of
+    // throwing on the first one as a generic Error (which surfaced to students
+    // as an opaque "functions/internal" → "Grading Failed" loop). A missing
+    // `correctDefinition` is almost always a client recovery bug that dropped
+    // the word's definition when resuming a test after a refresh — so we fail
+    // with a clear, retryable invalid-argument and log the offending wordIds.
+    const malformed = answers.filter(
+      (a) => !a.wordId || !a.word || !a.correctDefinition || a.studentResponse === undefined,
+    );
+    if (malformed.length > 0) {
+      const wordIds = malformed.map((a) => a.wordId || "(no id)").join(", ");
+      logger.error("Malformed grading payload (likely client recovery dropped definitions)", {
+        uid: request.auth.uid,
+        malformedCount: malformed.length,
+        totalAnswers: answers.length,
+        wordIds,
+      });
+      throw new HttpsError(
+        "invalid-argument",
+        `Cannot grade: ${malformed.length} of ${answers.length} answers are missing word/definition ` +
+        "data. This usually happens when a test is resumed after a refresh — please reload the test page and submit again.",
+      );
     }
 
     try {
