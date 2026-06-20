@@ -1342,243 +1342,113 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Command Deck - 3-Panel Grid */}
-        <div className="grid grid-cols-12 gap-6 mb-6">
-          {/* Panel A: The Focus Card (Col-Span-12 lg:Col-Span-6) */}
-          <div className="col-span-12 lg:col-span-6 h-full">
-            {panelAError ? (
-              <PanelError message="Weekly progress unavailable" className="h-full min-h-[280px]" />
-            ) : (
-              <div className="bg-brand-primary text-white rounded-2xl shadow-lg relative overflow-hidden p-8 flex flex-col justify-center h-full">
-                <div>
-                  {/* Weekly Goals Header */}
-                  <h2 className="font-heading text-xl font-bold text-white mb-4 pb-4 border-b border-white/20">
-                    Weekly Goals
-                  </h2>
-                  <h3 className="font-heading text-4xl md:text-5xl font-bold text-white mb-8 leading-tight max-w-md">
-                    {getPrimaryFocus ? getPrimaryFocus.title : 'No Active List'}
-                  </h3>
-                </div>
-
-                {getPrimaryFocus && (
-                  <>
-                    {/* Hero Numbers */}
-                    <div className="flex items-baseline mb-6">
-                      <span className="text-6xl md:text-7xl font-heading font-bold text-white tracking-tighter">
-                        {primaryFocusProgress}
-                      </span>
-                      <span className="text-3xl text-white/40 mx-2 font-light">/</span>
-                      <span className="text-3xl text-white/60 font-heading font-medium">
-                        {primaryFocusWeeklyGoal}
-                      </span>
-                      <span className="text-base text-white/60 font-body ml-2">words</span>
-                    </div>
-
-                    {/* Progress Labels */}
-                    <div className="flex items-center justify-between text-sm text-white/70 mb-2">
-                      <span>This Week</span>
-                      <span>
-                        {Math.max(0, primaryFocusWeeklyGoal - primaryFocusProgress)} more to hit your goal
-                      </span>
-                    </div>
-
-                    {/* Thick Progress Bar */}
-                    <div className="relative h-10 w-full overflow-hidden rounded-lg bg-black/20">
-                      <div
-                        className="h-full rounded-lg bg-gradient-to-r from-brand-accent to-orange-400 transition-all duration-500 relative shadow-[0_0_20px_rgba(251,146,60,0.4)]"
-                        style={{ width: `${primaryFocusPercent}%` }}
-                      >
-                        {primaryFocusPercent > 10 && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-heading font-bold text-white">
-                            {primaryFocusPercent}%
-                          </span>
-                        )}
+        {/* === Redesigned dashboard: consolidated hero + honest tiles + weekly activity === */}
+        {(() => {
+          const listTotal = getPrimaryFocus?.wordCount || 0
+          const listPct = listTotal > 0 ? Math.min(100, Math.round((totalWordsIntroduced / listTotal) * 100)) : 0
+          const wordsLeft = Math.max(0, listTotal - totalWordsIntroduced)
+          const day = (panelCState?.currentStudyDay ?? 0) + 1
+          const newCount = getPrimaryFocus?.pace || null
+          return (
+            <>
+              {/* Hero: list progress + today's session, in one card (replaces the duplicated Focus/Launchpad/Vitals panels) */}
+              {getPrimaryFocus ? (
+                <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-blue-700 text-white">
+                  <div
+                    className="mx-auto lg:mx-0 w-[150px] h-[150px] rounded-full grid place-items-center"
+                    style={{ background: `conic-gradient(#ffffff ${listPct}%, rgba(255,255,255,0.18) 0)` }}
+                  >
+                    <div className="w-[118px] h-[118px] rounded-full bg-brand-primary/90 grid place-items-center text-center">
+                      <div>
+                        <div className="font-heading text-4xl font-bold leading-none">{listPct}%</div>
+                        <div className="text-[11px] text-blue-200 mt-1 font-semibold">
+                          {totalWordsIntroduced.toLocaleString()} / {listTotal.toLocaleString()}
+                        </div>
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Vitals + Launchpad + Activity Bar */}
-          <div className="col-span-12 lg:col-span-6 flex flex-col gap-4 h-full">
-            {/* Top Row: Launchpad & Vitals */}
-            <div className="grid grid-cols-2 gap-6 flex-1">
-              {/* Panel C: The Launchpad (Day X + Start Session) */}
-              <div className="col-span-1">
-                {panelCState.error ? (
-                  <PanelError message="Daily status unavailable" className="h-full min-h-[280px]" />
-                ) : (
-                <div className="py-6 px-6 min-h-[280px] flex flex-col justify-center items-center h-full rounded-2xl border shadow-lg bg-gradient-to-br from-blue-500 to-brand-primary border-brand-primary shadow-blue-500/20">
-                  {/* Prominent Day Number */}
-                  <div className="text-center mb-10">
-                    <p className="font-heading text-6xl md:text-7xl font-bold text-white">
-                      Day {panelCState.currentStudyDay + 1}
+                  </div>
+                  <div className="text-center lg:text-left">
+                    <p className="font-body text-[11px] font-bold tracking-[0.08em] uppercase text-blue-200">
+                      {getPrimaryFocus.className || 'Your class'}
                     </p>
+                    <h2 className="font-heading text-2xl font-bold mt-1 leading-tight">{getPrimaryFocus.title}</h2>
+                    <div className="flex flex-wrap gap-2 justify-center lg:justify-start mt-3">
+                      <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">🔥 {streakDays}-day streak</span>
+                      <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
+                    </div>
                   </div>
-
-                  {/* Start Session CTA - Orange with book icon */}
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/session/${getPrimaryFocus?.classId}/${getPrimaryFocus?.id}`)}
-                    className="w-full py-4 px-4 bg-brand-accent text-white font-semibold rounded-lg hover:bg-brand-accent-hover transition-colors shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    Start Session
-                  </button>
+                  <div className="w-full lg:w-[280px] text-center lg:text-left">
+                    <p className="font-body text-xs font-bold tracking-wider text-blue-200">DAY {day} · TODAY</p>
+                    <h3 className="font-heading text-lg font-bold mt-0.5 mb-3">Today&apos;s session</h3>
+                    {newCount && (
+                      <div className="flex gap-2 flex-wrap justify-center lg:justify-start mb-4">
+                        <span className="bg-white/12 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold"><b className="font-extrabold">{newCount}</b> new words</span>
+                        <span className="bg-white/12 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold">+ review</span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
+                      className="w-full bg-brand-accent hover:bg-brand-accent-hover text-white font-extrabold rounded-button py-3.5 shadow-lg shadow-brand-accent/30 transition-colors"
+                    >
+                      Start Session →
+                    </button>
+                  </div>
                 </div>
-                )}
+              ) : (
+                <div className="rounded-2xl bg-surface border border-border-default p-8 text-center text-text-muted mb-5">
+                  No active list yet — join a class below to begin.
+                </div>
+              )}
+
+              {/* Honest stat tiles (real data; renamed the misleading "Mastery Rate") */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+                <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+                  <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Words Introduced</p>
+                  <p className="font-heading text-2xl font-bold text-brand-text mt-1.5">{totalWordsIntroduced.toLocaleString()}</p>
+                  <p className="font-body text-xs text-text-secondary mt-1">{listPct}% of list</p>
+                </div>
+                <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+                  <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Avg Review Score</p>
+                  <p className="font-heading text-2xl font-bold text-brand-primary mt-1.5">{masteryRate}%</p>
+                  <p className="font-body text-xs text-text-secondary mt-1">recent reviews</p>
+                </div>
+                <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+                  <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Words Left</p>
+                  <p className="font-heading text-2xl font-bold text-text-primary mt-1.5">{wordsLeft.toLocaleString()}</p>
+                  <p className="font-body text-xs text-text-secondary mt-1">to finish the list</p>
+                </div>
+                <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+                  <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Streak</p>
+                  <p className="font-heading text-2xl font-bold text-brand-accent mt-1.5">{streakDays} <span className="text-base text-text-muted font-semibold">days</span></p>
+                  <p className="font-body text-xs text-text-secondary mt-1">keep it going</p>
+                </div>
               </div>
 
-              {/* Panel B: The Vitals (Col-Span-1) */}
-              <div className="col-span-1">
-                {panelBError ? (
-                  <PanelError message="Stats unavailable" className="h-full min-h-[280px]" />
-                ) : (
-                <div className="flex flex-col gap-2 h-full">
-                  {/* Card 1: Words Introduced */}
-                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-brand-primary/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-5 h-5 text-brand-primary"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-body text-xs text-text-muted">Words Introduced</p>
-                      <p className="font-heading text-xl font-bold text-brand-text">
-                        {totalWordsIntroduced.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Card 2: Mastery Rate */}
-                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-green-500/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-5 h-5 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-body text-xs text-text-muted">Mastery Rate</p>
-                      <p className="font-heading text-xl font-bold text-green-600">{masteryRate}%</p>
-                    </div>
-                  </div>
-
-                  {/* Card 3: Current Streak */}
-                  <div className="bg-surface border border-border-default rounded-xl flex items-center gap-3 p-3 flex-1 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="rounded-lg bg-brand-accent/10 w-11 h-11 flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-5 h-5 text-brand-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-body text-xs text-text-muted">Current Streak</p>
-                      <p className="font-heading text-xl font-bold text-brand-accent">{streakDays} days</p>
-                    </div>
-                  </div>
+              {/* Weekly activity (replaces the empty "7-Day Rhythm" placeholder) */}
+              <div className="bg-surface border border-border-default rounded-2xl p-5 shadow-sm mb-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-heading text-sm font-bold text-text-primary">This week</h3>
+                  <span className="font-body text-xs text-text-muted">avg review score per day</span>
                 </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Row: Panel D - The Activity Bar */}
-            <div className="shrink-0">
-              <div className="bg-surface border border-border-default rounded-3xl shadow-sm flex flex-row items-center justify-between gap-6 px-6 h-28">
-                <div className="flex items-center gap-2 whitespace-nowrap shrink-0">
-                  <Activity size={24} className="text-brand-text" />
-                  <p className="font-heading font-bold text-sm text-text-muted tracking-wider uppercase">
-                    7-DAY RHYTHM
-                  </p>
-                </div>
-                <div className="flex-1 flex items-end justify-between gap-2 h-16 relative">
-                  {dailyActivity.map((day, index) => {
-                    // reviewScore is already a percentage (0-100) or null
-                    const hasScore = day.reviewScore !== null
-                    // For non-null values, ensure minimum 10% height for visibility
-                    // For null values (no review that day), use 4px minimum
-                    const barHeight = hasScore
-                      ? `${Math.max(10, day.reviewScore)}%`
-                      : '4px'
-
+                <div className="flex items-end justify-between gap-2 h-20">
+                  {dailyActivity.map((d, i) => {
+                    const has = d.reviewScore !== null
                     return (
-                      <div
-                        key={index}
-                        className="flex-1 relative h-full flex flex-col justify-end"
-                        onMouseEnter={() => setHoveredBarIndex(index)}
-                        onMouseLeave={() => setHoveredBarIndex(null)}
-                      >
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2">
                         <div
-                          className={`w-full rounded-t-[4px] transition-all duration-300 ${
-                            hasScore
-                              ? 'bg-brand-primary'
-                              : 'bg-inset'
-                          }`}
-                          style={{
-                            height: barHeight,
-                            minHeight: '4px',
-                          }}
+                          className={`w-full max-w-[42px] rounded-t-[6px] rounded-b-[3px] transition-all ${has ? 'bg-brand-primary/90' : 'bg-inset'}`}
+                          style={{ height: has ? `${Math.max(8, Math.round(d.reviewScore * 0.6))}px` : '6px' }}
                         />
-                        {hoveredBarIndex === index && hasScore && (
-                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-20 bg-surface text-text-primary text-xs rounded-lg py-1.5 px-3 shadow-xl w-max border border-border-default">
-                            <div className="text-center">
-                              <div className="font-semibold">{day.formattedDate}</div>
-                              <div className="mt-0.5">
-                                Review Score: <span className="font-bold">{day.reviewScore}%</span>
-                              </div>
-                            </div>
-                            {/* Arrow pointer */}
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                              <div className="w-2 h-2 bg-surface border-r border-b border-border-default rotate-45"></div>
-                            </div>
-                          </div>
-                        )}
+                        <span className="text-[11px] font-semibold text-text-muted">{(d.formattedDate || '').slice(0, 6)}</span>
                       </div>
                     )
                   })}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </>
+          )
+        })()}
 
         {/* Recent Classes (Col-span-12) */}
         <div className="col-span-12">
