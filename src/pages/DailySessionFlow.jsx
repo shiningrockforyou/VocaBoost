@@ -32,8 +32,7 @@ import { RefreshCw, ChevronLeft, ChevronRight, HelpCircle, X, ListChecks } from 
 import {
   initializeDailySession,
   getNewWords,
-  getSegmentWords,
-  buildReviewQueue,
+  resolveSegmentWords,
   updateQueueTracking,
   recordSessionCompletion,
   initializeNewWordStates,
@@ -132,12 +131,6 @@ export default function DailySessionFlow() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showReEntryModal, setShowReEntryModal] = useState(false)
   const [showNoReviewModal, setShowNoReviewModal] = useState(false)
-
-  // Review mode
-  const [reviewMode, setReviewMode] = useState('fast')
-  const [showCompleteModeModal, setShowCompleteModeModal] = useState(false)
-  const [showFastModeModal, setShowFastModeModal] = useState(false)
-  const [isSwitchingMode, setIsSwitchingMode] = useState(false)
 
   // Re-entry state (for modal)
   const [savedSessionState, setSavedSessionState] = useState(null)
@@ -251,7 +244,9 @@ export default function DailySessionFlow() {
 
     sim.updateLiveStats?.({
       dayNumber: sessionConfig.dayNumber,
-      cardsTotal: sessionConfig.newWordCount + (sessionConfig.reviewCount || 0),
+      // Review cards = the capped segment actually studied (reviewSegmentSize); fall back
+      // to the legacy reviewCount for old in-flight sessions that lack the new field.
+      cardsTotal: sessionConfig.newWordCount + (sessionConfig.reviewSegmentSize ?? sessionConfig.reviewCount ?? 0),
       interventionLevel: sessionConfig.interventionLevel || 0,
       adjustedPace: sessionConfig.adjustedPace || sessionConfig.newWordCount
     })
@@ -481,87 +476,36 @@ export default function DailySessionFlow() {
   }
 
   // ============================================================
-  // Helper: Load Review Queue
+  // Helper: Build Review STUDY set
   // ============================================================
 
-  const loadReviewQueue = useCallback(async (config) => {
-    if (!config?.segment || !user?.uid) return
+  // Single source for the review-study flashcards across every entry path (init resume,
+  // moveToReviewPhase, mid-session/local recovery). The set = the day's pinned segment
+  // (already capped at REVIEW_STUDY_CAP and MASTERED-excluded at computation; resolved
+  // via the wordIds-aware resolver) PLUS today's new-FAILED words, prepended.
+  //
+  // D1: new-FAILED are STUDY-ONLY — they are NOT in segment.wordIds, so they never enter
+  // the review TEST pool (navigateToTest filters them out) or graduation. Folding them
+  // here only affects flashcard study.
+  const buildReviewStudySet = useCallback(async (segment) => {
+    if (!segment || !user?.uid) return []
 
-    const queue = await buildReviewQueue(
-      user.uid,
-      listId,
-      config.segment,
-      config.reviewCount,
-      newWordFailedIds
+    const segmentWords = excludeRetiredMastered(
+      await resolveSegmentWords(user.uid, listId, segment)
     )
 
-    setReviewQueue(queue)
-    setReviewQueueCurrent(queue)
-    setCurrentIndex(0)
+    if (!newWordFailedIds || newWordFailedIds.length === 0) return segmentWords
+
+    const failedWordDocs = await Promise.all(
+      newWordFailedIds.map(wordId => getDoc(doc(db, 'lists', listId, 'words', wordId)))
+    )
+    const failedWords = failedWordDocs
+      .filter(docSnap => docSnap.exists())
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data(), studyState: { status: 'failed' } }))
+
+    // Prepend failed new words so they appear first in review study.
+    return [...failedWords, ...segmentWords]
   }, [user?.uid, listId, newWordFailedIds])
-
-  // ============================================================
-  // Mode Switch Handlers
-  // ============================================================
-
-  const handleSwitchToCompleteMode = useCallback(async () => {
-    if (!sessionConfig || !user?.uid) return
-
-    setIsSwitchingMode(true)
-    setShowCompleteModeModal(false)
-
-    try {
-      if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
-        const allWords = excludeRetiredMastered(await getSegmentWords(
-          user.uid,
-          listId,
-          sessionConfig.segment.startIndex,
-          sessionConfig.segment.endIndex
-        ))
-        setReviewQueue(allWords)
-        setReviewQueueCurrent(allWords)
-        setReviewDismissed(new Set())
-        setCurrentIndex(0)
-        setIsFlipped(false)
-      }
-
-      setReviewMode('complete')
-    } catch (err) {
-      console.error('Failed to switch to complete mode:', err)
-    } finally {
-      setIsSwitchingMode(false)
-    }
-  }, [sessionConfig, user?.uid, listId, phase])
-
-  const handleSwitchToFastMode = useCallback(async () => {
-    if (!sessionConfig || !user?.uid) return
-
-    setIsSwitchingMode(true)
-    setShowFastModeModal(false)
-
-    try {
-      if (phase === PHASES.REVIEW_STUDY && sessionConfig.segment) {
-        const queue = await buildReviewQueue(
-          user.uid,
-          listId,
-          sessionConfig.segment,
-          sessionConfig.reviewCount,
-          newWordFailedIds
-        )
-        setReviewQueue(queue)
-        setReviewQueueCurrent(queue)
-        setReviewDismissed(new Set())
-        setCurrentIndex(0)
-        setIsFlipped(false)
-      }
-
-      setReviewMode('fast')
-    } catch (err) {
-      console.error('Failed to switch to fast mode:', err)
-    } finally {
-      setIsSwitchingMode(false)
-    }
-  }, [sessionConfig, user?.uid, listId, phase, newWordFailedIds])
 
   // ============================================================
   // PHASE 0: Initialize Session
@@ -643,14 +587,9 @@ export default function DailySessionFlow() {
 
         if (config.startPhase === SESSION_PHASE.REVIEW_STUDY) {
           // Mid-session recovery: new word test passed, need to do review
-          // Load segment words for review study (reusing same logic as moveToReviewPhase)
+          // Load the review study set (full capped segment + today's new-FAILED)
           try {
-            const segmentWords = excludeRetiredMastered(await getSegmentWords(
-              user.uid,
-              listId,
-              config.segment.startIndex,
-              config.segment.endIndex
-            ))
+            const segmentWords = await buildReviewStudySet(config.segment)
 
             if (segmentWords.length === 0) {
               // Empty review segment (all words MASTERED & resting) — valid state.
@@ -737,6 +676,20 @@ export default function DailySessionFlow() {
           // Store session state for return
           // Use wordPool from localStorage test state (saved when test started)
           const recoveredWordPool = testRecovery.localState?.wordPool || []
+
+          // Resume continuity: `config` was just recomputed, which re-slices the review
+          // segment (segment.wordIds) off the now-current pool. Graduation on test
+          // completion reads `segment` from THIS blob, so preserve the ORIGINAL pinned
+          // segment written at navigateToTest (before the crash) to keep the studied set
+          // == the graduated set. Only applies to new-shape (wordIds) segments.
+          let recoveryConfig = config
+          try {
+            const prior = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
+            if (prior?.sessionConfig?.segment?.wordIds?.length) {
+              recoveryConfig = { ...config, segment: prior.sessionConfig.segment }
+            }
+          } catch { /* no prior blob — fall back to recomputed config */ }
+
           sessionStorage.setItem('dailySessionState', JSON.stringify({
             classId,
             listId,
@@ -745,7 +698,7 @@ export default function DailySessionFlow() {
             newWords: recoveredWordPool,
             newWordTestResults: null,
             reviewQueue: [],
-            sessionConfig: config,
+            sessionConfig: recoveryConfig,
             assignmentSettings: assignment,
             reviewTestAttempts: 0
           }))
@@ -846,14 +799,9 @@ export default function DailySessionFlow() {
 
         if (attemptsSayReviewPending) {
           // Resume at review phase (same day only)
-          // Use full segment for study flashcards
+          // Use the full review study set (capped segment + new-FAILED)
           if (config.segment) {
-            const allWords = excludeRetiredMastered(await getSegmentWords(
-              user.uid,
-              listId,
-              config.segment.startIndex,
-              config.segment.endIndex
-            ))
+            const allWords = await buildReviewStudySet(config.segment)
             if (allWords.length === 0) {
               // Empty review segment (all words MASTERED & resting): designed outcome
               // is the "all mastered" modal -> completeSession(), not the review phase.
@@ -867,13 +815,8 @@ export default function DailySessionFlow() {
         } else if (config.newWordCount > 0) {
           setPhase(PHASES.NEW_WORDS)
         } else if (config.segment) {
-          // Use full segment for study flashcards (not prioritized queue)
-          const allWords = excludeRetiredMastered(await getSegmentWords(
-            user.uid,
-            listId,
-            config.segment.startIndex,
-            config.segment.endIndex
-          ))
+          // Use the full review study set (capped segment + new-FAILED)
+          const allWords = await buildReviewStudySet(config.segment)
           setReviewQueue(allWords)
           setReviewQueueCurrent(allWords)
           setPhase(PHASES.REVIEW_STUDY)
@@ -984,31 +927,8 @@ export default function DailySessionFlow() {
       return
     }
 
-    // Get segment words for study flashcards
-    const segmentWords = await getSegmentWords(
-      user.uid,
-      listId,
-      config.segment.startIndex,
-      config.segment.endIndex
-    )
-
-    // Also include today's failed new words if any
-    // Exclude still-retired MASTERED words from the review study queue (F01).
-    let allWords = excludeRetiredMastered(segmentWords)
-    if (newWordFailedIds && newWordFailedIds.length > 0) {
-      const failedWordDocs = await Promise.all(
-        newWordFailedIds.map(wordId => getDoc(doc(db, 'lists', listId, 'words', wordId)))
-      )
-      const failedWords = failedWordDocs
-        .filter(docSnap => docSnap.exists())
-        .map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-          studyState: { status: 'failed' }
-        }))
-      // Prepend failed new words so they appear first in review
-      allWords = [...failedWords, ...allWords]
-    }
+    // Build the review study set (full capped segment + today's new-FAILED, prepended).
+    const allWords = await buildReviewStudySet(config.segment)
 
     // Check if segment is empty (shouldn't happen, but safety check)
     if (allWords.length === 0) {
@@ -1172,7 +1092,13 @@ export default function DailySessionFlow() {
   // ============================================================
 
   const navigateToTest = (testPhase, mode) => {
-    const wordPool = testPhase === 'new' ? newWords : reviewQueue
+    // D1: the review TEST pool is the segment ONLY. reviewQueue is the STUDY set, which
+    // prepends today's new-FAILED words (study-only) — strip them here so they don't
+    // enter the test sample or graduation statistics. New-word tests use newWords as-is.
+    const newFailedSet = new Set(newWordFailedIds || [])
+    const wordPool = testPhase === 'new'
+      ? newWords
+      : reviewQueue.filter(w => !newFailedSet.has(w.id))
 
     // Build context for test header
     const wordRangeStart = testPhase === 'new'
@@ -1552,14 +1478,9 @@ export default function DailySessionFlow() {
         setNewWordsDismissed(new Set(dismissedWords || []))
         setPhase(PHASES.NEW_WORDS)
       } else {
-        // Review phase - use full segment for study flashcards
+        // Review phase - use the full review study set (capped segment + new-FAILED)
         if (sessionConfig.segment) {
-          const allWords = excludeRetiredMastered(await getSegmentWords(
-            user.uid,
-            listId,
-            sessionConfig.segment.startIndex,
-            sessionConfig.segment.endIndex
-          ))
+          const allWords = await buildReviewStudySet(sessionConfig.segment)
           setReviewQueue(allWords)
 
           // Re-filter based on saved state
@@ -1730,15 +1651,6 @@ export default function DailySessionFlow() {
                 showSkipToTest={currentQueueLength > 0}
                 showReset={currentDismissedCount > 0}
                 generatingPDF={generatingPDF}
-                showReviewModeToggle={phase === PHASES.REVIEW_STUDY}
-                reviewMode={reviewMode}
-                onToggleReviewMode={() => {
-                  if (reviewMode === 'fast') {
-                    setShowCompleteModeModal(true)
-                  } else {
-                    setShowFastModeModal(true)
-                  }
-                }}
                 showKoreanDef={showKoreanDef ?? true}
                 onToggleKoreanDef={() => setShowKoreanDef(prev => !(prev ?? true))}
                 showSampleSentence={showSampleSentence ?? true}
@@ -1920,24 +1832,6 @@ export default function DailySessionFlow() {
         onCancel={handleNoReviewModalClose}
         variant="success"
         showCancel={false}
-      />
-
-      {/* Complete Mode Modal */}
-      <ReviewModeModal
-        isOpen={showCompleteModeModal}
-        mode="complete"
-        wordCount={sessionConfig?.segment ? (sessionConfig.segment.endIndex - sessionConfig.segment.startIndex + 1) : 0}
-        onConfirm={handleSwitchToCompleteMode}
-        onCancel={() => setShowCompleteModeModal(false)}
-      />
-
-      {/* Fast Mode Modal */}
-      <ReviewModeModal
-        isOpen={showFastModeModal}
-        mode="fast"
-        wordCount={sessionConfig?.reviewCount || 0}
-        onConfirm={handleSwitchToFastMode}
-        onCancel={() => setShowFastModeModal(false)}
       />
 
       {/* Study Help Modal */}
@@ -2318,89 +2212,6 @@ function CompletePhase({
         <Button onClick={onDashboard} variant="primary" size="lg" className="w-full">
           Back to Dashboard
         </Button>
-      </div>
-    </div>
-  )
-}
-
-function ReviewModeModal({ isOpen, mode, wordCount, onConfirm, onCancel }) {
-  // ESC key handler
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onCancel()
-    }
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown)
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onCancel])
-
-  if (!isOpen) return null
-
-  const isComplete = mode === 'complete'
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop - click to close */}
-      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
-
-      {/* Modal content */}
-      <div className="relative z-10 w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
-        <div className="mb-4 flex items-center gap-3">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-full ${
-            isComplete ? 'bg-info-subtle' : 'bg-warning-subtle'
-          }`}>
-            <span className="text-2xl">{isComplete ? '📚' : '⚡'}</span>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-text-primary">
-              {isComplete ? 'Complete Review Mode' : 'Fast Review Mode'}
-            </h3>
-            <p className="text-sm text-text-muted">
-              {isComplete ? `${wordCount} words in this segment` : `~${wordCount} priority words`}
-            </p>
-          </div>
-        </div>
-
-        <div className={`mb-6 rounded-lg p-4 ${
-          isComplete ? 'bg-info' : 'bg-warning'
-        }`}>
-          {isComplete ? (
-            <div className="space-y-3 text-sm">
-              <p className="font-medium text-text-info-strong">
-                Review every word in the segment
-              </p>
-              <p className="text-text-info">
-                This is more work, but leads to better retention over time.
-                Recommended if you're struggling with review tests.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 text-sm">
-              <p className="font-medium text-text-warning-strong">
-                Smart selection based on your performance
-              </p>
-              <p className="text-text-warning">
-                If you're doing well on tests, this minimal review is sufficient.
-                Focuses on words you've struggled with.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3">
-          <Button onClick={onCancel} variant="outline" size="lg" className="flex-1">
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            variant={isComplete ? 'primary-blue' : 'primary'}
-            size="lg"
-            className="flex-1"
-          >
-            {isComplete ? 'Switch to Complete' : 'Switch to Fast'}
-          </Button>
-        </div>
       </div>
     </div>
   )

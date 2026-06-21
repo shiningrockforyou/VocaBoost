@@ -9,7 +9,7 @@ import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulatio
 import {
   initializeDailySession,
   getNewWords,
-  getSegmentWords,
+  resolveSegmentWords,
   processTestResults,
   selectTestWords,
   completeSessionFromTest
@@ -386,12 +386,7 @@ const TypedTest = () => {
         })
         
         if (config.segment) {
-          const segmentWords = await getSegmentWords(
-            user.uid,
-            listId,
-            config.segment.startIndex,
-            config.segment.endIndex
-          )
+          const segmentWords = await resolveSegmentWords(user.uid, listId, config.segment)
           wordsToTest = selectTestWords(segmentWords, testSize)
         } else {
           // Fallback: load all words if no segment (day 1)

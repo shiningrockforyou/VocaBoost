@@ -46,11 +46,12 @@ function SessionSummaryCard({ summary, sessionConfig }) {
           />
         )}
 
-        {/* Review Words */}
-        {sessionConfig?.reviewCount > 0 && (
+        {/* Review Words — the capped segment actually studied (reviewSegmentSize);
+            fall back to legacy reviewCount for old in-flight sessions. */}
+        {(sessionConfig?.reviewSegmentSize ?? sessionConfig?.reviewCount) > 0 && (
           <SummaryRow
             label="Words Reviewed"
-            value={sessionConfig.reviewCount}
+            value={sessionConfig.reviewSegmentSize ?? sessionConfig.reviewCount}
           />
         )}
 

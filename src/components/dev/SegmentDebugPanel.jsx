@@ -146,13 +146,19 @@ export default function SegmentDebugPanel({ classId, listId, userId, assignment 
                 {data.sessionConfig?.segment ? (
                   <div className="font-mono text-text-secondary">
                     <div>
-                      Range: <span className="text-text-primary font-semibold">
+                      Range (pos hint): <span className="text-text-primary font-semibold">
                         #{data.sessionConfig.segment.startIndex} - #{data.sessionConfig.segment.endIndex}
                       </span>
                       <span className="text-text-muted ml-2">
-                        ({data.sessionConfig.segment.endIndex - data.sessionConfig.segment.startIndex + 1} words)
+                        ({data.sessionConfig.segment.wordIds?.length
+                          ?? (data.sessionConfig.segment.endIndex - data.sessionConfig.segment.startIndex + 1)} words)
                       </span>
                     </div>
+                    {data.sessionConfig.reviewBacklogTotal != null && (
+                      <div className="text-text-muted">
+                        Backlog (unmastered): <span className="text-text-primary font-semibold">{data.sessionConfig.reviewBacklogTotal}</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-text-muted italic">No segment (Day 1)</div>
@@ -168,6 +174,7 @@ export default function SegmentDebugPanel({ classId, listId, userId, assignment 
                   <div>New Words: <span className="text-text-primary font-semibold">{data.sessionConfig?.allocation?.newWords ?? 0}</span></div>
                   <div>Review Cap: <span className="text-text-primary font-semibold">{data.sessionConfig?.allocation?.reviewCap ?? 0}</span></div>
                   <div>Review Count: <span className="text-text-primary font-semibold">{data.sessionConfig?.reviewCount ?? 0}</span></div>
+                  <div>Segment Size: <span className="text-text-primary font-semibold">{data.sessionConfig?.reviewSegmentSize ?? 0}</span></div>
                   <div>Test Size (New): <span className="text-text-primary font-semibold">{data.sessionConfig?.testSizeNew ?? 0}</span></div>
                   <div>Test Size (Review): <span className="text-text-primary font-semibold">{data.sessionConfig?.testSizeReview ?? 0}</span></div>
                 </div>

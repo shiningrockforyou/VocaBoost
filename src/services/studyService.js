@@ -25,11 +25,13 @@ import {
   calculateInterventionLevel,
   calculateDailyAllocation,
   calculateSegment,
+  computeUnmasteredSegmentIds,
   calculateReviewCount,
   calculateReviewTestSize,
   selectReviewQueue,
   selectTestWords,
   shuffleArray,
+  excludeRetiredMastered,
   STUDY_ALGORITHM_CONSTANTS
 } from '../utils/studyAlgorithm';
 import {
@@ -54,7 +56,7 @@ import { logSystemEvent } from './db';
  * @param {number} dayNumber - The study day number we're initializing
  * @returns {{ phase: string, newWordScore?: number, reviewScore?: number }}
  */
-function determineStartingPhase(attempts, dayNumber) {
+export function determineStartingPhase(attempts, dayNumber) {
   console.log('[PHASE] ═══════════════════════════════════════');
   console.log('[PHASE] determineStartingPhase called');
   console.log('[PHASE] Day Number:', dayNumber);
@@ -154,13 +156,25 @@ export async function initializeDailySession(userId, classId, listId, assignment
   // Get or create progress (includes CSD/TWI reconciliation against attempts)
   const { progress, attempts } = await getOrCreateClassProgress(userId, classId, listId);
 
+  // Return expired-MASTERED words (21-day rest elapsed) to the pool BEFORE we read the
+  // unmastered pool below, so a just-due word re-enters today's segment. Runs here (not
+  // only in the DailySessionFlow caller) so every caller of initializeDailySession —
+  // including the PDF/debug helpers and the standalone test pages — gets a fresh pool.
+  await returnMasteredWords(userId, listId);
+
   // Calculate intervention from recent sessions
   const interventionLevel = calculateInterventionLevel(progress.recentSessions || []);
+
+  // Study days per week — enforce >= 2 so the week-1 sizing divisor (dpw-1) is never 0.
+  const studyDaysPerWeek = Math.max(
+    STUDY_ALGORITHM_CONSTANTS.MIN_STUDY_DAYS_PER_WEEK,
+    assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK
+  );
 
   // Get daily pace from settings
   const dailyPace = Math.ceil(
     (assignmentSettings.weeklyPace || STUDY_ALGORITHM_CONSTANTS.DEFAULT_WEEKLY_PACE) /
-    (assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK)
+    studyDaysPerWeek
   );
 
   // Calculate allocation
@@ -177,14 +191,31 @@ export async function initializeDailySession(userId, classId, listId, assignment
     totalWordsIntroduced
   });
 
-  // Calculate segment for review (uses intervention-adjusted projection)
-  const segment = calculateSegment(
+  // Build the review segment from the UNMASTERED pool (status-based model):
+  //   segment = (unmastered words / studyDaysPerWeek), the day-of-week-th slice,
+  //   capped at REVIEW_STUDY_CAP. segment.wordIds is the pinned effective set used by
+  //   study, test, AND graduation, so "everything that graduates was studied" holds.
+  const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced);
+  const reviewBacklogTotal = unmasteredPool.length;
+  const sliceIds = computeUnmasteredSegmentIds(
+    unmasteredPool.map(w => w.id),
     currentStudyDay,
-    assignmentSettings.studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK,
-    totalWordsIntroduced,
-    dailyPace,
-    interventionLevel
+    studyDaysPerWeek
   );
+  const reviewCap = STUDY_ALGORITHM_CONSTANTS.REVIEW_STUDY_CAP;
+  const cappedIds = sliceIds ? (reviewCap > 0 ? sliceIds.slice(0, reviewCap) : sliceIds) : null;
+  let segment = null;
+  if (cappedIds && cappedIds.length) {
+    // startIndex/endIndex are display/record-only POSITION hints (wordIds is the
+    // authoritative, possibly non-contiguous set). Use min/max position of the slice.
+    const idSet = new Set(cappedIds);
+    const positions = unmasteredPool.filter(w => idSet.has(w.id)).map(w => w.position);
+    segment = {
+      wordIds: cappedIds,
+      startIndex: Math.min(...positions),
+      endIndex: Math.max(...positions)
+    };
+  }
 
   // Calculate review count
   const reviewCount = calculateReviewCount(
@@ -224,6 +255,11 @@ export async function initializeDailySession(userId, classId, listId, assignment
     // Review (null if day 1)
     segment,
     reviewCount: segment ? reviewCount : 0,
+    // Unmastered-segment model counts (D3):
+    //   reviewSegmentSize  = today's capped effective segment = words actually studied/graduated
+    //   reviewBacklogTotal = full unmastered pool ("words remaining" backlog, uncapped)
+    reviewSegmentSize: segment ? segment.wordIds.length : 0,
+    reviewBacklogTotal,
 
     // Test sizes (review scales with intervention)
     testSizeNew: assignmentSettings.testSizeNew || STUDY_ALGORITHM_CONSTANTS.DEFAULT_TEST_SIZE_NEW,
@@ -319,6 +355,100 @@ export async function getSegmentWords(userId, listId, startIndex, endIndex) {
       listId
     }
   }));
+}
+
+/**
+ * Get the UNMASTERED pool for a list (status-based review model).
+ *
+ * Returns the introduced words (position 0..totalWordsIntroduced-1), MASTERED-retired
+ * words excluded (returnAt-aware), ordered by position. NEVER_TESTED words (no study
+ * state yet) ARE included — they are unmastered. This is the pool sliced into daily
+ * review segments by computeUnmasteredSegmentIds.
+ *
+ * @param {string} userId
+ * @param {string} listId
+ * @param {number} totalWordsIntroduced
+ * @returns {Promise<Array<{ id: string, position: number }>>} position-ordered unmastered words
+ */
+export async function getUnmasteredPool(userId, listId, totalWordsIntroduced) {
+  if (!totalWordsIntroduced || totalWordsIntroduced <= 0) return [];
+
+  // Bounded, position-ordered query of the introduced range (avoids loading the whole list).
+  const wordsRef = collection(db, 'lists', listId, 'words');
+  const wordsSnap = await getDocs(
+    query(wordsRef, where('position', '<', totalWordsIntroduced), orderBy('position', 'asc'))
+  );
+
+  const introduced = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (introduced.length === 0) return [];
+
+  // Attach study states, then drop still-retired MASTERED words (excludeRetiredMastered
+  // is returnAt-aware; expired-MASTERED were already flipped to NEEDS_CHECK by
+  // returnMasteredWords at init, so anything still MASTERED here is within its rest).
+  const studyStates = await getStudyStatesForWords(userId, introduced.map(w => w.id));
+  const withState = introduced.map(w => ({ ...w, studyState: studyStates[w.id] || null }));
+  const unmastered = excludeRetiredMastered(withState);
+
+  return unmastered.map(w => ({ id: w.id, position: w.position }));
+}
+
+/**
+ * Resolve specific word ids (the pinned segment.wordIds) into full word objects with
+ * study states, PRESERVING the input order. Mirrors getSegmentWords' return shape.
+ *
+ * Order matters: the daily segment is position-ordered, and Firestore does not preserve
+ * input order. We fetch the list once and re-map by the input wordIds array. Study-state
+ * fetches are already chunked inside getStudyStatesForWords.
+ *
+ * @param {string} userId
+ * @param {string} listId
+ * @param {string[]} wordIds
+ * @returns {Promise<Array>} word objects with studyState, in wordIds order
+ */
+export async function getSegmentWordsByIds(userId, listId, wordIds) {
+  if (!Array.isArray(wordIds) || wordIds.length === 0) return [];
+
+  const wordsRef = collection(db, 'lists', listId, 'words');
+  const wordsSnap = await getDocs(query(wordsRef, orderBy('position', 'asc')));
+  const byId = new Map();
+  wordsSnap.docs.forEach(d => byId.set(d.id, { id: d.id, ...d.data() }));
+
+  const studyStates = await getStudyStatesForWords(userId, wordIds);
+
+  return wordIds
+    .map(id => {
+      const word = byId.get(id);
+      if (!word) return null;
+      return {
+        ...word,
+        studyState: studyStates[id] || {
+          ...DEFAULT_STUDY_STATE,
+          status: WORD_STATUS.NEVER_TESTED,
+          wordIndex: word.position,
+          listId
+        }
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Single legal materializer for a review segment. Prefers the pinned wordIds (new
+ * unmastered-segment model); falls back to the position range for OLD in-flight
+ * sessions whose persisted segment predates this change (no wordIds). This is the
+ * migration seam: old sessions keep the exact old behavior; new sessions use wordIds.
+ *
+ * @param {string} userId
+ * @param {string} listId
+ * @param {{ wordIds?: string[], startIndex?: number, endIndex?: number } | null} segment
+ * @returns {Promise<Array>} word objects with studyState
+ */
+export async function resolveSegmentWords(userId, listId, segment) {
+  if (!segment) return [];
+  if (Array.isArray(segment.wordIds) && segment.wordIds.length > 0) {
+    return getSegmentWordsByIds(userId, listId, segment.wordIds);
+  }
+  return getSegmentWords(userId, listId, segment.startIndex, segment.endIndex);
 }
 
 /**
@@ -578,22 +708,17 @@ export async function getNewWords(listId, startIndex, count) {
 export async function buildReviewQueue(userId, listId, segment, reviewCount, todaysNewFailed = []) {
   if (!segment) return [];
 
-  // Get segment words with study states
-  const segmentWords = await getSegmentWords(
-    userId, 
-    listId, 
-    segment.startIndex, 
-    segment.endIndex
-  );
+  // Get segment words with study states (resolver: pinned wordIds for new sessions,
+  // position range for old in-flight sessions).
+  const segmentWords = await resolveSegmentWords(userId, listId, segment);
 
   // Exclude words still retired as MASTERED. selectReviewQueue has no MASTERED
   // branch, so without this filter mastered words leak into review (and get
   // re-tested/downgraded) once the eligible pool is smaller than reviewCount.
   // Expired MASTERED words are flipped to NEEDS_CHECK by returnMasteredWords at
   // session init, so any word still MASTERED here is within its 21-day rest.
-  const eligibleSegmentWords = segmentWords.filter(
-    w => w.studyState?.status !== WORD_STATUS.MASTERED
-  );
+  // excludeRetiredMastered is returnAt-aware (standardized across the engine).
+  const eligibleSegmentWords = excludeRetiredMastered(segmentWords);
 
   // Map to format expected by selectReviewQueue
   const wordsWithState = eligibleSegmentWords.map(w => ({
@@ -795,12 +920,7 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
   // Get ALL segment words (full segment, not just prioritized queue)
   let reviewWords = [];
   if (config.segment) {
-    reviewWords = await getSegmentWords(
-      userId,
-      listId,
-      config.segment.startIndex,
-      config.segment.endIndex
-    );
+    reviewWords = await resolveSegmentWords(userId, listId, config.segment);
   }
 
   // Return structured data for PDF with demarcation
@@ -839,12 +959,7 @@ export async function getCompleteBatchForPDF(userId, classId, listId, assignment
   // Get ALL words in segment (complete mode)
   let segmentWords = [];
   if (config.segment) {
-    segmentWords = await getSegmentWords(
-      userId,
-      listId,
-      config.segment.startIndex,
-      config.segment.endIndex
-    );
+    segmentWords = await resolveSegmentWords(userId, listId, config.segment);
   }
 
   // Combine: new words + all segment words (no duplicates)
@@ -873,21 +988,25 @@ export async function graduateSegmentWords(userId, listId, segment, testScore, f
     return { graduated: 0, remaining: 0 };
   }
 
-  // 1. Fetch all segment words with current status
-  const segmentWords = await getSegmentWords(userId, listId, segment.startIndex, segment.endIndex);
+  // 1. Fetch all segment words with current status (resolver: pinned wordIds for new
+  //    sessions, position range for old in-flight sessions).
+  const segmentWords = await resolveSegmentWords(userId, listId, segment);
 
-  // 2. Segment-wide graduation: eligible = ALL words that didn't fail THIS test
-  // (Previously FAILED/NEVER_TESTED words may now be mastered after studying)
+  // 2. Segment-wide graduation: eligible = words that didn't fail THIS test, minus any
+  //    still-retired MASTERED. For NEW (wordIds) sessions wordIds is already
+  //    MASTERED-excluded so the exclude is a no-op; for OLD (position-range) sessions it
+  //    prevents re-mastering an already-mastered word and resetting its 21-day clock.
   const failedIds = new Set(failedWordIds);
-  const eligibleWords = segmentWords.filter(w => !failedIds.has(w.id));
+  const eligibleWords = excludeRetiredMastered(segmentWords).filter(w => !failedIds.has(w.id));
 
   if (eligibleWords.length === 0) {
     return { graduated: 0, remaining: 0 };
   }
 
-  // 3. Calculate graduation count: X% of SEGMENT SIZE where X = testScore
-  // Cap at eligible count (can't graduate more than available)
-  const segmentSize = segment.endIndex - segment.startIndex + 1;
+  // 3. Calculate graduation count: X% of SEGMENT SIZE where X = testScore.
+  //    NEW shape: segmentSize = the pinned capped wordIds length (the set actually
+  //    studied). OLD shape: fall back to the position span. Cap at eligible count.
+  const segmentSize = segment.wordIds?.length ?? (segment.endIndex - segment.startIndex + 1);
   const graduateCount = Math.min(
     Math.floor(segmentSize * testScore),
     eligibleWords.length
@@ -1041,14 +1160,10 @@ export async function getDebugSessionData(userId, classId, listId, assignment) {
     );
 
     // Get ALL segment words (not just the queue)
-    segmentWords = await getSegmentWords(
-      userId,
-      listId,
-      sessionConfig.segment.startIndex,
-      sessionConfig.segment.endIndex
-    );
+    segmentWords = await resolveSegmentWords(userId, listId, sessionConfig.segment);
 
-    // Get MASTERED words in segment range
+    // Get MASTERED words in segment range (debug display only — position-range hint is
+    // acceptable here; this view never resolves words for study/test/graduation).
     masteredWords = await getMasteredWordsInRange(
       userId,
       listId,
@@ -1124,7 +1239,11 @@ export async function completeSessionFromTest({
     testType,
     score: testResults?.score,
     wordsIntroduced,
-    segment: segment ? `${segment.startIndex}-${segment.endIndex}` : null
+    segment: segment
+      ? (segment.wordIds?.length != null
+          ? `${segment.wordIds.length} wordIds`
+          : `${segment.startIndex}-${segment.endIndex}`)
+      : null
   });
 
   let newWordScore = null;

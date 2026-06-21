@@ -30,6 +30,18 @@ export const STUDY_ALGORITHM_CONSTANTS = {
   DEFAULT_WEEKLY_PACE: 400,         // Default words per week (≈57/day at 7 days, ≈80/day at 5 days)
   DEFAULT_STUDY_DAYS_PER_WEEK: 5,   // Default number of study days per week
   DEFAULT_DAILY_PACE: 20,           // Default words per day for new assignments
+
+  // Review study cap (unmastered-segment model). The daily review segment is the
+  // unmastered pool / studyDaysPerWeek; on heavy-backlog days that slice can be large
+  // (100+ words). We cap the studied/tested/graduated segment per day so behind
+  // students aren't overwhelmed; overflow stays unmastered and reappears in future
+  // daily slices. The cap is applied AT SEGMENT COMPUTATION (initializeDailySession),
+  // so segment.wordIds IS the capped set -> study == test source == graduation set.
+  REVIEW_STUDY_CAP: 60,             // Max words in a single day's review segment
+
+  // Minimum study days per week (week-1 sizing divides by dpw-1; dpw must be >= 2
+  // to avoid divide-by-zero). Enforced before session init.
+  MIN_STUDY_DAYS_PER_WEEK: 2,
 };
 
 /**
@@ -150,6 +162,56 @@ export function calculateSegment(currentStudyDay, studyDaysPerWeek, totalWordsIn
   }
 
   return { startIndex, endIndex };
+}
+
+/**
+ * Compute the day's review segment from the UNMASTERED pool (status-based model).
+ *
+ * Unlike calculateSegment (which slices a contiguous POSITION range off total words
+ * introduced), this slices the already-filtered, position-ordered UNMASTERED word-id
+ * list into `studyDaysPerWeek` equal parts and returns the day's part. Mastered/retired
+ * words are excluded by the caller BEFORE this runs, so each day's slice is ~equal-sized
+ * live words and the pool self-balances as mastery grows.
+ *
+ * Week-1/week-2 offsets mirror calculateSegment exactly:
+ *   Week 1: Day 1 = no review (null); divide by (dpw-1); Day 2 = slice 0, Day 3 = slice 1, ...
+ *   Week 2+: divide by dpw; Day 1 = slice 0, Day 2 = slice 1, ...
+ *
+ * Returns the UNCAPPED slice; the per-day REVIEW_STUDY_CAP is applied by the caller
+ * (initializeDailySession) so segment.wordIds becomes the pinned, capped effective set.
+ *
+ * @param {string[]} orderedUnmasteredWordIds - Unmastered word ids, position-ordered, MASTERED-excluded
+ * @param {number} currentStudyDay - Current study day (1-indexed)
+ * @param {number} studyDaysPerWeek - Study days per week (clamped to >= MIN_STUDY_DAYS_PER_WEEK)
+ * @returns {string[] | null} The day's slice of word ids, or null if no review today
+ */
+export function computeUnmasteredSegmentIds(orderedUnmasteredWordIds, currentStudyDay, studyDaysPerWeek) {
+  // Defense-in-depth: dpw must be >= 2 or week-1 divisor (dpw-1) is 0. Callers also
+  // enforce MIN_STUDY_DAYS_PER_WEEK before init, but clamp here so this pure fn is safe.
+  const dpw = Math.max(STUDY_ALGORITHM_CONSTANTS.MIN_STUDY_DAYS_PER_WEEK, studyDaysPerWeek || STUDY_ALGORITHM_CONSTANTS.DEFAULT_STUDY_DAYS_PER_WEEK);
+
+  const pool = Array.isArray(orderedUnmasteredWordIds) ? orderedUnmasteredWordIds : [];
+  if (pool.length === 0) return null;
+
+  const weekNumber = Math.ceil(currentStudyDay / dpw);
+  const dayOfWeek = ((currentStudyDay - 1) % dpw) + 1;
+
+  // Week 1, Day 1: no review
+  if (weekNumber === 1 && dayOfWeek === 1) {
+    return null;
+  }
+
+  // Week 1: divide by dpw-1 (Day 1 has no review); Week 2+: divide by dpw
+  const divisor = (weekNumber === 1) ? (dpw - 1) : dpw;
+
+  // Week 1: Day 2 = slice 0, Day 3 = slice 1, ...; Week 2+: Day 1 = slice 0, ...
+  const segmentPosition = (weekNumber === 1) ? (dayOfWeek - 2) : (dayOfWeek - 1);
+
+  const segmentSize = Math.ceil(pool.length / divisor);
+  const start = segmentPosition * segmentSize;
+  const slice = pool.slice(start, start + segmentSize);
+
+  return slice.length ? slice : null;
 }
 
 /**

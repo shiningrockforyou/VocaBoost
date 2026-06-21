@@ -22,7 +22,7 @@ import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
-import { getTodaysBatchForPDF, getCompleteBatchForPDF } from '../services/studyService'
+import { getTodaysBatchForPDF, getCompleteBatchForPDF, determineStartingPhase } from '../services/studyService'
 import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../services/sessionService'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
@@ -1244,6 +1244,7 @@ const Dashboard = () => {
           sessionCompletedToday: false,
           testCompletedToday: false,
           dailyStatus: 'noList', // 'noList' | 'needsSession' | 'needsTest' | 'completed'
+          phase: 'new-words-study',
           error: false
         }
       }
@@ -1263,11 +1264,20 @@ const Dashboard = () => {
         dailyStatus = 'needsTest'
       }
 
+      // Phase-aware "what to do today" for the hero CTA — derived from attempts
+      // (authoritative), scoped to the active list. One of:
+      // 'new-words-study' | 'review-study' | 'complete'
+      const listAttempts = (userAttempts || []).filter(
+        (a) => a.classId === getPrimaryFocus.classId && a.listId === getPrimaryFocus.id
+      )
+      const phase = determineStartingPhase(listAttempts, currentStudyDay + 1).phase
+
       return {
         currentStudyDay,
         sessionCompletedToday,
         testCompletedToday,
         dailyStatus,
+        phase,
         error: false
       }
     } catch (err) {
@@ -1277,6 +1287,7 @@ const Dashboard = () => {
         sessionCompletedToday: false,
         testCompletedToday: false,
         dailyStatus: 'needsSession',
+        phase: 'new-words-study',
         error: true
       }
     }
@@ -1349,6 +1360,9 @@ const Dashboard = () => {
           const wordsLeft = Math.max(0, listTotal - totalWordsIntroduced)
           const day = (panelCState?.currentStudyDay ?? 0) + 1
           const newCount = getPrimaryFocus?.pace || null
+          const phase = panelCState?.phase
+          const reviewStage = phase === 'review-study'   // passed today's new words, review left
+          const doneToday = phase === 'complete'          // new + review both done today
           return (
             <>
               {/* Hero: list progress + today's session, in one card (replaces the duplicated Focus/Launchpad/Vitals panels) */}
@@ -1377,21 +1391,42 @@ const Dashboard = () => {
                       <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
                     </div>
                   </div>
-                  <div className="w-full lg:w-[280px] text-center lg:text-left">
-                    <p className="font-body text-xs font-bold tracking-wider text-blue-200">DAY {day} · TODAY</p>
-                    <h3 className="font-heading text-lg font-bold mt-0.5 mb-3">Today&apos;s session</h3>
-                    {newCount && (
-                      <div className="flex gap-2 flex-wrap justify-center lg:justify-start mb-4">
-                        <span className="bg-white/12 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold"><b className="font-extrabold">{newCount}</b> new words</span>
-                        <span className="bg-white/12 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold">+ review</span>
-                      </div>
-                    )}
+                  <div className="w-full lg:w-[320px] text-center lg:text-left">
+                    {/* step badge */}
+                    <span className={`inline-block font-body text-[11px] font-extrabold tracking-[0.06em] rounded-full px-2.5 py-1 mb-2.5 ${doneToday ? 'bg-white/20 text-blue-100' : 'bg-[#A9C0FF] text-[#0B2570]'}`}>
+                      DAY {day} · {doneToday ? 'COMPLETE' : reviewStage ? 'STEP 2 OF 2' : 'STEP 1 OF 2'}
+                    </span>
+                    {/* directive */}
+                    <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
+                      {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
+                    </h3>
+                    {/* help line */}
+                    <p className="font-body text-[13px] text-blue-100 font-medium mb-3.5">
+                      {doneToday
+                        ? "You're all caught up. Come back tomorrow."
+                        : reviewStage
+                          ? `Pass today's review test to complete Day ${day}.`
+                          : 'Study them, then pass the test to unlock review.'}
+                    </p>
+                    {/* 2-step day tracker */}
+                    <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
+                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${(reviewStage || doneToday) ? 'text-white' : 'bg-white text-brand-primary shadow'}`}>
+                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${(reviewStage || doneToday) ? 'bg-green-500 text-green-950' : 'bg-brand-primary text-white'}`}>{(reviewStage || doneToday) ? '✓' : '1'}</span>
+                        New words
+                      </span>
+                      <span className="text-white/50 font-extrabold">›</span>
+                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${doneToday ? 'text-white' : reviewStage ? 'bg-white text-brand-primary shadow' : 'bg-white/10 text-blue-100'}`}>
+                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${doneToday ? 'bg-green-500 text-green-950' : reviewStage ? 'bg-brand-primary text-white' : 'bg-white/25'}`}>{doneToday ? '✓' : '2'}</span>
+                        Review
+                      </span>
+                    </div>
+                    {/* action CTA — label reflects the next step */}
                     <button
                       type="button"
                       onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
-                      className="w-full bg-brand-accent hover:bg-brand-accent-hover text-white font-extrabold rounded-button py-3.5 shadow-lg shadow-brand-accent/30 transition-colors"
+                      className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
                     >
-                      Start Session →
+                      {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
                     </button>
                   </div>
                 </div>
