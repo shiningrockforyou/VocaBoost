@@ -2438,7 +2438,29 @@ export const fetchUserAttempts = async (uid) => {
         console.error(`Error fetching class ${classId}:`, err)
       }
     }
-    
+
+    // Cache resolved list titles by listId. Previously this did a getDoc(lists/{listId})
+    // for EVERY attempt inside the loop below — for a student with K attempts on one list
+    // that was K sequential reads (e.g. 70), serializing the whole fetch and feeding the
+    // dashboard hero-phase load race. Resolve each unique listId's title once (caching the
+    // resolved STRING, including the 'Vocabulary Test' fallback for missing lists, so a
+    // non-existent list doesn't re-fetch every iteration).
+    const listTitleCache = new Map()
+    const resolveListTitle = async (listId) => {
+      if (listTitleCache.has(listId)) return listTitleCache.get(listId)
+      let title = 'Vocabulary Test'
+      try {
+        const listSnap = await getDoc(doc(db, 'lists', listId))
+        if (listSnap.exists()) {
+          title = listSnap.data().title || 'Vocabulary Test'
+        }
+      } catch (err) {
+        console.error(`Error fetching list ${listId}:`, err)
+      }
+      listTitleCache.set(listId, title)
+      return title
+    }
+
     for (const docSnap of snapshot.docs) {
       const attemptData = docSnap.data()
       const testId = attemptData.testId || ''
@@ -2466,16 +2488,9 @@ export const fetchUserAttempts = async (uid) => {
       let listTitle = 'Vocabulary Test'
       let derivedClassId = null
 
-      // Fetch list title
+      // Resolve list title (cached per listId — see resolveListTitle above)
       if (listId) {
-        try {
-          const listSnap = await getDoc(doc(db, 'lists', listId))
-          if (listSnap.exists()) {
-            listTitle = listSnap.data().title || 'Vocabulary Test'
-          }
-        } catch (err) {
-          console.error(`Error fetching list ${listId}:`, err)
-        }
+        listTitle = await resolveListTitle(listId)
 
         // Find which class this list belongs to (legacy fallback; first match wins for a shared list)
         for (const [cid, classInfo] of Object.entries(classLookup)) {

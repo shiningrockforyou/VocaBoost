@@ -220,6 +220,72 @@ function ListProgressStats({ classId, listId, progressData, assignment }) {
   )
 }
 
+// Focus control: renders as a plain LABEL when it has ≤1 option, and an interactive
+// DROPDOWN when it has ≥2 (§9.4 — the label is borderless muted text, NOT a chevron-less
+// box, so it doesn't read as a broken/disabled dropdown). Open state is parent-controlled
+// (isOpen/onOpen/onClose) so opening one control closes the other (§9.11).
+const FocusControl = ({ prefix, value, options, getKey, getPrimary, activeKey, isOpen, onOpen, onClose, onSelect }) => {
+  const interactive = (options?.length || 0) > 1
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!interactive || !isOpen) return
+    const onDocClick = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [interactive, isOpen, onClose])
+
+  // Label mode: borderless inline text (matches the read-only idiom; never a disabled box).
+  if (!interactive) {
+    return (
+      <span className="inline-flex items-baseline gap-1 px-1 py-2 text-sm min-w-0">
+        <span className="text-text-muted">{prefix}:</span>
+        <span className="font-medium text-text-primary truncate max-w-[180px]">{value}</span>
+      </span>
+    )
+  }
+
+  // Dropdown mode.
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => (isOpen ? onClose() : onOpen())}
+        aria-expanded={isOpen}
+        className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-default rounded-lg shadow-sm hover:bg-muted transition-colors max-w-[240px]"
+      >
+        <span className="text-sm text-text-muted whitespace-nowrap">{prefix}:</span>
+        <span className="text-sm font-medium text-text-primary truncate">{value}</span>
+        <ChevronDown className="w-4 h-4 text-text-faint shrink-0" />
+      </button>
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-64 bg-surface rounded-lg shadow-lg border border-border-default p-2 z-50">
+          {options.map((o) => {
+            const key = getKey(o)
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onSelect(o)}
+                className={`w-full text-left px-3 py-2 rounded-md hover:bg-muted transition-colors ${
+                  key === activeKey ? 'bg-brand-primary/10' : ''
+                }`}
+              >
+                <div className="font-medium text-text-primary truncate">{getPrimary(o)}</div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const Dashboard = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -249,43 +315,35 @@ const Dashboard = () => {
   const [deletingListId, setDeletingListId] = useState(null)
   const [hoveredBarIndex, setHoveredBarIndex] = useState(null)
   const [userAttempts, setUserAttempts] = useState([])
+  const [userAttemptsLoading, setUserAttemptsLoading] = useState(false) // F1: init false; true only inside the guarded fetch
   const [progressData, setProgressData] = useState({}) // keyed by `${classId}_${listId}`
+  const [progressDataLoading, setProgressDataLoading] = useState(false) // F1: init false; true only when there are fetchable pairs
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
   const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
   const [showReEntryModal, setShowReEntryModal] = useState(false)
   const [reEntryContext, setReEntryContext] = useState(null) // { classId, listId, score }
-  const [showListSelector, setShowListSelector] = useState(false)
+  // F3: which focus control's dropdown is open ('class' | 'list' | null). Parent-controlled
+  // so opening one closes the other (§9.11).
+  const [openFocus, setOpenFocus] = useState(null)
 
-  // Build list of all available lists for the selector dropdown
-  const availableLists = useMemo(() => {
-    const lists = []
-    studentClasses.forEach((klass) => {
-      klass.assignedListDetails?.forEach((list) => {
-        lists.push({
-          id: list.id,
-          title: list.title || 'Vocabulary List',
-          classId: klass.id,
-          className: klass.name,
-        })
-      })
-    })
-    return lists
-  }, [studentClasses])
-
-  // Handler for selecting a new primary focus list
-  const handleListSelection = async (list) => {
-    setShowListSelector(false)
+  // Persist a focus selection (class+list). list must carry classId (class-qualified — §9.10).
+  const persistFocus = async (classId, listId) => {
+    setOpenFocus(null)
+    if (!classId || !listId) return // never persist an undefined id
     await updateUserSettings(user.uid, {
-      primaryFocusListId: list.id,
-      primaryFocusClassId: list.classId,
+      primaryFocusListId: listId,
+      primaryFocusClassId: classId,
     })
     setUserSettings((prev) => ({
-      ...prev,
-      primaryFocusListId: list.id,
-      primaryFocusClassId: list.classId,
+      ...(prev || {}),
+      primaryFocusListId: listId,
+      primaryFocusClassId: classId,
     }))
   }
+
+  // Selecting a list within the current class (List control). list is class-qualified.
+  const handleListSelection = (list) => persistFocus(list.classId, list.id)
 
   // List title lookup - must be defined before latestTestTitle uses it
   const listTitleLookup = useMemo(() => {
@@ -341,12 +399,15 @@ const Dashboard = () => {
     if (!user?.uid || isTeacher) {
       return
     }
+    setUserAttemptsLoading(true) // set true only AFTER the early-return guard
     try {
       const attempts = await fetchUserAttempts(user.uid)
       setUserAttempts(attempts)
     } catch (err) {
       console.error('Unable to fetch user attempts', err)
       setUserAttempts([])
+    } finally {
+      setUserAttemptsLoading(false) // reset on both success and catch
     }
   }, [user?.uid, isTeacher])
 
@@ -542,45 +603,74 @@ const Dashboard = () => {
 
   // Load progress data for each class/list (parallelized for speed)
   useEffect(() => {
-    if (!user?.uid || !studentClasses.length || isTeacher) return
+    // No fetchable pairs (no user / no classes / teacher) -> explicitly release the
+    // loading flag so a 0-class student never skeletons forever (§9.12).
+    if (!user?.uid || !studentClasses.length || isTeacher) {
+      setProgressDataLoading(false)
+      return
+    }
 
+    let cancelled = false
     const loadProgressData = async () => {
-      // Build array of all class/list pairs to fetch
+      // Build the fetch tasks from the UNION of every source focus resolution can use
+      // (assignedListDetails ids, assignedLists, and assignments keys) — getPrimaryFocus
+      // can resolve a (classId,listId) pair that Object.keys(assignments) alone omits
+      // (a class with assignedLists but no assignment metadata), which would leave the
+      // focused key unfetched -> CSD 0 -> guessed phase even after loading completes.
       const fetchTasks = []
+      const seen = new Set()
       for (const cls of studentClasses) {
-        const assignments = cls.assignments || {}
-        for (const listId of Object.keys(assignments)) {
-          fetchTasks.push({
-            key: `${cls.id}_${listId}`,
-            classId: cls.id,
-            listId,
-          })
+        const listIds = new Set([
+          ...((cls.assignedListDetails || []).map((l) => l.id)),
+          ...(cls.assignedLists || []),
+          ...Object.keys(cls.assignments || {}),
+        ])
+        for (const listId of listIds) {
+          if (!listId) continue
+          const key = `${cls.id}_${listId}`
+          if (seen.has(key)) continue
+          seen.add(key)
+          fetchTasks.push({ key, classId: cls.id, listId })
         }
       }
 
-      // Fetch all progress data in parallel
-      const results = await Promise.all(
-        fetchTasks.map(async ({ key, classId, listId }) => {
-          try {
-            const progress = await getClassProgress(user.uid, classId, listId)
-            return { key, progress: progress ?? null }
-          } catch (err) {
-            console.error(`Failed to load progress for ${key}:`, err)
-            return { key, progress: null }
-          }
-        })
-      )
-
-      // Build map from results
-      const progressMap = {}
-      for (const { key, progress } of results) {
-        progressMap[key] = progress
+      if (fetchTasks.length === 0) {
+        if (!cancelled) {
+          setProgressData({})
+          setProgressDataLoading(false)
+        }
+        return
       }
 
-      setProgressData(progressMap)
+      setProgressDataLoading(true)
+      try {
+        // Fetch all progress data in parallel
+        const results = await Promise.all(
+          fetchTasks.map(async ({ key, classId, listId }) => {
+            try {
+              const progress = await getClassProgress(user.uid, classId, listId)
+              return { key, progress: progress ?? null } // explicit null = "loaded, no doc"
+            } catch (err) {
+              console.error(`Failed to load progress for ${key}:`, err)
+              return { key, progress: null }
+            }
+          })
+        )
+
+        // Build map from results (every fetched key gets an entry, null included)
+        const progressMap = {}
+        for (const { key, progress } of results) {
+          progressMap[key] = progress
+        }
+
+        if (!cancelled) setProgressData(progressMap)
+      } finally {
+        if (!cancelled) setProgressDataLoading(false)
+      }
     }
 
     loadProgressData()
+    return () => { cancelled = true }
   }, [user?.uid, studentClasses, isTeacher])
 
   useEffect(() => {
@@ -970,9 +1060,69 @@ const Dashboard = () => {
     return primaryList
   }, [studentClasses, userSettings])
 
+  // F3 — Class control options: one per enrolled class.
+  const classOptions = useMemo(
+    () => studentClasses.map((k) => ({ classId: k.id, className: k.name })),
+    [studentClasses]
+  )
+
+  // F3 — List control options: the FOCUSED class's lists, CLASS-QUALIFIED (§9.10 — raw
+  // assignedListDetails lack classId, so persisting from them would write classId=undefined).
+  const listOptions = useMemo(() => {
+    const focusedClass = studentClasses.find((k) => k.id === getPrimaryFocus?.classId)
+    return (focusedClass?.assignedListDetails || []).map((l) => ({
+      id: l.id,
+      title: l.title || 'Vocabulary List',
+      classId: focusedClass.id,
+      className: focusedClass.name,
+    }))
+  }, [studentClasses, getPrimaryFocus])
+
+  // Pick the "primary" list of a class when switching class: most-recently-assigned, else first.
+  // assignedAt lives on klass.assignments[listId], NOT on assignedListDetails (§9.3 of selector plan).
+  const pickPrimaryList = (klass) => {
+    const lists = klass?.assignedListDetails || []
+    if (lists.length === 0) return null
+    const assignments = klass.assignments || {}
+    let best = null
+    let bestAt = null
+    for (const list of lists) {
+      const a = assignments[list.id] || {}
+      const at = a.assignedAt?.toDate?.() || a.assignedAt || null
+      if (at && (!bestAt || at > bestAt)) { bestAt = at; best = list }
+      else if (!best) { best = list } // first seen, null-date fallback
+    }
+    return best
+  }
+
+  // Selecting a different class (Class control): resolve a valid list IN that class and persist
+  // both ids. Assert the chosen list belongs to the class before persisting (§9.2 — a stale/
+  // wrong listId would be masked by the 3-tier resolver as a silent class snap-back).
+  const handleClassSelection = (classOption) => {
+    const klass = studentClasses.find((k) => k.id === classOption.classId)
+    if (!klass) { setOpenFocus(null); return }
+    const nextList = pickPrimaryList(klass)
+    if (!nextList || !(klass.assignedListDetails || []).some((l) => l.id === nextList.id)) {
+      setOpenFocus(null)
+      return
+    }
+    return persistFocus(klass.id, nextList.id)
+  }
+
+  // userSettings starts null (loading) and resolves to the settings object or {} (loaded-empty).
+  // Until it's loaded we must NOT derive/persist a focus (getPrimaryFocus auto-selects while
+  // null, which would render the wrong class and a click could clobber the saved preference).
+  const settingsLoaded = userSettings !== null
+
   // Panel B: Vitals - calculated from progressData (new study system)
+  // Loading-gate order (§9.14): settings -> focus -> data-loading -> derive. The gates live
+  // in the derivation (not just render) so determineStartingPhase/side effects never fire on
+  // a half-loaded auto-selected fallback.
   const panelBState = useMemo(() => {
     try {
+      if (!settingsLoaded) {
+        return { loading: true }
+      }
       if (!getPrimaryFocus) {
         return {
           totalWordsIntroduced: 0,
@@ -980,6 +1130,9 @@ const Dashboard = () => {
           streakDays: 0,
           error: false
         }
+      }
+      if (progressDataLoading) {
+        return { loading: true }
       }
 
       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
@@ -1021,10 +1174,10 @@ const Dashboard = () => {
         error: true
       }
     }
-  }, [getPrimaryFocus, progressData])
+  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading])
 
-  // Destructure for easier access
-  const { totalWordsIntroduced, masteryRate, streakDays, error: panelBError } = panelBState
+  // Destructure for easier access (loading -> numbers undefined; hero renders skeleton)
+  const { totalWordsIntroduced, masteryRate, streakDays, error: panelBError, loading: panelBLoading } = panelBState
 
   // Helper: Get start of current calendar week (Monday 00:00:00)
   const getStartOfWeek = () => {
@@ -1188,12 +1341,21 @@ const Dashboard = () => {
   // Panel C: Retention status and daily task status
   const panelCState = useMemo(() => {
     try {
+      // Loading-gate order (§9.14) — these short-circuit BEFORE determineStartingPhase so a
+      // half-loaded / auto-selected fallback never computes a phase or fires the
+      // impossible_phase_detected side effect (studyService logs it on a day-1 passed branch).
+      if (!settingsLoaded) {
+        return { loading: true }
+      }
       if (!getPrimaryFocus) {
         return {
           currentStudyDay: 0,
           phase: 'new-words-study',
           error: false
         }
+      }
+      if (progressDataLoading || userAttemptsLoading) {
+        return { loading: true }
       }
 
       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
@@ -1222,7 +1384,7 @@ const Dashboard = () => {
         error: true
       }
     }
-  }, [getPrimaryFocus, progressData, userAttempts])
+  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading])
 
 
   // Modal state
@@ -1252,64 +1414,95 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* List Selector - Right Side */}
-          {availableLists.length > 1 && (
-            <div className="relative">
-              <button
-                onClick={() => setShowListSelector(!showListSelector)}
-                className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-default rounded-lg shadow-sm hover:bg-muted transition-colors"
-              >
-                <span className="text-sm text-text-muted">Studying:</span>
-                <span className="font-medium text-text-primary">{getPrimaryFocus?.title || 'No List'}</span>
-                <ChevronDown className="w-4 h-4 text-text-faint" />
-              </button>
-
-              {showListSelector && (
-                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-lg shadow-lg border border-border-default p-2 z-50">
-                  {availableLists.map((list) => (
-                    <button
-                      key={`${list.classId}_${list.id}`}
-                      onClick={() => handleListSelection(list)}
-                      className={`w-full text-left px-3 py-2 rounded-md hover:bg-muted transition-colors ${
-                        list.classId === getPrimaryFocus?.classId && list.id === getPrimaryFocus?.id ? 'bg-brand-primary/10' : ''
-                      }`}
-                    >
-                      <div className="font-medium text-text-primary">{list.title}</div>
-                      <div className="text-xs text-text-muted">{list.className}</div>
-                    </button>
-                  ))}
-                </div>
-              )}
+          {/* Class + List focus controls (each is a static label when it has ≤1 option, a
+              dropdown when ≥2). Gated on settingsLoaded so we never show/persist the wrong
+              focus during the userSettings load window (§9.13). */}
+          {settingsLoaded && getPrimaryFocus && classOptions.length > 0 && (
+            <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
+              <FocusControl
+                prefix="Class"
+                value={getPrimaryFocus.className}
+                options={classOptions}
+                getKey={(o) => o.classId}
+                getPrimary={(o) => o.className}
+                activeKey={getPrimaryFocus.classId}
+                isOpen={openFocus === 'class'}
+                onOpen={() => setOpenFocus('class')}
+                onClose={() => setOpenFocus(null)}
+                onSelect={handleClassSelection}
+              />
+              <FocusControl
+                prefix="List"
+                value={getPrimaryFocus.title}
+                options={listOptions}
+                getKey={(o) => `${o.classId}_${o.id}`}
+                getPrimary={(o) => o.title}
+                activeKey={`${getPrimaryFocus.classId}_${getPrimaryFocus.id}`}
+                isOpen={openFocus === 'list'}
+                onOpen={() => setOpenFocus('list')}
+                onClose={() => setOpenFocus(null)}
+                onSelect={handleListSelection}
+              />
             </div>
           )}
         </div>
 
         {/* === Redesigned dashboard: consolidated hero + honest tiles + weekly activity === */}
         {(() => {
+          // §9.3: hero loading branch is load-bearing — without it the numbers/phase fall
+          // through to guessed values (0% / "Start new words"). heroLoading covers BOTH the
+          // progress-number race (panelBLoading) and the phase race (panelCState.loading).
+          const heroLoading = panelBLoading || panelCState?.loading
+          // firstPaint: we don't even have a resolved focus yet (settings/classes still loading).
+          // Show a full skeleton hero (NOT the "No active list" empty state — that's only for a
+          // genuinely class-less student AFTER load). (Codex High)
+          const firstPaintLoading = !settingsLoaded || studentClassesLoading
+          // anyLoading drives the always-rendered tiles/weekly so they never deref undefined
+          // numbers from a panelBState `{loading}` result. (Codex Critical)
+          const anyLoading = firstPaintLoading || heroLoading
+          const tIntro = totalWordsIntroduced ?? 0 // null-safe (undefined while panelBLoading)
           const listTotal = getPrimaryFocus?.wordCount || 0
-          const listPct = listTotal > 0 ? Math.min(100, Math.round((totalWordsIntroduced / listTotal) * 100)) : 0
-          const wordsLeft = Math.max(0, listTotal - totalWordsIntroduced)
+          const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
+          const wordsLeft = Math.max(0, listTotal - tIntro)
           const day = (panelCState?.currentStudyDay ?? 0) + 1
           const newCount = getPrimaryFocus?.pace || null
           const phase = panelCState?.phase
           const reviewStage = phase === 'review-study'   // passed today's new words, review left
           const doneToday = phase === 'complete'          // new + review both done today
+          // Skeleton bar for the navy hero (white-tinted pulse; matches ListProgressStats idiom)
+          const sk = (cls) => <div className={`bg-white/20 rounded animate-pulse ${cls}`} />
+          // Light-surface skeleton for the stat tiles (matches ListProgressStats `bg-text-muted/20`)
+          const tileSk = (cls) => <div className={`bg-text-muted/20 rounded animate-pulse ${cls}`} />
           return (
             <>
               {/* Hero: list progress + today's session, in one card (replaces the duplicated Focus/Launchpad/Vitals panels) */}
-              {getPrimaryFocus ? (
+              {firstPaintLoading ? (
+                /* No focus resolved yet (settings/classes loading) — full skeleton hero, never the empty state (Codex High) */
+                <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-brand-primary text-white" aria-busy="true" aria-label="Loading your dashboard">
+                  <div className="mx-auto lg:mx-0 w-[150px] h-[150px] rounded-full bg-white/15 grid place-items-center">{sk('h-7 w-14')}</div>
+                  <div className="flex flex-col gap-2 items-center lg:items-start">{sk('h-3 w-32')}{sk('h-6 w-56')}{sk('h-7 w-40 rounded-full')}</div>
+                  <div className="w-full lg:w-[320px] flex flex-col gap-3">{sk('h-5 w-32 rounded-full')}{sk('h-7 w-48')}{sk('h-4 w-full')}{sk('h-12 w-full rounded-button')}</div>
+                </div>
+              ) : getPrimaryFocus ? (
                 <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-brand-primary text-white">
                   <div
                     className="mx-auto lg:mx-0 w-[150px] h-[150px] rounded-full grid place-items-center"
                     style={{ background: `conic-gradient(#ffffff ${listPct}%, rgba(255,255,255,0.18) 0)` }}
                   >
                     <div className="w-[118px] h-[118px] rounded-full bg-brand-primary/90 grid place-items-center text-center">
-                      <div>
-                        <div className="font-heading text-4xl font-bold leading-none">{listPct}%</div>
-                        <div className="text-[11px] text-white/70 mt-1 font-semibold">
-                          {totalWordsIntroduced.toLocaleString()} / {listTotal.toLocaleString()}
+                      {heroLoading ? (
+                        <div className="flex flex-col items-center gap-2">
+                          {sk('h-7 w-14')}
+                          {sk('h-3 w-16')}
                         </div>
-                      </div>
+                      ) : (
+                        <div>
+                          <div className="font-heading text-4xl font-bold leading-none">{listPct}%</div>
+                          <div className="text-[11px] text-white/70 mt-1 font-semibold">
+                            {tIntro.toLocaleString()} / {listTotal.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-center lg:text-left">
@@ -1318,47 +1511,68 @@ const Dashboard = () => {
                     </p>
                     <h2 className="font-heading text-2xl font-bold mt-1 leading-tight">{getPrimaryFocus.title}</h2>
                     <div className="flex flex-wrap gap-2 justify-center lg:justify-start mt-3">
-                      <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">🔥 {streakDays}-day streak</span>
-                      <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
+                      {heroLoading ? (
+                        <>
+                          {sk('h-7 w-28 rounded-full')}
+                          {sk('h-7 w-24 rounded-full')}
+                        </>
+                      ) : (
+                        <>
+                          <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">🔥 {streakDays}-day streak</span>
+                          <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="w-full lg:w-[320px] text-center lg:text-left">
-                    {/* step badge */}
-                    <span className={`inline-block font-body text-[11px] font-extrabold tracking-[0.06em] rounded-full px-2.5 py-1 mb-2.5 ${doneToday ? 'bg-white/20 text-white/80' : 'bg-white/90 text-brand-primary'}`}>
-                      DAY {day} · {doneToday ? 'COMPLETE' : reviewStage ? 'STEP 2 OF 2' : 'STEP 1 OF 2'}
-                    </span>
-                    {/* directive */}
-                    <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
-                      {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
-                    </h3>
-                    {/* help line */}
-                    <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
-                      {doneToday
-                        ? "You're all caught up. Come back tomorrow."
-                        : reviewStage
-                          ? `Pass today's review test to complete Day ${day}.`
-                          : 'Study them, then pass the test to unlock review.'}
-                    </p>
-                    {/* 2-step day tracker */}
-                    <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
-                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${(reviewStage || doneToday) ? 'text-white' : 'bg-white text-brand-primary shadow'}`}>
-                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${(reviewStage || doneToday) ? 'bg-btn-success text-white' : 'bg-brand-primary text-white'}`}>{(reviewStage || doneToday) ? '✓' : '1'}</span>
-                        New words
-                      </span>
-                      <span className="text-white/50 font-extrabold">›</span>
-                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${doneToday ? 'text-white' : reviewStage ? 'bg-white text-brand-primary shadow' : 'bg-white/10 text-white/80'}`}>
-                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${doneToday ? 'bg-btn-success text-white' : reviewStage ? 'bg-brand-primary text-white' : 'bg-white/25'}`}>{doneToday ? '✓' : '2'}</span>
-                        Review
-                      </span>
-                    </div>
-                    {/* action CTA — label reflects the next step */}
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
-                      className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
-                    >
-                      {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
-                    </button>
+                    {heroLoading ? (
+                      /* §9.3 load-bearing: never render a guessed CTA while inputs load */
+                      <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading today's plan">
+                        {sk('h-5 w-32 rounded-full')}
+                        {sk('h-7 w-48')}
+                        {sk('h-4 w-full')}
+                        {sk('h-12 w-full rounded-button')}
+                      </div>
+                    ) : (
+                      <>
+                        {/* step badge */}
+                        <span className={`inline-block font-body text-[11px] font-extrabold tracking-[0.06em] rounded-full px-2.5 py-1 mb-2.5 ${doneToday ? 'bg-white/20 text-white/80' : 'bg-white/90 text-brand-primary'}`}>
+                          DAY {day} · {doneToday ? 'COMPLETE' : reviewStage ? 'STEP 2 OF 2' : 'STEP 1 OF 2'}
+                        </span>
+                        {/* directive */}
+                        <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
+                          {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
+                        </h3>
+                        {/* help line */}
+                        <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
+                          {doneToday
+                            ? "You're all caught up. Come back tomorrow."
+                            : reviewStage
+                              ? `Pass today's review test to complete Day ${day}.`
+                              : 'Study them, then pass the test to unlock review.'}
+                        </p>
+                        {/* 2-step day tracker */}
+                        <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
+                          <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${(reviewStage || doneToday) ? 'text-white' : 'bg-white text-brand-primary shadow'}`}>
+                            <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${(reviewStage || doneToday) ? 'bg-btn-success text-white' : 'bg-brand-primary text-white'}`}>{(reviewStage || doneToday) ? '✓' : '1'}</span>
+                            New words
+                          </span>
+                          <span className="text-white/50 font-extrabold">›</span>
+                          <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${doneToday ? 'text-white' : reviewStage ? 'bg-white text-brand-primary shadow' : 'bg-white/10 text-white/80'}`}>
+                            <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${doneToday ? 'bg-btn-success text-white' : reviewStage ? 'bg-brand-primary text-white' : 'bg-white/25'}`}>{doneToday ? '✓' : '2'}</span>
+                            Review
+                          </span>
+                        </div>
+                        {/* action CTA — label reflects the next step */}
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
+                          className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
+                        >
+                          {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -1367,26 +1581,36 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {/* Honest stat tiles (real data; renamed the misleading "Mastery Rate") */}
+              {/* Honest stat tiles (real data; renamed the misleading "Mastery Rate").
+                  Numbers are skeletoned while loading — panelBState returns {loading} with no
+                  numeric fields, so deref-ing them directly would crash (Codex Critical). */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Words Introduced</p>
-                  <p className="font-heading text-2xl font-bold text-brand-text mt-1.5">{totalWordsIntroduced.toLocaleString()}</p>
-                  <p className="font-body text-xs text-text-secondary mt-1">{listPct}% of list</p>
+                  {anyLoading
+                    ? <div className="mt-1.5">{tileSk('h-7 w-16')}</div>
+                    : <p className="font-heading text-2xl font-bold text-brand-text mt-1.5">{tIntro.toLocaleString()}</p>}
+                  <p className="font-body text-xs text-text-secondary mt-1">{anyLoading ? ' ' : `${listPct}% of list`}</p>
                 </div>
                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Avg Review Score</p>
-                  <p className="font-heading text-2xl font-bold text-brand-primary mt-1.5">{masteryRate}%</p>
+                  {anyLoading
+                    ? <div className="mt-1.5">{tileSk('h-7 w-12')}</div>
+                    : <p className="font-heading text-2xl font-bold text-brand-primary mt-1.5">{masteryRate}%</p>}
                   <p className="font-body text-xs text-text-secondary mt-1">recent reviews</p>
                 </div>
                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Words Left</p>
-                  <p className="font-heading text-2xl font-bold text-text-primary mt-1.5">{wordsLeft.toLocaleString()}</p>
+                  {anyLoading
+                    ? <div className="mt-1.5">{tileSk('h-7 w-16')}</div>
+                    : <p className="font-heading text-2xl font-bold text-text-primary mt-1.5">{wordsLeft.toLocaleString()}</p>}
                   <p className="font-body text-xs text-text-secondary mt-1">to finish the list</p>
                 </div>
                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Streak</p>
-                  <p className="font-heading text-2xl font-bold text-brand-accent mt-1.5">{streakDays} <span className="text-base text-text-muted font-semibold">days</span></p>
+                  {anyLoading
+                    ? <div className="mt-1.5">{tileSk('h-7 w-14')}</div>
+                    : <p className="font-heading text-2xl font-bold text-brand-accent mt-1.5">{streakDays} <span className="text-base text-text-muted font-semibold">days</span></p>}
                   <p className="font-body text-xs text-text-secondary mt-1">keep it going</p>
                 </div>
               </div>
