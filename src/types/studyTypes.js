@@ -196,6 +196,42 @@ export function calculateExpectedStudyDay(programStartDate, studyDaysPerWeek = 5
 }
 
 /**
+ * Conservative upper-bound on a plausible currentStudyDay, for OBSERVABILITY ONLY.
+ *
+ * Used solely to decide whether to emit a `csd_implausible` log on the clean no-anchor
+ * path (a student with no passed new-word test legitimately has CSD ≈ 0). This is NOT a
+ * clamp — nothing is corrected based on it. Returns the looser of whichever ceilings are
+ * computable plus generous slack, or null when neither is computable (caller then skips
+ * the log rather than guessing).
+ *
+ * @param {Object} opts
+ * @param {Date|null} opts.programStartDate - calendar ceiling source (optional)
+ * @param {number} opts.studyDaysPerWeek
+ * @param {number} opts.totalWordsIntroduced
+ * @param {number} opts.dailyPace - CANONICAL daily pace (assignment.pace is daily)
+ * @param {number} [opts.slack=7]
+ * @returns {number|null} threshold, or null if not computable
+ */
+export function implausibleStudyDayThreshold({
+  programStartDate,
+  studyDaysPerWeek = 5,
+  totalWordsIntroduced = 0,
+  dailyPace,
+  slack = 7,
+} = {}) {
+  const calendarCeil = programStartDate
+    ? calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
+    : null;
+  const twiCeil = (dailyPace && dailyPace > 0)
+    ? Math.ceil((totalWordsIntroduced || 0) / dailyPace)
+    : null;
+
+  if (calendarCeil == null && twiCeil == null) return null; // not computable -> caller skips
+
+  return Math.max(calendarCeil ?? 0, twiCeil ?? 0) + slack;
+}
+
+/**
  * Create a new class progress document
  * @param {string} classId - Class document ID
  * @param {string} listId - List document ID

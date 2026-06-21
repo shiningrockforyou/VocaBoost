@@ -2443,23 +2443,29 @@ export const fetchUserAttempts = async (uid) => {
       const attemptData = docSnap.data()
       const testId = attemptData.testId || ''
 
-      // Extract listId from testId - handle multiple formats:
+      // Extract listId/classId from testId - handle multiple formats:
       // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
       // New: vocaboost_test_{classId}_{listId}_{testType}
-      let listId = null
+      let parsedListId = null
+      let parsedClassId = null
       const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
-      const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+      const newFormatMatch = testId.match(/^vocaboost_test_([^_]+)_([^_]+)_/)
 
       if (oldFormatMatch) {
-        listId = oldFormatMatch[2]
+        parsedListId = oldFormatMatch[2]
       } else if (newFormatMatch) {
-        listId = newFormatMatch[1]
+        parsedClassId = newFormatMatch[1]
+        parsedListId = newFormatMatch[2]
       }
 
+      // Prefer the attempt doc's own listId (newer write paths store it directly); fall back
+      // to the testId-parsed listId for legacy docs. (Mirrors the classId precedence below —
+      // a missing/malformed testId must not null out a valid stored listId.)
+      const listId = attemptData.listId ?? parsedListId
+
       let listTitle = 'Vocabulary Test'
-      let className = 'Unknown Class'
-      let classId = null
-      
+      let derivedClassId = null
+
       // Fetch list title
       if (listId) {
         try {
@@ -2470,16 +2476,27 @@ export const fetchUserAttempts = async (uid) => {
         } catch (err) {
           console.error(`Error fetching list ${listId}:`, err)
         }
-        
-        // Find which class this list belongs to (using cached data)
+
+        // Find which class this list belongs to (legacy fallback; first match wins for a shared list)
         for (const [cid, classInfo] of Object.entries(classLookup)) {
           if (classInfo.assignedLists.includes(listId)) {
-            className = classInfo.name
-            classId = cid
+            derivedClassId = cid
             break
           }
         }
       }
+
+      // Class attribution precedence (most -> least authoritative):
+      //   1. the attempt doc's own classId (stamped at submit time from the route),
+      //   2. the classId parsed from a new-format testId,
+      //   3. the list->class lookup (legacy fallback; first match for a shared list).
+      // Guard the backfill 'no_class' sentinel so it does not shadow a resolvable class
+      // (otherwise such attempts wrongly drop out of the dashboard's per-class filter).
+      const docClassId = (attemptData.classId && attemptData.classId !== 'no_class')
+        ? attemptData.classId
+        : null
+      const classId = docClassId ?? parsedClassId ?? derivedClassId
+      const className = (classId && classLookup[classId]?.name) || 'Unknown Class'
       
       // Convert submittedAt timestamp to Date
       const submittedDate = attemptData.submittedAt?.toDate 
@@ -3135,19 +3152,24 @@ export async function getMostRecentNewTest(userId, classId, listId) {
 }
 
 /**
- * Get the most recent PASSED new test for reconciliation anchor
- * Only considers tests where passed === true
+ * Get the most recent PASSED new test for reconciliation anchor.
+ * Only considers tests where passed === true.
+ *
+ * Returns a DISCRIMINATED result so callers can tell apart "no passed test exists"
+ * from a transient/index query failure (which must NOT be treated as proof of a
+ * near-zero study day). The found-but-malformed case is judged by the caller.
+ *
  * @param {string} userId - User document ID
  * @param {string} classId - Class document ID
  * @param {string} listId - List document ID
- * @returns {Promise<Object|null>} Most recent passed new test attempt or null
+ * @returns {Promise<{status:'found',attempt:Object}|{status:'none'}|{status:'query-error',error:Object}>}
  */
 export async function getMostRecentPassedNewTest(userId, classId, listId) {
   console.log('[RECONCILIATION] getMostRecentPassedNewTest:', { userId, classId, listId })
 
   if (!userId || !classId || !listId) {
     console.warn('[RECONCILIATION] getMostRecentPassedNewTest: Missing required parameters')
-    return null
+    return { status: 'query-error', error: { message: 'missing required parameters', code: 'invalid-argument', stack: null } }
   }
 
   try {
@@ -3167,7 +3189,7 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
 
     if (snapshot.empty) {
       console.log('[RECONCILIATION] getMostRecentPassedNewTest: No passed new tests found')
-      return null
+      return { status: 'none' }
     }
 
     const doc = snapshot.docs[0]
@@ -3178,10 +3200,18 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
       newWordEndIndex: data.newWordEndIndex,
       passed: data.passed
     })
-    return data
+    return { status: 'found', attempt: data }
   } catch (err) {
     console.error('[RECONCILIATION] getMostRecentPassedNewTest query failed:', err)
-    return null
+    // Stringify for Firestore-safe logging downstream (no raw Error objects).
+    return {
+      status: 'query-error',
+      error: {
+        message: err?.message ?? String(err),
+        code: err?.code ?? null,
+        stack: err?.stack ? String(err.stack).slice(0, 600) : null
+      }
+    }
   }
 }
 

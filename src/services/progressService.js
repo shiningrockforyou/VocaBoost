@@ -14,9 +14,14 @@ import { db } from '../firebase';
 import {
   DEFAULT_CLASS_PROGRESS,
   createClassProgress,
-  MAX_RECENT_SESSIONS
+  MAX_RECENT_SESSIONS,
+  implausibleStudyDayThreshold
 } from '../types/studyTypes';
 import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
+
+// Observability-only (v5): a clean no-anchor record with CSD above this is worth a
+// `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
+const CSD_IMPLAUSIBLE_MIN = 3;
 
 /**
  * Get the document ID for a class progress record
@@ -123,7 +128,10 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   // === TWO-QUERY RECONCILIATION ===
   // Query 1: Find anchor from PASSED new tests only (fixes bug where failed tests advanced TWI)
   console.log('[RECONCILIATION] Query 1: Finding most recent PASSED new test...');
-  const anchorTest = await getMostRecentPassedNewTest(userId, classId, listId);
+  const anchorResult = await getMostRecentPassedNewTest(userId, classId, listId);
+  // Preserve the existing anchorTest semantics (the attempt, or null) so all reconciliation
+  // logic below is byte-for-byte unchanged; the discriminated status is used for logging only.
+  const anchorTest = anchorResult.status === 'found' ? anchorResult.attempt : null;
 
   let anchorDay = 0;
   let twi = 0;
@@ -220,6 +228,64 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
     console.log('[RECONCILIATION] ✅ Update complete');
   } else {
     console.log('[RECONCILIATION] ✓ No reconciliation needed - values match');
+  }
+
+  // ── Observability only (v5): surface anomalous CSD WITHOUT auto-correcting. ──
+  // A forward-corrupt CSD self-heals above on the bidirectional path (valid anchor); these
+  // logs catch the cases that do NOT self-heal — no anchor, malformed anchor, or a query
+  // failure — so the issue is visible for manual intervention. Nothing here changes CSD/TWI.
+  // Wrapped so logging can never break reconciliation.
+  try {
+    let anchorStatus;
+    if (anchorResult.status === 'query-error') anchorStatus = 'query-error';
+    else if (anchorResult.status === 'none') anchorStatus = 'none';
+    else anchorStatus = hasValidData ? 'found' : 'invalid-anchor';
+
+    if (anchorStatus === 'query-error') {
+      // Transient/index/security failure — must NOT be read as "no progress". Log, don't act.
+      await logSystemEvent('csd_anchor_query_error', {
+        userId, classId, listId, storedCSD, storedTWI, error: anchorResult.error
+      }, 'warning');
+    } else if (anchorStatus === 'invalid-anchor') {
+      // A passed anchor exists but is malformed (e.g. legacy missing newWordEndIndex).
+      // The student HAS progressed, so this is not proof of corruption — log for visibility.
+      await logSystemEvent('csd_anchor_invalid', {
+        userId, classId, listId, storedCSD, storedTWI,
+        anchorStudyDay: anchorTest?.studyDay ?? null,
+        anchorNewWordEndIndex: anchorTest?.newWordEndIndex ?? null,
+        reason: 'passed anchor missing/invalid newWordEndIndex'
+      }, 'warning');
+    } else if (anchorStatus === 'none' && storedCSD > CSD_IMPLAUSIBLE_MIN) {
+      // Clean no-anchor with an elevated CSD: a legit student here has CSD ≈ 0. Compute a
+      // conservative threshold (settings-gated). If settings are unavailable -> skip; never guess.
+      let threshold = null;
+      try {
+        const classSnap = await getDoc(doc(db, 'classes', classId));
+        const assignment = classSnap.exists() ? classSnap.data()?.assignments?.[listId] : null;
+        if (assignment) {
+          const programStartDate = progress.programStartDate?.toDate?.() || progress.programStartDate || null;
+          threshold = implausibleStudyDayThreshold({
+            programStartDate,
+            studyDaysPerWeek: assignment.studyDaysPerWeek || 5,
+            totalWordsIntroduced: storedTWI,
+            dailyPace: assignment.pace
+          });
+        }
+      } catch (settingsErr) {
+        threshold = null; // settings unavailable -> skip the thresholded log
+      }
+      if (threshold != null && storedCSD > threshold) {
+        await logSystemEvent('csd_implausible', {
+          userId, classId, listId, storedCSD, storedTWI, threshold
+        }, 'error');
+      } else if (threshold == null) {
+        await logSystemEvent('csd_implausible_no_threshold', {
+          userId, classId, listId, storedCSD, storedTWI
+        }, 'warning');
+      }
+    }
+  } catch (obsErr) {
+    console.warn('[RECONCILIATION] observability logging failed (non-fatal):', obsErr?.message);
   }
 
   console.log('[RECONCILIATION] getOrCreateClassProgress END');

@@ -904,83 +904,68 @@ const Dashboard = () => {
       return null
     }
 
-    // 1. Check user preference first
+    const buildFocus = (klass, list) => {
+      const assignment = klass.assignments?.[list.id] || {}
+      return {
+        id: list.id,
+        title: list.title || 'Vocabulary List',
+        classId: klass.id,
+        className: klass.name,
+        pace: assignment.pace || list.pace || 7, // Default to 7 (≈50 words/week)
+        studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
+        wordCount: list.wordCount || 0,
+        stats: list.stats || {},
+      }
+    }
+
+    // 1. Check user preference first. Resolve by saved CLASS + LIST: a student can be in
+    //    two classes that assign the same list, so the list id alone is ambiguous.
     if (userSettings?.primaryFocusListId) {
-      for (const klass of studentClasses) {
-        const list = klass.assignedListDetails?.find(
+      // 1a. Exact saved class + list.
+      if (userSettings.primaryFocusClassId) {
+        const savedClass = studentClasses.find((k) => k.id === userSettings.primaryFocusClassId)
+        const savedList = savedClass?.assignedListDetails?.find(
           (l) => l.id === userSettings.primaryFocusListId
         )
+        if (savedClass && savedList) {
+          return buildFocus(savedClass, savedList)
+        }
+        // saved class gone / no longer has the list -> fall through to legacy list-only
+      }
+      // 1b. Legacy fallback: match by list id in any class (first match). Covers older
+      //     saved prefs with no classId, and a student removed from the saved class whose
+      //     list is still assigned elsewhere. (Must reach here, NOT skip to auto-select.)
+      for (const klass of studentClasses) {
+        const list = klass.assignedListDetails?.find((l) => l.id === userSettings.primaryFocusListId)
         if (list) {
-          const assignment = klass.assignments?.[list.id] || {}
-          return {
-            id: list.id,
-            title: list.title || 'Vocabulary List',
-            classId: klass.id,
-            className: klass.name,
-            pace: assignment.pace || list.pace || 7,
-            studyDaysPerWeek: assignment.studyDaysPerWeek || 5,
-            wordCount: list.wordCount || 0,
-            stats: list.stats || {},
-          }
+          return buildFocus(klass, list)
         }
       }
       // Preference no longer valid - fall through to auto-select
     }
 
-    // 2. Fallback: most recently assigned list
+    // 2. Fallback: most recently assigned list; first list seen if none carry a date.
     let primaryList = null
     let latestAssignedAt = null
 
     studentClasses.forEach((klass) => {
-      if (klass.assignedListDetails?.length) {
-        const assignments = klass.assignments || {}
+      if (!klass.assignedListDetails?.length) return
+      const assignments = klass.assignments || {}
 
-        klass.assignedListDetails.forEach((list) => {
-          // Get assignment metadata (pace, assignedAt) from class's assignments map
-          const assignment = assignments[list.id] || {}
-          const assignedAt = assignment.assignedAt?.toDate?.() || assignment.assignedAt || list.assignedAt?.toDate?.() || list.assignedAt || null
-          const pace = assignment.pace || list.pace || 7 // Default to 7 (≈50 words/week)
+      klass.assignedListDetails.forEach((list) => {
+        const assignment = assignments[list.id] || {}
+        const assignedAt = assignment.assignedAt?.toDate?.() || assignment.assignedAt || list.assignedAt?.toDate?.() || list.assignedAt || null
 
-          if (!latestAssignedAt || (assignedAt && assignedAt > latestAssignedAt)) {
-            latestAssignedAt = assignedAt
-            primaryList = {
-              id: list.id,
-              title: list.title || 'Vocabulary List',
-              classId: klass.id,
-              className: klass.name,
-              pace: pace,
-              studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
-              wordCount: list.wordCount || 0,
-              stats: list.stats || {},
-            }
-          }
-        })
-      }
-    })
-
-    // If no assignedAt found, use first available list
-    if (!primaryList && studentClasses.length > 0) {
-      for (const klass of studentClasses) {
-        if (klass.assignedListDetails?.length > 0) {
-          const firstList = klass.assignedListDetails[0]
-          const assignments = klass.assignments || {}
-          const assignment = assignments[firstList.id] || {}
-          const pace = assignment.pace || firstList.pace || 7
-
-          primaryList = {
-            id: firstList.id,
-            title: firstList.title || 'Vocabulary List',
-            classId: klass.id,
-            className: klass.name,
-            pace: pace,
-            studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
-            wordCount: firstList.wordCount || 0,
-            stats: firstList.stats || {},
-          }
-          break
+        if (assignedAt && (!latestAssignedAt || assignedAt > latestAssignedAt)) {
+          // A dated assignment: newest wins.
+          latestAssignedAt = assignedAt
+          primaryList = buildFocus(klass, list)
+        } else if (!primaryList) {
+          // No dated winner yet: keep the FIRST list seen as the null-date fallback.
+          primaryList = buildFocus(klass, list)
         }
-      }
-    }
+      })
+    })
 
     return primaryList
   }, [studentClasses, userSettings])
@@ -1066,41 +1051,6 @@ const Dashboard = () => {
         return sessionDate >= weekStart
       })
       .reduce((sum, session) => sum + (session.wordsIntroduced || 0), 0)
-  }
-
-  // Helper: Get start of today (00:00:00)
-  const getStartOfToday = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return today
-  }
-
-  // Helper: Check if session was completed today
-  const hasSessionToday = (recentSessions) => {
-    if (!recentSessions || recentSessions.length === 0) return false
-
-    const todayStart = getStartOfToday()
-
-    return recentSessions.some(session => {
-      if (!session.date) return false
-      const sessionDate = session.date?.toDate?.() || session.date
-      return sessionDate >= todayStart
-    })
-  }
-
-  // Helper: Check if test was completed today (from userAttempts)
-  const hasTestToday = (attempts) => {
-    if (!attempts || attempts.length === 0) return false
-
-    const todayStart = getStartOfToday()
-
-    return attempts.some(attempt => {
-      if (!attempt.submittedAt && !attempt.date) return false
-      const attemptDate = attempt.submittedAt?.toDate?.() || attempt.submittedAt || attempt.date?.toDate?.() || attempt.date
-      if (!attemptDate) return false
-      const date = attemptDate instanceof Date ? attemptDate : new Date(attemptDate)
-      return date >= todayStart
-    })
   }
 
   // Panel A: Weekly progress state with error handling
@@ -1241,9 +1191,6 @@ const Dashboard = () => {
       if (!getPrimaryFocus) {
         return {
           currentStudyDay: 0,
-          sessionCompletedToday: false,
-          testCompletedToday: false,
-          dailyStatus: 'noList', // 'noList' | 'needsSession' | 'needsTest' | 'completed'
           phase: 'new-words-study',
           error: false
         }
@@ -1253,16 +1200,6 @@ const Dashboard = () => {
       const progress = progressData[key]
 
       const currentStudyDay = progress?.currentStudyDay ?? 0
-      const sessionCompletedToday = hasSessionToday(progress?.recentSessions)
-      const testCompletedToday = hasTestToday(userAttempts)
-
-      // Determine daily status
-      let dailyStatus = 'needsSession'
-      if (testCompletedToday) {
-        dailyStatus = 'completed'
-      } else if (sessionCompletedToday) {
-        dailyStatus = 'needsTest'
-      }
 
       // Phase-aware "what to do today" for the hero CTA — derived from attempts
       // (authoritative), scoped to the active list. One of:
@@ -1274,9 +1211,6 @@ const Dashboard = () => {
 
       return {
         currentStudyDay,
-        sessionCompletedToday,
-        testCompletedToday,
-        dailyStatus,
         phase,
         error: false
       }
@@ -1284,9 +1218,6 @@ const Dashboard = () => {
       console.error('Panel C calculation error:', err)
       return {
         currentStudyDay: 0,
-        sessionCompletedToday: false,
-        testCompletedToday: false,
-        dailyStatus: 'needsSession',
         phase: 'new-words-study',
         error: true
       }
@@ -1305,8 +1236,8 @@ const Dashboard = () => {
         <HeaderBar />
 
         {error && (
-          <div className="mb-6 rounded-xl border-2 border-red-300 bg-red-50 p-4">
-            <p className="text-sm text-red-600" role="alert">
+          <div className="mb-6 rounded-xl border-2 border-border-error bg-error-subtle p-4">
+            <p className="text-sm text-text-error" role="alert">
               {error}
             </p>
           </div>
@@ -1326,25 +1257,25 @@ const Dashboard = () => {
             <div className="relative">
               <button
                 onClick={() => setShowListSelector(!showListSelector)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-surface border border-border-default rounded-lg shadow-sm hover:bg-muted transition-colors"
               >
-                <span className="text-sm text-gray-500">Studying:</span>
-                <span className="font-medium text-gray-900">{getPrimaryFocus?.title || 'No List'}</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+                <span className="text-sm text-text-muted">Studying:</span>
+                <span className="font-medium text-text-primary">{getPrimaryFocus?.title || 'No List'}</span>
+                <ChevronDown className="w-4 h-4 text-text-faint" />
               </button>
 
               {showListSelector && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-50">
+                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-lg shadow-lg border border-border-default p-2 z-50">
                   {availableLists.map((list) => (
                     <button
                       key={`${list.classId}_${list.id}`}
                       onClick={() => handleListSelection(list)}
-                      className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors ${
-                        list.id === getPrimaryFocus?.id ? 'bg-blue-50' : ''
+                      className={`w-full text-left px-3 py-2 rounded-md hover:bg-muted transition-colors ${
+                        list.classId === getPrimaryFocus?.classId && list.id === getPrimaryFocus?.id ? 'bg-brand-primary/10' : ''
                       }`}
                     >
-                      <div className="font-medium text-gray-900">{list.title}</div>
-                      <div className="text-xs text-gray-500">{list.className}</div>
+                      <div className="font-medium text-text-primary">{list.title}</div>
+                      <div className="text-xs text-text-muted">{list.className}</div>
                     </button>
                   ))}
                 </div>
@@ -1367,7 +1298,7 @@ const Dashboard = () => {
             <>
               {/* Hero: list progress + today's session, in one card (replaces the duplicated Focus/Launchpad/Vitals panels) */}
               {getPrimaryFocus ? (
-                <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-blue-700 text-white">
+                <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-brand-primary text-white">
                   <div
                     className="mx-auto lg:mx-0 w-[150px] h-[150px] rounded-full grid place-items-center"
                     style={{ background: `conic-gradient(#ffffff ${listPct}%, rgba(255,255,255,0.18) 0)` }}
@@ -1375,14 +1306,14 @@ const Dashboard = () => {
                     <div className="w-[118px] h-[118px] rounded-full bg-brand-primary/90 grid place-items-center text-center">
                       <div>
                         <div className="font-heading text-4xl font-bold leading-none">{listPct}%</div>
-                        <div className="text-[11px] text-blue-200 mt-1 font-semibold">
+                        <div className="text-[11px] text-white/70 mt-1 font-semibold">
                           {totalWordsIntroduced.toLocaleString()} / {listTotal.toLocaleString()}
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="text-center lg:text-left">
-                    <p className="font-body text-[11px] font-bold tracking-[0.08em] uppercase text-blue-200">
+                    <p className="font-body text-[11px] font-bold tracking-[0.08em] uppercase text-white/70">
                       {getPrimaryFocus.className || 'Your class'}
                     </p>
                     <h2 className="font-heading text-2xl font-bold mt-1 leading-tight">{getPrimaryFocus.title}</h2>
@@ -1393,7 +1324,7 @@ const Dashboard = () => {
                   </div>
                   <div className="w-full lg:w-[320px] text-center lg:text-left">
                     {/* step badge */}
-                    <span className={`inline-block font-body text-[11px] font-extrabold tracking-[0.06em] rounded-full px-2.5 py-1 mb-2.5 ${doneToday ? 'bg-white/20 text-blue-100' : 'bg-[#A9C0FF] text-[#0B2570]'}`}>
+                    <span className={`inline-block font-body text-[11px] font-extrabold tracking-[0.06em] rounded-full px-2.5 py-1 mb-2.5 ${doneToday ? 'bg-white/20 text-white/80' : 'bg-white/90 text-brand-primary'}`}>
                       DAY {day} · {doneToday ? 'COMPLETE' : reviewStage ? 'STEP 2 OF 2' : 'STEP 1 OF 2'}
                     </span>
                     {/* directive */}
@@ -1401,7 +1332,7 @@ const Dashboard = () => {
                       {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
                     </h3>
                     {/* help line */}
-                    <p className="font-body text-[13px] text-blue-100 font-medium mb-3.5">
+                    <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
                       {doneToday
                         ? "You're all caught up. Come back tomorrow."
                         : reviewStage
@@ -1411,12 +1342,12 @@ const Dashboard = () => {
                     {/* 2-step day tracker */}
                     <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
                       <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${(reviewStage || doneToday) ? 'text-white' : 'bg-white text-brand-primary shadow'}`}>
-                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${(reviewStage || doneToday) ? 'bg-green-500 text-green-950' : 'bg-brand-primary text-white'}`}>{(reviewStage || doneToday) ? '✓' : '1'}</span>
+                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${(reviewStage || doneToday) ? 'bg-btn-success text-white' : 'bg-brand-primary text-white'}`}>{(reviewStage || doneToday) ? '✓' : '1'}</span>
                         New words
                       </span>
                       <span className="text-white/50 font-extrabold">›</span>
-                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${doneToday ? 'text-white' : reviewStage ? 'bg-white text-brand-primary shadow' : 'bg-white/10 text-blue-100'}`}>
-                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${doneToday ? 'bg-green-500 text-green-950' : reviewStage ? 'bg-brand-primary text-white' : 'bg-white/25'}`}>{doneToday ? '✓' : '2'}</span>
+                      <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-[10px] ${doneToday ? 'text-white' : reviewStage ? 'bg-white text-brand-primary shadow' : 'bg-white/10 text-white/80'}`}>
+                        <span className={`w-4 h-4 rounded-full grid place-items-center text-[10px] ${doneToday ? 'bg-btn-success text-white' : reviewStage ? 'bg-brand-primary text-white' : 'bg-white/25'}`}>{doneToday ? '✓' : '2'}</span>
                         Review
                       </span>
                     </div>
