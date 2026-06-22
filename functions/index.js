@@ -115,6 +115,92 @@ async function readExistingAttemptForContext(uid, ctx) {
 }
 
 /**
+ * Authorize a student to write an attempt for (classId, listId): validates the
+ * context shape, ownership, enrollment (class.studentIds OR users/{uid}.enrolledClasses),
+ * and list entitlement using a THREE-STATE check — the list must be either assigned to
+ * the class, OR (if unassigned) present in KNOWN_ORPHAN_WRITES, a static server-trusted
+ * allowlist of confirmed orphan tuples (teacher unassigned a list mid-progress). Throws
+ * HttpsError when the student is not enrolled or the list is neither assigned nor allow-
+ * listed. We do NOT query client-writable evidence (class_progress / attempts) here: those
+ * are forgeable by an enrolled student (firestore.rules), so a live query would let anyone
+ * mint their own "orphan" proof. Factored out of writeAttemptTxn so callers can authorize
+ * BEFORE issuing any other Admin-SDK reads (e.g. sanitizeStoredRows) — Admin SDK bypasses
+ * Firestore rules, so gating reads behind this prevents forcing reads on arbitrary lists.
+ * Returns { classData, passThreshold, teacherId, assigned, orphanReason } for reuse so
+ * callers (writeAttemptTxn) can skip a duplicate authorization read.
+ */
+// Static, server-trusted allowlist of (uid|classId|listId) tuples permitted to write to a
+// list their class no longer assigns. Built from a full-collection census of `attempts`
+// (2026-06-23): exactly these students were mid-progress when their list was unassigned.
+// Client-writable evidence is forgeable, so this hardcoded set is the ONLY orphan signal we
+// trust. Remove entries once these students finish/are reassigned; replace with a
+// server-owned assignment-history model long-term.
+const KNOWN_ORPHAN_WRITES = new Set([
+  "W3MUFXDbzogBuj4ZfbtkRHeO8PG2|teKHajONWBMe0YJSAeGl|7Is5UdS4P4a12vc6mSnp",
+  "fc8sBxnzARfKWDMQevma1J3OjNq2|teKHajONWBMe0YJSAeGl|7Is5UdS4P4a12vc6mSnp",
+]);
+
+async function assertCanWriteAttempt(uid, ctx) {
+  if (!ctx) throw new HttpsError("invalid-argument", "writeContext required");
+  if (uid !== ctx.studentId) {
+    throw new HttpsError("permission-denied", "uid does not match studentId");
+  }
+  for (const f of ["classId", "listId", "attemptDocId", "testType", "sessionType"]) {
+    if (!ctx[f]) throw new HttpsError("invalid-argument", `writeContext.${f} required`);
+  }
+  const classSnap = await db.collection("classes").doc(ctx.classId).get();
+  if (!classSnap.exists) throw new HttpsError("not-found", "Class not found");
+  const classData = classSnap.data();
+  const enrolled =
+    (Array.isArray(classData.studentIds) && classData.studentIds.includes(uid));
+  if (!enrolled) {
+    const userSnap = await db.collection("users").doc(uid).get();
+    const ec = userSnap.exists ? (userSnap.data().enrolledClasses || {}) : {};
+    if (!ec[ctx.classId]) {
+      throw new HttpsError("permission-denied", "Student not enrolled in class");
+    }
+  }
+  // Three-state list authorization (Codex):
+  //   assigned       → list is in the class's `assignments` map OR legacy `assignedLists`.
+  //   known orphan   → NOT assigned, but the exact (uid|classId|listId) tuple is in the
+  //                    static server-trusted KNOWN_ORPHAN_WRITES allowlist (teacher unassigned
+  //                    the list mid-progress). NOT inferred from client-writable docs.
+  //   neither        → rejected with failed-precondition BEFORE any sanitize/backfill reads.
+  // This closes the "force reads / write for an arbitrary listId" path while not breaking the
+  // confirmed orphaned students. Enrollment (checked above) still bounds who can write.
+  const assignments = classData.assignments || {};
+  const assignment = assignments[ctx.listId];
+  const legacyAssigned =
+    Array.isArray(classData.assignedLists) && classData.assignedLists.includes(ctx.listId);
+  const assigned = !!assignment || legacyAssigned;
+
+  let orphanReason = null;
+  if (!assigned) {
+    // Unassigned list: only a hardcoded, server-trusted allowlist entry passes (NOT a live
+    // query — that evidence is client-forgeable). Everything else is rejected before reads.
+    if (KNOWN_ORPHAN_WRITES.has(`${uid}|${ctx.classId}|${ctx.listId}`)) {
+      orphanReason = "known_orphan_allowlist";
+      logger.warn("unassigned_attempt_allowed", {
+        uid, classId: ctx.classId, listId: ctx.listId, orphanReason,
+      });
+    } else {
+      throw new HttpsError("failed-precondition", "List is not assigned to this class");
+    }
+  }
+
+  const passThreshold = assignment?.passThreshold ?? 95; // 0-100
+  if (!assignment) {
+    // No assignment → threshold defaulted to 95. For a `new` test this can mark an orphan
+    // failed if the original assignment threshold was lower (no server-side source for it).
+    logger.warn("passThresholdFallback", {
+      uid, classId: ctx.classId, listId: ctx.listId, passThreshold, orphanReason,
+    });
+  }
+  const teacherId = classData.ownerTeacherId || null;
+  return {classData, passThreshold, teacherId, assigned, orphanReason};
+}
+
+/**
  * The single server-side attempt writer. Transactional + idempotent on the
  * client-supplied deterministic `ctx.attemptDocId`. Computes score server-side
  * against ctx.totalQuestions (NOT answered count — skipped count as incorrect),
@@ -127,32 +213,11 @@ async function readExistingAttemptForContext(uid, ctx) {
  *   wordsIntroduced, segment*, interventionLevel, isFirstDay, listTitle, wordsReviewed }
  * @param {Array} attemptAnswers - full answer rows (typed: isCorrect/aiReasoning; mcq: correct)
  */
-async function writeAttemptTxn(uid, ctx, attemptAnswers) {
-  if (!ctx) throw new HttpsError("invalid-argument", "writeContext required");
-  if (uid !== ctx.studentId) {
-    throw new HttpsError("permission-denied", "uid does not match studentId");
-  }
-  for (const f of ["classId", "listId", "attemptDocId", "testType", "sessionType"]) {
-    if (!ctx[f]) throw new HttpsError("invalid-argument", `writeContext.${f} required`);
-  }
-
-  // Class doc: enrollment + passThreshold + teacherId.
-  const classSnap = await db.collection("classes").doc(ctx.classId).get();
-  if (!classSnap.exists) throw new HttpsError("not-found", "Class not found");
-  const classData = classSnap.data();
-  const enrolled =
-    (Array.isArray(classData.studentIds) && classData.studentIds.includes(uid));
-  if (!enrolled) {
-    // Fallback: the denormalized enrollment map on the user doc.
-    const userSnap = await db.collection("users").doc(uid).get();
-    const ec = userSnap.exists ? (userSnap.data().enrolledClasses || {}) : {};
-    if (!ec[ctx.classId]) {
-      throw new HttpsError("permission-denied", "Student not enrolled in class");
-    }
-  }
-  const assignment = (classData.assignments || {})[ctx.listId] || {};
-  const passThreshold = assignment.passThreshold ?? 95; // 0-100
-  const teacherId = classData.ownerTeacherId || null;
+async function writeAttemptTxn(uid, ctx, attemptAnswers, auth) {
+  // Validate shape + ownership + enrollment + list entitlement. submitVocabAttempt already
+  // authorized (before sanitize) and passes the result through to avoid a duplicate read;
+  // any other caller (or none) falls back to authorizing here. Self-contained either way.
+  const {passThreshold, teacherId} = auth || await assertCanWriteAttempt(uid, ctx);
 
   // Score against TOTAL questions presented, not answered (§Codex).
   const correctCount = attemptAnswers.filter((a) => a.isCorrect ?? a.correct).length;
@@ -233,9 +298,20 @@ exports.submitVocabAttempt = onCall({enforceAppCheck: false}, async (request) =>
   // Idempotency / ownership: if already written, return it (no duplicate).
   const existing = await readExistingAttemptForContext(uid, context);
   if (existing) return normalizeExistingAttempt(existing);
-  const r = await writeAttemptTxn(uid, context, attemptAnswers);
+  // Authorize BEFORE sanitize so its Admin-SDK word reads stay post-authorization.
+  // assertCanWriteAttempt rejects an unassigned list with no orphan evidence, so reaching
+  // here means the caller is entitled (assigned OR proven orphan) — safe to backfill either
+  // way (orphans are exactly the old-thin-marker recovery case worth backfilling).
+  const auth = await assertCanWriteAttempt(uid, context);
+  // Backfill canonical correctAnswer for a client carrying an OLD thin recovery marker
+  // (would otherwise write correctAnswer: undefined); coalesce all fields to non-undefined.
+  // Protects typed AND mcq (shared write path).
+  const rows = await sanitizeStoredRows(context.listId, attemptAnswers);
+  // Pass the auth result through so writeAttemptTxn doesn't re-authorize (saves a duplicate
+  // class-doc + orphan read per write).
+  const r = await writeAttemptTxn(uid, context, rows, auth);
   return {
-    results: attemptAnswers.map((a) => ({
+    results: rows.map((a) => ({
       wordId: a.wordId,
       isCorrect: a.isCorrect ?? a.correct ?? false,
       reasoning: a.aiReasoning ?? a.reasoning ?? "",
@@ -257,15 +333,113 @@ function buildTypedAttemptAnswers(answers, gradeResults) {
     const g = gradeResults.find((r) => r.wordId === a.wordId) || {};
     return {
       wordId: a.wordId,
-      word: a.word,
-      correctAnswer: a.correctDefinition,
-      studentResponse: a.studentResponse,
+      // Coalesce every stored field to non-undefined: a softened/partial batch (or a
+      // client that dropped definitions) must never write `undefined` into Firestore.
+      word: a.word || "",
+      correctAnswer: a.correctDefinition || "",
+      studentResponse: a.studentResponse || "",
       isCorrect: g.isCorrect ?? false,
       aiReasoning: g.reasoning || "",
       challengeStatus: null,
       challengeNote: null,
       challengeReviewedBy: null,
       challengeReviewedAt: null,
+    };
+  });
+}
+
+/**
+ * Server-authoritative answer key: resolve canonical `correctDefinition`/`koreanDefinition`
+ * for each answer from Firestore by (listId, wordId). Fixes the "client thinned the word pool
+ * (crash-recovery marker) → correctDefinition missing" malform AND removes the grading-integrity
+ * hole of trusting a client-supplied answer key. Client values are fallback-only (unresolved
+ * word / missing listId). One batched getAll(≤100 refs). Caller must authorize listId first.
+ */
+async function resolveAnswerDefinitions(listId, answers) {
+  if (!listId) return answers;
+  const ids = [...new Set(answers.map((a) => a.wordId).filter(Boolean))];
+  if (ids.length === 0) return answers;
+  const refs = ids.map((id) =>
+    db.collection("lists").doc(listId).collection("words").doc(id));
+  const byId = new Map();
+  (await db.getAll(...refs)).forEach((s) => {
+    if (s.exists) byId.set(s.id, s.data());
+  });
+  return answers.map((a) => {
+    const w = byId.get(a.wordId);
+    if (!w) return a; // unresolved → keep client fallback
+    return {
+      ...a,
+      word: a.word || w.word,
+      correctDefinition: w.definition ?? a.correctDefinition,
+      koreanDefinition: (w.definitions && w.definitions.ko) ?? a.koreanDefinition,
+    };
+  });
+}
+
+/**
+ * Authz gate for server-side definition resolution: only resolve canonical defs for a list
+ * the caller is entitled to (enrolled in a class that assigns it), so gradeTypedTest cannot
+ * become an answer-key oracle for arbitrary lists. Returns false on any miss; the caller then
+ * skips resolution and grades against client-supplied values (parity with old behavior), so a
+ * legit student is never blocked by a failed check.
+ */
+async function callerMayResolveList(uid, classId, listId) {
+  if (!classId || !listId) return false;
+  try {
+    const classSnap = await db.collection("classes").doc(classId).get();
+    if (!classSnap.exists) return false;
+    const classData = classSnap.data();
+    let enrolled =
+      Array.isArray(classData.studentIds) && classData.studentIds.includes(uid);
+    if (!enrolled) {
+      const userSnap = await db.collection("users").doc(uid).get();
+      const ec = userSnap.exists ? (userSnap.data().enrolledClasses || {}) : {};
+      enrolled = !!ec[classId];
+    }
+    if (!enrolled) return false;
+    // List must be assigned to the class (new assignments map OR legacy assignedLists).
+    const assignments = classData.assignments || {};
+    const legacyAssigned =
+      Array.isArray(classData.assignedLists) && classData.assignedLists.includes(listId);
+    return !!assignments[listId] || legacyAssigned;
+  } catch (e) {
+    logger.warn("callerMayResolveList check failed; skipping resolution", {
+      uid, classId, listId, error: e.message,
+    });
+    return false;
+  }
+}
+
+/**
+ * Write-path resolution + sanitization. The live durable write (submitVocabAttempt) persists
+ * client-built `attemptAnswers`, NOT buildTypedAttemptAnswers — so a client still carrying an OLD
+ * thin recovery marker would write `correctAnswer: undefined`. Backfill the canonical definition
+ * from Firestore when the client omitted it (backfill-when-missing, so valid MCQ option text is
+ * preserved) and coalesce every field to non-undefined. Covers typed AND mcq (shared write path).
+ * Caller MUST authorize first (assertCanWriteAttempt) — these are Admin-SDK reads.
+ */
+async function sanitizeStoredRows(listId, rows) {
+  const byId = new Map();
+  if (listId) {
+    const ids = [...new Set(rows.map((a) => a.wordId).filter(Boolean))];
+    if (ids.length) {
+      const refs = ids.map((id) =>
+        db.collection("lists").doc(listId).collection("words").doc(id));
+      (await db.getAll(...refs)).forEach((s) => {
+        if (s.exists) byId.set(s.id, s.data());
+      });
+    }
+  }
+  return rows.map((a) => {
+    const w = byId.get(a.wordId);
+    return {
+      ...a,
+      word: a.word || (w && w.word) || "",
+      correctAnswer: a.correctAnswer || (w && w.definition) || "",
+      studentResponse: a.studentResponse || "",
+      isCorrect: a.isCorrect ?? a.correct ?? false,
+      aiReasoning: a.aiReasoning ?? a.reasoning ?? "",
     };
   });
 }
@@ -311,13 +485,24 @@ exports.gradeTypedTest = onCall(
       if (existing) return normalizeExistingAttempt(existing);
     }
 
+    // Server-authoritative answer key: resolve canonical definitions from Firestore by
+    // (listId, wordId) — but only for a list this caller is entitled to (anti-oracle gate).
+    // On denial / missing context, fall back to client-supplied values so a legit student is
+    // never blocked. `gradeAnswers` is the single canonical array for ALL downstream use.
+    const listId = request.data.listId || writeContext?.listId || null;
+    const classId = request.data.classId || writeContext?.classId || null;
+    const mayResolve = await callerMayResolveList(uid, classId, listId);
+    const gradeAnswers = mayResolve
+      ? await resolveAnswerDefinitions(listId, answers)
+      : answers;
+
     // Persist the graded attempt server-side when writeContext is supplied, else
     // return grade-only (backward-compatible). On write failure, return the grade
     // (NOT discarded/re-billed) plus the full rows so the client retries the
     // write only — never re-grading.
     const finishGrading = async (gradeResults) => {
       if (!writeContext) return {results: gradeResults};
-      const attemptAnswers = buildTypedAttemptAnswers(answers, gradeResults);
+      const attemptAnswers = buildTypedAttemptAnswers(gradeAnswers, gradeResults);
       try {
         const r = await writeAttemptTxn(uid, writeContext, attemptAnswers);
         return {
@@ -341,36 +526,51 @@ exports.gradeTypedTest = onCall(
       }
     };
 
-    // Validate answer structure. Collect ALL malformed answers instead of
-    // throwing on the first one as a generic Error (which surfaced to students
-    // as an opaque "functions/internal" → "Grading Failed" loop). A missing
-    // `correctDefinition` is almost always a client recovery bug that dropped
-    // the word's definition when resuming a test after a refresh — so we fail
-    // with a clear, retryable invalid-argument and log the offending wordIds.
-    const malformed = answers.filter(
+    // Validate answer structure AFTER server resolution. A row still missing required
+    // fields here is genuinely unprocessable (resolution couldn't fill it). Soften the
+    // old all-or-nothing throw: auto-mark the few unresolved rows wrong and grade the
+    // rest; only throw if EVERY row is unprocessable (don't silently score 0).
+    const malformed = gradeAnswers.filter(
       (a) => !a.wordId || !a.word || !a.correctDefinition || a.studentResponse === undefined,
     );
-    if (malformed.length > 0) {
-      const wordIds = malformed.map((a) => a.wordId || "(no id)").join(", ");
-      logger.error("Malformed grading payload (likely client recovery dropped definitions)", {
+    if (malformed.length === gradeAnswers.length) {
+      logger.error("Unresolvable grading payload (all answers malformed post-resolution)", {
         uid: request.auth.uid,
-        malformedCount: malformed.length,
-        totalAnswers: answers.length,
-        wordIds,
+        totalAnswers: gradeAnswers.length,
+        listId,
+        resolved: mayResolve,
+        wordIds: malformed.map((a) => a.wordId || "(no id)").join(", "),
       });
       throw new HttpsError(
         "invalid-argument",
-        `Cannot grade: ${malformed.length} of ${answers.length} answers are missing word/definition ` +
-        "data. This usually happens when a test is resumed after a refresh — please reload the test page and submit again.",
+        "Cannot grade: no resolvable word/definition data. " +
+        "Please reload the test page and submit again.",
       );
     }
+    const malformedIds = new Set(malformed.map((a) => a.wordId));
+    if (malformed.length > 0) {
+      logger.warn("Partial malformed grading payload — auto-marking unresolved words wrong", {
+        uid: request.auth.uid,
+        malformedCount: malformed.length,
+        totalAnswers: gradeAnswers.length,
+        listId,
+        wordIds: malformed.map((a) => a.wordId || "(no id)").join(", "),
+      });
+    }
+    const malformedResults = malformed.map((a) => ({
+      wordId: a.wordId,
+      isCorrect: false,
+      reasoning: "Could not verify this word — please reload the test and retry.",
+    }));
 
     try {
+      // Grade only the well-formed rows; unresolved rows are auto-incorrect above.
+      const gradeable = gradeAnswers.filter((a) => !malformedIds.has(a.wordId));
       // Separate into blank, self-referencing, and answers to grade
-      const blankAnswers = answers.filter(
+      const blankAnswers = gradeable.filter(
         (a) => isBlankResponse(a.studentResponse),
       );
-      const nonBlank = answers.filter(
+      const nonBlank = gradeable.filter(
         (a) => !isBlankResponse(a.studentResponse),
       );
       const selfRefAnswers = nonBlank.filter(
@@ -400,7 +600,7 @@ exports.gradeTypedTest = onCall(
 
       // If no answers need AI grading, skip API call (§12.1: still writes via finishGrading)
       if (answersToGrade.length === 0) {
-        return finishGrading([...blankResults, ...selfRefResults]);
+        return finishGrading([...blankResults, ...selfRefResults, ...malformedResults]);
       }
 
       // Initialize Anthropic client
@@ -553,8 +753,10 @@ Do not include "reasoning" for correct answers.
         };
       });
 
-      // Combine AI results with pre-filtered results
-      const combinedResults = [...aiResults, ...blankResults, ...selfRefResults];
+      // Combine AI results with pre-filtered results (incl. auto-incorrect malformed rows)
+      const combinedResults = [
+        ...aiResults, ...blankResults, ...selfRefResults, ...malformedResults,
+      ];
 
       // Normalize results by wordId to ensure correct order (matching original answers array)
       const resultsMapFinal = new Map(
@@ -562,7 +764,7 @@ Do not include "reasoning" for correct answers.
       );
 
       // Build final results in the same order as the incoming answers
-      const finalResults = answers.map((answer) => {
+      const finalResults = gradeAnswers.map((answer) => {
         const result = resultsMapFinal.get(answer.wordId);
         if (result) {
           return result;
@@ -578,7 +780,7 @@ Do not include "reasoning" for correct answers.
 
       // Post-grading validation - override obvious AI mistakes
       const validatedResults = finalResults.map((result) => {
-        const originalAnswer = answers.find((a) => a.wordId === result.wordId);
+        const originalAnswer = gradeAnswers.find((a) => a.wordId === result.wordId);
         if (!originalAnswer) return result;
 
         const response = (originalAnswer.studentResponse || "").trim().toLowerCase();

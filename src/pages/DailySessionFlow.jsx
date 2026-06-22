@@ -1165,7 +1165,19 @@ export default function DailySessionFlow() {
       saveLocalSessionState(recoverySessionId, {
         lastPhase: testPhase === 'new' ? 'NEW_TEST' : 'REVIEW_TEST',
         testType: testPhase,
-        wordPool: (wordPool || []).map(w => ({ id: w.id, word: w.word })),
+        // Persist the fields grading needs (definition/definitions), not just
+        // id+word. This is the ONLY recovery marker that actually fires for the
+        // test phase (the autosave effects above never run on the test route —
+        // see comment below), so thinning it to {id, word} meant a test resumed
+        // after a crash submitted answers with correctDefinition=undefined and
+        // gradeTypedTest rejected the whole batch as malformed ("Grading Failed").
+        wordPool: (wordPool || []).map(w => ({
+          id: w.id,
+          word: w.word,
+          definition: w.definition,
+          definitions: w.definitions,
+          partOfSpeech: w.partOfSpeech,
+        })),
         sessionContext: {
           dayNumber: sessionConfig.dayNumber,
           phase: testPhase,

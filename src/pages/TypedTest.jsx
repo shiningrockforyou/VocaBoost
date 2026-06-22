@@ -105,6 +105,9 @@ const TypedTest = () => {
   // a Try-Again click after a transient failure does not re-increment
   // timesTestedTotal on every retry. See MCQTest for the same pattern.
   const resultsProcessedRef = useRef(false)
+  // Holds the doWriteAndFinalize closure when a post-grade durable write fails, so
+  // "Retry Save" re-runs the write only (never re-grading / re-billing the AI call).
+  const pendingSaveRef = useRef(null)
 
   // Refs for scroll-based fade effect
   const headerRef = useRef(null)
@@ -615,7 +618,9 @@ const TypedTest = () => {
           timeout: TIMEOUT_MS
         })
 
-        const result = await gradeTypedTest({ answers: answersToGrade })
+        // Pass listId + classId so the server resolves canonical definitions itself
+        // (server-authoritative answer key) and can authorize the resolution.
+        const result = await gradeTypedTest({ answers: answersToGrade, listId, classId: classIdParam })
 
         // Succeeded — if it needed a retry, record that (tells us retries are saving people)
         if (attempt > 1) {
@@ -702,6 +707,28 @@ const TypedTest = () => {
         failed: failedIds
       }
 
+      // Show the results view. Shared by the practice path and by doWriteAndFinalize
+      // (so a write retry that succeeds lands on the same results screen). Captures
+      // summary + gradingResult from this handleSubmit invocation.
+      const finalizeResultsView = () => {
+        if (currentTestType === 'new' && summary.score < retakeThreshold) {
+          setCanRetake(true)
+        }
+        // Safe to drop local recovery now: grading + attempt + study_states all
+        // succeeded. Rolls over the per-session nonce so the next launch is fresh.
+        clearTestState(testId)
+        setTestResultsData({
+          score: summary.score,
+          correct: summary.correct,
+          total: summary.total,
+          failed: summary.failed,
+          gradedResults: gradingResult.data.results,
+          testType: currentTestType
+        })
+        setResults(gradingResult.data.results)
+        setShowResults(true)
+      }
+
       if (!isPracticeMode) {
         // Determine if student passed (review tests always pass)
         const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
@@ -759,6 +786,10 @@ const TypedTest = () => {
         const attemptNonce = getOrCreateAttemptNonce(testId)
         const attemptDocId = `${user.uid}_${testId}_${attemptNonce}`
 
+        // Write + finalize as a single re-runnable unit. A post-grade write failure is
+        // retried via the "Retry Save" button (pendingSaveRef), which re-invokes THIS
+        // closure — re-running only the durable write, never re-grading (no extra AI call).
+        const doWriteAndFinalize = async () => {
         let result
         try {
           if (SERVER_ATTEMPT_WRITE) {
@@ -819,12 +850,22 @@ const TypedTest = () => {
         } catch (submitErr) {
           // Attempt failed after retries — block progression, stay on page.
           // localStorage recovery is still intact; study_states untouched.
+          // The grade is NOT lost: stash this closure so "Retry Save" re-runs the
+          // write only (no re-grade / no extra Anthropic call).
           console.error('Failed to save test attempt:', submitErr)
+          logSystemEvent('attempt_write_failed_client', {
+            userId: user.uid, classId: classIdParam, listId,
+            studyDay: studyDay ?? null, sessionType: currentTestType, testType: 'typed',
+            errCode: submitErr?.code || null, errName: submitErr?.name || null,
+            errMessage: String(submitErr?.message || '').slice(0, 300),
+          }, 'error')
+          pendingSaveRef.current = doWriteAndFinalize
           setSubmitError('Failed to save your test results. Please try again.')
           setIsSubmitting(false)
           return // Don't proceed - answers preserved in state and localStorage
         }
 
+        pendingSaveRef.current = null // write succeeded — no retry pending
         setAttemptId(result.id)
 
         // [PHASE 2] Now commit study_state mutations. Guarded by ref so
@@ -905,6 +946,7 @@ const TypedTest = () => {
             if (completion?.requiresNewWordRetake) {
               console.warn('completeSessionFromTest: day not complete — new-word retake required')
               setGradingError('이 날을 완료하려면 먼저 새 단어 시험을 통과해야 합니다.\n(Day not complete — pass the new-word test first.)')
+              setIsSubmitting(false)
               return
             }
             console.log('Session completed successfully from TypedTest')
@@ -913,30 +955,19 @@ const TypedTest = () => {
             // Don't fail the whole submit - attempt is already saved
           }
         }
+
+        // Write + finalize succeeded — land on the results screen.
+        finalizeResultsView()
+        setIsSubmitting(false)
+        } // end doWriteAndFinalize
+
+        pendingSaveRef.current = null
+        await doWriteAndFinalize()
+        return
       }
 
-      // Check if retake available
-      if (currentTestType === 'new' && summary.score < retakeThreshold) {
-        setCanRetake(true)
-      }
-
-      // Safe to drop local recovery now: grading + attempt + study_states all
-      // succeeded. Rolls over the per-session nonce so the next test launch
-      // gets a fresh attempt docId.
-      clearTestState(testId)
-
-      // Store for display
-      setTestResultsData({
-        score: summary.score, // Store as decimal (0-1), not percentage
-        correct: summary.correct,
-        total: summary.total,
-        failed: summary.failed,
-        gradedResults: gradingResult.data.results, // Include detailed grading for review
-        testType: currentTestType
-      })
-
-      setResults(gradingResult.data.results)
-      setShowResults(true)
+      // Practice mode (no durable write): show results directly.
+      finalizeResultsView()
     } catch (err) {
       console.error('All grading attempts failed:', err)
       setGradingError('Failed to grade test after 3 attempts. Your answers are saved.')
@@ -950,6 +981,16 @@ const TypedTest = () => {
   const handleRetryGrading = () => {
     setGradingError(null)
     handleSubmit() // Retry with preserved state
+  }
+
+  // Retry ONLY the durable write after a post-grade save failure. Re-invokes the
+  // stashed doWriteAndFinalize closure — does NOT call handleSubmit, so grading
+  // (the AI call) is never repeated. Idempotent on the stable attemptDocId.
+  const handleRetrySave = () => {
+    if (!pendingSaveRef.current) return
+    setSubmitError(null)
+    setIsSubmitting(true)
+    pendingSaveRef.current()
   }
 
   const handleRetake = async () => {
@@ -1554,18 +1595,33 @@ const TypedTest = () => {
                   </p>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
 
-              {submitError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 font-semibold mb-3">{submitError}</p>
-                  <button
-                    onClick={handleSubmit}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Retry Submission
-                  </button>
-                </div>
-              )}
+      {/* Write-failure modal: grading succeeded but the durable save failed. Standalone
+          (NOT nested in the isSubmitting modal — that was the bug that hid it) so it
+          actually renders. "Retry Save" re-runs the write only, never re-grades. */}
+      {submitError && !isSubmitting && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <AlertTriangle className="text-yellow-500 h-12 w-12" />
+              </div>
+              <h3 className="text-xl font-bold text-yellow-700 mb-4">
+                Couldn&apos;t Save Your Results
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                {submitError} Your answers are safe — this only retries saving (it won&apos;t re-grade).
+              </p>
+              <button
+                onClick={handleRetrySave}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Retry Save
+              </button>
             </div>
           </div>
         </div>

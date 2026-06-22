@@ -671,6 +671,16 @@ const MCQTest = () => {
             name: submitErr.name
           })
 
+          // Observability: non-transient write failures bypass withRetry's log; record
+          // them here so durable-write failures aren't invisible. Distinct event name so
+          // it doesn't double-count withRetry's `attempt_write_failed`.
+          logSystemEvent('attempt_write_failed_client', {
+            userId: user.uid, classId: classIdParam, listId,
+            studyDay: studyDay ?? null, sessionType: currentTestType, testType: 'mcq',
+            errCode: submitErr?.code || null, errName: submitErr?.name || null,
+            errMessage: String(submitErr?.message || '').slice(0, 300),
+          }, 'error')
+
           setSubmitError('Failed to save your test results. Please try again.')
           setSubmitting(false)
           console.log('[SUBMIT] ═══════════════════════════════════════')
