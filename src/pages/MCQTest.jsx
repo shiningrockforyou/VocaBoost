@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { doc, getDoc, updateDoc, Timestamp, collection, query, orderBy, getDocs } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
+import { SERVER_ATTEMPT_WRITE } from '../config/featureFlags'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -611,24 +613,50 @@ const MCQTest = () => {
 
         let result
         try {
-          result = await withRetry(
-            () => submitTestAttempt(
-              user.uid,
-              testId,
-              answerArray,
-              testWords.length,
-              classIdParam,
-              listId,
-              'mcq',
-              currentTestType,
-              studyDay || null,
-              passed,
-              sessionContext,
-              attemptDocId
-            ),
-            { maxRetries: 3, totalTimeoutMs: 15000 },
-            { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
-          )
+          if (SERVER_ATTEMPT_WRITE) {
+            // Durable write via Cloud Function (server scores against totalQuestions —
+            // skipped count as incorrect — and persists transactionally + idempotently).
+            const context = {
+              studentId: user.uid, classId: classIdParam, listId, testId,
+              studyDay: studyDay || null, sessionType: currentTestType, testType: 'mcq',
+              attemptDocId, totalQuestions: testWords.length,
+              isFirstDay: sessionContext?.isFirstDay ?? null,
+              listTitle: sessionContext?.listTitle ?? null,
+              segmentStartIndex: sessionContext?.segment?.startIndex ?? null,
+              segmentEndIndex: sessionContext?.segment?.endIndex ?? null,
+              interventionLevel: sessionContext?.interventionLevel ?? null,
+              wordsIntroduced: sessionContext?.wordsIntroduced ?? null,
+              wordsReviewed: sessionContext?.wordsReviewed ?? null,
+              newWordStartIndex: sessionContext?.newWordStartIndex ?? null,
+              newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
+            }
+            const submitVocabAttempt = httpsCallable(getFunctions(), 'submitVocabAttempt', { timeout: 30000 })
+            const resp = await withRetry(
+              () => submitVocabAttempt({ testType: 'mcq', context, attemptAnswers: answerArray }),
+              { maxRetries: 3, totalTimeoutMs: 15000 },
+              { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+            )
+            result = { id: resp.data.attemptId }
+          } else {
+            result = await withRetry(
+              () => submitTestAttempt(
+                user.uid,
+                testId,
+                answerArray,
+                testWords.length,
+                classIdParam,
+                listId,
+                'mcq',
+                currentTestType,
+                studyDay || null,
+                passed,
+                sessionContext,
+                attemptDocId
+              ),
+              { maxRetries: 3, totalTimeoutMs: 15000 },
+              { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+            )
+          }
 
           console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
         } catch (submitErr) {

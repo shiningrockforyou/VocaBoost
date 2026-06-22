@@ -15,6 +15,7 @@ import {
   completeSessionFromTest
 } from '../services/studyService'
 import { getOrCreateClassProgress } from '../services/progressService'
+import { SERVER_ATTEMPT_WRITE } from '../config/featureFlags'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -760,24 +761,61 @@ const TypedTest = () => {
 
         let result
         try {
-          result = await withRetry(
-            () => submitTypedTestAttempt(
-              user.uid,
-              testId,
-              words,
-              responses,
-              gradingResult.data.results,
-              classIdParam,
-              listId,
-              currentTestType,
-              studyDay || null,
-              passed,
-              sessionContext,
-              attemptDocId
-            ),
-            { maxRetries: 3, totalTimeoutMs: 15000 },
-            { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
-          )
+          if (SERVER_ATTEMPT_WRITE) {
+            // Durable write via Cloud Function (server builds the doc, scores, and
+            // persists transactionally + idempotently on attemptDocId). Same nonce-id
+            // so a retry/lost-response is an idempotent no-op, not a duplicate.
+            const attemptAnswers = words.map((word) => {
+              const g = gradingResult.data.results.find((r) => r.wordId === word.id) || {}
+              return {
+                wordId: word.id, word: word.word, correctAnswer: word.definition,
+                studentResponse: responses[word.id] || '',
+                isCorrect: g.isCorrect ?? false, aiReasoning: g.reasoning || '',
+                challengeStatus: null, challengeNote: null,
+                challengeReviewedBy: null, challengeReviewedAt: null,
+              }
+            })
+            const context = {
+              studentId: user.uid, classId: classIdParam, listId, testId,
+              studyDay: studyDay || null, sessionType: currentTestType, testType: 'typed',
+              attemptDocId, totalQuestions: words.length,
+              isFirstDay: sessionContext?.isFirstDay ?? null,
+              listTitle: sessionContext?.listTitle ?? null,
+              segmentStartIndex: sessionContext?.segment?.startIndex ?? null,
+              segmentEndIndex: sessionContext?.segment?.endIndex ?? null,
+              interventionLevel: sessionContext?.interventionLevel ?? null,
+              wordsIntroduced: sessionContext?.wordsIntroduced ?? null,
+              wordsReviewed: sessionContext?.wordsReviewed ?? null,
+              newWordStartIndex: sessionContext?.newWordStartIndex ?? null,
+              newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
+            }
+            const submitVocabAttempt = httpsCallable(getFunctions(), 'submitVocabAttempt', { timeout: 30000 })
+            const resp = await withRetry(
+              () => submitVocabAttempt({ testType: 'typed', context, attemptAnswers }),
+              { maxRetries: 3, totalTimeoutMs: 15000 },
+              { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+            )
+            result = { id: resp.data.attemptId }
+          } else {
+            result = await withRetry(
+              () => submitTypedTestAttempt(
+                user.uid,
+                testId,
+                words,
+                responses,
+                gradingResult.data.results,
+                classIdParam,
+                listId,
+                currentTestType,
+                studyDay || null,
+                passed,
+                sessionContext,
+                attemptDocId
+              ),
+              { maxRetries: 3, totalTimeoutMs: 15000 },
+              { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+            )
+          }
         } catch (submitErr) {
           // Attempt failed after retries — block progression, stay on page.
           // localStorage recovery is still intact; study_states untouched.

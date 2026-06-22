@@ -17,6 +17,7 @@ const Anthropic = require("@anthropic-ai/sdk").default;
 const {buildTestResult} = require("./scoring");
 
 admin.initializeApp();
+const db = admin.firestore();
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -60,6 +61,215 @@ function isSelfReferencing(studentResponse, word) {
   );
 }
 
+// ============================================================================
+// Server-side attempt write (Phase 1 — see PLAN_server_side_attempt_write_v2.md §13)
+// Moves the durable `attempts` write into Cloud Functions so a grade is never
+// lost when the client drops after grading. Backward-compatible: only engaged
+// when the client passes `writeContext`.
+// ============================================================================
+
+/**
+ * Normalize a stored attempt doc into the client API result shape.
+ * Stored `answers` rows use `aiReasoning` (typed) / `correct` (mcq); the client
+ * consumer (TestResults) expects `{ wordId, isCorrect, reasoning }`.
+ */
+function normalizeExistingAttempt(snap) {
+  const d = snap.data();
+  const rows = Array.isArray(d.answers) ? d.answers : [];
+  return {
+    results: rows.map((a) => ({
+      wordId: a.wordId,
+      isCorrect: a.isCorrect ?? a.correct ?? false,
+      reasoning: a.aiReasoning ?? a.reasoning ?? "",
+    })),
+    score: d.score,
+    passed: d.passed,
+    attemptId: snap.id,
+    alreadyWritten: true,
+  };
+}
+
+/**
+ * Ownership-checked existing-attempt lookup (§Codex). Guards the pre-AI /
+ * idempotency return so a guessed attemptDocId can't leak another student's
+ * attempt. Returns the snapshot if it belongs to this user + matches context,
+ * null if absent, throws HttpsError on ownership/context mismatch.
+ */
+async function readExistingAttemptForContext(uid, ctx) {
+  if (!ctx || !ctx.attemptDocId) return null;
+  const snap = await db.collection("attempts").doc(ctx.attemptDocId).get();
+  if (!snap.exists) return null;
+  const d = snap.data();
+  if (d.studentId !== uid) {
+    throw new HttpsError("permission-denied", "Attempt belongs to another user");
+  }
+  if (
+    (ctx.classId && d.classId && d.classId !== ctx.classId) ||
+    (ctx.listId && d.listId && d.listId !== ctx.listId) ||
+    (ctx.testType && d.testType && d.testType !== ctx.testType) ||
+    (ctx.sessionType && d.sessionType && d.sessionType !== ctx.sessionType)
+  ) {
+    throw new HttpsError("failed-precondition", "Attempt id reused across a different context");
+  }
+  return snap;
+}
+
+/**
+ * The single server-side attempt writer. Transactional + idempotent on the
+ * client-supplied deterministic `ctx.attemptDocId`. Computes score server-side
+ * against ctx.totalQuestions (NOT answered count — skipped count as incorrect),
+ * applies the review-always-passes rule, echoes the client anchor, and refuses
+ * to write an invalid new-word anchor.
+ *
+ * @param {string} uid
+ * @param {Object} ctx - { studentId, classId, listId, testId, studyDay, sessionType,
+ *   testType, attemptDocId, totalQuestions, newWordStartIndex, newWordEndIndex,
+ *   wordsIntroduced, segment*, interventionLevel, isFirstDay, listTitle, wordsReviewed }
+ * @param {Array} attemptAnswers - full answer rows (typed: isCorrect/aiReasoning; mcq: correct)
+ */
+async function writeAttemptTxn(uid, ctx, attemptAnswers) {
+  if (!ctx) throw new HttpsError("invalid-argument", "writeContext required");
+  if (uid !== ctx.studentId) {
+    throw new HttpsError("permission-denied", "uid does not match studentId");
+  }
+  for (const f of ["classId", "listId", "attemptDocId", "testType", "sessionType"]) {
+    if (!ctx[f]) throw new HttpsError("invalid-argument", `writeContext.${f} required`);
+  }
+
+  // Class doc: enrollment + passThreshold + teacherId.
+  const classSnap = await db.collection("classes").doc(ctx.classId).get();
+  if (!classSnap.exists) throw new HttpsError("not-found", "Class not found");
+  const classData = classSnap.data();
+  const enrolled =
+    (Array.isArray(classData.studentIds) && classData.studentIds.includes(uid));
+  if (!enrolled) {
+    // Fallback: the denormalized enrollment map on the user doc.
+    const userSnap = await db.collection("users").doc(uid).get();
+    const ec = userSnap.exists ? (userSnap.data().enrolledClasses || {}) : {};
+    if (!ec[ctx.classId]) {
+      throw new HttpsError("permission-denied", "Student not enrolled in class");
+    }
+  }
+  const assignment = (classData.assignments || {})[ctx.listId] || {};
+  const passThreshold = assignment.passThreshold ?? 95; // 0-100
+  const teacherId = classData.ownerTeacherId || null;
+
+  // Score against TOTAL questions presented, not answered (§Codex).
+  const correctCount = attemptAnswers.filter((a) => a.isCorrect ?? a.correct).length;
+  const totalQuestions = ctx.totalQuestions ?? attemptAnswers.length;
+  const skipped = Math.max(0, totalQuestions - attemptAnswers.length);
+  const scoreFraction = totalQuestions > 0 ? correctCount / totalQuestions : 0;
+  const score = Math.round(scoreFraction * 100); // 0-100
+  const passed = ctx.sessionType === "review" ? true : score >= passThreshold;
+
+  // Refuse to write an invalid new-word anchor (CS-2026-06-21): a passed `new`
+  // attempt is the CSD/TWI reconciliation anchor (twi = newWordEndIndex + 1).
+  if (
+    ctx.sessionType === "new" &&
+    !(Number.isInteger(ctx.newWordEndIndex) && ctx.newWordEndIndex >= 0)
+  ) {
+    throw new HttpsError("invalid-argument", "Missing/invalid newWordEndIndex for a new-word attempt");
+  }
+
+  const ref = db.collection("attempts").doc(ctx.attemptDocId);
+  return db.runTransaction(async (tx) => {
+    const existing = await tx.get(ref);
+    if (existing.exists) {
+      if (existing.data().studentId !== uid) {
+        throw new HttpsError("permission-denied", "Attempt belongs to another user");
+      }
+      return normalizeExistingAttempt(existing); // idempotent no-op
+    }
+    const attemptData = {
+      studentId: uid,
+      testId: ctx.testId || null,
+      testType: ctx.testType,
+      sessionType: ctx.sessionType,
+      studyDay: ctx.studyDay ?? null,
+      score, // 0-100
+      passed,
+      graded: true,
+      answers: attemptAnswers,
+      totalQuestions,
+      skipped,
+      retention: scoreFraction,
+      // credibility: deprecated server-side (no UI consumer — PLAN §13.4); echo if client sent one.
+      credibility: ctx.credibility ?? null,
+      classId: ctx.classId,
+      listId: ctx.listId,
+      teacherId,
+      // Echoed session context (anchor + display) — same fields db.js submit*Attempt flattens.
+      isFirstDay: ctx.isFirstDay ?? null,
+      listTitle: ctx.listTitle ?? null,
+      segmentStartIndex: ctx.segmentStartIndex ?? null,
+      segmentEndIndex: ctx.segmentEndIndex ?? null,
+      interventionLevel: ctx.interventionLevel ?? null,
+      wordsIntroduced: ctx.wordsIntroduced ?? null,
+      wordsReviewed: ctx.wordsReviewed ?? null,
+      newWordStartIndex: ctx.newWordStartIndex ?? null,
+      newWordEndIndex: ctx.newWordEndIndex ?? null,
+      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+      gradedAt: admin.firestore.FieldValue.serverTimestamp(),
+      writtenBy: "cloud-function",
+    };
+    tx.set(ref, attemptData);
+    return {attemptId: ctx.attemptDocId, score, passed, attemptWritten: true};
+  });
+}
+
+/**
+ * Shared write-only callable. Used by MCQ (graded client-side) and by the
+ * typed write-retry (when gradeTypedTest returned attemptWritten:false).
+ * `attemptAnswers` are the FULL stored rows so the doc is reconstructable
+ * without re-grading.
+ */
+exports.submitVocabAttempt = onCall({enforceAppCheck: false}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
+  const {context, attemptAnswers} = request.data || {};
+  if (!Array.isArray(attemptAnswers)) {
+    throw new HttpsError("invalid-argument", "attemptAnswers must be an array");
+  }
+  const uid = request.auth.uid;
+  // Idempotency / ownership: if already written, return it (no duplicate).
+  const existing = await readExistingAttemptForContext(uid, context);
+  if (existing) return normalizeExistingAttempt(existing);
+  const r = await writeAttemptTxn(uid, context, attemptAnswers);
+  return {
+    results: attemptAnswers.map((a) => ({
+      wordId: a.wordId,
+      isCorrect: a.isCorrect ?? a.correct ?? false,
+      reasoning: a.aiReasoning ?? a.reasoning ?? "",
+    })),
+    score: r.score,
+    passed: r.passed,
+    attemptId: r.attemptId,
+    alreadyWritten: r.alreadyWritten ?? false,
+  };
+});
+
+/**
+ * Build the full typed attempt rows by merging the input answers (word,
+ * correctDefinition, studentResponse) with grading results (isCorrect,
+ * reasoning). Input `correctDefinition` → stored `correctAnswer`.
+ */
+function buildTypedAttemptAnswers(answers, gradeResults) {
+  return answers.map((a) => {
+    const g = gradeResults.find((r) => r.wordId === a.wordId) || {};
+    return {
+      wordId: a.wordId,
+      word: a.word,
+      correctAnswer: a.correctDefinition,
+      studentResponse: a.studentResponse,
+      isCorrect: g.isCorrect ?? false,
+      aiReasoning: g.reasoning || "",
+      challengeStatus: null,
+      challengeNote: null,
+      challengeReviewedBy: null,
+      challengeReviewedAt: null,
+    };
+  });
+}
+
 /**
  * Cloud Function to grade typed vocabulary definitions using Claude Haiku
  *
@@ -75,23 +285,61 @@ exports.gradeTypedTest = onCall(
   async (request) => {
     // Validate authentication
     if (!request.auth) {
-      throw new Error("Unauthenticated - Authentication required");
+      throw new HttpsError("unauthenticated", "Authentication required");
     }
 
-    const {answers} = request.data;
+    const {answers, writeContext} = request.data;
+    const uid = request.auth.uid;
 
     // Validate input
     if (!Array.isArray(answers)) {
-      throw new Error("Invalid input: answers must be an array");
+      throw new HttpsError("invalid-argument", "answers must be an array");
     }
 
     if (answers.length === 0) {
-      throw new Error("Invalid input: answers array cannot be empty");
+      throw new HttpsError("invalid-argument", "answers array cannot be empty");
     }
 
     if (answers.length > 100) {
-      throw new Error("Invalid input: maximum 100 answers per request");
+      throw new HttpsError("invalid-argument", "maximum 100 answers per request");
     }
+
+    // PRE-AI idempotency (§12.2): if this attempt is already written, return it
+    // BEFORE spending Anthropic tokens. Ownership-checked (§Codex).
+    if (writeContext) {
+      const existing = await readExistingAttemptForContext(uid, writeContext);
+      if (existing) return normalizeExistingAttempt(existing);
+    }
+
+    // Persist the graded attempt server-side when writeContext is supplied, else
+    // return grade-only (backward-compatible). On write failure, return the grade
+    // (NOT discarded/re-billed) plus the full rows so the client retries the
+    // write only — never re-grading.
+    const finishGrading = async (gradeResults) => {
+      if (!writeContext) return {results: gradeResults};
+      const attemptAnswers = buildTypedAttemptAnswers(answers, gradeResults);
+      try {
+        const r = await writeAttemptTxn(uid, writeContext, attemptAnswers);
+        return {
+          results: gradeResults,
+          score: r.score,
+          passed: r.passed,
+          attemptId: r.attemptId,
+          attemptWritten: r.attemptWritten ?? true,
+          alreadyWritten: r.alreadyWritten ?? false,
+        };
+      } catch (writeErr) {
+        logger.error("Typed attempt write failed (grade preserved)", {
+          uid, attemptDocId: writeContext.attemptDocId, error: writeErr.message,
+        });
+        return {
+          results: gradeResults,
+          attemptAnswers,
+          attemptWritten: false,
+          writeError: writeErr.message,
+        };
+      }
+    };
 
     // Validate answer structure. Collect ALL malformed answers instead of
     // throwing on the first one as a generic Error (which surfaced to students
@@ -150,11 +398,9 @@ exports.gradeTypedTest = onCall(
         `Grading ${answersToGrade.length} answers, ${blankAnswers.length} blank, ${selfRefAnswers.length} self-ref for user ${request.auth.uid}`,
       );
 
-      // If no answers need AI grading, skip API call
+      // If no answers need AI grading, skip API call (§12.1: still writes via finishGrading)
       if (answersToGrade.length === 0) {
-        return {
-          results: [...blankResults, ...selfRefResults],
-        };
+        return finishGrading([...blankResults, ...selfRefResults]);
       }
 
       // Initialize Anthropic client
@@ -385,9 +631,9 @@ Do not include "reasoning" for correct answers.
 
       logger.info(`Successfully graded ${validatedResults.length} answers (normalized)`);
 
-      return {
-        results: validatedResults,
-      };
+      // validatedResults already spans ALL answers (built from answers.map over the
+      // combined AI+blank+selfRef lookup above), so it IS the full final-results set (§12.1).
+      return finishGrading(validatedResults);
     } catch (error) {
       logger.error("Error grading typed test", {
         error: error.message,
@@ -395,13 +641,12 @@ Do not include "reasoning" for correct answers.
         userId: request.auth?.uid,
       });
 
-      // Re-throw known errors
-      if (error.message.includes("Unauthenticated") || error.message.includes("Invalid input")) {
+      // Preserve structured errors (HttpsError from write/validation) so the client
+      // sees a stable code instead of an opaque functions/internal.
+      if (error instanceof HttpsError) {
         throw error;
       }
-
-      // Return generic error for unknown errors
-      throw new Error(`Failed to grade test: ${error.message}`);
+      throw new HttpsError("internal", `Failed to grade test: ${error.message}`);
     }
   }
 );
