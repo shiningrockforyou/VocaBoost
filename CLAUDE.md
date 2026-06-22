@@ -4,6 +4,16 @@
 1. Always log code changes to `change_action_log.md` using the table format: `| Date | File | Change |`
 2. Always consider industry convention / best practice when coming up with solutions or plans
 3. Always return the relevant/recent part of the plan in chat so user can see it easily
+4. Log every customer-support / data-fix event to `SUPPORT_RUNBOOK.md` (the CS event log) — in addition to `change_action_log.md` for any code change. Code changes → change log; CS/data interventions → SUPPORT_RUNBOOK.
+
+## Customer Support / Ops
+- **`SUPPORT_RUNBOOK.md` is the source of truth for CS work** — read it first. It holds the defined-scripts catalog, common-problem fixes, and the CS event log. Append a dated `CS-YYYY-MM-DD` entry there for every support intervention.
+- **Use the defined scripts in `scripts/cs/`** instead of writing one-off scratch scripts:
+  - `scripts/cs/data-integrity-sweep.mjs` — READ-ONLY cohort scan for known corruption signatures. Run it BEFORE and AFTER any data fix. `node scripts/cs/data-integrity-sweep.mjs [classNameRegex=26SM]`
+  - `scripts/cs/manual-pass.mjs` — unstick a student with a VALID reconciliation anchor (never hand-write a manual attempt; this guarantees `newWordEndIndex` etc.).
+- **Diagnose read-only first; write only a derived/verified value.** Admin scripts use `scripts/serviceAccountKey.json` (gitignored — never commit) and run from `/app` via `NODE_PATH=/app/node_modules node ...`.
+- **A passed `new` attempt is the CSD/TWI reconciliation anchor** (`twi = newWordEndIndex + 1`). Any script writing one MUST set `newWordEndIndex`/`newWordStartIndex`/`wordsIntroduced`/`testId`, or it creates an "invalid anchor" (see CS-2026-06-21). The app logs `csd_anchor_invalid` to `system_logs` when it sees one.
+- 26SM = real active cohort (fix only for genuine CS). 25WT = audit sandbox.
 
 ## Tech Stack
 - React 19 + Vite 7 + React Router v7
