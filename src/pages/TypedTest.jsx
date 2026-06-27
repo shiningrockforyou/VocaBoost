@@ -588,7 +588,7 @@ const TypedTest = () => {
 
   // AI grading with retry logic + diagnostic logging (connection-error investigation).
   // Logs go to system_logs via logSystemEvent (non-blocking). No behavior change.
-  const gradeWithRetry = async (answersToGrade) => {
+  const gradeWithRetry = async (answersToGrade, gradeContext = null) => {
     const MAX_RETRIES = 3
     const RETRY_DELAY_MS = 10000  // 10 seconds
     const TIMEOUT_MS = 90000      // 90 seconds per attempt
@@ -620,7 +620,9 @@ const TypedTest = () => {
 
         // Pass listId + classId so the server resolves canonical definitions itself
         // (server-authoritative answer key) and can authorize the resolution.
-        const result = await gradeTypedTest({ answers: answersToGrade, listId, classId: classIdParam })
+        // gradeContext (G2): lets the server mint a gradeToken binding the AI grade to this
+        // attempt, so a write-failed retry can persist server-authentic isCorrect. Harmless if absent.
+        const result = await gradeTypedTest({ answers: answersToGrade, listId, classId: classIdParam, gradeContext })
 
         // Succeeded — if it needed a retry, record that (tells us retries are saving people)
         if (attempt > 1) {
@@ -687,8 +689,17 @@ const TypedTest = () => {
         studentResponse: responses[word.id] || '',
       }))
 
+      // G2: bind the grade to this attempt (deterministic attemptDocId — same nonce reused at the
+      // write below) so the server can mint a gradeToken. totalQuestions = words.length to match the
+      // write-time context. Used only when GRADE_TOKEN_ENFORCED is on; harmless otherwise.
+      const gradeAttemptDocId = `${user.uid}_${testId}_${getOrCreateAttemptNonce(testId)}`
+      const gradeContext = {
+        attemptDocId: gradeAttemptDocId, classId: classIdParam, listId, testId,
+        testType: 'typed', totalQuestions: words.length,
+      }
+
       // Call Cloud Function for AI grading with retry logic
-      const gradingResult = await gradeWithRetry(answersToGrade)
+      const gradingResult = await gradeWithRetry(answersToGrade, gradeContext)
 
       // Build results array for processTestResults
       const resultsArray = gradingResult.data.results.map(r => ({
@@ -821,8 +832,12 @@ const TypedTest = () => {
               newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
             }
             const submitVocabAttempt = httpsCallable(getFunctions(), 'submitVocabAttempt', { timeout: 30000 })
+            // G2: forward the server gradeToken so the write persists server-authentic isCorrect
+            // (correctnessSource:'server-ai'); required once GRADE_TOKEN_ENFORCED is on, ignored otherwise.
+            const gradeToken = gradingResult.data?.gradeToken ?? null
+            const gradeTokenCreatedAt = gradingResult.data?.gradeTokenCreatedAt ?? null
             const resp = await withRetry(
-              () => submitVocabAttempt({ testType: 'typed', context, attemptAnswers }),
+              () => submitVocabAttempt({ testType: 'typed', context, attemptAnswers, gradeToken, gradeTokenCreatedAt }),
               { maxRetries: 3, totalTimeoutMs: 15000 },
               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
             )

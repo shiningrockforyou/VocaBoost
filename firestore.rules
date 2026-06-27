@@ -93,6 +93,11 @@ service cloud.firestore {
     }
 
     // ATTEMPTS
+    // ⚠️ The attempt-write lockdown (W3) is NOT applied here yet — it is STAGED in
+    //    `docs/plans/W3_attempts_lockdown.rules.md` and must be applied as the FINAL deploy step,
+    //    only after SERVER_CHALLENGE_WRITE + SERVER_REVIEW_MARKER are ON + validated. Keeping the
+    //    live rules unchanged keeps this file safe to deploy at any time (Codex: don't carry the
+    //    lockdown live while the client still falls back to direct attempt writes).
     match /attempts/{attemptId} {
       allow read: if isAuthenticated() && (
         resource.data.studentId == request.auth.uid ||

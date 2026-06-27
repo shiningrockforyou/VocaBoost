@@ -13,6 +13,7 @@ const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 const Anthropic = require("@anthropic-ai/sdk").default;
 const {buildTestResult} = require("./scoring");
 
@@ -33,6 +34,62 @@ setGlobalOptions({ maxInstances: 10 });
 
 // Define secret for Anthropic API key
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
+
+// G2 (PLAN_server_authoritative_grading.md): HMAC secret binding an AI-graded typed result
+// to its attempt, so the write-failed-after-grade retry (via submitVocabAttempt) can persist
+// the SERVER-graded isCorrect without re-trusting client values. Set in Secret Manager.
+const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
+// Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
+// (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
+// only after the fn + client token-threading are deployed + validated (own Codex pass first).
+const GRADE_TOKEN_ENFORCED = false;
+// GRADE_TOKEN_MINT: gates whether gradeTypedTest actually mints tokens (touches GRADE_TOKEN_SECRET).
+// Default OFF so deploying this code does NOT add a live-grading dependency on the secret (Codex):
+// with both flags off, typed grading never calls gradeTokenSecret.value(), so a missing/misconfigured
+// secret cannot break grading. Rollout: create GRADE_TOKEN_SECRET → flip GRADE_TOKEN_MINT (tokens flow,
+// validate round-trip, still no enforcement/marker) → flip GRADE_TOKEN_ENFORCED (verify+stamp+overwrite).
+// Enforcement implies minting (mintTokens = MINT || ENFORCED) so the two can't desync into rejection.
+const GRADE_TOKEN_MINT = false;
+const GRADE_TOKEN_VERSION = 1;
+
+/**
+ * Canonical, normalized serialization of the signed grade artifact (G2). Order-independent
+ * (rows sorted by wordId) so reordering can't break it; only the grade-bearing subset is signed
+ * (display/gradebook fields like word/correctAnswer are server-reconstructed on retry, not signed).
+ */
+function canonicalGradeArtifact(a) {
+  const rows = (a.rows || [])
+    .map((r) => ({
+      wordId: String(r.wordId ?? ""),
+      studentResponse: (r.studentResponse ?? "").toString(),
+      isCorrect: !!(r.isCorrect ?? r.correct),
+      aiReasoning: (r.aiReasoning ?? r.reasoning ?? "").toString(),
+    }))
+    .sort((x, y) => (x.wordId < y.wordId ? -1 : x.wordId > y.wordId ? 1 : 0));
+  return JSON.stringify({
+    v: GRADE_TOKEN_VERSION,
+    uid: a.uid,
+    attemptDocId: a.attemptDocId,
+    classId: a.classId ?? null,
+    listId: a.listId ?? null,
+    testId: a.testId ?? null,
+    testType: a.testType ?? null,
+    totalQuestions: a.totalQuestions ?? null,
+    createdAt: a.createdAt,
+    rows,
+  });
+}
+function signGradeArtifact(secret, artifact) {
+  return crypto.createHmac("sha256", secret).update(canonicalGradeArtifact(artifact)).digest("hex");
+}
+// Constant-time compare; returns true iff the presented token matches the recomputed one.
+function verifyGradeToken(secret, artifact, presentedToken) {
+  if (!presentedToken || typeof presentedToken !== "string") return false;
+  const expected = signGradeArtifact(secret, artifact);
+  const a = Buffer.from(expected);
+  const b = Buffer.from(presentedToken);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 /**
  * Checks if a student response is effectively blank (no real answer).
@@ -213,7 +270,7 @@ async function assertCanWriteAttempt(uid, ctx) {
  *   wordsIntroduced, segment*, interventionLevel, isFirstDay, listTitle, wordsReviewed }
  * @param {Array} attemptAnswers - full answer rows (typed: isCorrect/aiReasoning; mcq: correct)
  */
-async function writeAttemptTxn(uid, ctx, attemptAnswers, auth) {
+async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
   // Validate shape + ownership + enrollment + list entitlement. submitVocabAttempt already
   // authorized (before sanitize) and passes the result through to avoid a duplicate read;
   // any other caller (or none) falls back to authorizing here. Self-contained either way.
@@ -234,6 +291,19 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth) {
     !(Number.isInteger(ctx.newWordEndIndex) && ctx.newWordEndIndex >= 0)
   ) {
     throw new HttpsError("invalid-argument", "Missing/invalid newWordEndIndex for a new-word attempt");
+  }
+
+  // WRITER-API GUARD (G2 §8.4, Codex-Critical): the ONE true writer structurally refuses a TYPED
+  // grade-bearing write that lacks server-graded provenance — so neither the gradeTypedTest direct-write
+  // path (serverGraded=false) NOR submitVocabAttempt can persist a typed grade from unresolved/client
+  // definitions once enforcement is live. MCQ is exempt (correctness authority is Phase E — no marker yet).
+  if (
+    GRADE_TOKEN_ENFORCED &&
+    ctx.testType === "typed" &&
+    opts?.correctnessSource !== "server-ai"
+  ) {
+    throw new HttpsError("permission-denied",
+      "Typed grade write requires server-graded provenance (correctnessSource:'server-ai').");
   }
 
   const ref = db.collection("attempts").doc(ctx.attemptDocId);
@@ -273,6 +343,11 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth) {
       wordsReviewed: ctx.wordsReviewed ?? null,
       newWordStartIndex: ctx.newWordStartIndex ?? null,
       newWordEndIndex: ctx.newWordEndIndex ?? null,
+      // G2: provenance of the correctness in `answers[]`. SERVER-set only (never from ctx/client).
+      // 'server-ai' = AI-graded by gradeTypedTest (trusted). null = client-computed (MCQ) or legacy —
+      // downstream (override) treats null as untrusted. No 'server-mcq' until Phase E (MCQ stays client-
+      // computed; selectedOptionId is forgeable — see PLAN_server_authoritative_grading.md §1).
+      correctnessSource: opts?.correctnessSource ?? null,
       submittedAt: admin.firestore.FieldValue.serverTimestamp(),
       gradedAt: admin.firestore.FieldValue.serverTimestamp(),
       writtenBy: "cloud-function",
@@ -288,9 +363,9 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth) {
  * `attemptAnswers` are the FULL stored rows so the doc is reconstructable
  * without re-grading.
  */
-exports.submitVocabAttempt = onCall({enforceAppCheck: false}, async (request) => {
+exports.submitVocabAttempt = onCall({enforceAppCheck: false, secrets: [gradeTokenSecret]}, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
-  const {context, attemptAnswers} = request.data || {};
+  const {context, attemptAnswers, gradeToken, gradeTokenCreatedAt} = request.data || {};
   if (!Array.isArray(attemptAnswers)) {
     throw new HttpsError("invalid-argument", "attemptAnswers must be an array");
   }
@@ -303,13 +378,57 @@ exports.submitVocabAttempt = onCall({enforceAppCheck: false}, async (request) =>
   // here means the caller is entitled (assigned OR proven orphan) — safe to backfill either
   // way (orphans are exactly the old-thin-marker recovery case worth backfilling).
   const auth = await assertCanWriteAttempt(uid, context);
+
+  // G2 — typed correctness provenance. Verify the gradeToken minted by gradeTypedTest; valid ⇒ the
+  // rows' isCorrect is server-authentic (AI-graded) → stamp correctnessSource:'server-ai' and
+  // RECONSTRUCT display fields (overwrite word/correctAnswer from the list, ignore client values).
+  // ENFORCEMENT is staged (GRADE_TOKEN_ENFORCED): when off, behaves as today (no rejection, no marker);
+  // when on, a typed write without a valid token is rejected. MCQ is unaffected (no token, no marker —
+  // client-computed correctness remains a named residual until Phase E).
+  let correctnessSource = null;
+  let tokenOk = false;
+  const GRADE_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // retry should be near-immediate; 24h is generous
+  if (context?.testType === "typed" && gradeToken && Number.isFinite(gradeTokenCreatedAt)) {
+    // Enforce a short TTL (Codex): createdAt is signed, but must also be fresh.
+    const fresh = (Date.now() - gradeTokenCreatedAt) <= GRADE_TOKEN_TTL_MS &&
+      gradeTokenCreatedAt <= Date.now() + 60000; // tolerate ~1m clock skew, reject future-dated
+    if (fresh) {
+      try {
+        tokenOk = verifyGradeToken(gradeTokenSecret.value(), {
+          uid,
+          attemptDocId: context.attemptDocId,
+          classId: context.classId ?? null,
+          listId: context.listId ?? null,
+          testId: context.testId ?? null,
+          testType: "typed",
+          totalQuestions: context.totalQuestions ?? null,
+          createdAt: gradeTokenCreatedAt,
+          rows: attemptAnswers,
+        }, gradeToken);
+      } catch (verifyErr) {
+        // Secret/verify problem → treat as unverified (tokenOk stays false). With enforcement on this
+        // rejects (safe); with it off it's a no-op. Never throws past here on a secret hiccup.
+        logger.error("gradeToken verify failed", {uid, error: verifyErr.message});
+        tokenOk = false;
+      }
+    }
+    // Stamp the trusted marker ONLY when enforcement is live (Codex-Medium): don't create
+    // server-ai markers before the W3 rules lockdown is deployed.
+    if (tokenOk && GRADE_TOKEN_ENFORCED) correctnessSource = "server-ai";
+  }
+  if (GRADE_TOKEN_ENFORCED && context?.testType === "typed" && !tokenOk) {
+    throw new HttpsError("permission-denied",
+      "Typed attempt requires a valid, fresh server grade token (re-grade and retry).");
+  }
   // Backfill canonical correctAnswer for a client carrying an OLD thin recovery marker
   // (would otherwise write correctAnswer: undefined); coalesce all fields to non-undefined.
-  // Protects typed AND mcq (shared write path).
-  const rows = await sanitizeStoredRows(context.listId, attemptAnswers);
+  // Token-verified typed retry → OVERWRITE display fields from Firestore (authoritative, §8.1) — but only
+  // once enforcement is live, so GRADE_TOKEN_ENFORCED=false is a TRUE no-op vs. today (Codex-Medium).
+  const rows = await sanitizeStoredRows(context.listId, attemptAnswers,
+    {overwrite: tokenOk && GRADE_TOKEN_ENFORCED});
   // Pass the auth result through so writeAttemptTxn doesn't re-authorize (saves a duplicate
   // class-doc + orphan read per write).
-  const r = await writeAttemptTxn(uid, context, rows, auth);
+  const r = await writeAttemptTxn(uid, context, rows, auth, {correctnessSource});
   return {
     results: rows.map((a) => ({
       wordId: a.wordId,
@@ -321,6 +440,149 @@ exports.submitVocabAttempt = onCall({enforceAppCheck: false}, async (request) =>
     attemptId: r.attemptId,
     alreadyWritten: r.alreadyWritten ?? false,
   };
+});
+
+/**
+ * markReviewComplete (server-side) — PLAN_attempt_write_lockdown.md W2.
+ *
+ * Writes the empty-review "automarker" attempt server-side (was a client setDoc at
+ * DailySessionFlow.jsx:962). Needed so that, once W3 sets attempts `create: false`, the
+ * day-completion marker (CSD reconciliation counts a Day-2+ day complete only when a day-N
+ * review attempt exists) is still written. Deterministic id ⇒ idempotent (re-entry can't dup).
+ */
+exports.markReviewComplete = onCall({enforceAppCheck: false}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
+  const uid = request.auth.uid;
+  const {classId, listId, dayNumber} = request.data || {};
+  if (!classId || typeof classId !== "string") {
+    throw new HttpsError("invalid-argument", "classId is required");
+  }
+  if (!listId || typeof listId !== "string") {
+    throw new HttpsError("invalid-argument", "listId is required");
+  }
+  if (!Number.isInteger(dayNumber) || dayNumber <= 1) {
+    // Matches the client guard (markers only for Day 2+; Day 1 completes via the new test).
+    throw new HttpsError("invalid-argument", "dayNumber must be an integer > 1");
+  }
+  const markerId = `${uid}_${classId}_${listId}_day${dayNumber}_review_automarker`;
+  // Enrollment/entitlement (same gate as attempt writes). assertCanWriteAttempt requires a FULL ctx
+  // (studentId + attemptDocId + testType + sessionType), not just {classId,listId} (Codex-Critical:
+  // the partial ctx always threw invalid-argument). Provide the marker's full shape.
+  const auth = await assertCanWriteAttempt(uid, {
+    studentId: uid,
+    classId,
+    listId,
+    attemptDocId: markerId,
+    testType: "mcq",
+    sessionType: "review",
+  });
+  const ref = db.collection("attempts").doc(markerId);
+  // Idempotent: if it exists (and is ours), no-op; else write.
+  const existing = await ref.get();
+  if (existing.exists) {
+    if (existing.data().studentId !== uid) {
+      throw new HttpsError("permission-denied", "Marker belongs to another user");
+    }
+    return {success: true, alreadyWritten: true, attemptId: markerId};
+  }
+  await ref.set({
+    studentId: uid,
+    teacherId: auth.teacherId ?? null,
+    classId,
+    listId,
+    studyDay: dayNumber,
+    testType: "mcq",
+    sessionType: "review",
+    score: 100,
+    passed: true,
+    totalQuestions: 0,
+    correctCount: 0,
+    answers: [],
+    autoCompleted: true,
+    manualReviewNote: "Auto-completed: no review available — all segment words mastered (21-day rest).",
+    submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+    writtenBy: "cloud-function",
+  });
+  return {success: true, alreadyWritten: false, attemptId: markerId};
+});
+
+/**
+ * Server port of the client `getAvailableChallengeTokens` (db.js:177) — count
+ * ACTIVE rejections only (status==='rejected' && replenishAt in the future),
+ * max 5 tokens. Keep byte-parity with the client or token semantics drift.
+ */
+function availableChallengeTokens(challengeHistory) {
+  const now = Date.now();
+  const activeRejections = (challengeHistory || []).filter(
+    (h) => h.status === "rejected" && (h.replenishAt?.toMillis?.() ?? 0) > now,
+  ).length;
+  return Math.max(0, 5 - activeRejections);
+}
+
+/**
+ * submitChallenge (server-side) — replaces the client-side db.js:submitChallenge.
+ *
+ * Purpose (PLAN_attempt_write_lockdown.md W1 / NEED_TO_FIX #1c): make the function the
+ * ONLY writer of `attempts.answers` so a student can no longer forge `answers[].isCorrect`
+ * via a direct Firestore write (which `reviewChallenge` would then launder into a passing
+ * score). This callable touches ONLY the challenge metadata on one answer — never `isCorrect`.
+ *
+ * One Admin-SDK transaction over users/{uid}.challenges.history (append) + attempts/{id}.answers[i]
+ * (set challengeStatus/challengeNote). All gates (ownership, token re-check, already-pending) are
+ * INSIDE the txn so a retry can't double-append history. uid is request.auth.uid (server-trusted).
+ */
+exports.submitChallenge = onCall({enforceAppCheck: false}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
+  const uid = request.auth.uid; // SERVER-trusted; never a client-supplied uid
+  const {attemptId, wordId, note} = request.data || {};
+  if (!attemptId || typeof attemptId !== "string") {
+    throw new HttpsError("invalid-argument", "attemptId is required");
+  }
+  if (!wordId || typeof wordId !== "string") {
+    throw new HttpsError("invalid-argument", "wordId is required");
+  }
+  const cleanNote = (typeof note === "string" ? note : "").slice(0, 1000);
+
+  const attemptRef = db.collection("attempts").doc(attemptId);
+  const userRef = db.collection("users").doc(uid);
+  const REPLENISH_MS = 30 * 24 * 60 * 60 * 1000;
+
+  return db.runTransaction(async (tx) => {
+    // All reads first (transaction rule).
+    const [attemptSnap, userSnap] = await Promise.all([tx.get(attemptRef), tx.get(userRef)]);
+    if (!attemptSnap.exists) throw new HttpsError("not-found", "Attempt not found");
+    if (!userSnap.exists) throw new HttpsError("not-found", "User not found");
+    const attempt = attemptSnap.data();
+    if (attempt.studentId !== uid) {
+      throw new HttpsError("permission-denied", "This is not your attempt");
+    }
+    const answers = Array.isArray(attempt.answers) ? attempt.answers : [];
+    const idx = answers.findIndex((a) => a.wordId === wordId);
+    if (idx === -1) throw new HttpsError("not-found", "Answer not found in attempt");
+    // Idempotency: already pending → no-op success (a retry can't double-append history).
+    if (answers[idx].challengeStatus === "pending") {
+      return {success: true, alreadyPending: true};
+    }
+    // Server-side token re-check (matches client getAvailableChallengeTokens).
+    const history = userSnap.data().challenges?.history || [];
+    if (availableChallengeTokens(history) <= 0) {
+      throw new HttpsError("failed-precondition", "No challenge tokens available");
+    }
+    const now = admin.firestore.Timestamp.now();
+    const replenishAt = admin.firestore.Timestamp.fromMillis(now.toMillis() + REPLENISH_MS);
+    // Write A: challenge metadata on the one answer ONLY (never isCorrect/score/passed).
+    const updatedAnswers = answers.slice();
+    updatedAnswers[idx] = {
+      ...updatedAnswers[idx],
+      challengeStatus: "pending",
+      challengeNote: cleanNote || null,
+    };
+    tx.update(attemptRef, {answers: updatedAnswers});
+    // Write B: append the challenge-history entry (same shape as the old client write).
+    const entry = {attemptId, wordId, challengedAt: now, replenishAt, status: "pending"};
+    tx.update(userRef, {"challenges.history": [...history, entry]});
+    return {success: true, availableTokens: availableChallengeTokens(history) - 1};
+  });
 });
 
 /**
@@ -355,19 +617,27 @@ function buildTypedAttemptAnswers(answers, gradeResults) {
  * hole of trusting a client-supplied answer key. Client values are fallback-only (unresolved
  * word / missing listId). One batched getAll(≤100 refs). Caller must authorize listId first.
  */
+// Returns {answers, allResolved}. allResolved is true ONLY if every wordId was resolved from
+// Firestore (so the correctDefinition is server-authoritative for ALL rows). Callers that mint a
+// trust token (G2) require allResolved — an unresolved row keeps the client-supplied definition,
+// which must NOT be certifiable (Codex: gradeToken could otherwise certify a forged answer key).
 async function resolveAnswerDefinitions(listId, answers) {
-  if (!listId) return answers;
+  if (!listId) return {answers, allResolved: false};
   const ids = [...new Set(answers.map((a) => a.wordId).filter(Boolean))];
-  if (ids.length === 0) return answers;
+  if (ids.length === 0) return {answers, allResolved: false};
   const refs = ids.map((id) =>
     db.collection("lists").doc(listId).collection("words").doc(id));
   const byId = new Map();
   (await db.getAll(...refs)).forEach((s) => {
     if (s.exists) byId.set(s.id, s.data());
   });
-  return answers.map((a) => {
+  let allResolved = true;
+  const resolved = answers.map((a) => {
     const w = byId.get(a.wordId);
-    if (!w) return a; // unresolved → keep client fallback
+    if (!w) {
+      allResolved = false;
+      return a; // unresolved → keep client fallback (NOT certifiable)
+    }
     return {
       ...a,
       word: a.word || w.word,
@@ -375,6 +645,7 @@ async function resolveAnswerDefinitions(listId, answers) {
       koreanDefinition: (w.definitions && w.definitions.ko) ?? a.koreanDefinition,
     };
   });
+  return {answers: resolved, allResolved};
 }
 
 /**
@@ -419,7 +690,12 @@ async function callerMayResolveList(uid, classId, listId) {
  * preserved) and coalesce every field to non-undefined. Covers typed AND mcq (shared write path).
  * Caller MUST authorize first (assertCanWriteAttempt) — these are Admin-SDK reads.
  */
-async function sanitizeStoredRows(listId, rows) {
+async function sanitizeStoredRows(listId, rows, opts) {
+  // opts.overwrite (G2 typed-retry reconstruction): when true, OVERWRITE display/gradebook fields
+  // (word, correctAnswer) from Firestore — don't trust client values. Default = backfill-when-missing
+  // (the original behavior). The default `||` preserves a non-empty client value; overwrite mode
+  // ignores it, so a tampered correctAnswer/word can't survive a token-verified retry.
+  const overwrite = opts?.overwrite === true;
   const byId = new Map();
   if (listId) {
     const ids = [...new Set(rows.map((a) => a.wordId).filter(Boolean))];
@@ -431,15 +707,35 @@ async function sanitizeStoredRows(listId, rows) {
       });
     }
   }
+  // Overwrite mode (token-verified typed retry): every row MUST resolve from Firestore — do NOT
+  // fall back to client word/correctAnswer (Codex). Reject if any wordId is unresolved.
+  if (overwrite) {
+    const missing = rows.map((a) => a.wordId).filter((id) => id && !byId.has(id));
+    if (missing.length) {
+      throw new HttpsError("failed-precondition",
+        `Cannot reconstruct attempt: unresolved list words [${[...new Set(missing)].join(", ")}]`);
+    }
+  }
   return rows.map((a) => {
     const w = byId.get(a.wordId);
     return {
       ...a,
-      word: a.word || (w && w.word) || "",
-      correctAnswer: a.correctAnswer || (w && w.definition) || "",
+      // Overwrite mode: authoritative list values (w guaranteed present by the guard above).
+      // Default mode: backfill-when-missing (preserve non-empty client value, e.g. MCQ option text).
+      word: overwrite ? (w.word || "") : (a.word || (w && w.word) || ""),
+      correctAnswer: overwrite ? (w.definition || "") : (a.correctAnswer || (w && w.definition) || ""),
       studentResponse: a.studentResponse || "",
       isCorrect: a.isCorrect ?? a.correct ?? false,
       aiReasoning: a.aiReasoning ?? a.reasoning ?? "",
+      // Challenge metadata is NEVER client-set on attempt CREATE (Codex): only submitChallenge (W1)
+      // / reviewChallenge add it later (with token + history). Normalize to null so a forged
+      // `challengeStatus:'pending'` can't be injected at create time, bypassing that workflow.
+      // (These override the client values spread by `...a` above; other unrecognized row fields are
+      // inert — nothing reads them — but the challenge fields ARE read by reviewChallenge, so strip them.)
+      challengeStatus: null,
+      challengeNote: null,
+      challengeReviewedBy: null,
+      challengeReviewedAt: null,
     };
   });
 }
@@ -453,7 +749,7 @@ async function sanitizeStoredRows(listId, rows) {
  */
 exports.gradeTypedTest = onCall(
   {
-    secrets: [anthropicApiKey],
+    secrets: [anthropicApiKey, gradeTokenSecret],
     enforceAppCheck: false,
   },
   async (request) => {
@@ -462,7 +758,11 @@ exports.gradeTypedTest = onCall(
       throw new HttpsError("unauthenticated", "Authentication required");
     }
 
-    const {answers, writeContext} = request.data;
+    // `gradeContext` (G2): the attempt-binding context (attemptDocId + classId/listId/testId/
+    // testType/totalQuestions) the client also sends to submitVocabAttempt. Used ONLY to mint a
+    // gradeToken binding the AI grade to this attempt; gradeTypedTest does not write unless
+    // `writeContext` is present (current client flow grades here, writes via submitVocabAttempt).
+    const {answers, writeContext, gradeContext} = request.data;
     const uid = request.auth.uid;
 
     // Validate input
@@ -489,22 +789,75 @@ exports.gradeTypedTest = onCall(
     // (listId, wordId) — but only for a list this caller is entitled to (anti-oracle gate).
     // On denial / missing context, fall back to client-supplied values so a legit student is
     // never blocked. `gradeAnswers` is the single canonical array for ALL downstream use.
-    const listId = request.data.listId || writeContext?.listId || null;
-    const classId = request.data.classId || writeContext?.classId || null;
+    // ONE canonical trusted context (Codex-High): when a binding context is present it is the SOLE
+    // source of listId/classId for BOTH resolution and token binding, so a token can't certify a
+    // different list than was actually graded (e.g. grade against A, bind to B). Top-level
+    // listId/classId are only a fallback when there's no binding context (grade-only, no token).
+    const bindCtx = writeContext || gradeContext || null;
+    const listId = bindCtx?.listId ?? request.data.listId ?? null;
+    const classId = bindCtx?.classId ?? request.data.classId ?? null;
+    // If a binding context AND mismatching top-level values are both sent, refuse to certify.
+    const ctxMismatch = !!bindCtx && (
+      (request.data.listId && request.data.listId !== bindCtx.listId) ||
+      (request.data.classId && request.data.classId !== bindCtx.classId)
+    );
     const mayResolve = await callerMayResolveList(uid, classId, listId);
-    const gradeAnswers = mayResolve
+    const resolution = mayResolve
       ? await resolveAnswerDefinitions(listId, answers)
-      : answers;
+      : {answers, allResolved: false};
+    const gradeAnswers = resolution.answers;
+    // G2 trust gate (Codex): the grade is server-authoritative ONLY when the caller is entitled to the
+    // list AND every wordId's definition came from Firestore AND the context is internally consistent.
+    // Otherwise → NOT certifiable: no gradeToken, no server-ai marker.
+    const serverGraded = mayResolve && resolution.allResolved && !ctxMismatch;
 
     // Persist the graded attempt server-side when writeContext is supplied, else
     // return grade-only (backward-compatible). On write failure, return the grade
     // (NOT discarded/re-billed) plus the full rows so the client retries the
     // write only — never re-grading.
     const finishGrading = async (gradeResults) => {
-      if (!writeContext) return {results: gradeResults};
       const attemptAnswers = buildTypedAttemptAnswers(gradeAnswers, gradeResults);
+      // G2: mint a gradeToken binding the SERVER-graded rows to this attempt, so a write-failed
+      // retry (submitVocabAttempt) can persist server-authentic isCorrect without re-trusting the
+      // client. Uses the SAME `bindCtx` that drove resolution (above) — its listId/classId are the
+      // ones graded against, so the token can't certify a different list. Signs only the grade-bearing
+      // subset (canonicalGradeArtifact).
+      let gradeToken = null;
+      let gradeTokenCreatedAt = null;
+      // Mint ONLY when (a) minting is enabled (GRADE_TOKEN_MINT||ENFORCED — so deploy adds no secret
+      // dependency to live grading until rollout) AND (b) serverGraded (Codex-Critical: a token certifies
+      // the grade ran against Firestore-resolved definitions). Wrapped in try/catch so a secret/mint
+      // problem NEVER breaks grading — the grade is returned regardless (token just absent).
+      const mintTokens = GRADE_TOKEN_MINT || GRADE_TOKEN_ENFORCED;
+      if (mintTokens && serverGraded && bindCtx && bindCtx.attemptDocId) {
+        try {
+          gradeTokenCreatedAt = Date.now();
+          gradeToken = signGradeArtifact(gradeTokenSecret.value(), {
+            uid,
+            attemptDocId: bindCtx.attemptDocId,
+            classId: bindCtx.classId ?? null,
+            listId: bindCtx.listId ?? null,
+            testId: bindCtx.testId ?? null,
+            testType: bindCtx.testType || "typed",
+            totalQuestions: bindCtx.totalQuestions ?? null,
+            createdAt: gradeTokenCreatedAt,
+            rows: attemptAnswers,
+          });
+        } catch (mintErr) {
+          logger.error("gradeToken mint failed (grade preserved)", {uid, error: mintErr.message});
+          gradeToken = null;
+          gradeTokenCreatedAt = null;
+        }
+      }
+      // Grade-only path (current client flow): return the grade + token; the client writes via
+      // submitVocabAttempt, presenting the token (G2).
+      if (!writeContext) return {results: gradeResults, gradeToken, gradeTokenCreatedAt};
       try {
-        const r = await writeAttemptTxn(uid, writeContext, attemptAnswers);
+        // Direct-write path (writeContext present): server-ai provenance ONLY when serverGraded AND
+        // the trust model is live (GRADE_TOKEN_ENFORCED) — no trusted marker before the W3 lockdown.
+        const r = await writeAttemptTxn(uid, writeContext, attemptAnswers, undefined, {
+          correctnessSource: (serverGraded && GRADE_TOKEN_ENFORCED) ? "server-ai" : null,
+        });
         return {
           results: gradeResults,
           score: r.score,
@@ -512,6 +865,8 @@ exports.gradeTypedTest = onCall(
           attemptId: r.attemptId,
           attemptWritten: r.attemptWritten ?? true,
           alreadyWritten: r.alreadyWritten ?? false,
+          gradeToken,
+          gradeTokenCreatedAt,
         };
       } catch (writeErr) {
         logger.error("Typed attempt write failed (grade preserved)", {
@@ -522,6 +877,8 @@ exports.gradeTypedTest = onCall(
           attemptAnswers,
           attemptWritten: false,
           writeError: writeErr.message,
+          gradeToken,
+          gradeTokenCreatedAt,
         };
       }
     };

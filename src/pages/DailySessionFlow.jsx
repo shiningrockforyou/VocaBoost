@@ -15,7 +15,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '../firebase'
+import { SERVER_REVIEW_MARKER } from '../config/featureFlags'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
@@ -955,27 +957,34 @@ export default function DailySessionFlow() {
     try {
       const dayNumber = sessionConfig?.dayNumber
       if (user?.uid && classId && listId && Number.isInteger(dayNumber) && dayNumber > 1) {
-        const classSnap = await getDoc(doc(db, 'classes', classId))
-        const ownerTeacherId = classSnap.exists() ? (classSnap.data().ownerTeacherId ?? null) : null
-        // Deterministic id => idempotent (re-entry can't duplicate the marker)
-        const markerId = `${user.uid}_${classId}_${listId}_day${dayNumber}_review_automarker`
-        await setDoc(doc(db, 'attempts', markerId), {
-          studentId: user.uid,
-          teacherId: ownerTeacherId,
-          classId,
-          listId,
-          studyDay: dayNumber,
-          testType: 'mcq',
-          sessionType: 'review',
-          score: 100,
-          passed: true,
-          totalQuestions: 0,
-          correctCount: 0,
-          answers: [],
-          autoCompleted: true,
-          manualReviewNote: 'Auto-completed: no review available — all segment words mastered (21-day rest).',
-          submittedAt: Timestamp.now()
-        })
+        if (SERVER_REVIEW_MARKER) {
+          // Server-side marker write (W2): required before W3 makes attempts create-only.
+          const fn = httpsCallable(getFunctions(), 'markReviewComplete')
+          await fn({ classId, listId, dayNumber })
+        } else {
+          // Legacy client write (fallback until SERVER_REVIEW_MARKER validated + W3 rules).
+          const classSnap = await getDoc(doc(db, 'classes', classId))
+          const ownerTeacherId = classSnap.exists() ? (classSnap.data().ownerTeacherId ?? null) : null
+          // Deterministic id => idempotent (re-entry can't duplicate the marker)
+          const markerId = `${user.uid}_${classId}_${listId}_day${dayNumber}_review_automarker`
+          await setDoc(doc(db, 'attempts', markerId), {
+            studentId: user.uid,
+            teacherId: ownerTeacherId,
+            classId,
+            listId,
+            studyDay: dayNumber,
+            testType: 'mcq',
+            sessionType: 'review',
+            score: 100,
+            passed: true,
+            totalQuestions: 0,
+            correctCount: 0,
+            answers: [],
+            autoCompleted: true,
+            manualReviewNote: 'Auto-completed: no review available — all segment words mastered (21-day rest).',
+            submittedAt: Timestamp.now()
+          })
+        }
       }
     } catch (err) {
       // Non-fatal: the day still completed; reconciliation may revert it until the

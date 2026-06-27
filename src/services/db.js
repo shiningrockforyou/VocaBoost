@@ -20,7 +20,9 @@ import {
   where,
   writeBatch,
 } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
+import { SERVER_CHALLENGE_WRITE } from '../config/featureFlags'
 import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
 
 const defaultProfile = {
@@ -2552,6 +2554,18 @@ export const submitChallenge = async (userId, attemptId, wordId, note = '') => {
     throw new Error('userId, attemptId, and wordId are required.')
   }
 
+  // Server-side path (PLAN_attempt_write_lockdown.md W1): the `submitChallenge` callable
+  // validates ownership + tokens and writes challenges.history + answers atomically, so the
+  // client never writes `attempts.answers` directly (closes the answers[] forgery, #1c). The
+  // callable uses request.auth.uid, not the passed userId. Legacy client path below stays as a
+  // flag-off fallback until the fn is deployed + validated, then W3 rules remove the client write.
+  if (SERVER_CHALLENGE_WRITE) {
+    const fn = httpsCallable(getFunctions(), 'submitChallenge')
+    const res = await fn({ attemptId, wordId, note })
+    return res.data
+  }
+
+  // --- legacy client path (fallback; removed once SERVER_CHALLENGE_WRITE is validated) ---
   // Get user document
   const userRef = doc(db, 'users', userId)
   const userSnap = await getDoc(userRef)

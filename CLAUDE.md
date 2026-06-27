@@ -28,6 +28,7 @@
 - Contexts: `/src/contexts/`
 - Utilities: `/src/utils/`
 - Hooks: `/src/hooks/`
+- Planning/reference docs: `/docs/` (`plans/`, `design/`, `audits/`, `patches/` — see `docs/README.md`). Living logs (`change_action_log*.md`, `SUPPORT_RUNBOOK.md`, `NEED_TO_FIX.md`, `CHANGELOG.md`) stay at repo root.
 
 ## Code Conventions
 - Use existing UI components from `/src/components/ui/` before creating new ones
