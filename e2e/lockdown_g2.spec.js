@@ -72,7 +72,9 @@ test.describe('lockdown + G2 — legit flows', () => {
   test('login + dashboard loads with no console errors (smoke)', async ({ page }) => {
     await login(page, STUDENT);
     logStep('logged in', 'ok', page.url());
-    await page.waitForLoadState('networkidle');
+    // NOTE: Firebase apps hold long-lived connections → 'networkidle' never fires. Wait for render instead.
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
     // No hard selector dependency — assert we're authed and the app rendered something substantial.
     const bodyLen = (await page.evaluate(() => document.body.innerText)).length;
     expect(bodyLen).toBeGreaterThan(50);

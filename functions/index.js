@@ -42,14 +42,19 @@ const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
 // Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
 // (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
 // only after the fn + client token-threading are deployed + validated (own Codex pass first).
-const GRADE_TOKEN_ENFORCED = false;
+const GRADE_TOKEN_ENFORCED = true;  // ⚠️ GLOBAL: every typed write now REQUIRES a valid gradeToken or it
+// is rejected (incl. 26SM real students). The deployed client sends the token (G2 client code shipped), and
+// MINT is on, so the round-trip should hold — but deploy in a QUIET WINDOW with rollback ready (flip false +
+// redeploy). Validate immediately after deploy (direct harness + a live typed-grade smoke).
 // GRADE_TOKEN_MINT: gates whether gradeTypedTest actually mints tokens (touches GRADE_TOKEN_SECRET).
 // Default OFF so deploying this code does NOT add a live-grading dependency on the secret (Codex):
 // with both flags off, typed grading never calls gradeTokenSecret.value(), so a missing/misconfigured
 // secret cannot break grading. Rollout: create GRADE_TOKEN_SECRET → flip GRADE_TOKEN_MINT (tokens flow,
 // validate round-trip, still no enforcement/marker) → flip GRADE_TOKEN_ENFORCED (verify+stamp+overwrite).
 // Enforcement implies minting (mintTokens = MINT || ENFORCED) so the two can't desync into rejection.
-const GRADE_TOKEN_MINT = false;
+const GRADE_TOKEN_MINT = true;  // ON for validation: mints gradeTokens so the G2 round-trip is testable.
+// SAFE: minting is additive (extra return field the client ignores); GRADE_TOKEN_ENFORCED stays false,
+// so no typed write is rejected and no trusted marker is stamped. Real users are unaffected.
 const GRADE_TOKEN_VERSION = 1;
 
 /**
@@ -116,6 +121,55 @@ function isSelfReferencing(studentResponse, word) {
     response === w + "ing" ||
     response === w + "ly"
   );
+}
+
+/**
+ * True if `response` is merely an inflected/derived ENGLISH form of the target
+ * `word` (run→running, candid→candidly, study→studied, big→bigger) — i.e. the
+ * student rewrote the word itself in another form and supplied NO meaning, so it
+ * is WRONG.
+ *
+ * Deliberately ASCII-only: a Korean/Chinese answer — even in a different part of
+ * speech (impoverish→가난한 "poor") — is a real translated meaning, not an
+ * inflection, and must NOT be caught here (the rubric keeps it CORRECT). Handles
+ * the common spelling changes (consonant doubling, drop-e, y→i) so irregular
+ * surface forms like run→running are still recognized.
+ */
+function isInflectionOfWord(studentResponse, word) {
+  const r = (studentResponse || "").trim().toLowerCase();
+  const w = (word || "").trim().toLowerCase();
+  if (!r || !w || r === w) return false;
+  // Only single-token Latin responses can be an English inflection of the word.
+  if (!/^[a-z]+$/.test(r)) return false;
+  if (r.length <= w.length) return false; // an inflection is longer than its stem
+
+  const forms = new Set();
+  const SUF = [
+    "s", "es", "ed", "d", "ing", "ly", "er", "est", "ier", "iest",
+    "ion", "ation", "ness", "ment", "ful", "less", "able", "ible", "ity",
+  ];
+  for (const suf of SUF) forms.add(w + suf);
+
+  const last = w[w.length - 1];
+  // Consonant doubling: run→running, big→bigger.
+  if (w.length >= 2 && /[bcdfghjklmnpqrstvwxz]/.test(last)) {
+    for (const suf of ["ing", "ed", "er", "est"]) forms.add(w + last + suf);
+  }
+  // Drop trailing 'e': make→making, use→used, large→larger.
+  if (last === "e") {
+    const stem = w.slice(0, -1);
+    for (const suf of ["ing", "ed", "er", "est", "able", "ion", "ation", "y"]) {
+      forms.add(stem + suf);
+    }
+  }
+  // y→i: carry→carried/carries, happy→happier, lucky→luckily.
+  if (last === "y") {
+    const stem = w.slice(0, -1);
+    for (const suf of ["ied", "ies", "ier", "iest", "ily", "iness"]) {
+      forms.add(stem + suf);
+    }
+  }
+  return forms.has(r);
 }
 
 // ============================================================================
@@ -978,11 +1032,13 @@ exports.gradeTypedTest = onCall(
 
 <rules>
 Default to CORRECT. Mark WRONG only if one of these is true:
-1. Self-referencing: the response uses the target word or a direct transliteration to define itself
-2. Irrelevant or contradictory: the response has nothing to do with the word's meaning
-3. Reversed meaning: the response describes the opposite direction (e.g., "to like" for "likable")
+1. Restating the word: the answer is the English target word itself, OR an inflected/derived English form of it (run→running, candid→candidly, impoverish→impoverishment). Rewriting the word in another form is not a meaning.
+2. Sound-it-out transliteration: the answer is the English word spelled out in Korean letters when Korean does NOT actually use that as the word (grief→그리프, theme→띰). This adds no meaning.
+   EXCEPTION — established loanwords: if the Korean transliteration IS the standard, most-commonly-used Korean word for the term, it is CORRECT (piano→피아노, computer→컴퓨터, repertoire→레파토리, bus→버스, energy→에너지). Test: would a Korean person actually use this Korean spelling in everyday life to mean this thing? If yes → CORRECT; if it is only an ad-hoc phonetic spelling no one really uses → WRONG.
+3. Irrelevant or contradictory: the response has nothing to do with the word's meaning.
+4. Reversed meaning: the response describes the opposite direction (e.g., "to like" for "likable").
 
-Everything else is CORRECT — including partial definitions, different parts of speech, Korean near-synonyms, answers with typos, and answers matching the provided Korean definition.
+Everything else is CORRECT — including partial definitions, a different part of speech expressed as a real translated word (impoverish→가난한 "poor"), Korean near-synonyms, answers with typos, and answers matching the provided Korean definition.
 </rules>
 
 <examples>
@@ -1006,9 +1062,21 @@ Word: placate | English: to make someone less angry or hostile | Korean: 달래�
 Student: make something less angry
 → CORRECT (imprecise but demonstrates understanding)
 
-Word: renaissance | English: a rebirth or revival | Korean: 부활, 신생, 부흥
-Student: 르네상스
-→ WRONG — {"reasoning": "You wrote the transliterated name rather than the meaning. Renaissance means a rebirth or revival."}
+Word: piano | English: a large keyboard musical instrument | Korean: 피아노
+Student: 피아노
+→ CORRECT (피아노 is the standard, everyday Korean word for the instrument — an established loanword)
+
+Word: repertoire | English: the set of pieces a performer is ready to perform | Korean: 레퍼토리, 연주 목록
+Student: 레파토리
+→ CORRECT (레퍼토리/레파토리 is the normal Korean word for this — an established loanword, minor spelling variant)
+
+Word: grief | English: deep sorrow | Korean: 슬픔
+Student: 그리프
+→ WRONG — {"reasoning": "You sounded out the English word in Korean letters. No one says 그리프 — the Korean word for grief is 슬픔."}
+
+Word: run | English: to move quickly on foot | Korean: 달리다
+Student: running
+→ WRONG — {"reasoning": "running is just another form of the word run, not its meaning. Write what it means, e.g. 달리다."}
 
 Word: appalling | English: inspiring shock, horror, disgust | Korean: 충격적인
 Student: 질리는
@@ -1148,17 +1216,15 @@ Do not include "reasoning" for correct answers.
           return { ...result, isCorrect: false, reasoning: "No answer provided" };
         }
 
-        // Rule 2: Just repeating the word (exact or very close) should be incorrect
-        if (
-          response === word ||
-          response === word + "s" ||
-          response === word + "ed" ||
-          response === word + "ing"
-        ) {
+        // Rule 2: Just the word itself, or an inflected/derived English form of it
+        // (run→running, candid→candidly) — no meaning supplied → incorrect.
+        // ASCII-only by construction (isInflectionOfWord), so a Korean translation in
+        // a different POS (impoverish→가난한) is NOT caught here.
+        if (response === word || isInflectionOfWord(response, word)) {
           return {
             ...result,
             isCorrect: false,
-            reasoning: "Simply repeated the word without definition",
+            reasoning: "This is just the word itself in another form, not its meaning.",
           };
         }
 
