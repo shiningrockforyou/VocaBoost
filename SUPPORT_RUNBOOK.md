@@ -98,4 +98,12 @@ The single place for: (1) **defined CS scripts** (what to run for which problem)
 - **Net:** truly-failed *calls* happened (06-22 incident, ~21 students) but were **already fixed**; **0 permanent lost grades**; residual is the `listId:null` tail + modal-copy clarity.
 - Artifacts (read-only, gitignored): `dsg-edits/srv_validate/grading_failure_audit.mjs`, the two Cloud-Functions log exports.
 
+## CS-2026-06-28b — Add SUMMIT to all ADV/FINAL 26SM classes without bumping anyone off ASCENT
+
+- **Goal (David):** make SUMMIT (list `AObYOowhLoOOHx9wW2Sq`, 800 words) available on all 11 ADV/FINAL 26SM classes, WITHOUT changing any student's current list. ASCENT (`dVliNv0p`) = the active list (1600 words; ADV 80/day, FINAL 100/day).
+- **Footgun (verified):** the default-list picker `getPrimaryFocus` (Dashboard.jsx:992) uses an explicit `users/{uid}.settings.primaryFocusListId` if set, else falls back to the **most-recently-assigned** list. Read-only audit: **200 of 215** enrolled students had NO explicit default → assigning SUMMIT (newest `assignedAt`) would have bumped all 200 onto SUMMIT Day 1, off their ASCENT progress (many at Day 15). Only 15 safe (11 explicit ASCENT, 4 other); 3 had finished ASCENT. Same class of bug as CS-2026-06-24b (박시은). **Do NOT add the list via the teacher UI** (stamps assignedAt=now).
+- **Action (both safeguards, authorized; `dsg-edits/srv_validate/add_summit_safe.mjs --commit`):** (1) **BACKDATE** — assigned SUMMIT to all 11 classes with `assignedAt` = ASCENT's minus 1 day (2026-05-30 < 2026-05-31), settings (pace/threshold/testMode) copied from each class's ASCENT assignment; added to `assignments` map + `assignedLists`. (2) **PIN** — set `settings.primaryFocusListId=ASCENT` + `primaryFocusClassId` for the 200 fallback students (merge; experience unchanged — they already land on ASCENT). Left the 15 explicit-default students untouched.
+- **Verify:** SUMMIT present 11/11, backdated < ASCENT 11/11; 200/200 pinned. Post re-check: **0 students on fallback, 0 classes where SUMMIT outranks ASCENT** → nobody exposed. data-integrity-sweep CLEAN before & after.
+- **⚠️ Future:** re-assigning SUMMIT via the teacher UI would re-stamp it newest and re-expose any *future* unpinned student → re-backdate via the script if SUMMIT ever needs re-touching. Root fix = change the fallback to prefer the list with active progress (logged nice-to-have; folding into Phase 2 progress=student+list rework).
+
 <!-- Add new events above this line, newest first: CS-YYYY-MM-DD — <title> -->

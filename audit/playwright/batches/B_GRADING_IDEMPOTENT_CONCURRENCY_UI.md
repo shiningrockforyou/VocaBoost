@@ -5,6 +5,41 @@
 **Mode:** Black-box, user-visible interaction only  
 **Surfaces:** Student dashboard/session, typed test, MCQ test, results, gradebook, challenges, reset
 
+---
+
+## ⚠️ SCOPE BANNER — what is actually deployed (2026-06-28)
+
+Only **Phase 1a (the grading recovery slice)** is shipped: idempotent grading job +
+lost-response recovery + lease/fencing + deterministic-error Reload UX. **NO** deterministic
+identity, immutable submissions, outcome pointer, reset epoch, or teacher override yet. So this
+full-plan audit must be run by status, NOT top-to-bottom — or Phase-2 gaps will read as false bugs.
+
+**RUN NOW (Phase 1a):** UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-13,
+UI-14, UI-19, UI-20, UI-21, UI-23, UI-24, UI-25, UI-26 (challenge accept already shipped), UI-32,
+UI-33, and §13 mobile/a11y on those.
+
+**DEFER — Phase 2 (NOT a bug if it fails today):**
+- UI-10 / UI-11 — two *different devices* converging to ONE outcome = **cross-device dedup = Phase 2.**
+  Phase 1a keys the job off the existing per-browser nonce, so two devices STILL grade twice. Expect
+  divergence here; record as `DEFER-PHASE2`, not FAIL.
+- UI-15 / UI-16 / UI-18 — immutable retake history + retake convergence + best-of-passed = Phase 2.
+- UI-22 — two-window single logical day-completion = Phase 2 (dedup).
+- UI-29 / UI-30 / UI-31 — reset **epoch** isolation = Phase 2/3 (reset epoch not implemented).
+- UI-17 — typed→MCQ review fallback history is a Phase-2 history guarantee (the mode-switch itself
+  is pre-existing behavior and may be spot-checked, but "prior attempts remain in history" is Phase 2).
+
+**NOT IMPLEMENTED → mark `NOT-UI-TESTABLE`:** UI-27 (teacher force-pass/override), UI-28 (two-teacher
+race needs override). Challenge accept/reject (UI-26) IS shipped + already validated.
+
+**Black-box limitation for Phase 1a:** the recovery scenarios (UI-06/07/19/20) and the deterministic
+copy (UI-32) usually require a *forced* dropped response / malformed payload, which this doc's contract
+forbids. Pure black-box can only catch them if a fault occurs naturally. The **forced** lost-response +
+concurrency invariants are proven by the white-box harness `dsg-edits/srv_validate/grading_job_tests.mjs`
+(14/14 live) + `phase1_ui_audit.mjs` (route-abort recovery). This doc covers the *experience* layer;
+backend invariants are §15's separate tests (already green).
+
+---
+
 ## 1. Audit contract
 
 Playwright must behave like a real person using the product.

@@ -499,6 +499,25 @@
       color: var(--text-primary);
     }
 
+    /* Screenshot figure */
+    figure.shot {
+      margin: 18px 0;
+    }
+    figure.shot img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-default);
+      box-shadow: var(--shadow-md);
+      display: block;
+    }
+    figure.shot figcaption {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 8px;
+    }
+
     /* Footer */
     footer {
       text-align: center;
@@ -621,33 +640,29 @@
 
     <p>After logging in, the first screen you see is the <strong>Dashboard</strong>. This is your learning command center.</p>
 
-    <h3>Command Deck</h3>
-    <p>The top of your dashboard shows four key panels:</p>
+    <figure class="shot">
+      <img src="help-img/student-dashboard.png" alt="Student dashboard: progress ring, Start Session button, stat tiles, and weekly chart">
+      <figcaption>Your dashboard — the big card up top is where you start each day.</figcaption>
+    </figure>
 
-    <div class="table-wrapper">
-      <table>
-        <tr>
-          <th>Panel</th>
-          <th>Description</th>
-        </tr>
-        <tr>
-          <td><strong>Weekly Goals</strong></td>
-          <td>Shows your weekly word target and current progress with a visual progress bar</td>
-        </tr>
-        <tr>
-          <td><strong>Vitals</strong></td>
-          <td>Three key metrics: Words Introduced, Mastery Rate, and Current Streak</td>
-        </tr>
-        <tr>
-          <td><strong>Day Status</strong></td>
-          <td>Shows your current study day and the "Start Session" button to begin learning</td>
-        </tr>
-        <tr>
-          <td><strong>7-Day Activity</strong></td>
-          <td>Bar chart showing your review scores over the last 7 study days</td>
-        </tr>
-      </table>
-    </div>
+    <h3>The main card (top)</h3>
+    <p>The large card at the top shows the list you're currently studying:</p>
+    <ul class="inline-list">
+      <li><strong>Progress ring</strong>: how much of the list you've covered (words introduced ÷ total)</li>
+      <li><strong>Streak &amp; words left</strong>: your day streak and how many words remain in the list</li>
+      <li><strong>Start new words / Start Session</strong>: the button to begin today's study — it previews the day and how many new words are coming</li>
+      <li><strong>Class &amp; List</strong> (top right): which class and word list this card is for</li>
+    </ul>
+
+    <h3>Your stats</h3>
+    <p>Below the main card are four tiles and a weekly chart:</p>
+    <ul class="inline-list">
+      <li><strong>Words Introduced</strong> — how many words you've started learning</li>
+      <li><strong>Avg Review Score</strong> — your average score on review tests</li>
+      <li><strong>Words Left</strong> — how many words remain to finish the list</li>
+      <li><strong>Streak</strong> — consecutive study days</li>
+      <li><strong>This week</strong> — a bar chart of your daily review scores this week</li>
+    </ul>
 
     <h3>My Classes & Word Lists</h3>
     <p>Below the command deck, you'll see your enrolled classes and assigned word lists. Each list shows:</p>
@@ -823,10 +838,19 @@
 
     <h3>Passing Criteria</h3>
     <p>Your pass threshold is <strong>set by your teacher for each class</strong> (e.g., 92% or 90%). You must score at or above the threshold to pass.</p>
+    <figure class="shot">
+      <img src="help-img/test-results.png" alt="Test results screen showing score, pass/fail, and Try Again button">
+      <figcaption>After you submit, you'll see your score and whether you passed. Below this card, each answer is listed with a Challenge button on the ones marked wrong.</figcaption>
+    </figure>
     <ul class="inline-list">
       <li><strong>Pass</strong>: Proceed to the next stage</li>
-      <li><strong>Fail</strong>: Click <strong>Retake</strong> to try again</li>
+      <li><strong>Fail</strong>: Click <strong>Try Again</strong> to retake</li>
     </ul>
+
+    <div class="info-box success">
+      <div class="info-box-title">If grading hiccups, just reload</div>
+      <p>If you ever see a <strong>"Grading Failed"</strong> message or the screen seems stuck right after you submit, simply <strong>reload the page</strong>. Your test is recovered automatically — you won't lose your answers and you won't be graded twice. If a message asks you to "reload and submit again," that's the right thing to do.</p>
+    </div>
 
     <h3>Challenge (Dispute)</h3>
     <p>If you believe the AI graded your written answer incorrectly, you can file a challenge. You have up to <strong>5 challenge tokens</strong> at any time.</p>
@@ -837,6 +861,11 @@
       <li><strong>If accepted:</strong> your answer is marked correct, your score is recalculated, and that word is marked as passed. Accepted challenges do <em>not</em> cost a token.</li>
       <li><strong>If rejected:</strong> your score stays the same, and that rejected challenge <strong>holds one token for 30 days</strong> — after 30 days it frees up again.</li>
     </ol>
+
+    <div class="info-box tip">
+      <div class="info-box-title">Refresh to see your teacher's decision</div>
+      <p>After your teacher accepts or rejects a challenge, <strong>reload the page</strong> to see the updated score (and the unlocked next day, if accepting brought you to passing). It won't update on its own until you refresh.</p>
+    </div>
 
     <div class="info-box warning">
       <div class="info-box-title">Challenge Token Rules</div>
@@ -957,6 +986,16 @@
   <!-- 8. FAQ -->
   <section id="faq">
     <h2><span class="section-number">8</span>FAQ</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I got a "Grading Failed" message. Did I lose my test?</div>
+      <div class="faq-answer">No. Just <strong>reload the page</strong> — your grade is recovered automatically and you won't be graded twice. This usually happens from a brief network hiccup. If it still won't grade after a fresh reload, tell your teacher.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. My teacher accepted my challenge but my score / next day hasn't changed.</div>
+      <div class="faq-answer"><strong>Reload the page.</strong> Changes a teacher makes (like accepting a challenge) don't appear until you refresh.</div>
+    </div>
 
     <div class="faq-item">
       <div class="faq-question">Q. Do I have to complete all stages every day?</div>

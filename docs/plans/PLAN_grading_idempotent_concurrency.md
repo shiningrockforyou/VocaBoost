@@ -395,6 +395,30 @@ rules-listener coverage. Add:
 - Rerun the multi-day longitudinal walk + grading-failure audit after rollout → expect 0 dup attempts,
   0 final failures. Production client build + backend syntax validation must pass (Codex verification).
 
+### 7-INFRA. Phase-2 concurrency test-suite infrastructure (adopt when building Phase 2)
+A claude.ai proposal (reviewed 2026-06-28) for the Phase-2 concurrency/idempotency suite. NOT built for
+Phase 1a (3 of its 7 cases are already covered live-green by `grading_job_tests.mjs` T4/T6/T8/T9 +
+`phase1_ui_audit.mjs` A2; the other 4 test Phase-2 features that don't exist yet — startTest, resetEpoch,
+reset-volume, outcome pointer). Adopt these when Phase 2 makes those real:
+- **Mandatory isolation harness (build FIRST):** per-run namespace `__cctest__<ts>_<rand>`; an
+  `assertTestScope(id)` guard in front of EVERY admin-SDK write/delete/reset that aborts the run if the
+  target id isn't namespaced (the admin SDK bypasses rules — this is the backstop against a fixture bug
+  purging real data); namespace-scoped teardown; suite REFUSES TO START if it can't confirm it's writing
+  only under the namespace. (Phase-1a harnesses are bounded to known `mday_*` sandbox uids; this hard
+  guard matters once the suite touches Phase-2 reset/cleanup.)
+- **Negative-control discipline:** every race test must be demonstrably able to FAIL — show it red
+  against deliberately-broken logic before trusting it green (admin-SDK setup makes it easy to write a
+  test that asserts a truth about seeded state without ever triggering the race).
+- **Concurrency evidence:** log per-test timestamps/ordering proving calls actually landed concurrently
+  (catch serialized-by-accident greens).
+- **The 7 cases** (mechanism-specified): (1) concurrent startTest convergence, (2) finalize single-flight,
+  (3) expired-lease takeover + stale-worker rejection, (4) post-reset stale read tested STRUCTURALLY via
+  resetEpoch-in-keys (blocker if epoch absent), (5) reset >500-op volume = epoch-tombstone-then-batched
+  (not one txn), (6) client-drop mid-grade → server finalizes + client recovers via status channel,
+  (7) outcome pointer under challenge/override/force-pass with explicit tie-break. Step-zero: confirm
+  doc-ID construction (resetEpoch in keys?), the lease predicate everywhere, and the startTest entry —
+  report mismatches as findings before writing tests.
+
 ## 7a. 3-agent review findings (2026-06-28) — MUST resolve before implementation
 
 Three independent reviewers (concurrency-correctness, codebase-grounding, migration/security/rollout)
@@ -646,3 +670,33 @@ and deferring ledgers (P3) leaves cross-device study_state/graduation duplicatio
   ownership stays **unambiguously client-only** until this phase flips; the flip must be atomic
   (server owns them) with the client side-effects disabled in the same release to avoid double-apply.
 Each phase flag-gated (server-honored), functions-first, 25WT→26SM.
+
+### DECISION (fold into Phase 2): progress = (student + list); class supplies settings only
+**Decided 2026-06-28.** Today progress is scoped per **(classId + listId)** — `class_progress/{classId}_{listId}`
+plus the reconciliation anchor query filtered by `classId` (db.js:3208-3210). Consequence: moving a
+student between classes on the SAME list (e.g. ADV→FINAL, both on ASCENT `dVliNv0p`) starts a fresh
+ledger → they restart at Day 1 (verified live: all 9 ADV→FINAL movers restarted). Re-scope so a list's
+progress **follows the student**, and the class only provides **settings** (pace/quota, passThreshold,
+testMode, testSizeNew).
+
+**Why it's cheap here:** the daily new-word chunk is ALREADY cumulative-progress-based, not day×pace —
+`studyService.js:252`: `newWordStartIndex = totalWordsIntroduced`, sized by the current class's pace. So a
+pace change mid-list (80→100) already "just works"; only the identity/scoping layer hard-codes the class.
+Phase 2 is rebuilding that layer anyway → make progress/session/anchor keyed on **(uid, listId, epoch)**
+(drop classId), while **attempts stay class-stamped** (gradebook attribution per class) and **settings
+read from the current class assignment**.
+
+**Decisions to confirm before building (all lean "yes, acceptable" given current usage = moves, not
+parallel enrollment):**
+1. A student is NEVER in two classes on the same list with *independent* progress (one ledger per list).
+2. **Threshold leakage accepted:** shared progress ⇒ a pass in whichever class they tested in advances
+   them everywhere (here ADV & FINAL are both 92%, so moot).
+3. **Gradebook attribution:** attempts stay stamped to the class they happened in — a teacher may see the
+   student's day reflect work done in another class while only their own class's tests show in *their*
+   gradebook. Acceptable.
+4. **One-time migration merge rule:** for each (student, list) with split ledgers, take the
+   furthest-along (max `totalWordsIntroduced` / max passed studyDay) as the unified ledger; orphan the rest.
+
+**Impact on the §3 identity scheme:** session/anchor keys become `{uid}_{listId}_e{resetEpoch}` (no classId);
+job/submission keys MAY keep classId for attribution but progress/outcome reconciliation is list-scoped.
+Resolve this when finalizing §3.1/§3.2 keys for Phase 2.

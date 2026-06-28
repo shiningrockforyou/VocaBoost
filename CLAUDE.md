@@ -1,5 +1,12 @@
 # VocaBoost Project Instructions
 
+## Resuming work
+- When the user says **"resume"** (or "pick up where we left off"), **read `/RESUME.md` first** — it is
+  the canonical, always-current pointer to the active work stream and the spec/plan to continue from.
+- **At each save-state / end of session, ROTATE it:** copy the current `/RESUME.md` to
+  `docs/resume_archive/RESUME_<YYYY-MM-DD>.md` (copy, don't move — `/RESUME.md` must always exist), then
+  overwrite `/RESUME.md` with the new state. See `docs/resume_archive/README.md`.
+
 ## General Rules
 1. Always log code changes to `change_action_log.md` using the table format: `| Date | File | Change |`
 2. Always consider industry convention / best practice when coming up with solutions or plans
