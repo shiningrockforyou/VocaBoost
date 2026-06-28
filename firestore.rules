@@ -128,6 +128,16 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isTeacher();
     }
 
+    // PHASE 1 — grading_jobs: server-owned (written ONLY by Cloud Functions via Admin SDK,
+    // which bypasses rules). Clients may READ their own job (lost-response recovery via
+    // getGradingStatus reads server-side, but allow direct owner-read for an optional snapshot);
+    // clients may NEVER create/update/delete (the grade cache must be forge-proof — the docId is
+    // the predictable attemptDocId). All client writes denied.
+    match /grading_jobs/{jobId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
     // ========================================
     // AP BOOST COLLECTIONS
     // ========================================

@@ -8,6 +8,56 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 3. Grading can still hard-fail on `listId: null` (residual after the 06-22 malform fix)  ·  backend+client  ·  MED
+
+**What's broken.** `gradeTypedTest` rejects an entire test ("Unresolvable grading payload (all answers
+malformed post-resolution)") when the call arrives with `listId: null`. The student gets "Grading
+Failed."
+
+**Why it happens (root cause).** The 06-22 crash-recovery malform incident (313 failures / 21 students —
+see CS-2026-06-28) was fixed two ways: the client now persists `definition/definitions/partOfSpeech` in
+recovery markers, and the server `resolveAnswerDefinitions` backfills canonical defs from
+`lists/{listId}/words`. But the **server backfill is gated on `listId`** — when the client sends
+`listId: null` (a recovery/resume path or stale bundle), backfill can't run, every row stays
+unresolvable, and the softened "throw only if EVERY row is unprocessable" still throws. Audit found this
+is the residual tail: ~12 such errors 06-23→06-28 across 2 students (+ 3× `401 auth/id-token-expired`
+mid-test). **All recovered via retry — 0 permanent loss.**
+
+**Impact.** Low volume now, no data loss, but a real "Grading Failed" until the student retries — the last
+gap in the otherwise-robust server-authoritative grade path.
+
+**Fix direction.** Guarantee the client always passes `listId` to `gradeTypedTest` (it's always known on
+the session route); and/or a server fallback — resolve the list via the attempt's `classId`→assignments,
+or grade against client-sent defs when present, instead of throwing. For the 401s, refresh the ID token
+before submit (or catch + re-auth + retry). **Effort/risk:** small; read-only-audit confirmed.
+
+---
+
+## 4. Grading-error pop-up overstates failure / loops on deterministic errors  ·  frontend UX  ·  MED
+
+**What's broken.** On a grading error the student sees a red **"Grading Failed"** modal that reads as a
+categorical loss — even when (a) the server may have actually graded (transient/timeout: the response was
+lost, no durable attempt written yet) or (b) the error is **deterministic** (malform / `invalid-argument`)
+where the 3× auto-retry + the "Try Again" button loop forever with no progress. The body line "Your
+answers are saved" is misleading (no graded attempt exists when grading truly failed). *(The separate
+"Couldn't Save Your Results" modal — grading succeeded, durable save failed — is well-worded and correct;
+this item is specifically the `gradingError` modal in `TypedTest.jsx`.)*
+
+**Why it happens.** `gradeWithRetry` catches all errors uniformly → one "Grading Failed" modal; it doesn't
+branch on `errCode` (transient vs deterministic), doesn't tell the student retry is idempotent/safe, and
+doesn't suggest a reload (which rebuilds the payload and fixes deterministic cases). change_action_log
+already flagged "client `gradeWithRetry` should not retry on `invalid-argument` — deferred."
+
+**Impact.** Student anxiety + needless retakes; deterministic errors produced the old "stuck clicking Try
+Again" loop (drove "stuck on loading" CS tickets). No data loss (idempotent), but bad UX + CS load.
+
+**Fix direction.** Branch modal copy by `errCode`: transient (`deadline-exceeded`/`unavailable`) → "Connection
+hiccup — your work is safe, tap Try Again"; deterministic (`invalid-argument`) → stop auto-looping and show
+"Please reload this page and submit again." Reassure in both that progress isn't lost; fix the contradictory
+"Your answers are saved" line. **Effort/risk:** small, frontend-only.
+
+---
+
 ## 1. No teacher/TA grade-override path → single disputed answer blocks the whole day  ·  product+backend  ·  HIGH
 
 **What's broken.** When a teacher/TA decides an AI-graded answer should count (lenient acceptance,

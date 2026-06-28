@@ -101,6 +101,8 @@ const TypedTest = () => {
   // AI grading retry state
   const [retryAttempt, setRetryAttempt] = useState(0)
   const [gradingError, setGradingError] = useState(null)
+  // 'deterministic' (reload needed — re-submitting repeats the failure) | 'transient' (retry safe)
+  const [gradingErrorKind, setGradingErrorKind] = useState('transient')
   // Tracks whether processTestResults has already committed for this mount, so
   // a Try-Again click after a transient failure does not re-increment
   // timesTestedTotal on every retry. See MCQTest for the same pattern.
@@ -588,6 +590,47 @@ const TypedTest = () => {
 
   // AI grading with retry logic + diagnostic logging (connection-error investigation).
   // Logs go to system_logs via logSystemEvent (non-blocking). No behavior change.
+  // Phase 1: deterministic grade errors (malformed payload / precondition) won't be
+  // fixed by re-calling — re-grading just loops. Surface a reload, don't retry.
+  const isDeterministicGradeError = (code) =>
+    code === 'functions/invalid-argument' || code === 'functions/failed-precondition'
+
+  // Phase 1 recovery channel: a lost grade RESPONSE doesn't mean the server didn't grade.
+  // Ask getGradingStatus by the same attemptDocId. Returns the raw status object or null.
+  // Safe no-op if the server job flag is off (status:'absent') or the callable is absent.
+  const fetchGradingStatus = async (attemptDocId) => {
+    if (!attemptDocId) return null
+    try {
+      const getGradingStatus = httpsCallable(getFunctions(), 'getGradingStatus', { timeout: 15000 })
+      const res = await getGradingStatus({ attemptDocId })
+      return res?.data || null
+    } catch { return null }
+  }
+
+  // Single-shot recovery: if the grade is already cached, return a gradeTypedTest-shaped {data}.
+  const tryRecoverGrade = async (gradeContext) => {
+    const status = await fetchGradingStatus(gradeContext?.attemptDocId)
+    if (status?.status === 'graded' && status.payload?.results) return { data: status.payload }
+    return null
+  }
+
+  // Polling recovery (Codex #3): when a concurrent worker holds a live lease ('in_progress'),
+  // the grade is legitimately running under a server lease — DON'T fail or re-grade; wait for it.
+  // Poll until graded ({data}) or terminal ('absent'/'stale' → caller re-submits), bounded so we
+  // never hang past the server lease window.
+  const pollForGrade = async (gradeContext, maxWaitMs = 150000, intervalMs = 4000) => {
+    const attemptDocId = gradeContext?.attemptDocId
+    if (!attemptDocId) return null
+    const deadline = Date.now() + maxWaitMs
+    while (Date.now() < deadline) {
+      const status = await fetchGradingStatus(attemptDocId)
+      if (status?.status === 'graded' && status.payload?.results) return { data: status.payload }
+      if (!status || status.status === 'absent' || status.status === 'stale') return null
+      await new Promise((r) => setTimeout(r, intervalMs))
+    }
+    return null
+  }
+
   const gradeWithRetry = async (answersToGrade, gradeContext = null) => {
     const MAX_RETRIES = 3
     const RETRY_DELAY_MS = 10000  // 10 seconds
@@ -650,6 +693,35 @@ const TypedTest = () => {
           errMessage: String(error?.message || '').slice(0, 300),
         }, 'error')
         console.error(`Grading attempt ${attempt}/${MAX_RETRIES} failed [${error?.code || '?'}, ${elapsedMs}ms]:`, error)
+
+        // 'aborted' = a concurrent worker holds a LIVE lease and is grading (server in_progress).
+        // Wait for it (poll) rather than re-grading or failing — this is how concurrent submits
+        // converge on one grade.
+        if (error?.code === 'functions/aborted') {
+          const polled = await pollForGrade(gradeContext)
+          if (polled) {
+            logSystemEvent('grading_recovered', {
+              ...diagBase, attempt, via: 'poll_in_progress', studentId: user?.uid || null,
+            }, 'warning')
+            return polled
+          }
+          // poll ended terminal (stale/absent) → fall through to normal retry (will re-claim/grade)
+        }
+
+        // Recovery: the server may have graded even though THIS response was lost.
+        // If a cached grade exists for this attempt, use it instead of retrying/failing.
+        const recovered = await tryRecoverGrade(gradeContext)
+        if (recovered) {
+          logSystemEvent('grading_recovered', {
+            ...diagBase, attempt, via: 'job_status', studentId: user?.uid || null,
+          }, 'warning')
+          return recovered
+        }
+
+        // Deterministic errors won't be fixed by re-calling — stop looping, surface a reload.
+        if (isDeterministicGradeError(error?.code)) {
+          throw error
+        }
 
         // Last attempt - throw error
         if (attempt === MAX_RETRIES) {
@@ -985,7 +1057,16 @@ const TypedTest = () => {
       finalizeResultsView()
     } catch (err) {
       console.error('All grading attempts failed:', err)
-      setGradingError('Failed to grade test after 3 attempts. Your answers are saved.')
+      // Phase 1 (#4): branch the message by error type instead of the old, misleading
+      // "Your answers are saved" (no graded attempt exists when grading truly failed).
+      // Deterministic → reloading rebuilds the payload (the real fix); transient → safe to retry.
+      if (isDeterministicGradeError(err?.code)) {
+        setGradingErrorKind('deterministic')
+        setGradingError('We couldn\'t grade this submission. Please reload this page and submit again — your typed answers are kept.')
+      } else {
+        setGradingErrorKind('transient')
+        setGradingError('We couldn\'t reach the grader. Your work is safe — tap Try Again. (If it keeps failing, reload the page and submit again.)')
+      }
       // Don't clear responses or words - they're preserved for manual retry
     } finally {
       setIsSubmitting(false)
@@ -1651,17 +1732,27 @@ const TypedTest = () => {
                 <AlertTriangle className="text-red-500 h-12 w-12" />
               </div>
               <h3 className="text-xl font-bold text-red-700 mb-4">
-                Grading Failed
+                {gradingErrorKind === 'deterministic' ? 'Couldn’t Grade — Please Reload' : 'Grading Didn’t Go Through'}
               </h3>
               <p className="text-sm text-gray-700 mb-4">
                 {gradingError}
               </p>
-              <button
-                onClick={handleRetryGrading}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Try Again
-              </button>
+              {gradingErrorKind === 'deterministic' ? (
+                // Re-submitting the same payload repeats the failure (Codex #5) — reload rebuilds it.
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Reload Page
+                </button>
+              ) : (
+                <button
+                  onClick={handleRetryGrading}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              )}
             </div>
           </div>
         </div>

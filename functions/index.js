@@ -57,6 +57,31 @@ const GRADE_TOKEN_MINT = true;  // ON for validation: mints gradeTokens so the G
 // so no typed write is rejected and no trusted marker is stamped. Real users are unaffected.
 const GRADE_TOKEN_VERSION = 1;
 
+// ============================================================================
+// GRADING RECOVERY SLICE (Phase 1a of PLAN_grading_idempotent_concurrency.md §3.2/§3.7)
+// SCOPE: lost-response / same-attempt idempotency ONLY. NOT the full concurrency model.
+//   - Keyed off the attemptDocId the client ALREADY sends (nonce identity) → it dedups
+//     RETRIES of the SAME attempt, NOT two devices (different nonces still grade twice).
+//   - NO attempt-identity change, NO side-effect move (both = Phase 2, which needs the
+//     deterministic logical identity + immutable submissions + outcome pointer + W3 lockdown).
+//   - Cross-device dedup ("multiple attempts shoved into the cloud") is explicitly Phase 2.
+// Grading runs OUTSIDE any transaction; the job does a tiny claim + result-cache so a
+// lost/duplicate grade call returns the cached grade instead of re-grading or surfacing a
+// false "Grading Failed". Crash-safe via lease + fencing (claimed→graded, leaseId rotates
+// on takeover; a superseded/expired worker is rejected and the caller throws `aborted`).
+// ============================================================================
+// Kill-switch: flip false + redeploy → byte-for-byte pre-Phase-1 behavior
+// (same pattern as GRADE_TOKEN_*; the const IS the kill-switch). Default ON per
+// owner direction — new path is live for all cohorts on deploy; validate
+// immediately (Playwright) with rollback ready.
+const GRADE_JOB_ENABLED = true;
+// Lease MUST exceed the max grading duration (Recheck-5): a normal grade must
+// finish + persist before its lease expires, else a non-stalled worker is
+// fencing-rejected. gradeTypedTest grades in seconds; the client waits 120s.
+// 180s gives generous headroom over any realistic AI latency.
+const GRADE_JOB_LEASE_MS = 180000;
+const GRADE_JOB_VERSION = 1;
+
 /**
  * Canonical, normalized serialization of the signed grade artifact (G2). Order-independent
  * (rows sorted by wordId) so reordering can't break it; only the grade-bearing subset is signed
@@ -801,6 +826,93 @@ async function sanitizeStoredRows(listId, rows, opts) {
  * @param {Object} context - Request context (includes auth)
  * @returns {Promise<Object>} Grading results with isCorrect and reasoning
  */
+/**
+ * PHASE 1 job claim/recovery. Keyed off the client's EXISTING attemptDocId (nonce
+ * identity) — NOT a new identity scheme. Tiny transaction; never wraps the AI call.
+ * Returns one of:
+ *   {action:'return_cached', payload}  — a prior grade for this exact attempt is cached → reuse it
+ *   {action:'in_progress'}             — another live (unexpired) worker is grading → caller retries
+ *   {action:'grade', leaseId}          — caller owns the lease; proceed to grade + persist
+ * Crash-safe: a `claimed` job whose lease expired is taken over (re-graded). `graded`
+ * is a durable cache. Ownership-checked (job.uid === uid).
+ */
+async function claimOrRecoverGradingJob(uid, jobKey) {
+  const ref = db.collection("grading_jobs").doc(jobKey);
+  const leaseId = crypto.randomUUID();
+  const now = Date.now();
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (snap.exists) {
+      const job = snap.data();
+      if (job.uid && job.uid !== uid) {
+        throw new HttpsError("permission-denied", "Grading job belongs to another user");
+      }
+      if (job.status === "graded" && job.payload) {
+        return {action: "return_cached", payload: job.payload};
+      }
+      // status === 'claimed': live lease → in progress; expired lease → take over + re-grade.
+      if (job.status === "claimed" && (job.leaseExpiresAt ?? 0) > now) {
+        return {action: "in_progress"};
+      }
+      tx.set(ref, {
+        uid, status: "claimed", leaseId,
+        leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
+        attemptCount: (job.attemptCount ?? 0) + 1,
+        version: GRADE_JOB_VERSION,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, {merge: true});
+      return {action: "grade", leaseId};
+    }
+    tx.set(ref, {
+      uid, status: "claimed", leaseId,
+      leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
+      attemptCount: 1,
+      version: GRADE_JOB_VERSION,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {action: "grade", leaseId};
+  });
+}
+
+/**
+ * Persist a completed grade onto the job (claimed → graded), FENCED on leaseId + lease
+ * expiry. Returns the OUTCOME so the caller can decide whether its grade is authoritative:
+ *   'persisted'      — our grade is now the cached/canonical result.
+ *   'already_graded' — another worker cached first; ours is NOT authoritative (use theirs).
+ *   'superseded'     — our lease was taken over (leaseId rotated); ours is NOT authoritative.
+ *   'lease_expired'  — our lease expired with no takeover yet; per policy we must NOT complete.
+ *   'absent'         — job doc gone (e.g. reset/cleanup); no competitor, ours stands.
+ *   'error'          — transaction error; treat as best-effort (ours stands, just uncached).
+ * Codex blocker: the caller MUST reject (throw aborted) on superseded/lease_expired so a stale
+ * worker never returns a grade the client then persists.
+ */
+async function persistGradingJobResult(uid, jobKey, leaseId, payload) {
+  const ref = db.collection("grading_jobs").doc(jobKey);
+  try {
+    return await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return "absent"; // reset/cleanup removed it — no competitor
+      const job = snap.data();
+      if (job.status === "graded") return "already_graded"; // someone cached first → theirs wins
+      // FENCING (plan Recheck-5): persist ONLY if our leaseId still matches (no takeover rotated
+      // it) AND the lease is unexpired. `Date.now()` is Cloud-Functions (Google, NTP-synced)
+      // server time, NOT a client clock; the 180s lease dwarfs inter-instance skew.
+      if (job.leaseId !== leaseId) return "superseded";
+      if ((job.leaseExpiresAt ?? 0) < Date.now()) return "lease_expired";
+      tx.set(ref, {
+        status: "graded", payload,
+        gradedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, {merge: true});
+      return "persisted";
+    });
+  } catch (err) {
+    logger.warn("grading job result persist failed (grade still returned)", {uid, jobKey, error: err.message});
+    return "error";
+  }
+}
+
 exports.gradeTypedTest = onCall(
   {
     secrets: [anthropicApiKey, gradeTokenSecret],
@@ -837,6 +949,23 @@ exports.gradeTypedTest = onCall(
     if (writeContext) {
       const existing = await readExistingAttemptForContext(uid, writeContext);
       if (existing) return normalizeExistingAttempt(existing);
+    }
+
+    // PHASE 1 — idempotent grading job (recovery). Keyed off the existing attemptDocId.
+    // A prior grade for this exact attempt → return cached (no re-grade, no false failure).
+    // Another live worker grading → tell the client to retry (it'll get the cache). Else we
+    // own the lease and grade below, caching the result via finishGrading. Skipped entirely
+    // when disabled or no attemptDocId (→ exact pre-Phase-1 behavior).
+    const jobAttemptDocId = (writeContext || gradeContext || null)?.attemptDocId || null;
+    const gradeJob = {enabled: GRADE_JOB_ENABLED && !!jobAttemptDocId, jobKey: jobAttemptDocId, leaseId: null};
+    if (gradeJob.enabled) {
+      const claim = await claimOrRecoverGradingJob(uid, gradeJob.jobKey);
+      if (claim.action === "return_cached") return claim.payload;
+      if (claim.action === "in_progress") {
+        // Retryable: a concurrent call owns the live lease; the client retry will hit the cache.
+        throw new HttpsError("aborted", "Grading already in progress for this test; please retry.");
+      }
+      gradeJob.leaseId = claim.leaseId;
     }
 
     // Server-authoritative answer key: resolve canonical definitions from Firestore by
@@ -904,8 +1033,34 @@ exports.gradeTypedTest = onCall(
         }
       }
       // Grade-only path (current client flow): return the grade + token; the client writes via
-      // submitVocabAttempt, presenting the token (G2).
-      if (!writeContext) return {results: gradeResults, gradeToken, gradeTokenCreatedAt};
+      // submitVocabAttempt, presenting the token (G2). PHASE 1: cache this payload on the job
+      // (fenced) so a lost-response retry returns it instead of re-grading.
+      if (!writeContext) {
+        const payload = {results: gradeResults, gradeToken, gradeTokenCreatedAt};
+        if (gradeJob.enabled && gradeJob.leaseId) {
+          const outcome = await persistGradingJobResult(uid, gradeJob.jobKey, gradeJob.leaseId, payload);
+          // Fencing: a worker may return ITS grade only when the server CONFIRMED it is still
+          // authoritative (outcome 'persisted'), or hand back the canonical grade another worker
+          // cached ('already_graded'). Every other outcome is fail-CLOSED — we never established
+          // authority, so we must NOT return this grade for the client to persist (Codex round 3).
+          if (outcome === "already_graded") {
+            const snap = await db.collection("grading_jobs").doc(gradeJob.jobKey).get();
+            if (snap.exists && snap.data().payload?.results) return snap.data().payload;
+            // cache vanished between persist + read → treat as not-authoritative below
+            throw new HttpsError("aborted", "Grading result is being finalized; please retry.");
+          }
+          if (outcome === "superseded" || outcome === "lease_expired" || outcome === "absent") {
+            // taken over / expired / job gone → not authoritative; client retries → winner's grade.
+            throw new HttpsError("aborted", "Grading was superseded; please retry.");
+          }
+          if (outcome === "error") {
+            // persist txn failed → authority unestablished; retryable so the client re-attempts.
+            throw new HttpsError("unavailable", "Could not record the grade; please retry.");
+          }
+          // outcome === 'persisted' → ours is authoritative.
+        }
+        return payload;
+      }
       try {
         // Direct-write path (writeContext present): server-ai provenance ONLY when serverGraded AND
         // the trust model is live (GRADE_TOKEN_ENFORCED) — no trusted marker before the W3 lockdown.
@@ -1275,6 +1430,36 @@ Do not include "reasoning" for correct answers.
     }
   }
 );
+
+/**
+ * PHASE 1 — owner-readable grading-job status channel (PLAN §3.7). Lets the client
+ * recover a lost grade WITHOUT re-sending the answers payload / re-grading: poll by the
+ * same attemptDocId it used to grade. Returns {status:'graded', payload} when the grade
+ * is cached, {status:'in_progress'} while a live worker holds the lease, or
+ * {status:'absent'} if no job exists (caller should (re)submit). Read-only; ownership-checked.
+ */
+exports.getGradingStatus = onCall({enforceAppCheck: false}, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
+  // Kill-switch completeness (Codex #4): when jobs are disabled, the status channel is also
+  // inert — never serves a previously-cached grade — so flipping the flag off is a TRUE
+  // byte-for-byte rollback to pre-Phase-1 behavior.
+  if (!GRADE_JOB_ENABLED) return {status: "absent"};
+  const uid = request.auth.uid;
+  const attemptDocId = request.data?.attemptDocId;
+  if (!attemptDocId) throw new HttpsError("invalid-argument", "attemptDocId is required");
+  const snap = await db.collection("grading_jobs").doc(attemptDocId).get();
+  if (!snap.exists) return {status: "absent"};
+  const job = snap.data();
+  if (job.uid && job.uid !== uid) {
+    throw new HttpsError("permission-denied", "Grading job belongs to another user");
+  }
+  if (job.status === "graded" && job.payload) return {status: "graded", payload: job.payload};
+  if (job.status === "claimed" && (job.leaseExpiresAt ?? 0) > Date.now()) {
+    return {status: "in_progress"};
+  }
+  // claimed-but-expired (worker crashed) → caller should re-submit to take over + re-grade.
+  return {status: "stale"};
+});
 
 /**
  * Cloud Function to create or resume a test session.
