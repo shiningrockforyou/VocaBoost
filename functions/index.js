@@ -42,10 +42,10 @@ const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
 // Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
 // (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
 // only after the fn + client token-threading are deployed + validated (own Codex pass first).
-const GRADE_TOKEN_ENFORCED = true;  // ⚠️ GLOBAL: every typed write now REQUIRES a valid gradeToken or it
-// is rejected (incl. 26SM real students). The deployed client sends the token (G2 client code shipped), and
-// MINT is on, so the round-trip should hold — but deploy in a QUIET WINDOW with rollback ready (flip false +
-// redeploy). Validate immediately after deploy (direct harness + a live typed-grade smoke).
+const GRADE_TOKEN_ENFORCED = false;  // ROLLBACK: enforcement OFF — typed writes are NOT rejected and no
+// trusted marker is stamped; submitVocabAttempt behaves as pre-G2 for typed (incl. 26SM real students).
+// MINT stays on below (additive/harmless: tokens still mint, client ignores them). To re-enforce, flip
+// true + redeploy in a QUIET WINDOW with rollback ready, then validate (direct harness + live typed smoke).
 // GRADE_TOKEN_MINT: gates whether gradeTypedTest actually mints tokens (touches GRADE_TOKEN_SECRET).
 // Default OFF so deploying this code does NOT add a live-grading dependency on the secret (Codex):
 // with both flags off, typed grading never calls gradeTokenSecret.value(), so a missing/misconfigured
