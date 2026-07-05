@@ -1,0 +1,217 @@
+# Findings — B_LIST_PROGRESS_PHASE1 (PREP_2026-07-05)
+
+**Run date:** 2026-07-05T05:51:15.934Z
+**Policy:** docs/plans/PLAYWRIGHT_AUDIT_list_progress_persist_phase1.md
+
+## Raw anomaly log (triage EVERY entry — none dropped without written justification)
+
+  - STEP [prep-teacher] create class 25WT LSR-A TYPED
+- [2026-07-05T05:53:24.320Z] **selector-gap** — create-class submit not found
+- [2026-07-05T05:53:49.754Z] **request-failed** — [prep-teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=ilXxsLQSo4709dGyfxe9NbG1bD6NTC6tw0qslKhzzKjTRHp8uN44Lg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T05:53:49.769Z] **request-failed** — [prep-teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=ilXxsLQSo4709dGyfxe9NbG1bD6NTC6tw0qslKhzzKjTRHp8uN44Lg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T05:53:56.395Z] **selector-gap** — open 25WT LSR-A TYPED detail failed
+- [2026-07-05T05:53:58.469Z] **selector-gap** — Assign-List control not found on 25WT LSR-A TYPED — tune stage 1
+  - STEP [prep-teacher] SETTINGS for 25WT LSR-A TYPED: pace=80 thr=92 mode=typed — verify/complete from screenshot; record selectors
+  - STEP [prep-teacher] create class 25WT LSR-B TYPED
+  - STEP [prep-teacher] create class 25WT LSR-A TYPED
+  - STEP [prep-teacher] create class 25WT LSR-A TYPED
+- [2026-07-05T06:11:30.343Z] **selector-gap** — list "LSR TOP Vocab (audit clone)" not selectable in picker
+  - STEP [prep-teacher] SETTINGS for 25WT LSR-A TYPED: target pace=80 thr=92 mode=typed — verify from screenshot
+  - STEP [prep-teacher] create class 25WT LSR-B TYPED
+- [2026-07-05T06:11:51.044Z] **selector-gap** — list "LSR TOP Vocab (audit clone)" not selectable in picker
+  - STEP [prep-teacher] SETTINGS for 25WT LSR-B TYPED: target pace=100 thr=92 mode=typed — verify from screenshot
+  - STEP [prep-teacher] create class 25WT LSR-A MCQ
+- [2026-07-05T06:12:03.448Z] **request-failed** — [prep-teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=JrK85QeqY0pSdkPZb6GtoY97fgDYmZdDqG4UhHcUPJHIEo8v_EfE9g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:12:11.707Z] **selector-gap** — list "LSR CORE Vocab (audit clone)" not selectable in picker
+  - STEP [prep-teacher] SETTINGS for 25WT LSR-A MCQ: target pace=80 thr=92 mode=mcq — verify from screenshot
+  - STEP [prep-teacher] create class 25WT LSR-B MCQ
+- [2026-07-05T06:12:22.431Z] **request-failed** — [prep-teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=yZMr2AY3KjB6HURYgl7-Tf_TCc9GZMEnJZIcbyLofFLCXvt5z4Qriw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:12:32.369Z] **selector-gap** — list "LSR CORE Vocab (audit clone)" not selectable in picker
+  - STEP [prep-teacher] SETTINGS for 25WT LSR-B MCQ: target pace=100 thr=92 mode=mcq — verify from screenshot
+
+---
+
+### F01 — [out-of-scope][CONFIRMED LIVE] Teacher-created classes never store `newWordRetakeThreshold` → NTF#5 pass-shows-fail returns for every future class
+**Severity:** HIGH (product-wide, not Phase-1)
+**Evidence:** All four LSR classes created 2026-07-05 via the live teacher UI have `newWordRetakeThreshold: MISSING` on their assignments (read-only verification). The CS-2026-07-03b backfill covered only then-existing assignments; the client gate falls back to DEFAULT_RETAKE_THRESHOLD=0.95 (studyService.js:267), so any genuine 92–94% pass in a NEW class displays as FAIL (김나연/김호형 class). Also observed: default assignment = pace 20 / passThreshold 95 / mode mcq / testSizeNew 50.
+**Pointer:** NEED_TO_FIX.md #5 — this is live evidence the durable fix is still needed; every class created since 2026-07-03 is exposed.
+- [2026-07-05T06:15:32.881Z] **selector-gap** — 25WT LSR-A TYPED: Test Mode option for "typed" not found — check option labels
+- [2026-07-05T06:15:59.700Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=6lDqInKhpgb6CspmD6AKVZHRM_ylajf7laknq9ZSbB-Rb79aDAGiUA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:15:59.729Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=6lDqInKhpgb6CspmD6AKVZHRM_ylajf7laknq9ZSbB-Rb79aDAGiUA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:16:40.729Z] **selector-gap** — 25WT LSR-B TYPED: Test Mode option for "typed" not found — check option labels
+- [2026-07-05T06:17:03.166Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=yolyZEEUXJR0xhy-XWaonG8esnlR4JC7z0_H4ahRL9kPAgERBbp5Jw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:17:07.549Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=MOGSowsa-mk2ZMljU1lMRPQk3OE6dWNyleQ-6EWDXf9oQ7HgDeGVBw&VER=8& — net::ERR_ABORTED
+  - STEP [prep-configure] 25WT LSR-A MCQ: unassign wrong list "LSR TOP Vocab (audit clone)"
+- [2026-07-05T06:17:17.357Z] **native-dialog** — [prep-configure] confirm: Remove this list from the class? Student progress is saved. — accepted
+- [2026-07-05T06:17:23.434Z] **selector-gap** — 25WT LSR-A MCQ: unassign control not found — see screenshot
+  - STEP [prep-configure] 25WT LSR-A MCQ: assign "LSR CORE Vocab (audit clone)"
+- [2026-07-05T06:17:32.476Z] **selector-gap** — 25WT LSR-A MCQ: picker click on "LSR CORE Vocab (audit clone)" failed — see picker screenshot
+- [2026-07-05T06:18:03.142Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=kqvLXauAis-ZEIWQmvNeb-6q06bbw4t43_jOYUQFe83kIt2up2U0UQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:18:03.194Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=3lTUFbgnDj-tS2x__HWDH41ngFaZZoKVlmyFzdZ-gSuSiVYvSnjlTA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:18:06.354Z] **selector-gap** — 25WT LSR-A MCQ: Test Mode option for "mcq" not found — check option labels
+  - STEP [prep-configure] 25WT LSR-B MCQ: unassign wrong list "LSR TOP Vocab (audit clone)"
+- [2026-07-05T06:18:12.955Z] **native-dialog** — [prep-configure] confirm: Remove this list from the class? Student progress is saved. — accepted
+- [2026-07-05T06:18:19.033Z] **selector-gap** — 25WT LSR-B MCQ: unassign control not found — see screenshot
+  - STEP [prep-configure] 25WT LSR-B MCQ: assign "LSR CORE Vocab (audit clone)"
+- [2026-07-05T06:18:28.060Z] **selector-gap** — 25WT LSR-B MCQ: picker click on "LSR CORE Vocab (audit clone)" failed — see picker screenshot
+- [2026-07-05T06:18:58.719Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=kqvLXauAis-ZEIWQmvNeb-6q06bbw4t43_jOYUQFe83kIt2up2U0UQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:18:58.761Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=3lTUFbgnDj-tS2x__HWDH41ngFaZZoKVlmyFzdZ-gSuSiVYvSnjlTA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:19:01.935Z] **selector-gap** — 25WT LSR-B MCQ: Test Mode option for "mcq" not found — check option labels
+- [2026-07-05T06:21:36.285Z] **selector-gap** — 25WT LSR-A TYPED: Test Mode select (value=typed) failed
+- [2026-07-05T06:22:10.955Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Sk-BH_rc91zvt-l3BBaid4xejyBcePPAzB_civ7qHSK1s4MPjoefdg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:22:14.150Z] **selector-gap** — 25WT LSR-B TYPED: Test Mode select (value=typed) failed
+  - STEP [prep-configure] 25WT LSR-A MCQ: unassign wrong list "LSR TOP Vocab (audit clone)"
+- [2026-07-05T06:22:20.781Z] **native-dialog** — [prep-configure] confirm: Remove this list from the class? Student progress is saved. — accepted
+- [2026-07-05T06:22:26.881Z] **selector-gap** — 25WT LSR-A MCQ: unassign control not found — see screenshot
+  - STEP [prep-configure] 25WT LSR-A MCQ: assign "LSR CORE Vocab (audit clone)" via assign-modal form
+- [2026-07-05T06:22:50.856Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=iQFUT2Gv6Q2g16HkEBilTmdNCDcEI2IhWNZ2ssGLkRaWE9TMsPHbBQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:23:00.831Z] **selector-gap** — 25WT LSR-A MCQ: List select could not pick "LSR CORE Vocab (audit clone)" (value=aDVcq3MoCvVYPTpb83IU)
+- [2026-07-05T06:23:20.833Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=iQFUT2Gv6Q2g16HkEBilTmdNCDcEI2IhWNZ2ssGLkRaWE9TMsPHbBQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:23:20.872Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Sk-BH_rc91zvt-l3BBaid4xejyBcePPAzB_civ7qHSK1s4MPjoefdg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:23:20.879Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Sk-BH_rc91zvt-l3BBaid4xejyBcePPAzB_civ7qHSK1s4MPjoefdg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:23:30.923Z] **selector-gap** — 25WT LSR-A MCQ: assign-modal Test Mode select failed
+- [2026-07-05T06:24:04.322Z] **selector-gap** — 25WT LSR-A MCQ: Test Mode select (value=mcq) failed
+  - STEP [prep-configure] 25WT LSR-B MCQ: unassign wrong list "LSR TOP Vocab (audit clone)"
+- [2026-07-05T06:24:10.968Z] **native-dialog** — [prep-configure] confirm: Remove this list from the class? Student progress is saved. — accepted
+- [2026-07-05T06:24:17.048Z] **selector-gap** — 25WT LSR-B MCQ: unassign control not found — see screenshot
+  - STEP [prep-configure] 25WT LSR-B MCQ: assign "LSR CORE Vocab (audit clone)" via assign-modal form
+- [2026-07-05T06:24:40.990Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=kPnpHkfTru4XFcChZsAvh-xr9Pa1jjFcTZFhwW2sI5S13UvnCy4nhQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:24:41.063Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=jPEytnkiPeFczs-r1V6rsUsx17rfltPV17Z0tSQV0pAaH0q35gDPoA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:24:50.989Z] **selector-gap** — 25WT LSR-B MCQ: List select could not pick "LSR CORE Vocab (audit clone)" (value=aDVcq3MoCvVYPTpb83IU)
+- [2026-07-05T06:25:11.033Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=jPEytnkiPeFczs-r1V6rsUsx17rfltPV17Z0tSQV0pAaH0q35gDPoA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:25:11.113Z] **request-failed** — [prep-configure] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=kPnpHkfTru4XFcChZsAvh-xr9Pa1jjFcTZFhwW2sI5S13UvnCy4nhQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:25:21.082Z] **selector-gap** — 25WT LSR-B MCQ: assign-modal Test Mode select failed
+- [2026-07-05T06:25:54.493Z] **selector-gap** — 25WT LSR-B MCQ: Test Mode select (value=mcq) failed
+- [2026-07-05T06:39:52.699Z] **selector-gap** — [lsr_s05] join code input not found
+  - STEP [lsr_s05] join "25WT LSR-A TYPED" via code null → unverified
+- [2026-07-05T06:40:34.629Z] **selector-gap** — class switch to "25WT LSR-A TYPED" failed — tune switchClass()
+- [2026-07-05T06:40:34.638Z] **flow-gap** — [lsr_s05-25WTLSRATYPED-s2] no Start-New-Words/Continue button
+- [2026-07-05T06:40:34.653Z] **prep-issue** — lsr_s05#2/4:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+  - STEP [lsr_s05] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:45:13.157Z] **flow-gap** — [lsr_s05-25WTLSRATYPED-s2-rev] no Review/Continue button
+  - STEP [lsr_s05] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s05] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:49:43.163Z] **flow-gap** — [lsr_s05-25WTLSRATYPED-s2-rev] no Review/Continue button
+  - STEP [lsr_s05] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s05] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:53:20.953Z] **request-failed** — [scn-lsr_s05] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=YiDz0EnFzsrsbQ9b6xmsERy4j-nyekX2wj05Cta4I5XAEzP9eWptTw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:53:20.957Z] **request-failed** — [scn-lsr_s05] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Cme7qtC7u2CjTXSkWerrJsrVhXqTHA8sHW03eAmHIPi8xWeODXVaLQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:53:23.145Z] **flow-gap** — [lsr_s05-25WTLSRATYPED-s2-rev] no Review/Continue button
+  - STEP [lsr_s05] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s01] join "25WT LSR-A TYPED" via 6HSWTU → visible
+  - STEP [lsr_s02] join "25WT LSR-A MCQ" via UKY2HH → visible
+  - STEP [lsr_s03] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:56:11.473Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Jzo5BjlTmjX6ZkA_vNOLJHUjmi8B9oJ7b1jbNgZU8FnpI22_Urx_dA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:56:11.481Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=w7jzjRDaakUXtG5opVLbBJJowZMInQWQW6OXJweQNu2zw2IUwYXUsA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:56:13.674Z] **flow-gap** — [lsr_s03-25WTLSRATYPED-s2-rev] no Review/Continue button
+- [2026-07-05T06:56:41.973Z] **selector-gap** — [lsr_s03-25WTLSRATYPED-s3] Skip-to-test control not found via menu
+- [2026-07-05T06:56:57.782Z] **flow-gap** — [lsr_s03-25WTLSRATYPED-s3] test page (typed or MCQ) not reached
+- [2026-07-05T06:56:58.484Z] **prep-issue** — lsr_s03#3/4:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+  - STEP [lsr_s04] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:57:39.872Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=f9XAAlBKPxYhJwqT1MNSx6-OOqUJdJuo73oA4CnfTbsJ9aKU57XTBw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:57:39.876Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=qwJZezDL0up5V7GNvwPQ5IsRtY5EyG_HxPLumdps1OLmjTbL3UThTg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:57:42.072Z] **flow-gap** — [lsr_s04-25WTLSRATYPED-s2-rev] no Review/Continue button
+- [2026-07-05T06:58:09.195Z] **selector-gap** — [lsr_s04-25WTLSRATYPED-s3] Skip-to-test control not found via menu
+- [2026-07-05T06:58:25.006Z] **flow-gap** — [lsr_s04-25WTLSRATYPED-s3] test page (typed or MCQ) not reached
+- [2026-07-05T06:58:25.710Z] **prep-issue** — lsr_s04#3/5:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+  - STEP [lsr_s06] join "25WT LSR-A TYPED" via 6HSWTU → visible
+  - STEP [lsr_s06] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s07] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T06:59:22.657Z] **request-failed** — [scn-lsr_s07] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=xT1YO7GhPgQGzTaxJ73EUTVPcQLhDFNwkX9B-fAv-FhJviUGuii9vA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T06:59:22.661Z] **request-failed** — [scn-lsr_s07] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=2AEYM9Ngn8-MA4fYQLz50YhT3QoSn2VSz8MNTOVocfMNwzLHBsby1g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T06:59:24.855Z] **flow-gap** — [lsr_s07-25WTLSRATYPED-s2-rev] no Review/Continue button
+  - STEP [lsr_s07] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s08] join "25WT LSR-A MCQ" via UKY2HH → visible
+- [2026-07-05T07:00:04.585Z] **flow-gap** — [lsr_s08-25WTLSRAMCQ-s2] test page (typed or MCQ) not reached
+- [2026-07-05T07:00:05.289Z] **prep-issue** — lsr_s08#2/3:study(25WT LSR-A MCQ) FAILED — scenario paused (resumable)
+  - STEP [lsr_s09] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T07:00:44.744Z] **request-failed** — [scn-lsr_s09] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_iU5Vy1ziS_tJGS1Prfnjj8xdAStiCO9j6zWIu4CiGQcZL39jpJ2eQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:00:44.749Z] **request-failed** — [scn-lsr_s09] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wpR6pxPEhCefwVOI-i39z-VBGUvUr2rJWDEAjAinX8drkJg1ElF6Lg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:00:46.932Z] **flow-gap** — [lsr_s09-25WTLSRATYPED-s2-rev] no Review/Continue button
+  - STEP [lsr_s09] join "25WT LSR-B TYPED" via Y9BJEM → visible
+  - STEP [lsr_s10] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T07:01:37.842Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=lnDInpYfx-6CE46Qzt5pK0mP0FSbbZmqa9IirF9AF0gICAlt8Ljzkw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:01:37.847Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=9GTW2nWC9GHaKFiCmCpxX4MHqo12_X1Ad-M8J9Ji-k_hPYiNTljfHQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:01:40.051Z] **flow-gap** — [lsr_s10-25WTLSRATYPED-s2-rev] no Review/Continue button
+- [2026-07-05T07:02:07.209Z] **selector-gap** — [lsr_s10-25WTLSRATYPED-s3] Skip-to-test control not found via menu
+- [2026-07-05T07:02:23.016Z] **flow-gap** — [lsr_s10-25WTLSRATYPED-s3] test page (typed or MCQ) not reached
+- [2026-07-05T07:02:23.725Z] **prep-issue** — lsr_s10#3/4:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+  - STEP [lsr_s11] join "25WT LSR-A MCQ" via UKY2HH → visible
+- [2026-07-05T07:02:55.637Z] **flow-gap** — [lsr_s11-25WTLSRAMCQ-s2] test page (typed or MCQ) not reached
+- [2026-07-05T07:02:56.341Z] **prep-issue** — lsr_s11#2/3:study(25WT LSR-A MCQ) FAILED — scenario paused (resumable)
+  - STEP [lsr_s12] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T07:03:45.116Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=0zMq_fEg6Pc_REP8nXfeAN0GBbohTU6Gfw1jxgIzIk1A-arW-WuMIQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:03:45.122Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=onOLOvI0FMPjgNip2dVo8Spccu0AbzWImziMunGA4cPpo_YoHYu4ww&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:03:47.299Z] **flow-gap** — [lsr_s12-25WTLSRATYPED-s2-rev] no Review/Continue button
+- [2026-07-05T07:04:14.837Z] **selector-gap** — [lsr_s12-25WTLSRATYPED-s3] Skip-to-test control not found via menu
+- [2026-07-05T07:04:30.642Z] **flow-gap** — [lsr_s12-25WTLSRATYPED-s3] test page (typed or MCQ) not reached
+- [2026-07-05T07:04:31.346Z] **prep-issue** — lsr_s12#3/4:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+  - STEP [lsr_s13] join "25WT LSR-A TYPED" via 6HSWTU → visible
+- [2026-07-05T07:05:11.402Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=raZdVODLVTnGk3R4FY--lR9Q_NY98mI_bDIaTnfBYVMHSzRU2RBHsg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:05:11.407Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=9vRt-Q_TYTHjZqdHEVZ9r7S88UOGJwRyc5ZKY2Kt966IyCE1u_dZhg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:05:13.599Z] **flow-gap** — [lsr_s13-25WTLSRATYPED-s2-rev] no Review/Continue button
+- [2026-07-05T07:05:40.724Z] **selector-gap** — [lsr_s13-25WTLSRATYPED-s3] Skip-to-test control not found via menu
+- [2026-07-05T07:05:56.534Z] **flow-gap** — [lsr_s13-25WTLSRATYPED-s3] test page (typed or MCQ) not reached
+- [2026-07-05T07:05:57.238Z] **prep-issue** — lsr_s13#3/8:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+- [2026-07-05T07:09:36.513Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=CzuVhu1Ha5IU_g6Z91u8CRHLUsFqjkNyKWeo5qMDepftOWzwZXlwVw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:09:36.518Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Bct6rGBnzsZA-UbV2nml8bZyqZse6CO8YxMSka64z_4aSUMPNbxxkg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:10:08.708Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=YjhJOUaZhSzdSZXXb0Igd9h2sa_-nXhPNTjFJ6szQvwzczPf09L2pw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:10:08.715Z] **request-failed** — [scn-lsr_s03] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=xos2twYgV5BdHRkyafF9WyWZ1jnmIrsAFKp6CAm_IFWnBNxorlfkaA&VER=8& — net::ERR_ABORTED
+  - STEP [lsr_s03] join "25WT LSR-B TYPED" via Y9BJEM → visible
+- [2026-07-05T07:10:42.972Z] **flow-gap** — [lsr_s08-25WTLSRAMCQ-s2] test page (typed or MCQ) not reached
+- [2026-07-05T07:10:43.677Z] **prep-issue** — lsr_s08#2/3:study(25WT LSR-A MCQ) FAILED — scenario paused (resumable)
+- [2026-07-05T07:14:51.084Z] **flow-gap** — [lsr_s08-25WTLSRAMCQ-s2] MCQ Submit not visible (answered 30/30)
+- [2026-07-05T07:14:51.088Z] **prep-issue** — [lsr_s08-25WTLSRAMCQ-s2] new-words outcome=no-submit
+- [2026-07-05T07:14:51.097Z] **prep-issue** — lsr_s08#2/3:study(25WT LSR-A MCQ) FAILED — scenario paused (resumable)
+- [2026-07-05T07:16:36.854Z] **request-failed** — [scn-lsr_s08] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_wKu4yl0Qjvlmr57FS141Zk_wnzRc2uYEAn8D1BDFTW4TiTxaOqx2w&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:16:36.859Z] **request-failed** — [scn-lsr_s08] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Zn4XqAxX2H1Q8OXPtn_4nKPkPrSVLFGfegm0-3DdVAhFvSCGSFrbkw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:16:39.050Z] **flow-gap** — [lsr_s08-25WTLSRAMCQ-s2-rev] no Review/Continue button
+  - STEP [lsr_s08] join "25WT LSR-B MCQ" via VQ38ZD → visible
+- [2026-07-05T07:18:15.819Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=3hDQ0zOLT017Xxp8L9zshinvPXGP8deTjLRdI1c01pG51g96eLExhw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:18:15.824Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=aA7wHExPiFfGnANMffDPHBEExn5hPwRVeoxcFmcNk-kjRMrNAgyr7g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:18:47.585Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=j0tHlkRSZgujWnSlrM6GE3TKv6dXU38m3l1jAy1yFyQsyii_FScgAw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:18:47.592Z] **request-failed** — [scn-lsr_s04] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=hhou9Ttb7xLlAvlVN4KdbTMGe1JC5AoGbzdDq_Xmj8ltRaM_GcpzTw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:19:13.727Z] **selector-gap** — [lsr_s04-25WTLSRATYPED-s4] Session-menu button not visible
+- [2026-07-05T07:19:28.730Z] **flow-gap** — [lsr_s04-25WTLSRATYPED-s4] test page (typed or MCQ) not reached
+- [2026-07-05T07:19:29.434Z] **prep-issue** — lsr_s04#4/5:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+- [2026-07-05T07:20:04.056Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=5GQCDqxb_wHtRjX6MtvZgeOFm8g7y4ZKwxIT1MJMiz3xeFRWrpaEaA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:20:04.061Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=ycW1KeoVKiKyA0_dC5_Xi8PIW8R8lwyEt59nfic8-o0u5YXJJH_vEw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:20:35.535Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=TX0wVScuQrN6m-agHi0a40szLwO0-fTXDSh9_Hll_QTb76RHccb9JA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:20:35.543Z] **request-failed** — [scn-lsr_s10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=4UCE1bgOV6Xq8PFAmn10eQ-2w4CPEO7uxcaRcnvmFTKQX5p8YSzF3Q&VER=8&d — net::ERR_ABORTED
+  - STEP [lsr_s10] join "25WT LSR-B TYPED" via Y9BJEM → visible
+- [2026-07-05T07:21:21.318Z] **request-failed** — [scn-lsr_s11] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=aLzTgMtfkuo3a8-2tzbrZkjhpbzInM3UydpVQlnVuz8hU78hpd9CJQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:21:21.325Z] **request-failed** — [scn-lsr_s11] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=6G3vKpHqANsYwSbOhfHuN4l_Rx34GYk3_k-9esJDtQQl5Os3sth5lw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:21:23.500Z] **flow-gap** — [lsr_s11-25WTLSRAMCQ-s2-rev] no Review/Continue button
+  - STEP [lsr_s11] join "25WT LSR-B MCQ" via VQ38ZD → visible
+- [2026-07-05T07:22:12.275Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GQs8YZRrKaOUaSdV5F-vMbEbJGAMXSMvhkyZFPnuI05Q4nZOTyO9lg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:22:12.280Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Qr4ePTeyEabAMH-Knw9wdvDL9NIPqrxUU_kI2BwYEY-jOJxrQb4lTg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:22:53.712Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=4ZPefvl507b8J8tf8lFUaycFdfigf5PSyRWBjDXCyDOUWerTMRVx7Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:22:53.717Z] **request-failed** — [scn-lsr_s12] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=nwhaye34ZE0MLgX9S-AKT740KgHCG4JWBVT8k3mxL1YjlHrNP1qQ9Q&VER=8& — net::ERR_ABORTED
+  - STEP [lsr_s12] join "25WT LSR-B TYPED" via Y9BJEM → visible
+- [2026-07-05T07:23:37.961Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=ul8WSrdyBm7DRgo-w9YN8O50lCo2ZrbGS7Ic8u90O6aI3g0oF2idwA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:23:37.971Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=9fE0TJFxseOe7RHc1zHmZUF7OfrEqGnMQxhlzmc9Jvr5JJmteTofMg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:24:10.464Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=G_sP-7iH96u9SJyTtJ5sNOX3O6LR5JntnfRxbGndE3vyYLoB-b-IGA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:24:10.470Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=A23_r50Ce81Iu3h93l7yejCi6isSn0kwm8qZ5SQiJOqhPezYlSxNeg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:24:36.679Z] **selector-gap** — [lsr_s13-abandon] Session-menu button not visible
+- [2026-07-05T07:24:51.689Z] **flow-gap** — [lsr_s13-abandon] test page (typed or MCQ) not reached
+  - STEP [lsr_s13] opened 25WT LSR-A TYPED session to test then abandoned (reached=false)
+- [2026-07-05T07:24:56.213Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AbcJBKh6UVG4g7-lTtH3lW-smHvKT13wiCT5uV5pNgWr3v2GqQnMDg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:24:56.655Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=eveySJnsXt5KtschnWAPh5Z03X8PGBu0RwBPndUN5okk8rmQ63ig_Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:25:25.867Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AbcJBKh6UVG4g7-lTtH3lW-smHvKT13wiCT5uV5pNgWr3v2GqQnMDg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:25:25.872Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=eveySJnsXt5KtschnWAPh5Z03X8PGBu0RwBPndUN5okk8rmQ63ig_Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:25:58.180Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=gy9KUDFwIPTBTRsk4L6UgbvEkVrYtjjvLLvcs2cZwzSbyAtbYLntmA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:25:58.200Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=tzo-2mFbpkBM4tkqPKVjQJ9MgSCkvikV_kFUD4n8p65uBvJQR6YXUA&VER=8& — net::ERR_ABORTED
+  - STEP [lsr_s13] join "25WT LSR-B TYPED" via Y9BJEM → visible
+- [2026-07-05T07:26:35.503Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=RuBP_zT-ZDr4uVSUO4Fc70CB_FuC5OSzIMYpjupu3PVDGRJuZ33TWA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:26:35.508Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=HU1wSfqwpHLZWaQUrH9Em-D5e7INnOlB9tG-PcPKXd9aJClTdaFKog&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:26:37.686Z] **flow-gap** — [lsr_s13-25WTLSRBTYPED-s7-rev] no Review/Continue button
+- [2026-07-05T07:27:04.083Z] **selector-gap** — [lsr_s13-25WTLSRBTYPED-s8] Session-menu button not visible
+- [2026-07-05T07:27:19.090Z] **flow-gap** — [lsr_s13-25WTLSRBTYPED-s8] test page (typed or MCQ) not reached
+- [2026-07-05T07:27:19.794Z] **prep-issue** — lsr_s13#8/8:study(25WT LSR-B TYPED) FAILED — scenario paused (resumable)
+- [2026-07-05T07:31:00.679Z] **selector-gap** — [lsr_s04-25WTLSRATYPED-s4] Session-menu button not visible
+- [2026-07-05T07:31:15.684Z] **flow-gap** — [lsr_s04-25WTLSRATYPED-s4] test page (typed or MCQ) not reached
+- [2026-07-05T07:31:16.388Z] **prep-issue** — lsr_s04#4/5:study(25WT LSR-A TYPED) FAILED — scenario paused (resumable)
+- [2026-07-05T07:31:55.782Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=PB1tQ-sW1lZTv_XAI72IHUTB3kDctOLNquz2myvdH6k5e-Rv3GrI0g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T07:31:55.787Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_H0X11dHatQuCGO73MjnT087WPwpmBNte5Ns0gvYrohaa8uI19BTyA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:32:27.901Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=U29rqYNgNT7O-K68xS3sls-ZvcgSW_N8O5qnDpg-7LWeOtF_cJIfxw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T07:32:27.908Z] **request-failed** — [scn-lsr_s13] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=85Co5P-G4FvjkXm0glKw_0VJUvFE1kxSrzmV5WcmRmVYB18vMnyqjQ&VER=8&d — net::ERR_ABORTED

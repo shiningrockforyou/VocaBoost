@@ -88,7 +88,18 @@ code-level blockers, safe to deploy flag OFF." NOT deployed — needs owner):**
 - ⚠ Working tree ALSO carries earlier-session uncommitted changes (functions/index.js deploy-provenance,
   runbook entries) — do not assume the whole diff is Phase 1.
 
+**⧉ UI AUDIT IN PROGRESS (2026-07-05) — see `audit/playwright/LSR_AUDIT_RESULTS.md` (full save-state).**
+Phase-1 indexes + client (flag OFF) deployed. Playwright UI audit built + running against the live flag-off
+deploy. **3 confirmed findings:** F02 teacher list-add flips a mid-progress student's default list (박시은
+§7-H3), F03 teacher unassign strands a mid-progress student (박한별 nice-to-haves#1), F01 new classes lack
+`newWordRetakeThreshold` (live NTF#5). +1 candidate (intermittent phantom-membership on join, rules:57-60).
+Infra: 32 `lsr_*` accounts, 2 cloned lists, 7 classes (4 persona + 3 isolated teacher-wave), 13 built student
+personas, UI-only primitive lib + multi-actor teacher-concurrent engine. Run L (flag-off regression, gates
+the flag) scripts+personas READY but NOT yet executed. Decision pending: grind full teacher wave vs finalize
+Run L vs harden-join+core-subset.
+
 **First moves on re-launch:**
+0. **Read `audit/playwright/LSR_AUDIT_RESULTS.md`** for audit state + the pending direction decision.
 1. **Owner deploys indexes FIRST** (`firebase deploy --only firestore:indexes`), waits for build.
 2. Owner builds/deploys the client (flag still OFF — zero behavior change; this just ships the code +
    the future min-version gate surface).

@@ -1,0 +1,22 @@
+{
+  "clonedAt": "2026-07-05T06:09:57.942Z",
+  "teacherUid": "hUIHGkru2IZwFSt1atYF5BsLTmo1",
+  "lists": [
+    {
+      "srcId": "8RMews2H7C3UJUAsOBzR",
+      "title": "LSR TOP Vocab (audit clone)",
+      "newId": "EQ0Dc9rb7gvoerflHlnz",
+      "wordsCopied": 3381,
+      "verified": 3381,
+      "status": "cloned"
+    },
+    {
+      "srcId": "aRGjnGXdU4aupiS8SlXR",
+      "title": "LSR CORE Vocab (audit clone)",
+      "newId": "aDVcq3MoCvVYPTpb83IU",
+      "wordsCopied": 3380,
+      "verified": 3380,
+      "status": "cloned"
+    }
+  ]
+}

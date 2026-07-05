@@ -316,8 +316,46 @@ const Dashboard = () => {
   const [hoveredBarIndex, setHoveredBarIndex] = useState(null)
   const [userAttempts, setUserAttempts] = useState([])
   const [userAttemptsLoading, setUserAttemptsLoading] = useState(false) // F1: init false; true only inside the guarded fetch
-  const [progressData, setProgressData] = useState({}) // keyed by `${classId}_${listId}`
+  // F02: atomic per-key map { `${classId}_${listId}`: { status: 'ok'|'error', data } }.
+  // ONE state (Codex round-3) so status and data can never diverge across renders.
+  const [progressEntries, setProgressEntries] = useState({})
   const [progressDataLoading, setProgressDataLoading] = useState(false) // F1: init false; true only when there are fetchable pairs
+  // Back-compat view: existing consumers read progressData[key] = the doc (or null).
+  // F02 [Codex round-2] Include ONLY successfully-loaded ('ok') keys, so `key in progressData`
+  // means "loaded successfully" (not "errored"). An error entry is ABSENT → per-list cards
+  // show loading, and per-list Start stays disabled (`!(key in progressData)`) instead of
+  // enabling a session off provisional zeros. An 'ok'-but-null entry (loaded, no doc) is kept
+  // as null so a no-progress student can still start.
+  const progressData = useMemo(
+    () => Object.fromEntries(
+      Object.entries(progressEntries)
+        .filter(([, v]) => v?.status === 'ok')
+        .map(([k, v]) => [k, v.data ?? null])
+    ),
+    [progressEntries]
+  )
+
+  // F02 [Codex] SUCCESS-based global readiness — computed HERE (before handleStartSession +
+  // before the `if (isTeacher) return`) so it's in scope everywhere. Plain const, not a hook.
+  // Ready only once EVERY expected (class,list) progress key loaded successfully; a pending OR
+  // errored key ⇒ not ready. Fail closed globally: while progress is incomplete anywhere, we
+  // must not auto-select a focus OR let a per-list Start funnel the student onto a still-loaded
+  // (possibly newly-assigned) list when their real active list's query failed.
+  const { progressReady, progressHasError } = (() => {
+    const expected = []
+    for (const klass of studentClasses) {
+      for (const list of (klass.assignedListDetails || [])) expected.push(`${klass.id}_${list.id}`)
+    }
+    if (expected.length === 0) return { progressReady: true, progressHasError: false }
+    let ready = true
+    let hasError = false
+    for (const key of expected) {
+      const e = progressEntries[key]
+      if (!e || e.status !== 'ok') ready = false
+      if (e?.status === 'error') hasError = true
+    }
+    return { progressReady: ready, progressHasError: hasError }
+  })()
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfModalContext, setPdfModalContext] = useState(null) // { classId, listId, listTitle, assignment }
   const [showTodayPdfModal, setShowTodayPdfModal] = useState(false)
@@ -636,7 +674,7 @@ const Dashboard = () => {
 
       if (fetchTasks.length === 0) {
         if (!cancelled) {
-          setProgressData({})
+          setProgressEntries({})
           setProgressDataLoading(false)
         }
         return
@@ -644,26 +682,29 @@ const Dashboard = () => {
 
       setProgressDataLoading(true)
       try {
-        // Fetch all progress data in parallel
+        // Fetch all progress data in parallel. F02 [Codex-1/2]: record per-key STATUS —
+        // a FAILED query must NOT be indistinguishable from "loaded, no doc" (both were
+        // previously null), or the readiness gate would go true on a transient error and
+        // still flip the focus to a newly-assigned list.
         const results = await Promise.all(
           fetchTasks.map(async ({ key, classId, listId }) => {
             try {
               const progress = await getClassProgress(user.uid, classId, listId)
-              return { key, progress: progress ?? null } // explicit null = "loaded, no doc"
+              return { key, status: 'ok', data: progress ?? null } // ok + null = "loaded, no doc"
             } catch (err) {
               console.error(`Failed to load progress for ${key}:`, err)
-              return { key, progress: null }
+              return { key, status: 'error', data: null }
             }
           })
         )
 
-        // Build map from results (every fetched key gets an entry, null included)
-        const progressMap = {}
-        for (const { key, progress } of results) {
-          progressMap[key] = progress
+        // Build the atomic map: every fetched key gets a { status, data } entry.
+        const entriesMap = {}
+        for (const { key, status, data } of results) {
+          entriesMap[key] = { status, data }
         }
 
-        if (!cancelled) setProgressData(progressMap)
+        if (!cancelled) setProgressEntries(entriesMap)
       } finally {
         if (!cancelled) setProgressDataLoading(false)
       }
@@ -726,6 +767,9 @@ const Dashboard = () => {
   // Handle Start Session click - check if review test already completed
   const handleStartSession = async (classId, listId) => {
     if (!user?.uid) return
+    // F02 [Codex] defense in depth: never start a session while progress is incomplete/errored
+    // anywhere — a partial-failure state could funnel the student onto the wrong list.
+    if (!progressReady) return
 
     try {
       const sessionState = await getSessionState(user.uid, classId, listId)
@@ -1034,7 +1078,38 @@ const Dashboard = () => {
       // Preference no longer valid - fall through to auto-select
     }
 
-    // 2. Fallback: most recently assigned list; first list seen if none carry a date.
+    // Normalize a Firestore Timestamp | Date | null to ms (Codex round-3) so rankings never
+    // compare a Timestamp against a Date. Missing → 0 (oldest).
+    const toMs = (t) => (t?.toMillis?.() ?? (t instanceof Date ? t.getTime() : (typeof t === 'number' ? t : 0)))
+
+    // 2a. F02 [Codex-1/2/§7-H3, 박시은 repro]: PREFER a list the student has active progress on,
+    //     so a teacher assigning a newer list can't silently flip a mid-progress student off
+    //     their current list. Rank by RECENCY (currently-studying) first, not depth.
+    const progressCandidates = []
+    for (const klass of studentClasses) {
+      for (const list of (klass.assignedListDetails || [])) {
+        const p = progressData[`${klass.id}_${list.id}`]
+        if (p && (p.currentStudyDay || 0) > 0) {
+          const assignment = klass.assignments?.[list.id] || {}
+          progressCandidates.push({
+            klass, list,
+            lastMs: toMs(p.lastSessionAt ?? p.updatedAt),          // 1: most recent activity
+            csd: p.currentStudyDay || 0,                            // 2: furthest day
+            assignedMs: toMs(assignment.assignedAt ?? list.assignedAt), // 3: newest assignment
+            tie: `${klass.id}_${list.id}`,                          // 4: stable tie-break
+          })
+        }
+      }
+    }
+    if (progressCandidates.length) {
+      progressCandidates.sort((a, b) =>
+        (b.lastMs - a.lastMs) || (b.csd - a.csd) || (b.assignedMs - a.assignedMs) || (a.tie < b.tie ? -1 : 1)
+      )
+      return buildFocus(progressCandidates[0].klass, progressCandidates[0].list)
+    }
+
+    // 2b. No progress on any assigned list → existing behavior: most recently assigned; first
+    //     list seen if none carry a date. (Unchanged — new students still get a sensible default.)
     let primaryList = null
     let latestAssignedAt = null
 
@@ -1058,7 +1133,7 @@ const Dashboard = () => {
     })
 
     return primaryList
-  }, [studentClasses, userSettings])
+  }, [studentClasses, userSettings, progressData]) // F02: progress-preferring fallback reads progressData
 
   // F3 — Class control options: one per enrolled class.
   const classOptions = useMemo(
@@ -1078,12 +1153,27 @@ const Dashboard = () => {
     }))
   }, [studentClasses, getPrimaryFocus])
 
-  // Pick the "primary" list of a class when switching class: most-recently-assigned, else first.
-  // assignedAt lives on klass.assignments[listId], NOT on assignedListDetails (§9.3 of selector plan).
+  // Pick the "primary" list of a class when switching class. F02: prefer a list the student
+  // has active progress on (same recency ranking as getPrimaryFocus §2a), else most-recently-
+  // assigned, else first. assignedAt lives on klass.assignments[listId], NOT on assignedListDetails.
   const pickPrimaryList = (klass) => {
     const lists = klass?.assignedListDetails || []
     if (lists.length === 0) return null
     const assignments = klass.assignments || {}
+    const toMs = (t) => (t?.toMillis?.() ?? (t instanceof Date ? t.getTime() : (typeof t === 'number' ? t : 0)))
+    // Progress-bearing lists first, ranked by recency → day → assignment → stable id.
+    const withProgress = lists
+      .map((list) => ({ list, p: progressData[`${klass.id}_${list.id}`] }))
+      .filter(({ p }) => p && (p.currentStudyDay || 0) > 0)
+    if (withProgress.length) {
+      withProgress.sort((a, b) =>
+        (toMs(b.p.lastSessionAt ?? b.p.updatedAt) - toMs(a.p.lastSessionAt ?? a.p.updatedAt))
+        || ((b.p.currentStudyDay || 0) - (a.p.currentStudyDay || 0))
+        || (toMs((assignments[b.list.id] || {}).assignedAt) - toMs((assignments[a.list.id] || {}).assignedAt))
+        || (a.list.id < b.list.id ? -1 : 1)
+      )
+      return withProgress[0].list
+    }
     let best = null
     let bestAt = null
     for (const list of lists) {
@@ -1113,6 +1203,8 @@ const Dashboard = () => {
   // Until it's loaded we must NOT derive/persist a focus (getPrimaryFocus auto-selects while
   // null, which would render the wrong class and a click could clobber the saved preference).
   const settingsLoaded = userSettings !== null
+  // progressReady / progressHasError computed above (near progressData), so they're in scope
+  // for handleStartSession's guard and the teacher-branch code alike.
 
   // Panel B: Vitals - calculated from progressData (new study system)
   // Loading-gate order (§9.14): settings -> focus -> data-loading -> derive. The gates live
@@ -1417,7 +1509,7 @@ const Dashboard = () => {
           {/* Class + List focus controls (each is a static label when it has ≤1 option, a
               dropdown when ≥2). Gated on settingsLoaded so we never show/persist the wrong
               focus during the userSettings load window (§9.13). */}
-          {settingsLoaded && getPrimaryFocus && classOptions.length > 0 && (
+          {settingsLoaded && progressReady && getPrimaryFocus && classOptions.length > 0 && (
             <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
               <FocusControl
                 prefix="Class"
@@ -1453,10 +1545,13 @@ const Dashboard = () => {
           // through to guessed values (0% / "Start new words"). heroLoading covers BOTH the
           // progress-number race (panelBLoading) and the phase race (panelCState.loading).
           const heroLoading = panelBLoading || panelCState?.loading
-          // firstPaint: we don't even have a resolved focus yet (settings/classes still loading).
-          // Show a full skeleton hero (NOT the "No active list" empty state — that's only for a
-          // genuinely class-less student AFTER load). (Codex High)
-          const firstPaintLoading = !settingsLoaded || studentClassesLoading
+          // firstPaint: we don't even have a resolved focus yet (settings/classes still loading,
+          // OR progress not yet fully loaded — F02: the focus is untrustworthy until every
+          // progress key resolves successfully). Show a full skeleton hero (NOT the "No active
+          // list" empty state — that's only for a genuinely class-less student AFTER load).
+          // Note: `!progressReady && !progressHasError` = still pending; an ERROR gets its own
+          // retry branch below (never skeleton-forever). (Codex High)
+          const firstPaintLoading = !settingsLoaded || studentClassesLoading || (!progressReady && !progressHasError)
           // anyLoading drives the always-rendered tiles/weekly so they never deref undefined
           // numbers from a panelBState `{loading}` result. (Codex Critical)
           const anyLoading = firstPaintLoading || heroLoading
@@ -1482,6 +1577,20 @@ const Dashboard = () => {
                   <div className="mx-auto lg:mx-0 w-[150px] h-[150px] rounded-full bg-white/15 grid place-items-center">{sk('h-7 w-14')}</div>
                   <div className="flex flex-col gap-2 items-center lg:items-start">{sk('h-3 w-32')}{sk('h-6 w-56')}{sk('h-7 w-40 rounded-full')}</div>
                   <div className="w-full lg:w-[320px] flex flex-col gap-3">{sk('h-5 w-32 rounded-full')}{sk('h-7 w-48')}{sk('h-4 w-full')}{sk('h-12 w-full rounded-button')}</div>
+                </div>
+              ) : progressHasError ? (
+                /* F02 [Codex-1]: a progress query FAILED — never guess/auto-select the focus off
+                   incomplete data. Fail closed with a retry instead of the skeleton or a wrong list. */
+                <div className="rounded-2xl shadow-lg overflow-hidden mb-5 p-7 lg:p-8 bg-surface border border-border-default flex flex-col items-center gap-4 text-center" role="alert">
+                  <p className="font-heading text-lg font-bold text-text-primary">Couldn&apos;t load your progress</p>
+                  <p className="text-sm text-text-muted">We couldn&apos;t reach your study data. Please try again.</p>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="h-11 px-6 rounded-button bg-brand-primary text-white text-sm font-semibold hover:bg-brand-primary/90 transition"
+                  >
+                    Retry
+                  </button>
                 </div>
               ) : getPrimaryFocus ? (
                 <div className="rounded-2xl shadow-lg overflow-hidden mb-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-8 items-center p-7 lg:p-8 bg-gradient-to-br from-brand-primary via-brand-primary to-brand-primary text-white">
@@ -1827,7 +1936,7 @@ const Dashboard = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleStartSession(klass.id, list.id)}
-                                      disabled={!(`${klass.id}_${list.id}` in progressData)}
+                                      disabled={!progressReady || !(`${klass.id}_${list.id}` in progressData)}
                                       className="flex-1 flex items-center justify-center gap-2 rounded-button bg-brand-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-accent-hover shadow-brand-accent/30 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                       <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

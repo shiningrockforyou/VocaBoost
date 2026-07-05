@@ -1,0 +1,31 @@
+{
+  "_status": "PROPOSED \u2014 David to confirm before Run L",
+  "P_L1": "audit_korean_01_top@vocaboost.test",
+  "P_L2": "audit_distracted_01_top@vocaboost.test",
+  "P_L2_classB": "25WT 2\ucc28 TOP OFFLINE",
+  "P_L1_MCQ": null,
+  "_runS_after_PREP": {
+    "P_MOVE": "audit_korean_02_top@vocaboost.test",
+    "P_DUAL": "audit_codeswitch_01_top@vocaboost.test",
+    "P_JOIN": "audit_esl_02_top@vocaboost.test",
+    "P_STALE_T": "audit_advanced_02_top@vocaboost.test",
+    "P_STALE_M": "audit_academywifi_01_top@vocaboost.test",
+    "classA": "LSR-A",
+    "classB": "LSR-B",
+    "P_PAIR": "audit_phone_01_top@vocaboost.test",
+    "P_ORPHAN": "audit_recovering_01_top@vocaboost.test",
+    "P_SPARSE": "audit_slowlaptop_01_top@vocaboost.test"
+  },
+  "_protected_naturals_do_not_touch_before_runS": [
+    "audit_phone_01_top",
+    "audit_recovering_01_top",
+    "audit_slowlaptop_01_top",
+    "audit_anxious_01_top",
+    "audit_perfectionist_01_top",
+    "audit_multidevice_01_top",
+    "audit_refresher_01_top",
+    "audit_firsttimer_01_top",
+    "audit_hostile_01_top",
+    "audit_careful_01_top"
+  ]
+}

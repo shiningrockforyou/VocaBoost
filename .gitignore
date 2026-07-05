@@ -58,3 +58,11 @@ dsg-edits/
 
 # Windows shell redirect artifact
 nul
+
+# Audit run artifacts — regenerable, noisy, or sandbox creds (keep scripts/docs, not these)
+audit/playwright/findings/*.png
+audit/playwright/findings/*.json
+audit/playwright/lsr_accounts.json
+audit/playwright/lsr_prep_state.json
+audit/playwright/wordmap.json
+.claude/scheduled_tasks.lock

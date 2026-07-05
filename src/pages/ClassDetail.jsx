@@ -386,7 +386,13 @@ const [unassigningListId, setUnassigningListId] = useState(null)
 
   const handleUnassignList = async (listId) => {
     if (!classId || !listId) return
-    const confirmed = window.confirm('Remove this list from the class? Student progress is saved.')
+    // F03 [audit F03 / 박한별]: honest warning (warn-only, never block). The old copy
+    // ("Student progress is saved.") was technically true but misleading — unassigning makes
+    // the list UNREACHABLE for any student mid-progress. Do not claim finished students are
+    // unaffected; they lose access too.
+    const confirmed = window.confirm(
+      'Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden.'
+    )
     if (!confirmed) return
 
     setFeedback('')
