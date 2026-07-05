@@ -22,7 +22,7 @@ import {
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
-import { SERVER_CHALLENGE_WRITE } from '../config/featureFlags'
+import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
 import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
 
 const defaultProfile = {
@@ -3026,7 +3026,7 @@ export async function resetStudentProgress(userId, classId, listId) {
  * @param {number} studyDay - The study day number to find the attempt for
  * @returns {Promise<Object|null>} The attempt data or null if not found
  */
-export const getNewWordAttemptForDay = async (userId, classId, listId, studyDay) => {
+export const getNewWordAttemptForDay = async (userId, classId, listId, studyDay, opts = {}) => {
   if (!userId || !classId || !listId || studyDay === undefined) {
     console.warn('getNewWordAttemptForDay: Missing required parameters')
     return null
@@ -3038,6 +3038,39 @@ export const getNewWordAttemptForDay = async (userId, classId, listId, studyDay)
     // attempts with the same studyDay (one per list). Without listId, the
     // orderBy-submittedAt/limit-1 returns whichever list was submitted last, so a
     // review on list A could be gated/stamped against list B's new-word pass.
+    //
+    // opts.listScope [F1]: ONLY the Day-2+ completion gate (completeSessionFromTest)
+    // opts in — under LIST_SCOPED_RECON a same-day pass earned in another class counts
+    // (shared truth), but cross-class trust requires BOTH proofs [V4 / Codex-P1-2 / P1r3-1]:
+    //   (a) exact position: newWordStartIndex === opts.expectedBase, AND
+    //   (b) a server-computed PASS: passed === true (a failed attempt's raw score must
+    //       never reach the launching class's local-threshold fallback cross-class).
+    // Both are enforced IN THE QUERY (indexed equalities — no bounded client scan that
+    // could miss a match beyond the window [P1r3-2]). If no such pass exists, fall back
+    // to the LAUNCHING-CLASS legacy query — identical semantics to flag-off (legacy
+    // score-fallback and missing-position trust stay launching-class-only). No usable
+    // expectedBase → launching-class only (fail closed). TypedTest/MCQTest day-stamping
+    // call sites deliberately stay class-scoped.
+    const listScope = LIST_SCOPED_RECON && opts.listScope === true
+    if (listScope && Number.isInteger(opts.expectedBase)) {
+      const qPassedAtPosition = query(
+        attemptsRef,
+        where('studentId', '==', userId),
+        where('listId', '==', listId),
+        where('sessionType', '==', 'new'),
+        where('studyDay', '==', studyDay),
+        where('newWordStartIndex', '==', opts.expectedBase),
+        where('passed', '==', true),
+        orderBy('submittedAt', 'desc'),
+        limit(1)
+      )
+      const passedSnap = await getDocs(qPassedAtPosition)
+      if (!passedSnap.empty) {
+        return { id: passedSnap.docs[0].id, ...passedSnap.docs[0].data() }
+      }
+      // No position-proven pass anywhere → launching-class legacy query below.
+      console.log(`getNewWordAttemptForDay(list-scoped): no position-proven pass for day ${studyDay} — falling back to launching class`)
+    }
     const q = query(
       attemptsRef,
       where('studentId', '==', userId),
@@ -3083,14 +3116,24 @@ export async function getRecentAttemptsForClassList(userId, classId, listId, max
 
   try {
     const attemptsRef = collection(db, 'attempts')
-    const q = query(
-      attemptsRef,
-      where('studentId', '==', userId),
-      where('classId', '==', classId),
-      where('listId', '==', listId),
-      orderBy('submittedAt', 'desc'),
-      limit(maxResults)
-    )
+    // LIST_SCOPED_RECON (§5.1): reconciliation evidence is student+list — include attempts
+    // from every class (cross-class phase detection / orphan flagging see the whole history).
+    const q = LIST_SCOPED_RECON
+      ? query(
+          attemptsRef,
+          where('studentId', '==', userId),
+          where('listId', '==', listId),
+          orderBy('submittedAt', 'desc'),
+          limit(maxResults)
+        )
+      : query(
+          attemptsRef,
+          where('studentId', '==', userId),
+          where('classId', '==', classId),
+          where('listId', '==', listId),
+          orderBy('submittedAt', 'desc'),
+          limit(maxResults)
+        )
 
     console.log('[RECONCILIATION] Executing Firestore query...')
     const snapshot = await getDocs(q)
@@ -3203,6 +3246,83 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
 
   try {
     const attemptsRef = collection(db, 'attempts')
+
+    if (LIST_SCOPED_RECON) {
+      // §5.1 (PLAN_list_progress_persist v3.7): the anchor is STUDENT+LIST scoped — the
+      // greatest valid word POSITION across every class the student has taken the list in
+      // (cross-pace, studyDay is not comparable; newWordEndIndex is). submittedAt DESC
+      // breaks equal-position ties deterministically [C5-3].
+      // [Codex-P1-4 / P1r3-2 / P1r4-2] The `newWordEndIndex >= 0` range filter excludes
+      // non-NUMBER types (strings/booleans/nulls) by Firestore's type-scoped range
+      // matching — but integers and DOUBLES interleave as one number type, so a
+      // malformed 999.5 can still top the ordering. PAGINATE (position-desc) until the
+      // first valid integer anchor is found or history is exhausted: a malformed float
+      // can never cause a valid integer anchor below it to be abandoned, and there is
+      // no fixed client window a valid candidate could fall outside of. Real data is
+      // integer-only (server + manual-pass both write integers; Phase-0 audit found no
+      // floats) — this loop is the correctness guarantee, expected to hit page 1 doc 1.
+      const PAGE = 10
+      let cursor = null
+      for (;;) {
+        const qPos = query(
+          attemptsRef,
+          where('studentId', '==', userId),
+          where('listId', '==', listId),
+          where('sessionType', '==', 'new'),
+          where('passed', '==', true),
+          where('newWordEndIndex', '>=', 0),
+          orderBy('newWordEndIndex', 'desc'),
+          orderBy('submittedAt', 'desc'),
+          ...(cursor ? [startAfter(cursor)] : []),
+          limit(PAGE)
+        )
+        const posSnap = await getDocs(qPos)
+        if (posSnap.empty) break
+        const validDoc = posSnap.docs.find(d => {
+          const v = d.data().newWordEndIndex
+          return Number.isInteger(v) && v >= 0
+        })
+        if (validDoc) {
+          const data = { id: validDoc.id, ...validDoc.data() }
+          console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped, by position):', {
+            attemptId: validDoc.id, classId: data.classId, studyDay: data.studyDay,
+            newWordEndIndex: data.newWordEndIndex
+          })
+          return { status: 'found', attempt: data }
+        }
+        console.warn('[RECONCILIATION] page of position anchors all non-integer — paginating', {
+          pageSize: posSnap.docs.length
+        })
+        if (posSnap.docs.length < PAGE) break
+        cursor = posSnap.docs[posSnap.docs.length - 1]
+      }
+      // Sparse-index fallback [V7]: legacy attempts MISSING newWordEndIndex are absent
+      // from the position-ordered index. Retry ordered by studyDay (still list-wide);
+      // a returned attempt without a valid newWordEndIndex is judged by the caller
+      // (hasValidData → csd_anchor_invalid log), same as today.
+      const qDay = query(
+        attemptsRef,
+        where('studentId', '==', userId),
+        where('listId', '==', listId),
+        where('sessionType', '==', 'new'),
+        where('passed', '==', true),
+        orderBy('studyDay', 'desc'),
+        limit(1)
+      )
+      const daySnap = await getDocs(qDay)
+      if (daySnap.empty) {
+        console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped): No passed new tests found')
+        return { status: 'none' }
+      }
+      const d = daySnap.docs[0]
+      const data = { id: d.id, ...d.data() }
+      console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped, studyDay fallback):', {
+        attemptId: d.id, classId: data.classId, studyDay: data.studyDay,
+        newWordEndIndex: data.newWordEndIndex
+      })
+      return { status: 'found', attempt: data }
+    }
+
     const q = query(
       attemptsRef,
       where('studentId', '==', userId),
@@ -3245,46 +3365,88 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
 }
 
 /**
- * Check if a review test exists for a specific study day
+ * Check if a review test exists for a specific study day.
+ *
+ * Returns a DISCRIMINATED result [C3-6] so the caller can tell "no review exists"
+ * apart from a transient/index query failure — an errored query must NOT silently
+ * decrement CSD (under LIST_SCOPED_RECON the non-demoting CSD max also protects).
+ *
+ * Pairing rule (§5.1, LIST_SCOPED_RECON only): the review must belong to the SAME
+ * progression as the anchor — same class as the anchor attempt (pairing.anchorClassId,
+ * NOT the launching class) AND submitted at/after the anchor (temporal lineage — a
+ * same-class same-day review from an earlier progression must not pair). Earliest
+ * post-anchor review is the lineage-correct selection [C4-5].
+ *
  * @param {string} userId - User document ID
- * @param {string} classId - Class document ID
+ * @param {string} classId - Class document ID (launching class — legacy scope)
  * @param {string} listId - List document ID
  * @param {number} studyDay - Study day number to check
- * @returns {Promise<Object|null>} Review attempt or null if none exists
+ * @param {{anchorClassId?: string, anchorSubmittedAt?: Object}} [pairing] - anchor lineage (flag-on)
+ * @returns {Promise<{status:'found',attempt:Object}|{status:'none'}|{status:'query-error',error:Object}>}
  */
-export async function getReviewForDay(userId, classId, listId, studyDay) {
-  console.log('[RECONCILIATION] getReviewForDay:', { userId, classId, listId, studyDay })
+export async function getReviewForDay(userId, classId, listId, studyDay, pairing = null) {
+  console.log('[RECONCILIATION] getReviewForDay:', { userId, classId, listId, studyDay, paired: !!pairing })
 
   if (!userId || !classId || !listId || !studyDay) {
     console.warn('[RECONCILIATION] getReviewForDay: Missing required parameters')
-    return null
+    return { status: 'query-error', error: { message: 'missing required parameters', code: 'invalid-argument', stack: null } }
   }
 
   try {
     const attemptsRef = collection(db, 'attempts')
-    const q = query(
-      attemptsRef,
-      where('studentId', '==', userId),
-      where('classId', '==', classId),
-      where('listId', '==', listId),
-      where('sessionType', '==', 'review'),
-      where('studyDay', '==', studyDay),
-      limit(1)
-    )
+    let q
+    if (LIST_SCOPED_RECON) {
+      // [Codex-P1-1] Missing lineage must NOT silently fall back to the launching-class
+      // query — that would bypass temporal pairing entirely (a legacy/fallback anchor
+      // without submittedAt would pair against an unrelated progression). Return
+      // query-error: the caller preserves the stored CSD, which is the safe outcome.
+      if (!(pairing?.anchorClassId && pairing?.anchorSubmittedAt)) {
+        console.warn('[RECONCILIATION] getReviewForDay: anchor lineage missing under LIST_SCOPED_RECON — cannot pair safely')
+        return { status: 'query-error', error: { message: 'missing anchor lineage (anchorClassId/anchorSubmittedAt)', code: 'invalid-pairing', stack: null } }
+      }
+      q = query(
+        attemptsRef,
+        where('studentId', '==', userId),
+        where('classId', '==', pairing.anchorClassId),
+        where('listId', '==', listId),
+        where('sessionType', '==', 'review'),
+        where('studyDay', '==', studyDay),
+        where('submittedAt', '>=', pairing.anchorSubmittedAt),
+        orderBy('submittedAt', 'asc'),
+        limit(1)
+      )
+    } else {
+      q = query(
+        attemptsRef,
+        where('studentId', '==', userId),
+        where('classId', '==', classId),
+        where('listId', '==', listId),
+        where('sessionType', '==', 'review'),
+        where('studyDay', '==', studyDay),
+        limit(1)
+      )
+    }
 
     const snapshot = await getDocs(q)
 
     if (snapshot.empty) {
       console.log('[RECONCILIATION] getReviewForDay: No review found for day', studyDay)
-      return null
+      return { status: 'none' }
     }
 
     const doc = snapshot.docs[0]
     const data = { id: doc.id, ...doc.data() }
     console.log('[RECONCILIATION] getReviewForDay found review for day', studyDay)
-    return data
+    return { status: 'found', attempt: data }
   } catch (err) {
     console.error('[RECONCILIATION] getReviewForDay query failed:', err)
-    return null
+    return {
+      status: 'query-error',
+      error: {
+        message: err?.message ?? String(err),
+        code: err?.code ?? null,
+        stack: err?.stack ? String(err.stack).slice(0, 600) : null
+      }
+    }
   }
 }

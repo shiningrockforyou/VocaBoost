@@ -26,3 +26,16 @@ export const SERVER_CHALLENGE_WRITE = false;
 // would break. Rollout (PLAN_attempt_write_lockdown.md W2): deploy fn first → flip ON +
 // rebuild → validate Day-2+ empty-review completion → then W3 rules. Default OFF until live.
 export const SERVER_REVIEW_MARKER = false;
+
+// LIST_SCOPED_RECON: Phase 1 of PLAN_list_progress_persist.md (v3.7) — make the CSD/TWI
+// reconciliation + anchor readers STUDENT+LIST scoped instead of class-scoped, so a
+// student's progress anchor resolves across every class they've taken the list in
+// (fixes the class-change day-reset cluster; auto-carries position at session entry).
+// Flag-on changes (§5.1): anchor = greatest valid newWordEndIndex (submittedAt tie-break,
+// studyDay-ordered fallback for legacy anchors missing the field); review paired to the
+// anchor's OWN class + temporal lineage; CSD becomes NON-DEMOTING (max) — day = session
+// count; orphan-review cleanup goes LOG-ONLY; Day-2+ gate accepts a same-day passed new
+// attempt list-wide only if position-consistent. Requires the 6 new attempts composite
+// indexes (firestore.indexes.json) deployed FIRST — flag-on without them = query-error
+// fallbacks everywhere. Flag-off = byte-equivalent legacy (class-scoped) behavior.
+export const LIST_SCOPED_RECON = false;

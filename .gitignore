@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Generated at deploy time by scripts/stamp-build.mjs (still bundled into the functions
+# deploy via firebase.json — gitignored only to avoid committing a churning file).
+functions/buildInfo.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -48,3 +52,9 @@ audit/playwright/findings/EVIDENCE_INDEX.md
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# Live-data admin harnesses, per-student backups, and audit reports (own git repo,
+# contains student uids/emails — never commit to the app repo)
+dsg-edits/
+
+# Windows shell redirect artifact
+nul

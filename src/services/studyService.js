@@ -44,8 +44,9 @@ import {
   getOrCreateClassProgress,
   updateClassProgress
 } from './progressService';
-import { saveSessionState, SESSION_PHASE } from './sessionService';
+import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
 import { logSystemEvent } from './db';
+import { LIST_SCOPED_RECON } from '../config/featureFlags';
 
 /**
  * Determine starting phase based on attempt history for the current day.
@@ -577,6 +578,44 @@ export async function recordSessionCompletion(userId, sessionData) {
     newIntervention,
     studyDaysPerWeek
   );
+
+  // [V9/§5.4/Codex-P1-3] Duplicate-day guard rejection: the counter moved out from under
+  // this session (e.g. list-scoped reconciliation advanced it at another entry point).
+  // The completion did NOT apply — ABORT here: clear the stale session, write NO
+  // completed-session record, and return the rejection sentinel so the caller skips
+  // graduation and the UI routes to a rebuilt session (never presented as success).
+  if (LIST_SCOPED_RECON && updatedProgress?.dayGuardRejected) {
+    console.warn('[SESSION] day-guard rejection — aborting completion, clearing session state for rebuild', {
+      userId, classId, listId, sessionDay: sessionSummary.day
+    });
+    // [Codex-P1r3-3] The rebuild claim depends on the stale COMPLETE doc actually being
+    // gone — clearSessionState now reports success. Retry once on failure; if it still
+    // fails, escalate to an error-level system_log (CS signal: this student's stale
+    // session doc needs manual deletion) and say so in the sentinel.
+    let sessionCleared = await clearSessionState(userId, classId, listId);
+    if (!sessionCleared) {
+      sessionCleared = await clearSessionState(userId, classId, listId);
+    }
+    try {
+      await logSystemEvent(
+        sessionCleared ? 'day_guard_rejected_session_cleared' : 'day_guard_session_clear_FAILED',
+        {
+          userId, classId, listId, sessionDay: sessionSummary.day,
+          progressDay: updatedProgress.currentStudyDay ?? null,
+          sessionCleared
+        },
+        sessionCleared ? 'warning' : 'error'
+      );
+    } catch (logErr) {
+      console.error('[SESSION] failed to log day-guard rejection:', logErr);
+    }
+    return {
+      sessionId: null,
+      progress: updatedProgress,
+      dayGuardRejected: true,
+      sessionCleared
+    };
+  }
 
   // Optionally save full session record to sessions collection
   // (for detailed history if needed)
@@ -1269,8 +1308,17 @@ export async function completeSessionFromTest({
     reviewScore = testResults.score;
     reviewFailed = testResults.failed || [];
 
-    // Query the new word attempt for this day (list-scoped — see getNewWordAttemptForDay)
-    const newWordAttempt = await getNewWordAttemptForDay(userId, classId, listId, dayNumber);
+    // Query the new word attempt for this day. Under LIST_SCOPED_RECON the gate accepts
+    // a same-day pass earned in ANY of the student's classes (shared truth, §2.1 of
+    // PLAN_list_progress_persist) — position-consistency is enforced INSIDE
+    // getNewWordAttemptForDay [V4 / Codex-P1-2]: exact newWordStartIndex match required
+    // for cross-class trust (fail-closed to the launching class otherwise), and
+    // candidates are scanned so a newest-but-inconsistent attempt can't block an
+    // earlier consistent one.
+    const newWordAttempt = await getNewWordAttemptForDay(userId, classId, listId, dayNumber, {
+      listScope: LIST_SCOPED_RECON,
+      expectedBase: sessionState?.sessionConfig?.newWordStartIndex
+    });
     if (newWordAttempt) {
       // Convert score from 0-100 to 0-1 if needed
       newWordScore = newWordAttempt.score <= 1
@@ -1334,6 +1382,20 @@ export async function completeSessionFromTest({
 
   // Record session completion (updates CSD, recentSessions, etc.)
   const result = await recordSessionCompletion(userId, summary);
+
+  // [Codex-P1-3 / P1r4-1] Day-guard rejection: the completion did NOT apply. Skip
+  // graduation and return the rebuild sentinel — the test pages must NOT present this
+  // as success, and sessionCleared is PROPAGATED so the UI can distinguish "session
+  // reset, continue normally" from "stale session doc survived — recovery needed".
+  if (result?.dayGuardRejected) {
+    return {
+      sessionId: null,
+      progress: null,
+      graduated: 0,
+      requiresSessionRebuild: true,
+      sessionCleared: result.sessionCleared === true
+    };
+  }
 
   // Graduate words if this was a review test with a score
   let graduationResult = null;

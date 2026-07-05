@@ -18,6 +18,7 @@ import {
   implausibleStudyDayThreshold
 } from '../types/studyTypes';
 import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
+import { LIST_SCOPED_RECON } from '../config/featureFlags';
 
 // Observability-only (v5): a clean no-anchor record with CSD above this is worth a
 // `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
@@ -44,7 +45,7 @@ export function getProgressDocId(classId, listId) {
  * @param {number} anchorDay - The anchor day (highest day with a new test)
  * @param {Array} attempts - Array of attempt documents
  */
-async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts) {
+async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts, { logOnly = false } = {}) {
   // Find orphaned reviews: review tests for days beyond the anchor
   const orphanedReviews = attempts.filter(
     a => a.sessionType === 'review' && a.studyDay > anchorDay
@@ -54,31 +55,37 @@ async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attemp
     return;
   }
 
-  console.log(`[RECONCILIATION] Found ${orphanedReviews.length} orphaned review(s) to clean up`);
+  console.log(`[RECONCILIATION] Found ${orphanedReviews.length} orphaned review(s)${logOnly ? ' (LOG-ONLY, no deletion)' : ' to clean up'}`);
 
   for (const orphan of orphanedReviews) {
     try {
       // 1. Save to system_logs as string before deletion
       const logEntry = {
-        type: 'orphaned_attempt_deleted',
+        type: logOnly ? 'orphaned_attempt_flagged' : 'orphaned_attempt_deleted',
         userId,
         classId,
         listId,
         attemptId: orphan.id,
         attemptData: JSON.stringify(orphan), // Full attempt as string
         anchorDay,
-        reason: `Review for Day ${orphan.studyDay} deleted - no matching new test exists`,
+        reason: `Review for Day ${orphan.studyDay} ${logOnly ? 'flagged' : 'deleted'} - no matching new test exists`,
         deletedAt: serverTimestamp()
       };
 
       await addDoc(collection(db, 'system_logs'), logEntry);
 
-      // 2. Delete the orphaned attempt
-      await deleteDoc(doc(db, 'attempts', orphan.id));
-
-      console.log(`[RECONCILIATION] Deleted orphaned review: Day ${orphan.studyDay}, attemptId: ${orphan.id}`);
+      // 2. Delete the orphaned attempt — SKIPPED under LIST_SCOPED_RECON [C5-2]:
+      // a position-max anchor can carry a LOWER studyDay than legitimate reviews
+      // (cross-pace, same-class pace change, pre-reset history), so "studyDay > anchorDay"
+      // is no longer proof of orphanhood. Log-only until attempts carry a reliable
+      // generation/reset-epoch tag (grading rework). Orphans are harmless to position
+      // (the anchor, not the review count, drives CSD/TWI).
+      if (!logOnly) {
+        await deleteDoc(doc(db, 'attempts', orphan.id));
+        console.log(`[RECONCILIATION] Deleted orphaned review: Day ${orphan.studyDay}, attemptId: ${orphan.id}`);
+      }
     } catch (err) {
-      console.error(`[RECONCILIATION] Failed to clean up orphaned review ${orphan.id}:`, err);
+      console.error(`[RECONCILIATION] Failed to ${logOnly ? 'flag' : 'clean up'} orphaned review ${orphan.id}:`, err);
       // Continue with other orphans even if one fails
     }
   }
@@ -136,6 +143,7 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   let anchorDay = 0;
   let twi = 0;
   let csd = 0;
+  let reviewLookupFailed = false; // [Codex-P1-1] query-error must not move CSD at all
 
   if (anchorTest && anchorTest.newWordEndIndex != null) {
     anchorDay = anchorTest.studyDay;
@@ -149,8 +157,23 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
       csd = 1;
       console.log('[RECONCILIATION] Day 1 anchor: CSD = 1');
     } else {
-      // Day 2+: Check if review exists
-      const reviewForAnchorDay = await getReviewForDay(userId, classId, listId, anchorDay);
+      // Day 2+: Check if review exists. Under LIST_SCOPED_RECON the review is paired to
+      // the ANCHOR's class + temporal lineage (§5.1) — not the launching class — so a
+      // cross-pace same-studyDay review from a different progression cannot pair [V4].
+      const reviewResult = await getReviewForDay(userId, classId, listId, anchorDay, {
+        anchorClassId: anchorTest.classId,
+        anchorSubmittedAt: anchorTest.submittedAt
+      });
+      const reviewForAnchorDay = reviewResult.status === 'found' ? reviewResult.attempt : null;
+      if (reviewResult.status === 'query-error') {
+        // [C3-6 / Codex-P1-1] An errored lookup is NOT "no review" — and it must not move
+        // CSD in EITHER direction. (Math.max(storedCSD, anchorDay-1) would ADVANCE a
+        // stored CSD of 2 to 4 on a failed query with anchorDay 5 — unverified data.)
+        // Under LIST_SCOPED_RECON the safeCSD computation below pins CSD to storedCSD
+        // when this flag is set; TWI reconciliation is independent and proceeds normally.
+        reviewLookupFailed = true;
+        console.warn('[RECONCILIATION] getReviewForDay query-error — CSD will be preserved at stored value:', reviewResult.error?.code);
+      }
       csd = reviewForAnchorDay ? anchorDay : anchorDay - 1;
       console.log('[RECONCILIATION] Day 2+ anchor: CSD =', csd, '(reviewExists:', !!reviewForAnchorDay, ')');
     }
@@ -170,9 +193,11 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   console.log('[RECONCILIATION] Fetching recent attempts for orphan cleanup...');
   const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
 
-  // Clean up orphaned reviews (reviews for days beyond anchor)
+  // Clean up orphaned reviews (reviews for days beyond anchor).
+  // LIST_SCOPED_RECON → LOG-ONLY [C5-2]: with a list-wide, position-selected anchor,
+  // "studyDay > anchorDay" no longer proves orphanhood across mixed histories.
   if (anchorDay > 0) {
-    await cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts);
+    await cleanupOrphanedReviews(userId, classId, listId, anchorDay, attempts, { logOnly: LIST_SCOPED_RECON });
   }
 
   // Validate that we have trustworthy anchor data
@@ -188,15 +213,30 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
   });
 
   // Trust anchor as source of truth when data is valid
-  // Otherwise use Math.max to protect against query failures
-  const safeCSD = hasValidData ? csd : Math.max(storedCSD, csd);
+  // Otherwise use Math.max to protect against query failures.
+  //
+  // LIST_SCOPED_RECON [C3-5]: CSD is NON-DEMOTING (day = session count, §2.2 of the plan).
+  // Cross-pace, the position-max anchor can carry a LOWER studyDay than a slower-pace
+  // class's legitimate day counter (pace-80 Day 8 / word 639 out-positions pace-20 Day 15 /
+  // word 299) — demoting would erase real session history. A too-high CSD is harmless
+  // (next session is just numbered csd+1); genuine CSD corruption stays visible via the
+  // csd_implausible observability below and is handled by manual triage.
+  // TWI stays anchor-authoritative (bidirectional): position is exactly what the anchor proves.
+  // [Codex-P1-1] reviewLookupFailed → CSD stays EXACTLY storedCSD (an errored review
+  // lookup is unverified data — it must neither demote NOR advance). TWI is independent
+  // (anchor-derived, not review-derived) and reconciles normally.
+  const safeCSD = LIST_SCOPED_RECON
+    ? (reviewLookupFailed ? storedCSD : Math.max(storedCSD, csd))
+    : (hasValidData ? csd : Math.max(storedCSD, csd));
   const safeTWI = hasValidData ? twi : Math.max(storedTWI, twi);
 
   console.log('[RECONCILIATION] Comparison:', {
     stored: { csd: storedCSD, twi: storedTWI },
     calculated: { csd, twi },
     safe: { csd: safeCSD, twi: safeTWI },
-    reconciliationMode: hasValidData ? 'bidirectional' : 'one-way (Math.max protection)',
+    reconciliationMode: LIST_SCOPED_RECON
+      ? 'list-scoped (twi bidirectional, csd non-demoting)'
+      : (hasValidData ? 'bidirectional' : 'one-way (Math.max protection)'),
     needsUpdate: safeCSD !== storedCSD || safeTWI !== storedTWI
   });
 
@@ -397,7 +437,13 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
   const expectedDay = (current.currentStudyDay || 0) + 1;
   if (sessionSummary.day && sessionSummary.day !== expectedDay) {
     console.warn(`Duplicate day completion blocked: expected day ${expectedDay}, got day ${sessionSummary.day}`);
-    return { id: docId, ...current }; // Return existing progress unchanged
+    // dayGuardRejected [V9/§5.4]: marker so the completion caller can abort + force a
+    // session rebuild instead of leaving the student stuck against an in-flight session
+    // whose day no longer matches the (possibly reconciliation-advanced) counter.
+    // Flag-gated [Codex-P1-3] so the flag-off return stays byte-equivalent to legacy.
+    return LIST_SCOPED_RECON
+      ? { id: docId, ...current, dayGuardRejected: true }
+      : { id: docId, ...current }; // Return existing progress unchanged
   }
 
   // Keep only last MAX_RECENT_SESSIONS

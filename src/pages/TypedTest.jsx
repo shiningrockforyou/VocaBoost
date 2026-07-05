@@ -1036,6 +1036,19 @@ const TypedTest = () => {
               setIsSubmitting(false)
               return
             }
+            // [Codex-P1-3 / P1r4-1] Day-guard rejection: the day counter advanced elsewhere
+            // and this completion did NOT apply. The attempt itself is saved — do NOT
+            // present the completion as success. sessionCleared distinguishes a clean
+            // rebuild from a SURVIVING stale session doc (deletion failed twice — needs
+            // reload/recovery, already escalated to system_logs as error).
+            if (completion?.requiresSessionRebuild) {
+              console.warn('completeSessionFromTest: day-guard rejection — session rebuild required', { sessionCleared: completion?.sessionCleared })
+              setGradingError(completion?.sessionCleared
+                ? '세션 정보가 갱신되었습니다. 답안은 저장되었으니, 학습 화면으로 돌아가 이어서 진행해 주세요.\n(Your session was refreshed — your answers are saved. Return to the study screen to continue.)'
+                : '답안은 저장되었지만 세션을 초기화하지 못했습니다. 페이지를 새로고침해 주세요 — 문제가 반복되면 선생님께 알려 주세요.\n(Your answers are saved, but the session could not be reset. Please reload the page — tell your teacher if this repeats.)')
+              setIsSubmitting(false)
+              return
+            }
             console.log('Session completed successfully from TypedTest')
           } catch (completionErr) {
             console.error('Failed to complete session from test:', completionErr)

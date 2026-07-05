@@ -142,21 +142,28 @@ export async function saveSessionState(userId, classId, listId, state) {
 /**
  * Clear session state (used when moving to next day)
  *
+ * Returns whether the deletion actually succeeded [Codex-P1r3-3] — callers that go on
+ * to promise a "rebuilt" session (day-guard rejection handling) must not claim it while
+ * the stale COMPLETE doc still exists. Existing callers that ignore the return value
+ * keep their previous swallow-and-continue behavior.
+ *
  * @param {string} userId - User ID
  * @param {string} classId - Class ID
  * @param {string} listId - List ID
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} true if deleted (or nothing to delete), false on failure
  */
 export async function clearSessionState(userId, classId, listId) {
-  if (!userId || !classId || !listId) return;
+  if (!userId || !classId || !listId) return false;
 
   const docId = getSessionDocId(classId, listId);
   const sessionRef = doc(db, `users/${userId}/session_states`, docId);
 
   try {
     await deleteDoc(sessionRef);
+    return true;
   } catch (err) {
     console.error('Failed to clear session state:', err);
+    return false;
   }
 }
 

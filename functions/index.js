@@ -20,6 +20,19 @@ const {buildTestResult} = require("./scoring");
 admin.initializeApp();
 const db = admin.firestore();
 
+// Build provenance (deploy-provenance fix — see NEED_TO_FIX.md). buildInfo.json is stamped
+// at deploy time by scripts/stamp-build.mjs (firebase.json predeploy). Logged on every cold
+// start and exposed via the `version` callable so we can confirm WHICH commit + flags are
+// actually live vs the repo — the 2026-06-29 grader incident (prod ran a stale artifact for
+// months) was undetectable precisely because there was no live-version signal.
+let BUILD_INFO = {sha: "unknown", shortSha: "unknown", branch: "unknown", dirty: null, builtAt: "unknown"};
+try {
+  BUILD_INFO = require("./buildInfo.json");
+} catch (_) {
+  // Not stamped (local emulator / direct run without predeploy) — leave defaults.
+}
+logger.info("cold start", {build: BUILD_INFO});
+
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
 // traffic spikes by instead downgrading performance. This limit is a
@@ -1879,3 +1892,21 @@ exports.renameStudent = onCall(
     return {success: true, name};
   },
 );
+
+// Deploy-provenance probe. After any deploy, call this and compare `sha` to
+// `git rev-parse HEAD` in the repo you deployed from — they must match. Also reports the
+// LIVE runtime flags so "is enforcement on right now?" is one call, not behavioural detective
+// work (the 2026-06-29 confusion — repo said true, prod behaved as false — is exactly this).
+exports.version = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
+  return {
+    ...BUILD_INFO,
+    flags: {
+      GRADE_TOKEN_ENFORCED,
+      GRADE_TOKEN_MINT,
+      GRADE_JOB_ENABLED,
+      GRADE_JOB_LEASE_MS,
+    },
+    serverTime: new Date().toISOString(),
+  };
+});

@@ -8,6 +8,74 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 6. Class change resets list progress (day/`totalWordsIntroduced`) → students re-study words  ·  data model  ·  HIGH
+
+**What's broken.** When a student moves between classes that share the same list, their day counter
+and word position reset to Day 1 — the app re-feeds words they already studied. Fixed by hand 3× so far:
+이주헌 (CS-2026-06-30), 손진욱 + 박주하 (CS-2026-07-02b). Recurring; each needs a manual carry-forward.
+
+**Why it happens (root cause).** Progress is keyed by **class + list**, not student + list. The
+`class_progress` doc id is `{classId}_{listId}` (`progressService.js:32 getProgressDocId`), and
+`session_states` is `{classId}_{listId}` too (`sessionService.js:55 getSessionDocId`). A new class ⇒ a
+fresh `{classId}_{listId}` doc ⇒ `currentStudyDay=0`, `totalWordsIntroduced=0`. **Mastery already
+persists correctly** — `study_states` are keyed `users/{uid}/study_states/{wordId}` (has `listId`, no
+`classId`), so the known-words carry; only the *counter* resets. That asymmetry is the whole bug.
+
+**Impact.** Any class change on a shared list (common: Base Camp→Ascent promotion, section transfer)
+silently rewinds progress; students redo mastered words, morale/억울함 hit, TA + ops time per case.
+
+**Fix direction (settled model, 2026-07-04 — David).** **List progress is student-owned; a class confers
+only list ACCESS + the daily quota/policy (pace/threshold/testMode) for a session launched under it.** No
+class owns progress state → one record per (student, list): `class_progress/{classId}_{listId}` →
+`users/{uid}/list_progress/{listId}` (position only). Settings/quota resolve from the launching class;
+teacher gradebook = the shared position + a view over class-tagged `attempts` (no per-class progress doc);
+"day" = session count. `totalWordsIntroduced` is a pace-independent word position (carried verbatim);
+`currentStudyDay` is a stored counter (carried verbatim, NOT relabeled from pace). One-time migration
+collapses `{classId}_{listId}` docs → `{listId}` taking the anchor-validated `max(totalWordsIntroduced)`.
+**Full plan (v3, 3-agent + Codex×2 audited):** `docs/plans/PLAN_list_progress_persist.md`.
+
+**Effort/risk.** Medium. Real scope: (1) list-scope the reconciliation/anchor readers (anchor by
+`newWordEndIndex`, not `studyDay`) — the load-bearing piece; (2) route the full composition surface
+(`getProgressDocId` + blindSpot + `reviewChallenge` R+W + `TypedTest`×4 + `MCQTest`×4 + automarker) to
+`{listId}`; (3) migration on live data (backup + verify); (4) gradebook/pacing become views. The
+shared-live-position/server-claim architecture the audit explored was dropped as unnecessary under the
+student-owned model (see plan Appendix A). Cross-plan: list-scope the grading session key
+(`PLAN_grading_idempotent_concurrency.md`).
+
+---
+
+## 5. `retakeThreshold` defaults to 0.95 → a genuine pass (92–94%) can show as "fail"  ·  client  ·  HIGH
+
+**What's broken.** A student scores at/above the class pass threshold (e.g. 93% vs a 92% threshold), the server writes `passed:true` and advances them, but the **results screen shows "fail"** and loops them into retakes.
+
+**Why it happens (root cause).** `TypedTest.jsx` initializes `retakeThreshold` to **0.95** (line ~87) and only lowers it to the real value once it resolves the class/list `passThreshold` (→ `/100`). If that resolution fails or is skipped, it stays at **0.95**, and the pass check `summary.score >= retakeThreshold` compares the fraction score (0.93) against 0.95 → "fail". Because **0.95 is higher than the actual class thresholds (commonly 92)**, ANY threshold-load hiccup turns a real pass into a displayed fail. Observed for **김나연** (CS-2026-07-03): threshold load fell back to the default because she was enrolled in **two** Base Camp classes, breaking the class resolution.
+
+**Impact.** Students who genuinely pass (92–94%) get told they failed and are forced to retake in a loop, even though the server marked them passed and advanced their day. Confusing, generates CS tickets, and mis-signals to students.
+
+**Fix direction.** (1) Default `retakeThreshold` to a **safe low value** (e.g. the cohort-min, or 0) — never above real class thresholds — so a load failure fails *open* (pass) not *closed* (fail); or block the results-screen verdict until the threshold is actually loaded. (2) Harden the threshold resolution for **multi-class** students (pick the class the attempt was taken under; don't fall through to the default when one path returns null). (3) Ideally, make the results screen trust the server's `passed` field rather than recomputing client-side.
+
+**Precise source (traced 2026-07-03 via 김호형/Adv E).** The client new-word gate's threshold = `assignment.newWordRetakeThreshold || DEFAULT_RETAKE_THRESHOLD(0.95)` (`studyService.js:267` → `sessionConfig.retakeThreshold` → `DailySessionFlow.jsx:1316` + `TypedTest.jsx:291`). Class assignments store `passThreshold` (which the SERVER uses) but historically **never stored `newWordRetakeThreshold`**, so it fell to 0.95. (`studyService.js:1282` already comments this and `completeSessionFromTest` was fixed to trust the attempt's `passed` flag — but the DailySessionFlow gate + TypedTest results screen were not.)
+
+**Interim mitigation APPLIED (2026-07-03, no deploy).** Wrote `newWordRetakeThreshold = passThreshold/100` onto all 61 class assignments (39 classes), per-assignment (92→0.92, 90→0.9, 74→0.74, …). Client now reads the real threshold on the NEXT session build. **Durable code fix still needed** so new/edited assignments don't reintroduce the gap and so the gate trusts the server `passed` flag regardless.
+
+**Effort/risk.** Low effort (a constant + a resolution guard); risk is low and strictly in the safe direction.
+
+---
+
+## 4. No way to tell which commit/flags are actually LIVE (deploy provenance)  ·  ops/backend  ·  HIGH  ·  **fix written, awaiting deploy**
+
+**What's broken.** The deployed Cloud Functions had no signal of what code/flags they're running, so the repo can silently diverge from production with nobody noticing.
+
+**Why it happens (root cause).** Two concrete 2026-06-29 instances: (a) the grader "accept answers matching the Korean definition" rule was committed **2026-03-10** (in a mislabeled commit `0de81fb "apboost audit and updates"`) yet production kept emitting the old "restating the Korean definition" failures through 06-28→06-29 11:14 KST — prod ran a **stale artifact** and there was no way to see it (this is what wrongly failed 박시은); (b) `/app` `functions/index.js:45` reads `GRADE_TOKEN_ENFORCED = true` while production *behaves* as `false` (verified by a mismatched-token save succeeding) — repo↔prod drift with no live readout.
+
+**Impact.** Silent regressions and "fixed in repo, broken in prod" — a fix can land in git and never reach users, or a flag's live value is unknowable without behavioural probing. Directly caused a wrongful grade.
+
+**Fix direction (implemented 2026-06-29, not yet deployed).** `scripts/stamp-build.mjs` stamps `functions/buildInfo.json` (git sha/branch/dirty/builtAt) via `firebase.json` `predeploy`; `functions/index.js` logs it on cold start and exposes `exports.version` returning the live sha + runtime flags. **Post-deploy verify:** call `version` → `sha` must equal `git rev-parse HEAD` of the deployed checkout, and `flags.GRADE_TOKEN_ENFORCED` must be `false`. Follow-ups (process, not code): deploys must build from HEAD and redeploy `gradeTypedTest`; stop hiding functional grader changes in unrelated commit messages.
+
+**Effort/risk.** Low effort, additive/no-behaviour-change (one new read-only callable + a predeploy stamp); risk is only that the deployed checkout must carry these files.
+
+---
+
 ## 3. Grading can still hard-fail on `listId: null` (residual after the 06-22 malform fix)  ·  backend+client  ·  MED
 
 **What's broken.** `gradeTypedTest` rejects an entire test ("Unresolvable grading payload (all answers
