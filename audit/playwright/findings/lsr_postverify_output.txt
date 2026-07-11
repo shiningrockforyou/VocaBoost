@@ -1,0 +1,15 @@
+=== artifact binding ===
+✓ manifest + matrix bound to the same run mr7qbi3m
+✓ all expected scenarios present: TA1, TA2, M1, M3, M5
+✓ exactly one TA2 manifest item
+✓ preflight allowlist recorded (age at run 0.3h)
+
+=== TA2 progress-preservation (read-only) ===
+✓ TA2: lsr_s24@vocaboost.test class_progress/EJl8L9cjmqHNT69GVGRJ_EQ0Dc9rb7gvoerflHlnz — CSD=1 TWI=80 (expected CSD>=1, TWI>0) [list_progress diag: absent]
+
+=== combined verdict ===
+acceptance matrix: 5 PASS · 0 FAIL · 0 INVALID · 0 fatal browser anomalies
+artifact-binding failures: 0 · post-verify CSD/TWI failures: 0
+
+✅ FINAL: PASS — F02/F03 acceptance verified (bound artifacts + UI matrix + read-only progress).
+

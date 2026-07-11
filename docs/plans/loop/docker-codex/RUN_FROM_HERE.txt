@@ -1,0 +1,23 @@
+Run from here
+
+Copy one command line at a time into PowerShell.
+You should already be in:
+C:\Users\dmchw\vocaboost\docs\plans\loop\docker-codex
+
+1. Reset baton to first smoke test:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; New-Item -ItemType Directory -Force $out | Out-Null; $baton=[ordered]@{turnOwner="codex";task="smoke-test";repoRoot="/repo";instruction="Read /repo/package.json. Write a short smoke_test.md in /out saying whether you could read the repo. Then update this baton.json by setting turnOwner to claude and codexStatus to smoke-ok."}; $baton | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "$out\baton.json"; Get-Content "$out\baton.json"
+
+2. Run first smoke test:
+.\run-once.ps1
+
+3. Check first smoke test:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; Get-ChildItem $out; Get-Content "$out\baton.json"; Get-Content "$out\last_message.md"; Get-Content "$out\smoke_test.md"
+
+4. If step 3 shows codexStatus smoke-ok, create resume smoke baton:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; $baton=[ordered]@{turnOwner="codex";task="resume-smoke-test";repoRoot="/repo";instruction="Append one sentence to /out/smoke_test.md saying the resumed session worked. Then update this baton.json by setting turnOwner to claude and codexStatus to resume-smoke-ok."}; $baton | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "$out\baton.json"; Get-Content "$out\baton.json"
+
+5. Run resume smoke test:
+.\resume-last.ps1
+
+6. Check resume smoke test:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; Get-Content "$out\baton.json"; Get-Content "$out\last_message.md"; Get-Content "$out\smoke_test.md"

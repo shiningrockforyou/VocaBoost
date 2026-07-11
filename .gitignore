@@ -66,3 +66,10 @@ audit/playwright/lsr_accounts.json
 audit/playwright/lsr_prep_state.json
 audit/playwright/wordmap.json
 .claude/scheduled_tasks.lock
+
+# LSR audit credentials (never commit)
+audit/playwright/.lsr_secret.json
+audit/playwright/lsr_accept_state.json
+audit/playwright/lsr_accept_manifest.json
+audit/playwright/lsr_clean_accounts.json
+audit/playwright/lsr_accept_matrix.json

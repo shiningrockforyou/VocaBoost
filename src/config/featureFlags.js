@@ -38,4 +38,4 @@ export const SERVER_REVIEW_MARKER = false;
 // attempt list-wide only if position-consistent. Requires the 6 new attempts composite
 // indexes (firestore.indexes.json) deployed FIRST — flag-on without them = query-error
 // fallbacks everywhere. Flag-off = byte-equivalent legacy (class-scoped) behavior.
-export const LIST_SCOPED_RECON = false;
+export const LIST_SCOPED_RECON = true;

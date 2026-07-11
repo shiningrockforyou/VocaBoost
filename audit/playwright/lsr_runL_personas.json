@@ -1,0 +1,9 @@
+{
+  "_purpose": "Run L (flag-OFF regression) persona set — REAL lsr_* accounts with varied shapes. Forward-only (driving advances progress; no resets). Shapes verified read-only 2026-07-05.",
+  "personas": [
+    { "email": "lsr_s13@vocaboost.test", "shape": "DUAL-CLASS SAME-LIST collision (2 class_progress on TOP, csd 3 & 2) — the key flag-off case: must stay class-scoped, no list_progress, no reconciliation collapse", "drive": true },
+    { "email": "lsr_s10@vocaboost.test", "shape": "progressed single-class (csd 2) — exercises the Day-2+ gate (flag-gated position-consistency path must stay legacy)", "drive": true },
+    { "email": "lsr_s03@vocaboost.test", "shape": "progressed single-class (csd 2)", "drive": true },
+    { "email": "lsr_s01@vocaboost.test", "shape": "enrolled, no progress (first-day) — a fresh day-1 completion under flag off", "drive": true }
+  ]
+}

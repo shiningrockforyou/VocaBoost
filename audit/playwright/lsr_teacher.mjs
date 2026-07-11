@@ -7,7 +7,7 @@
  * (List <select> by clone id; Test Mode select located by option content — wrapping
  * labels break getByLabel for selects, mcq="Multiple Choice Only", typed="Written Only").
  */
-import { sleep, goDashboard, dismissModal, shot } from './lsr_ui.mjs';
+import { sleep, goDashboard, dismissModal, shot, armDialog } from './lsr_ui.mjs';
 
 // Clone list titles → doc ids (audit-owned lists).
 export const LIST_ID = {
@@ -58,21 +58,39 @@ export async function assignList(page, className, listTitle, { pace, thr, mode, 
   return ok;
 }
 
-// Unassign a list (Trash IconButton title="Unassign list" + native confirm). Scopes to the
-// list card matching listTitle when multiple lists are assigned.
-export async function unassignList(page, className, listTitle, F) {
+// Unassign a list (Trash IconButton title="Unassign list" + native confirm). `dialog`
+// declares intent for the confirm: 'accept' (proceed) or 'dismiss' (cancel). Returns
+// { gone, dialogMessage } so callers (e.g. TA2 F03 contract) can assert the exact warning
+// text AND that cancel preserves / accept removes.
+export async function unassignList(page, className, listTitle, F, { dialog = 'accept' } = {}) {
   await openClassDetail(page, className, F);
   await tab(page, 'Assigned Lists');
   // The card containing listTitle → its "Unassign list" icon button.
   let btn = page.getByTitle('Unassign list').first();
   const cards = page.locator('div', { hasText: listTitle }).filter({ has: page.getByTitle('Unassign list') });
   if (await cards.count().catch(() => 0)) btn = cards.last().getByTitle('Unassign list').first();
-  if (!(await btn.isVisible().catch(() => false))) { F.add('selector-gap', `${className}: Unassign control for "${listTitle}" not found`); await shot(page, `lsr_tch_unassign_gap_${className.replace(/\W+/g, '_')}`); return false; }
-  await btn.click().catch(() => {}); // native confirm auto-accepted
+  if (!(await btn.isVisible().catch(() => false))) { F.add('selector-gap', `${className}: Unassign control for "${listTitle}" not found`); await shot(page, `lsr_tch_unassign_gap_${className.replace(/\W+/g, '_')}`); return { gone: false, dialogMessage: null }; }
+  armDialog(page, dialog);
+  await btn.click().catch(() => {});
   await sleep(2000);
+  const dialogMessage = page.__dialog?.last?.message || null;
   const gone = !(await page.getByText(listTitle, { exact: false }).first().isVisible().catch(() => false));
-  F.step('teacher', `unassign "${listTitle}" from ${className} → ${gone ? 'removed' : 'still present'}`);
-  return gone;
+  F.step('teacher', `unassign "${listTitle}" from ${className} [dialog=${dialog}] → ${gone ? 'removed' : 'still present'}`);
+  return { gone, dialogMessage };
+}
+
+// Read a class's join code from the teacher ClassDetail UI (visible "Join Code" panel,
+// ClassDetail.jsx:678/1000). Forward-only class creation reads the code to hand to a student.
+export async function readJoinCode(page, className, F) {
+  await openClassDetail(page, className, F);
+  const lbl = page.getByText(/^Join Code$/i).first();
+  if (!(await lbl.isVisible({ timeout: 6000 }).catch(() => false))) { F.add('selector-gap', `${className}: Join Code panel not found`); return null; }
+  const codeEl = lbl.locator('xpath=following-sibling::*[1]');
+  const raw = (await codeEl.innerText().catch(() => '')).replace(/\s+/g, '').trim();
+  const code = /^[A-Za-z0-9]{4,8}$/.test(raw) ? raw : null;
+  if (!code) F.add('selector-gap', `${className}: join code text unreadable ("${raw.slice(0, 20)}")`);
+  F.step('teacher', `read join code for ${className} → ${code || 'FAILED'}`);
+  return code;
 }
 
 // Edit an assigned list's settings (pace/threshold/mode/testSize) via title="Edit Settings".
@@ -112,7 +130,8 @@ export async function removeStudent(page, className, studentName, F) {
     removeBtn = page.getByRole('button', { name: /^remove$/i }).first();
   }
   if (!(await removeBtn.isVisible().catch(() => false))) { F.add('selector-gap', `${className}: Remove control for "${studentName}" not found`); await shot(page, `lsr_tch_remove_gap_${className.replace(/\W+/g, '_')}`); return false; }
-  await removeBtn.click().catch(() => {}); // native confirm auto-accepted
+  armDialog(page, 'accept'); // this primitive intends to confirm the removal
+  await removeBtn.click().catch(() => {});
   await sleep(2000);
   F.step('teacher', `remove "${studentName}" from ${className}`);
   return true;

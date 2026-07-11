@@ -1,0 +1,10 @@
+{
+  "_purpose": "Run L case DEFINITIONS (per RUNL_DESIGN_SPEC.md, Codex-blessed). Concrete personas are allocated by lsr_runL_fixture.mjs into runL_fixture_<runId>.json (the bound artifact all phases read).",
+  "list": { "title": "LSR TOP Vocab (audit clone)", "id": "EQ0Dc9rb7gvoerflHlnz" },
+  "cases": [
+    { "id": "L1-T", "role": "fresh", "class": "25WT LSR-A TYPED", "mode": "typed", "assert": "exact Day-1 completion" },
+    { "id": "L1-M", "role": "fresh", "class": "25WT LSR-A MCQ",   "mode": "mcq",   "assert": "exact Day-1 completion" },
+    { "id": "L1-R", "role": "fresh", "class": "25WT LSR-A TYPED", "mode": "typed", "assert": "fail→intermediate→retry→pass; exactly one failed + one passed" },
+    { "id": "L2",   "role": "collision", "classA_preferUid": "lsr_s04", "classB": "25WT LSR-B TYPED", "mode": "typed", "assert": "A-high winning anchor; enter B (no study); B stays B-local; counterfactual proven in --pre" }
+  ]
+}

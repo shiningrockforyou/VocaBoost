@@ -60,12 +60,21 @@ const SCENARIOS = {
     pre: async (c) => { await c.S1.join(KB); await c.S1.study('s18-d1'); },
     run: async (c) => {
       await c.S1.dash();
+      // F03 fix verification: the fix is warn-only — it reworded the unassign CONFIRM, it
+      // does NOT remove stranding. Capture the confirm text (auto-recorded as native-dialog)
+      // and assert it's the honest warning, not the old "progress is saved" copy.
+      const dlgBefore = c.F.raw.filter((r) => r.kind === 'native-dialog').length;
       await c.T.unassignList(KB, TOP);
+      const dlg = c.F.raw.filter((r) => r.kind === 'native-dialog').slice(dlgBefore).map((r) => r.detail).join(' | ');
+      const honest = /LOSE ACCESS/i.test(dlg);
+      const misleading = /progress is saved/i.test(dlg);
+      c.F.add(honest ? 'observation' : 'BUG', `[TA2/F03-fix] unassign confirm copy: ${honest ? 'HONEST ("LOSE ACCESS…until re-assigned") ✓ — F03 fix is LIVE' : misleading ? 'STILL the old misleading "progress is saved" copy — F03 fix NOT deployed' : `no confirm captured (dlg="${dlg.slice(0, 140)}")`}`);
       await c.S1.reload();
       const reach = await c.S1.canReachList(TOP);
       const stranded = !reach;
-      c.F.add(stranded ? 'BUG' : 'observation', `[TA2] after teacher unassigned "${TOP}" from ${KB}, student can reach the list: ${reach} — ${stranded ? 'STRANDED (박한별 repro)' : 'still reachable'}`);
-      c.result.stranded = stranded;
+      // Warn-only: stranding is EXPECTED to persist. Not a regression; report as observation.
+      c.F.add('observation', `[TA2] post-unassign student can reach "${TOP}": ${reach} — stranded=${stranded} (EXPECTED under warn-only F03; the fix is the honest warning=${honest})`);
+      c.result.stranded = stranded; c.result.warningHonest = honest;
     },
   },
   // TA5 — teacher assigns the in-progress list to a SECOND class the student is in (Phase-1 core)
@@ -173,39 +182,55 @@ const SCENARIOS = {
 };
 
 // ---------------- actor helper binding ----------------
-function studentHelpers(page, F) {
+// Helpers read ref.page (a mutable holder), so a context relaunch (relaunchActor) can swap
+// the underlying page and every bound helper follows automatically. `relaunch` escalates
+// page-level recovery to a full browser-context relaunch + re-login (user directive
+// 2026-07-05: on an issue → record bug → refresh → relaunch → record → continue).
+function studentHelpers(ref, F, role, relaunch) {
   return {
-    page,
-    dash: () => goDashboard(page),
-    reload: async () => { await page.reload({ waitUntil: 'domcontentloaded' }); await sleep(3000); },
-    join: (cn) => joinClass(page, CODE(cn), cn, F, 'stu'),
-    study: (label) => studyOneDay(page, F, label),
-    switch: (cn) => switchClass(page, cn, F),
-    openStudy: () => driveNewWordsToTest(page, F, 'openStudy').then((r) => r.reached),
-    focusListText: async () => { const el = page.getByText(/^List:/).first(); const t = await el.locator('xpath=..').innerText().catch(() => null); return t ? t.replace(/\s+/g,' ').trim() : null; },
-    canReachList: async (title) => page.getByText(title, { exact: false }).first().isVisible().catch(() => false),
-    reloadReach: async (title) => { await page.reload({ waitUntil: 'domcontentloaded' }); await sleep(2500); return page.getByText(title, { exact: false }).first().isVisible().catch(() => false); },
+    get page() { return ref.page; },
+    dash: () => goDashboard(ref.page),
+    reload: async () => { await ref.page.reload({ waitUntil: 'domcontentloaded' }); await sleep(3000); },
+    join: async (cn) => {
+      let ok = await joinClass(ref.page, CODE(cn), cn, F, role);
+      if (!ok && relaunch) {
+        F.add('recovery', `[${role}] join "${cn}" not recovered page-level → escalating to browser relaunch`);
+        const relOk = await relaunch();
+        if (relOk) {
+          ok = await joinClass(ref.page, CODE(cn), cn, F, role);
+          F.add('recovery', `[${role}] after browser relaunch, join "${cn}" → ${ok ? 'RECOVERED ✓' : 'STILL broken (persistent — likely a real phantom-membership bug)'}`);
+        }
+      }
+      return ok;
+    },
+    study: (label) => studyOneDay(ref.page, F, label),
+    switch: (cn) => switchClass(ref.page, cn, F),
+    openStudy: () => driveNewWordsToTest(ref.page, F, 'openStudy').then((r) => r.reached),
+    focusListText: async () => { const el = ref.page.getByText(/^List:/).first(); const t = await el.locator('xpath=..').innerText().catch(() => null); return t ? t.replace(/\s+/g,' ').trim() : null; },
+    canReachList: async (title) => ref.page.getByText(title, { exact: false }).first().isVisible().catch(() => false),
+    reloadReach: async (title) => { await ref.page.reload({ waitUntil: 'domcontentloaded' }); await sleep(2500); return ref.page.getByText(title, { exact: false }).first().isVisible().catch(() => false); },
+    relaunch: () => (relaunch ? relaunch() : Promise.resolve(false)),
     resetProgress: async () => {
-      await page.goto(`${(await import('./lsr_ui.mjs')).BASE}/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await ref.page.goto(`${(await import('./lsr_ui.mjs')).BASE}/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
       await sleep(2000);
-      const btn = page.getByRole('button', { name: /reset.*progress|progress.*reset/i }).first();
-      if (!(await btn.isVisible().catch(() => false))) { F.add('selector-gap', '[AD2] reset-progress control not found on Settings'); await shot(page, 'lsr_ad2_settings'); return false; }
+      const btn = ref.page.getByRole('button', { name: /reset.*progress|progress.*reset/i }).first();
+      if (!(await btn.isVisible().catch(() => false))) { F.add('selector-gap', '[AD2] reset-progress control not found on Settings'); await shot(ref.page, 'lsr_ad2_settings'); return false; }
       await btn.click().catch(() => {}); await sleep(1000);
-      await page.getByRole('button', { name: /confirm|yes|reset/i }).last().click().catch(() => {});
+      await ref.page.getByRole('button', { name: /confirm|yes|reset/i }).last().click().catch(() => {});
       await sleep(2500);
       return true;
     },
   };
 }
-function teacherHelpers(page, F) {
+function teacherHelpers(ref, F) {
   return {
-    page,
-    assignList: (cn, list, s) => T.assignList(page, cn, list, s, F),
-    unassignList: (cn, list) => T.unassignList(page, cn, list, F),
-    editSettings: (cn, list, ch) => T.editSettings(page, cn, list, ch, F),
-    removeStudent: (cn, name) => T.removeStudent(page, cn, name, F),
-    openGradebook: (cn) => T.openGradebook(page, cn, F),
-    createClass: (cn) => T.createClass(page, cn, F),
+    get page() { return ref.page; },
+    assignList: (cn, list, s) => T.assignList(ref.page, cn, list, s, F),
+    unassignList: (cn, list) => T.unassignList(ref.page, cn, list, F),
+    editSettings: (cn, list, ch) => T.editSettings(ref.page, cn, list, ch, F),
+    removeStudent: (cn, name) => T.removeStudent(ref.page, cn, name, F),
+    openGradebook: (cn) => T.openGradebook(ref.page, cn, F),
+    createClass: (cn) => T.createClass(ref.page, cn, F),
   };
 }
 
@@ -270,14 +295,32 @@ const pre = await snapshot(S.actors);          // read-only, before any browser
 const browser = await launch();
 const ctx = { F, result: R.result, uid: (role) => uidOf(em(S.actors[role])) };
 const pages = {};
+const refs = {};
+// Context-level relaunch: close the actor's context, open a fresh one, re-login, and swap
+// ref.page so all bound helpers follow. Records the relaunch + its outcome (user directive).
+async function relaunchActor(role) {
+  const email = S.actors[role];
+  const ref = refs[role];
+  F.add('recovery', `[${scenarioId}-${role}] RELAUNCHING browser context (${email})`);
+  try { await ref.page.context().close(); } catch { /* already gone */ }
+  const { page: np } = await newAuditPage(browser, F, `${scenarioId}-${role}-relaunch`);
+  const ok = await login(np, em(email), F);
+  ref.page = np;
+  pages[role] = np;
+  F.add('recovery', `[${scenarioId}-${role}] relaunch re-login → ${ok ? 'ok' : 'FAILED'}`);
+  return ok;
+}
 for (const [role, email] of Object.entries(S.actors)) {
   const isTeacher = /teacher/.test(email);
   const { page } = await newAuditPage(browser, F, `${scenarioId}-${role}`);
   const ok = await login(page, em(email), F);
   if (!ok) console.log(`  ⚠ ${role} (${email}) login failed`);
+  const ref = { page };
+  refs[role] = ref;
   pages[role] = page;
-  ctx[role] = isTeacher ? teacherHelpers(page, F) : studentHelpers(page, F);
+  ctx[role] = isTeacher ? teacherHelpers(ref, F) : studentHelpers(ref, F, role, () => relaunchActor(role));
 }
+ctx.relaunch = relaunchActor; // scenarios can force a relaunch for any role
 try {
   if (S.pre) { console.log('  · building precondition…'); await S.pre(ctx); }
   console.log('  · running interleaved timeline…');

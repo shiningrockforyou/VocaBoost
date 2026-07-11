@@ -1,151 +1,169 @@
 /**
- * B_LIST_PROGRESS_PHASE1_UI — Run L (flag-OFF regression). Policy-bound (see batch doc).
- * Order: PRE-GATE (node-side deploy verification, no browser) → [operator ran
- * lsr_snapshot.mjs --pre and the Admin process EXITED] → browser cases → close →
- * [operator runs lsr_snapshot.mjs --post].
+ * Run L — Admin-FREE measured driver (per RUNL_DESIGN_SPEC.md). Reads the bound fixture and
+ * runs the measured cases; the read-only verifier asserts the oracles. No backend pre-gate.
+ * Bound pipeline: fixture → verify --pre → THIS → verify --post.
  *
- *   NODE_PATH=/app/node_modules node audit/playwright/lsr_runL.mjs
- *
- * Personas come from lsr_personas.json (operator confirms from the --pre
- * classification): { "P_L1": "email", "P_L2": "email" }  — forward-only, no resets.
- * L2 requires P_L2 to already be dual-enrolled; if absent it is reported skipped.
+ *   LSR_AUDIT_PW=… [LSR_BUILD_ID=…] NODE_PATH=/app/node_modules node audit/playwright/lsr_runL.mjs <runId>
  */
-import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, rmSync } from 'fs';
 import {
-  BASE, AUD, sleep, makeFindings, launch, newAuditPage, login, goDashboard,
-  switchClass, driveNewWordsToTest, driveReviewToTest, readTestRows, carefulAnswers,
-  fillSubmitAndObserve, assertVerdictCoherent, shot, runMeta,
-  answerMcqVisible, submitMcqAndObserve,
+  AUD, sleep, makeFindings, launch, newAuditPage, login, goDashboard, switchClass,
+  driveNewWordsToTest, driveTest, readTestRows, fillSubmitAndObserve, readVisibleProgress,
+  readFocus, readFocusList, selectList, enterSessionOnly, leaveSessionViaQuit, shot,
 } from './lsr_ui.mjs';
+import { fixtureDigest } from './lsr_runL_digest.mjs';
+const nm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+async function passedResults(page, mode) { // specific passed-results card + Continue (BOUNDED waits, not instant isVisible)
+  const heading = mode === 'mcq' ? /New Words Test Passed/i : /Completed Day \d+ session/i;
+  const h = await page.getByText(heading).first().waitFor({ state: 'visible', timeout: 15000 }).then(() => true).catch(() => false);
+  const cont = await page.getByRole('button', { name: /continue|다음|next/i }).first().waitFor({ state: 'visible', timeout: 8000 }).then(() => true).catch(() => false);
+  return h && cont;
+}
+// Track screenshots this run actually captured successfully, so --post can require the exact
+// set (and the driver deletes stale ones up front → no reuse of a prior run's PNGs).
+const shots = [];
+async function snap(page, name) { const ok = await shot(page, `runL_${runId}_${name}`); if (ok) shots.push(name); else F.add('flow-gap', `screenshot ${name} FAILED to capture`); return ok; }
 
-const runId = `L_${new Date().toISOString().slice(0, 10)}`;
-const F = makeFindings(runId);
-const R = { run: 'L', startedAt: new Date().toISOString(), cases: {}, pass: true };
-const caseResult = (name, ok, note, detail = {}) => {
-  R.cases[name] = { ok, note, ...detail };
-  if (ok === false) R.pass = false;
-  console.log(`${ok === false ? '❌' : ok === 'skip' ? '⏸' : '✅'} ${name} — ${note}`);
-  F.add(ok === false ? 'CASE-FAIL' : ok === 'skip' ? 'CASE-SKIP' : 'CASE-PASS', `${name} — ${note}`);
-};
+const runId = process.argv[2];
+if (!runId) { console.error('usage: lsr_runL.mjs <runId>'); process.exit(2); }
+const BUILD_ID = process.env.LSR_BUILD_ID;
+if (!BUILD_ID) { console.error('LSR_BUILD_ID is REQUIRED — export the owner-supplied deployed build id/commit'); process.exit(2); }
+const FIX_PATH = `${AUD}/findings/runL_fixture_${runId}.json`;
+if (!existsSync(FIX_PATH)) { console.error(`no fixture for ${runId} — run lsr_runL_fixture.mjs then verify --pre`); process.exit(2); }
+const FIX = JSON.parse(readFileSync(FIX_PATH, 'utf8'));
+const LIST_TITLE = FIX.list.title;
+// PRE-FLIGHT GUARD: refuse to run (and consume the fresh personas) unless a VALID bound --pre
+// exists for this runId/build with the exact required case set. Prevents an accidental run
+// after a failed --pre from burning the fixtures.
+const REQUIRED = ['L1-T', 'L1-M', 'L1-R', 'L2'];
+const PRE_PATH = `${AUD}/findings/runL_pre_${runId}.json`;
+if (!existsSync(PRE_PATH)) { console.error(`no --pre for ${runId} — run lsr_runL_verify.mjs --pre ${runId} first`); process.exit(2); }
+const PRE = JSON.parse(readFileSync(PRE_PATH, 'utf8'));
+const preCases = Object.keys(PRE.cases || {});
+if (PRE.valid !== true) { console.error('--pre is not valid:true — fix fixtures and re-run --pre'); process.exit(2); }
+if (PRE.runId !== runId || PRE.buildId !== BUILD_ID) { console.error(`--pre run/build mismatch (runId=${PRE.runId} build=${PRE.buildId})`); process.exit(2); }
+if (!(preCases.length === REQUIRED.length && REQUIRED.every((x) => preCases.includes(x)))) { console.error(`--pre case set ${JSON.stringify(preCases)} != {${REQUIRED}}`); process.exit(2); }
+// Identity binding: the fixture digest the DRIVER operates on must equal what --pre validated.
+const DIGEST = fixtureDigest(FIX);
+if (PRE.fixtureDigest !== DIGEST) { console.error(`fixture changed since --pre (digest ${DIGEST} != pre ${PRE.fixtureDigest}) — re-run --pre`); process.exit(2); }
 
-// ---- PRE-GATE: deploy verification (node-side, before any browser; policy §3 record) ----
-let headSha = null; try { headSha = execSync('git -C /app rev-parse HEAD').toString().trim(); } catch { /* */ }
-const projectId = JSON.parse(readFileSync('/app/scripts/serviceAccountKey.json', 'utf8')).project_id;
-let ver = null;
-try {
-  const res = await fetch(`https://us-central1-${projectId}.cloudfunctions.net/version`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ data: {} }) });
-  ver = (await res.json())?.result || null;
-} catch (e) { F.add('pre-gate', `version callable unreachable: ${String(e).slice(0, 120)}`); }
-let bundleFresh = false;
-try {
-  const html = await (await fetch(BASE)).text();
-  const srcs = [...html.matchAll(/src="(\/assets\/[^"]+\.js)"/g)].map((m) => m[1]);
-  for (const s of srcs) { const js = await (await fetch(BASE + s)).text(); if (js.includes('day_guard_rejected_session_cleared')) { bundleFresh = true; break; } }
-} catch (e) { F.add('pre-gate', `bundle fetch failed: ${String(e).slice(0, 120)}`); }
-caseResult('PRE-GATE', !!ver && bundleFresh, `prod sha=${String(ver?.sha).slice(0, 7)} head=${String(headSha).slice(0, 7)} bundleFresh=${bundleFresh}`, { flags: ver?.flags });
-if (!bundleFresh) { console.log('ABORT: deployed bundle lacks Phase-1 markers — Netlify not live yet.'); writeFileSync(`${AUD}/findings/lsr_report_${runId}.json`, JSON.stringify(R, null, 2)); process.exit(1); }
+const F = makeFindings(`RUNL_${runId}`);
+const activity = { runId, buildId: BUILD_ID, fixtureDigest: DIGEST, startedAt: new Date().toISOString(), cases: {} };
 
-const personaPath = `${AUD}/lsr_personas.json`;
-if (!existsSync(personaPath)) { console.error(`missing ${personaPath} — run lsr_snapshot.mjs --pre and confirm persona assignments first`); process.exit(2); }
-const P = JSON.parse(readFileSync(personaPath, 'utf8'));
+// Delete this run's expected screenshots up front so a failed reused run can't reuse stale PNGs.
+for (const cid of REQUIRED) for (const suf of ['before', 'after']) { try { rmSync(`${AUD}/findings/runL_${runId}_${cid}_${suf}.png`); } catch { /* */ } }
+for (const extra of ['L1R_intermediate', 'L2_afterEnter', 'L2_inSession']) { try { rmSync(`${AUD}/findings/runL_${runId}_${extra}.png`); } catch { /* */ } }
 
+async function beforeState(page) { const p = await readVisibleProgress(page).catch(() => ({})); return { visibleDayBefore: p.day ?? null, visibleWordsBefore: p.words ?? null }; }
+async function afterState(page) { await goDashboard(page); const p = await readVisibleProgress(page).catch(() => ({})); return { visibleDayAfter: p.day ?? null, visibleWords: p.words ?? null }; }
+async function day1Complete(page, cid, mode) { // L1-T / L1-M: reach test, pass with careful answers
+  const before = await beforeState(page); // dashboard shows Day 1 / 0 words (fresh)
+  const t = await driveNewWordsToTest(page, F, cid);
+  if (!t.reached) return { ...before, ok: false, note: 'test not reached' };
+  const { outcome } = await driveTest(page, F, cid); // mode-aware careful answers
+  const passedHeadingSeen = await passedResults(page, mode); // specific card BEFORE leaving
+  return { ...before, outcome, passedHeadingSeen, ...(await afterState(page)) };
+}
+
+console.log(`\n▶ Run L measured driver (${runId}) — Admin-free\n`);
 const browser = await launch();
-R.meta = await runMeta(browser, {
-  buildSha: ver?.sha ?? null, flag: 'LIST_SCOPED_RECON=false (Run L)', bundleFresh,
-  viewport: '1440x900', personas: Object.fromEntries(Object.entries(P).filter(([k]) => k.startsWith('P_'))),
-});
+for (const [cid, c] of Object.entries(FIX.cases)) {
+  const { page } = await newAuditPage(browser, F, cid);
+  const rec = { email: c.email, role: c.role, mode: c.mode, joinTarget: c.joinTarget, class: c.class ?? null, classB: c.classB ?? null }; // per-case identity (bound in --post)
+  try {
+    const li = await login(page, c.email, F);
+    rec.loggedIn = li;
+    if (!li) { activity.cases[cid] = rec; await page.context().close(); continue; }
+    await goDashboard(page);
+    F.step(cid, `logged in as ${c.email}; dashboard`);
+    await snap(page, `${cid}_before`);
 
-// ---- Persona login preflight (policy §5: confirm each persona can log in via UI) ------
-for (const [key, email] of Object.entries(P)) {
-  if (!key.startsWith('P_') || !email || key.endsWith('_classB')) continue;
-  const { page } = await newAuditPage(browser, F, `preflight-${key}`);
-  const ok = await login(page, email, F);
-  F.step('preflight', `${key} (${email}) login ${ok ? 'OK' : 'FAILED'}`);
-  if (!ok) caseResult(`PRE-${key}`, false, `persona cannot log in — reassign before running cases`);
-  await page.context().close();
-}
-
-// ---- L1: normal single-class completion (P-L1), typed; + EXT-1/2/3/7 woven in --------
-{
-  const { page } = await newAuditPage(browser, F, 'L1');
-  const ok = await login(page, P.P_L1, F);
-  await shot(page, `lsr_${runId}_L1_dashboard`);
-  if (!ok) caseResult('L1', false, 'login failed');
-  else {
-    const t = await driveNewWordsToTest(page, F, 'L1');
-    if (!t.reached) caseResult('L1', false, 'typed test not reached');
-    else {
-      const rows = await readTestRows(page);
-      const { outcome } = await fillSubmitAndObserve(page, carefulAnswers(rows), F, 'L1');
-      const verdict = await assertVerdictCoherent(page, F, 'L1');
-      await shot(page, `lsr_${runId}_L1_result`);
-      // EXT-3: mid-test reload/recovery on the NEXT phase if review offered.
-      await goDashboard(page);
-      const rv = await driveReviewToTest(page, F, 'L1-review');
-      if (rv.reached) {
-        await page.reload({ waitUntil: 'domcontentloaded' }); await sleep(3000); // EXT-3: recovery path
-        const back = await page.locator('input[placeholder*="definition" i]').first().isVisible().catch(() => false)
-          || await driveReviewToTest(page, F, 'L1-review-resume').then((r) => r.reached);
-        if (!back) F.add('BUG', '[L1] EXT-3: could not resume review test after mid-test reload');
-        else {
-          const rrows = await readTestRows(page);
-          const r2 = await fillSubmitAndObserve(page, carefulAnswers(rrows), F, 'L1-review');
-          if (r2.outcome === 'grading-failed') F.add('BUG', '[L1] EXT-3 VIOLATION: Grading Failed after recovery (06-22 malform class)');
-        }
+    if (cid === 'L1-T' || cid === 'L1-M') {
+      F.step(cid, `Day-1 ${c.mode} completion`);
+      const r = await day1Complete(page, cid, c.mode);
+      Object.assign(rec, r);
+      F.step(cid, `day ${r.visibleDayBefore}→${r.visibleDayAfter} words ${r.visibleWordsBefore}→${r.visibleWords} passedHeading=${r.passedHeadingSeen}`);
+    } else if (cid === 'L1-R') {
+      // fail once → intermediate assertion (retake state, day still 1, 0 words, screenshot) → retry → pass
+      const bst = await beforeState(page); rec.visibleDayBefore = bst.visibleDayBefore; rec.visibleWordsBefore = bst.visibleWordsBefore;
+      const t = await driveNewWordsToTest(page, F, `${cid}-fail`);
+      if (!t.reached) { rec.note = 'fail-test not reached'; }
+      else {
+        const rows = await readTestRows(page);
+        const fail = await fillSubmitAndObserve(page, rows.map(() => 'zzzzzz'), F, `${cid}-fail`);
+        rec.failOutcome = fail.outcome;
+        // A FAILED new-word test shows a scored results screen with a "Try Again" retake button
+        // (TypedTest.jsx:1358, gated by canRetake = score<threshold). That button — NOT an
+        // outcome string — is the canonical retake signal (a fail still renders a "%" score, so
+        // fillSubmitAndObserve returns 'results', not 'retake-gate').
+        const tryAgain = page.getByRole('button', { name: /try again/i }).first();
+        rec.retakeSeen = await tryAgain.isVisible().catch(() => false);
+        const successVisible = await page.getByText(/completed|축하|great job|day complete|new words test passed/i).first().isVisible().catch(() => false);
+        rec.successAbsent = !successVisible;
+        await goDashboard(page);
+        const mid = await readVisibleProgress(page).catch(() => ({}));
+        rec.midDay = mid.day ?? null; rec.midWords = mid.words ?? null;
+        await snap(page, 'L1R_intermediate');
+        F.step(cid, `failed once (outcome=${rec.failOutcome}); mid-state day=${rec.midDay} words=${rec.midWords}`);
+        // retry → pass
+        const t2 = await driveNewWordsToTest(page, F, `${cid}-pass`);
+        if (t2.reached) { const { outcome } = await driveTest(page, F, `${cid}-pass`); rec.passOutcome = outcome; rec.passedHeadingSeen = await passedResults(page, c.mode); }
+        await goDashboard(page);
+        const after = await readVisibleProgress(page).catch(() => ({}));
+        rec.visibleDayAfter = after.day ?? null; rec.visibleWords = after.words ?? null;
+        F.step(cid, `retook → pass (outcome=${rec.passOutcome}); day=${rec.visibleDayAfter} words=${rec.visibleWords}`);
       }
-      caseResult('L1', outcome === 'results' || outcome === 'retake-gate', `outcome=${outcome} score=${verdict.scorePct}% words=${rows.length}`, { outcome, verdict });
+    } else if (cid === 'L2') {
+      // select B AND EXPLICITLY select its list L (persists saved focus) → ENTER-ONLY (fires
+      // getOrCreateClassProgress, no study/test) → leave → reload → assert focus still Class:B AND
+      // List:L (EXACT normalized equality) + B-local values.
+      await switchClass(page, c.classB, F);
+      const selL = await selectList(page, LIST_TITLE, F, `${cid}-selL`); // explicit visible list selection
+      const fc0 = nm(await readFocus(page, 'Class').catch(() => null));
+      const fl0 = nm(await readFocusList(page).catch(() => null));
+      rec.selectedB = fc0 === nm(c.classB); // EXACT
+      rec.selectedListL = selL && fl0 === nm(LIST_TITLE); // EXACT
+      F.step(cid, `selected Class:${fc0} List:${fl0} (B=${rec.selectedB} L=${rec.selectedListL})`);
+      const t = await enterSessionOnly(page, F, `${cid}-enter`);
+      rec.entered = t.entered; // non-null boolean
+      await snap(page, 'L2_inSession'); // REQUIRED session-entry evidence (immediately after entering, before leaving)
+      // Leave like a USER via the visible Quit → "Leave Study Session?" → Leave flow (Codex): this
+      // sets the intentional-leave flag so no beforeunload dialog fires + no reload timeout.
+      rec.leftViaQuit = await leaveSessionViaQuit(page, F, cid);
+      await page.reload({ waitUntil: 'domcontentloaded' }); await sleep(3500);
+      const focusClass = nm(await readFocus(page, 'Class').catch(() => null));
+      const focusList = nm(await readFocusList(page).catch(() => null));
+      rec.focusStillB = focusClass === nm(c.classB); // EXACT
+      rec.focusListStillL = focusList === nm(LIST_TITLE); // EXACT
+      const prog = await readVisibleProgress(page).catch(() => ({}));
+      rec.bVisibleDay = prog.day ?? null; rec.bVisibleWords = prog.words ?? null;
+      F.step(cid, `after enter+reload: Class:${focusClass} List:${focusList} day=${rec.bVisibleDay} words=${rec.bVisibleWords}`);
+      await snap(page, 'L2_afterEnter');
     }
-  }
-  await page.context().close();
+    await snap(page, `${cid}_after`);
+  } catch (e) { F.add('scenario-error', `[${cid}] ${String(e).slice(0, 160)}`); }
+  activity.cases[cid] = rec;
+  console.log(`  ${cid}: ${JSON.stringify(rec).slice(0, 150)}`);
+  await page.context().close().catch(() => {});
 }
-
-// ---- L2: flag-off dual-class behavior unchanged (P-L2) + EXT-8 observational ---------
-{
-  if (!P.P_L2) caseResult('L2', 'skip', 'no dual-enrolled persona available (see --pre classification)');
-  else {
-    const { page } = await newAuditPage(browser, F, 'L2');
-    const ok = await login(page, P.P_L2, F);
-    if (!ok) caseResult('L2', false, 'login failed');
-    else {
-      await shot(page, `lsr_${runId}_L2_A`);
-      const dayTextA = await page.getByText(/day \d+/i).first().innerText().catch(() => null);
-      const swB = P.P_L2_classB ? await switchClass(page, P.P_L2_classB, F) : false;
-      await shot(page, `lsr_${runId}_L2_B`);
-      const dayTextB = await page.getByText(/day \d+/i).first().innerText().catch(() => null);
-      // Flag OFF: no cross-class carry may occur from mere viewing; values must equal the
-      // pre-snapshot state (asserted numerically in the --post diff; here: visible sanity).
-      const missingIndexErr = await page.getByText(/index|failed-precondition/i).first().isVisible().catch(() => false);
-      if (missingIndexErr) F.add('BUG', '[L2] visible index/query error on dual-class dashboard');
-      caseResult('L2', !missingIndexErr, `A="${dayTextA}" B="${dayTextB}" switched=${swB} (numeric no-carry assertion in --post diff)`);
-    }
-    await page.context().close();
-  }
-}
-
-// ---- L1-M: MCQ submission remains usable (policy §6 L1 pass condition) ---------------
-{
-  if (!P.P_L1_MCQ) caseResult('L1-M', 'skip', 'no MCQ-mode persona configured (P_L1_MCQ) — L1 MCQ pass condition unverified');
-  else {
-    const { page } = await newAuditPage(browser, F, 'L1-M');
-    const ok = await login(page, P.P_L1_MCQ, F);
-    if (!ok) caseResult('L1-M', false, 'login failed');
-    else {
-      F.step('L1-M', 'start new words → study → skip to MCQ test');
-      const t = await driveNewWordsToTest(page, F, 'L1-M'); // reaches the test page; MCQ has no typed inputs
-      const mcq = await answerMcqVisible(page, F, 'L1-M');
-      const { outcome } = await submitMcqAndObserve(page, F, 'L1-M');
-      await shot(page, `lsr_${runId}_L1M_result`);
-      caseResult('L1-M', outcome === 'results' || outcome === 'retake-gate',
-        `outcome=${outcome} questions=${mcq.questions} (typedReach=${t.reached})`);
-    }
-    await page.context().close();
-  }
-}
-
-R.meta.endedAt = new Date().toISOString();
 await browser.close();
-writeFileSync(`${AUD}/findings/lsr_report_${runId}.json`, JSON.stringify(R, null, 2));
-console.log(`\n${R.pass ? '✅ RUN L UI-PASS (pending --post diff)' : '❌ RUN L FAIL'} — findings: ${F.path}`);
-console.log('NEXT: run lsr_snapshot.mjs --post (EXT-4/5/6 + no-carry + zero-new-logs assertions live there).');
-process.exit(R.pass ? 0 : 1);
+activity.endedAt = new Date().toISOString();
+activity.shots = shots; // successfully-captured screenshots (this run)
+writeFileSync(`${AUD}/findings/runL_activity_${runId}.json`, JSON.stringify(activity, null, 2));
+
+// Bound anomaly artifact — FAIL-CLOSED: EVERY finding is fatal EXCEPT an explicit benign allowlist
+// (steps/notes/recovery) and the known-benign Firestore channel-abort noise. So unlisted kinds like
+// modal-dead/prep-issue are fatal by default (design: every non-allowlisted anomaly fails).
+const BENIGN_KINDS = new Set(['recovery', 'note', 'observation', 'native-dialog']);
+const isFsChannelAbort = (d) => /firestore\.googleapis\.com/i.test(d) && /(Listen|Write)\/channel/i.test(d) && /ERR_ABORTED/i.test(d);
+const CONSOLE_ALLOW = [/ResizeObserver/i, /favicon/i, /analytics|gtag|gtm/i, /web-vitals/i];
+const fatal = F.raw.filter((r) => {
+  if (BENIGN_KINDS.has(r.kind)) return false;
+  if ((r.kind === 'console-error' || r.kind === 'request-failed') && (isFsChannelAbort(r.detail) || (r.kind === 'console-error' && CONSOLE_ALLOW.some((re) => re.test(r.detail))))) return false;
+  return true; // everything else is fatal
+}).map((r) => `${r.kind}: ${r.detail.slice(0, 160)}`);
+writeFileSync(`${AUD}/findings/runL_anomalies_${runId}.json`, JSON.stringify({ runId, buildId: BUILD_ID, fixtureDigest: DIGEST, cases: Object.keys(activity.cases), startedAt: activity.startedAt, endedAt: activity.endedAt, fatal }, null, 2));
+writeFileSync(`${AUD}/findings/runL_activity_${runId}.json`, JSON.stringify(activity, null, 2));
+console.log(`\nactivity → findings/runL_activity_${runId}.json  |  anomalies: ${fatal.length}`);
+console.log(`NEXT: lsr_runL_verify.mjs --post ${runId}`);
+process.exit(0);

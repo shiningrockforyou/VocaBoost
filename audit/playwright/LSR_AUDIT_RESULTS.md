@@ -10,7 +10,7 @@ provisioning only. Sandbox = 25WT (`lsr_*` accounts), never 26SM.
 
 ## 1. FINDINGS (source of truth — most severe first)
 
-### F02 — [CONFIRMED · HIGH · known-bug §7-H3] Teacher list-ADD silently flips a mid-progress student's default list
+### F02 — [RESOLVED 2026-07-05 · fix verified by run mr7qbi3m · was CONFIRMED HIGH · §7-H3] Teacher list-ADD silently flips a mid-progress student's default list
 Repro of **박시은 CS-2026-06-24b / -06-28b**, nice-to-haves #3b. Scenario **TA1** (teacher+student concurrent,
 flag-off). Student had real progress on "LSR TOP Vocab" in a class; **teacher assigned a 2nd list while the
 student was on the dashboard** → on reload the default focus flipped TOP → CORE (Day 1 of the new list).
@@ -18,7 +18,7 @@ UI-observed: `List: LSR TOP Vocab` → `List: LSR CORE Vocab`. **Underlying TOP 
 only the default selection flips. Root cause: `getPrimaryFocus` (Dashboard.jsx:1037) prefers most-recently-
 assigned, ignoring progress. Full block: `findings/B_LIST_PROGRESS_PHASE1_ORCH_TA1_2026-07-05.md`.
 
-### F03 — [CONFIRMED · HIGH · known-bug nice-to-haves #1] Teacher list-UNASSIGN strands a mid-progress student
+### F03 — [RESOLVED 2026-07-05 · fix verified by run mr7qbi3m · was CONFIRMED HIGH · nice-to-haves #1] Teacher list-UNASSIGN confirm was misleadingly reassuring — copy fixed (access loss after a CONFIRMED unassign is INTENTIONAL, warn-only)
 Repro of **박한별** (nice-to-haves #1/#2). Scenario **TA2**. Student mid-progress on a list; **teacher
 unassigned it** (accepting the "…Student progress is saved." confirm) → student can no longer reach the list
 (`stranded: true`). Progress docs persist (unassign deletes nothing) but the list is no longer offered.
@@ -47,7 +47,7 @@ code — to be confirmed on a clean run.
 
 ## 2. WHAT'S BUILT (infrastructure — all reusable)
 
-**Accounts (32):** `lsr_teacher_01`, `lsr_teacher_02`, `lsr_s01`–`lsr_s30` (pw `AuditPass2026!`). Roster:
+**Accounts (32):** `lsr_teacher_01`, `lsr_teacher_02`, `lsr_s01`–`lsr_s30` (password via `LSR_AUDIT_PW` / gitignored `.lsr_secret.json`). Roster:
 `audit/playwright/lsr_accounts.json`. User docs byte-match signup shape.
 
 **Lists (admin-cloned from the private 25WT2 lists, owned by lsr_teacher_01):**
@@ -112,3 +112,44 @@ or use unique fresh students without admin enrollment-reset.
 Direction from here: (A) grind the full teacher wave (3-5 hr, fights the precondition flakiness), (B) stop
 teacher-wave at the 3 findings and finalize **Run L** (gates the flag), or (C) harden join → run the
 Phase-1-core subset (TA5/TE2/XC3) → write up (~1-2 hr). See the turn where this was raised.
+
+---
+
+## ⚠ HISTORICAL / SUPERSEDED — earlier stitched runs (run mr7p8wac, 2026-07-05)
+
+> **This section is SUPERSEDED by the CERTIFICATION below (single bound run mr7qbi3m).** It records the
+> earlier runs — full run mr7p8wac (4 PASS/1 FAIL) plus a TA2-only rerun — whose combined "FINAL SUITE: 5/5"
+> phrasing was an informal stitch, NOT a valid certification. Retained for history only.
+
+**Pipeline:** lsr_preflight (14/30 clean — 16 dirty incl. lsr_s05 with savedFocus=TOP, validating the
+clean-allowlist requirement) → lsr_accept (Admin-free, forward-only) → lsr_postverify (read-only).
+
+**Result: 4 PASS / 1 FAIL — both fixes VERIFIED; the 1 FAIL is a verified harness-timing artifact.**
+- **TA1 PASS — F02 fix verified:** focus stayed EXACTLY on TOP after the teacher added CORE; CORE present as
+  an option (flip condition genuinely exercised). Pre-fix this flipped TOP→CORE (박시은/§7-H3).
+- **M1 PASS:** zero-progress → newest-assigned fallback intact. **M3 PASS:** explicit saved preference still
+  wins over progress (with DAY>=2 proof TOP had real progress). **M5 PASS:** single-class renders, Start
+  enabled, no retry-lock.
+- **TA2 — F03 fix verified:** honest warning ("LOSE ACCESS… until re-assigned… progress is preserved but
+  hidden") + cancel-preserves all PASS; **post-verify: progress PRESERVED (class_progress CSD=1, TWI=80)**.
+  The ONE failing check ("student loses access after PROCEED") rechecked 3s after the teacher unassign;
+  read-only Admin confirmed TOP fully unassigned server-side (assignments:[]) → CLIENT-PROPAGATION LAG, not a
+  regression. Harness fixed to poll for propagation; TA2 re-run pending to green the matrix cell.
+
+**TA2 RE-RUN → PASS** (propagation-poll fix): student loses access after unassign propagates; CSD=1/TWI=80
+preserved again (lsr_s21). **FINAL SUITE: 5/5 — F02 + F03 fixes VERIFIED LIVE.**
+
+
+---
+
+## ✅ CERTIFICATION — single bound run mr7qbi3m (2026-07-05) — SUPERSEDES the earlier stitched 5/5
+The earlier '5/5' combined run mr7p8wac (4 PASS/1 FAIL) + a TA2-only rerun — NOT a clean certification (the
+strict post-verifier requires all five scenarios in ONE bound run). Re-run properly:
+- **Single run `mr7qbi3m`: 5 PASS / 0 FAIL / 0 INVALID / 0 FATAL anomalies** (TA1 F02 · TA2 F03 · M1 · M3 · M5). ("anomalies" = FATAL only — page errors, unexpected dialogs, non-allowlisted request/console failures. Raw selector-gap entries in the findings log are non-fatal, recovered by visible fallback actions, and do not invalidate any check.)
+- `lsr_postverify.mjs` → **FINAL: PASS** (bound artifacts: matrix.run===manifest.run===mr7qbi3m; all five
+  present; exactly one TA2 item; CSD=1/TWI=80 preserved on class_progress/EJl8L9cjmqHNT69GVGRJ_EQ0Dc9…).
+  Saved output: `findings/lsr_postverify_output.txt`.
+- **Observed behavior (recorded, not dismissed):** after unassign, the student's client retained access to the
+  list for **≈12s** before it propagated (F03 stranding is eventual, not instant). **Accepted as eventual convergence under this audit** — there is no defined propagation-latency requirement to test against, so this is recorded as observed behavior, not adjudicated as pass/fail.
+- Scope: this certifies **F02 + F03 only.** Full **Run L** (flag-off regression, gates enabling
+  LIST_SCOPED_RECON) and flag-on **Run S** remain outstanding.

@@ -366,7 +366,7 @@ The seed script writes `audit/playwright/seeded_accounts.json` — that file is 
   "accounts": [
     {
       "email": "audit_korean_01_top@vocaboost.test",
-      "password": "AuditPass2026!",
+      "password": "<from LSR_AUDIT_PW/.lsr_secret.json>",
       "uid": "<firebase-auth-uid>",
       "personaId": "korean",
       "personaLabel": "Korean Native Typist",

@@ -1,0 +1,340 @@
+# Findings — B_LIST_PROGRESS_PHASE1 (ACCEPT_2026-07-05)
+
+**Run date:** 2026-07-05T11:20:01.920Z
+**Policy:** docs/plans/PLAYWRIGHT_AUDIT_list_progress_persist_phase1.md
+
+## Raw anomaly log (triage EVERY entry — none dropped without written justification)
+
+- [2026-07-05T11:20:12.863Z] **PRECOND-OK** — [TA1] student logged in — lsr_s14@vocaboost.test
+  - STEP [teacher] create class "25WT ACC TA1 mr7p8wac"
+- [2026-07-05T11:20:54.955Z] **selector-gap** — 25WT ACC TA1 mr7p8wac: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:21:11.632Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=508pAi0S4vjgJfkCXToHHxAUEZAM2Ln-t779-PWKDzBeYxJBvxdz7A&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:21:11.700Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=508pAi0S4vjgJfkCXToHHxAUEZAM2Ln-t779-PWKDzBeYxJBvxdz7A&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:21:16.462Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=z8A2_EPEsCelPs2hJ_-P4SCkbNv8L8OtRxth4GcOBQb_eh8So_3-jw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:21:20.518Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WjbAJvvWh3G0YgsSs6HZNzq8yI_8yv0qDGQuuEzNDPmIlwCMncqGtw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:21:20.606Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WjbAJvvWh3G0YgsSs6HZNzq8yI_8yv0qDGQuuEzNDPmIlwCMncqGtw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC TA1 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC TA1 mr7p8wac → KUVK5X
+- [2026-07-05T11:21:31.597Z] **PRECOND-OK** — [TA1] fresh class created + TOP assigned + join code read — class="25WT ACC TA1 mr7p8wac" code="KUVK5X"
+  - STEP [TA1-stu] join "25WT ACC TA1 mr7p8wac" via KUVK5X → member
+- [2026-07-05T11:21:39.957Z] **PRECOND-OK** — [TA1] student joined the class (UI) — 25WT ACC TA1 mr7p8wac
+- [2026-07-05T11:21:42.407Z] **PRECOND-OK** — [TA1] initial focus resolves to exactly TOP (only assigned list) — focus must == TOP
+- [2026-07-05T11:21:42.412Z] **PRECOND-OK** — [TA1] TOP is the ONLY assigned list initially (no CORE yet) — exactly one list
+- [2026-07-05T11:22:21.179Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AJgPF8keKR_GWwzNtp78WUnxvrkOEF5Q_CVgwiwUMQVOvI2nA7fxFA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:22:21.183Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=HdB9eQrIGNQaq8nLS_KeqnoTDeJ_EE8kuzwFDWugFlBmfkUjGaxIfg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:22:23.370Z] **flow-gap** — [TA1-d1-rev] no Review/Continue button
+- [2026-07-05T11:22:25.235Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=auQMwpCrZQiUpK0QOfIr8zGUQsNicKaO-WSKquN5l18kqq0uhlYHLg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:22:25.800Z] **PRECOND-OK** — [TA1] studyOneDay reached a passed results screen — studyOneDay advanced
+- [2026-07-05T11:22:28.264Z] **PRECOND-OK** — [TA1] visible currentStudyDay>=1 on TOP (hero shows DAY>=2) — DAY badge must be >=2
+- [2026-07-05T11:22:28.280Z] **note** — [TA1] progress diagnostics — DAY=2 words=80 pct=2
+- [2026-07-05T11:22:28.441Z] **PRECOND-OK** — [TA1] focus reads EXACTLY TOP before the teacher move — before == TOP
+- [2026-07-05T11:22:28.907Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jcC1-hVRkbDtvqXYYViVk9OscVzu9CAYARyWoCp7ro9E6zAGy5jhSQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:23:05.351Z] **selector-gap** — 25WT ACC TA1 mr7p8wac: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T11:23:21.730Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=16BbXPmrsntQR-6WRwEASWNe09e22LLtxGrbNLuL50QEqH0YsIco-g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:23:21.893Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=YOop6Ns2KUEg7zle0RksUursVUgbzhx3hXm9-oPGpTMwWfleXRt9uQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:23:21.899Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=16BbXPmrsntQR-6WRwEASWNe09e22LLtxGrbNLuL50QEqH0YsIco-g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:23:21.922Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=YOop6Ns2KUEg7zle0RksUursVUgbzhx3hXm9-oPGpTMwWfleXRt9uQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:23:30.977Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jcC1-hVRkbDtvqXYYViVk9OscVzu9CAYARyWoCp7ro9E6zAGy5jhSQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:23:31.049Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jcC1-hVRkbDtvqXYYViVk9OscVzu9CAYARyWoCp7ro9E6zAGy5jhSQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC TA1 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T11:23:37.499Z] **PRECOND-OK** — [TA1] teacher assign of CORE visibly succeeded — assignList ok (both lists should now show)
+- [2026-07-05T11:23:43.531Z] **CHECK-PASS** — [TA1] CORE appears as a selectable option after the add (condition actually exercised) — opts=["LSR TOP Vocab (audit clone)","LSR CORE Vocab (audit clone)"]
+- [2026-07-05T11:23:43.533Z] **CHECK-PASS** — [TA1] F02: default focus STAYS exactly TOP after list-add (no flip) — after="LSR TOP Vocab (audit clone)" expected="LSR TOP Vocab (audit clone)"
+- [2026-07-05T11:23:48.632Z] **PRECOND-OK** — [TA2] student logged in — lsr_s15@vocaboost.test
+  - STEP [teacher] create class "25WT ACC TA2 mr7p8wac"
+- [2026-07-05T11:24:22.285Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=S80LEHJfSBqPknwbV9vfkUTzsgZnbvP-hKle4XzU4wPfr727Jenq0Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:24:26.415Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=nYL5gNwh6st7tK8vJpMSVg4MjPvFzwzp1pza3Rj6rT5fyrw7PQNvHQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:24:30.829Z] **selector-gap** — 25WT ACC TA2 mr7p8wac: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:24:47.317Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=cUtl0K4qycgqlGE3N1NjrPWIVC9Gw5tZd77SPQBWSy7TLMrrnv7YBA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:24:47.482Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=cUtl0K4qycgqlGE3N1NjrPWIVC9Gw5tZd77SPQBWSy7TLMrrnv7YBA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:24:52.281Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=S80LEHJfSBqPknwbV9vfkUTzsgZnbvP-hKle4XzU4wPfr727Jenq0Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:24:56.438Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=nYL5gNwh6st7tK8vJpMSVg4MjPvFzwzp1pza3Rj6rT5fyrw7PQNvHQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC TA2 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC TA2 mr7p8wac → URVTK8
+- [2026-07-05T11:25:07.624Z] **PRECOND-OK** — [TA2] fresh class + TOP assigned + code — class="25WT ACC TA2 mr7p8wac" code="URVTK8"
+  - STEP [TA2-stu] join "25WT ACC TA2 mr7p8wac" via URVTK8 → member
+- [2026-07-05T11:25:16.026Z] **PRECOND-OK** — [TA2] student joined — 25WT ACC TA2 mr7p8wac
+- [2026-07-05T11:25:45.895Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=ZLLj8i74mUd9870Z4_1WqzL1EdFl6-1NOeA47DEZdxQmrC3aDXiunw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:25:45.898Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=im1WYa4hUCzLdSKXHtRVYt4N8MrNFS-qYL68vozte2Mgo43aibRPMg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:25:48.087Z] **flow-gap** — [TA2-d1-rev] no Review/Continue button
+- [2026-07-05T11:25:50.529Z] **PRECOND-OK** — [TA2] student has visible Day-1 progress on TOP — studyOneDay advanced
+- [2026-07-05T11:25:50.986Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=4BS7AwHnPKeUJ3aKs4aQ79jhVKf-h9ByMwy3UCQLYITDvImZrc5XSw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:25:56.228Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — dismiss
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7p8wac [dialog=dismiss] → still present
+- [2026-07-05T11:25:58.237Z] **PRECOND-OK** — [TA2] unassign confirm dialog appeared — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their"
+- [2026-07-05T11:25:58.241Z] **CHECK-PASS** — [TA2] warning states students LOSE ACCESS — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden."
+- [2026-07-05T11:25:58.245Z] **CHECK-PASS** — [TA2] warning states access returns only when RE-ASSIGNED
+- [2026-07-05T11:25:58.250Z] **CHECK-PASS** — [TA2] warning states progress is PRESERVED
+- [2026-07-05T11:25:58.253Z] **CHECK-PASS** — [TA2] warning states progress is HIDDEN/inaccessible
+- [2026-07-05T11:25:58.257Z] **CHECK-PASS** — [TA2] NOT the old misleading bare "progress is saved" copy
+- [2026-07-05T11:25:58.261Z] **CHECK-PASS** — [TA2] CANCEL preserved the assignment (teacher UI still shows TOP) — gone=false
+- [2026-07-05T11:26:00.721Z] **CHECK-PASS** — [TA2] CANCEL: student still has access to TOP
+- [2026-07-05T11:26:01.166Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=FAVa76YxJK85qOyJVCfPb1sCbD2PSBIbO-6vJlQS5CBSyQhpA5U6Jw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:26:01.211Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=FAVa76YxJK85qOyJVCfPb1sCbD2PSBIbO-6vJlQS5CBSyQhpA5U6Jw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:26:06.625Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — accept
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7p8wac [dialog=accept] → removed
+- [2026-07-05T11:26:08.641Z] **CHECK-PASS** — [TA2] PROCEED actually unassigned (teacher UI no longer shows TOP) — gone=true
+- [2026-07-05T11:26:11.081Z] **CHECK-FAIL** — [TA2] PROCEED: student loses access to TOP (expected stranding, warn-only)
+- [2026-07-05T11:26:11.244Z] **note** — [TA2] CSD/TWI-preserved for lsr_s15@vocaboost.test on 25WT ACC TA2 mr7p8wac/EQ0Dc9rb7gvoerflHlnz → confirmed by read-only lsr_postverify.mjs
+- [2026-07-05T11:26:16.167Z] **PRECOND-OK** — [M1] student logged in — lsr_s16@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M1 mr7p8wac"
+- [2026-07-05T11:26:53.796Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=4BS7AwHnPKeUJ3aKs4aQ79jhVKf-h9ByMwy3UCQLYITDvImZrc5XSw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:26:58.194Z] **selector-gap** — 25WT ACC M1 mr7p8wac: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:27:14.897Z] **request-failed** — [M1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=L_RMwMNXnn9Vfl26frFk6GTv5kxxXDQyJ0Vw2rvZe7z0OnrMQ7buPw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:27:15.015Z] **request-failed** — [M1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=L_RMwMNXnn9Vfl26frFk6GTv5kxxXDQyJ0Vw2rvZe7z0OnrMQ7buPw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:27:19.743Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=9IOXhnqpMXgYTSDgucITVPCQ1pZxi7A-P4UYnLw811vWAerY-joKcQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:27:23.808Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=4BS7AwHnPKeUJ3aKs4aQ79jhVKf-h9ByMwy3UCQLYITDvImZrc5XSw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M1 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T11:28:07.285Z] **selector-gap** — 25WT ACC M1 mr7p8wac: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T11:28:28.425Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=EN9cgJMxzDsnYIubhbBQ5YyuoKrn16UP79PqLOMZfOCsIEpYEBAFmA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:28:28.455Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=EN9cgJMxzDsnYIubhbBQ5YyuoKrn16UP79PqLOMZfOCsIEpYEBAFmA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:28:32.914Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=73yX3gFwBL2mo2ZYGFBz_VnLZI5Q0xM2JGg_U4ytUb6mldnBRC-L0g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:28:32.918Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=73yX3gFwBL2mo2ZYGFBz_VnLZI5Q0xM2JGg_U4ytUb6mldnBRC-L0g&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC M1 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M1 mr7p8wac → XYBSPT
+- [2026-07-05T11:28:43.928Z] **PRECOND-OK** — [M1] class + TOP then CORE assigned + code — code="XYBSPT"
+  - STEP [M1-stu] join "25WT ACC M1 mr7p8wac" via XYBSPT → member
+- [2026-07-05T11:28:52.282Z] **PRECOND-OK** — [M1] student joined — 25WT ACC M1 mr7p8wac
+- [2026-07-05T11:28:55.679Z] **PRECOND-OK** — [M1] both lists visible as options — ["LSR TOP Vocab (audit clone)","LSR CORE Vocab (audit clone)"]
+- [2026-07-05T11:28:55.681Z] **CHECK-PASS** — [M1] zero-progress default = newest-assigned (CORE), fallback preserved — focus="LSR CORE Vocab (audit clone)" expected="LSR CORE Vocab (audit clone)"
+- [2026-07-05T11:29:00.622Z] **PRECOND-OK** — [M3] student logged in — lsr_s19@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M3 mr7p8wac"
+- [2026-07-05T11:29:34.198Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=ORz1GJdDzXBoZB5zqZ7wBUZZ0k-iUPCqSvNU5x1e5PunhWiMOjdnAg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:29:38.185Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=p-xmKF-oH7bzjpko66dnT2F2cC27AmbJpxkhTzyLe3B7pVQKGD7Y_g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:29:42.595Z] **selector-gap** — 25WT ACC M3 mr7p8wac: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:29:59.339Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WU3OOuJ7uh9Yg6lNlQ--ZBWaWD00gCnuOkCnJOo5bzaXagJ7KcEuTw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:29:59.455Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WU3OOuJ7uh9Yg6lNlQ--ZBWaWD00gCnuOkCnJOo5bzaXagJ7KcEuTw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:30:04.164Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=ORz1GJdDzXBoZB5zqZ7wBUZZ0k-iUPCqSvNU5x1e5PunhWiMOjdnAg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:30:08.220Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=p-xmKF-oH7bzjpko66dnT2F2cC27AmbJpxkhTzyLe3B7pVQKGD7Y_g&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M3 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M3 mr7p8wac → 33PCQU
+- [2026-07-05T11:30:19.247Z] **PRECOND-OK** — [M3] class + TOP + code — code="33PCQU"
+  - STEP [M3-stu] join "25WT ACC M3 mr7p8wac" via 33PCQU → member
+- [2026-07-05T11:30:27.575Z] **PRECOND-OK** — [M3] student joined — 25WT ACC M3 mr7p8wac
+- [2026-07-05T11:31:00.379Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=qmV8y1jCifBvhHV260BNkccLcuTxMNZjo9PEZkRvB-ct-joUjiiVVw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:31:00.382Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jgeIxOCMOiWCQB7WTMp4z8_HWREb8NrLhN5mC5jdKk2pORqrhr_NzQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:31:02.570Z] **flow-gap** — [M3-d1-rev] no Review/Continue button
+- [2026-07-05T11:31:05.000Z] **PRECOND-OK** — [M3] studyOneDay reached a passed results screen — studyOneDay advanced
+- [2026-07-05T11:31:07.466Z] **PRECOND-OK** — [M3] visible currentStudyDay>=1 on TOP (hero shows DAY>=2) — DAY badge must be >=2
+- [2026-07-05T11:31:07.929Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=W9RGfbJk6fO_D_19bjib68qgWAJ5rMNyiqMi4bWTNsizI1qla97plA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:31:12.855Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=VytSo1_0vI0DpZavvrLjfYhgomHiC2clJcyfCN9xub5Fi2omIGR6-g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:31:12.879Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=VytSo1_0vI0DpZavvrLjfYhgomHiC2clJcyfCN9xub5Fi2omIGR6-g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:31:44.370Z] **selector-gap** — 25WT ACC M3 mr7p8wac: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T11:32:01.019Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AkAzMS5Pd55BWUeqVtS0avOFQzHL9Owd2eRVEoDNIzWbuH5yFckVPg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:32:01.155Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AkAzMS5Pd55BWUeqVtS0avOFQzHL9Owd2eRVEoDNIzWbuH5yFckVPg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:32:01.189Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=f2XyrWX-rHMlJJpoBekkLo4ai5nBLetMDxM7skxQeSiQBDk_UMjiqg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:32:09.991Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=W9RGfbJk6fO_D_19bjib68qgWAJ5rMNyiqMi4bWTNsizI1qla97plA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:32:10.039Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=W9RGfbJk6fO_D_19bjib68qgWAJ5rMNyiqMi4bWTNsizI1qla97plA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC M3 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T11:32:16.568Z] **PRECOND-OK** — [M3] teacher added CORE
+- [2026-07-05T11:32:21.024Z] **PRECOND-OK** — [M3] list selector is a dropdown (2 lists) — need dropdown to select
+- [2026-07-05T11:32:21.671Z] **PRECOND-OK** — [M3] CORE selectable in dropdown
+- [2026-07-05T11:32:24.275Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=zyz8MhAr2Tr-PtdbNAVmXvd6ae1xSS3pW2wzDsks9j9Z52JdmOT0hQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:32:24.278Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=B0DcXM692koTOPIeL0pvD27VTYfcf7eiBJ-F6hoEKxm3CFp664A1sg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:32:28.376Z] **CHECK-PASS** — [M3] saved preference (CORE) wins over progress-preference (TOP) — focus="LSR CORE Vocab (audit clone)" expected="LSR CORE Vocab (audit clone)"
+- [2026-07-05T11:32:33.292Z] **PRECOND-OK** — [M5] student logged in — lsr_s20@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M5 mr7p8wac"
+- [2026-07-05T11:33:06.851Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=kyH1pBn5S_AKlL7WwfDDL6MYanulINVZImHdrovauTn2yDM7E5vgyQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:33:10.830Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=LyMgvuAF908x7jMX8wT4PJcFUxtM2i147JiZ-OBba4xWCbMgbCLmGA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:33:15.259Z] **selector-gap** — 25WT ACC M5 mr7p8wac: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:33:31.986Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Oqfky5CGEAaCJka_k5QSsmmqKrXy2hxYQ3xP_40-PsT8TxHWYluQhA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:33:32.083Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Oqfky5CGEAaCJka_k5QSsmmqKrXy2hxYQ3xP_40-PsT8TxHWYluQhA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:33:36.825Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=kyH1pBn5S_AKlL7WwfDDL6MYanulINVZImHdrovauTn2yDM7E5vgyQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:33:40.870Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=LyMgvuAF908x7jMX8wT4PJcFUxtM2i147JiZ-OBba4xWCbMgbCLmGA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M5 mr7p8wac (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M5 mr7p8wac → EBR9LP
+- [2026-07-05T11:33:51.903Z] **PRECOND-OK** — [M5] class + TOP + code — code="EBR9LP"
+  - STEP [M5-stu] join "25WT ACC M5 mr7p8wac" via EBR9LP → member
+- [2026-07-05T11:34:00.254Z] **PRECOND-OK** — [M5] student joined — 25WT ACC M5 mr7p8wac
+- [2026-07-05T11:34:31.347Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=fVRQMa_My0_8icQAlS0UptTImvF2DYwHzeVwayT84me55Hxyj73AoQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:34:31.349Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=lgeokxXAXsXHYGGjakwhTZze61etcg_pwq2IYEAsxj1jszufTzbwGw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:34:33.549Z] **flow-gap** — [M5-d1-rev] no Review/Continue button
+- [2026-07-05T11:34:35.999Z] **PRECOND-OK** — [M5] student has Day-1 progress on TOP
+- [2026-07-05T11:34:38.439Z] **CHECK-PASS** — [M5] focus resolves to TOP — focus="LSR TOP Vocab (audit clone)"
+- [2026-07-05T11:34:38.443Z] **CHECK-PASS** — [M5] no error/retry card on a healthy load (fail-closed did not over-trigger)
+- [2026-07-05T11:34:38.452Z] **CHECK-PASS** — [M5] per-list "Start Session" surface is present
+- [2026-07-05T11:34:38.460Z] **CHECK-PASS** — [M5] per-list "Start Session" is ENABLED when progress loaded OK
+- [2026-07-05T11:40:57.807Z] **PRECOND-OK** — [TA2] student logged in — lsr_s21@vocaboost.test
+  - STEP [teacher] create class "25WT ACC TA2 mr7pzl6e"
+- [2026-07-05T11:41:39.909Z] **selector-gap** — 25WT ACC TA2 mr7pzl6e: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:41:56.589Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=u2icHyCEj1PKlpneUIyj_H4EDUcStGhm0qEezCNnTCQYyo_s6zbgZQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:41:56.678Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=u2icHyCEj1PKlpneUIyj_H4EDUcStGhm0qEezCNnTCQYyo_s6zbgZQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:42:01.410Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=xO_8HGB0zk8OCIcjoE9dahSHAqRs1KeR-hru3Wxk0d67YsUvO9UaYg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:42:05.541Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=eFYF4CkNFzvKztfbEwhpj5vK8HdSK1z_wdQDHPqO7pQPQXctMHTFEQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:42:05.545Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=eFYF4CkNFzvKztfbEwhpj5vK8HdSK1z_wdQDHPqO7pQPQXctMHTFEQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC TA2 mr7pzl6e (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC TA2 mr7pzl6e → 97TX92
+- [2026-07-05T11:42:16.570Z] **PRECOND-OK** — [TA2] fresh class + TOP assigned + code — class="25WT ACC TA2 mr7pzl6e" code="97TX92"
+  - STEP [TA2-stu] join "25WT ACC TA2 mr7pzl6e" via 97TX92 → member
+- [2026-07-05T11:42:24.916Z] **PRECOND-OK** — [TA2] student joined — 25WT ACC TA2 mr7pzl6e
+- [2026-07-05T11:43:03.235Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WrSRihP0xX3aVj0umtiGG8313XMOztOskCKLmj1BBzvYxXaO6cRKnQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:43:03.243Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=xtStvxP76qY5ui00tj3k9o64ZocxUD1UJn6USf43txPVMfRwwqyW7w&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:43:05.438Z] **flow-gap** — [TA2-d1-rev] no Review/Continue button
+- [2026-07-05T11:43:07.887Z] **PRECOND-OK** — [TA2] student has visible Day-1 progress on TOP — studyOneDay advanced
+- [2026-07-05T11:43:08.348Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=HAM8rCdXCwxQ7fJJgUiOEec3N3Pbkcrm0plmgxb4mVLpi3PkTUGv8Q&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:43:10.185Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=kgr8qKeW5O870lHFuL5K6Nt3UAd0dbGjQ1hsVC9EBvN2s332a2lwog&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:43:13.618Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — dismiss
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7pzl6e [dialog=dismiss] → still present
+- [2026-07-05T11:43:15.629Z] **PRECOND-OK** — [TA2] unassign confirm dialog appeared — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their"
+- [2026-07-05T11:43:15.634Z] **CHECK-PASS** — [TA2] warning states students LOSE ACCESS — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden."
+- [2026-07-05T11:43:15.640Z] **CHECK-PASS** — [TA2] warning states access returns only when RE-ASSIGNED
+- [2026-07-05T11:43:15.646Z] **CHECK-PASS** — [TA2] warning states progress is PRESERVED
+- [2026-07-05T11:43:15.652Z] **CHECK-PASS** — [TA2] warning states progress is HIDDEN/inaccessible
+- [2026-07-05T11:43:15.659Z] **CHECK-PASS** — [TA2] NOT the old misleading bare "progress is saved" copy
+- [2026-07-05T11:43:15.665Z] **CHECK-PASS** — [TA2] CANCEL preserved the assignment (teacher UI still shows TOP) — gone=false
+- [2026-07-05T11:43:18.112Z] **CHECK-PASS** — [TA2] CANCEL: student still has access to TOP
+- [2026-07-05T11:43:24.017Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — accept
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7pzl6e [dialog=accept] → removed
+- [2026-07-05T11:43:26.032Z] **CHECK-PASS** — [TA2] PROCEED actually unassigned (teacher UI no longer shows TOP) — gone=true
+- [2026-07-05T11:43:26.119Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=BF7ZPCnbSj4MuJSXORsKb0Fke7f0pCzXJPXG2NDS5wUAJ8tmXr2BUA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:43:26.126Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=lsaVv7T73hWEG6W8Ix3i_BoZdAuzOA6cRIETPJV6Ca50lzMx8hPKTA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:43:37.653Z] **CHECK-PASS** — [TA2] PROCEED: student loses access to TOP (expected stranding, warn-only) — after propagation poll
+- [2026-07-05T11:43:37.774Z] **note** — [TA2] CSD/TWI-preserved for lsr_s21@vocaboost.test on 25WT ACC TA2 mr7pzl6e/EQ0Dc9rb7gvoerflHlnz → confirmed by read-only lsr_postverify.mjs
+- [2026-07-05T11:50:13.607Z] **PRECOND-OK** — [TA1] student logged in — lsr_s23@vocaboost.test
+  - STEP [teacher] create class "25WT ACC TA1 mr7qbi3m"
+- [2026-07-05T11:50:55.720Z] **selector-gap** — 25WT ACC TA1 mr7qbi3m: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:51:12.400Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=ORUUJGVZOSSlTb_qObiZrAqd5k8ZwL_GkEGbsW94msDouiLdLIebGg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:51:12.493Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=ORUUJGVZOSSlTb_qObiZrAqd5k8ZwL_GkEGbsW94msDouiLdLIebGg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:51:17.218Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=RfVZO_0g7c3f2X5bAD-T--VjzYwgi95OEI3irRVSQJ9KDzKU858I3w&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:51:21.320Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=9xxxYwzlJZ1HkOJWJpesTpaReq3aFXwIe3rlGOPAIpz6v9aqzuQqyA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:51:21.333Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=9xxxYwzlJZ1HkOJWJpesTpaReq3aFXwIe3rlGOPAIpz6v9aqzuQqyA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC TA1 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC TA1 mr7qbi3m → 7NRMWB
+- [2026-07-05T11:51:32.371Z] **PRECOND-OK** — [TA1] fresh class created + TOP assigned + join code read — class="25WT ACC TA1 mr7qbi3m" code="7NRMWB"
+  - STEP [TA1-stu] join "25WT ACC TA1 mr7qbi3m" via 7NRMWB → member
+- [2026-07-05T11:51:40.713Z] **PRECOND-OK** — [TA1] student joined the class (UI) — 25WT ACC TA1 mr7qbi3m
+- [2026-07-05T11:51:43.168Z] **PRECOND-OK** — [TA1] initial focus resolves to exactly TOP (only assigned list) — focus must == TOP
+- [2026-07-05T11:51:43.173Z] **PRECOND-OK** — [TA1] TOP is the ONLY assigned list initially (no CORE yet) — exactly one list
+- [2026-07-05T11:52:13.286Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=MiIvL8wdvM9vs2Ta9NCzSUnoDO_W0YSQ5S-PEUqGyRZ2aeV2A4a11g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:52:13.288Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=7etFmdAGwF5u7lYn3e53gey3Zw1Ut19TGQzU-dTbjsIH1HjnR_iz2Q&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:52:15.472Z] **flow-gap** — [TA1-d1-rev] no Review/Continue button
+- [2026-07-05T11:52:17.909Z] **PRECOND-OK** — [TA1] studyOneDay reached a passed results screen — studyOneDay advanced
+- [2026-07-05T11:52:20.380Z] **PRECOND-OK** — [TA1] visible currentStudyDay>=1 on TOP (hero shows DAY>=2) — DAY badge must be >=2
+- [2026-07-05T11:52:20.407Z] **note** — [TA1] progress diagnostics — DAY=2 words=80 pct=2
+- [2026-07-05T11:52:20.602Z] **PRECOND-OK** — [TA1] focus reads EXACTLY TOP before the teacher move — before == TOP
+- [2026-07-05T11:52:21.069Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=dHcM0c9Ru97jka6xdDBoLToFdPUplgNVJ8HnfhCEonHb2FsM4oHxsA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:52:25.966Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_z6sbkkjECHDVKWCTLbIiqRChbBGkwpsRJ6qKyLXGh7a4s76EHSuOw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:52:25.988Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_z6sbkkjECHDVKWCTLbIiqRChbBGkwpsRJ6qKyLXGh7a4s76EHSuOw&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:52:57.527Z] **selector-gap** — 25WT ACC TA1 mr7qbi3m: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T11:53:13.881Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=n0qhvDaY3eU3XEuTG3EZr9HybNkrFJJoBTfIDTXIVA0dVt3YXxqjow&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:53:13.968Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=n0qhvDaY3eU3XEuTG3EZr9HybNkrFJJoBTfIDTXIVA0dVt3YXxqjow&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:53:13.990Z] **request-failed** — [TA1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=0OOV7xzDAUt9OhHHldbl1qoNgKFNxWEXXdSaSZM1wG7MjGOIxc-iFA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:53:23.157Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=dHcM0c9Ru97jka6xdDBoLToFdPUplgNVJ8HnfhCEonHb2FsM4oHxsA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:53:23.233Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=dHcM0c9Ru97jka6xdDBoLToFdPUplgNVJ8HnfhCEonHb2FsM4oHxsA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC TA1 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T11:53:29.713Z] **PRECOND-OK** — [TA1] teacher assign of CORE visibly succeeded — assignList ok (both lists should now show)
+- [2026-07-05T11:53:35.793Z] **CHECK-PASS** — [TA1] CORE appears as a selectable option after the add (condition actually exercised) — opts=["LSR TOP Vocab (audit clone)","LSR CORE Vocab (audit clone)"]
+- [2026-07-05T11:53:35.795Z] **CHECK-PASS** — [TA1] F02: default focus STAYS exactly TOP after list-add (no flip) — after="LSR TOP Vocab (audit clone)" expected="LSR TOP Vocab (audit clone)"
+- [2026-07-05T11:53:40.773Z] **PRECOND-OK** — [TA2] student logged in — lsr_s24@vocaboost.test
+  - STEP [teacher] create class "25WT ACC TA2 mr7qbi3m"
+- [2026-07-05T11:54:14.359Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=jLBxfuixWnYGFF7NFZyOAEtLmpWkCraOZ8PTKKfckMRTkVqAPHIjvQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:54:18.341Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=yaqKHhE8bRMGPIIVJWqe-WyzXzbSpa08g2G9QmuKwje3uZDh0x6gtw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:54:22.770Z] **selector-gap** — 25WT ACC TA2 mr7qbi3m: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:54:39.558Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=pgFRby6Nmsrc-l1IJhmt4RaCt05ZXzKgBYtd_hlFas7e_KHqmFj6_g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:54:39.605Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=pgFRby6Nmsrc-l1IJhmt4RaCt05ZXzKgBYtd_hlFas7e_KHqmFj6_g&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:54:44.326Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=jLBxfuixWnYGFF7NFZyOAEtLmpWkCraOZ8PTKKfckMRTkVqAPHIjvQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:54:48.416Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=yaqKHhE8bRMGPIIVJWqe-WyzXzbSpa08g2G9QmuKwje3uZDh0x6gtw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC TA2 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC TA2 mr7qbi3m → PFQS8C
+- [2026-07-05T11:54:59.439Z] **PRECOND-OK** — [TA2] fresh class + TOP assigned + code — class="25WT ACC TA2 mr7qbi3m" code="PFQS8C"
+  - STEP [TA2-stu] join "25WT ACC TA2 mr7qbi3m" via PFQS8C → member
+- [2026-07-05T11:55:07.798Z] **PRECOND-OK** — [TA2] student joined — 25WT ACC TA2 mr7qbi3m
+- [2026-07-05T11:55:37.338Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=xRZpG4QIH-3WcxGvRlwKfC-Zb_Y0fXD6RPVFp34rNEjbFsD4KrL6xw&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:55:37.343Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=L864IscfF_n3p6_BZmeCOmYtddF_RcPW4PkGI0eVBr2Am-HLWwVkxA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:55:39.565Z] **flow-gap** — [TA2-d1-rev] no Review/Continue button
+- [2026-07-05T11:55:42.008Z] **PRECOND-OK** — [TA2] student has visible Day-1 progress on TOP — studyOneDay advanced
+- [2026-07-05T11:55:42.487Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wjw0EbR_GapZn4GChQo5diWu8mvGBmdJKwiIbpj3qbKt1TySrO73pg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:55:47.756Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — dismiss
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7qbi3m [dialog=dismiss] → still present
+- [2026-07-05T11:55:49.770Z] **PRECOND-OK** — [TA2] unassign confirm dialog appeared — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their"
+- [2026-07-05T11:55:49.777Z] **CHECK-PASS** — [TA2] warning states students LOSE ACCESS — msg="Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden."
+- [2026-07-05T11:55:49.784Z] **CHECK-PASS** — [TA2] warning states access returns only when RE-ASSIGNED
+- [2026-07-05T11:55:49.791Z] **CHECK-PASS** — [TA2] warning states progress is PRESERVED
+- [2026-07-05T11:55:49.798Z] **CHECK-PASS** — [TA2] warning states progress is HIDDEN/inaccessible
+- [2026-07-05T11:55:49.809Z] **CHECK-PASS** — [TA2] NOT the old misleading bare "progress is saved" copy
+- [2026-07-05T11:55:49.825Z] **CHECK-PASS** — [TA2] CANCEL preserved the assignment (teacher UI still shows TOP) — gone=false
+- [2026-07-05T11:55:52.312Z] **CHECK-PASS** — [TA2] CANCEL: student still has access to TOP
+- [2026-07-05T11:55:53.053Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=gXwYSRyOvRJL95tAqjlN5PVs0wetc1jaDLjxpRqNcGtnbDSjJuIlqQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:55:58.254Z] **native-dialog** — [teacher] confirm: Remove this list? Any student who has this list in their study plan will LOSE ACCESS to it until it’s re-assigned. Their progress is preserved but hidden. — accept
+  - STEP [teacher] unassign "LSR TOP Vocab (audit clone)" from 25WT ACC TA2 mr7qbi3m [dialog=accept] → removed
+- [2026-07-05T11:56:00.272Z] **CHECK-PASS** — [TA2] PROCEED actually unassigned (teacher UI no longer shows TOP) — gone=true
+- [2026-07-05T11:56:00.361Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=7L3FHKoK8p9vezIhS9nYzf0AMij-9It0OvoWFXIzJ7mRLD5CAUaGsg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:56:00.371Z] **request-failed** — [TA2-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=2gFS3kEN_ofDwvgaPS6p51sTuGxRLjdRzmNtL1mKl05mFkNXhmVUUA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:56:11.908Z] **observation** — [TA2] observed unassign→student-loses-access propagation latency ≈ 12s over 1 reload(s)
+- [2026-07-05T11:56:11.910Z] **CHECK-PASS** — [TA2] PROCEED: student loses access to TOP (expected stranding, warn-only) — lost after ~12s / 1 reloads
+- [2026-07-05T11:56:12.060Z] **note** — [TA2] CSD/TWI-preserved for lsr_s24@vocaboost.test on 25WT ACC TA2 mr7qbi3m/EQ0Dc9rb7gvoerflHlnz → confirmed by read-only lsr_postverify.mjs
+- [2026-07-05T11:56:17.534Z] **PRECOND-OK** — [M1] student logged in — lsr_s25@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M1 mr7qbi3m"
+- [2026-07-05T11:56:51.151Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=m-Zg47bbaPlrOLOnX7IQvUyzAHhi4OP36Q3RSuf0SNLpKhx0z1JnXg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:56:55.208Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wjw0EbR_GapZn4GChQo5diWu8mvGBmdJKwiIbpj3qbKt1TySrO73pg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:56:59.625Z] **selector-gap** — 25WT ACC M1 mr7qbi3m: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T11:57:15.896Z] **request-failed** — [M1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=qurT3FlT-Xt5vSTx7Hj9oPSoC7muLgxEP5CeiIj76v7W5rnmHPeXaQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:57:15.950Z] **request-failed** — [M1-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=qurT3FlT-Xt5vSTx7Hj9oPSoC7muLgxEP5CeiIj76v7W5rnmHPeXaQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:57:21.119Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=m-Zg47bbaPlrOLOnX7IQvUyzAHhi4OP36Q3RSuf0SNLpKhx0z1JnXg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:57:25.218Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wjw0EbR_GapZn4GChQo5diWu8mvGBmdJKwiIbpj3qbKt1TySrO73pg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M1 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T11:58:08.763Z] **selector-gap** — 25WT ACC M1 mr7qbi3m: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T11:58:29.956Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=McPgaYP39SQFrUnEP-PanVqhYCQOH7QXB6PQ24loxBC2YrrENGL5GA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:58:34.385Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Ye3zvuOzTB0kN0qCmRPXeu2NS_h-WYkXVpmd-H8A2o-PfmJ4t-evdg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:58:34.405Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Ye3zvuOzTB0kN0qCmRPXeu2NS_h-WYkXVpmd-H8A2o-PfmJ4t-evdg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC M1 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M1 mr7qbi3m → C94K5A
+- [2026-07-05T11:58:45.415Z] **PRECOND-OK** — [M1] class + TOP then CORE assigned + code — code="C94K5A"
+  - STEP [M1-stu] join "25WT ACC M1 mr7qbi3m" via C94K5A → member
+- [2026-07-05T11:58:53.761Z] **PRECOND-OK** — [M1] student joined — 25WT ACC M1 mr7qbi3m
+- [2026-07-05T11:58:57.174Z] **PRECOND-OK** — [M1] both lists visible as options — ["LSR TOP Vocab (audit clone)","LSR CORE Vocab (audit clone)"]
+- [2026-07-05T11:58:57.176Z] **CHECK-PASS** — [M1] zero-progress default = newest-assigned (CORE), fallback preserved — focus="LSR CORE Vocab (audit clone)" expected="LSR CORE Vocab (audit clone)"
+- [2026-07-05T11:59:02.097Z] **PRECOND-OK** — [M3] student logged in — lsr_s26@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M3 mr7qbi3m"
+- [2026-07-05T11:59:35.692Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_vmNXDQI4EXzN2zqSanZSxpAr0eNXwHGJwCuM-5d_TnJmWskYgNcfg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T11:59:39.706Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GobctsfZ2oks1fkG-VVNRVcv7vWfjd3ipE1WVEs6URmXm3zsH6txKg&VER=8& — net::ERR_ABORTED
+- [2026-07-05T11:59:44.108Z] **selector-gap** — 25WT ACC M3 mr7qbi3m: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T12:00:00.892Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=MxqI_A92VCpqZ0-_JobI-336B_hF8H0vj69KQ0aM0msWh3ofUMv6eA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:00:00.919Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=MxqI_A92VCpqZ0-_JobI-336B_hF8H0vj69KQ0aM0msWh3ofUMv6eA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:00:05.661Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_vmNXDQI4EXzN2zqSanZSxpAr0eNXwHGJwCuM-5d_TnJmWskYgNcfg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:00:09.747Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GobctsfZ2oks1fkG-VVNRVcv7vWfjd3ipE1WVEs6URmXm3zsH6txKg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M3 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M3 mr7qbi3m → 8XHJH8
+- [2026-07-05T12:00:20.741Z] **PRECOND-OK** — [M3] class + TOP + code — code="8XHJH8"
+  - STEP [M3-stu] join "25WT ACC M3 mr7qbi3m" via 8XHJH8 → member
+- [2026-07-05T12:00:29.083Z] **PRECOND-OK** — [M3] student joined — 25WT ACC M3 mr7qbi3m
+- [2026-07-05T12:01:01.714Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=8ynC89HUuD9ks3YWSv3-lQ2Jne5JFxwpq9vcoGPITi62JgpYs84tiA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:01:01.717Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=HfyDmWTfRaI49yvXKmk2Hg8p5zh6FTvN-P_ckTWnFs_Kqx7d3oTsIA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:01:03.913Z] **flow-gap** — [M3-d1-rev] no Review/Continue button
+- [2026-07-05T12:01:06.346Z] **PRECOND-OK** — [M3] studyOneDay reached a passed results screen — studyOneDay advanced
+- [2026-07-05T12:01:08.808Z] **PRECOND-OK** — [M3] visible currentStudyDay>=1 on TOP (hero shows DAY>=2) — DAY badge must be >=2
+- [2026-07-05T12:01:09.272Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GvDtV36qvfC_S4Ffb7vehF7Ki2V5J0DO55AG5gFuEXFE2gUVDLOudQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:01:14.337Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=dKQKyurL8QvRfFWtD5bU9EbdRTbsEaaLiBJVk_05VLgaX1wlPg0aIg&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:01:45.728Z] **selector-gap** — 25WT ACC M3 mr7qbi3m: assign list select "LSR CORE Vocab (audit clone)" failed
+- [2026-07-05T12:02:02.392Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=zCJXQw2FbL7st64NCtWMYnxP0HNFw1zJSgibN630MdrW8vY01_XvMA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:02:02.530Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=zCJXQw2FbL7st64NCtWMYnxP0HNFw1zJSgibN630MdrW8vY01_XvMA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:02:02.564Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=_WVhVQZjNCs_wPzFrGB6fqygOu2HsqScTuLqhwSPAkqsDW90fDMvHA&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:02:11.306Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GvDtV36qvfC_S4Ffb7vehF7Ki2V5J0DO55AG5gFuEXFE2gUVDLOudQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:02:11.440Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GvDtV36qvfC_S4Ffb7vehF7Ki2V5J0DO55AG5gFuEXFE2gUVDLOudQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR CORE Vocab (audit clone)" to 25WT ACC M3 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+- [2026-07-05T12:02:17.896Z] **PRECOND-OK** — [M3] teacher added CORE
+- [2026-07-05T12:02:22.350Z] **PRECOND-OK** — [M3] list selector is a dropdown (2 lists) — need dropdown to select
+- [2026-07-05T12:02:22.995Z] **PRECOND-OK** — [M3] CORE selectable in dropdown
+- [2026-07-05T12:02:25.604Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=D5NTF4a9ZiE_mpMlrKYphpvluaZMVhbWVYUJO2XlK1oaAOGcWfpnQQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:02:25.609Z] **request-failed** — [M3-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=vENtaczCNigEKwIvUbNMvtkboocBVOE6sC7UCZyOc_F0eV8SAs_80g&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:02:29.707Z] **CHECK-PASS** — [M3] saved preference (CORE) wins over progress-preference (TOP) — focus="LSR CORE Vocab (audit clone)" expected="LSR CORE Vocab (audit clone)"
+- [2026-07-05T12:02:34.616Z] **PRECOND-OK** — [M5] student logged in — lsr_s27@vocaboost.test
+  - STEP [teacher] create class "25WT ACC M5 mr7qbi3m"
+- [2026-07-05T12:03:08.186Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=PzKVTtxS2rCSm2YgH5W2BugZyt0yBHX4o-EpHLOKbeWfTAaZdWjR8Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:03:12.233Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=HGP6AKoP5dgwHCSmrN9D5_LR9iLb7SVNbzRq_-JVQSOpu10RaJtXCQ&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:03:16.639Z] **selector-gap** — 25WT ACC M5 mr7qbi3m: assign list select "LSR TOP Vocab (audit clone)" failed
+- [2026-07-05T12:03:33.302Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=qsh49xco7sDWoQ8Rjlo3eEd3yximz-XnkJBoxhbczhhHBcMurrvOoA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:03:33.400Z] **request-failed** — [M5-stu] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=qsh49xco7sDWoQ8Rjlo3eEd3yximz-XnkJBoxhbczhhHBcMurrvOoA&VER=8& — net::ERR_ABORTED
+- [2026-07-05T12:03:38.151Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=PzKVTtxS2rCSm2YgH5W2BugZyt0yBHX4o-EpHLOKbeWfTAaZdWjR8Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-05T12:03:42.246Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=HGP6AKoP5dgwHCSmrN9D5_LR9iLb7SVNbzRq_-JVQSOpu10RaJtXCQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] assign "LSR TOP Vocab (audit clone)" to 25WT ACC M5 mr7qbi3m (pace=80 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT ACC M5 mr7qbi3m → Q6YQPV
+- [2026-07-05T12:03:53.270Z] **PRECOND-OK** — [M5] class + TOP + code — code="Q6YQPV"
+  - STEP [M5-stu] join "25WT ACC M5 mr7qbi3m" via Q6YQPV → member
+- [2026-07-05T12:04:01.631Z] **PRECOND-OK** — [M5] student joined — 25WT ACC M5 mr7qbi3m
+- [2026-07-05T12:04:32.166Z] **flow-gap** — [M5-d1-rev] no Review/Continue button
+- [2026-07-05T12:04:34.609Z] **PRECOND-OK** — [M5] student has Day-1 progress on TOP
+- [2026-07-05T12:04:37.064Z] **CHECK-PASS** — [M5] focus resolves to TOP — focus="LSR TOP Vocab (audit clone)"
+- [2026-07-05T12:04:37.069Z] **CHECK-PASS** — [M5] no error/retry card on a healthy load (fail-closed did not over-trigger)
+- [2026-07-05T12:04:37.083Z] **CHECK-PASS** — [M5] per-list "Start Session" surface is present
+- [2026-07-05T12:04:37.096Z] **CHECK-PASS** — [M5] per-list "Start Session" is ENABLED when progress loaded OK

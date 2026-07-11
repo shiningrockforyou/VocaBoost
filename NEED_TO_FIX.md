@@ -8,6 +8,67 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 8. Gradebook Name/student filter runs client-side on ONE page → inactive students show "no results"  ·  client/query  ·  HIGH
+
+**What's broken.** Opening a student's **Grades** (or filtering the Gradebook by a student **Name**)
+shows *"Your search returned no results"* even though the student has valid, graded attempts. The
+student's card in **Students** still shows the correct Day (e.g. 이지후 Day 8) — because that reads
+`class_progress` directly, a different data source. So progress looks fine but grades look empty.
+
+**Why it happens.** `queryTeacherAttempts` (`db.js:1858`) fetches attempts with a Firestore query
+filtered **only** by `teacherId` (+ optional Class/Date), `orderBy('submittedAt','desc')`,
+`limit(50)` (`db.js:1943`). The **Name → studentId filter is applied in JS as post-processing on the
+returned 50-row page** (`db.js:1982` `if (!filterStudentIds.includes(studentId)) continue`), not
+pushed into the Firestore query. So the surface only ever inspects the 50 most-recent attempts
+*teacher-wide*. Any student whose latest attempt has aged out of that window yields zero matches after
+the post-filter → "no results". (2nd, smaller contributor: `db.js:1968-1977` drops any attempt whose
+`testId` doesn't match the `test_`/`typed_`/`vocaboost_test_` regexes before the filter even runs.)
+
+**Impact (measured, 이지후 / justin2jihool@gmail.com, 26SM 미주 SAT Inter.).** 14 clean graded attempts,
+all with `submittedAt` Timestamps, correct `teacherId`/`classId` — the ordered query *does* return
+them server-side. But his last attempt is 2026-06-09; teacher-wide he ranks **17,236 / 20,029
+(page 345)**, and even class-scoped **660 / 753 (page 14)** at 50/page. Page 1 contains none of his →
+"no results". **General bug:** hits *any* student who goes quiet ~a month. Not data corruption — no
+CS data fix is warranted (verified 2026-07-09, see `SUPPORT_RUNBOOK.md` CS-2026-07-09b).
+
+**Fix direction.** When a Name filter resolves to studentId(s), scope the Firestore query
+**server-side** instead of post-filtering a page: for a single student use the existing
+`queryStudentAttempts` path (`db.js:~2100`, `where('studentId','==',uid)` + `orderBy submittedAt`);
+for multiple, `where('studentId','in', ids)` (≤30) — each with the matching composite index. That
+makes pagination walk only that student's attempts, so an inactive student's grades appear on page 1.
+Interim TA workaround: filter by **Class + a Date range around the student's active weeks** (or page
+forward) — the data is all there.
+
+**Effort/risk.** Small, localized to `queryTeacherAttempts`; needs a `(studentId, submittedAt)` /
+`(teacherId, studentId, submittedAt)` composite index. Low risk (narrows, doesn't widen). Validate the
+single-student "Grades" click and multi-tag Name filters still page correctly.
+
+---
+
+## 7. Empty `assignedLists: []` hides ALL assigned lists (dashboard shows "0 assigned lists")  ·  data-compat  ·  MEDIUM-HIGH
+
+**What's broken.** A class whose `assignments` map is populated (lists genuinely assigned) but whose
+`assignedLists` array is **empty (`[]`)** renders as having NO lists — the student dashboard shows
+"0 assigned lists" and no studyable state, even though the class has a valid assignment. Surfaced by the
+Run L audit (2026-07-05): `25WT LSR-A TYPED` had `assignments[TOP]` set but `assignedLists: []`, so fresh
+students saw no Start button (L1-T/L1-R "test not reached").
+
+**Why it happens (root cause).** `db.js:502` — `const assignedListIds = classData.assignedLists || Object.keys(assignments)`.
+An empty array `[]` is **truthy**, so `[] || Object.keys(assignments)` returns `[]` — the fallback to
+`assignments` keys never fires. The intent was "use assignedLists if present, else derive from assignments,"
+but `||` doesn't treat `[]` as absent.
+
+**Impact.** Any class that ends up with `assignedLists: []` + a non-empty `assignments` (an ordering/write
+split-brain) becomes unstudyable for its students until repaired. Silent — looks like "no lists assigned."
+
+**Fix direction.** `db.js:502` → `const assignedListIds = (classData.assignedLists?.length ? classData.assignedLists : Object.keys(assignments))`.
+Consider a data sweep for existing classes in this split-brain state.
+
+**Effort/risk.** Tiny code change, low risk. Audit added a `--pre` effective-assignment precondition that
+replicates the *current* (buggy) Dashboard semantics so it catches this state rather than masking it.
+
+---
+
 ## 6. Class change resets list progress (day/`totalWordsIntroduced`) → students re-study words  ·  data model  ·  HIGH
 
 **What's broken.** When a student moves between classes that share the same list, their day counter

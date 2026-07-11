@@ -12,8 +12,15 @@ import { chromium } from 'playwright';
 import { readFileSync, appendFileSync, existsSync, writeFileSync } from 'fs';
 
 export const BASE = 'https://vocaboostone.netlify.app';
-export const PASS = 'AuditPass2026!';
 export const AUD = '/app/audit/playwright';
+// Credentials are NOT hard-coded (Codex security finding). Load from LSR_AUDIT_PW or a
+// gitignored secret file; fail loudly if neither is present.
+function loadPassword() {
+  if (process.env.LSR_AUDIT_PW) return process.env.LSR_AUDIT_PW;
+  try { return JSON.parse(readFileSync(`${AUD}/.lsr_secret.json`, 'utf8')).password; } catch { /* */ }
+  throw new Error('LSR audit password not set — export LSR_AUDIT_PW=… or create audit/playwright/.lsr_secret.json {"password":"…"} (gitignored)');
+}
+export const PASS = loadPassword();
 export const SEEDED = JSON.parse(readFileSync(`${AUD}/seeded_accounts.json`, 'utf8')).accounts || [];
 export const WM = existsSync(`${AUD}/wordmap.json`)
   ? JSON.parse(readFileSync(`${AUD}/wordmap.json`, 'utf8'))
@@ -67,13 +74,146 @@ export async function newAuditPage(browser, findings, label, viewport = VIEWPORT
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error') findings.add('console-error', `[${label}] ${m.text().slice(0, 250)}`); });
   page.on('pageerror', (e) => findings.add('page-error', `[${label}] ${String(e).slice(0, 250)}`));
-  // Native confirm()/alert() dialogs (e.g. unassign-list confirm, ClassDetail.jsx:389):
-  // accepting is the ordinary user affirmative — record each occurrence as a step.
-  page.on('dialog', async (d) => { findings.add('native-dialog', `[${label}] ${d.type()}: ${d.message().slice(0, 150)} — accepted`); await d.accept().catch(() => {}); });
+  // SCENARIO-CONTROLLED native dialogs (Codex blocker 3). The DEFAULT for a dialog the
+  // scenario did not arm is RECORD + DISMISS + flag as a BUG-suspect — NEVER silent-accept,
+  // which can mask a bug. A scenario declares intent with armDialog(page,'accept'|'dismiss')
+  // immediately before the triggering action; the captured message is at page.__dialog.last.
+  page.__dialog = { mode: 'dismiss', armed: false, last: null };
+  page.on('dialog', async (d) => {
+    const rec = { type: d.type(), message: d.message() };
+    const st = page.__dialog;
+    const action = st.armed ? st.mode : 'dismiss';
+    rec.action = action;
+    st.last = rec;
+    if (st.armed) findings.add('native-dialog', `[${label}] ${d.type()}: ${rec.message.slice(0, 200)} — ${action}`);
+    else findings.add('unexpected-dialog', `[${label}] UNEXPECTED native dialog (not armed): "${rec.message.slice(0, 160)}" — auto-dismissed`);
+    if (action === 'accept') await d.accept().catch(() => {}); else await d.dismiss().catch(() => {});
+    st.armed = false; // one-shot: consume the arm
+  });
   page.on('requestfailed', (r) => {
     if (!/analytics|gtag|favicon/.test(r.url())) findings.add('request-failed', `[${label}] ${r.method()} ${r.url().slice(0, 150)} — ${r.failure()?.errorText}`);
   });
   return { ctx, page };
+}
+
+// Arm the next native dialog for accept/dismiss (one-shot). Clears the last capture so a
+// stale message isn't mistaken for the new one.
+export function armDialog(page, mode = 'accept') { page.__dialog.mode = mode; page.__dialog.armed = true; page.__dialog.last = null; }
+export function lastDialog(page) { return page.__dialog?.last || null; }
+
+// ---------- robust focus-control readers (Codex blocker 2: no brittle xpath-parent grab) ----------
+// The current focused List/Class value. FocusControl (Dashboard.jsx:227) renders, in BOTH
+// label and dropdown modes, `<span …muted>List:</span>` immediately followed by the value
+// span. We target the value as the following-sibling of the exact "List:"/"Class:" prefix and
+// read its full text (CSS truncation does not affect innerText). Waits until non-empty; returns
+// null on timeout so the caller can treat "no value" as FAILURE, never a false pass.
+export async function readFocus(page, prefix, { timeout = 12000 } = {}) {
+  const label = page.getByText(`${prefix}:`, { exact: true }).first();
+  const ok = await label.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
+  if (!ok) return null;
+  const valueSpan = label.locator('xpath=following-sibling::*[1]');
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    const t = (await valueSpan.innerText().catch(() => '')).trim();
+    if (t) return t.replace(/\s+/g, ' ');
+    await sleep(400);
+  }
+  return null;
+}
+export const readFocusList = (page, opts) => readFocus(page, 'List', opts);
+export const readFocusClass = (page, opts) => readFocus(page, 'Class', opts);
+
+// The List selector's available options (opens the dropdown, reads option button texts, closes).
+// Returns [] when the control is in label mode (single list) — the caller distinguishes
+// "one option" from "couldn't read" via the return + a separate readFocusList.
+export async function listSelectorOptions(page, { timeout = 8000 } = {}) {
+  const trigger = page.getByRole('button', { name: /^List:/ }).first();
+  if (!(await trigger.isVisible({ timeout }).catch(() => false))) return { mode: 'label', options: [] };
+  await trigger.click().catch(() => {});
+  await sleep(600);
+  const panel = trigger.locator('xpath=following-sibling::*[1]');
+  const opts = await panel.getByRole('button').allInnerTexts().catch(() => []);
+  await page.keyboard.press('Escape').catch(() => {});
+  await sleep(300);
+  return { mode: 'dropdown', options: opts.map((s) => s.replace(/\s+/g, ' ').trim()).filter(Boolean) };
+}
+
+// Visible, PERSISTED study-progress signals on the dashboard hero (Codex: prove active
+// progress, not merely a results screen). `positive` = the FAITHFUL F02 predicate: the hero
+// "DAY N" badge has N>=2, i.e. currentStudyDay>=1 (Dashboard.jsx:1562 renders csd+1, and F02's
+// ranking keys on currentStudyDay>0 at Dashboard.jsx:1092). `words` (totalWordsIntroduced) and
+// `pct` are DIAGNOSTIC ONLY — TWI can be >0 while CSD is still 0, so they must NOT gate the
+// precondition. The "N-day streak" badge is not used (it always renders "0-day").
+export async function readVisibleProgress(page, { timeout = 12000 } = {}) {
+  // PRIMARY (list-specific, unambiguous): the "Words Introduced" tile = totalWordsIntroduced
+  // for the focused list. Fresh student = 0; after a completed day = pace (>0). This is the
+  // signal equivalent to "has active progress" that F02's ranking keys on.
+  let words = null;
+  const wiLabel = page.getByText(/^Words Introduced$/i).first();
+  if (await wiLabel.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false)) {
+    const val = wiLabel.locator('xpath=following-sibling::*[1]'); // skeleton (no digits) until loaded
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+      const t = (await val.innerText().catch(() => '')).replace(/,/g, '').trim();
+      if (/^\d+$/.test(t)) { words = parseInt(t, 10); break; }
+      await sleep(400);
+    }
+  }
+  // SECONDARY: hero "DAY N" badge — N = currentStudyDay + 1 (Dashboard.jsx:1562), so N>=2
+  // proves currentStudyDay>=1. (Codex: do NOT accept the always-rendered "0-day streak" badge.)
+  let day = null;
+  const dayEl = page.getByText(/^DAY \d+/i).first();
+  if (await dayEl.isVisible().catch(() => false)) { const m = (await dayEl.innerText().catch(() => '')).match(/DAY (\d+)/i); day = m ? parseInt(m[1], 10) : null; }
+  // TERTIARY: hero ring % (max across matches so a 0% tile can't mask a non-zero ring).
+  const pcts = (await page.getByText(/^\d+%$/).allInnerTexts().catch(() => []))
+    .map((t) => parseInt((t.match(/(\d+)%/) || [])[1], 10)).filter((n) => !Number.isNaN(n));
+  const pct = pcts.length ? Math.max(...pcts) : null;
+  // Faithful F02 predicate ONLY: DAY N>=2 ⇒ currentStudyDay>=1. words/pct are diagnostic.
+  return { words, day, pct, positive: day != null && day >= 2 };
+}
+
+// Enter a session and STOP (Run L L2 negative control — must NOT study cards or skip to the test,
+// which driveNewWordsToTest does). Clicks Start/Continue to reach the study screen — enough to
+// fire getOrCreateClassProgress — then returns without going deeper. Caller leaves via goDashboard.
+export async function enterSessionOnly(page, findings, label) {
+  const start = page.getByRole('button', { name: /start session|start new words|^continue$|start review/i }).first();
+  if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Start Session/Continue to enter the session`); return { entered: false }; }
+  await start.click().catch(() => {});
+  await sleep(2500);
+  // The Launchpad may show a "Start Studying" INTRO screen (no Quit control). Click through it so
+  // we reach the real session (cards + SessionHeader "Quit session"), which L2's clean exit needs.
+  const intro = page.getByRole('button', { name: /^start studying$/i }).first();
+  if (await intro.isVisible().catch(() => false)) { await intro.click().catch(() => {}); await sleep(2500); }
+  // Confirm we're in the ACTUAL session: a real study-cards / session control that carries the
+  // "Quit session" affordance (NOT the intro button).
+  const inSession = await Promise.race([
+    page.getByText(/Card \d+ of \d+/i).first().waitFor({ state: 'visible', timeout: 20000 }).then(() => true),
+    page.getByRole('button', { name: 'Session menu' }).first().waitFor({ state: 'visible', timeout: 20000 }).then(() => true),
+    page.getByRole('button', { name: /quit session/i }).first().waitFor({ state: 'visible', timeout: 20000 }).then(() => true),
+  ]).catch(() => false);
+  if (!inSession) findings.add('flow-gap', `[${label}] clicked Start but no in-session screen confirmed`);
+  return { entered: inSession };
+}
+
+// Leave an ACTIVE study session the way a user does (Codex): click "Quit session" (aria-label,
+// DailySessionFlow.jsx:1635) → confirm the "Leave Study Session?" modal (confirmLabel "Leave") →
+// wait for Dashboard. This sets the intentional-leave flag that disables the beforeunload handler,
+// so NO native dialog fires and navigation doesn't time out. Returns whether the Dashboard rendered.
+export async function leaveSessionViaQuit(page, findings, label) {
+  const quit = page.getByRole('button', { name: /quit session/i }).first();
+  if (!(await quit.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] "Quit session" control not visible`); return false; }
+  await quit.click().catch(() => {});
+  await sleep(600);
+  const modal = page.getByText(/Leave Study Session\?/i).first();
+  if (!(await modal.waitFor({ state: 'visible', timeout: 6000 }).then(() => true).catch(() => false))) { findings.add('flow-gap', `[${label}] "Leave Study Session?" modal did not appear`); return false; }
+  const leave = page.getByRole('button', { name: /^leave$/i }).first();
+  if (!(await leave.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] "Leave" confirm not visible`); return false; }
+  await leave.click().catch(() => {});
+  // Dashboard signal: the FocusControl "Class:"/"List:" label reappears.
+  const back = await page.getByText(/^(Class|List):/).first().waitFor({ state: 'visible', timeout: 15000 }).then(() => true).catch(() => false);
+  if (!back) findings.add('flow-gap', `[${label}] Dashboard not confirmed after Leave`);
+  await sleep(1200);
+  return back;
 }
 
 // Login via the visible UI. BASE is the public entry; if a visible login link exists we
@@ -272,32 +412,95 @@ export async function assertVerdictCoherent(page, findings, label, thresholdPct 
 }
 
 export async function shot(page, name) {
-  await page.screenshot({ path: `${AUD}/findings/${name}.png`, fullPage: true }).catch(() => {});
+  return page.screenshot({ path: `${AUD}/findings/${name}.png`, fullPage: true }).then(() => true).catch(() => false);
+}
+
+// Explicitly SELECT a list by exact (normalized) title in the FocusControl. Dropdown mode →
+// click the exact option; label mode (single list) → verify it's exactly the target. Returns
+// true only on an exact match (Run L L2: substring/auto-select is not enough).
+export async function selectList(page, title, findings, label) {
+  const nm = (s) => (s || '').replace(/\s+/g, ' ').trim();
+  const want = nm(title);
+  const trigger = page.getByRole('button', { name: /^List:/ }).first();
+  if (await trigger.isVisible().catch(() => false)) {
+    await trigger.click().catch(() => {}); await sleep(600);
+    const opts = trigger.locator('xpath=following-sibling::*[1]').getByRole('button');
+    const n = await opts.count().catch(() => 0);
+    for (let i = 0; i < n; i++) { if (nm(await opts.nth(i).innerText().catch(() => '')) === want) { await opts.nth(i).click().catch(() => {}); await sleep(1500); return true; } }
+    await page.keyboard.press('Escape').catch(() => {});
+    findings.add('flow-gap', `[${label}] list "${title}" not a selectable option`); return false;
+  }
+  const cur = nm(await readFocus(page, 'List').catch(() => null));
+  if (cur === want) return true;
+  findings.add('flow-gap', `[${label}] single-list focus "${cur}" != "${title}"`); return false;
+}
+
+// ---------- recovery probe (user directive 2026-07-05) ----------
+// When a scenario hits a broken state, DON'T silently retry it away. Instead:
+//   (1) record it as a first-class BUG finding,
+//   (2) attempt recovery, escalating through the given steps (refresh, custom actions),
+//   (3) record whether each recovery step worked (rich signal: transient vs persistent),
+//   (4) let the caller CONTINUE the scenario regardless.
+// `check()` must return true when the state is HEALTHY. Same-page recovery only —
+// context-level relaunch (new browser context + re-login) is done by the orchestrator via
+// relaunchActor(), which owns the page lifecycle.
+export async function recoverProbe(page, { label, findings, bug, check, steps = ['refresh'] }) {
+  if (await check().catch(() => false)) return { ok: true, recoveredBy: null, bugRecorded: false };
+  findings.add('BUG', `[${label}] ${bug}`);
+  const ladder = {
+    refresh: async () => { await page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {}); await sleep(2500); await dismissModal(page); },
+    dashboard: async () => { await goDashboard(page); },
+  };
+  const names = [];
+  for (const s of steps) {
+    const name = typeof s === 'string' ? s : s.name;
+    const run = typeof s === 'string' ? ladder[name] : s.run;
+    names.push(name);
+    if (!run) { findings.add('note', `[${label}] unknown recovery step "${name}"`); continue; }
+    await run(page).catch((e) => findings.add('note', `[${label}] recovery "${name}" threw: ${String(e).slice(0, 120)}`));
+    const healthy = await check().catch(() => false);
+    findings.add('recovery', `[${label}] after "${name}" → ${healthy ? 'RECOVERED ✓' : 'still broken'}`);
+    if (healthy) return { ok: true, recoveredBy: name, bugRecorded: true };
+  }
+  findings.add('recovery', `[${label}] NOT recovered by page-level [${names.join(', ')}] — orchestrator may relaunch; continuing scenario with degraded state`);
+  return { ok: false, recoveredBy: null, bugRecorded: true };
 }
 
 // ---------- enrollment / abandon (realistic mid-run conditions) ----------
-// Join a class by code through the visible UI. Idempotent-ish: if already a member,
-// the join either no-ops or errors visibly (recorded, not fatal).
+// Join a class by code through the visible UI. On the phantom-membership bug (join writes
+// enrolledClasses but not the class studentIds → class absent / "List not assigned"), this
+// records the bug, tries page-level recovery (refresh, re-submit), records the outcome, and
+// returns final membership so the scenario continues. Deeper relaunch is the orchestrator's.
 export async function joinClass(page, code, className, findings, label) {
   if (!code) { findings.add('prep-issue', `[${label}] no join code for "${className}"`); return false; }
-  await goDashboard(page);
+  const nameRe = new RegExp(className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  const isMember = () => page.getByText(nameRe).first().isVisible().catch(() => false);
   // Inline dashboard join form (Dashboard.jsx:1665/1701): input placeholder "ABC123",
   // maxLength 6, submit button "Join Class". No modal to open.
-  const codeInput = page.getByPlaceholder('ABC123').first();
-  if (!(await codeInput.isVisible().catch(() => false))) {
-    findings.add('selector-gap', `[${label}] join code input (ABC123) not visible`);
-    await shot(page, `lsr_join_gap_${label}`);
-    return false;
-  }
-  await codeInput.fill(code);
-  const submit = page.getByRole('button', { name: /^join class$/i }).first();
-  if (await submit.isVisible().catch(() => false)) await submit.click().catch(() => {});
-  else await codeInput.press('Enter');
-  await sleep(3000);
-  await dismissModal(page);
-  const joined = await page.getByText(new RegExp(className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')).first().isVisible().catch(() => false);
-  findings.step(label, `join "${className}" via ${code} → ${joined ? 'visible' : 'unverified'}`);
-  return joined;
+  const submitJoin = async () => {
+    await goDashboard(page);
+    const codeInput = page.getByPlaceholder('ABC123').first();
+    if (!(await codeInput.isVisible().catch(() => false))) {
+      findings.add('selector-gap', `[${label}] join code input (ABC123) not visible`);
+      await shot(page, `lsr_join_gap_${label}`);
+      return;
+    }
+    await codeInput.fill(code);
+    const submit = page.getByRole('button', { name: /^join class$/i }).first();
+    if (await submit.isVisible().catch(() => false)) await submit.click().catch(() => {});
+    else await codeInput.press('Enter');
+    await sleep(3000);
+    await dismissModal(page);
+    await goDashboard(page);
+  };
+  await submitJoin(); // first, ordinary attempt
+  const r = await recoverProbe(page, {
+    label, findings, check: isMember,
+    bug: `joined "${className}" via ${code} but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)`,
+    steps: ['refresh', { name: 're-submit join', run: submitJoin }, 'refresh'],
+  });
+  findings.step(label, `join "${className}" via ${code} → ${r.ok ? `member${r.recoveredBy ? ` (recovered by ${r.recoveredBy})` : ''}` : 'NOT a member after recovery — continuing'}`);
+  return r.ok;
 }
 
 // Distracted-student realism: open a class's session up to the test, then LEAVE without

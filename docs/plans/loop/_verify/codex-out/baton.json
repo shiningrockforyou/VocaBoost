@@ -1,0 +1,15 @@
+{
+  "slug": "_verify",
+  "round": 1,
+  "maxRounds": 8,
+  "turn": "codex",
+  "state": "running",
+  "cleanStreak": 0,
+  "revision": 1,
+  "codexSessionId": null,
+  "codexStatus": null,
+  "codexLastReview": null,
+  "updatedBy": "claude",
+  "updatedAt": "2026-07-11T09:58:02.103Z",
+  "note": "sandbox probe"
+}

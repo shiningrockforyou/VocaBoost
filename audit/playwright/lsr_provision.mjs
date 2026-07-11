@@ -14,11 +14,14 @@ import { readFileSync, writeFileSync } from 'fs';
 admin.initializeApp({ credential: admin.credential.cert(JSON.parse(readFileSync('/app/scripts/serviceAccountKey.json', 'utf8'))) });
 const db = admin.firestore();
 const auth = admin.auth();
-const PASS = 'AuditPass2026!';
+// Credentials from env / gitignored secret (Codex security finding — never hard-coded).
+const PASS = process.env.LSR_AUDIT_PW
+  || (() => { try { return JSON.parse(readFileSync('/app/audit/playwright/.lsr_secret.json', 'utf8')).password; } catch { return null; } })();
+if (!PASS) { console.error('LSR_AUDIT_PW not set and .lsr_secret.json missing — aborting provisioning'); process.exit(2); }
 
 const ACCOUNTS = [
   { email: 'lsr_teacher_01@vocaboost.test', role: 'teacher', name: 'LSR Teacher' },
-  ...Array.from({ length: 16 }, (_, i) => ({
+  ...Array.from({ length: 46 }, (_, i) => ({
     email: `lsr_s${String(i + 1).padStart(2, '0')}@vocaboost.test`,
     role: 'student',
     name: `LSR Student ${String(i + 1).padStart(2, '0')}`,
@@ -52,6 +55,6 @@ for (const a of ACCOUNTS) {
   out.push({ ...a, uid, status });
   console.log(`${status === 'created' ? '✅' : status.startsWith('already') ? '↺' : '❌'} ${a.email} (${a.role}) ${uid ? uid.slice(0, 8) : ''} — ${status}`);
 }
-writeFileSync('/app/audit/playwright/lsr_accounts.json', JSON.stringify({ createdAt: new Date().toISOString(), password: 'AuditPass2026! (audit convention)', accounts: out }, null, 2));
+writeFileSync('/app/audit/playwright/lsr_accounts.json', JSON.stringify({ createdAt: new Date().toISOString(), password: 'set via LSR_AUDIT_PW / .lsr_secret.json (not stored)', accounts: out }, null, 2));
 console.log('\nroster → audit/playwright/lsr_accounts.json');
 process.exit(out.some((o) => o.status.startsWith('ERROR')) ? 1 : 0);

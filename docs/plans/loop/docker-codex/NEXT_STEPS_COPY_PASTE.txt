@@ -1,0 +1,51 @@
+Dockerized Codex smoke test
+
+Copy exactly one command line at a time into PowerShell.
+All runnable commands below are single-line inline commands.
+
+1. Go to helper directory:
+cd C:\Users\dmchw\vocaboost\docs\plans\loop\docker-codex
+
+2. Build image if you have not already built it:
+.\build.ps1
+
+3. Login if status does not already say "Logged in using ChatGPT":
+.\login.ps1
+
+4. Check login status:
+.\status.ps1
+
+5. Create smoke-test baton:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; New-Item -ItemType Directory -Force $out | Out-Null; $baton=[ordered]@{turnOwner="codex";task="smoke-test";repoRoot="/repo";instruction="Read /repo/package.json. Write a short smoke_test.md in /out saying whether you could read the repo. Then update this baton.json by setting turnOwner to claude and codexStatus to smoke-ok."}; $baton | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "$out\baton.json"; Get-Content "$out\baton.json"
+
+6. Run one fresh headless Codex turn:
+.\run-once.ps1
+
+7. Check smoke-test outputs:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; Get-ChildItem $out; Get-Content "$out\baton.json"; Get-Content "$out\last_message.md"; Get-Content "$out\smoke_test.md"
+
+8. Create resume smoke-test baton:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; $baton=[ordered]@{turnOwner="codex";task="resume-smoke-test";repoRoot="/repo";instruction="Append one sentence to /out/smoke_test.md saying the resumed session worked. Then update this baton.json by setting turnOwner to claude and codexStatus to resume-smoke-ok."}; $baton | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "$out\baton.json"; Get-Content "$out\baton.json"
+
+9. Resume the last Codex session:
+.\resume-last.ps1
+
+10. Check resume outputs:
+$out="C:\Users\dmchw\vocaboost\docs\plans\loop\x\codex-out"; Get-Content "$out\baton.json"; Get-Content "$out\last_message.md"; Get-Content "$out\smoke_test.md"
+
+11. If PowerShell blocks scripts, run this once, then retry the script command:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+Expected after step 7:
+baton.json turnOwner is claude
+baton.json codexStatus is smoke-ok
+smoke_test.md exists
+last_message.md exists
+
+Expected after step 10:
+baton.json turnOwner is claude
+baton.json codexStatus is resume-smoke-ok
+smoke_test.md says the resumed session worked
+
+Note:
+The run scripts intentionally use Codex --sandbox danger-full-access inside Docker. Docker is the sandbox boundary here. The repo is mounted read-only at /repo and the output directory is mounted read-write at /out. This avoids the bubblewrap/user-namespace failure inside Docker Desktop.
