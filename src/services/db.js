@@ -3371,17 +3371,21 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
  * apart from a transient/index query failure — an errored query must NOT silently
  * decrement CSD (under LIST_SCOPED_RECON the non-demoting CSD max also protects).
  *
- * Pairing rule (§5.1, LIST_SCOPED_RECON only): the review must belong to the SAME
- * progression as the anchor — same class as the anchor attempt (pairing.anchorClassId,
- * NOT the launching class) AND submitted at/after the anchor (temporal lineage — a
- * same-class same-day review from an earlier progression must not pair). Earliest
- * post-anchor review is the lineage-correct selection [C4-5].
+ * Pairing rule (§5.1, LIST_SCOPED_RECON only) — NEED_TO_FIX #9 (Fix B): the review must belong
+ * to the SAME progression as the anchor. Under the student-owned model the review can be earned
+ * in ANY of the student's classes on the list, so we DROP the class filter — but `studyDay` is a
+ * session COUNTER, not a position identity (a different-pace class's "Day D" is a different
+ * progression), so a same-`studyDay` review only counts if it covers the anchor's word-position
+ * range. Discriminator = student/list + `submittedAt >= anchor` (temporal pre-narrow) + EXACT
+ * `newWordStartIndex/newWordEndIndex` match to the anchor range. Candidates are streamed and
+ * client-filtered (no positional Firestore filter → no new index); the first range-matching
+ * review is `found`, exhaustion is `none` (never a newest-unverified review).
  *
  * @param {string} userId - User document ID
- * @param {string} classId - Class document ID (launching class — legacy scope)
+ * @param {string} classId - Class document ID (launching class — legacy/flag-off scope)
  * @param {string} listId - List document ID
  * @param {number} studyDay - Study day number to check
- * @param {{anchorClassId?: string, anchorSubmittedAt?: Object}} [pairing] - anchor lineage (flag-on)
+ * @param {{anchorClassId?: string, anchorSubmittedAt?: Object, anchorNewWordStartIndex?: number, anchorNewWordEndIndex?: number}} [pairing] - anchor lineage (flag-on)
  * @returns {Promise<{status:'found',attempt:Object}|{status:'none'}|{status:'query-error',error:Object}>}
  */
 export async function getReviewForDay(userId, classId, listId, studyDay, pairing = null) {
@@ -3394,50 +3398,82 @@ export async function getReviewForDay(userId, classId, listId, studyDay, pairing
 
   try {
     const attemptsRef = collection(db, 'attempts')
-    let q
+
     if (LIST_SCOPED_RECON) {
-      // [Codex-P1-1] Missing lineage must NOT silently fall back to the launching-class
-      // query — that would bypass temporal pairing entirely (a legacy/fallback anchor
-      // without submittedAt would pair against an unrelated progression). Return
-      // query-error: the caller preserves the stored CSD, which is the safe outcome.
-      if (!(pairing?.anchorClassId && pairing?.anchorSubmittedAt)) {
-        console.warn('[RECONCILIATION] getReviewForDay: anchor lineage missing under LIST_SCOPED_RECON — cannot pair safely')
-        return { status: 'query-error', error: { message: 'missing anchor lineage (anchorClassId/anchorSubmittedAt)', code: 'invalid-pairing', stack: null } }
+      // [Codex-P1-1 + F9-1/F9-3] Anchor lineage now REQUIRES the position range. Missing any
+      // lineage field must NOT fall back to an unverified query — return query-error so the
+      // caller preserves the stored CSD (the safe, non-demoting outcome).
+      if (!(pairing?.anchorClassId && pairing?.anchorSubmittedAt
+            && Number.isInteger(pairing?.anchorNewWordStartIndex)
+            && Number.isInteger(pairing?.anchorNewWordEndIndex))) {
+        console.warn('[RECONCILIATION] getReviewForDay: anchor lineage incomplete under LIST_SCOPED_RECON — cannot pair safely')
+        return { status: 'query-error', error: { message: 'missing anchor lineage (class/submittedAt/newWordStartIndex/newWordEndIndex)', code: 'invalid-pairing', stack: null } }
       }
-      q = query(
-        attemptsRef,
-        where('studentId', '==', userId),
-        where('classId', '==', pairing.anchorClassId),
-        where('listId', '==', listId),
-        where('sessionType', '==', 'review'),
-        where('studyDay', '==', studyDay),
-        where('submittedAt', '>=', pairing.anchorSubmittedAt),
-        orderBy('submittedAt', 'asc'),
-        limit(1)
-      )
-    } else {
-      q = query(
-        attemptsRef,
-        where('studentId', '==', userId),
-        where('classId', '==', classId),
-        where('listId', '==', listId),
-        where('sessionType', '==', 'review'),
-        where('studyDay', '==', studyDay),
-        limit(1)
-      )
+      // Candidate stream: existing composite (studentId, listId, sessionType, studyDay,
+      // submittedAt DESC) — NO classId (list-scoped). Paginate + client-filter for the exact
+      // anchor range. orderBy DESC matches the existing DESC composite index (the ASC variant
+      // without classId does NOT exist → orderBy asc would FAIL-PRECONDITION). Order is
+      // irrelevant here — we need EXISTENCE of a range-matching review, not the earliest/newest.
+      const PAGE = 25
+      const MAX_PAGES = 40 // safety bound; the candidate set (one student/list/day post-anchor) is small
+      let cursor = null
+      for (let page = 0; page < MAX_PAGES; page++) {
+        let q = query(
+          attemptsRef,
+          where('studentId', '==', userId),
+          where('listId', '==', listId),
+          where('sessionType', '==', 'review'),
+          where('studyDay', '==', studyDay),
+          where('submittedAt', '>=', pairing.anchorSubmittedAt),
+          orderBy('submittedAt', 'desc'),
+          limit(PAGE)
+        )
+        if (cursor) q = query(q, startAfter(cursor))
+        const snap = await getDocs(q)
+        // Genuine exhaustion (empty page, or a partial last page with no match) → 'none'.
+        if (snap.empty) {
+          console.log('[RECONCILIATION] getReviewForDay: no position-matching review for day', studyDay)
+          return { status: 'none' }
+        }
+        for (const d of snap.docs) {
+          const data = { id: d.id, ...d.data() }
+          if (data.newWordStartIndex === pairing.anchorNewWordStartIndex
+              && data.newWordEndIndex === pairing.anchorNewWordEndIndex) {
+            console.log('[RECONCILIATION] getReviewForDay: position-matched review for day', studyDay)
+            return { status: 'found', attempt: data }
+          }
+        }
+        if (snap.docs.length < PAGE) {
+          console.log('[RECONCILIATION] getReviewForDay: no position-matching review for day', studyDay)
+          return { status: 'none' }
+        }
+        cursor = snap.docs[snap.docs.length - 1]
+      }
+      // Cap reached WITHOUT exhausting candidates: we have NOT proven no match exists. Fail
+      // closed (query-error → caller preserves stored CSD), never silent 'none' (which would
+      // under-advance CSD). Realistically unreachable (>1000 same-day reviews for one student).
+      console.warn('[RECONCILIATION] getReviewForDay: candidate scan hit MAX_PAGES without exhaustion — failing closed')
+      return { status: 'query-error', error: { message: 'candidate scan limit reached', code: 'candidate-scan-limit', stack: null } }
     }
 
+    // Flag-off (legacy, Run-L-certified): launching-class-scoped existence, unchanged.
+    const q = query(
+      attemptsRef,
+      where('studentId', '==', userId),
+      where('classId', '==', classId),
+      where('listId', '==', listId),
+      where('sessionType', '==', 'review'),
+      where('studyDay', '==', studyDay),
+      limit(1)
+    )
     const snapshot = await getDocs(q)
-
     if (snapshot.empty) {
       console.log('[RECONCILIATION] getReviewForDay: No review found for day', studyDay)
       return { status: 'none' }
     }
-
     const doc = snapshot.docs[0]
-    const data = { id: doc.id, ...doc.data() }
     console.log('[RECONCILIATION] getReviewForDay found review for day', studyDay)
-    return { status: 'found', attempt: data }
+    return { status: 'found', attempt: { id: doc.id, ...doc.data() } }
   } catch (err) {
     console.error('[RECONCILIATION] getReviewForDay query failed:', err)
     return {

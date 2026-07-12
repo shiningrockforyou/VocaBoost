@@ -311,3 +311,64 @@ eval set so we don't swing into false-positives (accepting wrong answers).
 ## Done
 
 _(none yet)_
+
+## Known flag-ON consequence — per-class progress reset is a no-op for cross-class students  ·  data-model  ·  LOW (revisit with epoch)
+
+**Not a bug — a coherent consequence of student-owned progress.** `resetStudentProgress` (student self-serve,
+`Settings.jsx:90`, students-only) deletes only class-scoped attempts (`db.js:2886` `where('classId','==',
+classId)`). Under flag-ON's list-wide anchor, a student's attempts on the same list in ANOTHER class survive,
+so the next session re-finds that anchor and `Math.max` resurrects CSD/TWI — the per-class reset appears to do
+nothing. **Under student-owned progress this is correct** (there is one list-progress record; you can't
+half-reset one class). It's a student self-serve feature (no teacher reset), so exposure is low.
+
+**Disposition (David 2026-07-11):** document + defer. The coherent "true reset" is a full list-progress reset —
+owned by the **grading-concurrency Phase 2 `resetProgress` epoch** work. Run S overlay **S-9** certifies the
+current interim behavior so it isn't a silent surprise. No fix now.
+
+## 9. Flag-ON: cross-class review completion forces a spurious new-word retake  ·  backend/reconciliation  ·  HIGH
+
+**What's broken.** Under `LIST_SCOPED_RECON=true` (LIVE 2026-07-11), the exact flow the flag was built to fix
+fails at its LAST step. Student passes Day-D new words in class A → leaves before the review → resumes in class
+B (same list) → **completes the Day-D review in B** → is incorrectly told to **retake the new words** (and the
+retake operates on the WRONG day's words, since B's session base is the post-pass TWI).
+
+**Why it happens (root cause, traced).** The review-completion gate `getNewWordAttemptForDay(..., { listScope,
+expectedBase: sessionState.sessionConfig.newWordStartIndex })` (`studyService.js:1318-1321`) requires a
+same-day passed-new attempt at `newWordStartIndex == expectedBase` (`db.js:3055-3064`). But B is a FRESH
+session (session_states are `{classId}_{listId}`-keyed, so B has no persisted Day-D session) → `initializeDailySession`
+sets `sessionConfig.newWordStartIndex = totalWordsIntroduced = reconciled TWI = D·p` (`studyService.js:253,185`).
+A's passed attempt is at the DAY's base `(D-1)·p`, not `D·p`. Mismatch by one day's pace → gate finds nothing →
+list-scoped fallback is launching-class-only (B, no pass) → `newWordScore = 0` → `requiresNewWordRetake`.
+(Single-class same-session works because `newWordStartIndex` is frozen at the day's base at session start; only
+a FRESH cross-class resume reads the already-advanced TWI — hence flag-ON + cross-class specific.)
+
+**Impact.** The partial-day-switch cohort (이주헌/박주하/손진욱 pattern) — pass new in one class, finish the
+review in another — hits a spurious retake, and the retake advances into the next day's words (content skip).
+Still net-better than flag-OFF (which reset the whole day counter), so keep the flag ON; but this is a real
+flagship-flow defect to fix.
+
+**THREE coupled failure modes (all must be fixed together) [Codex RS3-1 / RS4-1]:**
+1. **Gate lookup** — the cross-class position-consistency check should verify the passed attempt is consistent
+   with the CURRENT reconciled position by `attempt.newWordEndIndex + 1 == currentTWI` (A's `2p-1+1 == 2p` ✓),
+   OR pass the completing DAY's base (`TWI_at_start_of_day_D`) as `expectedBase` instead of the post-pass TWI
+   (`sessionConfig.newWordStartIndex`).
+2. **TWI double-advance** — even if (1) lets the review complete, `completeSessionFromTest` takes
+   `wordsIntroduced = sessionConfig.newWordCount` (`studyService.js:1269`) → summary → `recordSessionCompletion`
+   ADDS it to twi (`progressService.js:462`). B's fresh session computed `newWordCount = pace` at the advanced
+   base `2p`, so completing the B review pushes twi `2p → 3p` — the student **skips Day-3's words** (marked
+   introduced without study). Root cause = B re-inits a resumed review as a fresh new-word day; the fix must
+   make a cross-class REVIEW resume carry `newWordCount = 0` (new already done in A) so twi is NOT re-added.
+3. **Cross-class convergence** — the review is paired to the ANCHOR's class (`getReviewForDay`
+   `where classId == anchorClassId`, `db.js:3407-3416`), but phase detection is list-scoped
+   (`getRecentAttemptsForClassList`, `db.js:3119-3128`). So a Day-D review completed in B (non-anchor) is NOT
+   found when reconciling the anchor in A → `A_L` stays `csd=D−1` (review pending) while `B_L` is `csd=D` → the
+   classes DIVERGE and re-entering A can re-prompt the review. The fix must ensure a review completed in ANY of
+   the student's classes resolves the day for BOTH class_progress docs.
+
+**Fix direction.** All three; touches the reconciliation-adjacent gate + session-init/`recordSessionCompletion`
++ review-pairing → route through the loop/Codex review. **Acceptance: after a cross-class review completion,
+entry from EITHER class on that list resolves to the same completed-day state.**
+
+**Effort/risk.** Small code change, but on the hardened list-scoped path — must be reviewed + regression-tested.
+**Run S overlay S-1/S-3 is the regression test** — asserts CORRECT behavior (review completes, no retake, AND
+final `twi` stays the anchor TWI `2p`, not `3p`) → expected-RED against current code until this ships.

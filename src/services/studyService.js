@@ -237,6 +237,43 @@ export async function initializeDailySession(userId, classId, listId, assignment
   // Determine starting phase based on attempt history
   const phaseInfo = determineStartingPhase(attempts, currentStudyDay);
 
+  // NEED_TO_FIX #9 (Fix A): on a REVIEW_STUDY resume, the day's new words were already
+  // introduced (possibly in ANOTHER class), so a FRESH session must NOT re-introduce or
+  // re-count them. Zero the count, but PRESERVE the day's passed-new anchor range on
+  // newWordStartIndex/EndIndex so (1) the completion gate finds the pass at the correct base
+  // and (2) the review attempt written from this session carries the anchor range, enabling
+  // list-scoped position-consistent review pairing (see getReviewForDay). Flag-gated to keep
+  // the flag-off path byte-identical (Run-L equivalence).
+  let nwCount = newWordCount;
+  let nwStart = totalWordsIntroduced;
+  let nwEnd = totalWordsIntroduced + newWordCount - 1;
+  if (LIST_SCOPED_RECON && phaseInfo.phase === SESSION_PHASE.REVIEW_STUDY) {
+    const dayNewAttempts = attempts.filter(a => a.studyDay === currentStudyDay && a.sessionType === 'new');
+    // Pick the attempt that DEFINED the reconciled twi — its newWordEndIndex === twi-1
+    // (totalWordsIntroduced-1). `attempts` is list-scoped (cross-class), and studyDay is a
+    // per-class session counter, so a DIFFERENT-pace class's same-studyDay pass could out-score
+    // this progression's and stamp the WRONG word range onto the review attempt. Anchoring on
+    // the twi-defining attempt makes the review carry the exact anchor range Fix B pairs on.
+    // Fall back to determineStartingPhase's passed-first/score-desc pick for legacy data.
+    const dayNewPass =
+      dayNewAttempts.find(a => a.passed === true && a.newWordEndIndex === totalWordsIntroduced - 1) ||
+      dayNewAttempts.slice().sort((a, b) =>
+        (Number(b.passed === true) - Number(a.passed === true)) ||
+        ((b.score ?? 0) - (a.score ?? 0)))[0];
+    if (dayNewPass) {
+      nwCount = 0; // new already introduced this day — never re-introduce or re-count (TWI)
+      // Preferred: stored anchor range. Legacy attempts predating the fields: fall back to
+      // twi-derived non-negative values (count stays 0 regardless; a wrong base merely makes the
+      // completion gate fall back to the launching-class query, which still confirms the pass).
+      nwEnd = Number.isInteger(dayNewPass.newWordEndIndex)
+        ? dayNewPass.newWordEndIndex
+        : (totalWordsIntroduced - 1);
+      nwStart = Number.isInteger(dayNewPass.newWordStartIndex)
+        ? dayNewPass.newWordStartIndex
+        : totalWordsIntroduced;
+    }
+  }
+
   return {
     // Session metadata
     classId,
@@ -248,10 +285,10 @@ export async function initializeDailySession(userId, classId, listId, assignment
     dailyPace,
     allocation,
 
-    // New words
-    newWordCount,
-    newWordStartIndex: totalWordsIntroduced,
-    newWordEndIndex: totalWordsIntroduced + newWordCount - 1,
+    // New words (NEED_TO_FIX #9: nwCount/nwStart/nwEnd account for a REVIEW_STUDY resume)
+    newWordCount: nwCount,
+    newWordStartIndex: nwStart,
+    newWordEndIndex: nwEnd,
 
     // Review (null if day 1)
     segment,
@@ -1264,9 +1301,16 @@ export async function completeSessionFromTest({
   // Extract values from sessionStorage (with fallbacks)
   const segment = sessionState?.sessionConfig?.segment || null;
   const interventionLevel = sessionState?.sessionConfig?.interventionLevel || 0;
-  // Use sessionConfig.newWordCount as source of truth (calculated at session init)
-  // Fall back to newWords array length if sessionConfig not available
-  const wordsIntroduced = sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0;
+  // Use sessionConfig.newWordCount as source of truth (calculated at session init).
+  // NEED_TO_FIX #9 (Fix A): treat an EXPLICIT 0 as authoritative — a REVIEW_STUDY resume sets
+  // newWordCount=0, and `||` (0 is falsy) would fall through to newWords.length, which the
+  // reload-to-test recovery path populates with the review pool → a mid-review reload would
+  // re-add it to TWI. FLAG-GATED so the flag-off path keeps the exact legacy `||` expression
+  // (Run-L byte-equivalence); only under LIST_SCOPED_RECON does an explicit 0 stay durable.
+  const cfgNewWordCount = sessionState?.sessionConfig?.newWordCount;
+  const wordsIntroduced = LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
+    ? cfgNewWordCount
+    : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0);
   const wordsReviewed = sessionState?.reviewQueue?.length || 0;
 
   console.log('completeSessionFromTest called:', {

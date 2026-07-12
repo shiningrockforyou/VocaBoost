@@ -157,12 +157,17 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
       csd = 1;
       console.log('[RECONCILIATION] Day 1 anchor: CSD = 1');
     } else {
-      // Day 2+: Check if review exists. Under LIST_SCOPED_RECON the review is paired to
-      // the ANCHOR's class + temporal lineage (§5.1) — not the launching class — so a
-      // cross-pace same-studyDay review from a different progression cannot pair [V4].
+      // Day 2+: Check if review exists. Under LIST_SCOPED_RECON the review is paired to the
+      // anchor's PROGRESSION by POSITION range + temporal lineage (§5.1, NEED_TO_FIX #9 Fix B) —
+      // NOT by class or studyDay alone — so a cross-pace/cross-class same-studyDay review at a
+      // different word position cannot falsely complete the day [V4/F9-1]. Pass the anchor's
+      // position range so getReviewForDay can recognize a review earned in ANY of the student's
+      // classes that covers this exact anchor range.
       const reviewResult = await getReviewForDay(userId, classId, listId, anchorDay, {
         anchorClassId: anchorTest.classId,
-        anchorSubmittedAt: anchorTest.submittedAt
+        anchorSubmittedAt: anchorTest.submittedAt,
+        anchorNewWordStartIndex: anchorTest.newWordStartIndex,
+        anchorNewWordEndIndex: anchorTest.newWordEndIndex
       });
       const reviewForAnchorDay = reviewResult.status === 'found' ? reviewResult.attempt : null;
       if (reviewResult.status === 'query-error') {
