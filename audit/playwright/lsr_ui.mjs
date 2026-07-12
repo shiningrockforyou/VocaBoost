@@ -72,7 +72,15 @@ export async function newAuditPage(browser, findings, label, viewport = VIEWPORT
     ...(video ? { recordVideo: { dir: `${AUD}/findings/video` } } : {}),
   });
   const page = await ctx.newPage();
-  page.on('console', (m) => { if (m.type() === 'error') findings.add('console-error', `[${label}] ${m.text().slice(0, 250)}`); });
+  page.__consoleLog = []; // ring buffer of recent console lines (rebuild diagnosis reads the day-guard warn)
+  page.on('console', (m) => {
+    const txt = m.text();
+    if (m.type() === 'error') findings.add('console-error', `[${label}] ${txt.slice(0, 250)}`);
+    // Capture the day-guard smoking gun (progressService.js:444 warns the expected-vs-got day) + any recent line.
+    page.__consoleLog.push({ type: m.type(), text: txt.slice(0, 300), at: new Date().toISOString() });
+    if (page.__consoleLog.length > 60) page.__consoleLog.shift();
+    if (/Duplicate day completion blocked|expected day \d+, got day/i.test(txt)) findings.add('day-guard-warn', `[${label}] ${txt.slice(0, 250)}`);
+  });
   page.on('pageerror', (e) => findings.add('page-error', `[${label}] ${String(e).slice(0, 250)}`));
   // SCENARIO-CONTROLLED native dialogs (Codex blocker 3). The DEFAULT for a dialog the
   // scenario did not arm is RECORD + DISMISS + flag as a BUG-suspect — NEVER silent-accept,

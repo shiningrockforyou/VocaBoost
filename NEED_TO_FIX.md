@@ -8,6 +8,44 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 10. Flag-ON self-race: pre-completion reconciliation advances CSD → session completion is stale-blocked → "session refreshed" rebuild  ·  backend/reconciliation  ·  MEDIUM (latent; harness-surfaced)
+
+**Credit: Codex root-caused this; Claude verified against code (corrects an earlier wrong "harness-only" conclusion).**
+
+**What's broken.** On a session-final test completion (Day 1 new test; and the review test on later days),
+the app can BLOCK its own completion and show the "세션 정보가 갱신되었습니다 / Your session was refreshed" rebuild
+screen — even though the student did nothing wrong. The day completes (CSD advances once, attempt saved), but
+the student sees a confusing mid-completion interruption and must "return to the study screen."
+
+**Why it happens (root cause, verified).** In `TypedTest.jsx` handleSubmit → `doWriteAndFinalize`, the order is:
+(1) write the passed attempt (`submitTypedTestAttempt`, `TypedTest.jsx:919`); (2) take a "snapshot BEFORE
+completion" via `getOrCreateClassProgress` (`:979`) — but under `LIST_SCOPED_RECON` that call **reconciles and
+WRITES** the advanced counter (`progressService.js:258` `updateDoc({currentStudyDay: safeCSD})`) off the
+just-written attempt, so CSD goes 0→1; (3) `completeSessionFromTest` (`:1015`) → `updateClassProgress` now sees
+CSD already 1, so `expectedDay=2` but the completion says day 1 → the day-guard rejects it
+(`progressService.js:442` "Duplicate day completion blocked: expected day 2, got day 1") → `dayGuardRejected`
+→ session rebuild. **Same pattern in `MCQTest.jsx:717`** → affects typed AND MCQ. It is an app-side self-race
+between attempt-based reconciliation and session completion, NOT a double user-submit.
+
+**Impact.** Currently **0 occurrences on the 26SM live cohort** (`day_guard_rejected_session_cleared` system_log:
+5 events all-time, ALL from sandbox audit runs). So it is **latent in production today** — likely because the
+fast same-region audit driver reliably makes the just-written attempt visible to the snapshot read, while real
+students' timing/path differs. But the mechanism is a genuine correctness smell that could surface (a confusing
+"session refreshed" on a normal day completion), and it is deterministic enough to block the Run S-Long audit
+driver (~5/5 harness runs). Possibly related: `impossible_phase_detected`/`day1_with_passed_new_test` (406
+recent) — a separate high-volume day-1 signal worth its own look.
+
+**Fix direction (Codex).** Don't call reconciling `getOrCreateClassProgress` between the attempt write and
+`completeSessionFromTest` for a final-test completion (take the snapshot WITHOUT reconciling, or before the
+attempt write); OR make completion idempotent — accept "already reconciled from THIS same day's attempt" as a
+success instead of routing to the day-guard rebuild. Route through the loop/Codex before shipping (it's on the
+hardened LIST_SCOPED_RECON path).
+
+**Effort/risk.** Small, but reconciliation-adjacent — must be reviewed + regression-tested (Run L flag-off
+equivalence + the #9 acceptance). Run S-Long S-? day-completion smoke is the natural regression once built.
+
+---
+
 ## 8. Gradebook Name/student filter runs client-side on ONE page → inactive students show "no results"  ·  client/query  ·  HIGH
 
 **What's broken.** Opening a student's **Grades** (or filtering the Gradebook by a student **Name**)

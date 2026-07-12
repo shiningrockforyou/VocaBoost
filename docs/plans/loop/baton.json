@@ -1,19 +1,24 @@
 {
   "turnOwner": "done",
-  "round": 3,
-  "taskId": "FIX_9_CODE_REVIEW",
-  "targetPlan": "docs/plans/loop/fix9/plan.md",
-  "handoff": "docs/plans/loop/handoffs/claude_to_codex_fix9code_003.md",
+  "round": 1,
+  "taskId": "FIX10_CODE",
+  "targetPlan": "docs/plans/loop/fix10/plan.md",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_fix10code_001.md",
   "changedFiles": [
-    "src/services/studyService.js",
-    "src/services/db.js",
-    "src/services/progressService.js"
+    "src/pages/TypedTest.jsx",
+    "src/pages/MCQTest.jsx"
   ],
   "evidenceFiles": [
-    "docs/plans/loop/fix9/CODE_CONVERGED.md"
+    "docs/plans/loop/fix10/impl_diff.patch",
+    "docs/plans/loop/fix10/rounds/r02_impl_synthesis.md"
   ],
-  "claudeStatus": "loop-closed",
+  "claudeStatus": "converged",
   "codexStatus": "review-written",
   "codexDecision": "GO",
-  "note": "Fix #9 IMPLEMENTATION code-review CONVERGED (Codex GO round 3 + Claude verify + 3-agent). Loop closed. Codex may stop. Code review-clean, awaiting owner diff-review + deploy, then Run S acceptance."
+  "state": "converged",
+  "note": "FIX10_CODE CONVERGED at round 1 — Codex GO/CONVERGED-OK (no blocker/high/medium, no edits) + 3-agent fable impl audit all clean, on identical code. Fix A ready for OWNER DEPLOY. Loop CLOSED. NEXT (post-deploy): build the #10 overlay + harness workaround, run Run S-Long. Do NOT review further.",
+  "codexReview": "docs/plans/loop/codex_reviews/codex_review_fix10code_001.md",
+  "updatedBy": "claude",
+  "updatedAt": "2026-07-12T05:39:40.000Z",
+  "revision": 1
 }

@@ -7,75 +7,51 @@
 
 ---
 
-## ▶ ACTIVE STREAM (updated 2026-07-05): List-progress persistence (LIST_SCOPED_RECON) + F02/F03 fixes
+## ▶ ACTIVE STREAM (updated 2026-07-12): LIST_SCOPED_RECON flag-ON — validation (Run S / Run S-Long) + the #10 fix it surfaced
 
-**Big picture:** list progress is student-owned; class confers only ACCESS + daily quota/policy. Plan is
-`docs/plans/PLAN_list_progress_persist.md` (v3.7, AUDIT-CLEAN). Phase 1 is implemented + deployed **flag OFF**.
-Two de-scoped nice-to-have fixes (F02/F03) were implemented, deployed, and **now VERIFIED LIVE** by a
-UI-only Playwright acceptance run.
+**Big picture.** `LIST_SCOPED_RECON` is ENABLED (David pushed 2026-07-12; all 17 attempts indexes verified
+live+READY). The class-change/cross-class reconciliation (NEED_TO_FIX #6 fix) is live. On top of it, the
+cross-class-review bug **#9** was found, fixed (code-review-clean, deployed), and its acceptance test is Run S.
+Building the **live Playwright validation** surfaced a NEW latent bug **#10** (pre-completion reconciliation
+self-race). Everything runs through the Claude⇄Codex+3-agent **loop** (`docs/plans/loop/`).
 
-### ✅ DONE + VERIFIED (2026-07-05)
-- **F02 fix** (`Dashboard.jsx`) — default list now prefers the list the student has active progress on
-  (recency-ranked), with a success-based `progressReady` gate + fail-closed rendering. Closes the silent
-  list-flip on teacher list-add (박시은 / §7-H3 / nice-to-haves #3b, the old `getPrimaryFocus` footgun).
-- **F03 fix** (`ClassDetail.jsx`) — unassign confirm reworded to an honest **warn-only** message
-  ("LOSE ACCESS… until re-assigned… progress is preserved but hidden"). Never blocks. (박한별 / #1.)
-- Spec `docs/patches/FIX_SPEC_F02_F03_list_focus_and_unassign_warn.md` (Codex-reviewed, 3 rounds).
-  **Owner deployed both** (flag-independent client build). Not committed (standing rule).
-- **Acceptance CERTIFIED 5/5 — single bound run `mr7qbi3m`, postverify FINAL: PASS** (saved findings/lsr_postverify_output.txt): TA1 (F02 no-flip), TA2 (F03 warning + progress preserved,
-  CSD/TWI intact), M1 (zero→newest), M3 (saved-pref wins), M5 (single-class regression). Full write-up:
-  `audit/playwright/LSR_AUDIT_RESULTS.md`.
+### ✅ DONE
+- **#6 fix (LIST_SCOPED_RECON) ENABLED + live-cohort-clean.** `featureFlags.js:41 = true`. Post-deploy sweep
+  clean; 0 CSD demotions across 297 reconciliations; indexes READY.
+- **#9 fix (cross-class review completion) — deployed + code-review-clean.** 3 files (studyService/db/
+  progressService), all flag-gated. Design + code both looped to Codex GO. `docs/plans/loop/fix9/`.
+- **Run S design (S-1..S-9) — Codex GO.** `docs/plans/loop/runs/plan.md`. S-1 is the #9 flagship acceptance.
+- **Run S-Long design (10 CS-grounded personas × 16+ days × reassignments) — Codex GO (5 rounds).**
+  `docs/plans/loop/runslong/plan.md` v4 + `CONVERGED.md`. Foundation-first: Phase-1 day-primitive gates the rest.
+- **Run S-Long Phase-1 harness — code-review CLEAN (Codex GO, 4 rounds + 3-agent).**
+  `audit/playwright/lsr_runSL_phase1.mjs`. Guards: required BUILD_ID, unique class binding, exact assignment
+  verify, pristine baseline, UI-primary gate + FB read-only poll + exact attempt deltas + dup-fail, fatal-
+  findings gate, state-aware rebuild recovery, rich rebuild diagnosis (captures the app's own day-guard warn).
+- **Smoke test (2 days)** VALIDATED the harness (day 1 fully confirmed; rebuild recovered + diagnosed; day 2
+  failed-CLOSED not false-pass) and SURFACED #10.
 
-### ✅ Phase 1 (LIST_SCOPED_RECON) — implemented, audit-clean, deployed flag OFF (NOT enabled)
-- `featureFlags.js LIST_SCOPED_RECON=false`; 7 attempts composite indexes; flag-gated reconciliation in
-  `db.js`/`progressService.js`/`studyService.js`/`sessionService.js`. Codex diff-review ×5 clean. Owner
-  deployed indexes + client (flag OFF = zero behavior change). Detail in `RESUME_2026-07-05.md` (archive).
+### 🐛 NEED_TO_FIX #10 (NEW — Codex root-caused, Claude code-verified) — the current work
+Flag-ON self-race: on a session-final completion, `getOrCreateClassProgress` (`TypedTest.jsx:979`,
+`MCQTest.jsx:717`) reconciles+writes the advanced CSD from the just-written attempt BEFORE
+`completeSessionFromTest` → completion is stale → day-guard (`progressService.js:442`) blocks it → "session
+refreshed" rebuild. Typed AND MCQ. **0 live-cohort occurrences (latent); real code-level self-race,
+deterministic in the fast audit driver.** Corrected an earlier WRONG "harness-only" conclusion (build log).
 
-### 🧪 The UI acceptance harness (built + validated — the tool for future verification)
-`audit/playwright/` — **3-process pipeline, fail-closed, took 6 Codex NO-GO rounds to earn GO:**
-1. `lsr_preflight.mjs` (read-only Admin) → proves clean accounts (`lsr_clean_accounts.json`; found 16/30 dirty).
-2. `lsr_accept.mjs` (**Admin-free**, forward-only UI: teacher UI-creates fresh class + student joins/studies)
-   → matrix + manifest. Scenarios TA1/TA2/M1/M3/M5. Hard preconditions → INVALID (never false PASS); faithful
-   DAY≥2 (=csd≥1) proof; scenario-controlled dialogs; anomaly-aware nonzero exit.
-3. `lsr_postverify.mjs` (read-only Admin) → binds artifacts by run id, confirms CSD/TWI on the exact
-   `class_progress` doc, prints final verdict.
-   Helpers: `lsr_ui.mjs`, `lsr_teacher.mjs`. Creds via `LSR_AUDIT_PW`/gitignored `.lsr_secret.json`.
-   Launch: `lsr_preflight` → `LSR_AUDIT_PW=… lsr_accept` → `lsr_postverify`. Master plan: `LSR_AUDIT_PLAN.md`.
+### ▶ NEXT (David's directive 2026-07-12)
+1. **#10 app fix** — write plan → **3-agent audit (FABLE agents)** → Codex loop → (go-ahead) implement.
+   Fix direction (Codex): don't reconcile between attempt-write and completion for a final-test completion, OR
+   make completion idempotent to "already reconciled from this same day's attempt". `docs/plans/loop/fix10/`.
+2. **Harness workaround** for Run S-Long Phase-1 (fresh-context / settle-before-navigate) — a DRIVER fix, not
+   a resolution of #10 (which is fixed separately in app code).
+3. **Run the Playwright tests together** — Run S-Long updated to ALSO validate the #10 fix (a day-completion
+   overlay asserting no spurious rebuild). Then Phase-1 (16 clean days) → personas → fleet.
 
-**First moves on re-launch:**
-1. F02/F03 are done+verified+deployed (certified run mr7qbi3m). The active thread is **Run L**.
-2. **Run L is ✅ CERTIFIED (FINAL: PASS, 2026-07-06)** — single bound run L_20260706_014108, build 6743b91, 4/4 (L1-T/M/R + L2), 0 anomalies. See audit/playwright/RUNL_RESULTS.md. Certifies the deployed Phase-1 LIST_SCOPED_RECON code is behavior-NEUTRAL with the flag OFF — the gate before enabling the flag is CLEARED. Found app defect NEED_TO_FIX#7 (assignedLists:[] split-brain) en route. Pipeline: lsr_preflight→lsr_runL_fixture→verify --pre→lsr_runL→verify --post (needs LSR_BUILD_ID+LSR_AUDIT_PW).
-   ▶ NEXT: run the full measured Run L (fixture+pre fresh under real LSR_BUILD_ID → driver → post).
-3. **Run S is a DESIGN STUB** — `audit/playwright/RUNS_DESIGN_SPEC.md`. Flag-ON behavioral suite; 6 CS-derived
-   overlays (S-1 partial-day-switch flagship; each needs its EXACT oracle written before implementing). Gated
-   on an owner flag-ON deploy + the 7 indexes Enabled. Run L is the prerequisite gate before enabling the flag.
+### Loop mechanics (reference)
+`docs/plans/loop/` — baton.json turn-token; Claude self-wakes via `lib/baton-watch.sh`; Codex reviews via the
+long-turn session (writes `codex_reviews/`, flips the baton). Standing rule: **NO source-code change until
+Codex signs off the plan AND David gives explicit implementation go-ahead** (reverting counts too). Sandbox
+only for audits (25WT / `lsr_*` / fresh classes) — NEVER 26SM. PowerShell `.ps1` from WSL = ASCII-only.
 
-### Queued behind this (do not lose)
-- **Run L / Run S** — flag-off/flag-on suites that gate ENABLING `LIST_SCOPED_RECON`. Both at DESIGN stage (see
-  `RUNL_DESIGN_SPEC.md` v2 / `RUNS_DESIGN_SPEC.md` stub); prior `lsr_runL*.mjs` superseded. Run S needs an owner
-  flag-on deploy + the 7 indexes Enabled. **Design-before-implement is the standing lesson here.**
-- **Deferred teacher-wave campaign** — TA5/TS1/TS2/TE1/TE2/MS1/AD2/XC3 (`SCENARIO_CATALOG_teacher_concurrent.md`).
-  The old `lsr_orchestrate.mjs` used runtime Admin resets (policy-violating); needs a forward-only rewrite
-  before running. Separate effort; adds state risk, doesn't strengthen F02/F03.
-- **F01 / `retakeThreshold` 0.95** (`NEED_TO_FIX.md` #5) — audit RE-CONFIRMED new teacher-created classes ship
-  WITHOUT `newWordRetakeThreshold` → 92–94% passes display as fail (김나연/김호형). Data normalized cohort-wide
-  (CS-2026-07-04b); **durable code fix still open.**
-- **`#1b`/`#1c` attempt-write + role lockdown** (`PLAN_attempt_write_lockdown.md`) — parallel high-priority
-  track (Option B). Forgeability is arguably the bigger real-world risk than the §13 races.
-- **Grading concurrency Phase 2** (`PLAN_grading_idempotent_concurrency.md` v7) — owns the 3 server primitives
-  this plan skipped (list-scoped `startTest`, transactional finalize, epoch `resetProgress`). Phase 1a is
-  DONE+LIVE (see `RESUME_2026-07-04.md`).
-- **Teacher grade-override (#1)** + DSG mock-exam session-loss cluster — separate subsystems, unscoped.
-
-**Standing constraints:** dsg-edits + admin scripts touch LIVE data — read-only first, back up before writes,
-owner deploys code (I can't build/deploy). Never commit without explicit say-so. 26SM = real cohort; 25WT =
-sandbox (`lsr_*`). Log: code → `change_action_log.md`; CS/data → `SUPPORT_RUNBOOK.md`.
-
-### Uncommitted working-tree note
-F02/F03 code was deployed by the owner but is **not committed**. The audit harness (`audit/playwright/*`),
-the fix spec, `LSR_AUDIT_RESULTS.md`, and log updates are all uncommitted. `.gitignore` updated to exclude
-audit run-artifacts + `.lsr_secret.json`. No commit made this session (awaiting explicit say-so).
-
-### Bonus utility
-`dsg-edits/usage-check.mjs` — reads Claude Code subscription usage (5-hour / 7-day) via the OAuth usage
-endpoint using the local token. Personal utility; undocumented endpoint (may break).
+**Standing constraints:** owner deploys code (Claude can't build/deploy); never commit/branch without say-so;
+log code→`change_action_log.md`, CS/data→`SUPPORT_RUNBOOK.md`; read-only Firebase for audits (never write to
+advance a run). Playwright browser: `PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright`.

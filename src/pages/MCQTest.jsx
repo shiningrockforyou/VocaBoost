@@ -5,7 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
-import { SERVER_ATTEMPT_WRITE } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -15,7 +15,7 @@ import {
   selectTestWords,
   completeSessionFromTest
 } from '../services/studyService'
-import { getOrCreateClassProgress } from '../services/progressService'
+import { getOrCreateClassProgress, getClassProgress } from '../services/progressService'
 import { speak } from '../utils/tts'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
@@ -714,41 +714,48 @@ const MCQTest = () => {
         // Complete session at submission time (before navigation) to prevent state loss
         if (passed && isSessionFinalTest && sessionContext?.dayNumber) {
           try {
-            // [1] Fetch current progress
-            const { progress } = await getOrCreateClassProgress(
-              user.uid,
-              classIdParam,
-              listId
-            );
+            // [1] Snapshot current progress WITHOUT reconciling (the pre-completion snapshot must NOT
+            // advance CSD/TWI — NEED_TO_FIX #10). Under LIST_SCOPED_RECON, getOrCreateClassProgress
+            // reconciles from the just-written attempt and writes an advanced CSD; the completion below
+            // then looks stale to the day-guard → spurious "session refreshed" rebuild. getClassProgress
+            // is a pure read. Flag-gated so flag-off stays behavior-equivalent (Run L).
+            const progress = LIST_SCOPED_RECON
+              ? await getClassProgress(user.uid, classIdParam, listId)
+              : (await getOrCreateClassProgress(user.uid, classIdParam, listId)).progress;
 
-            // [2] Take snapshot BEFORE completion
-            const progressRef = doc(
-              db,
-              `users/${user.uid}/class_progress`,
-              `${classIdParam}_${listId}`
-            );
+            // [2] Persist the retake-rewind snapshot BEFORE completion — only when the doc exists. A
+            // missing doc (near-impossible: concurrent reset) would make updateDoc throw → swallowed by
+            // the catch below → completeSessionFromTest skipped → the day never completes. On null we skip
+            // the persist and let completion self-create the doc (updateClassProgress has a setDoc path). #10
+            if (progress) {
+              const progressRef = doc(
+                db,
+                `users/${user.uid}/class_progress`,
+                `${classIdParam}_${listId}`
+              );
 
-            const snapshot = {
-              currentStudyDay: progress.currentStudyDay,
-              totalWordsIntroduced: progress.totalWordsIntroduced,
-              recentSessions: progress.recentSessions,
-              stats: progress.stats,
-              streakDays: progress.streakDays,
-              lastStudyDate: progress.lastStudyDate,
-              interventionLevel: progress.interventionLevel,
-              snapshotCreatedAt: Timestamp.now(),
-              snapshotDayNumber: sessionContext.dayNumber
-            };
+              const snapshot = {
+                currentStudyDay: progress.currentStudyDay ?? null,
+                totalWordsIntroduced: progress.totalWordsIntroduced ?? null,
+                recentSessions: progress.recentSessions ?? null,
+                stats: progress.stats ?? null,
+                streakDays: progress.streakDays ?? null,
+                lastStudyDate: progress.lastStudyDate ?? null,
+                interventionLevel: progress.interventionLevel ?? null,
+                snapshotCreatedAt: Timestamp.now(),
+                snapshotDayNumber: sessionContext.dayNumber
+              };
 
-            await updateDoc(progressRef, {
-              progressSnapshot: snapshot
-            });
+              await updateDoc(progressRef, {
+                progressSnapshot: snapshot
+              });
 
-            console.log('[SNAPSHOT] Saved before completion:', {
-              dayNumber: sessionContext.dayNumber,
-              currentCSD: progress.currentStudyDay,
-              currentTWI: progress.totalWordsIntroduced
-            });
+              console.log('[SNAPSHOT] Saved before completion:', {
+                dayNumber: sessionContext.dayNumber,
+                currentCSD: progress.currentStudyDay,
+                currentTWI: progress.totalWordsIntroduced
+              });
+            }
 
             // [3] Complete session (CSD will increment)
             const completion = await completeSessionFromTest({
