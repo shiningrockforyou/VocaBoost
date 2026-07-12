@@ -1,24 +1,22 @@
 {
   "turnOwner": "done",
-  "round": 1,
-  "taskId": "FIX10_CODE",
+  "round": 2,
+  "taskId": "FIX10_OVERLAY_CODE",
   "targetPlan": "docs/plans/loop/fix10/plan.md",
-  "handoff": "docs/plans/loop/handoffs/claude_to_codex_fix10code_001.md",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_fix10overlay_002.md",
   "changedFiles": [
-    "src/pages/TypedTest.jsx",
-    "src/pages/MCQTest.jsx"
+    "audit/playwright/lsr_fix10_overlay.mjs"
   ],
   "evidenceFiles": [
-    "docs/plans/loop/fix10/impl_diff.patch",
-    "docs/plans/loop/fix10/rounds/r02_impl_synthesis.md"
+    "docs/plans/loop/fix10/rounds/r03_overlay_synthesis.md"
   ],
   "claudeStatus": "converged",
   "codexStatus": "review-written",
   "codexDecision": "GO",
   "state": "converged",
-  "note": "FIX10_CODE CONVERGED at round 1 — Codex GO/CONVERGED-OK (no blocker/high/medium, no edits) + 3-agent fable impl audit all clean, on identical code. Fix A ready for OWNER DEPLOY. Loop CLOSED. NEXT (post-deploy): build the #10 overlay + harness workaround, run Run S-Long. Do NOT review further.",
-  "codexReview": "docs/plans/loop/codex_reviews/codex_review_fix10code_001.md",
+  "note": "FIX10_OVERLAY_CODE CONVERGED at round 2 — Codex GO/CONVERGED-OK on overlay v2 (all 4 r1 findings + 3 fable lenses folded) + 3 non-blocking Codex r2 notes folded as v2 polish (comment/code match, guardFailed+fallback in stable key, red_state harnessRev+cellSet). Loop CLOSED. Harness ready: green mode after David deploys the fix (proves it); red mode against a pre-fix flag-ON build (2 consecutive runs = REPRO-CONFIRMED). Do NOT review further.",
+  "codexReview": "docs/plans/loop/codex_reviews/codex_review_fix10overlay_002.md",
   "updatedBy": "claude",
-  "updatedAt": "2026-07-12T05:39:40.000Z",
+  "updatedAt": "2026-07-12T06:24:36.000Z",
   "revision": 1
 }
