@@ -17,10 +17,11 @@ import {
   limit,
   writeBatch,
   Timestamp,
-  increment
+  increment,
+  getCountFromServer
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { getNewWordAttemptForDay } from './db';
+import { getNewWordAttemptForDay, fetchStudentClasses } from './db';
 import {
   calculateInterventionLevel,
   calculateDailyAllocation,
@@ -46,7 +47,164 @@ import {
 } from './progressService';
 import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
 import { logSystemEvent } from './db';
-import { LIST_SCOPED_RECON } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+
+// ============================================================================
+// P9 · CYC — per-student list cycling primitives (x/plan v5). ALL cycling
+// behavior is DOUBLE-gated: the global build flag CYCLING_ENABLED AND the
+// per-student-per-list EFFECTIVE cycling capability (§3b: any of the student's
+// enrolled classes assigning this list with cyclingEnabled:true unlocks it).
+// With CYCLING_ENABLED === false the `&&` short-circuits BEFORE any read, so
+// every caller below is byte-equivalent to today (the cycling branches are dead
+// code — no extra Firestore read is issued).
+// ============================================================================
+
+/**
+ * PURE §3b unlock (x/plan §3b, Codex P9-2): given the student's enrolled classes
+ * (each with an `assignments` map + `name`), is cycling unlocked for `listId`, and
+ * via which class? Cycling is unlocked iff ANY enrolled class assigns `listId` with
+ * `cyclingEnabled === true` (the current/launching class is just one of them). The
+ * FIRST such class is surfaced for the in-product "cycling enabled via {className}"
+ * affordance (Lens C C5). Pure over already-fetched data → reusable by the Dashboard
+ * (in-memory `studentClasses`) and by `resolveEffectiveCycling` (session path).
+ *
+ * @param {Array<{id?:string,name?:string,assignments?:Object}>} studentClasses
+ * @param {string} listId
+ * @returns {{ enabled: boolean, sourceClassId: string|null, sourceClassName: string|null }}
+ */
+export function deriveEffectiveCycling(studentClasses, listId) {
+  if (Array.isArray(studentClasses)) {
+    for (const k of studentClasses) {
+      if (k?.assignments?.[listId]?.cyclingEnabled === true) {
+        return { enabled: true, sourceClassId: k.id ?? null, sourceClassName: k.name ?? null };
+      }
+    }
+  }
+  return { enabled: false, sourceClassId: null, sourceClassName: null };
+}
+
+/**
+ * Resolve the EFFECTIVE (student+list, cross-class) cycling capability for the
+ * session path (§3b). Short-circuits on the global flag so flag-off issues NO read
+ * (byte-equivalent). Uses the EXISTING student-classes enumeration helper
+ * (`fetchStudentClasses`, db.js) rather than a raw re-query. Defensive: any read
+ * error (e.g. a teacher-initiated PDF/debug where the student-classes read is
+ * denied) fails CLOSED to "not cycling" — never breaks init.
+ *
+ * @param {string} userId
+ * @param {string} listId
+ * @returns {Promise<{ enabled: boolean, sourceClassId: string|null, sourceClassName: string|null }>}
+ */
+export async function resolveEffectiveCycling(userId, listId) {
+  if (!CYCLING_ENABLED) return { enabled: false, sourceClassId: null, sourceClassName: null };
+  try {
+    const classes = await fetchStudentClasses(userId);
+    return deriveEffectiveCycling(classes, listId);
+  } catch (err) {
+    console.warn('[CYC] resolveEffectiveCycling failed; treating as not cycling', err);
+    return { enabled: false, sourceClassId: null, sourceClassName: null };
+  }
+}
+
+/**
+ * CANONICAL cycle length (x/plan §2, Codex P9-3): `positions.length` — the count of
+ * ordered word docs, the ONE modulus for lap math / review bounds / display / wrap.
+ * Derived from the SAME `orderBy('position')` population as `resolveVirtualRange`
+ * (docs bearing a position field), via a cheap aggregate count (NOT a full doc load,
+ * and NOT the mutable `lists.wordCount`). Returns 0 on any error → callers fall back
+ * to the legacy (non-cycling) path.
+ *
+ * @param {string} listId
+ * @returns {Promise<number>} positions.length (canonical modulus)
+ */
+export async function getCycleLength(listId) {
+  try {
+    const wordsRef = collection(db, 'lists', listId, 'words');
+    const snap = await getCountFromServer(query(wordsRef, orderBy('position', 'asc')));
+    return snap.data().count || 0;
+  } catch (err) {
+    console.warn('[CYC] getCycleLength failed', err);
+    return 0;
+  }
+}
+
+/**
+ * PURE daily new-word allocation under the cycling gate (x/plan §3f) — extracted so
+ * the M-STATIC harness can assert cap-removal + byte-equivalence directly. Under
+ * cycling: REMOVE the wordsRemaining cap → the full paced allocation (still ≥0), so a
+ * FINISHED list (wordsRemaining ≤ 0) still yields newWordCount > 0. Non-cycling: TODAY'S
+ * EXACT expression `Math.min(allocationNewWords, wordsRemaining)` (may be negative on
+ * over-introduction; the completion path clamps it) → byte-equivalent when off.
+ *
+ * @param {number} allocationNewWords - round(pace*(1-intervention))
+ * @param {number} wordsRemaining - totalListWords - twi
+ * @param {boolean} cyclingActive
+ * @returns {number}
+ */
+export function computeCyclingAllocation(allocationNewWords, wordsRemaining, cyclingActive) {
+  return cyclingActive
+    ? Math.max(0, allocationNewWords)
+    : Math.min(allocationNewWords, wordsRemaining);
+}
+
+/**
+ * Lap-aware INTRODUCTION-progress view for a monotonic virtual twi (x/plan §2/§3e).
+ * cycleLength := positions.length is THE canonical modulus (never wordCount — pin
+ * one definition, Lens A F5). Boundary render: at twi = k·cycleLength show 100% of
+ * lap k, not 0% of lap k+1 (Lens C nit). Per-lap MASTERY % is a DROPPED non-goal
+ * (§3d) — this is introduction progress only. Returns null when cycleLength<=0 so
+ * callers fall back to the legacy display.
+ *
+ * @param {number} twi - monotonic virtual totalWordsIntroduced
+ * @param {number} cycleLength - positions.length (canonical modulus)
+ * @returns {{ lap:number, numer:number, denom:number, pct:number } | null}
+ */
+export function computeLapView(twi, cycleLength) {
+  const cl = Number(cycleLength) || 0;
+  if (cl <= 0) return null;
+  const t = Math.max(0, Number(twi) || 0);
+  const rawLap = Math.floor(t / cl);          // laps fully completed (0-indexed)
+  const posInLap = t - rawLap * cl;           // == t mod cl, non-negative
+  const atBoundary = posInLap === 0 && t > 0; // exactly at k·cycleLength
+  const lap = atBoundary ? rawLap : rawLap + 1;   // 1-indexed display lap
+  const numer = atBoundary ? cl : posInLap;       // show 100% of lap k at the boundary
+  const pct = Math.min(100, Math.round((numer / cl) * 100));
+  return { lap, numer, denom: cl, pct };
+}
+
+/**
+ * ONE virtual→physical resolver (x/plan §3c). Returns `count` physical word docs
+ * starting at VIRTUAL index `virtualStart`, wrapping the position-array LOOKUP
+ * `positions[i mod cycleLength]` (NEVER the counter twi → counter stays monotonic
+ * → reconciliation intact, §3a). Preserves virtual order, so the straddle day
+ * (tail of one lap + head of the next) comes back tail-then-head, off-by-one-free.
+ * cycleLength := positions.length (the loaded array length) — canonical modulus.
+ *
+ * Shape matches getNewWords: raw word docs { id, ...data }, NO studyState.
+ *
+ * @param {string} listId
+ * @param {number} virtualStart - virtual position (may be >= cycleLength)
+ * @param {number} count
+ * @returns {Promise<Array>} ordered physical word docs in virtual order
+ */
+export async function resolveVirtualRange(listId, virtualStart, count) {
+  if (!Number.isFinite(count) || count <= 0) return [];
+  const wordsRef = collection(db, 'lists', listId, 'words');
+  const wordsSnap = await getDocs(query(wordsRef, orderBy('position', 'asc')));
+  const positions = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const cycleLength = positions.length; // CANONICAL modulus (§2 — never wordCount)
+  if (cycleLength === 0) return [];
+  const out = [];
+  const start = Math.max(0, Math.floor(virtualStart) || 0);
+  for (let i = 0; i < count; i++) {
+    const v = start + i;
+    // ((v % cl) + cl) % cl is a no-op for non-negative v, but keeps the lookup
+    // safe if a virtualStart ever arrives negative.
+    out.push(positions[((v % cycleLength) + cycleLength) % cycleLength]);
+  }
+  return out;
+}
 
 /**
  * Determine starting phase based on attempt history for the current day.
@@ -185,6 +343,23 @@ export async function initializeDailySession(userId, classId, listId, assignment
   const currentStudyDay = (progress.currentStudyDay || 0) + 1;
   const totalWordsIntroduced = progress.totalWordsIntroduced || 0;
 
+  // P9 · CYC — resolve the EFFECTIVE (student+list, cross-class §3b) cycling capability
+  // and the CANONICAL cycle length (Codex P9-1/P9-2/P9-3). This is the single choke point
+  // every session caller (DailySessionFlow, MCQTest, TypedTest, PDF/debug helpers) flows
+  // through, so resolving here — NOT from the caller's curated `assignmentSettings` object
+  // (which drops `cyclingEnabled`) — is what actually activates cycling. When CYCLING_ENABLED
+  // is false, `resolveEffectiveCycling` short-circuits with NO read and `cycling` is false, so
+  // the rest of this function is byte-equivalent to today (no extra Firestore read). cycleLength
+  // is `positions.length` via `getCycleLength` (the SAME ordered-positions source as
+  // `resolveVirtualRange`) — never the mutable `lists.wordCount` (§2 one-modulus correctness rule).
+  const cyclingCap = await resolveEffectiveCycling(userId, listId);
+  const cycling = cyclingCap.enabled;
+  let cycleLength = 0;
+  if (cycling) {
+    cycleLength = await getCycleLength(listId);
+  }
+  const cyclingActive = cycling && cycleLength > 0;
+
   // DEBUG: Log dayNumber calculation
   console.log('DEBUG initializeDailySession:', {
     progressCurrentStudyDay: progress.currentStudyDay,
@@ -196,7 +371,8 @@ export async function initializeDailySession(userId, classId, listId, assignment
   //   segment = (unmastered words / studyDaysPerWeek), the day-of-week-th slice,
   //   capped at REVIEW_STUDY_CAP. segment.wordIds is the pinned effective set used by
   //   study, test, AND graduation, so "everything that graduates was studied" holds.
-  const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced);
+  const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced,
+    { cycling: cyclingActive, cycleLength });
   const reviewBacklogTotal = unmasteredPool.length;
   const sliceIds = computeUnmasteredSegmentIds(
     unmasteredPool.map(w => w.id),
@@ -230,9 +406,17 @@ export async function initializeDailySession(userId, classId, listId, assignment
   const listData = listSnap.exists() ? listSnap.data() : {};
   const totalListWords = listData.wordCount || 0;
 
-  // Determine how many new words we can introduce
+  // Determine how many new words we can introduce.
+  // P9 · CYC (§3f allocation): under cycling the list never dead-ends — REMOVE the
+  // wordsRemaining cap and introduce the full paced allocation (still ≥0). The monotonic
+  // virtual twi climbs past cycleLength; the physical word is fetched by wrapping the
+  // LOOKUP (resolveVirtualRange), so the counter stays monotonic and reconciliation is
+  // untouched. Non-cycling keeps TODAY'S EXACT expression `Math.min(allocation.newWords,
+  // wordsRemaining)` (may be negative on over-introduction — the completion path clamps it
+  // at :1452) so the flag-off path is byte-equivalent (the ≥0 clamp the x/plan mentions for
+  // the non-cycling branch is deferred to preserve byte-equivalence — U-alloc-clamp).
   const wordsRemaining = totalListWords - totalWordsIntroduced;
-  const newWordCount = Math.min(allocation.newWords, wordsRemaining);
+  const newWordCount = computeCyclingAllocation(allocation.newWords, wordsRemaining, cyclingActive);
 
   // Determine starting phase based on attempt history
   const phaseInfo = determineStartingPhase(attempts, currentStudyDay);
@@ -309,9 +493,24 @@ export async function initializeDailySession(userId, classId, listId, assignment
     totalWordsIntroduced,
     totalListWords,
 
+    // P9 · CYC — cycling state threaded to consumers (§4.5). `cyclingActive` gates the
+    // callers' getNewWords wrap + the lap-aware display; `cycleLength` is the CANONICAL
+    // modulus (positions.length); `lapView` is the introduction-progress display object
+    // (§3e); `cyclingSourceClassName` powers the "cycling enabled via {className}"
+    // affordance (§3b). All absent/inert (false/0/null) when CYCLING_ENABLED is off →
+    // byte-equivalent object today.
+    cyclingActive,
+    cycleLength,
+    lapView: cyclingActive ? computeLapView(totalWordsIntroduced, cycleLength) : null,
+    cyclingSourceClassId: cyclingCap.sourceClassId,
+    cyclingSourceClassName: cyclingCap.sourceClassName,
+
     // Status
     isFirstDay: currentStudyDay === 1,
-    isListComplete: wordsRemaining <= 0,
+    // Under cycling the list NEVER completes — a finished list rolls into the next lap
+    // (§3f), so isListComplete must be false or the finished terminal / review-only
+    // derivation would misfire every lap. Non-cycling keeps today's `wordsRemaining <= 0`.
+    isListComplete: cyclingActive ? false : (wordsRemaining <= 0),
 
     // Phase detection for session recovery
     startPhase: phaseInfo.phase,
@@ -406,15 +605,28 @@ export async function getSegmentWords(userId, listId, startIndex, endIndex) {
  * @param {string} userId
  * @param {string} listId
  * @param {number} totalWordsIntroduced
+ * @param {{ cycling?: boolean, cycleLength?: number }} [options] - P9 lap-bounding (§3c/§3d)
  * @returns {Promise<Array<{ id: string, position: number }>>} position-ordered unmastered words
  */
-export async function getUnmasteredPool(userId, listId, totalWordsIntroduced) {
-  if (!totalWordsIntroduced || totalWordsIntroduced <= 0) return [];
+export async function getUnmasteredPool(userId, listId, totalWordsIntroduced, options = {}) {
+  const { cycling = false, cycleLength = 0 } = options;
+  // P9 · CYC (§3c/§3d): under cycling the review pool is LAP-BOUNDED to the current lap's
+  // re-introduced words — physical positions [0, twi mod cycleLength). This is the SINGLE
+  // review mechanism (§3d): bounding to the current lap means the pool holds only this-lap
+  // re-introduced (reset-to-NEW) words, so selectReviewQueue's MASTERED filter is moot and
+  // the masteredAt/returnAt batch-clear is DROPPED. At an exact lap boundary (mod === 0)
+  // nothing has been re-introduced yet this lap → empty pool (like Day 1 of a fresh list).
+  // Flag-off: cycling=false → boundExclusive === totalWordsIntroduced → byte-equivalent
+  // (identical early-return + identical query bound).
+  const boundExclusive = (cycling && cycleLength > 0)
+    ? (totalWordsIntroduced % cycleLength)
+    : totalWordsIntroduced;
+  if (!boundExclusive || boundExclusive <= 0) return [];
 
   // Bounded, position-ordered query of the introduced range (avoids loading the whole list).
   const wordsRef = collection(db, 'lists', listId, 'words');
   const wordsSnap = await getDocs(
-    query(wordsRef, where('position', '<', totalWordsIntroduced), orderBy('position', 'asc'))
+    query(wordsRef, where('position', '<', boundExclusive), orderBy('position', 'asc'))
   );
 
   const introduced = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -576,6 +788,14 @@ export async function updateQueueTracking(userId, wordIds) {
  * @returns {Promise<Object>} Updated progress
  */
 export async function recordSessionCompletion(userId, sessionData) {
+  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Route the durable completion write through
+  // the `completeSession` callable (functions/foundation.js): transactional day-guard,
+  // server-derived reviewOnlyDay/wordsIntroduced/intervention — the server OWNS csd/twi.
+  // Still targets the LEGACY class_progress doc until P5 (LIST_PROGRESS_CANONICAL, server-
+  // side). Flag OFF (default) → the legacy client path below, byte-equivalent to today.
+  if (SERVER_PROGRESS_WRITE) {
+    return recordSessionCompletionViaServer(userId, sessionData);
+  }
   const {
     classId,
     listId,
@@ -587,6 +807,8 @@ export async function recordSessionCompletion(userId, sessionData) {
     wordsReviewed,
     wordsTested,
     interventionLevel,
+    cyclingActive,
+    cycleLength,
     studyDaysPerWeek = 5
   } = sessionData;
 
@@ -613,7 +835,9 @@ export async function recordSessionCompletion(userId, sessionData) {
     listId,
     sessionSummary,
     newIntervention,
-    studyDaysPerWeek
+    studyDaysPerWeek,
+    // [P9 · CYC · U5] cycling state for the lap-boundary intervention reset (inert when off)
+    { active: cyclingActive === true, cycleLength: cycleLength || 0 }
   );
 
   // [V9/§5.4/Codex-P1-3] Duplicate-day guard rejection: the counter moved out from under
@@ -678,6 +902,150 @@ export async function recordSessionCompletion(userId, sessionData) {
 }
 
 /**
+ * [deepfix P4 · FND-2] SERVER_PROGRESS_WRITE route for recordSessionCompletion.
+ *
+ * Calls the P3 `completeSession` callable, which performs the transactional day-guard +
+ * the csd/twi/summary/stats/streak write server-side (functions/foundation.js — sessionContext
+ * contract: {dayNumber, newWordScore?, reviewScore?, segmentStartIndex?, segmentEndIndex?,
+ * wordsReviewed?, wordsTested?, clientReviewOnlyDay?, clientWordsIntroduced?}; the server owns
+ * csd/twi/wordsIntroduced/interventionLevel — client fields feed only display/stats and the
+ * `reviewonly_derivation_mismatch` tripwire). Maps the callable's return onto the exact
+ * sentinel shapes today's callers consume (completeSessionFromTest / DailySessionFlow):
+ *   • 'day_guard_rejected' → {sessionId:null, progress, dayGuardRejected:true, sessionCleared}
+ *     (the SERVER already cleared session_states + logged day_guard_rejected_session_cleared —
+ *     the client must NOT re-clear or re-log);
+ *   • 'already_completed'  → success-shaped {sessionId:null, progress} (idempotent retry —
+ *     no second sessions-history record);
+ *   • 'no_evidence' (F-4)  → BLOCKING {sessionId:null, progress:null, completionNotApplied:true,
+ *     reason:'no_evidence'} — the server refused to advance (no passed new anchor AND no
+ *     server-verified review-only reason); NO sessions-history record is written;
+ *   • ANY other/unknown status (fail-closed) → the same blocking sentinel
+ *     {completionNotApplied:true, reason:<status>}; only 'completed' or a legacy no-status
+ *     payload takes the success path;
+ *   • 'completed' (or legacy no-status) → keep today's users/{uid}/sessions history record
+ *     (client-owned, not a progress write) and return {sessionId, progress}.
+ * NOTE: the returned `progress` carries the server's applied fields (currentStudyDay,
+ * totalWordsIntroduced, interventionLevel, stats, streakDays) — not the full legacy doc body.
+ * Current consumers read only these + dayGuardRejected + completionNotApplied (verified:
+ * studyService.js completeSessionFromTest, DailySessionFlow.jsx completeSession).
+ */
+async function recordSessionCompletionViaServer(userId, sessionData) {
+  const {
+    classId,
+    listId,
+    dayNumber,
+    newWordScore,
+    reviewScore,
+    segment,
+    wordsIntroduced,
+    wordsReviewed,
+    wordsTested,
+    clientReviewOnlyDay
+  } = sessionData;
+
+  const sessionContext = {
+    dayNumber: dayNumber || 1,
+    newWordScore: newWordScore ?? null,
+    reviewScore: reviewScore ?? null,
+    segmentStartIndex: segment?.startIndex || 0,
+    segmentEndIndex: segment?.endIndex || 0,
+    wordsReviewed: wordsReviewed || 0,
+    wordsTested: wordsTested || 0,
+  };
+  // Optional tripwire fields — only sent when present (the callable serializer must not
+  // see `undefined`; the server logs the mismatch only when clientReviewOnlyDay is boolean).
+  if (typeof clientReviewOnlyDay === 'boolean') {
+    sessionContext.clientReviewOnlyDay = clientReviewOnlyDay;
+    sessionContext.clientWordsIntroduced = Number.isFinite(wordsIntroduced) ? wordsIntroduced : null;
+  }
+
+  const completeSessionFn = httpsCallable(getFunctions(), 'completeSession', { timeout: 30000 });
+  const resp = await completeSessionFn({ classId, listId, sessionContext });
+  const data = resp?.data || {};
+
+  if (data.status === 'day_guard_rejected') {
+    // Server cleared the stale session doc + wrote the system_logs event (WITH uid) inside
+    // the callable — mirror ONLY the legacy sentinel shape here.
+    console.warn('[SESSION] day-guard rejection (server) — completion did not apply', {
+      userId, classId, listId, sessionDay: dayNumber, progressDay: data.progressDay ?? null
+    });
+    return {
+      sessionId: null,
+      progress: {
+        id: `${classId}_${listId}`,
+        currentStudyDay: data.progressDay ?? null,
+        dayGuardRejected: true
+      },
+      dayGuardRejected: true,
+      sessionCleared: data.sessionCleared === true
+    };
+  }
+
+  if (data.status === 'already_completed') {
+    // Idempotent retry of a committed completion — success-shaped, no duplicate history record.
+    return {
+      sessionId: null,
+      progress: data.progress || null
+    };
+  }
+
+  if (data.status === 'no_evidence') {
+    // [deepfix F-4 client counterpart] The server REFUSED to advance the day: no passed
+    // day-N new-word anchor AND no server-verified review-only reason. The transaction wrote
+    // NOTHING (no csd/twi advance). Mirror that here: write NO users/{uid}/sessions history
+    // record and return a BLOCKING sentinel so completeSessionFromTest skips graduation and
+    // the test pages do NOT present success (the F-4 invariant: no evidence → do not complete).
+    console.warn('[SESSION] completion refused — no evidence (server); completion did not apply', {
+      userId, classId, listId, sessionDay: dayNumber, progressDay: data.progressDay ?? null
+    });
+    return {
+      sessionId: null,
+      progress: null,
+      completionNotApplied: true,
+      reason: 'no_evidence'
+    };
+  }
+
+  // FAIL-CLOSED (F-4): only an explicit 'completed' status — or a legacy payload that omits
+  // `status` entirely (the pre-status callable contract) — proceeds to the success + history
+  // write. Any OTHER/unknown status blocks as not-applied; never assume success under
+  // SERVER_PROGRESS_WRITE.
+  if (data.status != null && data.status !== 'completed') {
+    console.warn('[SESSION] unexpected completeSession status — completion not applied (fail-closed)', {
+      userId, classId, listId, sessionDay: dayNumber, status: data.status
+    });
+    return {
+      sessionId: null,
+      progress: null,
+      completionNotApplied: true,
+      reason: data.status
+    };
+  }
+
+  // status === 'completed' (or legacy no-status): keep the legacy users/{uid}/sessions history
+  // record (client-owned audit trail; NOT a progress write — the server owns class_progress
+  // under this flag).
+  const sessionRef = doc(collection(db, `users/${userId}/sessions`));
+  const cleanSessionData = Object.fromEntries(
+    Object.entries(sessionData).filter(([, v]) => v !== undefined)
+  );
+  const batch = writeBatch(db);
+  batch.set(sessionRef, {
+    ...cleanSessionData,
+    // Server-derived truth for the record (the client's wordsIntroduced is its preview):
+    serverWordsIntroduced: data.wordsIntroduced ?? null,
+    serverReviewOnlyDay: data.reviewOnlyDay ?? null,
+    completedAt: Timestamp.now()
+  });
+  await batch.commit();
+
+  return {
+    sessionId: sessionRef.id,
+    progress: data.progress || null
+  };
+}
+
+/**
  * Initialize study states for new words
  * 
  * Called when new words are introduced to set up their initial state.
@@ -711,24 +1079,32 @@ export async function initializeNewWordStates(userId, listId, words, introducedO
  *
  * @param {string} userId - User ID
  * @param {string} listId - List ID
- * @param {number} endIndexExclusive - End index (exclusive) - words before this index
+ * @param {number} endIndexExclusive - End index (exclusive) - words before this index (VIRTUAL under cycling)
+ * @param {{ cycling?: boolean, cycleLength?: number }} [options] - P9 lap-bounding (§3c)
  * @returns {Promise<Array>} Array of FAILED word objects
  */
-export async function getFailedFromPreviousNewWords(userId, listId, endIndexExclusive) {
-  if (endIndexExclusive <= 0) return [];
+export async function getFailedFromPreviousNewWords(userId, listId, endIndexExclusive, options = {}) {
+  const { cycling = false, cycleLength = 0 } = options;
+  // P9 · CYC (§3c): the failed-carryover pool is the CURRENT lap's previously-introduced
+  // words only — physical positions [0, twi mod cycleLength). Flag-off → bound ===
+  // endIndexExclusive → byte-equivalent (identical early-return + identical filter bound).
+  const boundExclusive = (cycling && cycleLength > 0)
+    ? (endIndexExclusive % cycleLength)
+    : endIndexExclusive;
+  if (boundExclusive <= 0) return [];
 
   // Get all words ordered by position
   const wordsRef = collection(db, 'lists', listId, 'words');
   const wordsQuery = query(wordsRef, orderBy('position', 'asc'));
   const wordsSnap = await getDocs(wordsQuery);
 
-  // Filter to words with position < endIndexExclusive
+  // Filter to words with position < boundExclusive
   const previousWords = wordsSnap.docs
     .map((docSnap) => ({
       id: docSnap.id,
       ...docSnap.data()
     }))
-    .filter(w => w.position < endIndexExclusive);
+    .filter(w => w.position < boundExclusive);
 
   if (previousWords.length === 0) return [];
 
@@ -751,11 +1127,19 @@ export async function getFailedFromPreviousNewWords(userId, listId, endIndexExcl
  * Fetches the next batch of new words from a list.
  *
  * @param {string} listId - List ID
- * @param {number} startIndex - Start index (inclusive)
+ * @param {number} startIndex - Start index (inclusive) — VIRTUAL index under cycling
  * @param {number} count - Number of words to get
+ * @param {boolean} [cycling=false] - P9: route through resolveVirtualRange (wrap the lookup)
  * @returns {Promise<Array>} Array of word objects
  */
-export async function getNewWords(listId, startIndex, count) {
+export async function getNewWords(listId, startIndex, count, cycling = false) {
+  // P9 · CYC (§3c): under cycling the new-word range is VIRTUAL and may straddle the lap
+  // boundary (tail of one lap + head of the next), so it goes through the ONE resolver,
+  // which wraps positions[i mod cycleLength]. Flag-off (cycling=false, the default for
+  // every legacy caller) → the exact legacy position filter below → byte-equivalent.
+  if (cycling) {
+    return resolveVirtualRange(listId, startIndex, count);
+  }
   const wordsRef = collection(db, 'lists', listId, 'words');
   const wordsQuery = query(wordsRef, orderBy('position', 'asc'));
   const wordsSnap = await getDocs(wordsQuery);
@@ -981,16 +1365,18 @@ export async function getTodaysBatchForPDF(userId, classId, listId, assignment) 
       (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
   });
 
-  // Get new words (already have wordIndex from getNewWords)
+  // Get new words (already have wordIndex from getNewWords). P9: pass cyclingActive so a
+  // cycling day's straddle range wraps via the resolver (flag-off → legacy filter).
   const newWords = config.newWordCount > 0
-    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
+    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
     : [];
 
-  // Get failed carryover (words from previous days with FAILED status)
+  // Get failed carryover (words from previous days with FAILED status), lap-bounded under cycling.
   const failedCarryover = await getFailedFromPreviousNewWords(
     userId,
     listId,
-    config.newWordStartIndex
+    config.newWordStartIndex,
+    { cycling: config.cyclingActive, cycleLength: config.cycleLength }
   );
 
   // Get ALL segment words (full segment, not just prioritized queue)
@@ -1027,9 +1413,9 @@ export async function getCompleteBatchForPDF(userId, classId, listId, assignment
       (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
   });
 
-  // Get new words
+  // Get new words. P9: cyclingActive routes a straddle range through the resolver.
   const newWords = config.newWordCount > 0
-    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
+    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
     : [];
 
   // Get ALL words in segment (complete mode)
@@ -1308,9 +1694,38 @@ export async function completeSessionFromTest({
   // re-add it to TWI. FLAG-GATED so the flag-off path keeps the exact legacy `||` expression
   // (Run-L byte-equivalence); only under LIST_SCOPED_RECON does an explicit 0 stay durable.
   const cfgNewWordCount = sessionState?.sessionConfig?.newWordCount;
-  const wordsIntroduced = LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
-    ? cfgNewWordCount
-    : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0);
+  // NEED_TO_FIX #11 — review-only day completion (PLAN_review_only_day_completion.md). A day that ASSIGNED
+  // zero new words (intervention throttle interv=1.0 → newWords=0, OR list-end wordsRemaining<=0) is a
+  // legitimately REVIEW-ONLY day: it has no new-word test, so the Day-2+ gate below must NOT block it — else
+  // the review that would lower intervention is never recorded (recordSessionCompletion runs only on
+  // completion) → PERMANENT stuck state. Flag-gated: the review-only CSD advance survives only via the
+  // non-demoting CSD guarantee under LIST_SCOPED_RECON. Use <= 0 (not === 0): newWordCount =
+  // min(allocation.newWords, wordsRemaining) can be NEGATIVE on over-introduction; ≤0 still means "no new
+  // words assignable," never "assigned-and-failed," and it matches isListComplete (wordsRemaining <= 0).
+  // A finite ≤0 cfgNewWordCount is a LEGIT review-only day ONLY when a session-config reason CONFIRMS that
+  // zero new words were assignable — otherwise a STALE (or forged) finite 0 on an ordinary assigned-new day
+  // would false-open the gate (Codex ROI-1 / acceptance test 4b). The three legit causes are all authoritative
+  // fields written by initializeDailySession and persisted verbatim in dailySessionState (both persist sites
+  // store the full sessionConfig — verified DailySessionFlow.jsx:1161 main path + :703 recovery path):
+  //   • intervention throttle          → allocation.newWords <= 0   (studyService.js:182,235,286)
+  //   • list end / over-introduced list → isListComplete === true   (:314)
+  //   • Fix #9 review-resume (new already passed in another class, nwCount forced to 0) → startPhase REVIEW_STUDY (:264,317)
+  const sessionCfg = sessionState?.sessionConfig || {};
+  const allocationNewWords = sessionCfg?.allocation?.newWords;
+  const reviewOnlyReasonConfirmed =
+    (Number.isFinite(allocationNewWords) && allocationNewWords <= 0) ||
+    sessionCfg.isListComplete === true ||
+    sessionCfg.startPhase === SESSION_PHASE.REVIEW_STUDY;
+  const reviewOnlyDay = LIST_SCOPED_RECON
+    && Number.isFinite(cfgNewWordCount) && cfgNewWordCount <= 0
+    && reviewOnlyReasonConfirmed;
+  // Durable words-introduced count: CLAMP to >= 0. cfgNewWordCount feeds updateClassProgress's
+  // `totalWordsIntroduced += wordsIntroduced`, so an unclamped negative would DECREMENT TWI. A review-only day
+  // introduces 0 → TWI stays flat.
+  const wordsIntroduced = reviewOnlyDay ? 0
+    : (LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
+        ? cfgNewWordCount
+        : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0));
   const wordsReviewed = sessionState?.reviewQueue?.length || 0;
 
   console.log('completeSessionFromTest called:', {
@@ -1373,11 +1788,17 @@ export async function completeSessionFromTest({
       // where passed=true with a lower score). The local `threshold` may be a wrong
       // default (0.95) because assignments don't store newWordRetakeThreshold.
       newWordAttemptPassed = newWordAttempt.passed === true;
+    } else if (reviewOnlyDay) {
+      // Legitimately REVIEW-ONLY day (0 new words assigned): there is NO new-word test to find, and its
+      // absence is EXPECTED — not a fault. Keep newWordScore LITERAL null (not 0) so it is excluded from
+      // avgNewWordScore (progressService filters null scores) and renders as "—" rather than a spurious
+      // "New: 0%". The gate below is skipped for this day, so this null never drives a not-passed decision.
+      newWordScore = null;
     } else {
       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
-      // No prior new-word attempt found: keep newWordScore a valid number (0) rather
-      // than undefined, so the gate below evaluates as not-passed and the session
-      // write (if reached) succeeds. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
+      // No prior new-word attempt found on a day that WAS assigned new words: keep newWordScore a valid
+      // number (0) rather than undefined, so the gate below evaluates as not-passed and blocks. (0 >=
+      // threshold === false.)
       newWordScore = 0;
     }
 
@@ -1388,7 +1809,11 @@ export async function completeSessionFromTest({
     // saveSessionState(... phase: COMPLETE ...) below — otherwise the durable session_state
     // cache gets stamped COMPLETE even though we return requiresNewWordRetake, leaving
     // contradictory state for UI/support/admin tooling (audit Blocker, 2026-06-17).
-    if (newWordAttemptPassed !== true && newWordScore < threshold) {
+    // reviewOnlyDay short-circuits the gate: a day that assigned zero new words has no new-word test to pass,
+    // so blocking it would strand the review (never recorded → intervention never drops → permanent stuck
+    // state, NEED_TO_FIX #11). newWordScore is null on that path; `null < threshold` would coerce to true, so
+    // the explicit !reviewOnlyDay guard — not the score comparison — is what lets the review-only day through.
+    if (!reviewOnlyDay && newWordAttemptPassed !== true && newWordScore < threshold) {
       console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
         dayNumber, newWordScore, threshold, newWordAttemptPassed
       });
@@ -1400,12 +1825,20 @@ export async function completeSessionFromTest({
       };
     }
 
-    // Update session_states with final status (prevents race condition). Only reached
-    // once the Day-2+ gate above has confirmed the new-word test was passed.
+    // Update session_states with final status (prevents race condition). Only reached once the Day-2+ gate
+    // above has passed (or the day is review-only). The new-word fields are LITERAL null ONLY when no real
+    // new-word attempt existed for the day — i.e. `newWordScore === null`, set solely by the
+    // `else if (reviewOnlyDay)` no-attempt branch above. It is NOT keyed on reviewOnlyDay itself: a Fix #9
+    // REVIEW_STUDY resume IS a reviewOnlyDay yet has a genuine PASSING new-word attempt (found above), and its
+    // real score must persist so session_state matches the summary/recentSessions (Lens A #1). Literal null
+    // (never `null >= threshold`, which coerces to a contradictory `false`). reviewOnlyDay:true is a
+    // write-only marker for future support/admin tooling (no consumer yet; deliberately not on the summary).
+    const newAttemptMissing = newWordScore === null;
     await saveSessionState(userId, classId, listId, {
       newWordsTestScore: newWordScore,
-      newWordsTestPassed: newWordScore >= threshold,
+      newWordsTestPassed: newAttemptMissing ? null : (newWordScore >= threshold),
       reviewTestScore: reviewScore,
+      ...(reviewOnlyDay ? { reviewOnlyDay: true } : {}),
       phase: SESSION_PHASE.COMPLETE
     });
   }
@@ -1421,7 +1854,15 @@ export async function completeSessionFromTest({
     segment,
     wordsIntroduced,
     wordsReviewed,
-    wordsTested: testResults.total || 0
+    wordsTested: testResults.total || 0,
+    // [P9 · CYC · U5] cycling state → updateClassProgress resets intervention at a lap boundary. Inert when
+    // off (cyclingActive=false ⇒ no reset); consumed by recordSessionCompletion, not persisted to the record.
+    cyclingActive: sessionCfg.cyclingActive === true,
+    cycleLength: sessionCfg.cycleLength || 0,
+    // [deepfix P4, flag-gated] the client's reviewOnlyDay PREVIEW rides along for the server's
+    // `reviewonly_derivation_mismatch` tripwire (the server derives authoritatively; this field
+    // is compare-only). Flag OFF → field absent → summary byte-identical to today.
+    ...(SERVER_PROGRESS_WRITE ? { clientReviewOnlyDay: reviewOnlyDay } : {})
   };
 
   // Record session completion (updates CSD, recentSessions, etc.)
@@ -1438,6 +1879,21 @@ export async function completeSessionFromTest({
       graduated: 0,
       requiresSessionRebuild: true,
       sessionCleared: result.sessionCleared === true
+    };
+  }
+
+  // [deepfix F-4 client counterpart] The server refused this completion for lack of
+  // evidence (no passed new anchor + not review-only) — or returned an unknown status
+  // (fail-closed). The completion did NOT apply: skip graduation and return the blocking
+  // sentinel so the test pages present the retry/pass-new-test UX, never success. The
+  // attempt itself is already saved.
+  if (result?.completionNotApplied) {
+    return {
+      sessionId: null,
+      progress: null,
+      graduated: 0,
+      completionNotApplied: true,
+      reason: result.reason || 'not_applied'
     };
   }
 

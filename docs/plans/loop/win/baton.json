@@ -1,0 +1,22 @@
+{
+    "loop":  "win-executor",
+    "turnOwner":  "claude",
+    "round":  25,
+    "taskId":  "DEEPFIX_TASK6_WINCLAUDE_MWB_FRESHRERUN",
+    "handoff":  "docs/plans/loop/win/handoffs/claude_to_winclaude_025.md",
+    "onboarding":  "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
+    "execStatus":  "run-written",
+    "execDecision":  "NOT_CLEAN",
+    "execReview":  "docs/plans/loop/win/reviews/winclaude_025.md",
+    "execReviewRepoPath":  "docs/plans/loop/win/reviews/winclaude_025.md",
+    "changedFiles":  [
+                         "audit/playwright/lsr_deepfix_whitebox.mjs"
+                     ],
+    "evidenceFiles":  [
+                          "docs/plans/loop/win/handoffs/claude_to_winclaude_025.md"
+                      ],
+    "note":  "WIN-LOOP round 25 — M-WB (white-box) fresh re-run, the last open surface. M-NET DONE (r24 CLEAN 3/3, all 6 primary matrices certified). M-WB last ran wb-r14 (2026-07-14, PRE-calibration): 0/4 harness-shaped fails — W-RA3g csd 4->4 (wordmap/answer-seed gap like RO-S1), W-RA4/W-RA4b Submit 30s timeout (reach-submit flow-gap since fixed in shared lsr_ui primitives), CUT-5 INVALID save-leg-not-observed. Runner shares now-calibrated primitives+wordmap → fresh run should clear most. CLAUDE FIXED (one file): ported the M-NET auto-provision (import admin; PASS from lsr_ui; uid=uidByEmail else createUser) so it uses fresh clean-day-1 accounts (avoids list-scoped pollution that bit M-UI; admin already init'd via readListWordCount->FB.db() before loop). node --check OK. RUN: NODE_OPTIONS=--use-system-ca (inline) LSR_TEACHER=lsr_teacher_02@vocaboost.test SL_STUDENTS=lsr_s150,151,152,153,154,155@vocaboost.test LSR_TIER=base node audit/playwright/lsr_deepfix_whitebox.mjs wb-r25. 6 distinct FRESH students -> each scenario pristine (expect 'created fresh sandbox account' x6). CAPTURE per scenario verbatim: W-RA3g (expect PASS csd+1 reviewOnlyDay-skip + neg gate-closed; if still flat say whether Submit/answers rendered=wordmap vs app), W-RA4/W-RA4b (gate stays CLOSED; if Submit still times out quote locator error=my harness), CS-11 (tripwire, may INVALID env-quote reason), CUT-5 (nonce idempotency: ONE docId graded==saved), CUT-6 (likely INVALID in this env-P6 rules not deployed so denied-write handler can't exercise; INVALID=CORRECT dormant outcome not a fail). FINAL manifest, full stdout+stderr, findings/deepfix_wb_wb-r25.md, screenshots. Executor-only no edits, sandbox lsr_*/25WT only NEVER 26SM/prod; createUser wasn't gated in M-NET-if it gates report BLOCKED+message. Write docs/plans/loop/win/reviews/winclaude_025.md, set turnOwner=claude, revision=50, execStatus=run-written, execDecision, updatedBy=winclaude. Re-background baton-watch-executor.sh 50.",
+    "updatedBy":  "winclaude",
+    "updatedAt":  "2026-07-15T12:13:06.0000000Z",
+    "revision":  50
+}

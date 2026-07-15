@@ -10,7 +10,8 @@ import {
   serverTimestamp,
   arrayUnion
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   DEFAULT_CLASS_PROGRESS,
   createClassProgress,
@@ -18,7 +19,7 @@ import {
   implausibleStudyDayThreshold
 } from '../types/studyTypes';
 import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
-import { LIST_SCOPED_RECON } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE } from '../config/featureFlags';
 
 // Observability-only (v5): a clean no-anchor record with CSD above this is worth a
 // `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
@@ -101,6 +102,35 @@ async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attemp
  * @returns {Promise<{ progress: Object, attempts: Array }>} Progress document and recent attempts
  */
 export async function getOrCreateClassProgress(userId, classId, listId) {
+  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Route hydration through the READ-ONLY
+  // `resolveListProgress` callable: the SERVER performs today's entry-time reconciliation
+  // (create-on-miss + the F4-1 recon write on the launching legacy doc, byte-parity
+  // semantics) and logs resolve_list_progress / quarantine candidates. The callable is
+  // SELF-SERVICE (uid = caller), so only route when this call is for the signed-in user —
+  // any other caller falls through to the legacy client path unchanged.
+  if (SERVER_PROGRESS_WRITE && auth.currentUser?.uid === userId) {
+    // Route hydration through the read-only resolver. Retry ONCE (a transient callable
+    // cold-start / network blip), then FAIL CLOSED. [Codex P6 R1 over-deny fix] Under the P6
+    // rules cutoff the legacy client setDoc/updateDoc below is DENIED (permission-denied on
+    // class_progress), so falling through on a resolver outage would strand a LIVE student
+    // with a raw Firestore error at session entry. A typed `progress_resolver_unavailable`
+    // error lets the entry-time catches show the controlled reload/retry UX instead of a raw
+    // permission failure — and, critically, we perform NO client write on this path.
+    let routed = await getOrCreateClassProgressViaResolver(userId, classId, listId);
+    if (!routed) {
+      routed = await getOrCreateClassProgressViaResolver(userId, classId, listId);
+    }
+    if (routed) return routed;
+    // Both attempts failed → do NOT fall through to a client write (P6 would deny it).
+    try {
+      await logSystemEvent('progress_resolver_unavailable', {
+        userId, classId, listId, source: 'getOrCreateClassProgress',
+      }, 'error');
+    } catch { /* observability only — never mask the typed error below */ }
+    const resolverErr = new Error('Progress could not be loaded — please reload to continue.');
+    resolverErr.code = 'progress_resolver_unavailable';
+    throw resolverErr;
+  }
   console.log('[RECONCILIATION] ═══════════════════════════════════════');
   console.log('[RECONCILIATION] getOrCreateClassProgress START');
   console.log('[RECONCILIATION] Params:', { userId, classId, listId });
@@ -340,6 +370,96 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
 }
 
 /**
+ * [deepfix P4 · FND-2] SERVER_PROGRESS_WRITE hydration route for getOrCreateClassProgress.
+ *
+ * Calls `resolveListProgress({listId, classId})` and CONSUMES its `mode` to build the
+ * `{ progress, attempts }` contract. The callable's EXACT return shapes (foundation.js,
+ * verified — do not assume):
+ *   • READ-ONLY mode (pre-P5, LIST_PROGRESS_CANONICAL=false):
+ *     `{mode:'legacy'|'none', csd, twi, launch:{classId,csd,twi,data}|null, merged, ...}`.
+ *     With classId supplied, the server's F4-1 leg CREATE-ON-MISSES + reconciles the LAUNCHING
+ *     `class_progress` doc (progressService.js:114-127 + :233-271 semantics), keeping the
+ *     completion day-guard baseline current; it writes NO canonical list_progress doc
+ *     (`canonicalWritten:false`). So the launching legacy doc always exists after a legacy-mode
+ *     resolve → we read it LOCALLY (real client Timestamps; serialized wire timestamps are
+ *     plain objects unsafe for `.toDate()`).
+ *   • CANONICAL mode (post-P5, LIST_PROGRESS_CANONICAL=true, list_progress doc exists):
+ *     `{mode:'canonical', csd, twi, data}`. The launching `class_progress` doc may NOT exist
+ *     (migration collapsed legacy docs / a fresh class-list path never created one) — [Codex
+ *     P6-2] insisting on it here would turn a HEALTHY resolver into a false failure. We read the
+ *     canonical `list_progress/{listId}` doc LOCALLY and SYNTHESIZE the downstream progress shape
+ *     (legacy-shaped id + classId/listId + the canonical fields).
+ *   • QUARANTINED (write-capable P5+ backstop): `{mode:'quarantined', reasons}` — study is
+ *     deliberately BLOCKED; return null so the caller fails closed (safe; quarantine UX is P5/P6
+ *     work, not P4 — see notes).
+ * `attempts` are fetched via `getRecentAttemptsForClassList(userId, classId, listId, 8)` exactly
+ * as the legacy path does. NOTE: post-P5 the canonical record is list-scoped (one per
+ * student+list across classes); a list-scoped attempts fetch may be more correct then —
+ * documented in P4_impl_notes.md item 12 as a P5 follow-up, not changed here (P4 parity).
+ *
+ * Returns null on a genuine resolver ERROR/unavailable (or a quarantine block). [Codex P6-R1]
+ * The caller retries once, then FAILS CLOSED with a typed `progress_resolver_unavailable`
+ * error — it must NOT fall through to a legacy client write, which the P6 rules cutoff denies.
+ * A resolver SUCCESS whose launching legacy doc is merely absent (canonical mode) is NOT a
+ * failure. (Flag-OFF bundles never reach here; this helper only runs when SERVER_PROGRESS_WRITE
+ * is on.)
+ */
+async function getOrCreateClassProgressViaResolver(userId, classId, listId) {
+  try {
+    const resolveFn = httpsCallable(getFunctions(), 'resolveListProgress', { timeout: 30000 });
+    const result = await resolveFn({ listId, classId });
+    const mode = result?.data?.mode;
+    const docId = getProgressDocId(classId, listId);
+
+    // ── CANONICAL mode (post-P5): canonical list_progress is authoritative; the launching
+    //    class_progress doc may legitimately be absent. Resolver SUCCEEDED — never fail here.
+    if (mode === 'canonical') {
+      const canonicalSnap = await getDoc(doc(db, `users/${userId}/list_progress`, listId));
+      const canonicalData = canonicalSnap.exists()
+        ? canonicalSnap.data()          // preferred: local read → real Timestamps
+        : (result?.data?.data ?? null); // fallback: the callable's (serialized) canonical payload
+      if (canonicalData) {
+        const progress = { id: docId, classId, listId, ...canonicalData };
+        const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+        return { progress, attempts };
+      }
+      // 'canonical' but no data locally OR on the wire — treat as unusable → caller fails closed.
+      console.warn('[RECONCILIATION] resolver canonical mode returned no usable data');
+      return null;
+    }
+
+    // ── QUARANTINED (write-capable P5+ backstop): study is blocked by design → fail closed (safe).
+    if (mode === 'quarantined') {
+      console.warn('[RECONCILIATION] resolver reports quarantine — blocking (fail closed)');
+      return null;
+    }
+
+    // ── READ-ONLY / legacy mode (pre-P5): the F4-1 leg created+reconciled the launching doc.
+    const snapshot = await getDoc(doc(db, `users/${userId}/class_progress`, docId));
+    if (snapshot.exists()) {
+      const progress = { id: snapshot.id, ...snapshot.data() };
+      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+      return { progress, attempts };
+    }
+    // Legacy-mode create-on-miss guarantees the launching doc, so a miss is unexpected — but the
+    // resolve SUCCEEDED, so synthesize from the returned launch view rather than falsely failing.
+    const launchData = result?.data?.launch?.data ?? null;
+    if (launchData) {
+      const progress = { id: docId, classId, listId, ...launchData };
+      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+      return { progress, attempts };
+    }
+    // Resolve succeeded but produced no usable position (e.g. mode 'none' with no doc) → null.
+    console.warn('[RECONCILIATION] resolver route: no usable progress after resolve (mode:', mode, ')');
+    return null;
+  } catch (err) {
+    // Genuine resolver ERROR / unavailable (or a local read failure) → null → caller fails closed.
+    console.warn('[RECONCILIATION] resolveListProgress route failed:', err?.message);
+    return null;
+  }
+}
+
+/**
  * Calculate aggregate stats from recent sessions
  * @param {Array} sessions - Array of session summary objects
  * @returns {Object} Progress stats object
@@ -429,9 +549,11 @@ function calculateUpdatedStreak(lastStudyDate, currentStreak, studyDaysPerWeek =
  * @param {Object} sessionSummary - Session summary object
  * @param {number} newIntervention - New intervention level (0.0 to 1.0)
  * @param {number} studyDaysPerWeek - Study days per week for streak calculation
+ * @param {{active?: boolean, cycleLength?: number}} cycling - [P9·CYC·U5] cycling state for lap-boundary
+ *   intervention reset. Omitted/`{active:false}` ⇒ fully inert (byte-equivalent to today).
  * @returns {Promise<Object>} Updated class progress document
  */
-export async function updateClassProgress(userId, classId, listId, sessionSummary, newIntervention, studyDaysPerWeek = 5) {
+export async function updateClassProgress(userId, classId, listId, sessionSummary, newIntervention, studyDaysPerWeek = 5, cycling = {}) {
   const docId = getProgressDocId(classId, listId);
   const progressRef = doc(db, `users/${userId}/class_progress`, docId);
 
@@ -451,8 +573,20 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
       : { id: docId, ...current }; // Return existing progress unchanged
   }
 
-  // Keep only last MAX_RECENT_SESSIONS
-  const recentSessions = [...(current.recentSessions || []), sessionSummary]
+  // [P9 · CYC · U5 RESET] Cycling lap-boundary intervention reset: when the student crosses into a new lap
+  // (virtual twi passes k·cycleLength), re-start the finished list at full pace — DROP lap N-1's session
+  // history so next session's calculateInterventionLevel(recentSessions) sees a clean slate, and zero the
+  // stored intervention. Hard-gated on cycling.active ⇒ fully inert when cycling is off (byte-equivalent).
+  // CLIENT path only; the server completeSession path needs the mirror before SERVER_PROGRESS_WRITE flips
+  // (see audit/deepfix/task6/CYCLING_COHORT_VALIDATION_PLAN.md).
+  const cycleLen = Number(cycling.cycleLength) || 0;
+  const twiBefore = current.totalWordsIntroduced || 0;
+  const twiAfter = twiBefore + (sessionSummary.wordsIntroduced || 0);
+  const crossedLapBoundary = cycling.active === true && cycleLen > 0
+    && Math.floor(twiBefore / cycleLen) < Math.floor(twiAfter / cycleLen);
+
+  // Keep only last MAX_RECENT_SESSIONS (a crossed lap boundary resets the carry)
+  const recentSessions = [...(crossedLapBoundary ? [] : (current.recentSessions || [])), sessionSummary]
     .slice(-MAX_RECENT_SESSIONS);
 
   // Calculate new stats from recent sessions
@@ -465,7 +599,7 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
   const updates = {
     currentStudyDay: (current.currentStudyDay || 0) + 1,
     totalWordsIntroduced: (current.totalWordsIntroduced || 0) + (sessionSummary.wordsIntroduced || 0),
-    interventionLevel: newIntervention,
+    interventionLevel: crossedLapBoundary ? 0 : newIntervention,
     recentSessions,
     stats,
     streakDays,
@@ -523,12 +657,36 @@ export async function fetchStudentsProgressForClass(studentIds, classId, listIds
     progressMap[studentId] = {};
   });
 
+  // [deepfix P4 · FND-2, F6-2] Teacher read path resolves from the FOUNDATION record when
+  // SERVER_PROGRESS_WRITE is on: canonical `users/{studentId}/list_progress/{listId}` FIRST
+  // (the resolveListProgress read order — the callable itself is self-service, so the
+  // teacher surface reads the doc directly; the generic /users/{userId}/{subcollection}
+  // teacher-read rule covers it), falling back to the legacy class_progress doc when no
+  // canonical doc exists. Pre-P5 the canonical collection is empty by contract, so flag-on
+  // output is identical to today; at P5 the canonical doc wins — the teacher "Students"
+  // view can no longer freeze on a stale class_progress doc (and survives its P7 deletion).
+  // Flag OFF (default) → the legacy read below, byte-equivalent to today.
+  const readStudentListProgress = async (studentId, listId) => {
+    if (SERVER_PROGRESS_WRITE) {
+      try {
+        const canonicalSnap = await getDoc(doc(db, `users/${studentId}/list_progress`, listId));
+        if (canonicalSnap.exists()) {
+          return { id: canonicalSnap.id, ...canonicalSnap.data(), source: 'list_progress' };
+        }
+      } catch (err) {
+        // Canonical read denied/unavailable → legacy fallback (never fail the whole view).
+        console.warn('canonical list_progress read failed — using legacy class_progress:', err?.message);
+      }
+    }
+    return getClassProgress(studentId, classId, listId);
+  };
+
   // Batch fetch: For each student, fetch progress for all lists
   const promises = [];
   for (const studentId of studentIds) {
     for (const listId of listIds) {
       promises.push(
-        getClassProgress(studentId, classId, listId)
+        readStudentListProgress(studentId, listId)
           .then(progress => ({ studentId, listId, progress }))
           .catch(() => ({ studentId, listId, progress: null }))
       );

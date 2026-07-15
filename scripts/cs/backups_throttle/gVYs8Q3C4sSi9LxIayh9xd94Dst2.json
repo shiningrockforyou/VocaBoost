@@ -1,0 +1,54 @@
+{
+  "email": "henry.jung2009@gmail.com",
+  "uid": "gVYs8Q3C4sSi9LxIayh9xd94Dst2",
+  "cp": "qeCkS6BpZLVGLe2G5O7Z_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 8,
+    "twi": 800,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "segmentStartIndex": 1,
+        "wordsIntroduced": 100,
+        "date": {
+          "_seconds": 1783920611,
+          "_nanoseconds": 743000000
+        },
+        "reviewScore": 0.2,
+        "day": 6,
+        "wordsTested": 30,
+        "newWordScore": 0.94,
+        "wordsReviewed": 60,
+        "segmentEndIndex": 145
+      },
+      {
+        "wordsIntroduced": 100,
+        "segmentStartIndex": 188,
+        "date": {
+          "_seconds": 1784015274,
+          "_nanoseconds": 874000000
+        },
+        "reviewScore": 0.03333333333333333,
+        "day": 7,
+        "wordsTested": 30,
+        "wordsReviewed": 60,
+        "newWordScore": 1,
+        "segmentEndIndex": 301
+      },
+      {
+        "day": 8,
+        "date": {
+          "_seconds": 1784093626,
+          "_nanoseconds": 743000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 372,
+        "segmentEndIndex": 433,
+        "wordsIntroduced": 100,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

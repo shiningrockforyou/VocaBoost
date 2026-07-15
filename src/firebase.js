@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -50,7 +51,11 @@ if (import.meta.env.VITE_USE_EMULATOR === 'true') {
     connectFirestoreEmulator(db, 'localhost', 8080)
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
     connectStorageEmulator(storage, 'localhost', 9199)
-    console.log('🔧 Firebase Emulators connected (Firestore: 8080, Auth: 9099, Storage: 9199)')
+    // [deepfix flag-on E2E] wire the Functions emulator so the callable paths (completeSession,
+    // reviewChallenge, etc.) resolve to the emulator when validating flags-ON end-to-end. getFunctions()
+    // is called ad-hoc across the app with no arg → this connects the default-app instance they all resolve.
+    connectFunctionsEmulator(getFunctions(app), 'localhost', 5001)
+    console.log('🔧 Firebase Emulators connected (Firestore: 8080, Auth: 9099, Storage: 9199, Functions: 5001)')
   } catch (error) {
     // Emulators may already be connected (hot reload)
     console.warn('Firebase emulator connection skipped:', error.message)

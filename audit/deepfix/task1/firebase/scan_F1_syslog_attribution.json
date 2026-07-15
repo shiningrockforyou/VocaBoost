@@ -1,0 +1,222 @@
+{
+  "r1": {
+    "type": "impossible_phase_detected",
+    "total": 9451,
+    "window": {
+      "from": "2026-07-01T05:19:32.000Z",
+      "to": "2026-07-13T13:16:49.000Z"
+    },
+    "sampleKeys": [
+      "type",
+      "severity",
+      "dayNumber",
+      "reason",
+      "newTestId",
+      "timestamp"
+    ],
+    "distinctUsersByAttr": {
+      "26SM": 0,
+      "sandbox": 0,
+      "other": 0,
+      "no-uid": 9451
+    },
+    "eventsByAttr": {
+      "26SM": 0,
+      "sandbox": 0,
+      "other": 0,
+      "no-uid": 9451
+    },
+    "byDay": {
+      "2026-07-13|no-uid": 930,
+      "2026-07-12|no-uid": 2194,
+      "2026-07-11|no-uid": 32,
+      "2026-07-10|no-uid": 653,
+      "2026-07-09|no-uid": 676,
+      "2026-07-08|no-uid": 920,
+      "2026-07-07|no-uid": 831,
+      "2026-07-06|no-uid": 1006,
+      "2026-07-05|no-uid": 199,
+      "2026-07-04|no-uid": 43,
+      "2026-07-03|no-uid": 761,
+      "2026-07-02|no-uid": 758,
+      "2026-07-01|no-uid": 448
+    },
+    "distinctTestIds": 654,
+    "tidByAttr": {
+      "26SM": 531,
+      "sandbox": 121,
+      "other": 2,
+      "no-tid": 0
+    },
+    "sampleTestIds": [
+      "Yf6Kfx7eTNTEUACVv69PPuhIiPF3_vocaboost_test_qIrJTbwlDOnCKLaTYoz4_dVliNv0p9jqZYp9rfLpN_new_1781491685395_1bd82uwl5",
+      "AyDclYPUc7Zl5u6U1mq0EDeL3sV2_vocaboost_test_6F0PX2E3gXetiI0Yw275_dVliNv0p9jqZYp9rfLpN_new_1783930580940_hr8fnaskm",
+      "tSnmythG5wUUeJ1PQuWJUYqpNij2_vocaboost_test_7PDT5jGKWNBh8oB0tjYh_dVliNv0p9jqZYp9rfLpN_new_1783947757704_e3ccnd462",
+      "yY1qxOZ9g3WRtLlskei6uNiOFj82_vocaboost_test_Nys1FfB9Pkl1iyO5FYhx_dVliNv0p9jqZYp9rfLpN_new_1783947658249_il8944okv"
+    ],
+    "topTestIds": [
+      {
+        "tid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L13 S0 fleet3",
+        "events": 79
+      },
+      {
+        "tid": "IsIIEmX6gTQPcuXX9VYcffgUy0i1_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L13 S0 fleet",
+        "events": 79
+      },
+      {
+        "tid": "7A5V6wznrbgEXksiSwjwy4QxMsx2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L5 S0 fleet3",
+        "events": 78
+      },
+      {
+        "tid": "yF8eveKClJgZZ2ULq2BHaAiemfJ2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L2 S0 fleet3",
+        "events": 78
+      },
+      {
+        "tid": "VOt8Oi8ljjYvaoegEOOX0xFp0OK2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L2 S0 fleet",
+        "events": 77
+      },
+      {
+        "tid": "oJdSGNLoCHVvmWdf2zMMfj2A6eS2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L5 S0 fleet",
+        "events": 76
+      },
+      {
+        "tid": "jw7QBo12AXPQBcDyKWnvlUITUZu2_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L3 S0 fleet3",
+        "events": 62
+      },
+      {
+        "tid": "UqTjoR1HJjgyZYxFFVdYSSpQAZf1_vocaboost_tes",
+        "attr": "sandbox",
+        "cls": "25WT PX L6 S0 fleet3",
+        "events": 62
+      }
+    ],
+    "topUsers": []
+  },
+  "r2": {
+    "type": "day_guard_rejected_session_cleared",
+    "total": 34,
+    "window": {
+      "from": "2026-07-12T01:25:00.000Z",
+      "to": "2026-07-13T09:59:59.000Z"
+    },
+    "sampleKeys": [
+      "type",
+      "severity",
+      "userId",
+      "classId",
+      "listId",
+      "sessionDay",
+      "progressDay",
+      "sessionCleared",
+      "timestamp"
+    ],
+    "distinctUsersByAttr": {
+      "26SM": 6,
+      "sandbox": 5,
+      "other": 0,
+      "no-uid": 0
+    },
+    "eventsByAttr": {
+      "26SM": 29,
+      "sandbox": 5,
+      "other": 0,
+      "no-uid": 0
+    },
+    "byDay": {
+      "2026-07-13|26SM": 7,
+      "2026-07-12|26SM": 22,
+      "2026-07-12|sandbox": 5
+    },
+    "distinctTestIds": 0,
+    "tidByAttr": {
+      "26SM": 0,
+      "sandbox": 0,
+      "other": 0,
+      "no-tid": 0
+    },
+    "sampleTestIds": [],
+    "topTestIds": [],
+    "topUsers": [
+      {
+        "uid": "3bWwRlE8",
+        "attr": "26SM",
+        "cls": "SAT Adv A2",
+        "events": 10
+      },
+      {
+        "uid": "fCbkvSoY",
+        "attr": "26SM",
+        "cls": "미주 SAT Final",
+        "events": 6
+      },
+      {
+        "uid": "cWaJsPrx",
+        "attr": "26SM",
+        "cls": "SAT Adv A2",
+        "events": 5
+      },
+      {
+        "uid": "Z16cWSmF",
+        "attr": "26SM",
+        "cls": "SAT Inter A3",
+        "events": 4
+      },
+      {
+        "uid": "51lETXfc",
+        "attr": "26SM",
+        "cls": "제주 SAT TOP",
+        "events": 2
+      },
+      {
+        "uid": "PjDr1GZq",
+        "attr": "26SM",
+        "cls": "SAT Inter A3",
+        "events": 2
+      },
+      {
+        "uid": "LZ9NeANM",
+        "attr": "sandbox",
+        "cls": "",
+        "events": 1
+      },
+      {
+        "uid": "3MUIeEHh",
+        "attr": "sandbox",
+        "cls": "",
+        "events": 1
+      },
+      {
+        "uid": "YWciZ1Kw",
+        "attr": "sandbox",
+        "cls": "",
+        "events": 1
+      },
+      {
+        "uid": "dpzEm4SW",
+        "attr": "sandbox",
+        "cls": "",
+        "events": 1
+      },
+      {
+        "uid": "uRrjvq2n",
+        "attr": "sandbox",
+        "cls": "",
+        "events": 1
+      }
+    ]
+  }
+}

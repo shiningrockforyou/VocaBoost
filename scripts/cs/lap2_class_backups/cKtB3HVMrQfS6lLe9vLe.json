@@ -1,0 +1,52 @@
+{
+  "id": "cKtB3HVMrQfS6lLe9vLe",
+  "name": "26SM 유라시아 SAT Top",
+  "assignments": {
+    "dVliNv0p9jqZYp9rfLpN": {
+      "testOptionsCount": 6,
+      "reviewTestType": "mcq",
+      "passThreshold": 92,
+      "testMode": "typed",
+      "pace": 100,
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92,
+      "reviewTestSizeMin": 20,
+      "testSizeNew": 35,
+      "assignedAt": {
+        "_seconds": 1780261288,
+        "_nanoseconds": 611000000
+      }
+    },
+    "AObYOowhLoOOHx9wW2Sq": {
+      "testOptionsCount": 6,
+      "reviewTestType": "mcq",
+      "passThreshold": 92,
+      "testMode": "typed",
+      "pace": 100,
+      "reviewTestSizeMax": 30,
+      "reviewTestSizeMin": 20,
+      "testSizeNew": 35,
+      "assignedAt": {
+        "_seconds": 1783432780,
+        "_nanoseconds": 518000000
+      },
+      "studyDaysPerWeek": 5
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780174888,
+        "_nanoseconds": 0
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 92,
+      "testSizeNew": 35,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

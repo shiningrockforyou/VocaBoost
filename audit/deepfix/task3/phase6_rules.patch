@@ -1,0 +1,186 @@
+diff --git a/firestore.rules b/firestore.rules
+index f7bcc92..dfbd3c2 100644
+--- a/firestore.rules
++++ b/firestore.rules
+@@ -1,5 +1,30 @@
+ rules_version = '2';
+ 
++// ============================================================================
++// ⚠️⚠️ deepfix P6 · FND-4 — THE WRITE-AUTHORITY CUTOFF (REVIEWED DRAFT) ⚠️⚠️
++// This file now carries the P6 lockdown (FIX_PLAN.md P6 (a)-(c)): client writes
++// to progress records, attempts, and the role field are DENIED. Deploying it
++// EARLY breaks live student flows (session completion fallback, reset, old
++// bundles' challenge writes).
++//
++// HARD DEPLOY PRECONDITIONS (ALL — FIX_PLAN.md P6; David-run only):
++//   1. P3 functions live (completeSession/resolveListProgress/resetProgress/
++//      advanceForChallenge) with their server flags ON, incl.
++//      SERVER_RESET_PROGRESS_ENABLED + SERVER_ADVANCE_FOR_CHALLENGE_ENABLED,
++//      and TEACHER_PROVISIONING_ENABLED (the provisionTeacher callable).
++//   2. P4 client cutover shipped: SERVER_PROGRESS_WRITE, SERVER_RESET_PROGRESS,
++//      SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER all true in the LIVE bundle;
++//      bundle grep proves zero live client attempt-create/-delete calls.
++//   3. P5 migration complete; 26SM quarantine = 0; M4 shadow clean (≈0 false
++//      rejects over ≥14 days); 14-day no-legacy-write window + build census.
++//   4. Rules-test matrix green (audit/deepfix/task3/P6_impl_notes.md §4).
++// Deploy: `firebase deploy --only firestore:rules` — NOTHING rides along.
++// Revert: restore the prior blocks (git) + redeploy rules — full reversibility
++// holds only until P7 deletes legacy docs.
++// Note (P6(d)): M4 anchor shadow→ENFORCE is a SERVER flag flip
++// (functions/foundation.js ANCHOR_VALIDATION_ENFORCE), not a rules change.
++// ============================================================================
++
+ service cloud.firestore {
+   match /databases/{database}/documents {
+ 
+@@ -28,23 +53,64 @@ service cloud.firestore {
+       allow read: if isAuthenticated() && isTeacher();
+     }
+ 
+-    // USERS
++    // USERS — deepfix P6 · FND-4 (b): M8 role whitelist, SPLIT BY OPERATION.
++    // Closes C-28/#1b (role was owner-writable with no field whitelist, so any
++    // student could self-promote to teacher — and isTeacher() above trusts this
++    // very field). Split by op because a blanket `!affectedKeys().hasAny(['role'])`
++    // would break signup: createUserDocument (db.js:221/:233) stamps
++    // role:'student' via setDoc(merge) on a missing doc — a CREATE, where the
++    // role key is always "affected".
+     match /users/{userId} {
+       allow read: if isAuthenticated();
+-      allow write: if isAuthenticated() && (
+-        isOwner(userId) ||
++
++      // CREATE: owner-only, and only as a student (or no role field — the app
++      // reads absent role as 'student', AuthContext.jsx:39). A self-created
++      // role:'teacher' doc is DENIED; teachers are provisioned via the
++      // provisionTeacher callable (Admin SDK bypasses rules — see
++      // teacher_invites below and functions/index.js).
++      allow create: if isAuthenticated() && isOwner(userId)
++        && (!('role' in request.resource.data) || request.resource.data.role == 'student');
++
++      // UPDATE: owner may not touch `role` or the server-stamped
++      // `roleProvisioning` provenance. affectedKeys() compares VALUES, so a
++      // merge-set that re-sends role:'student' UNCHANGED still passes (retry
++      // safety); any actual role change is denied. Ordinary profile/settings/
++      // enrolledClasses/challenges owner updates pass unchanged.
++      // Teacher branch: unchanged — challenges only (reviewChallenge corrects
++      // the student's challenges.history, db.js:2818).
++      allow update: if isAuthenticated() && (
++        (isOwner(userId)
++          && !request.resource.data.diff(resource.data).affectedKeys()
++            .hasAny(['role', 'roleProvisioning'])) ||
+         (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
+       );
+ 
+-      // TODO(security): teacher writes here exist solely to support
+-      // reviewChallenge (writes student's study_states + class_progress when
+-      // accepting/rejecting a dispute). This is overly broad — any teacher
+-      // account can write any student's subcollections regardless of class
+-      // membership. Follow-up: move reviewChallenge to a Cloud Function
+-      // (Admin SDK bypasses rules) and tighten this to `isOwner(userId)`.
++      // DELETE: no live client path deletes a user doc (grep 2026-07-13), and
++      // deleting one would wipe challenges.history (token rejections) and
++      // enrolledClasses. Server/Admin only.
++      allow delete: if false;
++
++      // SUBCOLLECTIONS — P6 (a) [C5-4]: progress records are SERVER-OWNED from
++      // this deploy on. `list_progress` (canonical, P5) + `class_progress`
++      // (legacy, until P7 deletes it) + `progress_meta` (the resetProgress
++      // reset-epoch tombstone) accept NO client writes: the P3 callables
++      // (completeSession / resolveListProgress / resetProgress /
++      // advanceForChallenge — Admin SDK) are the only writers. READS survive
++      // for owner + teacher: students read their own progress; the teacher
++      // Students view reads students' list_progress directly
++      // (progressService.js:590) and class_progress as fallback.
++      // Other subcollections (study_states, session_states) keep owner+teacher
++      // write: students write their own study/session state directly
++      // (studyService.js:341/513/810, sessionService.js:71-185), and the
++      // teacher branch survives ONLY because client reviewChallenge still
++      // writes the student's study_states on accept (db.js:2824) — P10 (OVR)
++      // moves that server-side and narrows this to isOwner, per the
++      // long-standing TODO this rule replaces.
+       match /{subcollection}/{docId} {
+         allow read: if isAuthenticated() && (isOwner(userId) || isTeacher());
+-        allow write: if isAuthenticated() && (isOwner(userId) || isTeacher());
++        allow write: if isAuthenticated()
++          && !(subcollection in ['list_progress', 'class_progress', 'progress_meta'])
++          && (isOwner(userId) || isTeacher());
+       }
+     }
+ 
+@@ -92,34 +158,53 @@ service cloud.firestore {
+       }
+     }
+ 
+-    // ATTEMPTS
+-    // ⚠️ The attempt-write lockdown (W3) is NOT applied here yet — it is STAGED in
+-    //    `docs/plans/W3_attempts_lockdown.rules.md` and must be applied as the FINAL deploy step,
+-    //    only after SERVER_CHALLENGE_WRITE + SERVER_REVIEW_MARKER are ON + validated. Keeping the
+-    //    live rules unchanged keeps this file safe to deploy at any time (Codex: don't carry the
+-    //    lockdown live while the client still falls back to direct attempt writes).
++    // ATTEMPTS — deepfix P6 · FND-4 (c): the W3 lockdown, APPLIED. This
++    // supersedes the staged copy in `docs/plans/W3_attempts_lockdown.rules.md`,
++    // INCLUDING its "owner delete unchanged" line — FIX_PLAN P6(c) removes the
++    // owner-delete too, which is legal only because P3's resetProgress callable
++    // + the P4 SERVER_RESET_PROGRESS cutover ship first ([C5-5]). See the file
++    // header for the hard deploy preconditions.
+     match /attempts/{attemptId} {
++      // Unchanged: student-of-record + teacher-of-record read (the C-19 stamp
++      // model; widening teacher reads is P10's work, not P6's).
+       allow read: if isAuthenticated() && (
+         resource.data.studentId == request.auth.uid ||
+         resource.data.teacherId == request.auth.uid
+       );
+-      allow create: if isAuthenticated()
+-        && request.resource.data.studentId == request.auth.uid;
+-
+-      // Student-side updates are limited to the `answers` array (for
+-      // submitChallenge, which mutates a nested challengeStatus on a single
+-      // answer). Score, passed, credibility, retention, gradedBy and similar
+-      // fields cannot be touched from the client.
+-      // Teacher updates: only the teacher of record for this attempt.
+-      allow update: if isAuthenticated() && (
+-        (resource.data.studentId == request.auth.uid
+-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ||
+-        (resource.data.teacherId == request.auth.uid && isTeacher())
+-      );
+ 
+-      // Allow students to delete their own attempts (for progress reset)
+-      allow delete: if isAuthenticated()
+-        && resource.data.studentId == request.auth.uid;
++      // Server-only create (C-29/#1c): attempts are written by the callables
++      // (submitVocabAttempt / gradeTypedTest / markReviewComplete /
++      // completeSession / submitChallenge — Admin SDK bypasses rules). A direct
++      // client create of {passed:true, score:100, forged anchor fields} — the
++      // C-31 safeTWI forgery input — is denied.
++      allow create: if false;
++
++      // Student `answers`-update branch REMOVED (C-29): challenge submission is
++      // the W1 `submitChallenge` callable (functions/index.js:630, behind
++      // SERVER_CHALLENGE_WRITE — a P6 deploy precondition), so the student no
++      // longer writes answers[].challengeStatus from the client.
++      // Teacher-of-record update survives: client reviewChallenge still writes
++      // the recomputed answers/score/passed on accept/reject (db.js:2794)
++      // until P10 moves review server-side.
++      allow update: if isAuthenticated()
++        && resource.data.teacherId == request.auth.uid && isTeacher();
++
++      // Owner-delete REMOVED (C-31 anchor-erasure half; C-08): deleting own
++      // attempts let a student strip their reconciliation anchors so safeTWI
++      // fell back to a forged storedTWI (progressService.js:236). Reset is the
++      // server resetProgress callable (epoch-tombstoned) — clients delete
++      // nothing here.
++      allow delete: if false;
++    }
++
++    // TEACHER INVITES — deepfix P6 · FND-4 (F4-3 provisioning). Admin-SDK-only
++    // docs: minted by scripts/cs/create-teacher-invite.mjs (David-run), consumed
++    // by the provisionTeacher callable (functions/index.js), which flips the
++    // redeeming user's role to 'teacher' server-side. The docId is the SHA-256
++    // of the invite code (never the plaintext), so nothing here is secret —
++    // but clients have no business in this collection at all.
++    match /teacher_invites/{inviteId} {
++      allow read, write: if false;
+     }
+ 
+     // SYSTEM LOGS (for reconciliation events)

@@ -24,6 +24,8 @@ import {
 } from '../services/db'
 import { fetchStudentsProgressForClass } from '../services/progressService'
 import { fetchStudentsSessionStates } from '../services/sessionService'
+import { CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
+import { computeLapView, getCycleLength } from '../services/studyService'
 import AssignListModal from '../components/AssignListModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
@@ -64,7 +66,7 @@ const CurrentSessionCell = ({ data }) => {
 }
 
 // Component to display student progress for each assigned list
-const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
+const StudentProgressCell = ({ studentId, assignedLists, progressMap, cycleLengths = {} }) => {
   const studentProgress = progressMap[studentId] || {}
 
   if (!assignedLists || assignedLists.length === 0) {
@@ -78,9 +80,43 @@ const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
         const totalWords = list.wordCount || 0
         const wordsIntroduced = progress?.totalWordsIntroduced || 0
         const currentDay = progress?.currentStudyDay || 0
-        const percentage = totalWords > 0
-          ? Math.min(100, Math.round((wordsIntroduced / totalWords) * 100))
-          : 0
+        // P9 · CYC (§3e, Codex P9-2/P9-3): lap-aware introduction progress when the student is
+        // cycling this list. A teacher grid can't cheaply resolve a student's OTHER classes
+        // (that would be a per-student cross-class query per row), so the trigger is: THIS class
+        // enabled cycling (list.cyclingEnabled) OR the student's twi has demonstrably passed the
+        // list length (they ARE cycling — only possible when some class enabled it). Modulus is
+        // the CANONICAL cycleLength (positions.length, loaded into cycleLengths; wordCount only a
+        // transient fallback). Flag-off ⇒ cellLapView null ⇒ today's exact percentage + counts.
+        //
+        // KNOWN LIMITATION (Codex P9-7 — DOCUMENTED, accepted): a student who cycles ONLY via
+        // ANOTHER class shows ordinary finished-list progress at the EXACT first boundary
+        // (twi === cycleLength) — the `>` proxy (deliberately strict, to avoid false-positives on
+        // a normal non-cycling finished list where twi === cycleLength) can't yet tell them apart.
+        // Once they begin lap 2 (twi > cycleLength) the row flips to lap-aware. Fixing the exact
+        // boundary would need per-student effective-cycling data this teacher view doesn't carry;
+        // the student's OWN session/dashboard uses the true cross-class predicate.
+        //
+        // KNOWN FALSE-POSITIVE ([deepfix FINAL-FOLD-C · N-1] — DOCUMENTED, accepted; P9-7 recorded
+        // only the false-NEGATIVE above): the `twi > cycleLength` proxy ALSO matches a legacy
+        // OVER-INTRODUCTION row (a pre-fix bug drove twi past the list length WITHOUT cycling) →
+        // under CYCLING_ENABLED such a row falsely renders "Lap 2". Distinguishing genuine
+        // cross-class cyclers from legacy over-introduction needs the same per-student
+        // effective-cycling data this teacher grid doesn't carry, so the `>` proxy can't tell them
+        // apart. Tightening to `list.cyclingEnabled === true` ALONE would erase the (accepted)
+        // cross-class-cycler case entirely — strictly worse — so the proxy is kept and the
+        // false-positive documented. Display-only; the P5 migration quarantines the underlying
+        // ANCHORLESS_TWI / TWI_EXCEEDS_ANCHOR data, and this is inert flag-off (CYCLING_ENABLED gate).
+        const cycleLength = cycleLengths[list.id] || totalWords
+        const cellCycling = CYCLING_ENABLED && cycleLength > 0 &&
+          (list.cyclingEnabled === true || wordsIntroduced > cycleLength)
+        const cellLapView = cellCycling
+          ? computeLapView(wordsIntroduced, cycleLength)
+          : null
+        const percentage = cellLapView
+          ? cellLapView.pct
+          : (totalWords > 0
+              ? Math.min(100, Math.round((wordsIntroduced / totalWords) * 100))
+              : 0)
         const hasStarted = progress !== null && progress !== undefined
 
         return (
@@ -90,7 +126,7 @@ const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-text-muted whitespace-nowrap">
-                {hasStarted ? `Day ${currentDay}` : 'Not started'}
+                {hasStarted ? `Day ${currentDay}${cellLapView ? ` · Lap ${cellLapView.lap}` : ''}` : 'Not started'}
               </span>
               <div className="flex-1 h-2 bg-base rounded-full overflow-hidden">
                 <div
@@ -99,7 +135,7 @@ const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
                 />
               </div>
               <span className="text-text-muted whitespace-nowrap text-[10px]">
-                {wordsIntroduced}/{totalWords}
+                {cellLapView ? `${cellLapView.numer}/${cellLapView.denom}` : `${wordsIntroduced}/${totalWords}`}
               </span>
             </div>
           </div>
@@ -122,6 +158,10 @@ const ClassDetail = () => {
   const [savingName, setSavingName] = useState(false)
   const [nameError, setNameError] = useState('')
   const [assignedLists, setAssignedLists] = useState([])
+  // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per assigned list, for
+  // lap-aware student rows. Loaded (cheap aggregate count) ONLY when CYCLING_ENABLED ⇒ empty
+  // and no read when off (byte-equivalent).
+  const [cycleLengths, setCycleLengths] = useState({})
   const [teacherLists, setTeacherLists] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -134,7 +174,7 @@ const ClassDetail = () => {
   const [listFilter, setListFilter] = useState('all')
   const [generatingPDF, setGeneratingPDF] = useState(null)
 const [settingsModalList, setSettingsModalList] = useState(null)
-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60 })
+  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null, cyclingEnabled: false })
 const [savingSettings, setSavingSettings] = useState(false)
 const [unassigningListId, setUnassigningListId] = useState(null)
   const [removingStudentId, setRemovingStudentId] = useState(null)
@@ -234,6 +274,8 @@ const [unassigningListId, setUnassigningListId] = useState(null)
           reviewTestType: assignment.reviewTestType || 'mcq',
           reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
           reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
+          nextListId: assignment.nextListId ?? null, // P8 · CONT-A list-sequence link
+          cyclingEnabled: assignment.cyclingEnabled === true, // P9 · CYC per-assignment gate
         }
       }),
     )
@@ -255,6 +297,28 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       loadMembers()
     }
   }, [classInfo, loadAssignedLists, loadMembers])
+
+  // P9 · CYC (Codex P9-3): load the CANONICAL cycleLength (positions.length) for the assigned
+  // lists so student rows can render lap-aware progress against the one true modulus (also
+  // covers cross-class cyclers via the twi>cycleLength signal). Gated on CYCLING_ENABLED ⇒ no
+  // read / no state change when off (byte-equivalent).
+  useEffect(() => {
+    if (!CYCLING_ENABLED || !assignedLists.length) return
+    let cancelled = false
+    ;(async () => {
+      const entries = await Promise.all(
+        assignedLists.map(async (l) => [l.id, await getCycleLength(l.id)])
+      )
+      if (!cancelled) {
+        setCycleLengths((prev) => {
+          const next = { ...prev }
+          for (const [id, cl] of entries) if (cl > 0) next[id] = cl
+          return next
+        })
+      }
+    })()
+    return () => { cancelled = true }
+  }, [assignedLists])
 
   useEffect(() => {
     if (user?.uid) {
@@ -351,6 +415,8 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       reviewTestType: list.reviewTestType || 'mcq',
       reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
       reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
+      nextListId: list.nextListId ?? null, // P8 · CONT-A
+      cyclingEnabled: list.cyclingEnabled === true, // P9 · CYC
     })
   }
 
@@ -373,6 +439,13 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         reviewTestType: settingsForm.reviewTestType,
         reviewTestSizeMin: settingsForm.reviewTestSizeMin,
         reviewTestSizeMax: settingsForm.reviewTestSizeMax,
+        // P8 · CONT-A: only send nextListId while the feature is ON — with the flag off
+        // the key is omitted entirely (undefined → no-op in updateAssignmentSettings),
+        // keeping the flag-off write byte-identical to today's.
+        ...(CONTINUATION_LINKS ? { nextListId: settingsForm.nextListId || null } : {}),
+        // P9 · CYC: only send cyclingEnabled while the capability is ON (same spread-conditional
+        // pattern — flag off ⇒ key omitted ⇒ undefined ⇒ no-op in db.js ⇒ byte-identical save).
+        ...(CYCLING_ENABLED ? { cyclingEnabled: settingsForm.cyclingEnabled === true } : {}),
       })
       setFeedback('List settings updated successfully.')
       await loadClass()
@@ -733,6 +806,17 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                         <span className="text-emerald-600">
                           Test Options: {list.testOptionsCount ?? 4} choices
                         </span>
+                        {/* P8 · CONT-A: surface the configured sequence link on the card (display only;
+                            resolves the id against this class's assigned lists — a dangling link shows nothing) */}
+                        {CONTINUATION_LINKS && list.nextListId && (() => {
+                          const nextList = assignedLists.find((l) => l.id === list.nextListId)
+                          return nextList ? (
+                            <>
+                              <span className="text-text-muted">|</span>
+                              <span className="text-brand-text">Next: {nextList.title}</span>
+                            </>
+                          ) : null
+                        })()}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -954,6 +1038,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                               studentId={member.id}
                               assignedLists={assignedLists}
                               progressMap={studentProgressMap}
+                              cycleLengths={cycleLengths}
                             />
                           )}
                         </td>
@@ -1232,6 +1317,71 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 <p className="text-xs text-text-muted">Review test size scales with intervention (min at 0%, max at 100%).</p>
               </div>
             </div>
+
+            {/* P8 · CONT-A (CONTINUATION_LINKS): list sequence — the ordered "what comes after this
+                list" affordance over the class's OWN assigned lists. Flag off = section absent and
+                nothing is ever written. */}
+            {CONTINUATION_LINKS && (
+              <div className="border-t border-border-default pt-4 mt-4">
+                <h3 className="text-sm font-semibold text-text-primary mb-3">List Sequence</h3>
+                <label className="block text-sm font-medium text-text-secondary">
+                  Next List (after this one is finished)
+                  <select
+                    value={settingsForm.nextListId ?? ''}
+                    onChange={(event) =>
+                      setSettingsForm((prev) => ({
+                        ...prev,
+                        nextListId: event.target.value || null,
+                      }))
+                    }
+                    className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
+                  >
+                    <option value="">None — finished students stay on this list</option>
+                    {assignedLists
+                      .filter((l) => l.id !== settingsModalList.id)
+                      .map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.title}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="mt-1 text-xs text-text-muted">
+                    Students who finish this list are offered &quot;Advance to the next list&quot; and their
+                    dashboard focus moves on automatically. Only lists assigned to this class can be linked.
+                  </p>
+                </label>
+              </div>
+            )}
+
+            {/* P9 · CYC (CYCLING_ENABLED): per-assignment cycling toggle — when a student finishes
+                this list, keep them studying it on repeating "laps" (monotonic virtual index; the
+                physical words wrap). Owner-teacher-only, same write surface as pace. Section absent
+                (and nothing written) unless the global cycling capability is live. */}
+            {CYCLING_ENABLED && (
+              <div className="border-t border-border-default pt-4 mt-4">
+                <h3 className="text-sm font-semibold text-text-primary mb-3">List Cycling</h3>
+                <label className="flex items-start gap-3 text-sm font-medium text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={settingsForm.cyclingEnabled === true}
+                    onChange={(event) =>
+                      setSettingsForm((prev) => ({
+                        ...prev,
+                        cyclingEnabled: event.target.checked,
+                      }))
+                    }
+                    className="mt-0.5 h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-2 focus:ring-border-strong"
+                  />
+                  <span>
+                    Keep students cycling after they finish this list
+                    <span className="mt-1 block text-xs font-normal text-text-muted">
+                      Finished students re-study the list in laps (progress shows &quot;Lap 2&quot;, &quot;Lap 3&quot;, …)
+                      instead of dead-ending. Same pace and tests; their day counter and history are unaffected.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div className="mt-6 flex gap-3">
               <Button variant="outline" size="lg" className="flex-1" onClick={closeSettingsModal} disabled={savingSettings}>

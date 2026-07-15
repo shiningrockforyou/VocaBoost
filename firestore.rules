@@ -1,5 +1,101 @@
 rules_version = '2';
 
+// ============================================================================
+// ⚠️⚠️ deepfix — THIS IS THE P10-CUTOVER (FINAL) RULES ARTIFACT ⚠️⚠️
+// [FINAL-REVIEW F-1] This ONE file is the converged P10 END-STATE: it carries the P6
+// cutoff AND the P10c teacherIds read clause AND the P10d claim-switch/narrowings
+// TOGETHER. It therefore deploys ONLY at the P10d cutover (the LAST rules deploy),
+// under the UNION precondition below — NOT at the P6 point, and NOT at the P10c point.
+//
+// ⛔ DO NOT deploy this file at the P6 (or P10c) step. Because firebase.json maps
+//    "rules": "firestore.rules", a bare `firebase deploy --only firestore:rules` from the
+//    repo ships THIS file = P10d. At P6, deploy the snapshot
+//    audit/deepfix/task3/firestore.p6.rules (P6 cutoff, doc-role isTeacher(), teacher
+//    write branches — NO P10c/P10d). At P10c, deploy
+//    audit/deepfix/task3/firestore.p10c.rules (P6 + teacherIds read clause — NO P10d).
+//    ONE global order: audit/deepfix/task3/DEPLOY_ORDER.md.
+//
+// ── UNION DEPLOY PRECONDITION for THIS file = ALL of: the P6 1-4 block below AND the
+//    P10d D1-D4 block below AND SERVER_OVERRIDE (client reviewChallenge->callable) ON
+//    and soaked (P10a/b). BOTH precondition blocks are mandatory — this file carries both
+//    cutovers, so the P6 block ALONE is NOT sufficient to deploy it. ──
+//
+// This file carries the P6 lockdown (FIX_PLAN.md P6 (a)-(c)): client writes to progress
+// records, attempts, and the role field are DENIED; PLUS P10c/P10d. Deploying it EARLY
+// breaks live student flows AND locks out un-backfilled teachers (the P10d blast radius).
+//
+// HARD DEPLOY PRECONDITIONS (ALL — FIX_PLAN.md P6; David-run only):
+//   1. P3 functions live (completeSession/resolveListProgress/resetProgress/
+//      advanceForChallenge) with their server flags ON, incl.
+//      SERVER_RESET_PROGRESS_ENABLED + SERVER_ADVANCE_FOR_CHALLENGE_ENABLED,
+//      and TEACHER_PROVISIONING_ENABLED (the provisionTeacher callable).
+//   2. P4 client cutover shipped: SERVER_PROGRESS_WRITE, SERVER_RESET_PROGRESS,
+//      SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER all true in the LIVE bundle;
+//      bundle grep proves zero live client attempt-create/-delete calls.
+//   3. P5 migration complete; 26SM quarantine = 0; M4 shadow clean (≈0 false
+//      rejects over ≥14 days); 14-day no-legacy-write window + build census.
+//   4. Rules-test matrix green (audit/deepfix/task3/P6_impl_notes.md §4).
+// P6-STEP DEPLOY (re-keyed per F-1): the P6 rules deploy uses the ARTIFACT
+// audit/deepfix/task3/firestore.p6.rules (NOT this file). This P6 header is retained
+// here only as the RECORD of P6's preconditions — they are the P6 leg of THIS file's
+// UNION precondition (top banner). THIS file deploys at the P10d cutover, not at P6.
+// Revert: restore the prior blocks (git) + redeploy rules — full reversibility
+// holds only until P7 deletes legacy docs.
+// Note (P6(d)): M4 anchor shadow→ENFORCE is a SERVER flag flip
+// (functions/foundation.js ANCHOR_VALIDATION_ENFORCE), not a rules change.
+// Note (P10c): the attempts read rule carries ONE additive P10c clause — a teacher in an
+// attempt's denormalized `teacherIds` array may read it (the C-19 read-surface widening; see
+// the `match /attempts` read rule). It is additive/safe-anytime (inert until the teacherIds
+// backfill + TEACHER_IDS_WRITE_ENABLED land) but its DEPLOY-ORDER INVARIANT binds: it must be
+// deployed BEFORE/WITH the client TEACHER_IDS_READ flip (I-10 §4 query-vs-rules same-release).
+// P10c adds NO narrowing — the isTeacher()→isOwner teacher-breadth narrowing, the attempts
+// teacher-UPDATE narrowing, and the custom-claim role work are all part (d), STAGED BELOW in
+// THIS same draft (see the P10d note next).
+//
+// Note (P10d — THE ROLE-MODEL NARROWING · the point-of-no-return · David U7 = Option A CUSTOM
+// CLAIM): this draft ALSO carries P10(d). FOUR narrowings are staged below; they take effect
+// ONLY at the P10 cutover rules deploy (dormant in the working tree = a not-yet-deployed file):
+//   (1) isTeacher() now reads the CUSTOM CLAIM `request.auth.token.role == 'teacher'` (NO
+//       per-eval user-doc get()) — the claim is minted by provisionTeacher's setCustomUserClaims
+//       (functions/index.js, gated TEACHER_CLAIM_ENABLED) + the one-time backfill
+//       (scripts/cs/deepfix-backfill-teacher-claims.mjs).
+//   (2) users/{u}/{subcollection} WRITE narrowed isTeacher→isOwner (closes the I-10 §7 breadth:
+//       "any teacher can write any student's study_states/session_states"). READ is unchanged.
+//   (3) attempts teacher-of-record UPDATE branch REMOVED — attempts become FULLY server-owned
+//       (create:false / update:false / delete:false).
+//   (4) users/{u} UPDATE teacher OR-leg REMOVED (was `isTeacher() && ...hasOnly(['challenges'])`)
+//       — same dead-branch class: it existed ONLY for client reviewChallenge's write of a
+//       STUDENT's challenges.history (db.js:2945), now server-side. Leaves owner-only (KEEPS the
+//       role/roleProvisioning exclusion). [Codex P10d-1]
+// P10(d) does NOT touch the P10c additive read clause (the `match /attempts` read rule) or the
+// teacherIds work — those are converged.
+// ⚠ BLAST RADIUS of (1) — isTeacher() gates ~14 rules; ALL switch from doc-role to the claim AT
+//   ONCE at this deploy: class_progress CG read, users subcollection READ, classes CREATE, lists
+//   CREATE, system_logs READ, and every ap_* teacher rule (ap_tests/ap_questions/ap_stimuli/
+//   ap_answer_keys/ap_session_state/ap_test_results read+update/ap_classes/ap_assignments) — the
+//   exact post-apply anchors are enumerated in P10d_impl_notes.md §2. (Narrowings (2)(3)(4) DROP
+//   isTeacher() from their rules entirely, so they are NOT in this switch set.) A teacher WITHOUT
+//   the claim (un-backfilled,
+//   or token not yet refreshed — the promote→re-login lag) loses ALL teacher access, not just
+//   override/review. An absent claim compares false (no existence guard: a missing custom-claim
+//   key yields null, null == 'teacher' is false ⇒ fail-CLOSED). TRANSITION-SAFETY CHOICE = Option
+//   A (hard precondition), NOT Option B (claim-OR-doc window) — see D1-D4.
+// HARD DEPLOY PRECONDITIONS (ALL — David-run only; ORDER-BOUND; mirror the P6 header):
+//   D1. functions deploy carrying provisionTeacher's setCustomUserClaims is LIVE with
+//       TEACHER_CLAIM_ENABLED=true — so every NEW teacher mint also stamps the claim.
+//   D2. The one-time claim backfill has run to COMPLETION for every existing role-doc teacher:
+//       `node scripts/cs/deepfix-backfill-teacher-claims.mjs --commit --confirm-claims=teacher-role-claims`
+//       (a David-authorized run; --dry only in anyone else's hands). Verify via its read-back.
+//   D3. A token-refresh window has elapsed: every live teacher re-logged-in OR ~1h passed
+//       (ID-token TTL) so the claim is in their token. This is the accepted U7 promote→re-login
+//       lag; surface it in the provisioning UX (Signup.jsx force-refresh — see P10d notes U5).
+//   D4. Rules-test matrix re-green under the CLAIM model (auth.token.role, not doc role).
+// Deploy: `firebase deploy --only firestore:rules` — NOTHING rides along (P6 discipline).
+// Revert: git-restore the P10d blocks + redeploy. Coupling: if SERVER_OVERRIDE (client
+//   reviewChallenge→callable) is ever rolled back, revert narrowings (2)+(3) in the SAME
+//   redeploy — their reverted client teacher-writes would otherwise be denied.
+// ============================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -11,12 +107,28 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // [deepfix P6] The user-doc fetch. After the P10(d) claim switch (below) isTeacher() no
+    // longer calls this, so getUserData() is UNUSED in this draft. Retained (harmless; Firestore
+    // tolerates an unused function) as the fallback the transition-safe isTeacher() variant
+    // (Option B — see the file header P10d note) would use, and for any future doc-field rule.
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    // [deepfix P10 · OVR part (d)] ROLE MODEL = David U7 Option A: CUSTOM AUTH CLAIM.
+    // isTeacher() reads request.auth.token.role (minted by provisionTeacher's setCustomUserClaims
+    // + the one-time claim backfill) instead of a per-eval users/{uid} get(). This removes the
+    // billed doc read on EVERY teacher-gated rule AND makes the TOKEN — not a doc field adjacent
+    // to client-writable ones — the rules source of truth. Callers always gate with
+    // isAuthenticated() first, so request.auth is non-null here. An absent claim compares false
+    // (a missing custom-claim key on request.auth.token yields null; null == 'teacher' is false
+    // ⇒ fail-CLOSED — no existence guard needed).
+    // ⚠ POINT OF NO RETURN: this gates ~15 rules (see the file header BLAST RADIUS). HARD
+    // PRECONDITION (header D1-D4): claims backfilled + tokens refreshed BEFORE this deploys, or
+    // teachers lose ALL access. Transition-safe alternative (Option B, NOT chosen — accepted the
+    // re-login lag): `return getUserData().role == 'teacher' || request.auth.token.role == 'teacher';`
     function isTeacher() {
-      return getUserData().role == 'teacher';
+      return request.auth.token.role == 'teacher';
     }
 
     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
@@ -28,23 +140,80 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isTeacher();
     }
 
-    // USERS
+    // USERS — deepfix P6 · FND-4 (b): M8 role whitelist, SPLIT BY OPERATION.
+    // Closes C-28/#1b (role was owner-writable with no field whitelist, so any
+    // student could self-promote to teacher — and isTeacher() above trusts this
+    // very field). Split by op because a blanket `!affectedKeys().hasAny(['role'])`
+    // would break signup: createUserDocument (db.js:221/:233) stamps
+    // role:'student' via setDoc(merge) on a missing doc — a CREATE, where the
+    // role key is always "affected".
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (
-        isOwner(userId) ||
-        (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
-      );
 
-      // TODO(security): teacher writes here exist solely to support
-      // reviewChallenge (writes student's study_states + class_progress when
-      // accepting/rejecting a dispute). This is overly broad — any teacher
-      // account can write any student's subcollections regardless of class
-      // membership. Follow-up: move reviewChallenge to a Cloud Function
-      // (Admin SDK bypasses rules) and tighten this to `isOwner(userId)`.
+      // CREATE: owner-only, and only as a student (or no role field — the app
+      // reads absent role as 'student', AuthContext.jsx:39). A self-created
+      // role:'teacher' doc is DENIED; teachers are provisioned via the
+      // provisionTeacher callable (Admin SDK bypasses rules — see
+      // teacher_invites below and functions/index.js).
+      allow create: if isAuthenticated() && isOwner(userId)
+        && (!('role' in request.resource.data) || request.resource.data.role == 'student');
+
+      // UPDATE: owner may not touch `role` or the server-stamped
+      // `roleProvisioning` provenance. affectedKeys() compares VALUES, so a
+      // merge-set that re-sends role:'student' UNCHANGED still passes (retry
+      // safety); any actual role change is denied. Ordinary profile/settings/
+      // enrolledClasses/challenges owner updates pass unchanged.
+      // [deepfix P10 · OVR part (d)] Teacher OR-leg REMOVED (was
+      // `isTeacher() && ...affectedKeys().hasOnly(['challenges'])`). It survived ONLY for client
+      // reviewChallenge's teacher-write of the STUDENT's challenges.history (db.js:2945). P10(b)
+      // moved reviewChallenge server-side (Admin SDK bypasses rules), so NO legitimate client
+      // teacher-write to a student's `challenges` remains — submitChallenge (db.js:2803) is the
+      // STUDENT/owner writing their OWN challenges.history, which passes the owner branch below
+      // and is unaffected. Leaves owner-only, KEEPING the role/roleProvisioning exclusion. Same
+      // rollback coupling as the attempts-UPDATE / study_states narrowings: if SERVER_OVERRIDE
+      // (client reviewChallenge→callable) is rolled back, revert THIS narrowing in the SAME rules
+      // redeploy (else the reverted client teacher-write is denied).
+      allow update: if isAuthenticated()
+        && isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['role', 'roleProvisioning']);
+
+      // DELETE: no live client path deletes a user doc (grep 2026-07-13), and
+      // deleting one would wipe challenges.history (token rejections) and
+      // enrolledClasses. Server/Admin only.
+      allow delete: if false;
+
+      // SUBCOLLECTIONS — P6 (a) [C5-4]: progress records are SERVER-OWNED from
+      // this deploy on. `list_progress` (canonical, P5) + `class_progress`
+      // (legacy, until P7 deletes it) + `progress_meta` (the resetProgress
+      // reset-epoch tombstone) accept NO client writes: the P3 callables
+      // (completeSession / resolveListProgress / resetProgress /
+      // advanceForChallenge — Admin SDK) are the only writers. READS survive
+      // for owner + teacher: students read their own progress; the teacher
+      // Students view reads students' list_progress directly
+      // (progressService.js:590) and class_progress as fallback.
+      // Other subcollections (study_states, session_states) keep owner+teacher
+      // write: students write their own study/session state directly
+      // (studyService.js:341/513/810, sessionService.js:71-185), and the
+      // teacher branch survives ONLY because client reviewChallenge still
+      // writes the student's study_states on accept (db.js:2824) — P10 (OVR)
+      // moves that server-side and narrows this to isOwner, per the
+      // long-standing TODO this rule replaces.
       match /{subcollection}/{docId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isTeacher());
-        allow write: if isAuthenticated() && (isOwner(userId) || isTeacher());
+        // [deepfix P10 · OVR part (d)] WRITE narrowed isTeacher→isOwner (was
+        // `isOwner(userId) || isTeacher()`). The teacher-breadth — ANY teacher writing ANY
+        // student's study_states/session_states, the I-10 §7 hazard — survived ONLY because
+        // client reviewChallenge wrote the student's study_states PASSED marker on accept
+        // (db.js:2824). P10(b) moved reviewChallenge server-side (Admin SDK bypasses rules, so
+        // the callable still performs that write), so NO legitimate client teacher-write to a
+        // student subcollection remains ⇒ drop isTeacher(). READ (above) KEEPS the teacher
+        // branch — the teacher Students view reads students' progress subcollections. HARD
+        // PRECONDITION: SERVER_OVERRIDE (client reviewChallenge→callable) ON + soaked BEFORE
+        // this deploys (header D-order + the SERVER_OVERRIDE rollback coupling).
+        allow write: if isAuthenticated()
+          && !(subcollection in ['list_progress', 'class_progress', 'progress_meta'])
+          && isOwner(userId);
       }
     }
 
@@ -92,34 +261,74 @@ service cloud.firestore {
       }
     }
 
-    // ATTEMPTS
-    // ⚠️ The attempt-write lockdown (W3) is NOT applied here yet — it is STAGED in
-    //    `docs/plans/W3_attempts_lockdown.rules.md` and must be applied as the FINAL deploy step,
-    //    only after SERVER_CHALLENGE_WRITE + SERVER_REVIEW_MARKER are ON + validated. Keeping the
-    //    live rules unchanged keeps this file safe to deploy at any time (Codex: don't carry the
-    //    lockdown live while the client still falls back to direct attempt writes).
+    // ATTEMPTS — deepfix P6 · FND-4 (c): the W3 lockdown, APPLIED. This
+    // supersedes the staged copy in `docs/plans/W3_attempts_lockdown.rules.md`,
+    // INCLUDING its "owner delete unchanged" line — FIX_PLAN P6(c) removes the
+    // owner-delete too, which is legal only because P3's resetProgress callable
+    // + the P4 SERVER_RESET_PROGRESS cutover ship first ([C5-5]). See the file
+    // header for the hard deploy preconditions.
     match /attempts/{attemptId} {
+      // student-of-record + teacher-of-record read (the C-19 stamp model), PLUS
+      // the P10c read-surface WIDENING (below).
+      // [deepfix P10 · OVR part (c)] C-19 read-surface WIDENING (David U1 = Option A). Third OR
+      // clause: a teacher listed in the attempt's denormalized `teacherIds` array may read it —
+      // so B's teacher sees a promoted student's A-stamped INHERITED attempt (the gradebook
+      // query in db.js queryTeacherAttempts widens to `array-contains` under TEACHER_IDS_READ;
+      // I-10 §4 makes the query change + this read-rule change ONE release). Pure ADDITIVE read
+      // WIDENING: it grants EXACTLY `uid ∈ teacherIds` and nothing else. Safe to deploy at ANY
+      // time — pre-backfill NO attempt carries `teacherIds`, so the `'teacherIds' in
+      // resource.data` existence guard (house idiom, cf. the role guard ~:72) short-circuits the
+      // membership check and the clause matches NOTHING until the write-flag + backfill land ⇒
+      // no behavior change until cutover. DEPLOY-ORDER INVARIANT: this rule MUST be deployed
+      // BEFORE/WITH the TEACHER_IDS_READ flag flip (a query-only widen would hit this backstop).
+      // NARROWING (isTeacher()→isOwner teacher-breadth, the attempts teacher-UPDATE branch,
+      // study_states, custom-claim) is part (d) — NOT here.
       allow read: if isAuthenticated() && (
         resource.data.studentId == request.auth.uid ||
-        resource.data.teacherId == request.auth.uid
-      );
-      allow create: if isAuthenticated()
-        && request.resource.data.studentId == request.auth.uid;
-
-      // Student-side updates are limited to the `answers` array (for
-      // submitChallenge, which mutates a nested challengeStatus on a single
-      // answer). Score, passed, credibility, retention, gradedBy and similar
-      // fields cannot be touched from the client.
-      // Teacher updates: only the teacher of record for this attempt.
-      allow update: if isAuthenticated() && (
-        (resource.data.studentId == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ||
-        (resource.data.teacherId == request.auth.uid && isTeacher())
+        resource.data.teacherId == request.auth.uid ||
+        ('teacherIds' in resource.data && request.auth.uid in resource.data.teacherIds)
       );
 
-      // Allow students to delete their own attempts (for progress reset)
-      allow delete: if isAuthenticated()
-        && resource.data.studentId == request.auth.uid;
+      // Server-only create (C-29/#1c): attempts are written by the callables
+      // (submitVocabAttempt / gradeTypedTest / markReviewComplete /
+      // completeSession / submitChallenge — Admin SDK bypasses rules). A direct
+      // client create of {passed:true, score:100, forged anchor fields} — the
+      // C-31 safeTWI forgery input — is denied.
+      allow create: if false;
+
+      // Student `answers`-update branch REMOVED (C-29): challenge submission is
+      // the W1 `submitChallenge` callable (functions/index.js:630, behind
+      // SERVER_CHALLENGE_WRITE — a P6 deploy precondition), so the student no
+      // longer writes answers[].challengeStatus from the client.
+      // [deepfix P10 · OVR part (d)] Teacher-of-record UPDATE branch REMOVED (was
+      // `resource.data.teacherId == request.auth.uid && isTeacher()`). It survived only for
+      // client reviewChallenge's accept/reject write (recomputed answers/score/passed,
+      // db.js:2794). P10(b) moved reviewChallenge — and added overrideAttempt — server-side (the
+      // I-10 §6 authz UNION is enforced IN the callable; Admin SDK bypasses rules), so NO
+      // legitimate client teacher-write to an attempt remains. attempts are now FULLY
+      // server-owned (create:false / update:false / delete:false). U4: full removal (if false)
+      // is strictly safer than narrowing to the union — the union is server-enforced now. HARD
+      // PRECONDITION: SERVER_OVERRIDE ON + soaked BEFORE this deploys; if SERVER_OVERRIDE is ever
+      // rolled back, revert THIS narrowing in the SAME redeploy (else the reverted client
+      // teacher-write is denied).
+      allow update: if false;
+
+      // Owner-delete REMOVED (C-31 anchor-erasure half; C-08): deleting own
+      // attempts let a student strip their reconciliation anchors so safeTWI
+      // fell back to a forged storedTWI (progressService.js:236). Reset is the
+      // server resetProgress callable (epoch-tombstoned) — clients delete
+      // nothing here.
+      allow delete: if false;
+    }
+
+    // TEACHER INVITES — deepfix P6 · FND-4 (F4-3 provisioning). Admin-SDK-only
+    // docs: minted by scripts/cs/create-teacher-invite.mjs (David-run), consumed
+    // by the provisionTeacher callable (functions/index.js), which flips the
+    // redeeming user's role to 'teacher' server-side. The docId is the SHA-256
+    // of the invite code (never the plaintext), so nothing here is secret —
+    // but clients have no business in this collection at all.
+    match /teacher_invites/{inviteId} {
+      allow read, write: if false;
     }
 
     // SYSTEM LOGS (for reconciliation events)

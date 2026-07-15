@@ -1,0 +1,86 @@
+# Findings — B_LIST_PROGRESS_PHASE1 (DFX_winclaude-ui-r10)
+
+**Run date:** 2026-07-14T20:31:42.161Z
+**Policy:** docs/plans/PLAYWRIGHT_AUDIT_list_progress_persist_phase1.md
+
+## Raw anomaly log (triage EVERY entry — none dropped without written justification)
+
+  - STEP [teacher] create class "25WT DFX RS-1 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RS-1 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:32:35.773Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=R-GRs_3aVfeJFGkIMnFVPrk0ijTHqzXBBinmF5c3FDSZlcwd5el8bA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RS-1 winclaude-ui-r10 → Z7CYMP
+  - STEP [RS-1] join "25WT DFX RS-1 winclaude-ui-r10" via Z7CYMP → member
+- [2026-07-14T20:32:55.521Z] **request-failed** — [student-RS-1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=EAdOpl7VKIe5MeXJrsDxRl1S9IvjkqssqXV8TiH39r7Q7GkEr2YMMA&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:32:55.529Z] **request-failed** — [student-RS-1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=FyGVqc0DUyRXGLl-uR_kkOGvgYZvKph2jQ_QRewwfOOI5efnuuOeSQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:33:07.094Z] **request-failed** — [teacher-RS-1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jksehK-2LOThu56_31-P9_vymzHbrl1i9rxwQYmLiilpZtow1mj5Qg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RS-2 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RS-2 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:34:06.893Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=xSOIXKWCM4rvsu4KaWgUqsZ4udtUS1r18J9pDEAr8oJ7HWYTiEeVtQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RS-2 winclaude-ui-r10 → 4SHSXU
+  - STEP [RS-2] join "25WT DFX RS-2 winclaude-ui-r10" via 4SHSXU → member
+- [2026-07-14T20:34:27.063Z] **request-failed** — [student-RS-2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=kTyUK3LZPzdBHHYrmCHXjmBKEyb4nzeSXar5pLLTzZiwjqX6ia4IEg&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:34:27.070Z] **request-failed** — [student-RS-2] GET http://localhost:5173/src/index.css?t=1784061265539 — net::ERR_ABORTED
+- [2026-07-14T20:34:27.074Z] **request-failed** — [student-RS-2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=h8n9mstYD8e_MaB0w_aaiDjcjVMDt9js10IiDXaVLOizo_lxb9tDIQ&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:34:37.916Z] **request-failed** — [teacher-RS-2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=a1VDMEmr8Un1nZMLB8x19gZgawP60bEUMbPJ9ZHuTGrgpMZ6FXTcbA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RS-3 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RS-3 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT DFX RS-3 winclaude-ui-r10 → QPCHEH
+  - STEP [RS-3] join "25WT DFX RS-3 winclaude-ui-r10" via QPCHEH → member
+- [2026-07-14T20:35:57.834Z] **request-failed** — [student-RS-3] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=LbnY3l6Y5kB1wvrk4Mqz9XNlcuIX1e1fpfQuc1URvi-69t9W0MtCQw&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:35:57.842Z] **request-failed** — [student-RS-3] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=E8_8Qi2BCNFQOjVGJwbpPnIox2JRjiZMaX-wuYluj7IRulIBRg317A&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:36:03.155Z] **request-failed** — [student-RS-3] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_xA1N4ElScN3O503-zTRmdB6NcUfKmbP2aqpQ2UsmVvi0H-Fl3OFbQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RS-4 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RS-4 winclaude-ui-r10 (pace=30 thr=90 mode=typed) → ok
+- [2026-07-14T20:37:12.222Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=3zVDO0_q2UmisRiBQLjaR7uPfRgyLpio7SEgHIQixolU1sQGePHhJg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RS-4 winclaude-ui-r10 → 4F3WSA
+  - STEP [RS-4] join "25WT DFX RS-4 winclaude-ui-r10" via 4F3WSA → member
+- [2026-07-14T20:37:32.658Z] **request-failed** — [student-RS-4] GET http://localhost:5173/src/index.css?t=1784061451106 — net::ERR_ABORTED
+- [2026-07-14T20:37:32.666Z] **request-failed** — [student-RS-4] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=f6Pj1g_2y8-OUu1Chb14ziC-pT2DxDfAxhKuTAtlUUJPVKwxgoOmLQ&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:37:32.670Z] **request-failed** — [student-RS-4] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=078hetxAcUKQEc7QrbuXQHHZK0ZxGId-PQQgNOu6JHbArQS3r5q0sg&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:37:37.890Z] **request-failed** — [student-RS-4] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=6At8E1Tpgs3CXEF3ojAjUxihThknm8-h2eS3ymDa0y3wRsUOfzhI8w&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RO-S1 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RO-S1 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:39:07.453Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=CG49b7dAr0YP-vVm9u_Z5k8gU09LYc0nmxe8cjwH7JwdNXOV_iEbqQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RO-S1 winclaude-ui-r10 → FN8T3B
+  - STEP [RO-S1] join "25WT DFX RO-S1 winclaude-ui-r10" via FN8T3B → member
+- [2026-07-14T20:39:27.476Z] **request-failed** — [student-RO-S1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=P4Imm3ROu9wbsSYo5Vc9YuqBw5YUV1zWfVEHX8tzZR9dR_ZwB6pqBQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:39:27.483Z] **request-failed** — [student-RO-S1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=3L4pIdYM1WzEkZopRU2qREeMpNBgz3CZwNjiHYFDikB99zE59C5Jvg&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:39:27.487Z] **request-failed** — [student-RO-S1] GET http://localhost:5173/src/index.css?t=1784061565961 — net::ERR_ABORTED
+- [2026-07-14T20:40:07.244Z] **flow-gap** — [RO-S1] on test-results route but "Continue" never appeared (20s)
+  - STEP [teacher] create class "25WT DFX RO-S9 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RO-S9 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:40:59.914Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jPAbli6M-TWNiOsuOwsXu5KaIm2zk1-Lj0cTS7BEaZVU7LMq4Vmi1w&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RO-S9 winclaude-ui-r10 → MLQBTA
+  - STEP [RO-S9] join "25WT DFX RO-S9 winclaude-ui-r10" via MLQBTA → member
+- [2026-07-14T20:41:19.980Z] **request-failed** — [student-RO-S9] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=wQ_D_BC3HNr0_txvvwEckpU7e-_gZ1QTEWKYm5EgzTfCaQG3qcFh6w&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:41:19.988Z] **request-failed** — [student-RO-S9] GET http://localhost:5173/src/index.css?t=1784061678430 — net::ERR_ABORTED
+- [2026-07-14T20:41:19.994Z] **request-failed** — [student-RO-S9] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=lAJ5tK1XMUXAUwt2O8nQJnNPY6cSUC_jQcwtCBfOhn1TBVzkqreDJw&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:41:27.853Z] **request-failed** — [student-RO-S9] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=fiTBA0H__TTWAntkNh9IaBgfRtwIwXkaJDS2n8BB-9AB5K9ykCu3Og&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:41:35.628Z] **request-failed** — [student-RO-S9] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=3KEo31XlogP9F4x3vfaUFbz6bHkfhF0XIO8Mulo73LiLKFIA9SDtIQ&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:41:44.158Z] **request-failed** — [student-RO-S9] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=pdY-iKTJv2zdkvOKZZFSaEwz6GeLKlKwHwEv7UKaPLIbRVD9538Hdg&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RO-S10 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RO-S10 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:42:52.071Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Tb8qZYZF4MLeRwetemHgfV9fN-I4x7E2p_LvA6le7hJubGviBDC7PQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RO-S10 winclaude-ui-r10 → UTZU6S
+  - STEP [RO-S10] join "25WT DFX RO-S10 winclaude-ui-r10" via UTZU6S → member
+- [2026-07-14T20:43:12.701Z] **request-failed** — [student-RO-S10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=LWZCzIyhfMp0tRILcuW7FbaoE8qKMXg9xih9Rp4aBNhZV3q0xpKWhw&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:43:12.710Z] **request-failed** — [student-RO-S10] GET http://localhost:5173/src/index.css?t=1784061791061 — net::ERR_ABORTED
+- [2026-07-14T20:43:12.713Z] **request-failed** — [student-RO-S10] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=UTBz25PdFbahU7gY2kiJoOq4waY8L0NpeI2Ds8HB4rtaS4WZjd2tPw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RA1 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RA1 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:44:24.505Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=0ImLJP0e0cmrw6VH_xIrORb222voLrMUJGWgqwJ07maMdBsX3b2sPQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RA1 winclaude-ui-r10 → 3NL8P6
+  - STEP [RA1] join "25WT DFX RA1 winclaude-ui-r10" via 3NL8P6 → member
+- [2026-07-14T20:44:54.709Z] **request-failed** — [student-RA1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=yFvfAU5-p3WOv2KkjHBvS-9oOT3d_hjLqq_ggaj5Gbq0-hJdICW04g&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:44:54.714Z] **request-failed** — [student-RA1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=AdQpNSlraDo1GybyeIFEDGmxMwVycKoUpr4m8PwRpWT2GKovqDFLyQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:45:35.647Z] **selector-gap** — [RA1] Session-menu button not visible after 30010ms
+- [2026-07-14T20:45:46.341Z] **request-failed** — [student-RA1] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Od4gONIE4DZtAWNIasosrRaq9lDGm8k-y9bGxyM_cI1kRxhwhPKoew&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] create class "25WT DFX RA2 winclaude-ui-r10"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFX RA2 winclaude-ui-r10 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-14T20:46:44.482Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=SS8uDLZ78C5tW_6PzNFYDXZ-J4jIdCuQk7WRb3BGayWhBuJS0ya3eA&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFX RA2 winclaude-ui-r10 → 9PQ747
+  - STEP [RA2] join "25WT DFX RA2 winclaude-ui-r10" via 9PQ747 → member
+- [2026-07-14T20:47:04.002Z] **request-failed** — [student-RA2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=HTY5EFdgaOFymksLisPs8m5GqNtloM_TB8M-SECVyL0c53aLal-elQ&VER=8& — net::ERR_ABORTED
+- [2026-07-14T20:47:04.006Z] **request-failed** — [student-RA2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=GzV9_1rke-1SUqPCfWCUx2KrNrm8QcRJ61vdpzIqOyA5ydoVMOxDcA&VER=8&d — net::ERR_ABORTED
+- [2026-07-14T20:47:45.012Z] **selector-gap** — [RA2-d0] Session-menu button not visible after 30015ms
+- [2026-07-14T20:47:55.723Z] **request-failed** — [student-RA2] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Rw3vgqbOiAzLb7vb7Uuz9lJVdE_M2GDBJXys_Cdb1HoiXlBD3aNyzw&VER=8& — net::ERR_ABORTED

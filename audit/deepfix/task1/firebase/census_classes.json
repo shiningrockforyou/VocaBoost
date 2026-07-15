@@ -1,0 +1,1176 @@
+[
+  {
+    "id": "6F0PX2E3gXetiI0Yw275",
+    "name": "26SM SAT Adv A1",
+    "studentCount": 51,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "7PDT5jGKWNBh8oB0tjYh",
+    "name": "26SM SAT Adv B1",
+    "studentCount": 51,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "9dTUjIA4FEWdA9NPIeOa",
+    "name": "26SM [주말] SAT Top",
+    "studentCount": 0,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "BY3cZduMAdqTtfCe8U5d",
+    "name": "26SM SAT Adv E [English only]",
+    "studentCount": 26,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "CKDTCxTTvscEZAY1DbUN",
+    "name": "26SM SAT Inter B2",
+    "studentCount": 44,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-21"
+      }
+    ]
+  },
+  {
+    "id": "CN9MKLRGy7oXZduR9VXQ",
+    "name": "26SM 제주 SAT BRIDGE",
+    "studentCount": 11,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-08"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-07-10"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-06-07"
+      }
+    ]
+  },
+  {
+    "id": "Dw5c6tgvFGc9ZAJoPeB0",
+    "name": "26SM SAT Inter. O",
+    "studentCount": 11,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-21"
+      }
+    ]
+  },
+  {
+    "id": "EcLMtUCc6uI1JJDcKuNI",
+    "name": "26SM 미주 SAT Final",
+    "studentCount": 42,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "FwTR4HmgOcdBvNulSfi9",
+    "name": "26SM 유라시아 SAT Core",
+    "studentCount": 18,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "testMode": "typed",
+        "assignedAt": "2026-07-06"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "JFCtimk25DPR333XzJHU",
+    "name": "26SM SAT Bridge (TOP)",
+    "studentCount": 56,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "KKQ0x7kivEgRlEVnXrkW",
+    "name": "26SM SAT Final B",
+    "studentCount": 49,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "LB7NKMu5HHfzTU7GXuJi",
+    "name": "26SM 제주 SAT CORE",
+    "studentCount": 23,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-07-07"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 90,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-08"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-06-07"
+      }
+    ]
+  },
+  {
+    "id": "NIeWKHdOuXfqIVbCmkBh",
+    "name": "26SM [온] Sat Adv. O",
+    "studentCount": 13,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "Nys1FfB9Pkl1iyO5FYhx",
+    "name": "26SM SAT Adv A2",
+    "studentCount": 54,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "OBtxUKiBpHe7SwAGxWP0",
+    "name": "26SM 미주 SAT Adv. [한국어 혼용]",
+    "studentCount": 13,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "Q2vDBN0guwGG5NIEAhdJ",
+    "name": "26SM [주말] SAT Core",
+    "studentCount": 1,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "TyBnqbcc3PZJzNzUhHek",
+    "name": "26SM SAT Inter A2",
+    "studentCount": 45,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "VQnVmsd4mufC3Nej20cx",
+    "name": "26SM 미주 SAT Inter. [한국어 혼용]",
+    "studentCount": 9,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "YAkjxuasyhNy03uS1GlG",
+    "name": "26SM SAT Inter B4",
+    "studentCount": 33,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "cKtB3HVMrQfS6lLe9vLe",
+    "name": "26SM 유라시아 SAT Top",
+    "studentCount": 21,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "testMode": "typed",
+        "assignedAt": "2026-07-07"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "hRgY5rOTdEZ4Ik7q9Dku",
+    "name": "26SM 미주 SAT Inter.",
+    "studentCount": 43,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "hXeShlAb5HSAlrRXZROc",
+    "name": "26SM 제주 SAT TOP",
+    "studentCount": 11,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 90,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-06"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-07-07"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 90,
+        "testMode": "typed",
+        "assignedAt": "2026-06-05"
+      }
+    ]
+  },
+  {
+    "id": "jDDw2GEurOj5kD9JswI7",
+    "name": "26SM SAT Inter E [English only]",
+    "studentCount": 30,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "k0j59bXvvtedgqi98apt",
+    "name": "26SM SAT Inter A1",
+    "studentCount": 50,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "o00h5if6YIcoEb5Kpodg",
+    "name": "26SM 미주 SAT Adv.",
+    "studentCount": 27,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "o3UHkbyusMWJN7prf3fr",
+    "name": "26SM 미주 SAT Bridge",
+    "studentCount": 7,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "qIrJTbwlDOnCKLaTYoz4",
+    "name": "26SM SAT Adv B2",
+    "studentCount": 49,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "qeCkS6BpZLVGLe2G5O7Z",
+    "name": "26SM SAT Final A",
+    "studentCount": 70,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 100,
+        "testSizeNew": 35,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-29"
+      }
+    ]
+  },
+  {
+    "id": "sO7jN85mL5ZsaBY1BbGm",
+    "name": "26SM SAT Inter B3",
+    "studentCount": 35,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "mcq",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "mcq",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "t9m2SMKIVWNGGA45RclC",
+    "name": "26SM SAT Inter B1",
+    "studentCount": 32,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-23"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "teKHajONWBMe0YJSAeGl",
+    "name": "26SM SAT Inter A3",
+    "studentCount": 39,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-06-22"
+      },
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 80,
+        "testSizeNew": 30,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  },
+  {
+    "id": "wRoGjp2QTa89DxAk9PlT",
+    "name": "26SM SAT Bridge (CORE)",
+    "studentCount": 39,
+    "assignedLists": 3,
+    "assignmentCount": 3,
+    "splitBrain": false,
+    "assignments": [
+      {
+        "listId": "RmNNkuLPectBlBPiLbAJ",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-31"
+      },
+      {
+        "listId": "dVliNv0p9jqZYp9rfLpN",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      },
+      {
+        "listId": "AObYOowhLoOOHx9wW2Sq",
+        "pace": 60,
+        "testSizeNew": 25,
+        "passThreshold": 92,
+        "newWordRetakeThreshold": 0.92,
+        "testMode": "typed",
+        "assignedAt": "2026-05-30"
+      }
+    ]
+  }
+]

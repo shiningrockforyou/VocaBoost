@@ -1,0 +1,60 @@
+26SM classes=32 students=817 lists=3
+
+scanned=817 started=774 err=0 dualEnrollDocs=141
+
+=== F-2 test-size (true undersized, first-attempt, non-remainder): 18 ===
+{
+ "q10->exp30": 2,
+ "q13->exp30": 4,
+ "q14->exp30 [day1]": 1,
+ "q12->exp30": 2,
+ "q20->exp35": 1,
+ "q10->exp30 [day1]": 2,
+ "q10->exp35 [day1]": 1,
+ "q13->exp30 [day1]": 1,
+ "q14->exp35": 1,
+ "q12->exp35": 1,
+ "q8->exp25": 1,
+ "q13->exp25": 1
+}
+distinct students: 17 | day-1: 5
+
+=== F-3 dual-enroll (141 student-lists) by kind ===
+{
+ "benign-equal": 26,
+ "benign-finished": 5,
+ "STRANDED": 104,
+ "divergent": 6
+}
+STRANDED sample:
+   ehM8Y1fI dVliNv0p anchorTwi80 SAT Adv A1:csd1/twi80 | SAT Inter A3:csd0/twi0 strand:SAT Inter A3
+   V25Rwqt2 dVliNv0p anchorTwi880 SAT Adv A1:csd10/twi800 | SAT Inter A2:csd0/twi0 strand:SAT Adv A1,SAT Inter A2
+   OCzwBwAb dVliNv0p anchorTwi880 SAT Adv A1:csd11/twi880 | SAT Final A:csd5/twi500 strand:SAT Final A
+   ob0Ngt48 dVliNv0p anchorTwi1200 SAT Adv A1:csd15/twi1200 | 미주 SAT Adv. [한국어 혼용]:csd14/twi1120 strand:미주 SAT Adv. [한국어 혼용]
+   d8DzmjMP dVliNv0p anchorTwi1520 SAT Adv B1:csd19/twi1520 | SAT Final B:csd2/twi200 strand:SAT Final B
+   jqodrexU AObYOowh anchorTwi480 SAT Adv B1:csd6/twi480 | SAT Final A:csd0/twi0 strand:SAT Final A
+   jqodrexU dVliNv0p anchorTwi1600 SAT Adv B1:csd20/twi1600 | SAT Final A:csd0/twi0 strand:SAT Final A
+   kT4E0rVo RmNNkuLP anchorTwi100 SAT Adv B1:csd0/twi0 | SAT Final B:csd1/twi100 strand:SAT Adv B1
+divergent sample:
+   JqYnk9Wn dVliNv0p spread20 SAT Adv B1:csd6/twi480 | SAT Final B:csd5/twi500
+   3sn4KPjh dVliNv0p spread20 SAT Inter B2:csd1/twi20 | SAT Adv B2:csd0/twi0
+   6hKX2rUZ RmNNkuLP spread60 SAT Bridge (TOP):csd19/twi1140 | SAT Inter A3:csd20/twi1200
+   4I7iW3Dp RmNNkuLP spread60 SAT Bridge (TOP):csd6/twi540 | SAT Inter B4:csd6/twi480
+   42YfaoaX RmNNkuLP spread60 SAT Bridge (TOP):csd12/twi720 | SAT Bridge (CORE):csd11/twi660
+   cV2Du4qj RmNNkuLP spread40 미주 SAT Inter.:csd7/twi560 | 미주 SAT Bridge:csd10/twi600
+
+=== F-4 H/P/B partition (of 774 started) ===
+  H(healthy)=623  P_holding=21  P_failed=24  B(broken-signature)=106
+
+=== F-9 deploy-state — ALL 20719 attempts since 2025-11-25 ===
+  correctnessSource: {"undefined":8567,"null":11990,"server-ai":162} | writtenBy: {"(none)":5748,"cloud-function":14971}
+  RECENT (last 21d, since 2026-06-22, 15633 attempts) → correctnessSource: {"null":11990,"undefined":3481,"server-ai":162} | writtenBy: {"cloud-function":14970,"(none)":663}
+  [null correctnessSource ⇒ GRADE_TOKEN_ENFORCED OFF live; cloud-function writtenBy ⇒ SERVER_ATTEMPT_WRITE live]
+
+=== F-11 twi>mastery: 4 student-lists (overBy>5) ===
+   MolfYHnf dVliNv0p twi1300 ss1200 over100 
+   TGJNuQ1v dVliNv0p twi1600 ss1503 over97 [patched]
+   IRcn5Ksb RmNNkuLP twi1280 ss1200 over80 [patched]
+   hLSeh3q7 RmNNkuLP twi780 ss720 over60 
+
+wrote scan_F2/F3/F4/F9/F11 to task1/firebase/

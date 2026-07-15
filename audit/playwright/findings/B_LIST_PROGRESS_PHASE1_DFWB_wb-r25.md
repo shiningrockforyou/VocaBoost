@@ -1,0 +1,108 @@
+# Findings — B_LIST_PROGRESS_PHASE1 (DFWB_wb-r25)
+
+**Run date:** 2026-07-15T11:59:25.889Z
+**Policy:** docs/plans/PLAYWRIGHT_AUDIT_list_progress_persist_phase1.md
+
+## Raw anomaly log (triage EVERY entry — none dropped without written justification)
+
+- [2026-07-15T11:59:28.356Z] **provision** — [W-RA3g] created fresh sandbox account lsr_s150@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB W-RA3g wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB W-RA3g wb-r25 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-15T12:00:19.494Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=xUsoAt08eXAtW9ylvtnxyiaxORyX4fEykpCyVCG8KiUFb7uOkHg3dw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFWB W-RA3g wb-r25 → F3WGKN
+- [2026-07-15T12:00:37.674Z] **BUG** — [W-RA3g] joined "25WT DFWB W-RA3g wb-r25" via F3WGKN but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:00:37.772Z] **request-failed** — [wb-W-RA3g] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Sfgrwzq-uTLBbVTT5m2tygvACA504NwHf_0uO0JR0HGKIWE4OtQ2dw&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:00:37.778Z] **request-failed** — [wb-W-RA3g] GET http://localhost:5173/src/index.css?t=1784116837714 — net::ERR_ABORTED
+- [2026-07-15T12:00:42.376Z] **recovery** — [W-RA3g] after "refresh" → still broken
+- [2026-07-15T12:00:50.773Z] **recovery** — [W-RA3g] after "re-submit join" → still broken
+- [2026-07-15T12:00:51.486Z] **request-failed** — [wb-W-RA3g] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=AUxTo6vJdh9kXng4tkjb6gsb6uKNZhiMVXw9OO-F61TUuQBX6RRMZQ&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:00:51.491Z] **request-failed** — [wb-W-RA3g] GET http://localhost:5173/src/index.css?t=1784116850813 — net::ERR_ABORTED
+- [2026-07-15T12:00:55.330Z] **recovery** — [W-RA3g] after "refresh" → still broken
+- [2026-07-15T12:00:55.333Z] **recovery** — [W-RA3g] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [W-RA3g] join "25WT DFWB W-RA3g wb-r25" via F3WGKN → NOT a member after recovery — continuing
+- [2026-07-15T12:01:07.344Z] **flow-gap** — [W-RA3g] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:01:12.354Z] **flow-gap** — [W-RA3g-pos] no Start Session/Continue to enter the session
+- [2026-07-15T12:01:13.664Z] **provision** — [W-RA4] created fresh sandbox account lsr_s151@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB W-RA4 wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB W-RA4 wb-r25 (pace=3 thr=92 mode=typed) → ok
+  - STEP [teacher] read join code for 25WT DFWB W-RA4 wb-r25 → Y545BE
+- [2026-07-15T12:02:22.859Z] **BUG** — [W-RA4] joined "25WT DFWB W-RA4 wb-r25" via Y545BE but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:02:22.951Z] **request-failed** — [wb-W-RA4] GET http://localhost:5173/src/index.css?t=1784116942901 — net::ERR_ABORTED
+- [2026-07-15T12:02:22.954Z] **request-failed** — [wb-W-RA4] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=uJdIe5k6o_RqpVmfR-7oLX9AaH9fDMCDesqmUuImdQ4BNaFYyJHXLw&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:02:27.508Z] **recovery** — [W-RA4] after "refresh" → still broken
+- [2026-07-15T12:02:35.879Z] **recovery** — [W-RA4] after "re-submit join" → still broken
+- [2026-07-15T12:02:35.974Z] **request-failed** — [wb-W-RA4] GET http://localhost:5173/src/index.css?t=1784116955924 — net::ERR_ABORTED
+- [2026-07-15T12:02:35.978Z] **request-failed** — [wb-W-RA4] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=u3g9uOgtdVWbRCYlskeaKknR39I0RsXXjLWNKjIXghtlEgxbIDFJIA&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:02:40.479Z] **recovery** — [W-RA4] after "refresh" → still broken
+- [2026-07-15T12:02:40.483Z] **recovery** — [W-RA4] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [W-RA4] join "25WT DFWB W-RA4 wb-r25" via Y545BE → NOT a member after recovery — continuing
+- [2026-07-15T12:02:52.498Z] **flow-gap** — [W-RA4] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:03:14.946Z] **flow-gap** — [W-RA4] no Start-New-Words/Continue button after 20005ms
+- [2026-07-15T12:03:16.294Z] **provision** — [W-RA4b] created fresh sandbox account lsr_s152@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB W-RA4b wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB W-RA4b wb-r25 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-15T12:04:06.708Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=da4ZO_UF-wu_klRZzYygSftId5778Hmo9QFwC9NwXb5TdV4agf3klQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFWB W-RA4b wb-r25 → VJF6A7
+- [2026-07-15T12:04:24.751Z] **BUG** — [W-RA4b] joined "25WT DFWB W-RA4b wb-r25" via VJF6A7 but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:04:24.837Z] **request-failed** — [wb-W-RA4b] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=7lpPopOcq7VCITbig7yH6GRO6refj5eSW0qvxorDLUhr2AfkqvX7tw&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:04:24.840Z] **request-failed** — [wb-W-RA4b] GET http://localhost:5173/src/index.css?t=1784117064791 — net::ERR_ABORTED
+- [2026-07-15T12:04:29.336Z] **recovery** — [W-RA4b] after "refresh" → still broken
+- [2026-07-15T12:04:37.724Z] **recovery** — [W-RA4b] after "re-submit join" → still broken
+- [2026-07-15T12:04:37.815Z] **request-failed** — [wb-W-RA4b] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=EpKlF8qbak2Kl8kdaq1Hrr2T-HAMHVfIAv44r6lE6hSn9R566gjIyQ&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:04:37.820Z] **request-failed** — [wb-W-RA4b] GET http://localhost:5173/src/index.css?t=1784117077770 — net::ERR_ABORTED
+- [2026-07-15T12:04:42.548Z] **recovery** — [W-RA4b] after "refresh" → still broken
+- [2026-07-15T12:04:42.552Z] **recovery** — [W-RA4b] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [W-RA4b] join "25WT DFWB W-RA4b wb-r25" via VJF6A7 → NOT a member after recovery — continuing
+- [2026-07-15T12:04:54.569Z] **flow-gap** — [W-RA4b] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:05:17.040Z] **flow-gap** — [W-RA4b] no Start-New-Words/Continue button after 20013ms
+- [2026-07-15T12:05:18.429Z] **provision** — [CS-11] created fresh sandbox account lsr_s153@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB CS-11 wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB CS-11 wb-r25 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-15T12:06:09.467Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=d3ki2DTe4YK648gDt-XSFaetVj70WlABDW1VU38WO-eKJFqciPqp7w&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFWB CS-11 wb-r25 → L28NVQ
+- [2026-07-15T12:06:27.612Z] **BUG** — [CS-11] joined "25WT DFWB CS-11 wb-r25" via L28NVQ but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:06:27.702Z] **request-failed** — [wb-CS-11] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=sFlSd7gRbHxukmhSqhO74MoSMeSZ7uo8K9XcZW-E6wY6CglZDyfI8g&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:06:27.705Z] **request-failed** — [wb-CS-11] GET http://localhost:5173/src/index.css?t=1784117187653 — net::ERR_ABORTED
+- [2026-07-15T12:06:32.406Z] **recovery** — [CS-11] after "refresh" → still broken
+- [2026-07-15T12:06:40.799Z] **recovery** — [CS-11] after "re-submit join" → still broken
+- [2026-07-15T12:06:40.901Z] **request-failed** — [wb-CS-11] GET http://localhost:5173/src/index.css?t=1784117200844 — net::ERR_ABORTED
+- [2026-07-15T12:06:40.904Z] **request-failed** — [wb-CS-11] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=qA6waQX6nbqZ7wInweQ7TMJjXYKxKxH65WVBuhIgju9QGsBHELuRoQ&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:06:45.486Z] **recovery** — [CS-11] after "refresh" → still broken
+- [2026-07-15T12:06:45.490Z] **recovery** — [CS-11] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [CS-11] join "25WT DFWB CS-11 wb-r25" via L28NVQ → NOT a member after recovery — continuing
+- [2026-07-15T12:06:57.509Z] **flow-gap** — [CS-11] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:07:19.986Z] **flow-gap** — [CS-11-mismatch] no Start-New-Words/Continue button after 20013ms
+- [2026-07-15T12:07:21.340Z] **provision** — [CUT-5] created fresh sandbox account lsr_s154@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB CUT-5 wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB CUT-5 wb-r25 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-15T12:08:11.845Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_8wXu9jsHTzEFJ3vBePrl-PrZO44xshRfc2JcKgvtSeJhh6LbSDjzw&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFWB CUT-5 wb-r25 → ZZJZBY
+- [2026-07-15T12:08:29.909Z] **BUG** — [CUT-5] joined "25WT DFWB CUT-5 wb-r25" via ZZJZBY but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:08:29.996Z] **request-failed** — [wb-CUT-5] GET http://localhost:5173/src/index.css?t=1784117309948 — net::ERR_ABORTED
+- [2026-07-15T12:08:29.998Z] **request-failed** — [wb-CUT-5] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=jTrbgQ_p9lRK0Y40TUDsaXocL3_2OMWIGYJpYcjS3Jy8332S35NXCA&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:08:34.562Z] **recovery** — [CUT-5] after "refresh" → still broken
+- [2026-07-15T12:08:42.951Z] **recovery** — [CUT-5] after "re-submit join" → still broken
+- [2026-07-15T12:08:43.032Z] **request-failed** — [wb-CUT-5] GET http://localhost:5173/src/index.css?t=1784117322989 — net::ERR_ABORTED
+- [2026-07-15T12:08:43.035Z] **request-failed** — [wb-CUT-5] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=dVRNBiVrAYSQlH1PITdzPwnofDz355R-QaRMmHg5ifRQgq7f1YMGtQ&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:08:48.211Z] **recovery** — [CUT-5] after "refresh" → still broken
+- [2026-07-15T12:08:48.214Z] **recovery** — [CUT-5] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [CUT-5] join "25WT DFWB CUT-5 wb-r25" via ZZJZBY → NOT a member after recovery — continuing
+- [2026-07-15T12:09:00.221Z] **flow-gap** — [CUT-5] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:09:22.682Z] **flow-gap** — [CUT-5] no Start-New-Words/Continue button after 20001ms
+- [2026-07-15T12:09:24.124Z] **provision** — [CUT-6] created fresh sandbox account lsr_s155@vocaboost.test
+  - STEP [teacher] create class "25WT DFWB CUT-6 wb-r25"
+  - STEP [teacher] assign "LSR Base Camp (audit clone)" to 25WT DFWB CUT-6 wb-r25 (pace=3 thr=92 mode=typed) → ok
+- [2026-07-15T12:10:14.973Z] **request-failed** — [teacher] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=TL-xG0hy7_ubJfmaczcxBGjKZ8y-IIwkjwv8T4nUMbUF0tBZJ-Ur9w&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT DFWB CUT-6 wb-r25 → R9KDVU
+- [2026-07-15T12:10:33.553Z] **BUG** — [CUT-6] joined "25WT DFWB CUT-6 wb-r25" via R9KDVU but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)
+- [2026-07-15T12:10:33.654Z] **request-failed** — [wb-CUT-6] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=Y6s9qRY0_MHIu3AN3tcZwY_D4do2cCz2v3CbmBfxd7e5yzAs6BwlsA&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:10:33.658Z] **request-failed** — [wb-CUT-6] GET http://localhost:5173/src/index.css?t=1784117433603 — net::ERR_ABORTED
+- [2026-07-15T12:10:38.162Z] **recovery** — [CUT-6] after "refresh" → still broken
+- [2026-07-15T12:10:46.543Z] **recovery** — [CUT-6] after "re-submit join" → still broken
+- [2026-07-15T12:10:46.625Z] **request-failed** — [wb-CUT-6] GET http://localhost:5173/src/index.css?t=1784117446583 — net::ERR_ABORTED
+- [2026-07-15T12:10:46.628Z] **request-failed** — [wb-CUT-6] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=GyiThJSHuDVc9SSNoAkDuGQwFY14uLDzozZgccnEyJCwyFSbCNH5xA&VER=8& — net::ERR_ABORTED
+- [2026-07-15T12:10:51.072Z] **recovery** — [CUT-6] after "refresh" → still broken
+- [2026-07-15T12:10:51.076Z] **recovery** — [CUT-6] NOT recovered by page-level [refresh, re-submit join, refresh] — orchestrator may relaunch; continuing scenario with degraded state
+  - STEP [CUT-6] join "25WT DFWB CUT-6 wb-r25" via R9KDVU → NOT a member after recovery — continuing
+- [2026-07-15T12:11:03.083Z] **flow-gap** — [CUT-6] single-list focus "" != "LSR Base Camp (audit clone)"
+- [2026-07-15T12:11:25.556Z] **flow-gap** — [CUT-6] no Start-New-Words/Continue button after 20016ms

@@ -1,0 +1,54 @@
+{
+  "email": "werewolfhunter137313@gmail.com",
+  "uid": "iqX0v7DD4RfRLBXT51Vjtu601g42",
+  "cp": "KKQ0x7kivEgRlEVnXrkW_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 7,
+    "twi": 600,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsTested": 30,
+        "wordsIntroduced": 0,
+        "day": 5,
+        "wordsReviewed": 60,
+        "newWordScore": 1,
+        "date": {
+          "_seconds": 1783907917,
+          "_nanoseconds": 868000000
+        },
+        "segmentStartIndex": 300,
+        "reviewScore": 0,
+        "segmentEndIndex": 359
+      },
+      {
+        "wordsTested": 30,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "day": 6,
+        "newWordScore": 0.94,
+        "date": {
+          "_seconds": 1783947389,
+          "_nanoseconds": 310000000
+        },
+        "segmentStartIndex": 0,
+        "reviewScore": 0,
+        "segmentEndIndex": 59
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784034666,
+          "_nanoseconds": 32000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 120,
+        "segmentEndIndex": 179,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

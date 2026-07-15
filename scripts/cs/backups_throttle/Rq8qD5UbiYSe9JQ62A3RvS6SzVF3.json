@@ -1,0 +1,54 @@
+{
+  "email": "limssol90@gmail.com",
+  "uid": "Rq8qD5UbiYSe9JQ62A3RvS6SzVF3",
+  "cp": "KKQ0x7kivEgRlEVnXrkW_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 10,
+    "twi": 940,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "date": {
+          "_seconds": 1783999755,
+          "_nanoseconds": 436000000
+        },
+        "wordsReviewed": 60,
+        "segmentEndIndex": 365,
+        "segmentStartIndex": 306,
+        "wordsIntroduced": 0,
+        "day": 8,
+        "reviewScore": 0.23333333333333334,
+        "newWordScore": 0.94,
+        "wordsTested": 30
+      },
+      {
+        "reviewScore": 0.06666666666666667,
+        "day": 9,
+        "wordsTested": 30,
+        "newWordScore": 0.97,
+        "segmentStartIndex": 517,
+        "segmentEndIndex": 576,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1784078420,
+          "_nanoseconds": 122000000
+        },
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 10,
+        "date": {
+          "_seconds": 1784085461,
+          "_nanoseconds": 464000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0.1,
+        "segmentStartIndex": 680,
+        "segmentEndIndex": 739,
+        "wordsIntroduced": 100,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

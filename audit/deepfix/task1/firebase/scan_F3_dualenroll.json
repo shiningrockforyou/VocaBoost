@@ -1,0 +1,2126 @@
+[
+  {
+    "uid": "gdBo9TYz",
+    "fullUid": "gdBo9TYzqXOCpORDDnNioMNhWnG3",
+    "listId": "AObYOowh",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": null,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 0,
+    "activeLag": null,
+    "docs": [
+      "SAT Adv A1:csd0/twi0",
+      "미주 SAT Final:csd0/twi0@07-13"
+    ]
+  },
+  {
+    "uid": "gdBo9TYz",
+    "fullUid": "gdBo9TYzqXOCpORDDnNioMNhWnG3",
+    "listId": "dVliNv0p",
+    "kind": "benign-finished",
+    "spread": 0,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd20/twi1600@07-03",
+      "미주 SAT Final:csd19/twi1600"
+    ]
+  },
+  {
+    "uid": "ehM8Y1fI",
+    "fullUid": "ehM8Y1fIaCUpm1JC2QA2pdsSxMT2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd1/twi80@06-22",
+      "SAT Inter A3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "V25Rwqt2",
+    "fullUid": "V25Rwqt2SEfCnBhBM640NuQs0Zf1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 800,
+    "anchorTwi": 880,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 800,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv A1:csd10/twi800@07-13",
+      "SAT Inter A2:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "KrHfus0j",
+    "fullUid": "KrHfus0jg2PeH5uP7pPs1u2wn2A2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 640,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 640,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd8/twi640@07-10",
+      "SAT Adv A2:csd8/twi640"
+    ]
+  },
+  {
+    "uid": "OCzwBwAb",
+    "fullUid": "OCzwBwAbcHVoHjrRBRJqg8PEGp03",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 380,
+    "anchorTwi": 880,
+    "activeCls": "SAT Final A",
+    "activeTwi": 500,
+    "activeLag": 380,
+    "docs": [
+      "SAT Adv A1:csd11/twi880@07-03",
+      "SAT Final A:csd5/twi500@07-10"
+    ]
+  },
+  {
+    "uid": "ob0Ngt48",
+    "fullUid": "ob0Ngt48jSNe6HrsA9qncM6U9XQ2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd15/twi1200@07-13",
+      "미주 SAT Adv. [한국어 혼용]:csd14/twi1120@07-03"
+    ]
+  },
+  {
+    "uid": "d8DzmjMP",
+    "fullUid": "d8DzmjMP4xSlbdICBOvOD7Pknfl1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 1320,
+    "anchorTwi": 1520,
+    "activeCls": "SAT Final B",
+    "activeTwi": 200,
+    "activeLag": 1320,
+    "docs": [
+      "SAT Adv B1:csd19/twi1520@07-06",
+      "SAT Final B:csd2/twi200@07-09"
+    ]
+  },
+  {
+    "uid": "jqodrexU",
+    "fullUid": "jqodrexUfNenx09n3d02T4N5TDq1",
+    "listId": "AObYOowh",
+    "kind": "stale-2nd-enroll",
+    "spread": 480,
+    "anchorTwi": 480,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 480,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd6/twi480@07-13",
+      "SAT Final A:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "jqodrexU",
+    "fullUid": "jqodrexUfNenx09n3d02T4N5TDq1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1600,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd20/twi1600@07-03",
+      "SAT Final A:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "kT4E0rVo",
+    "fullUid": "kT4E0rVotFVcjv1LvOBa5fquw8t2",
+    "listId": "AObYOowh",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 320,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 320,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd4/twi320@07-13",
+      "SAT Final B:csd3/twi320"
+    ]
+  },
+  {
+    "uid": "kT4E0rVo",
+    "fullUid": "kT4E0rVotFVcjv1LvOBa5fquw8t2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 100,
+    "activeCls": "SAT Final B",
+    "activeTwi": 100,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd0/twi0",
+      "SAT Final B:csd1/twi100@07-13"
+    ]
+  },
+  {
+    "uid": "kT4E0rVo",
+    "fullUid": "kT4E0rVotFVcjv1LvOBa5fquw8t2",
+    "listId": "dVliNv0p",
+    "kind": "benign-finished",
+    "spread": 0,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd20/twi1600@07-03",
+      "SAT Final B:csd20/twi1600"
+    ]
+  },
+  {
+    "uid": "u8e2oyjo",
+    "fullUid": "u8e2oyjoQWcwsTNMx0uFU3Rp96E2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 160,
+    "anchorTwi": 800,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 800,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd8/twi640@06-17",
+      "SAT Adv B1:csd10/twi800@06-19"
+    ]
+  },
+  {
+    "uid": "6ebw20cY",
+    "fullUid": "6ebw20cYspSBUhSajmZ92gZk1NJ2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 320,
+    "anchorTwi": 800,
+    "activeCls": "SAT Final B",
+    "activeTwi": 400,
+    "activeLag": 400,
+    "docs": [
+      "SAT Adv B1:csd9/twi720@07-03",
+      "SAT Final B:csd4/twi400@07-10"
+    ]
+  },
+  {
+    "uid": "VDzTuKOS",
+    "fullUid": "VDzTuKOSjOXcmyyp0jVuULoBY3P2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 220,
+    "anchorTwi": 800,
+    "activeCls": "SAT Final B",
+    "activeTwi": 500,
+    "activeLag": 300,
+    "docs": [
+      "SAT Adv B1:csd9/twi720@07-03",
+      "SAT Final B:csd5/twi500@07-10"
+    ]
+  },
+  {
+    "uid": "JqYnk9Wn",
+    "fullUid": "JqYnk9WnqJOuDao6zAwvcM1xZjM2",
+    "listId": "dVliNv0p",
+    "kind": "divergent",
+    "spread": 20,
+    "anchorTwi": 500,
+    "activeCls": "SAT Final B",
+    "activeTwi": 500,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd6/twi480@06-30",
+      "SAT Final B:csd5/twi500@07-03"
+    ]
+  },
+  {
+    "uid": "uv3tv3PE",
+    "fullUid": "uv3tv3PEgGdVQH1GkjDbBPOdlPi2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 480,
+    "anchorTwi": 480,
+    "activeCls": "SAT Adv E [English only]",
+    "activeTwi": 480,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd5/twi400@06-26",
+      "SAT Adv E [English only]:csd6/twi480@07-13",
+      "SAT Inter E [English only]:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "gTydVfww",
+    "fullUid": "gTydVfwweJQH2HWJNeJKSnR0ism1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 960,
+    "anchorTwi": 1040,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 960,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv B1:csd12/twi960@07-13",
+      "SAT Inter A2:csd0/twi0@06-24"
+    ]
+  },
+  {
+    "uid": "Zuc4iziJ",
+    "fullUid": "Zuc4iziJWdSt7DHOII3LI8OAJ8G3",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 720,
+    "anchorTwi": 800,
+    "activeCls": "SAT Final B",
+    "activeTwi": 100,
+    "activeLag": 700,
+    "docs": [
+      "SAT Adv B1:csd9/twi720@07-10",
+      "SAT Final B:csd1/twi100@07-13",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "MDGeMWGL",
+    "fullUid": "MDGeMWGLr7X6G4Cf21KIoA5IKdN2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 400,
+    "anchorTwi": 400,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 400,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd5/twi400@07-13",
+      "SAT Inter B3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "Ru1WouPu",
+    "fullUid": "Ru1WouPu6udVbCn5Mk7Sv1NWJkn1",
+    "listId": "AObYOowh",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 320,
+    "activeCls": "SAT Final B",
+    "activeTwi": 320,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd3/twi240@07-10",
+      "SAT Final B:csd4/twi320@07-13"
+    ]
+  },
+  {
+    "uid": "U8zcAjHZ",
+    "fullUid": "U8zcAjHZxFZddVyut3HDRpWWQ803",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 240,
+    "anchorTwi": 400,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 400,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd5/twi400@07-10",
+      "SAT Inter B2:csd2/twi160@07-03"
+    ]
+  },
+  {
+    "uid": "aNWbeT1w",
+    "fullUid": "aNWbeT1wchNt6bXph5EWwsu7yP53",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 500,
+    "activeCls": "SAT Final B",
+    "activeTwi": 500,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd5/twi400@07-10",
+      "SAT Final B:csd6/twi500@07-13"
+    ]
+  },
+  {
+    "uid": "KCTcG3bJ",
+    "fullUid": "KCTcG3bJJAcvXRhRr8D9fGSWOKJ2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 400,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 400,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd4/twi400@07-10",
+      "SAT Inter B2:csd5/twi400@07-06"
+    ]
+  },
+  {
+    "uid": "KCTcG3bJ",
+    "fullUid": "KCTcG3bJJAcvXRhRr8D9fGSWOKJ2",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 80,
+    "activeCls": "SAT Inter B3",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B2:csd1/twi80@07-06",
+      "SAT Inter B3:csd1/twi80@07-06"
+    ]
+  },
+  {
+    "uid": "2Q43LQ1M",
+    "fullUid": "2Q43LQ1M2sbcGRgLtpriajubIQR2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 160,
+    "anchorTwi": 880,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd11/twi880@07-13",
+      "SAT Inter A1:csd9/twi720@07-13"
+    ]
+  },
+  {
+    "uid": "EI2mnF4m",
+    "fullUid": "EI2mnF4mu9eiuwp66mIKTXJbpK82",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 580,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 580,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B1:csd6/twi580@07-13",
+      "SAT Inter E [English only]:csd4/twi500",
+      "SAT Final A:csd4/twi500@06-26"
+    ]
+  },
+  {
+    "uid": "9RFqe7Xn",
+    "fullUid": "9RFqe7XnzpOCJCEEJgA4Q3EEwjL2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 0,
+    "anchorTwi": 240,
+    "activeCls": "SAT Adv B1",
+    "activeTwi": 160,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv B1:csd2/twi160@07-13",
+      "SAT Inter E [English only]:csd2/twi160@07-10"
+    ]
+  },
+  {
+    "uid": "7HD5h8VF",
+    "fullUid": "7HD5h8VFpkQTABjKRQz4BkiDSzR2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 200,
+    "anchorTwi": 800,
+    "activeCls": "SAT Inter B3",
+    "activeTwi": 800,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi600@06-26",
+      "SAT Inter B3:csd10/twi800@07-10"
+    ]
+  },
+  {
+    "uid": "8Q8TnzIf",
+    "fullUid": "8Q8TnzIfD5VJovtXsWg1EdlRcCd2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 560,
+    "activeCls": "SAT Adv A1",
+    "activeTwi": 560,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd7/twi560@06-16",
+      "SAT Adv E [English only]:csd7/twi560"
+    ]
+  },
+  {
+    "uid": "rY55sY1i",
+    "fullUid": "rY55sY1ivScwRSiVKnksl11eqTn2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1040,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv E [English only]",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd7/twi560@06-16",
+      "SAT Adv E [English only]:csd20/twi1600@07-03"
+    ]
+  },
+  {
+    "uid": "u9l6qOfC",
+    "fullUid": "u9l6qOfCbeht7GnjbobT1xnbtzY2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1040,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv E [English only]",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A1:csd7/twi560@06-16",
+      "SAT Adv E [English only]:csd20/twi1600@07-03"
+    ]
+  },
+  {
+    "uid": "HMp1QzFr",
+    "fullUid": "HMp1QzFri5bdbGiMshDgtdhZtqG2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 900,
+    "activeCls": "SAT Final A",
+    "activeTwi": 900,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv E [English only]:csd10/twi800@07-03",
+      "SAT Final A:csd10/twi900@07-13"
+    ]
+  },
+  {
+    "uid": "nEzfEj6P",
+    "fullUid": "nEzfEj6PA1NRWH3l3mAGEmX8zua2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 320,
+    "anchorTwi": 320,
+    "activeCls": "SAT Adv E [English only]",
+    "activeTwi": 320,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv E [English only]:csd4/twi320@07-13",
+      "SAT Inter E [English only]:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "8BvZR67f",
+    "fullUid": "8BvZR67fe1QcOloBGi6VkvZLot53",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 160,
+    "anchorTwi": 480,
+    "activeCls": "SAT Adv E [English only]",
+    "activeTwi": 400,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv E [English only]:csd5/twi400@07-13",
+      "SAT Inter E [English only]:csd3/twi240@07-08"
+    ]
+  },
+  {
+    "uid": "n8GCDG7k",
+    "fullUid": "n8GCDG7kSgarWw0ofiAspWxAA732",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 740,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 1140,
+    "activeLag": 60,
+    "docs": [
+      "SAT Inter B2:csd5/twi400@06-23",
+      "SAT Bridge (CORE):csd19/twi1140@07-10"
+    ]
+  },
+  {
+    "uid": "LDJ3Mhhb",
+    "fullUid": "LDJ3MhhbmfNAbFNCuf8aFPgcyBV2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 1120,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B2:csd15/twi1200@07-07",
+      "SAT Inter B1:csd1/twi80@06-23"
+    ]
+  },
+  {
+    "uid": "RF50kiHa",
+    "fullUid": "RF50kiHayyTXUt0tmA8ahDktUXC2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 80,
+    "anchorTwi": 160,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 80,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter B2:csd1/twi80@06-24",
+      "SAT Adv B2:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "i2JdjmQ8",
+    "fullUid": "i2JdjmQ8EGchjCr6CAt9taJzFYh2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 900,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B2:csd15/twi1200@07-10",
+      "SAT Bridge (TOP):csd5/twi300@06-19"
+    ]
+  },
+  {
+    "uid": "d5PkCOmx",
+    "fullUid": "d5PkCOmxAQWZqqVk03aYY5JL0dz2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 1060,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 1140,
+    "activeLag": 60,
+    "docs": [
+      "SAT Inter B2:csd1/twi80@06-22",
+      "SAT Bridge (TOP):csd19/twi1140@07-10"
+    ]
+  },
+  {
+    "uid": "3sn4KPjh",
+    "fullUid": "3sn4KPjhlLYxsnxmlgZvkDN0RNz1",
+    "listId": "dVliNv0p",
+    "kind": "divergent",
+    "spread": 20,
+    "anchorTwi": 20,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 20,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B2:csd1/twi20@06-22",
+      "SAT Adv B2:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "2rEr6cJd",
+    "fullUid": "2rEr6cJdjWhe5fmjVsYAVzOxN4e2",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 320,
+    "anchorTwi": 640,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 560,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter B2:csd7/twi560@07-13",
+      "SAT Inter A2:csd3/twi240@07-09"
+    ]
+  },
+  {
+    "uid": "bSQU6E2W",
+    "fullUid": "bSQU6E2WVwNwZrGKb02FJhA1mzo2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B2:csd0/twi0",
+      "SAT Adv B2:csd1/twi80@07-13"
+    ]
+  },
+  {
+    "uid": "jJAodkRO",
+    "fullUid": "jJAodkROeTP17lzUgJEnVBzkErr1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 400,
+    "anchorTwi": 880,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 800,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter B2:csd10/twi800@07-13",
+      "SAT Inter E [English only]:csd5/twi400@06-29"
+    ]
+  },
+  {
+    "uid": "eXjIlWdk",
+    "fullUid": "eXjIlWdkbBctWQ1X7mDjN64eFXA3",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 800,
+    "anchorTwi": 880,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 800,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter B2:csd10/twi800@07-13",
+      "SAT Inter A2:csd0/twi0@06-29"
+    ]
+  },
+  {
+    "uid": "eXjIlWdk",
+    "fullUid": "eXjIlWdkbBctWQ1X7mDjN64eFXA3",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": null,
+    "activeCls": "SAT Inter B2",
+    "activeTwi": 0,
+    "activeLag": null,
+    "docs": [
+      "SAT Inter B2:csd0/twi0",
+      "SAT Inter A2:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "KSFL9AGG",
+    "fullUid": "KSFL9AGG0tfPc1huWn2Dep3hPyc2",
+    "listId": "RmNNkuLP",
+    "kind": "benign-finished",
+    "spread": 0,
+    "anchorTwi": 1200,
+    "activeCls": "[온] Sat Adv. O",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter. O:csd15/twi1200@07-10",
+      "[온] Sat Adv. O:csd15/twi1200@07-13"
+    ]
+  },
+  {
+    "uid": "KSFL9AGG",
+    "fullUid": "KSFL9AGG0tfPc1huWn2Dep3hPyc2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "[온] Sat Adv. O",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter. O:csd0/twi0",
+      "[온] Sat Adv. O:csd1/twi80@07-13"
+    ]
+  },
+  {
+    "uid": "vt7qJb1y",
+    "fullUid": "vt7qJb1yjySbT8016G1xS1GhqAF2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "미주 SAT Adv. [한국어 혼용]",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd0/twi0",
+      "미주 SAT Adv. [한국어 혼용]:csd1/twi80@06-05"
+    ]
+  },
+  {
+    "uid": "sUZnB8Ov",
+    "fullUid": "sUZnB8Ov1NSXY0J0tn7WkiuN46u2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 600,
+    "anchorTwi": 1000,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 1000,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd10/twi1000@06-26",
+      "미주 SAT Adv.:csd5/twi400@06-05"
+    ]
+  },
+  {
+    "uid": "WNgjulP2",
+    "fullUid": "WNgjulP2wWWJq5rDB5QWmc9VvLi1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1040,
+    "anchorTwi": 1600,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd16/twi1600@07-06",
+      "미주 SAT Adv.:csd7/twi560@06-15"
+    ]
+  },
+  {
+    "uid": "ntNJBisn",
+    "fullUid": "ntNJBisnUieEGQCciTiJoYpYSzG2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 180,
+    "anchorTwi": 900,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 900,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd9/twi900@07-13",
+      "미주 SAT Adv.:csd9/twi720@06-18"
+    ]
+  },
+  {
+    "uid": "mRTS3Z8Q",
+    "fullUid": "mRTS3Z8QGfgcszf0owbgrd6Sbot1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 760,
+    "anchorTwi": 1000,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 1000,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd10/twi1000@07-10",
+      "미주 SAT Adv.:csd2/twi240@06-18"
+    ]
+  },
+  {
+    "uid": "ZJFUs14h",
+    "fullUid": "ZJFUs14hPkRFkvivoAXejeBRcYU2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 260,
+    "anchorTwi": 900,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 900,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd9/twi900@07-06",
+      "미주 SAT Adv.:csd8/twi640@06-23"
+    ]
+  },
+  {
+    "uid": "SDXvPUab",
+    "fullUid": "SDXvPUab6iR52Q1UHcsneVEw4gz2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 300,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 300,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd3/twi300@07-06",
+      "SAT Final A:csd3/twi300@06-19"
+    ]
+  },
+  {
+    "uid": "cxx8jFQg",
+    "fullUid": "cxx8jFQgR9eH3x7lwErAm37rES03",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 160,
+    "anchorTwi": 560,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 400,
+    "activeLag": 160,
+    "docs": [
+      "미주 SAT Final:csd4/twi400@07-09",
+      "미주 SAT Adv.:csd7/twi560@06-11"
+    ]
+  },
+  {
+    "uid": "yuZo0SaU",
+    "fullUid": "yuZo0SaUAtbDTzyFc61pV9EefLC3",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 100,
+    "anchorTwi": 400,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 300,
+    "activeLag": 100,
+    "docs": [
+      "미주 SAT Final:csd3/twi300@07-03",
+      "미주 SAT Adv.:csd5/twi400@06-18"
+    ]
+  },
+  {
+    "uid": "69nmJWkj",
+    "fullUid": "69nmJWkjpPaRu7tzy9PGUZXqGi72",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 280,
+    "anchorTwi": 400,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 300,
+    "activeLag": 100,
+    "docs": [
+      "미주 SAT Final:csd3/twi300@07-03",
+      "미주 SAT Inter.:csd1/twi20@06-24"
+    ]
+  },
+  {
+    "uid": "TnhSrwoa",
+    "fullUid": "TnhSrwoaIBTtDQRzLJ3g59idO972",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1080,
+    "anchorTwi": 1100,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 1100,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd11/twi1100@07-13",
+      "미주 SAT Inter.:csd1/twi20@06-29"
+    ]
+  },
+  {
+    "uid": "sjrmkEa6",
+    "fullUid": "sjrmkEa6zsZbkPCPBzf13etjjhR2",
+    "listId": "AObYOowh",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 80,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd1/twi80@07-06",
+      "미주 SAT Adv.:csd1/twi80@06-30"
+    ]
+  },
+  {
+    "uid": "sjrmkEa6",
+    "fullUid": "sjrmkEa6zsZbkPCPBzf13etjjhR2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 100,
+    "anchorTwi": 440,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 340,
+    "activeLag": 100,
+    "docs": [
+      "미주 SAT Final:csd4/twi340@07-10",
+      "미주 SAT Adv.:csd2/twi240@07-05"
+    ]
+  },
+  {
+    "uid": "Vf9gIgTI",
+    "fullUid": "Vf9gIgTILuTXI7jM45nAkf9y53o1",
+    "listId": "dVliNv0p",
+    "kind": "benign-finished",
+    "spread": 0,
+    "anchorTwi": 1600,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd19/twi1600@07-10",
+      "미주 SAT Adv.:csd20/twi1600@06-26"
+    ]
+  },
+  {
+    "uid": "2KUS6ihx",
+    "fullUid": "2KUS6ihxoaWu7lqlLiKICeenrXw2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 500,
+    "anchorTwi": 600,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 500,
+    "activeLag": 100,
+    "docs": [
+      "미주 SAT Final:csd5/twi500@07-13",
+      "미주 SAT Inter.:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "zXIhGMg0",
+    "fullUid": "zXIhGMg0nFUehseIuXPrg1il8Lx1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 740,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 740,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd9/twi740@07-13",
+      "미주 SAT Adv.:csd8/twi640@07-02"
+    ]
+  },
+  {
+    "uid": "DJswxVzA",
+    "fullUid": "DJswxVzAsQVpVUZV6DPv9wNHMpi1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 120,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 120,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd2/twi120@07-13",
+      "미주 SAT Inter.:csd1/twi20@06-29"
+    ]
+  },
+  {
+    "uid": "cpJK1Aus",
+    "fullUid": "cpJK1AusmzXnigEJ9hwubhXzPNl1",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 240,
+    "activeCls": "미주 SAT Adv.",
+    "activeTwi": 240,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd3/twi240",
+      "미주 SAT Adv.:csd3/twi240@07-10"
+    ]
+  },
+  {
+    "uid": "n19DSUOj",
+    "fullUid": "n19DSUOjjPX8E3EGCnmPMgoqCcW2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 120,
+    "activeCls": "미주 SAT Final",
+    "activeTwi": 120,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Final:csd2/twi120@07-13",
+      "미주 SAT Inter.:csd1/twi20@06-24"
+    ]
+  },
+  {
+    "uid": "Ow2sz6OH",
+    "fullUid": "Ow2sz6OHyZbHl7aVIizY1SKwtNV2",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 800,
+    "activeCls": "유라시아 SAT Core",
+    "activeTwi": 800,
+    "activeLag": 0,
+    "docs": [
+      "유라시아 SAT Core:csd10/twi800@07-10",
+      "유라시아 SAT Top:csd10/twi800"
+    ]
+  },
+  {
+    "uid": "Ow2sz6OH",
+    "fullUid": "Ow2sz6OHyZbHl7aVIizY1SKwtNV2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 100,
+    "activeCls": "유라시아 SAT Top",
+    "activeTwi": 100,
+    "activeLag": 0,
+    "docs": [
+      "유라시아 SAT Core:csd0/twi0",
+      "유라시아 SAT Top:csd1/twi100@07-13"
+    ]
+  },
+  {
+    "uid": "x5dHaQGz",
+    "fullUid": "x5dHaQGz9VgT3gwDonnjD7E3rmA2",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 0,
+    "anchorTwi": 980,
+    "activeCls": "SAT Inter A3",
+    "activeTwi": 900,
+    "activeLag": 80,
+    "docs": [
+      "SAT Bridge (TOP):csd15/twi900@07-03",
+      "SAT Inter A3:csd15/twi900@07-13"
+    ]
+  },
+  {
+    "uid": "ZqhgkmUS",
+    "fullUid": "ZqhgkmUShVM7QDSpNcptUpkcxhG2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 340,
+    "anchorTwi": 640,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 640,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd4/twi300@06-20",
+      "SAT Inter A1:csd8/twi640@07-02"
+    ]
+  },
+  {
+    "uid": "FDfHyyjw",
+    "fullUid": "FDfHyyjwAmWKGPVPAOACgSiAhLu1",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 580,
+    "anchorTwi": 960,
+    "activeCls": "SAT Inter B4",
+    "activeTwi": 320,
+    "activeLag": 640,
+    "docs": [
+      "SAT Bridge (TOP):csd15/twi900@07-06",
+      "SAT Inter B4:csd4/twi320@07-10"
+    ]
+  },
+  {
+    "uid": "qrqTZng6",
+    "fullUid": "qrqTZng6nhbVeWdBF2dqowngwBn1",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 280,
+    "anchorTwi": 680,
+    "activeCls": "SAT Inter A2",
+    "activeTwi": 680,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi600@06-29",
+      "SAT Inter A2:csd10/twi680@07-13",
+      "SAT Inter B3:csd5/twi400@07-03"
+    ]
+  },
+  {
+    "uid": "vFiq51m9",
+    "fullUid": "vFiq51m9bwfiYxWECxkzfp48tTi1",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 840,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd5/twi360@06-22",
+      "SAT Inter A1:csd15/twi1200@07-13"
+    ]
+  },
+  {
+    "uid": "pCDcgIkM",
+    "fullUid": "pCDcgIkMKcPisbyBqJQGBy7DKm63",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 520,
+    "anchorTwi": 600,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi600@07-09",
+      "SAT Inter B1:csd1/twi80@06-23"
+    ]
+  },
+  {
+    "uid": "pCDcgIkM",
+    "fullUid": "pCDcgIkMKcPisbyBqJQGBy7DKm63",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 720,
+    "anchorTwi": 800,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 720,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv B2:csd9/twi720@07-10",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "6hKX2rUZ",
+    "fullUid": "6hKX2rUZzBZ1usZ4G90egXG34Oi1",
+    "listId": "RmNNkuLP",
+    "kind": "divergent",
+    "spread": 60,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Inter A3",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd19/twi1140@07-10",
+      "SAT Inter A3:csd20/twi1200@07-13"
+    ]
+  },
+  {
+    "uid": "gioboayZ",
+    "fullUid": "gioboayZ8uWiypTYDXLiXC8YQb22",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 220,
+    "anchorTwi": 600,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 320,
+    "activeLag": 280,
+    "docs": [
+      "SAT Bridge (TOP):csd9/twi540@06-26",
+      "SAT Inter A1:csd4/twi320@07-03"
+    ]
+  },
+  {
+    "uid": "V3irSnF4",
+    "fullUid": "V3irSnF431Mcr8F45c4DSmaN6s03",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 660,
+    "anchorTwi": 660,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 660,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi660@07-06",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "WJZeAvsj",
+    "fullUid": "WJZeAvsjCySZ4d5KvGieCe86duc2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 960,
+    "anchorTwi": 960,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 960,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd0/twi0",
+      "SAT Inter A2:csd0/twi0",
+      "SAT Bridge (CORE):csd16/twi960@07-06"
+    ]
+  },
+  {
+    "uid": "yiVt86PF",
+    "fullUid": "yiVt86PF2hPsgvtY70EZJGRS0q23",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 880,
+    "anchorTwi": 960,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 960,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd15/twi960@07-13",
+      "SAT Inter A3:csd1/twi80@06-24"
+    ]
+  },
+  {
+    "uid": "RSV4gV3c",
+    "fullUid": "RSV4gV3cnRTRTKpyZyuTkbGUpMi2",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 700,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 640,
+    "activeLag": 60,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi640@07-13",
+      "SAT Inter B3:csd8/twi640@06-24"
+    ]
+  },
+  {
+    "uid": "7FVZqCGC",
+    "fullUid": "7FVZqCGCCrTBEClMTUqGxIznY1a2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 300,
+    "anchorTwi": 360,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 300,
+    "activeLag": 60,
+    "docs": [
+      "SAT Bridge (TOP):csd5/twi300@07-13",
+      "SAT Inter A3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "7G8qXyQg",
+    "fullUid": "7G8qXyQgwMQ03BUNlocKJbPXIqq1",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 660,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 600,
+    "activeLag": 60,
+    "docs": [
+      "SAT Bridge (TOP):csd10/twi600@07-13",
+      "SAT Bridge (CORE):csd10/twi600@07-03"
+    ]
+  },
+  {
+    "uid": "4I7iW3Dp",
+    "fullUid": "4I7iW3Dp1pT7lRPdUHuuZI0gT2w2",
+    "listId": "RmNNkuLP",
+    "kind": "divergent",
+    "spread": 60,
+    "anchorTwi": 540,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 540,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd6/twi540@07-13",
+      "SAT Inter B4:csd6/twi480@07-03"
+    ]
+  },
+  {
+    "uid": "kVdC4rbc",
+    "fullUid": "kVdC4rbc6vbdhLCQdukr7o9yHa83",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 0,
+    "anchorTwi": 380,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 300,
+    "activeLag": 80,
+    "docs": [
+      "SAT Bridge (TOP):csd5/twi300@07-10",
+      "SAT Inter A1:csd5/twi300@07-13"
+    ]
+  },
+  {
+    "uid": "0cQtfKRu",
+    "fullUid": "0cQtfKRuJhYakn0qnS9gmxp6Vmw1",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 700,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 640,
+    "activeLag": 60,
+    "docs": [
+      "SAT Bridge (TOP):csd7/twi640@07-13",
+      "SAT Inter B1:csd8/twi640@07-06"
+    ]
+  },
+  {
+    "uid": "42YfaoaX",
+    "fullUid": "42YfaoaXclMopmkjcBIcL8VDbxm1",
+    "listId": "RmNNkuLP",
+    "kind": "divergent",
+    "spread": 60,
+    "anchorTwi": 720,
+    "activeCls": "SAT Bridge (TOP)",
+    "activeTwi": 720,
+    "activeLag": 0,
+    "docs": [
+      "SAT Bridge (TOP):csd12/twi720@07-13",
+      "SAT Bridge (CORE):csd11/twi660@07-13"
+    ]
+  },
+  {
+    "uid": "zBeotLqK",
+    "fullUid": "zBeotLqKEVN4yGZ8WcuIsZUl1wX2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 200,
+    "anchorTwi": 1000,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 800,
+    "activeLag": 200,
+    "docs": [
+      "SAT Final B:csd10/twi1000@06-29",
+      "SAT Adv B2:csd10/twi800@07-13"
+    ]
+  },
+  {
+    "uid": "VjYM2hhs",
+    "fullUid": "VjYM2hhscUUtEmjHbhdWxhfmQk12",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1600,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Final A",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd0/twi0@06-15",
+      "SAT Final A:csd16/twi1600@07-06"
+    ]
+  },
+  {
+    "uid": "QPZqRL4y",
+    "fullUid": "QPZqRL4y8rRa5pLtbdztu0qgPek2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 100,
+    "anchorTwi": 900,
+    "activeCls": "SAT Final B",
+    "activeTwi": 900,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd10/twi900@07-13",
+      "SAT Adv B2:csd10/twi800@07-03"
+    ]
+  },
+  {
+    "uid": "evczpzXo",
+    "fullUid": "evczpzXo5OcKZQN6OOIRDJntQfn1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 180,
+    "anchorTwi": 600,
+    "activeCls": "SAT Final B",
+    "activeTwi": 500,
+    "activeLag": 100,
+    "docs": [
+      "SAT Final B:csd5/twi500@07-13",
+      "SAT Inter E [English only]:csd4/twi320@07-03"
+    ]
+  },
+  {
+    "uid": "Rq8qD5Ub",
+    "fullUid": "Rq8qD5UbiYSe9JQ62A3RvS6SzVF3",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 580,
+    "anchorTwi": 740,
+    "activeCls": "SAT Final B",
+    "activeTwi": 740,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd7/twi740@07-13",
+      "SAT Adv A2:csd1/twi160@07-02",
+      "SAT Adv B2:csd8/twi640@06-24"
+    ]
+  },
+  {
+    "uid": "SAiIJsIS",
+    "fullUid": "SAiIJsISytRnD7cfU4DF8PxiwEE3",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 1300,
+    "activeCls": "SAT Final B",
+    "activeTwi": 1300,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd16/twi1300@07-13",
+      "SAT Adv B2:csd15/twi1300@07-13"
+    ]
+  },
+  {
+    "uid": "EmS3PpWO",
+    "fullUid": "EmS3PpWOL1P8pm7BuNmZotIEXOX2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 1500,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Final B",
+    "activeTwi": 100,
+    "activeLag": 1500,
+    "docs": [
+      "SAT Final B:csd1/twi100@07-13",
+      "유라시아 SAT Top:csd17/twi1600@07-06"
+    ]
+  },
+  {
+    "uid": "iqX0v7DD",
+    "fullUid": "iqX0v7DD4RfRLBXT51Vjtu601g42",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 500,
+    "anchorTwi": 500,
+    "activeCls": "SAT Final B",
+    "activeTwi": 500,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd6/twi500@07-13",
+      "SAT Inter B4:csd0/twi0",
+      "SAT Adv B2:csd4/twi400@07-10"
+    ]
+  },
+  {
+    "uid": "Yf6Kfx7e",
+    "fullUid": "Yf6Kfx7eTNTEUACVv69PPuhIiPF3",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 160,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Final B",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final B:csd20/twi1600@07-13",
+      "SAT Adv B2:csd18/twi1440@07-10"
+    ]
+  },
+  {
+    "uid": "ohJgRB6z",
+    "fullUid": "ohJgRB6zuCdWRtA76nhUj1J8gmK2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 560,
+    "activeCls": "SAT Inter E [English only]",
+    "activeTwi": 560,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd6/twi480@07-10",
+      "SAT Inter E [English only]:csd7/twi560@07-13"
+    ]
+  },
+  {
+    "uid": "gILCxyZm",
+    "fullUid": "gILCxyZmmifs7lIqwrL2DKA6L8w1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 1500,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Final A",
+    "activeTwi": 100,
+    "activeLag": 1500,
+    "docs": [
+      "SAT Adv A2:csd20/twi1600@07-06",
+      "SAT Final A:csd1/twi100@07-13"
+    ]
+  },
+  {
+    "uid": "EV78Oz0E",
+    "fullUid": "EV78Oz0EaDWuB8g69a0EB2pyz8S2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Final A",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd15/twi1200@07-03",
+      "SAT Final A:csd15/twi1200@07-10"
+    ]
+  },
+  {
+    "uid": "Wd4T98IE",
+    "fullUid": "Wd4T98IEdFOkGTLq5liR1F95Rkw2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1200,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd15/twi1200@07-03",
+      "SAT Final A:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "sja5lMZq",
+    "fullUid": "sja5lMZqkKQrWtX7fQZ05SFsh0E2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1600,
+    "anchorTwi": 1600,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd19/twi1600@07-13",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "HlxgK4UO",
+    "fullUid": "HlxgK4UO6lfsnrbqMVq7uTP0STi1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 300,
+    "anchorTwi": 800,
+    "activeCls": "SAT Final A",
+    "activeTwi": 500,
+    "activeLag": 300,
+    "docs": [
+      "SAT Adv A2:csd10/twi800@06-26",
+      "SAT Final A:csd5/twi500@07-03"
+    ]
+  },
+  {
+    "uid": "OQuLv2nK",
+    "fullUid": "OQuLv2nKgUcEX8tf3hlWtW2HIDM2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 0,
+    "anchorTwi": 1520,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 1440,
+    "activeLag": 80,
+    "docs": [
+      "SAT Adv A2:csd18/twi1440@07-13",
+      "SAT Inter B1:csd18/twi1440"
+    ]
+  },
+  {
+    "uid": "9p3bAbWH",
+    "fullUid": "9p3bAbWHjzPLeJFFBSoISbzx0ru1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1200,
+    "anchorTwi": 1280,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 1280,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd16/twi1280@07-13",
+      "SAT Inter A1:csd1/twi80@06-24"
+    ]
+  },
+  {
+    "uid": "fXsusIOb",
+    "fullUid": "fXsusIObKbaJfuAJvPvzUx5kg0X2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 880,
+    "anchorTwi": 880,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd11/twi880@07-13",
+      "SAT Inter A2:csd5/twi400@07-03",
+      "SAT Adv B2:csd0/twi0@07-06"
+    ]
+  },
+  {
+    "uid": "RzIwanFC",
+    "fullUid": "RzIwanFC49YpRzw2KprFZu3ppln1",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 660,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 660,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd8/twi660@07-13",
+      "SAT Final A:csd8/twi660@07-13"
+    ]
+  },
+  {
+    "uid": "ch4SKwKe",
+    "fullUid": "ch4SKwKeH5dE4cMA88M29jaVmcJ3",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 400,
+    "anchorTwi": 400,
+    "activeCls": "SAT Final A",
+    "activeTwi": 400,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd0/twi0",
+      "SAT Inter B4:csd0/twi0",
+      "SAT Final A:csd4/twi400@07-13"
+    ]
+  },
+  {
+    "uid": "QVeSaxOZ",
+    "fullUid": "QVeSaxOZOANxx2uh5ypKlNrry2Y2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 480,
+    "anchorTwi": 480,
+    "activeCls": "SAT Adv A2",
+    "activeTwi": 480,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv A2:csd6/twi480@07-13",
+      "SAT Inter A2:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "o2YApEmr",
+    "fullUid": "o2YApEmrR7P0vSTSIz51CUCIJSr2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 1440,
+    "anchorTwi": 1600,
+    "activeCls": "미주 SAT Adv. [한국어 혼용]",
+    "activeTwi": 1600,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Adv. [한국어 혼용]:csd20/twi1600@07-09",
+      "미주 SAT Adv.:csd2/twi160@06-15"
+    ]
+  },
+  {
+    "uid": "vH65FrnM",
+    "fullUid": "vH65FrnMJyYCnBBI513m7skzkyH3",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 720,
+    "anchorTwi": 800,
+    "activeCls": "미주 SAT Adv. [한국어 혼용]",
+    "activeTwi": 720,
+    "activeLag": 80,
+    "docs": [
+      "미주 SAT Adv. [한국어 혼용]:csd9/twi720@07-10",
+      "미주 SAT Adv.:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "E4tNBrIN",
+    "fullUid": "E4tNBrINEzcSXx72QAZMp6Sqoye2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 880,
+    "activeCls": "미주 SAT Adv. [한국어 혼용]",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Adv. [한국어 혼용]:csd11/twi880@07-13",
+      "미주 SAT Inter. [한국어 혼용]:csd11/twi880@07-07"
+    ]
+  },
+  {
+    "uid": "BxZsl5NW",
+    "fullUid": "BxZsl5NWloX72Dij5apXefvnfaq1",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 800,
+    "activeCls": "미주 SAT Inter. [한국어 혼용]",
+    "activeTwi": 800,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Adv. [한국어 혼용]:csd10/twi800",
+      "미주 SAT Inter. [한국어 혼용]:csd10/twi800@07-10"
+    ]
+  },
+  {
+    "uid": "cPnQeuyK",
+    "fullUid": "cPnQeuyKMzgStqDBU1rNjzzW2cr1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 80,
+    "anchorTwi": 420,
+    "activeCls": "미주 SAT Inter.",
+    "activeTwi": 340,
+    "activeLag": 80,
+    "docs": [
+      "미주 SAT Adv. [한국어 혼용]:csd5/twi420",
+      "미주 SAT Inter.:csd5/twi340@07-13"
+    ]
+  },
+  {
+    "uid": "OKNQL0vU",
+    "fullUid": "OKNQL0vU2fTbiv3qhN56BtRJAPi1",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 60,
+    "anchorTwi": 680,
+    "activeCls": "SAT Inter A2",
+    "activeTwi": 600,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter A2:csd9/twi600@07-13",
+      "SAT Bridge (CORE):csd9/twi540@07-03"
+    ]
+  },
+  {
+    "uid": "2KSfU5Kg",
+    "fullUid": "2KSfU5KgcscVkFmsvYySXqyaTSU2",
+    "listId": "RmNNkuLP",
+    "kind": "benign-finished",
+    "spread": 0,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter A2:csd20/twi1200",
+      "SAT Bridge (CORE):csd20/twi1200@07-13"
+    ]
+  },
+  {
+    "uid": "2KSfU5Kg",
+    "fullUid": "2KSfU5KgcscVkFmsvYySXqyaTSU2",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": null,
+    "activeCls": "SAT Inter A2",
+    "activeTwi": 0,
+    "activeLag": null,
+    "docs": [
+      "SAT Inter A2:csd0/twi0",
+      "SAT Bridge (CORE):csd0/twi0"
+    ]
+  },
+  {
+    "uid": "DKkkCXAS",
+    "fullUid": "DKkkCXASkqMDgozkc7RpSp36t6N2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "미주 SAT Inter. [한국어 혼용]",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Inter. [한국어 혼용]:csd1/twi80@07-13",
+      "SAT Final A:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "QOsDlV5i",
+    "fullUid": "QOsDlV5ifKPkEmXfF4eW42psFo03",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 600,
+    "anchorTwi": 600,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 600,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B4:csd0/twi0",
+      "SAT Bridge (CORE):csd10/twi600@07-03"
+    ]
+  },
+  {
+    "uid": "tTKvT162",
+    "fullUid": "tTKvT162cbg8qsbL3HFChuEFYjy2",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 100,
+    "anchorTwi": 480,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 400,
+    "activeLag": 80,
+    "docs": [
+      "유라시아 SAT Top:csd3/twi300@07-10",
+      "SAT Adv B2:csd4/twi400@07-13"
+    ]
+  },
+  {
+    "uid": "JuyfmGNq",
+    "fullUid": "JuyfmGNqaWTimnIB2e49UW60h0T2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 400,
+    "anchorTwi": 400,
+    "activeCls": "미주 SAT Adv.",
+    "activeTwi": 400,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Inter.:csd0/twi0",
+      "미주 SAT Adv.:csd5/twi400@07-10"
+    ]
+  },
+  {
+    "uid": "YD9NAy3p",
+    "fullUid": "YD9NAy3pVPXGQMDr6Zaw3yprpvp1",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 160,
+    "activeCls": "미주 SAT Adv.",
+    "activeTwi": 160,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Inter.:csd4/twi80@06-25",
+      "미주 SAT Adv.:csd5/twi160@07-13"
+    ]
+  },
+  {
+    "uid": "cV2Du4qj",
+    "fullUid": "cV2Du4qjxQMR2zxclzRaoqukjT33",
+    "listId": "RmNNkuLP",
+    "kind": "divergent",
+    "spread": 40,
+    "anchorTwi": 600,
+    "activeCls": "미주 SAT Inter.",
+    "activeTwi": 560,
+    "activeLag": 40,
+    "docs": [
+      "미주 SAT Inter.:csd7/twi560@07-13",
+      "미주 SAT Bridge:csd10/twi600@07-03"
+    ]
+  },
+  {
+    "uid": "SlWg3SMw",
+    "fullUid": "SlWg3SMwU2MF8UfFoxxihnc1vVg1",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 680,
+    "activeCls": "미주 SAT Inter.",
+    "activeTwi": 680,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Inter.:csd11/twi680@07-13",
+      "미주 SAT Bridge:csd10/twi600@07-10"
+    ]
+  },
+  {
+    "uid": "rYmA40a7",
+    "fullUid": "rYmA40a7ncRTYgMnsDDykXVgaCZ2",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 380,
+    "activeCls": "미주 SAT Inter.",
+    "activeTwi": 380,
+    "activeLag": 0,
+    "docs": [
+      "미주 SAT Inter.:csd6/twi380@07-13",
+      "미주 SAT Bridge:csd5/twi300@07-10"
+    ]
+  },
+  {
+    "uid": "6cfYDzXy",
+    "fullUid": "6cfYDzXyxUgWWD2P0Ksv6uUvz7D2",
+    "listId": "RmNNkuLP",
+    "kind": "LIVE-STRAND",
+    "spread": 400,
+    "anchorTwi": 880,
+    "activeCls": "SAT Inter E [English only]",
+    "activeTwi": 800,
+    "activeLag": 80,
+    "docs": [
+      "SAT Inter E [English only]:csd10/twi800@07-10",
+      "SAT Inter B3:csd5/twi400@06-26"
+    ]
+  },
+  {
+    "uid": "7z4pnxY1",
+    "fullUid": "7z4pnxY1gedG1T6sQVKzDXqf6HH2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 880,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter A1:csd10/twi800@07-03",
+      "SAT Adv B2:csd11/twi880@07-13"
+    ]
+  },
+  {
+    "uid": "275IC510",
+    "fullUid": "275IC510w7eb93Y4OO0BEJWadb82",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 880,
+    "anchorTwi": 880,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter A1:csd11/twi880@07-13",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "275IC510",
+    "fullUid": "275IC510w7eb93Y4OO0BEJWadb82",
+    "listId": "dVliNv0p",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": null,
+    "activeCls": "SAT Inter A1",
+    "activeTwi": 0,
+    "activeLag": null,
+    "docs": [
+      "SAT Inter A1:csd0/twi0",
+      "SAT Inter B1:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "mX0tjLDm",
+    "fullUid": "mX0tjLDmZSdflBMbGnm5H2fEXBk2",
+    "listId": "AObYOowh",
+    "kind": "LIVE-STRAND",
+    "spread": 640,
+    "anchorTwi": 800,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 720,
+    "activeLag": 80,
+    "docs": [
+      "미주 SAT Adv.:csd1/twi80@06-29",
+      "SAT Adv B2:csd9/twi720@07-13"
+    ]
+  },
+  {
+    "uid": "rysvswUq",
+    "fullUid": "rysvswUqLHMHchnaJFk0Epkjafm2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 880,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 880,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B2:csd11/twi880@07-13",
+      "SAT Final A:csd9/twi800"
+    ]
+  },
+  {
+    "uid": "YbCcRyAK",
+    "fullUid": "YbCcRyAKgwQ5lfjmpfJKwtiGR7R2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "SAT Adv B2",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Adv B2:csd1/twi80@07-13",
+      "SAT Inter A3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "2KSRfEGH",
+    "fullUid": "2KSRfEGHuWdnrdvFtsEWksDtuuk1",
+    "listId": "dVliNv0p",
+    "kind": "LIVE-STRAND",
+    "spread": 300,
+    "anchorTwi": 500,
+    "activeCls": "SAT Final A",
+    "activeTwi": 400,
+    "activeLag": 100,
+    "docs": [
+      "SAT Final B:csd1/twi100@06-15",
+      "SAT Final A:csd4/twi400@06-19"
+    ]
+  },
+  {
+    "uid": "o1w73fEs",
+    "fullUid": "o1w73fEstScSsJzvzxWWwfsjOsj2",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 500,
+    "anchorTwi": 500,
+    "activeCls": "SAT Final A",
+    "activeTwi": 500,
+    "activeLag": 0,
+    "docs": [
+      "SAT Final A:csd5/twi500@06-26",
+      "SAT Inter B3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "eJfUynSn",
+    "fullUid": "eJfUynSnTrPFcPDSMjYfnpdo7w12",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 800,
+    "anchorTwi": 1200,
+    "activeCls": "SAT Inter B3",
+    "activeTwi": 1200,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B3:csd15/twi1200@07-12",
+      "SAT Inter A3:csd5/twi400@06-19"
+    ]
+  },
+  {
+    "uid": "eJfUynSn",
+    "fullUid": "eJfUynSnTrPFcPDSMjYfnpdo7w12",
+    "listId": "dVliNv0p",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 80,
+    "activeCls": "SAT Inter B3",
+    "activeTwi": 80,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B3:csd1/twi80@07-12",
+      "SAT Inter A3:csd0/twi0"
+    ]
+  },
+  {
+    "uid": "HavPhdjx",
+    "fullUid": "HavPhdjxgyRd3vGruvPY7Fprv6t1",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 580,
+    "anchorTwi": 660,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 660,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter B3:csd1/twi80@07-06",
+      "SAT Bridge (CORE):csd11/twi660@07-13"
+    ]
+  },
+  {
+    "uid": "Eou8Q945",
+    "fullUid": "Eou8Q945RUclEtKAbJhxc8mz9Lp1",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 340,
+    "anchorTwi": 720,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 660,
+    "activeLag": 60,
+    "docs": [
+      "SAT Inter B1:csd3/twi320@06-25",
+      "SAT Bridge (CORE):csd11/twi660@07-13"
+    ]
+  },
+  {
+    "uid": "SzpDEeHx",
+    "fullUid": "SzpDEeHxckXEk8fdndSfl3JT23x1",
+    "listId": "RmNNkuLP",
+    "kind": "benign-equal",
+    "spread": 0,
+    "anchorTwi": 860,
+    "activeCls": "SAT Bridge (CORE)",
+    "activeTwi": 800,
+    "activeLag": 60,
+    "docs": [
+      "SAT Inter B1:csd10/twi800@07-06",
+      "SAT Bridge (CORE):csd9/twi800@07-13"
+    ]
+  },
+  {
+    "uid": "CL277w1D",
+    "fullUid": "CL277w1DkGaQ8UvJf5URNoyWc1G3",
+    "listId": "RmNNkuLP",
+    "kind": "stale-2nd-enroll",
+    "spread": 80,
+    "anchorTwi": 440,
+    "activeCls": "SAT Inter A3",
+    "activeTwi": 440,
+    "activeLag": 0,
+    "docs": [
+      "SAT Inter A3:csd7/twi440@07-13",
+      "SAT Bridge (CORE):csd6/twi360@07-13"
+    ]
+  }
+]

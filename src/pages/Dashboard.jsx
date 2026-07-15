@@ -17,12 +17,14 @@ import {
   updateUserSettings,
 } from '../services/db'
 import { getClassProgress } from '../services/progressService'
+import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
 import { db } from '../firebase'
 import CreateClassModal from '../components/CreateClassModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { downloadListAsPDF } from '../utils/pdfGenerator.js'
-import { getTodaysBatchForPDF, getCompleteBatchForPDF, determineStartingPhase } from '../services/studyService'
+import { getTodaysBatchForPDF, getCompleteBatchForPDF, determineStartingPhase, computeLapView, deriveEffectiveCycling, getCycleLength } from '../services/studyService'
 import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../services/sessionService'
 import MasterySquares from '../components/MasterySquares.jsx'
 import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
@@ -320,6 +322,10 @@ const Dashboard = () => {
   // ONE state (Codex round-3) so status and data can never diverge across renders.
   const [progressEntries, setProgressEntries] = useState({})
   const [progressDataLoading, setProgressDataLoading] = useState(false) // F1: init false; true only when there are fetchable pairs
+  // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per cycling list, for
+  // lap-aware display. Loaded lazily (cheap aggregate count) ONLY for effective-cycling lists
+  // and ONLY when CYCLING_ENABLED. Empty ⇒ displays use the legacy path (byte-equivalent off).
+  const [cycleLengths, setCycleLengths] = useState({})
   // Back-compat view: existing consumers read progressData[key] = the doc (or null).
   // F02 [Codex round-2] Include ONLY successfully-loaded ('ok') keys, so `key in progressData`
   // means "loaded successfully" (not "errored"). An error entry is ABSENT → per-list cards
@@ -638,6 +644,35 @@ const Dashboard = () => {
   useEffect(() => {
     loadStudentClasses()
   }, [loadStudentClasses])
+
+  // P9 · CYC (Codex P9-3): load the CANONICAL cycleLength (positions.length) for the distinct
+  // lists that are EFFECTIVELY cycling (§3b) for this student — the one modulus for lap math +
+  // display. Cheap aggregate count, ONE per cycling list, gated on CYCLING_ENABLED so flag-off
+  // runs nothing (byte-equivalent — no state, no read).
+  useEffect(() => {
+    if (!CYCLING_ENABLED || isTeacher || !studentClasses.length) return
+    let cancelled = false
+    const listIds = new Set()
+    for (const klass of studentClasses) {
+      for (const list of (klass.assignedListDetails || [])) {
+        if (deriveEffectiveCycling(studentClasses, list.id).enabled) listIds.add(list.id)
+      }
+    }
+    if (listIds.size === 0) return
+    ;(async () => {
+      const entries = await Promise.all(
+        [...listIds].map(async (id) => [id, await getCycleLength(id)])
+      )
+      if (!cancelled) {
+        setCycleLengths((prev) => {
+          const next = { ...prev }
+          for (const [id, cl] of entries) if (cl > 0) next[id] = cl
+          return next
+        })
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isTeacher, studentClasses])
 
   // Load progress data for each class/list (parallelized for speed)
   useEffect(() => {
@@ -1040,6 +1075,19 @@ const Dashboard = () => {
 
     const buildFocus = (klass, list) => {
       const assignment = klass.assignments?.[list.id] || {}
+      // P8 · CONT-A: expose the assignment's continuation link on the focus object (title
+      // resolved against THIS class's assigned lists — a dangling link stays null). Read-only
+      // additions; both fields are null with the flag off, so flag-off consumers see today's
+      // object shape plus inert nulls.
+      let nextListId = null
+      let nextListTitle = null
+      if (CONTINUATION_LINKS && assignment.nextListId && assignment.nextListId !== list.id) {
+        const nextList = klass.assignedListDetails?.find((l) => l.id === assignment.nextListId)
+        if (nextList) {
+          nextListId = nextList.id
+          nextListTitle = nextList.title || 'Vocabulary List'
+        }
+      }
       return {
         id: list.id,
         title: list.title || 'Vocabulary List',
@@ -1049,7 +1097,58 @@ const Dashboard = () => {
         studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
         wordCount: list.wordCount || 0,
         stats: list.stats || {},
+        nextListId,
+        nextListTitle,
+        // P9 · CYC (§3b/§3e, Codex P9-2): the EFFECTIVE cross-class cycling capability — cycling
+        // is unlocked for this student+list iff ANY enrolled class assigns it with cyclingEnabled
+        // (not just this focus class). Derived in-memory over `studentClasses` (no query). Powers
+        // the hero's lap-aware progress + "finished" suppression + the "cycling enabled via
+        // {className}" affordance. Added ONLY when the global capability is live ⇒ flag-off object
+        // is today's exactly.
+        ...(CYCLING_ENABLED
+          ? (() => {
+              const eff = deriveEffectiveCycling(studentClasses, list.id)
+              return { cyclingEnabled: eff.enabled, cyclingSourceClassName: eff.sourceClassName }
+            })()
+          : {}),
       }
+    }
+
+    // P8 · CONT-A focus-yield (C-13 / F6-5): a FINISHED list (twi >= listTotal) yields primary
+    // focus to its linked nextListId. Applied at EVERY getPrimaryFocus return site — the
+    // explicit-PIN branch (1a/1b below, which returns FIRST — the ~287 CS-pinned students would
+    // never auto-advance if this lived only in recency) AND the recency branch (2a). PURE
+    // read/derivation: resolves the focus without writing the pin or ANY progress record (the
+    // §2.1 falsifier — the finished list's twi/csd are never touched). Chain-follows multi-list
+    // sequences with a visited-set so a teacher-configured loop can't spin. Lap-aware for P9:
+    // under cycling twi legitimately climbs past listTotal every lap, so the yield is gated
+    // OFF for a cyclingEnabled assignment (raw twi >= listTotal would misfire each lap; the
+    // choice terminal, not auto-yield, handles cycling lists).
+    const resolveContinuation = (klass, list) => {
+      if (!CONTINUATION_LINKS) return buildFocus(klass, list)
+      let current = list
+      const visited = new Set([current.id])
+      const maxHops = Object.keys(klass.assignments || {}).length + 1
+      for (let hop = 0; hop < maxHops; hop++) {
+        const assignment = klass.assignments?.[current.id] || {}
+        // P9 · CYC (Codex P9-6): never auto-yield an EFFECTIVELY-cycling finished list — gate on
+        // the cross-class §3b unlock (ANY of the student's classes), not just THIS class's flag,
+        // else a list cycling via another class still yields to nextListId. Inside CYCLING_ENABLED
+        // so flag-off is unchanged (deriveEffectiveCycling never runs; today's no-break behavior).
+        if (CYCLING_ENABLED && deriveEffectiveCycling(studentClasses, current.id).enabled) break
+        const nextId = assignment.nextListId
+        if (!nextId || nextId === current.id || visited.has(nextId)) break
+        const progress = progressData[`${klass.id}_${current.id}`]
+        const twi = progress?.totalWordsIntroduced || 0
+        const listTotal = current.wordCount || 0
+        const finished = listTotal > 0 && twi >= listTotal
+        if (!finished) break
+        const nextList = klass.assignedListDetails?.find((l) => l.id === nextId)
+        if (!nextList) break // dangling link (list unassigned since) — keep today's focus
+        visited.add(nextId)
+        current = nextList
+      }
+      return buildFocus(klass, current)
     }
 
     // 1. Check user preference first. Resolve by saved CLASS + LIST: a student can be in
@@ -1062,7 +1161,10 @@ const Dashboard = () => {
           (l) => l.id === userSettings.primaryFocusListId
         )
         if (savedClass && savedList) {
-          return buildFocus(savedClass, savedList)
+          // P8 · CONT-A: the PIN branch must also yield a pinned FINISHED list to its linked
+          // next list (F6-5 — this branch returns FIRST, before recency; the pin itself is NOT
+          // rewritten — the focus is resolved read-only past the finished link).
+          return resolveContinuation(savedClass, savedList)
         }
         // saved class gone / no longer has the list -> fall through to legacy list-only
       }
@@ -1072,7 +1174,8 @@ const Dashboard = () => {
       for (const klass of studentClasses) {
         const list = klass.assignedListDetails?.find((l) => l.id === userSettings.primaryFocusListId)
         if (list) {
-          return buildFocus(klass, list)
+          // P8 · CONT-A: legacy list-only pin variant yields the same way (F6-5).
+          return resolveContinuation(klass, list)
         }
       }
       // Preference no longer valid - fall through to auto-select
@@ -1105,7 +1208,9 @@ const Dashboard = () => {
       progressCandidates.sort((a, b) =>
         (b.lastMs - a.lastMs) || (b.csd - a.csd) || (b.assignedMs - a.assignedMs) || (a.tie < b.tie ? -1 : 1)
       )
-      return buildFocus(progressCandidates[0].klass, progressCandidates[0].list)
+      // P8 · CONT-A: recency branch yields a finished top candidate to its linked next list
+      // (the original C-13 fix — a finished list otherwise keeps winning on recency forever).
+      return resolveContinuation(progressCandidates[0].klass, progressCandidates[0].list)
     }
 
     // 2b. No progress on any assigned list → existing behavior: most recently assigned; first
@@ -1134,6 +1239,41 @@ const Dashboard = () => {
 
     return primaryList
   }, [studentClasses, userSettings, progressData]) // F02: progress-preferring fallback reads progressData
+
+  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Reconciled resolver read for Panel C.
+  // Today Panel C feeds determineStartingPhase the RAW stored csd (progressData is a plain
+  // doc read, never reconciled) — a stale doc makes dayNumber wrong and fires the
+  // `impossible_phase_detected` noise (I-2 §2: Dashboard-only emitter, 531 real states).
+  // Flag ON: fetch the server-reconciled position via the READ-ONLY resolveListProgress
+  // callable — called WITHOUT classId, so it is a PURE read (no F4-1 recon write from a
+  // render path; the merged in-memory view is consumed, per the P4 read contract) — and
+  // Panel C derives the phase from the reconciled csd, retiring the emitter noise.
+  // Flag OFF (default): state stays null, no callable fires, Panel C byte-equivalent.
+  const [resolvedFocusCsd, setResolvedFocusCsd] = useState(null) // { classId, listId, csd } | null
+  useEffect(() => {
+    if (!SERVER_PROGRESS_WRITE) return undefined
+    if (isTeacher || !user?.uid || !getPrimaryFocus?.id) {
+      setResolvedFocusCsd(null)
+      return undefined
+    }
+    let cancelled = false
+    const focusClassId = getPrimaryFocus.classId
+    const focusListId = getPrimaryFocus.id
+    const resolveFn = httpsCallable(getFunctions(), 'resolveListProgress', { timeout: 30000 })
+    resolveFn({ listId: focusListId })
+      .then((resp) => {
+        if (cancelled) return
+        const csd = resp?.data?.csd
+        setResolvedFocusCsd(Number.isInteger(csd)
+          ? { classId: focusClassId, listId: focusListId, csd }
+          : null)
+      })
+      .catch(() => {
+        // Resolver dark/unreachable → Panel C falls back to the raw stored csd (today's read).
+        if (!cancelled) setResolvedFocusCsd(null)
+      })
+    return () => { cancelled = true }
+  }, [isTeacher, user?.uid, getPrimaryFocus?.classId, getPrimaryFocus?.id])
 
   // F3 — Class control options: one per enrolled class.
   const classOptions = useMemo(
@@ -1453,7 +1593,19 @@ const Dashboard = () => {
       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
       const progress = progressData[key]
 
-      const currentStudyDay = progress?.currentStudyDay ?? 0
+      // [deepfix P4, SERVER_PROGRESS_WRITE] Prefer the server-RECONCILED csd for the focused
+      // list (resolveListProgress read — see the effect above) over the raw stored doc value:
+      // the raw read is what fed determineStartingPhase a stale dayNumber and fired the
+      // `impossible_phase_detected` noise. Guarded to the CURRENT focus so a stale resolution
+      // from a previous focus can never leak in. Flag OFF → resolvedFocusCsd is always null
+      // → exactly today's raw read.
+      const resolvedMatchesFocus = SERVER_PROGRESS_WRITE
+        && resolvedFocusCsd
+        && resolvedFocusCsd.classId === getPrimaryFocus.classId
+        && resolvedFocusCsd.listId === getPrimaryFocus.id
+      const currentStudyDay = resolvedMatchesFocus
+        ? Math.max(resolvedFocusCsd.csd, progress?.currentStudyDay ?? 0) // non-demoting (CSD contract)
+        : (progress?.currentStudyDay ?? 0)
 
       // Phase-aware "what to do today" for the hero CTA — derived from attempts
       // (authoritative), scoped to the active list. One of:
@@ -1476,7 +1628,7 @@ const Dashboard = () => {
         error: true
       }
     }
-  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading])
+  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading, resolvedFocusCsd])
 
 
   // Modal state
@@ -1557,8 +1709,28 @@ const Dashboard = () => {
           const anyLoading = firstPaintLoading || heroLoading
           const tIntro = totalWordsIntroduced ?? 0 // null-safe (undefined while panelBLoading)
           const listTotal = getPrimaryFocus?.wordCount || 0
-          const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
-          const wordsLeft = Math.max(0, listTotal - tIntro)
+          // P9 · CYC (§3e, Codex P9-2/P9-3): on an EFFECTIVELY-cycling focus list (unlocked by
+          // ANY of the student's classes) twi climbs past listTotal every lap, so raw twi/listTotal
+          // would pin at 100% and read "finished" forever. Show INTRODUCTION progress within the
+          // current lap using the CANONICAL cycleLength (positions.length, loaded into cycleLengths;
+          // wordCount only as a transient fallback while that aggregate count is in flight). Flag-off
+          // ⇒ focusLapView null ⇒ today's exact listPct/wordsLeft/listFinished (byte-equivalent).
+          const focusCycleLength = cycleLengths[getPrimaryFocus?.id] || listTotal
+          const focusLapView = (CYCLING_ENABLED && getPrimaryFocus?.cyclingEnabled === true)
+            ? computeLapView(tIntro, focusCycleLength)
+            : null
+          const listPct = focusLapView
+            ? focusLapView.pct
+            : (listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0)
+          // P9: words left in the CURRENT lap under cycling (denom − numer), else list-wide.
+          const wordsLeft = focusLapView
+            ? Math.max(0, focusLapView.denom - focusLapView.numer)
+            : Math.max(0, listTotal - tIntro)
+          // §5 persistent finished/terminal state: every word introduced. Derivable from PROGRESS alone
+          // (no Phase-2 allocation prediction needed) — the hero must then stop promising new words and
+          // congratulate + point to review, persistently (not just the day it completes).
+          // P9: a cycling list is NEVER "finished" — it rolls into the next lap (listFinished false).
+          const listFinished = !focusLapView && listTotal > 0 && wordsLeft === 0
           const day = (panelCState?.currentStudyDay ?? 0) + 1
           const newCount = getPrimaryFocus?.pace || null
           const phase = panelCState?.phase
@@ -1629,6 +1801,15 @@ const Dashboard = () => {
                         <>
                           <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">🔥 {streakDays}-day streak</span>
                           <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
+                          {/* P9 · CYC (§3b affordance): lap chip + the class that unlocked cycling when it isn't this one. */}
+                          {focusLapView && (
+                            <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">
+                              Lap {focusLapView.lap}
+                              {getPrimaryFocus.cyclingSourceClassName && getPrimaryFocus.cyclingSourceClassName !== getPrimaryFocus.className
+                                ? ` · via ${getPrimaryFocus.cyclingSourceClassName}`
+                                : ''}
+                            </span>
+                          )}
                         </>
                       )}
                     </div>
@@ -1650,15 +1831,24 @@ const Dashboard = () => {
                         </span>
                         {/* directive */}
                         <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
-                          {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
+                          {doneToday
+                            ? (listFinished ? 'List complete 🎉' : `Day ${day} done 🎉`)
+                            : reviewStage ? 'One step left — review'
+                              : listFinished ? 'Keep your words sharp'
+                                : newCount ? `Learn ${newCount} new words`
+                                  : "Start today's new words"}
                         </h3>
                         {/* help line */}
                         <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
                           {doneToday
-                            ? "You're all caught up. Come back tomorrow."
+                            ? (listFinished
+                                ? "You've introduced every word — keep them sharp with review. New challenges may unlock later."
+                                : "You're all caught up. Come back tomorrow.")
                             : reviewStage
                               ? `Pass today's review test to complete Day ${day}.`
-                              : 'Study them, then pass the test to unlock review.'}
+                              : listFinished
+                                ? "You've introduced every word in this list — today is review to lock them in."
+                                : 'Study them, then pass the test to unlock review.'}
                         </p>
                         {/* 2-step day tracker */}
                         <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
@@ -1678,8 +1868,26 @@ const Dashboard = () => {
                           onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
                           className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
                         >
-                          {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
+                          {doneToday ? (listFinished ? 'Review again →' : 'Practice again') : reviewStage ? 'Start review →' : listFinished ? 'Start review →' : 'Start new words →'}
                         </button>
+                        {/* P8 · CONT-A choice terminal (Dashboard finished hero): when THIS focus is a
+                            finished list whose launching class links a next list, offer the advance.
+                            PURE navigation — the next list's Day 1 starts through the existing
+                            initializeDailySession create-on-miss path; the finished list's record is
+                            never written here. (With focus-yield active this state is normally already
+                            resolved past the finished list; it renders when the yield is gated off —
+                            e.g. a P9 cyclingEnabled list — so the choice is never lost.)
+                            P9 (cyclingEnabled): a "Start over" button joins this block ONLY once the
+                            cycling capability is live — capability-gated rendering, never a dead button. */}
+                        {CONTINUATION_LINKS && listFinished && getPrimaryFocus.nextListId && getPrimaryFocus.nextListTitle && (
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.nextListId}`)}
+                            className="w-full mt-2 font-extrabold rounded-button py-3.5 transition-colors bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30"
+                          >
+                            Advance to {getPrimaryFocus.nextListTitle} →
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -1699,7 +1907,7 @@ const Dashboard = () => {
                   {anyLoading
                     ? <div className="mt-1.5">{tileSk('h-7 w-16')}</div>
                     : <p className="font-heading text-2xl font-bold text-brand-text mt-1.5">{tIntro.toLocaleString()}</p>}
-                  <p className="font-body text-xs text-text-secondary mt-1">{anyLoading ? ' ' : `${listPct}% of list`}</p>
+                  <p className="font-body text-xs text-text-secondary mt-1">{anyLoading ? ' ' : (focusLapView ? `${listPct}% of Lap ${focusLapView.lap}` : `${listPct}% of list`)}</p>
                 </div>
                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Avg Review Score</p>
@@ -1887,17 +2095,27 @@ const Dashboard = () => {
                                       const progress = progressData[progressKey]
                                       const wordsIntroduced = progress?.totalWordsIntroduced ?? 0
                                       const totalWords = list.wordCount ?? 0
-                                      const percentage = totalWords > 0
-                                        ? Math.min(100, Math.max(0, Math.round((wordsIntroduced / totalWords) * 100)))
-                                        : 0
+                                      // P9 · CYC (§3e, Codex P9-2/P9-3): lap-aware introduction progress when
+                                      // cycling is EFFECTIVELY unlocked for this student+list (ANY of their
+                                      // classes), using the CANONICAL cycleLength (positions.length; wordCount
+                                      // only as a transient fallback). Flag-off ⇒ cardLapView null ⇒ today's exact
+                                      // percentage + labels (byte-equivalent).
+                                      const cardLapView = (CYCLING_ENABLED && deriveEffectiveCycling(studentClasses, list.id).enabled)
+                                        ? computeLapView(wordsIntroduced, cycleLengths[list.id] || totalWords)
+                                        : null
+                                      const percentage = cardLapView
+                                        ? cardLapView.pct
+                                        : (totalWords > 0
+                                            ? Math.min(100, Math.max(0, Math.round((wordsIntroduced / totalWords) * 100)))
+                                            : 0)
                                       const barWidth = `${percentage}%`
                                       const isWideBar = percentage > 15
 
                                       return (
                                         <div className="space-y-1.5 text-xs text-text-secondary">
                                           <div className="flex items-center justify-between">
-                                            <span>{wordsIntroduced} introduced</span>
-                                            <span>{totalWords} total</span>
+                                            <span>{cardLapView ? `${cardLapView.numer} introduced · Lap ${cardLapView.lap}` : `${wordsIntroduced} introduced`}</span>
+                                            <span>{cardLapView ? cardLapView.denom : totalWords} total</span>
                                           </div>
                                           <div className="relative h-10 w-full rounded-lg bg-inset flex items-center overflow-hidden">
                                             <div

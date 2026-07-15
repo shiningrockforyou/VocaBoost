@@ -1,0 +1,159 @@
+diff --git a/src/services/studyService.js b/src/services/studyService.js
+--- a/src/services/studyService.js
++++ b/src/services/studyService.js
+@@ -912,12 +912,18 @@
+  *     the client must NOT re-clear or re-log);
+  *   • 'already_completed'  → success-shaped {sessionId:null, progress} (idempotent retry —
+  *     no second sessions-history record);
+- *   • 'completed'          → keep today's users/{uid}/sessions history record (client-owned,
+- *     not a progress write) and return {sessionId, progress}.
++ *   • 'no_evidence' (F-4)  → BLOCKING {sessionId:null, progress:null, completionNotApplied:true,
++ *     reason:'no_evidence'} — the server refused to advance (no passed new anchor AND no
++ *     server-verified review-only reason); NO sessions-history record is written;
++ *   • ANY other/unknown status (fail-closed) → the same blocking sentinel
++ *     {completionNotApplied:true, reason:<status>}; only 'completed' or a legacy no-status
++ *     payload takes the success path;
++ *   • 'completed' (or legacy no-status) → keep today's users/{uid}/sessions history record
++ *     (client-owned, not a progress write) and return {sessionId, progress}.
+  * NOTE: the returned `progress` carries the server's applied fields (currentStudyDay,
+  * totalWordsIntroduced, interventionLevel, stats, streakDays) — not the full legacy doc body.
+- * Current consumers read only these + dayGuardRejected (verified: studyService.js
+- * completeSessionFromTest, DailySessionFlow.jsx completeSession).
++ * Current consumers read only these + dayGuardRejected + completionNotApplied (verified:
++ * studyService.js completeSessionFromTest, DailySessionFlow.jsx completeSession).
+  */
+ async function recordSessionCompletionViaServer(userId, sessionData) {
+   const {
+@@ -979,8 +985,42 @@
+     };
+   }
+ 
+-  // status === 'completed': keep the legacy users/{uid}/sessions history record (client-owned
+-  // audit trail; NOT a progress write — the server owns class_progress under this flag).
++  if (data.status === 'no_evidence') {
++    // [deepfix F-4 client counterpart] The server REFUSED to advance the day: no passed
++    // day-N new-word anchor AND no server-verified review-only reason. The transaction wrote
++    // NOTHING (no csd/twi advance). Mirror that here: write NO users/{uid}/sessions history
++    // record and return a BLOCKING sentinel so completeSessionFromTest skips graduation and
++    // the test pages do NOT present success (the F-4 invariant: no evidence → do not complete).
++    console.warn('[SESSION] completion refused — no evidence (server); completion did not apply', {
++      userId, classId, listId, sessionDay: dayNumber, progressDay: data.progressDay ?? null
++    });
++    return {
++      sessionId: null,
++      progress: null,
++      completionNotApplied: true,
++      reason: 'no_evidence'
++    };
++  }
++
++  // FAIL-CLOSED (F-4): only an explicit 'completed' status — or a legacy payload that omits
++  // `status` entirely (the pre-status callable contract) — proceeds to the success + history
++  // write. Any OTHER/unknown status blocks as not-applied; never assume success under
++  // SERVER_PROGRESS_WRITE.
++  if (data.status != null && data.status !== 'completed') {
++    console.warn('[SESSION] unexpected completeSession status — completion not applied (fail-closed)', {
++      userId, classId, listId, sessionDay: dayNumber, status: data.status
++    });
++    return {
++      sessionId: null,
++      progress: null,
++      completionNotApplied: true,
++      reason: data.status
++    };
++  }
++
++  // status === 'completed' (or legacy no-status): keep the legacy users/{uid}/sessions history
++  // record (client-owned audit trail; NOT a progress write — the server owns class_progress
++  // under this flag).
+   const sessionRef = doc(collection(db, `users/${userId}/sessions`));
+   const cleanSessionData = Object.fromEntries(
+     Object.entries(sessionData).filter(([, v]) => v !== undefined)
+@@ -1834,6 +1874,21 @@
+     };
+   }
+ 
++  // [deepfix F-4 client counterpart] The server refused this completion for lack of
++  // evidence (no passed new anchor + not review-only) — or returned an unknown status
++  // (fail-closed). The completion did NOT apply: skip graduation and return the blocking
++  // sentinel so the test pages present the retry/pass-new-test UX, never success. The
++  // attempt itself is already saved.
++  if (result?.completionNotApplied) {
++    return {
++      sessionId: null,
++      progress: null,
++      graduated: 0,
++      completionNotApplied: true,
++      reason: result.reason || 'not_applied'
++    };
++  }
++
+   // Graduate words if this was a review test with a score
+   let graduationResult = null;
+   if (segment && reviewScore != null) {
+diff --git a/src/pages/TypedTest.jsx b/src/pages/TypedTest.jsx
+--- a/src/pages/TypedTest.jsx
++++ b/src/pages/TypedTest.jsx
+@@ -1113,6 +1113,16 @@
+               setIsSubmitting(false)
+               return
+             }
++            // [deepfix F-4] Evidence-free completion refused by the server (no passed new-word
++            // anchor + not a review-only day) — or an unknown status (fail-closed). The attempt
++            // is saved but the day did NOT complete: block the results screen and prompt to pass
++            // the new-word test / retry, never present success.
++            if (completion?.completionNotApplied) {
++              console.warn('completeSessionFromTest: completion not applied — blocking success', { reason: completion?.reason })
++              setGradingError('아직 이 날을 완료할 수 없습니다. 답안은 저장되었어요. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요.\n(This day can\'t be completed yet — your answers are saved. Make sure the new-word test was passed, then retry; reload the page if this repeats.)')
++              setIsSubmitting(false)
++              return
++            }
+             console.log('Session completed successfully from TypedTest')
+           } catch (completionErr) {
+             console.error('Failed to complete session from test:', completionErr)
+diff --git a/src/pages/MCQTest.jsx b/src/pages/MCQTest.jsx
+--- a/src/pages/MCQTest.jsx
++++ b/src/pages/MCQTest.jsx
+@@ -832,6 +832,15 @@
+                 : '답안은 저장되었지만 세션을 초기화하지 못했습니다. 페이지를 새로고침해 주세요 — 문제가 반복되면 선생님께 알려 주세요. (Your answers are saved, but the session could not be reset. Please reload the page — tell your teacher if this repeats.)')
+               return
+             }
++            // [deepfix F-4] Evidence-free completion refused by the server (no passed new-word
++            // anchor + not a review-only day) — or an unknown status (fail-closed). The attempt
++            // is saved but the day did NOT complete: block success and prompt to pass the
++            // new-word test / retry, never present success.
++            if (completion?.completionNotApplied) {
++              console.warn('completeSessionFromTest: completion not applied — blocking success', { reason: completion?.reason })
++              setSubmitError('아직 이 날을 완료할 수 없습니다. 답안은 저장되었어요. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요. (This day can\'t be completed yet — your answers are saved. Make sure the new-word test was passed, then retry; reload the page if this repeats.)')
++              return
++            }
+             console.log('Session completed successfully from MCQTest')
+           } catch (completionErr) {
+             console.error('Failed to complete session from test:', completionErr)
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -1528,6 +1528,23 @@
+ 
+       const result = await recordSessionCompletion(user.uid, summary)
+ 
++      // [deepfix F-4 client counterpart — FINAL2-1] The server (SERVER_PROGRESS_WRITE path)
++      // refused to advance the day for lack of evidence — no passed day-N new-word anchor AND
++      // no server-verified review-only reason — or returned an unknown status (fail-closed).
++      // The completion did NOT apply and NOTHING was written server-side: do NOT graduate words
++      // and do NOT advance to the COMPLETE phase (that would falsely present success). Surface
++      // the same class of blocking "pass the new-word test, then retry/reload" UX this file uses
++      // for the legacy-write-cutoff case, and early-return. `completionNotApplied` is set ONLY on
++      // the SERVER_PROGRESS_WRITE server path (dormant) → flag-off ⇒ this guard is never hit ⇒
++      // the legacy DSF flow is byte-identical to today. (The parallel `result.dayGuardRejected`
++      // gap is PRE-EXISTING/live under LIST_SCOPED_RECON and is NOT handled here — see
++      // FINAL_FOLD_A_notes.md "DSF dayGuardRejected" flag.)
++      if (result?.completionNotApplied) {
++        console.warn('[DSF] completion not applied (no evidence / refused) — blocking success', { reason: result?.reason })
++        setError('아직 이 날을 완료할 수 없습니다. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요.\n(This day can\'t be completed yet — make sure the new-word test was passed, then retry; reload the page if this repeats.)')
++        return
++      }
++
+       // Graduate percentage of words from segment after review test
+       // Only do this if there was a review test (not Day 1)
+       let graduationResult = null

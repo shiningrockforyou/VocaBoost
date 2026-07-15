@@ -1,0 +1,54 @@
+{
+  "id": "KKQ0x7kivEgRlEVnXrkW",
+  "name": "26SM SAT Final B",
+  "assignments": {
+    "AObYOowhLoOOHx9wW2Sq": {
+      "reviewTestSizeMax": 30,
+      "assignedAt": {
+        "_seconds": 1780174888,
+        "_nanoseconds": 392000000
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "passThreshold": 92,
+      "testMode": "typed",
+      "reviewTestType": "mcq",
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMin": 20,
+      "testSizeNew": 35,
+      "newWordRetakeThreshold": 0.92
+    },
+    "dVliNv0p9jqZYp9rfLpN": {
+      "reviewTestSizeMax": 30,
+      "assignedAt": {
+        "_seconds": 1780261288,
+        "_nanoseconds": 392000000
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "passThreshold": 92,
+      "testMode": "typed",
+      "reviewTestType": "mcq",
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMin": 20,
+      "testSizeNew": 35,
+      "newWordRetakeThreshold": 0.92
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780088488,
+        "_nanoseconds": 0
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 92,
+      "testSizeNew": 35,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

@@ -1,0 +1,803 @@
+diff --git a/src/config/featureFlags.js b/src/config/featureFlags.js
+index 254da90..0f4ef28 100644
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -39,3 +39,17 @@ export const SERVER_REVIEW_MARKER = false;
+ // indexes (firestore.indexes.json) deployed FIRST — flag-on without them = query-error
+ // fallbacks everywhere. Flag-off = byte-equivalent legacy (class-scoped) behavior.
+ export const LIST_SCOPED_RECON = true;
++
++// CONTINUATION_LINKS (FIX_PLAN Phase P8 · CONT-A): David's list-continuation feature —
++// per-class list SEQUENCE (`nextListId` on classes/{classId}.assignments[listId]), a
++// finished-list choice terminal ("Advance to {nextList} →"), and finished-list focus-yield
++// on the Dashboard (a FINISHED list — twi >= listTotal — yields primary focus to its linked
++// nextListId; handles BOTH the explicit-pin branch and the recency branch of getPrimaryFocus,
++// C-13/F6-5). "Advance" is PURE navigation + config read: the next list starts through the
++// EXISTING initializeDailySession create-on-miss path on a DIFFERENT listId; NO code behind
++// this flag writes the finished list's totalWordsIntroduced/currentStudyDay or alters
++// allocation (the §2.1 falsifier — if any such write appears, CONT-A re-gates behind P6).
++// "Start over" (cycling, P9) is NOT part of this flag and renders only once that capability
++// is live. Default OFF; with the flag off — or `nextListId` unset — behavior is today's
++// exactly (static P1 finished terminal, no yield, no teacher selector).
++export const CONTINUATION_LINKS = false;
+diff --git a/src/pages/ClassDetail.jsx b/src/pages/ClassDetail.jsx
+index bccedb2..c7aa304 100644
+--- a/src/pages/ClassDetail.jsx
++++ b/src/pages/ClassDetail.jsx
+@@ -24,6 +24,7 @@ import {
+ } from '../services/db'
+ import { fetchStudentsProgressForClass } from '../services/progressService'
+ import { fetchStudentsSessionStates } from '../services/sessionService'
++import { CONTINUATION_LINKS } from '../config/featureFlags'
+ import AssignListModal from '../components/AssignListModal.jsx'
+ import LoadingSpinner from '../components/LoadingSpinner.jsx'
+ import HeaderBar from '../components/HeaderBar.jsx'
+@@ -134,7 +135,7 @@ const ClassDetail = () => {
+   const [listFilter, setListFilter] = useState('all')
+   const [generatingPDF, setGeneratingPDF] = useState(null)
+ const [settingsModalList, setSettingsModalList] = useState(null)
+-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60 })
++  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null })
+ const [savingSettings, setSavingSettings] = useState(false)
+ const [unassigningListId, setUnassigningListId] = useState(null)
+   const [removingStudentId, setRemovingStudentId] = useState(null)
+@@ -234,6 +235,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+           reviewTestType: assignment.reviewTestType || 'mcq',
+           reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
+           reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
++          nextListId: assignment.nextListId ?? null, // P8 · CONT-A list-sequence link
+         }
+       }),
+     )
+@@ -351,6 +353,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+       reviewTestType: list.reviewTestType || 'mcq',
+       reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
+       reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
++      nextListId: list.nextListId ?? null, // P8 · CONT-A
+     })
+   }
+ 
+@@ -373,6 +376,10 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+         reviewTestType: settingsForm.reviewTestType,
+         reviewTestSizeMin: settingsForm.reviewTestSizeMin,
+         reviewTestSizeMax: settingsForm.reviewTestSizeMax,
++        // P8 · CONT-A: only send nextListId while the feature is ON — with the flag off
++        // the key is omitted entirely (undefined → no-op in updateAssignmentSettings),
++        // keeping the flag-off write byte-identical to today's.
++        ...(CONTINUATION_LINKS ? { nextListId: settingsForm.nextListId || null } : {}),
+       })
+       setFeedback('List settings updated successfully.')
+       await loadClass()
+@@ -733,6 +740,17 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+                         <span className="text-emerald-600">
+                           Test Options: {list.testOptionsCount ?? 4} choices
+                         </span>
++                        {/* P8 · CONT-A: surface the configured sequence link on the card (display only;
++                            resolves the id against this class's assigned lists — a dangling link shows nothing) */}
++                        {CONTINUATION_LINKS && list.nextListId && (() => {
++                          const nextList = assignedLists.find((l) => l.id === list.nextListId)
++                          return nextList ? (
++                            <>
++                              <span className="text-text-muted">|</span>
++                              <span className="text-brand-text">Next: {nextList.title}</span>
++                            </>
++                          ) : null
++                        })()}
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2">
+@@ -1233,6 +1251,41 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+               </div>
+             </div>
+ 
++            {/* P8 · CONT-A (CONTINUATION_LINKS): list sequence — the ordered "what comes after this
++                list" affordance over the class's OWN assigned lists. Flag off = section absent and
++                nothing is ever written. */}
++            {CONTINUATION_LINKS && (
++              <div className="border-t border-border-default pt-4 mt-4">
++                <h3 className="text-sm font-semibold text-text-primary mb-3">List Sequence</h3>
++                <label className="block text-sm font-medium text-text-secondary">
++                  Next List (after this one is finished)
++                  <select
++                    value={settingsForm.nextListId ?? ''}
++                    onChange={(event) =>
++                      setSettingsForm((prev) => ({
++                        ...prev,
++                        nextListId: event.target.value || null,
++                      }))
++                    }
++                    className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
++                  >
++                    <option value="">None — finished students stay on this list</option>
++                    {assignedLists
++                      .filter((l) => l.id !== settingsModalList.id)
++                      .map((l) => (
++                        <option key={l.id} value={l.id}>
++                          {l.title}
++                        </option>
++                      ))}
++                  </select>
++                  <p className="mt-1 text-xs text-text-muted">
++                    Students who finish this list are offered &quot;Advance to the next list&quot; and their
++                    dashboard focus moves on automatically. Only lists assigned to this class can be linked.
++                  </p>
++                </label>
++              </div>
++            )}
++
+             <div className="mt-6 flex gap-3">
+               <Button variant="outline" size="lg" className="flex-1" onClick={closeSettingsModal} disabled={savingSettings}>
+                 Cancel
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+index ff358ee..b072d39 100644
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -17,7 +17,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
+ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db } from '../firebase'
+-import { SERVER_REVIEW_MARKER } from '../config/featureFlags'
++import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS } from '../config/featureFlags'
+ import { useAuth } from '../contexts/AuthContext'
+ import Flashcard from '../components/Flashcard'
+ import Watermark from '../components/Watermark'
+@@ -83,7 +83,18 @@ const PHASES = {
+   COMPLETE: 'complete'
+ }
+ 
++// P8 · CONT-A: route-level wrapper that keys the session component on (classId, listId) so an
++// in-app advance to the NEXT list (`navigate('/session/${classId}/${nextListId}')` from the
++// finished choice terminal) remounts with completely fresh state instead of re-running init
++// over the finished list's stale phase/config/results. No-op for every existing flow: nothing
++// else navigates session→session with different params, and the key is constant within a
++// session (mount behavior identical to today's).
+ export default function DailySessionFlow() {
++  const { classId, listId } = useParams()
++  return <DailySessionFlowSession key={`${classId}_${listId}`} />
++}
++
++function DailySessionFlowSession() {
+   const { classId, listId } = useParams()
+   const { user } = useAuth()
+   const navigate = useNavigate()
+@@ -121,6 +132,12 @@ export default function DailySessionFlow() {
+   // Assignment settings
+   const [assignmentSettings, setAssignmentSettings] = useState(null)
+ 
++  // P8 · CONT-A: the launching class's assigned list ids (config read captured at init) +
++  // the resolved continuation target for the finished choice terminal ({ nextListId,
++  // nextListTitle } or null). Both stay null/empty with CONTINUATION_LINKS off or no link set.
++  const [classAssignedListIds, setClassAssignedListIds] = useState([])
++  const [continuation, setContinuation] = useState(null)
++
+   // Session summary
+   const [sessionSummary, setSessionSummary] = useState(null)
+ 
+@@ -535,6 +552,10 @@ export default function DailySessionFlow() {
+         }
+ 
+         setAssignmentSettings(assignment)
++        // P8 · CONT-A: remember which lists the launching class assigns, so the finished
++        // terminal never offers an advance to a link that has been unassigned since it was
++        // configured (dangling nextListId → no button, today's static terminal).
++        setClassAssignedListIds(Object.keys(classData.assignments || {}))
+ 
+         // Get list title
+         const listRef = doc(db, 'lists', listId)
+@@ -702,6 +723,9 @@ export default function DailySessionFlow() {
+             reviewQueue: [],
+             sessionConfig: recoveryConfig,
+             assignmentSettings: assignment,
++            // P8 · CONT-A: carried so the finished terminal can validate the nextListId
++            // link on return (init is skipped on testCompleted re-entry).
++            classAssignedListIds: Object.keys(classData.assignments || {}),
+             reviewTestAttempts: 0
+           }))
+ 
+@@ -819,6 +843,20 @@ export default function DailySessionFlow() {
+         } else if (config.segment) {
+           // Use the full review study set (capped segment + new-FAILED)
+           const allWords = await buildReviewStudySet(config.segment)
++          if (allWords.length === 0) {
++            // Empty review segment on a review-only day = every word MASTERED & resting → the list-end /
++            // all-mastered TERMINAL NO-WORK state. Complete WITHOUT recording: do NOT reuse showNoReviewModal
++            // (its close handler calls completeSession() → recordSessionCompletion), and do NOT call
++            // completeSession here — so currentStudyDay / recentSessions / completed-session records do NOT
++            // advance for a no-work day (Codex ROI2-1 / guardrail 5 / plan test 6, "no fake empty-day
++            // completion"). Prevents the empty-review-test dead-end (Lens C #3). CompletePhase renders the §5
++            // finished terminal because sessionConfig.isListComplete is already set (:567/:740).
++            setPhase(PHASES.COMPLETE)
++            if (sim?.isFullSimulation) {
++              setTimeout(() => { sim.onSessionComplete() }, 500)
++            }
++            return
++          }
+           setReviewQueue(allWords)
+           setReviewQueueCurrent(allWords)
+           setPhase(PHASES.REVIEW_STUDY)
+@@ -839,6 +877,42 @@ export default function DailySessionFlow() {
+     init()
+   }, [user?.uid, classId, listId, location.state?.testCompleted])
+ 
++  // ============================================================
++  // P8 · CONT-A: resolve the finished-terminal continuation target
++  // ============================================================
++  // When the session lands on the FINISHED terminal (phase COMPLETE + isListComplete) and the
++  // LAUNCHING class's assignment links a next list, fetch that list's title (read-only) so
++  // CompletePhase can offer "Advance to {nextList} →". Pure config read — nothing here (or in
++  // the advance handler) writes the finished list's progress record (§2.1 falsifier). Flag off
++  // or no valid link → continuation stays null → today's static terminal, byte-identical.
++  useEffect(() => {
++    if (!CONTINUATION_LINKS) return
++    if (phase !== PHASES.COMPLETE) return
++    if (sessionConfig?.isListComplete !== true) return
++    const nextListId = assignmentSettings?.nextListId
++    if (!nextListId || typeof nextListId !== 'string' || nextListId === listId) return
++    // Dangling-link guard: the target must still be assigned to the launching class,
++    // otherwise its session init would dead-end on 'List not assigned to this class'.
++    if (!classAssignedListIds.includes(nextListId)) return
++
++    let cancelled = false
++    ;(async () => {
++      try {
++        const nextListSnap = await getDoc(doc(db, 'lists', nextListId))
++        if (!cancelled && nextListSnap.exists()) {
++          setContinuation({
++            nextListId,
++            nextListTitle: nextListSnap.data().title || 'Vocabulary List',
++          })
++        }
++      } catch (err) {
++        // Fail closed to the static finished terminal — never a dead/broken button.
++        console.error('CONT-A: failed to resolve next list for the finished terminal:', err)
++      }
++    })()
++    return () => { cancelled = true }
++  }, [phase, sessionConfig?.isListComplete, assignmentSettings?.nextListId, classAssignedListIds, listId])
++
+   // ============================================================
+   // PHASE 1: New Words Study
+   // ============================================================
+@@ -1160,6 +1234,9 @@ export default function DailySessionFlow() {
+       reviewQueue,
+       sessionConfig,
+       assignmentSettings,
++      // P8 · CONT-A: carried so the finished terminal can validate the nextListId link
++      // on return from the test (init is skipped on testCompleted re-entry).
++      classAssignedListIds,
+       reviewTestAttempts
+     }))
+ 
+@@ -1223,6 +1300,7 @@ export default function DailySessionFlow() {
+         setNewWords(state.newWords)
+         setReviewQueue(state.reviewQueue)
+         setAssignmentSettings(state.assignmentSettings)
++        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
+         setReviewTestAttempts(state.reviewTestAttempts || 0)
+ 
+         // Reset study queue to allow re-study
+@@ -1272,6 +1350,7 @@ export default function DailySessionFlow() {
+         setNewWords(state.newWords)
+         setReviewQueue(state.reviewQueue)
+         setAssignmentSettings(state.assignmentSettings)
++        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
+         setReviewTestAttempts(state.reviewTestAttempts || 0)
+         // Restore new word test results (needed for session summary to show both scores)
+         if (state.newWordTestResults) {
+@@ -1788,6 +1867,17 @@ export default function DailySessionFlow() {
+               navigate('/')
+             }}
+             progressInfo={progressInfo}
++            continuation={continuation}
++            onAdvance={continuation ? async () => {
++              // P8 · CONT-A continuous advance: identical cleanup to "Back to Dashboard"
++              // (local + session_state of the FINISHED list — never its progress record),
++              // then PURE navigation to the next list. Day 1 of the next list is created by
++              // the EXISTING initializeDailySession → getOrCreateClassProgress create-on-miss
++              // path on the NEW listId; no twi/csd is written for the finished list (§2.1).
++              clearAllSessionStates(user.uid, classId, listId)
++              await clearSessionState(user.uid, classId, listId)
++              navigate(`/session/${classId}/${continuation.nextListId}`)
++            } : undefined}
+           />
+         )}
+       </div>
+@@ -2176,22 +2266,57 @@ function CompletePhase({
+   summary,
+   sessionConfig,
+   onDashboard,
+-  progressInfo
++  progressInfo,
++  // P8 · CONT-A: continuation = { nextListId, nextListTitle } when the launching class's
++  // assignment links a next list (CONTINUATION_LINKS on); null otherwise → static terminal.
++  continuation,
++  onAdvance
+ }) {
+   const isFirstDay = sessionConfig?.isFirstDay
++  // §5 list-end terminal: once every word has been introduced, this is the distinct "finished the list"
++  // terminal state (not an ordinary day-complete). Copy is SELF-SUFFICIENT — cycling is automatic, so never
++  // promise teacher setup (Lens C #6). isListComplete is the persisted derivative (studyService.js:314);
++  // cycling (Phase 3) later replaces "new challenges may unlock later" with Lap-2 re-introduction.
++  const isListComplete = sessionConfig?.isListComplete === true
++  const listWordCount = sessionConfig?.totalListWords || sessionConfig?.totalWordsIntroduced || 0
+ 
+   return (
+     <div className="space-y-6">
+-      {/* Success Header */}
+-      <div className="text-center">
+-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
+-          <span className="text-3xl">✓</span>
++      {/* Success Header — list-end terminal gets distinct congratulatory copy (§5) */}
++      {isListComplete ? (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">🎉</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            List Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">You finished the list!</h2>
++          <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">
++            {continuation ? (
++              <>
++                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words —
++                your next list, {continuation.nextListTitle}, is ready whenever you are.
++              </>
++            ) : (
++              <>
++                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words — keep
++                them sharp with review. New challenges may unlock later.
++              </>
++            )}
++          </p>
+         </div>
+-        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
+-          Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
+-        </p>
+-        <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
+-      </div>
++      ) : (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">✓</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
++        </div>
++      )}
+ 
+       {/* Progress indicator */}
+       {progressInfo && (
+@@ -2228,9 +2353,24 @@ function CompletePhase({
+         sessionConfig={sessionConfig}
+       />
+ 
+-      {/* Action Button */}
+-      <div className="pt-4">
+-        <Button onClick={onDashboard} variant="primary" size="lg" className="w-full">
++      {/* Action Buttons — P8 · CONT-A choice terminal: when the finished list links a next
++          list, "Advance" is the primary action (pure navigation — the finished list's record
++          is never written by it) and Dashboard becomes secondary. Otherwise: today's single
++          button, byte-identical.
++          P9 (cyclingEnabled): a "Start over" choice renders here ONLY once the cycling
++          capability is live — capability-gated rendering, never a dead button (§2.2). */}
++      <div className="pt-4 space-y-3">
++        {isListComplete && continuation && onAdvance && (
++          <Button onClick={onAdvance} variant="primary" size="lg" className="w-full">
++            Advance to {continuation.nextListTitle} →
++          </Button>
++        )}
++        <Button
++          onClick={onDashboard}
++          variant={isListComplete && continuation && onAdvance ? 'outline' : 'primary'}
++          size="lg"
++          className="w-full"
++        >
+           Back to Dashboard
+         </Button>
+       </div>
+diff --git a/src/pages/Dashboard.jsx b/src/pages/Dashboard.jsx
+index 7a09f99..ee9cc8a 100644
+--- a/src/pages/Dashboard.jsx
++++ b/src/pages/Dashboard.jsx
+@@ -17,6 +17,7 @@ import {
+   updateUserSettings,
+ } from '../services/db'
+ import { getClassProgress } from '../services/progressService'
++import { CONTINUATION_LINKS } from '../config/featureFlags'
+ import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
+ import { db } from '../firebase'
+ import CreateClassModal from '../components/CreateClassModal.jsx'
+@@ -1040,6 +1041,19 @@ const Dashboard = () => {
+ 
+     const buildFocus = (klass, list) => {
+       const assignment = klass.assignments?.[list.id] || {}
++      // P8 · CONT-A: expose the assignment's continuation link on the focus object (title
++      // resolved against THIS class's assigned lists — a dangling link stays null). Read-only
++      // additions; both fields are null with the flag off, so flag-off consumers see today's
++      // object shape plus inert nulls.
++      let nextListId = null
++      let nextListTitle = null
++      if (CONTINUATION_LINKS && assignment.nextListId && assignment.nextListId !== list.id) {
++        const nextList = klass.assignedListDetails?.find((l) => l.id === assignment.nextListId)
++        if (nextList) {
++          nextListId = nextList.id
++          nextListTitle = nextList.title || 'Vocabulary List'
++        }
++      }
+       return {
+         id: list.id,
+         title: list.title || 'Vocabulary List',
+@@ -1049,9 +1063,44 @@ const Dashboard = () => {
+         studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
+         wordCount: list.wordCount || 0,
+         stats: list.stats || {},
++        nextListId,
++        nextListTitle,
+       }
+     }
+ 
++    // P8 · CONT-A focus-yield (C-13 / F6-5): a FINISHED list (twi >= listTotal) yields primary
++    // focus to its linked nextListId. Applied at EVERY getPrimaryFocus return site — the
++    // explicit-PIN branch (1a/1b below, which returns FIRST — the ~287 CS-pinned students would
++    // never auto-advance if this lived only in recency) AND the recency branch (2a). PURE
++    // read/derivation: resolves the focus without writing the pin or ANY progress record (the
++    // §2.1 falsifier — the finished list's twi/csd are never touched). Chain-follows multi-list
++    // sequences with a visited-set so a teacher-configured loop can't spin. Lap-aware for P9:
++    // under cycling twi legitimately climbs past listTotal every lap, so the yield is gated
++    // OFF for a cyclingEnabled assignment (raw twi >= listTotal would misfire each lap; the
++    // choice terminal, not auto-yield, handles cycling lists).
++    const resolveContinuation = (klass, list) => {
++      if (!CONTINUATION_LINKS) return buildFocus(klass, list)
++      let current = list
++      const visited = new Set([current.id])
++      const maxHops = Object.keys(klass.assignments || {}).length + 1
++      for (let hop = 0; hop < maxHops; hop++) {
++        const assignment = klass.assignments?.[current.id] || {}
++        if (assignment.cyclingEnabled === true) break // P9 lap-aware gate: never auto-yield a cycling list
++        const nextId = assignment.nextListId
++        if (!nextId || nextId === current.id || visited.has(nextId)) break
++        const progress = progressData[`${klass.id}_${current.id}`]
++        const twi = progress?.totalWordsIntroduced || 0
++        const listTotal = current.wordCount || 0
++        const finished = listTotal > 0 && twi >= listTotal
++        if (!finished) break
++        const nextList = klass.assignedListDetails?.find((l) => l.id === nextId)
++        if (!nextList) break // dangling link (list unassigned since) — keep today's focus
++        visited.add(nextId)
++        current = nextList
++      }
++      return buildFocus(klass, current)
++    }
++
+     // 1. Check user preference first. Resolve by saved CLASS + LIST: a student can be in
+     //    two classes that assign the same list, so the list id alone is ambiguous.
+     if (userSettings?.primaryFocusListId) {
+@@ -1062,7 +1111,10 @@ const Dashboard = () => {
+           (l) => l.id === userSettings.primaryFocusListId
+         )
+         if (savedClass && savedList) {
+-          return buildFocus(savedClass, savedList)
++          // P8 · CONT-A: the PIN branch must also yield a pinned FINISHED list to its linked
++          // next list (F6-5 — this branch returns FIRST, before recency; the pin itself is NOT
++          // rewritten — the focus is resolved read-only past the finished link).
++          return resolveContinuation(savedClass, savedList)
+         }
+         // saved class gone / no longer has the list -> fall through to legacy list-only
+       }
+@@ -1072,7 +1124,8 @@ const Dashboard = () => {
+       for (const klass of studentClasses) {
+         const list = klass.assignedListDetails?.find((l) => l.id === userSettings.primaryFocusListId)
+         if (list) {
+-          return buildFocus(klass, list)
++          // P8 · CONT-A: legacy list-only pin variant yields the same way (F6-5).
++          return resolveContinuation(klass, list)
+         }
+       }
+       // Preference no longer valid - fall through to auto-select
+@@ -1105,7 +1158,9 @@ const Dashboard = () => {
+       progressCandidates.sort((a, b) =>
+         (b.lastMs - a.lastMs) || (b.csd - a.csd) || (b.assignedMs - a.assignedMs) || (a.tie < b.tie ? -1 : 1)
+       )
+-      return buildFocus(progressCandidates[0].klass, progressCandidates[0].list)
++      // P8 · CONT-A: recency branch yields a finished top candidate to its linked next list
++      // (the original C-13 fix — a finished list otherwise keeps winning on recency forever).
++      return resolveContinuation(progressCandidates[0].klass, progressCandidates[0].list)
+     }
+ 
+     // 2b. No progress on any assigned list → existing behavior: most recently assigned; first
+@@ -1559,6 +1614,10 @@ const Dashboard = () => {
+           const listTotal = getPrimaryFocus?.wordCount || 0
+           const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
+           const wordsLeft = Math.max(0, listTotal - tIntro)
++          // §5 persistent finished/terminal state: every word introduced. Derivable from PROGRESS alone
++          // (no Phase-2 allocation prediction needed) — the hero must then stop promising new words and
++          // congratulate + point to review, persistently (not just the day it completes).
++          const listFinished = listTotal > 0 && wordsLeft === 0
+           const day = (panelCState?.currentStudyDay ?? 0) + 1
+           const newCount = getPrimaryFocus?.pace || null
+           const phase = panelCState?.phase
+@@ -1650,15 +1709,24 @@ const Dashboard = () => {
+                         </span>
+                         {/* directive */}
+                         <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
+-                          {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
++                          {doneToday
++                            ? (listFinished ? 'List complete 🎉' : `Day ${day} done 🎉`)
++                            : reviewStage ? 'One step left — review'
++                              : listFinished ? 'Keep your words sharp'
++                                : newCount ? `Learn ${newCount} new words`
++                                  : "Start today's new words"}
+                         </h3>
+                         {/* help line */}
+                         <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
+                           {doneToday
+-                            ? "You're all caught up. Come back tomorrow."
++                            ? (listFinished
++                                ? "You've introduced every word — keep them sharp with review. New challenges may unlock later."
++                                : "You're all caught up. Come back tomorrow.")
+                             : reviewStage
+                               ? `Pass today's review test to complete Day ${day}.`
+-                              : 'Study them, then pass the test to unlock review.'}
++                              : listFinished
++                                ? "You've introduced every word in this list — today is review to lock them in."
++                                : 'Study them, then pass the test to unlock review.'}
+                         </p>
+                         {/* 2-step day tracker */}
+                         <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
+@@ -1678,8 +1746,26 @@ const Dashboard = () => {
+                           onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
+                           className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
+                         >
+-                          {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
++                          {doneToday ? (listFinished ? 'Review again →' : 'Practice again') : reviewStage ? 'Start review →' : listFinished ? 'Start review →' : 'Start new words →'}
+                         </button>
++                        {/* P8 · CONT-A choice terminal (Dashboard finished hero): when THIS focus is a
++                            finished list whose launching class links a next list, offer the advance.
++                            PURE navigation — the next list's Day 1 starts through the existing
++                            initializeDailySession create-on-miss path; the finished list's record is
++                            never written here. (With focus-yield active this state is normally already
++                            resolved past the finished list; it renders when the yield is gated off —
++                            e.g. a P9 cyclingEnabled list — so the choice is never lost.)
++                            P9 (cyclingEnabled): a "Start over" button joins this block ONLY once the
++                            cycling capability is live — capability-gated rendering, never a dead button. */}
++                        {CONTINUATION_LINKS && listFinished && getPrimaryFocus.nextListId && getPrimaryFocus.nextListTitle && (
++                          <button
++                            type="button"
++                            onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.nextListId}`)}
++                            className="w-full mt-2 font-extrabold rounded-button py-3.5 transition-colors bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30"
++                          >
++                            Advance to {getPrimaryFocus.nextListTitle} →
++                          </button>
++                        )}
+                       </>
+                     )}
+                   </div>
+diff --git a/src/services/db.js b/src/services/db.js
+index 8f4a9aa..53922e9 100644
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -25,6 +25,15 @@ import { db, auth } from '../firebase'
+ import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
++// deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
++// never falls back when assignedLists is an empty array (`[]` is truthy) → "0 assigned lists" split-brain.
++// Use a length check. (Do NOT use at the two intentional accumulator seeds, db.js ~811/~835.)
++function getAssignedListIds(classData) {
++  return (classData?.assignedLists?.length
++    ? classData.assignedLists
++    : Object.keys(classData?.assignments || {}))
++}
++
+ const defaultProfile = {
+   displayName: '',
+   school: '',
+@@ -499,7 +508,7 @@ export const fetchStudentClasses = async (studentId) => {
+           assignments[key].testMode = 'mcq'
+         }
+       })
+-      const assignedListIds = classData.assignedLists || Object.keys(assignments)
++      const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+       const assignedListDetails = await Promise.all(
+         assignedListIds.map(async (listId) => {
+@@ -934,6 +943,28 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
+     updates.testSizeNew = sizeValue
+   }
+ 
++  // P8 · CONT-A (CONTINUATION_LINKS): `nextListId` — the per-class list-sequence link
++  // (nullable). Teacher-authored policy config at the SAME trust level and write site as
++  // pace/testSizeNew (owner-teacher-only via the same `classes` rules surface). Absent/null
++  // = today's behavior exactly. Validated against the class's OWN assignments: the link
++  // must point at another list assigned to THIS class, never at itself.
++  if (settings.nextListId !== undefined) {
++    if (settings.nextListId === null || settings.nextListId === '') {
++      updates.nextListId = null
++    } else {
++      if (typeof settings.nextListId !== 'string') {
++        throw new Error('Next list must be a list id or null.')
++      }
++      if (settings.nextListId === listId) {
++        throw new Error('A list cannot be its own next list.')
++      }
++      if (!assignments[settings.nextListId]) {
++        throw new Error('Next list must be another list assigned to this class.')
++      }
++      updates.nextListId = settings.nextListId
++    }
++  }
++
+   assignments[listId] = {
+     ...assignments[listId],
+     ...updates,
+@@ -1435,7 +1466,7 @@ export const fetchClassAttempts = async (classId) => {
+   const classData = classSnap.data()
+   // Support both old assignedLists array and new assignments map
+   const assignments = classData.assignments || {}
+-  const assignedListIds = classData.assignedLists || Object.keys(assignments)
++  const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+   if (assignedListIds.length === 0) {
+     return []
+@@ -1458,16 +1489,21 @@ export const fetchClassAttempts = async (classId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+     if (!assignedListIds.includes(listId)) continue
+ 
+@@ -1528,7 +1564,7 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+     classListMap.set(classId, assignedListIds)
+ 
+     // Query members subcollection for this class
+@@ -1603,16 +1639,21 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -1805,7 +1846,7 @@ async function getTeacherData(teacherId) {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+ 
+     try {
+       const membersRef = collection(db, 'classes', classId, 'members')
+@@ -1934,6 +1975,22 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+   }
+ 
++  // C-33: push the resolved Name filter (studentIds) server-side so a filtered
++  // student's attempts are found however deep they rank teacher-wide. Single id
++  // -> '==', 2..30 ids -> 'in' (guarded so class 'in' disjuncts x student ids
++  // stays within Firestore's <=30 disjunction budget). Larger matches keep
++  // today's degraded mode — the post-filter below remains as the backstop.
++  const classDisjuncts = Math.max(filterClassIds.length, 1)
++  if (filterStudentIds.length === 1) {
++    attemptsQuery = query(attemptsQuery, where('studentId', '==', filterStudentIds[0]))
++  } else if (
++    filterStudentIds.length > 1 &&
++    filterStudentIds.length <= 30 &&
++    classDisjuncts * filterStudentIds.length <= 30
++  ) {
++    attemptsQuery = query(attemptsQuery, where('studentId', 'in', filterStudentIds))
++  }
++
+   // Apply date filter at query level
+   if (dateStart && dateEnd) {
+     attemptsQuery = query(attemptsQuery, where('submittedAt', '>=', dateStart), where('submittedAt', '<=', dateEnd))
+@@ -1964,16 +2021,21 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -2153,16 +2215,21 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     // Get list name
+@@ -2311,7 +2378,7 @@ export const fetchAttemptDetails = async (attemptId) => {
+               const classSnap = await getDoc(doc(db, 'classes', classId))
+               if (classSnap.exists()) {
+                 const classData = classSnap.data()
+-                const assignedLists = classData.assignedLists || Object.keys(classData.assignments || {})
++                const assignedLists = getAssignedListIds(classData)  // C-35
+                 if (assignedLists.includes(listId)) {
+                   className = classData.name || 'Unknown Class'
+                   break
+@@ -2433,7 +2500,7 @@ export const fetchUserAttempts = async (uid) => {
+           classLookup[classId] = {
+             name: classData.name || classInfo.name || 'Unknown Class',
+             id: classId,
+-            assignedLists: classData.assignedLists || Object.keys(classData.assignments || {}),
++            assignedLists: getAssignedListIds(classData),  // C-35
+           }
+         }
+       } catch (err) {

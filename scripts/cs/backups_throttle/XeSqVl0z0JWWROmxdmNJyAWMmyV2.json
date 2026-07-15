@@ -1,0 +1,54 @@
+{
+  "email": "hael0928@gmail.com",
+  "uid": "XeSqVl0z0JWWROmxdmNJyAWMmyV2",
+  "cp": "JFCtimk25DPR333XzJHU_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 12,
+    "twi": 720,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "reviewScore": 0.06666666666666667,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783919563,
+          "_nanoseconds": 453000000
+        },
+        "newWordScore": 0.96,
+        "wordsIntroduced": 0,
+        "segmentEndIndex": 552,
+        "segmentStartIndex": 493,
+        "wordsTested": 30,
+        "day": 10
+      },
+      {
+        "newWordScore": 0.96,
+        "date": {
+          "_seconds": 1784006060,
+          "_nanoseconds": 874000000
+        },
+        "wordsReviewed": 60,
+        "reviewScore": 0.16666666666666666,
+        "day": 11,
+        "wordsTested": 30,
+        "segmentStartIndex": 30,
+        "segmentEndIndex": 105,
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1784092441,
+          "_nanoseconds": 899000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 191,
+        "segmentEndIndex": 261,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

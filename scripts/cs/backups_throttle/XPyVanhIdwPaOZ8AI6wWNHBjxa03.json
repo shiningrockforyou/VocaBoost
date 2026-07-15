@@ -1,0 +1,68 @@
+{
+  "email": "sojihun0915@gmail.com",
+  "uid": "XPyVanhIdwPaOZ8AI6wWNHBjxa03",
+  "cp": "sO7jN85mL5ZsaBY1BbGm_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 4,
+    "twi": 320,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "newWordScore": 1,
+        "reviewScore": null,
+        "date": {
+          "_seconds": 1783905388,
+          "_nanoseconds": 429000000
+        },
+        "segmentStartIndex": 0,
+        "wordsReviewed": 0,
+        "wordsTested": 30,
+        "wordsIntroduced": 80,
+        "segmentEndIndex": 0,
+        "day": 1
+      },
+      {
+        "segmentEndIndex": 19,
+        "day": 2,
+        "wordsReviewed": 20,
+        "wordsTested": 20,
+        "wordsIntroduced": 80,
+        "reviewScore": 0.15,
+        "date": {
+          "_seconds": 1783906037,
+          "_nanoseconds": 120000000
+        },
+        "segmentStartIndex": 0,
+        "newWordScore": 1
+      },
+      {
+        "day": 3,
+        "segmentEndIndex": 82,
+        "wordsIntroduced": 80,
+        "wordsTested": 30,
+        "wordsReviewed": 40,
+        "segmentStartIndex": 43,
+        "reviewScore": 0.03333333333333333,
+        "date": {
+          "_seconds": 1784083450,
+          "_nanoseconds": 458000000
+        },
+        "newWordScore": 0.97
+      },
+      {
+        "day": 4,
+        "date": {
+          "_seconds": 1784084461,
+          "_nanoseconds": 467000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 122,
+        "segmentEndIndex": 180,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 59,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

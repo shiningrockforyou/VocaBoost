@@ -1,0 +1,54 @@
+{
+  "email": "joonwonsong6@gmail.com",
+  "uid": "OCNRLcnhETaeAAKVZOkIBLrljpl1",
+  "cp": "Nys1FfB9Pkl1iyO5FYhx_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 5,
+    "twi": 400,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsReviewed": 39,
+        "segmentStartIndex": 44,
+        "wordsIntroduced": 80,
+        "segmentEndIndex": 82,
+        "day": 3,
+        "date": {
+          "_seconds": 1783920978,
+          "_nanoseconds": 22000000
+        },
+        "wordsTested": 30,
+        "reviewScore": 0.2,
+        "newWordScore": 1
+      },
+      {
+        "wordsTested": 30,
+        "day": 4,
+        "date": {
+          "_seconds": 1784014979,
+          "_nanoseconds": 695000000
+        },
+        "newWordScore": 0.93,
+        "reviewScore": 0.4,
+        "wordsReviewed": 57,
+        "segmentStartIndex": 126,
+        "wordsIntroduced": 80,
+        "segmentEndIndex": 182
+      },
+      {
+        "day": 5,
+        "date": {
+          "_seconds": 1784092473,
+          "_nanoseconds": 768000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 250,
+        "segmentEndIndex": 309,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

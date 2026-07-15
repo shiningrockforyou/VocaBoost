@@ -1,0 +1,68 @@
+{
+  "email": "ellielim1102@gmail.com",
+  "uid": "caYThONz2WZSpvF5MAfNJLkdEGi2",
+  "cp": "JFCtimk25DPR333XzJHU_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 13,
+    "twi": 720,
+    "interventionLevel": 1,
+    "recentSessions": [
+      {
+        "segmentStartIndex": 499,
+        "day": 10,
+        "wordsTested": 30,
+        "segmentEndIndex": 558,
+        "reviewScore": 0.26666666666666666,
+        "wordsIntroduced": 0,
+        "newWordScore": 1,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783905423,
+          "_nanoseconds": 69000000
+        }
+      },
+      {
+        "segmentStartIndex": 17,
+        "day": 11,
+        "wordsTested": 30,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1784012805,
+          "_nanoseconds": 885000000
+        },
+        "reviewScore": 0.1,
+        "segmentEndIndex": 96,
+        "newWordScore": 0.92,
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1784078047,
+          "_nanoseconds": 200000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 185,
+        "segmentEndIndex": 264,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      },
+      {
+        "day": 13,
+        "newWordScore": null,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 660,
+        "segmentEndIndex": 719,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 30,
+        "wordsTested": 30,
+        "date": {
+          "_seconds": 1784080328,
+          "_nanoseconds": 268000000
+        }
+      }
+    ]
+  }
+}

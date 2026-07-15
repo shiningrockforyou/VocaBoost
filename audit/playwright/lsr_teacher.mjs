@@ -33,21 +33,45 @@ async function tab(page, name) {
 }
 
 // Assign a list to a class via the Assign-a-List modal form (settings set at assign time).
-export async function assignList(page, className, listTitle, { pace, thr, mode, testSize = 30 } = {}, F) {
+// `reviewMode` (optional): sets the SEPARATE "Review Test Mode" select (reviewTestType; default 'mcq' in
+// the app, independent of `mode`/testMode). Pass it when the review test format matters (e.g. the #10
+// overlay's typed-review cell). Backward-compatible: omit → the app default is left untouched.
+export async function assignList(page, className, listTitle, { pace, thr, mode, reviewMode, testSize = 30, listId } = {}, F) {
   await openClassDetail(page, className, F);
   await tab(page, 'Assigned Lists');
   const opener = page.getByRole('button', { name: /^assign list$/i }).first(); // anchored: must NOT match the 'Unassign list' trash button
   await opener.click({ timeout: 5000 }).catch(() => F.add('selector-gap', `${className}: Assign List opener failed`));
   await sleep(1200);
-  const targetId = LIST_ID[listTitle];
-  const listSel = page.getByLabel(/^list$/i).first();
+  // Prefer an explicit listId (persona runner passes the per-teacher clone id — the LIST_ID map only knows
+  // teacher_01's TOP/CORE). Fall back to the title→id map, then to an exact-label match (Playwright selectOption
+  // `label` must be an exact STRING, not a RegExp — the old regex fallback silently no-matched for tier clones).
+  const targetId = listId || LIST_ID[listTitle];
+  // The list options load ASYNC (Firestore query) — a fixed sleep races them (the option isn't attached yet →
+  // selectOption fails → the default list gets assigned). Locate the list <select> by the target OPTION (robust
+  // to the missing <label for>) and WAIT for that option to attach before selecting. Deterministic.
+  let listSel;
+  if (targetId) {
+    await page.locator(`select option[value="${targetId}"]`).first().waitFor({ state: 'attached', timeout: 20000 }).catch(() => {});
+    listSel = page.locator(`select:has(option[value="${targetId}"])`).first();
+  } else {
+    listSel = page.getByLabel(/^list$/i).first();
+  }
   let picked = targetId ? await listSel.selectOption({ value: targetId }).then(() => true).catch(() => false) : false;
-  if (!picked) picked = await listSel.selectOption({ label: new RegExp(escRe(listTitle)) }).then(() => true).catch(() => false);
-  if (!picked) { F.add('selector-gap', `${className}: assign list select "${listTitle}" failed`); await shot(page, `lsr_tch_assign_gap_${className.replace(/\W+/g, '_')}`); }
+  if (!picked) picked = await listSel.selectOption({ label: listTitle }).then(() => true).catch(() => false);
+  if (!picked) {
+    // FAIL-CLOSED: do NOT proceed to the confirm click — that would assign the DEFAULT-selected list (a wrong
+    // list silently assigned). Abort here; the caller's exact-assignment check will INVALIDATE the run.
+    F.add('selector-gap', `${className}: assign list select "${listTitle}" (id=${targetId || 'none'}) failed — NOT confirming (would assign wrong list)`);
+    await shot(page, `lsr_tch_assign_gap_${className.replace(/\W+/g, '_')}`);
+    F.step('teacher', `assign "${listTitle}" to ${className} → ABORTED (list select failed)`);
+    return false;
+  }
   if (pace != null) await page.getByLabel(/daily new words/i).first().fill(String(pace)).catch(() => {});
   if (mode) await page.getByLabel(/^test mode$/i).first().selectOption({ value: MODE_VALUE(mode) }).catch(async () => {
     await page.locator('select').filter({ hasText: 'Written Only' }).first().selectOption({ value: MODE_VALUE(mode) }).catch(() => F.add('selector-gap', `${className}: assign Test Mode set failed`));
   });
+  if (reviewMode) await page.getByLabel(/review test mode/i).first().selectOption({ value: MODE_VALUE(reviewMode) })
+    .catch(() => F.add('selector-gap', `${className}: Review Test Mode set failed`));
   if (thr != null) await page.getByLabel(/pass threshold/i).first().fill(String(thr)).catch(() => {});
   await page.getByLabel(/new word test size/i).first().fill(String(testSize)).catch(() => {});
   const confirm = page.getByRole('button', { name: /^assign( list)?$/i }).last();

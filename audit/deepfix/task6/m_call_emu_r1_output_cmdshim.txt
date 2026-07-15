@@ -1,0 +1,219 @@
+﻿
+===========================================================================================================================================================================================================================================================================================================================================================
+| FLAG-ON APPLIED (matrix=call, run=emu-r1)                                                                                                                                                                                                                                                                                                               |
+| functions/foundation.js: SERVER_COMPLETE_SESSION_ENABLED, SERVER_RESOLVE_LIST_PROGRESS_ENABLED, SERVER_RESET_PROGRESS_ENABLED, SERVER_ADVANCE_FOR_CHALLENGE_ENABLED, LIST_PROGRESS_CANONICAL, ANCHOR_VALIDATION_SHADOW, ANCHOR_VALIDATION_ENFORCE, CYCLING_ENABLED, SERVER_REVIEW_CHALLENGE_ENABLED, SERVER_OVERRIDE_ENABLED, TEACHER_IDS_WRITE_ENABLED |
+| src/config/featureFlags.js: SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER, CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, SERVER_RESET_PROGRESS, SERVER_OVERRIDE, TEACHER_IDS_READ                                                                                                                                                          |
+| backups: C:\Users\dmchw\vocaboost\audit\playwright\findings\flag_on_backup_emu-r1                                                                                                                                                                                                                                                                       |
+| RESTORE IS MANDATORY: --restore (or use --exec for a guaranteed restore).                                                                                                                                                                                                                                                                               |
+===========================================================================================================================================================================================================================================================================================================================================================
+
+[flag_on] exec: firebase emulators:exec --only functions,firestore,auth --project demo-vocaboost audit\deepfix\task6\run_callable_emu_r1.cmd
+[36m[1mi  emulators:[22m[39m Starting emulators: auth, functions, firestore
+[36m[1mi  emulators:[22m[39m Detected demo project ID "demo-vocaboost", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[33m[1m! [22m[39m Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection.
+[32m[1m+  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+[36m[1mi  functions:[22m[39m Watching "C:\Users\dmchw\vocaboost\functions" for Cloud Functions...
+[32m[1m+  functions:[22m[39m Using node@24 from host.
+Serving at port 8482
+
+{"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+
+[32m[1m+  functions:[22m[39m Loaded functions definitions from source: submitVocabAttempt, markReviewComplete, submitChallenge, gradeTypedTest, getGradingStatus, createSession, submitTest, pauseStaleSessions, renameStudent, provisionTeacher, completeSession, resolveListProgress, resetProgress, advanceForChallenge, reviewChallenge, overrideAttempt, version.
+[32m[1m+  functions[us-central1-submitVocabAttempt]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitVocabAttempt).
+[32m[1m+  functions[us-central1-markReviewComplete]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/markReviewComplete).
+[32m[1m+  functions[us-central1-submitChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitChallenge).
+[32m[1m+  functions[us-central1-gradeTypedTest]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/gradeTypedTest).
+[32m[1m+  functions[us-central1-getGradingStatus]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/getGradingStatus).
+[32m[1m+  functions[us-central1-createSession]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/createSession).
+[32m[1m+  functions[us-central1-submitTest]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitTest).
+[36m[1mi  functions[us-central1-pauseStaleSessions]:[22m[39m function ignored because the pubsub emulator does not exist or is not running.
+[32m[1m+  functions[us-central1-renameStudent]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/renameStudent).
+[32m[1m+  functions[us-central1-provisionTeacher]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/provisionTeacher).
+[32m[1m+  functions[us-central1-completeSession]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/completeSession).
+[32m[1m+  functions[us-central1-resolveListProgress]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/resolveListProgress).
+[32m[1m+  functions[us-central1-resetProgress]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/resetProgress).
+[32m[1m+  functions[us-central1-advanceForChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/advanceForChallenge).
+[32m[1m+  functions[us-central1-reviewChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/reviewChallenge).
+[32m[1m+  functions[us-central1-overrideAttempt]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/overrideAttempt).
+[32m[1m+  functions[us-central1-version]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/version).
+[36m[1mi [22m[39m Running script: [1maudit\deepfix\task6\run_callable_emu_r1.cmd[22m
+
+=== M-CALL (emu-r1) — emulator demo-vocaboost firestore=127.0.0.1:8080 functions=127.0.0.1:5001 ===
+
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 531.8887ms
+  [FAIL ] CS-1     completeSession happy path → canonical csd+1/twi+=alloc/recentSessions
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 50.1122ms
+  [FAIL ] CS-1e    completeSession no_evidence block (F-4): no anchor, not review-only ⇒ refuse to advance
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 72.8281ms
+  [FAIL ] CS-2     completeSession day-guard reject: stale day ⇒ no advance + day_guard_rejected_session_cleared(uid)
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 59.2522ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 54.4848ms
+  [FAIL ] CS-3     completeSession idempotent retry: replay committed completion ⇒ already_completed, exactly one +1
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 56.0539ms
+  [FAIL ] CS-4a    reviewOnlyDay reason1 allocationZero (S3 throttle) ⇒ twi flat, wordsIntroduced=0
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 59.973ms
+  [FAIL ] CS-4b    reviewOnlyDay reason2 listComplete (S4/S5 list-end) ⇒ twi flat, wordsIntroduced=0
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 51.5371ms
+  [FAIL ] CS-4c    reviewOnlyDay reason3 reviewStudyResume (S8/#9 already-absorbed) ⇒ twi flat, wordsIntroduced=0
+           ↳ 
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-markReviewComplete"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'serverTimestamp')\n    at Object.writeUpgradedReviewMarker (C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:870:45)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-markReviewComplete" in 480.4708ms
+  [FAIL ] CS-5     markReviewComplete W2 upgraded: parseable testId + integer nwsi/nwei == day anchor (pairable)
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+[36m[1mi  functions:[22m[39m Trying to access secret GRADE_TOKEN_SECRET@latest
+Authentication Error: Your credentials are no longer valid. Please run [1mfirebase login --reauth[22m
+
+For CI servers and headless environments, generate a new token with [1mfirebase login:ci[22m
+[31m[1m!!  functions:[22m[39m Unable to access secret environment variables from Google Cloud Secret Manager. Make sure the credential used for the Functions Emulator have access or provide override values in C:\Users\dmchw\vocaboost\functions\.secret.local:
+	FirebaseError: Authentication Error: Your credentials are no longer valid. Please run [1mfirebase login --reauth[22m
+
+For CI servers and headless environments, generate a new token with [1mfirebase login:ci[22m
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"uid":"B0RvBjRq0p8eb4iMycb86zSo8lrI","classId":"25WTemur1cs6f","listId":"lsrlistemur1cs6f","attemptDocId":"B0RvBjRq0p8eb4iMycb86zSo8lrI_25WTemur1cs6f_lsrlistemur1cs6f_forged","violations":["nwsi_ne_server_twi","introduced_over_allocation"],"severity":"WARNING","message":"anchor_rejected (ENFORCED — write BLOCKED)"}
+[90m> [39m {"eventType":"anchor_rejected","error":"Cannot read properties of undefined (reading 'serverTimestamp')","severity":"WARNING","message":"system_logs write failed (non-fatal)"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 507.5088ms
+  [FAIL ] CS-6f    M4 ENFORCE forged anchor (nwsi≠serverTwi) ⇒ failed-precondition reject + anchor_rejected{enforced}(uid)
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'serverTimestamp')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\index.js:474:47\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Transaction.runTransactionOnce (C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:440:28)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:412:28\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\index.js:554:13\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 213.6258ms
+  [FAIL ] CS-6v    M4 ENFORCE valid anchor (nwsi==serverTwi, in-allocation) ⇒ silent pass (write lands, no anchor_rejected)
+           ↳ 
+  [SKIP ] CS-7     nonce F2 gradeTypedTest attemptDocId in grade return + cached job
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"eventType":"resolve_list_progress","error":"Cannot read properties of undefined (reading 'serverTimestamp')","severity":"WARNING","message":"system_logs write failed (non-fatal)"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 384.8701ms
+  [PASS ] CS-8a    resolveListProgress canonical-first: existing canonical ⇒ mode=canonical, its csd/twi
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1615:43\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Transaction.runTransactionOnce (C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:440:28)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:412:28\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1588:20\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 174.1191ms
+  [FAIL ] CS-8b    resolveListProgress straggler hydrate: legacy-only + valid anchor ⇒ create canonical (mode=canonical, hydrated)
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"eventType":"list_progress_quarantined","error":"Cannot read properties of undefined (reading 'serverTimestamp')","severity":"WARNING","message":"system_logs write failed (non-fatal)"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 81.0384ms
+  [FAIL ] CS-8c    resolveListProgress quarantine: anchorless forged-high-twi ⇒ mode=quarantined + list_progress_quarantined
+           ↳ 
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resetProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1760:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resetProgress" in 518.9942ms
+  [FAIL ] CS-9     resetProgress: attempts wiped (all classes), session_states cleared, canonical zeroed + resetEpoch/resetAt
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+  [SKIP ] CS-10    grading-job recovery suite (dsg-edits/srv_validate/grading_job_tests.mjs)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 63.838ms
+  [FAIL ] CS-11m   derivation-mismatch: client reviewOnlyDay disagrees with server ⇒ reviewonly_derivation_mismatch(uid)
+           ↳ 
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:1087:41\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 56.6637ms
+  [FAIL ] CS-11a   derivation-agree: client reviewOnlyDay matches server ⇒ NO reviewonly_derivation_mismatch
+           ↳ 
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:2474:44\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 520.8708ms
+  [FAIL ] OV-1     overrideAttempt writes a FULL VALID anchor (nwsi/nwei/wordsIntroduced/testId) + day advances
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:2474:44\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 165.1644ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:2474:44\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 203.3799ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 88.6257ms
+  [FAIL ] OV-2     override authz union: stamp(A)=allow, enrollment(B)=allow, outsider(C)=permission-denied
+           ↳ 
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-reviewChallenge"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:2235:52\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-reviewChallenge" in 494.3204ms
+  [FAIL ] OV-3c    reviewChallenge new-phase accept near list-end (Day-1 completion): twi CLAMPED at listTotal (not unclamped)
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-reviewChallenge"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'now')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\foundation.js:2235:52\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-reviewChallenge" in 31.6659ms
+  [FAIL ] OV-3p    reviewChallenge review-phase accept: phase gate ⇒ twi UNCHANGED (nwei:null hazard closed)
+           ↳ {"error":{"message":"INTERNAL","status":"INTERNAL"}}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"severity":"ERROR","message":"Unhandled error TypeError: Cannot read properties of undefined (reading 'serverTimestamp')\n    at C:\\Users\\dmchw\\vocaboost\\functions\\index.js:474:47\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Transaction.runTransactionOnce (C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:440:28)\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\@google-cloud\\firestore\\build\\src\\transaction.js:412:28\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\index.js:554:13\n    at async C:\\Users\\dmchw\\vocaboost\\functions\\node_modules\\firebase-functions\\lib\\common\\providers\\https.js:513:14\n    at async runFunction (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:514:9)\n    at async runHTTPS (C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:539:5)\n    at async C:\\Users\\dmchw\\AppData\\Roaming\\npm\\node_modules\\firebase-tools\\lib\\emulator\\functionsEmulatorRuntime.js:702:21"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 207.0786ms
+  [FAIL ] CY-3     lap-aware M4: under cycling, a lap-2 anchor (twi>listTotal) is NOT rejected (anchor_rejected=0)
+           ↳ 
+The system cannot find the path specified.
+
+artifacts:
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_call_emu-r1.json
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_call_emu-r1.md
+
+FINAL: NOT_CLEAN pass=1 fail=20 invalid=0 skip=2
+[33m[1m! [22m[39m Script exited unsuccessfully (code 1)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  functions:[22m[39m Stopping Functions Emulator
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[33m[1m! [22m[39m Firestore Emulator has exited upon receiving signal: SIGINT
+[36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+[36m[1mi  eventarc:[22m[39m Stopping Eventarc Emulator
+[36m[1mi  tasks:[22m[39m Stopping Cloud Tasks Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
+
+[1m[31mError:[39m[22m Script "[1maudit\deepfix\task6\run_callable_emu_r1.cmd[22m" exited with code 1
+[flag_on] restored functions/foundation.js
+[flag_on] restored src/config/featureFlags.js
+[flag_on] restore complete — flags OFF, working tree reverted to pre-apply state.

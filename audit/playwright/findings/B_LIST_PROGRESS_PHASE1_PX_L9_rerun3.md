@@ -1,0 +1,60 @@
+# Findings — B_LIST_PROGRESS_PHASE1 (PX_L9_rerun3)
+
+**Run date:** 2026-07-12T20:16:43.363Z
+**Policy:** docs/plans/PLAYWRIGHT_AUDIT_list_progress_persist_phase1.md
+
+## Raw anomaly log (triage EVERY entry — none dropped without written justification)
+
+  - STEP [teacher] create class "25WT PX L9 S0 rerun3"
+  - STEP [teacher] assign "LSR Ascent (audit clone)" to 25WT PX L9 S0 rerun3 (pace=80 thr=92 mode=typed) → ok
+- [2026-07-12T20:17:40.962Z] **request-failed** — [teacher-ascent] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=3_TvY1JRXXs8EgovtkGXX2Yhu6rjgzk4C8Af6LYL2tUfwADKyPk9PQ&VER=8& — net::ERR_ABORTED
+  - STEP [teacher] read join code for 25WT PX L9 S0 rerun3 → BBBGF2
+- [2026-07-12T20:17:49.597Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=pdojOpWCkHYdAMqSvpw8YyB-F7wVyLYos6lcuwLpKc1ZomzUErov5w&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:17:49.873Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=pdojOpWCkHYdAMqSvpw8YyB-F7wVyLYos6lcuwLpKc1ZomzUErov5w&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:17:49.923Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=LZDxiq0R4MGj8NhWvY6vFeqvlLuq2JIRFv7Mpjcqe7TeaEEMsudq-A&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:17:49.949Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=LZDxiq0R4MGj8NhWvY6vFeqvlLuq2JIRFv7Mpjcqe7TeaEEMsudq-A&VER=8&d — net::ERR_ABORTED
+  - STEP [L9-s0] join "25WT PX L9 S0 rerun3" via BBBGF2 → member
+- [2026-07-12T20:17:59.237Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=LFdEmpQX_1Oyk1OmTySEAVOZmVx5hpXMwqCmmQPABsok2MxqnnXnxw&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:17:59.243Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=gefETGt_q39mXtfJ7lvsixgYJbnXRKH9_rgkldUS36FxPLCDy6qOCw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:18:38.872Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=SB2zsVCUb2sWgIgTc2y5zErZvCCM4f0_vdrX4OUGoyc5pzOCNa1A9Q&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:18:38.878Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=QmvCvtPPBIFde9IDDDwmmSNzjVX3a3iCbFdyn_SZhIFWD8458e3QhQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:18:44.080Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_MuLM9lrHtdJ8es--OMWKr-LPaI2gbC2jdDqgIcnBFJ8MqH-heIayA&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:19:20.828Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=DsyLbLVQQmhWEahk73Qk9Nq6X2Ww7jSQrHfJMigZ2uanvTJtS1o8ug&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:19:20.849Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=zmYrWpyRtZLHYJ8e0pKoequUwuBkIR2-cLfG-xozcBXd10-AA41Y8Q&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:19:54.811Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=gNzAUtEo73cz_GX8_wONOFhGQmCy3XD7kMVtjWMb_Z3GKkdixlo3QA&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:19:54.816Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=LeVyYtTBcRP7U5GukvNba8iLVenOHmVqFBLOGVDfUxsbTVInWheC7Q&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:19:59.935Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=24CXyxpCGldFQy4R5038H0dwmP8M1angmB1JPB6DF7yXZoGXMX5AoQ&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:19:59.941Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=ItMsPn_-ueFaWSgKA3gPIlP5GKfxu2lPSN2IRI5_3SMG6UetxIgxZQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:20:53.082Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Zq8vqxLOGbrET-XeovKoVpS_Q-JvP1QpNbKh2oRAziqniZUfsnXqNA&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:20:53.087Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=m887Uu8h1O_N_RkD6j9S8sD9-4CCMqliV6CMoi8_RYE2-l25WUu6IA&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:21:26.963Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=n88hxViBhsHFH_rxzfpB40CLPHh-HLTe_GOoWdeVyWtbPPLjMdChGg&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:21:26.969Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=NodWTFZv5gEqdTOay6xh4s6g-zZce2y_umYspUr5CfBzmRMLjpytPg&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:21:32.105Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=8A-ENev5OqNiHSutq7Nh1lZHMT9I1Bnuziw3NNmZtqgFM2didosTNA&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:21:32.115Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=z_E7O7Kl-t0Tcb6gj9sN-juFm6w0vxlf1hGFO7L0rUiRX3q93GnRNQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:22:08.301Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=-ksiFwZLX8FJTdeyTHCYoZAsm5lwiRYrH0xjXqvLkiO8TIJmfiRGLQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:22:08.309Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WMW88XE2ZiNMpHQ2v_JAllyTnBWUqHtATSgJE71-ETEIHW2tyfJlWQ&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:22:42.318Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=XyD-iGdI9_H-W0wD3YgyjR7RZqSEZZ4d1H9vjpKBYBbA703TwOcj3A&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:22:42.324Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=WfQv2MQV3yu7rmzaxhq7WvWAcumRXeRvst6_Q-AOssRuNOIBTtTv2w&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:22:47.511Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_eivo8D4Nsb3QPpjONzVbqZdYjvgxvLrNPQ-Hsvc99c3zdzyFD6FIg&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:23:23.200Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=KYfy5cg_KMxJLqO4GNeZt1hBwr8Nv9EEeHjwcqjaA6mBKjwiYhh-cw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:23:23.206Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Hlml1iwiTnJ_MfiwkWU9-pupJ4gpLS8QqZuTlLP7yiI99GOdcBib6A&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:23:57.094Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=_MyeHiCA0SRGFqZ9jtRQu6sMHOxCoX8WrwZ2p5jSlv6AC5e05dPtFw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:23:57.101Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=0ygMqBHwrpjXvYEgqnEwQckIarlMY4eimeZPs4KAmlEYh9Qw19f0YA&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:24:02.210Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=Ht-3Q9hP-s7spQri3bo7w3MyWrNDZDtnLarfescfnH9Gn257lv7Veg&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:24:02.214Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=WfKGcf72uNF610vUA86HIMD41K0YL_3gPWvaqxdYJ-Ykw9ZFgmB49A&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:24:54.788Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=7yIc2Ocvpi5BgMfaDbB8HEY8ivtG94wzFM8RMXC8QNUBwQYtoqLjOQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:24:54.795Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=C5yhYkV6w2WSLFG95Ho6DyyWlhThJBRTxnlBrZF4rNgT4AcX7Hjvuw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:25:29.342Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=oPtUFMNccrz61swsd0_wrH_OsXcgzoqSBdz4r7Ru5Cw2pWQk1WL6Kw&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:25:29.349Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wo3FGhqQtJmNRMGE_54KfkoNgGkvJLgFG8ct4e71cRAdkuN8IdLBnQ&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:25:34.476Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=wUCHiRFHCOkkyXfJr0cVO1YJc9Y1q9PQZOK3dv1VCAWZsxxJr2oqDQ&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:25:34.487Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=UIaYQaetqTaks6Z3QLMsFletfws6Ey65oPJcc_ATq60w580mCDKyIQ&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:26:10.133Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=MYUU_CdVOe8sxABpKvHPzME-Rz3MS6Jmhm0lmuTy7loY-6Sdm8Jmxw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:26:10.138Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=frsAwv7lz9YfSWJc4s9EKyS-EfNs-d27KGF-4CZlRyWIus2AvdlD4g&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:26:44.109Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=lOgjhXfRrx2BwtbHoJyvP3jAkhpez0qmKDpFzuoEW8hRTL4B4IYb3A&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:26:44.114Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=5sOij409_tlQlm-yjWZC7z4jaceIxDADG2rmVApJnr-lADkVMewA1g&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:26:49.255Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=UAihwFW8-Ypy9RuVKUM0P_8RQ_3OQLSq5DkE3KlFZa3KncagWZOzRg&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:26:49.260Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=j8wxWgPLc7rTO5xixbTm-Mk4390f2X_AX_XmzlS-b11-JByxmJJ7Lw&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:27:24.948Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=V6duCrWcKhm1x1fARwegsAUZvNOsmqSfWz1a2szMB9FnOnZfFLGJRw&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:27:24.956Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=wDhk7R7Wc8axv55Dzm4LX20ZRNjS9--fC0q1JEpdMCYK44on6B_pSA&VER=8&d — net::ERR_ABORTED
+- [2026-07-12T20:27:59.406Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel?gsessionid=TSquuYuuLbbG7fNd3ZxsM95PQJjj8Ii8nRHI0gVUMqBodezWFd3jEQ&VER=8& — net::ERR_ABORTED
+- [2026-07-12T20:27:59.410Z] **request-failed** — [student] GET https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?gsessionid=qURiWi6SO7hAYN2cI_VQqn_LipJ6sLzrEIyqpueFNAOr7CfqGpbdUw&VER=8&d — net::ERR_ABORTED

@@ -13,12 +13,21 @@ const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
+const {FieldValue, Timestamp} = require("firebase-admin/firestore");
 const crypto = require("crypto");
 const Anthropic = require("@anthropic-ai/sdk").default;
 const {buildTestResult} = require("./scoring");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// deepfix P3 · FND-1 (FIX_PLAN.md P3): the additive foundation server surface
+// (completeSession / resolveListProgress / resetProgress / advanceForChallenge
+// + the M4 shadow validator + the W2-upgraded marker helper). ALL of it is
+// dormant behind server flags inside foundation.js (see FOUNDATION_FLAGS in
+// the `version` probe below). Required AFTER initializeApp (it uses a lazy
+// firestore handle either way).
+const foundation = require("./foundation");
 
 // Build provenance (deploy-provenance fix — see NEED_TO_FIX.md). buildInfo.json is stamped
 // at deploy time by scripts/stamp-build.mjs (firebase.json predeploy). Logged on every cold
@@ -55,19 +64,24 @@ const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
 // Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
 // (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
 // only after the fn + client token-threading are deployed + validated (own Codex pass first).
-const GRADE_TOKEN_ENFORCED = true;  // ⚠️ GLOBAL: every typed write now REQUIRES a valid gradeToken or it
-// is rejected (incl. 26SM real students). The deployed client sends the token (G2 client code shipped), and
-// MINT is on, so the round-trip should hold — but deploy in a QUIET WINDOW with rollback ready (flip false +
-// redeploy). Validate immediately after deploy (direct harness + a live typed-grade smoke).
+const GRADE_TOKEN_ENFORCED = false;  // deepfix P0 (G1 disarm, 2026-07-13): DISARMED to match LIVE prod, which
+// runs false (F-9: recent 26SM attempts write correctnessSource:null ⇒ enforcement off). HEAD had carried `true`
+// (committed 4b82a0a, BEFORE the 06-29 mass-save outage; prod's false was never committed back), so deploying
+// functions as-is would RE-ARM the 06-29 outage — the localStorage-nonce → grade/save docId divergence
+// (testRecovery.js:98-111) is still UNPATCHED. RE-ARM (→ true) ONLY in the same review as the validated nonce fix
+// (FIX_PLAN.md P4 legs F1-F3: server-echoed attemptDocId + memoized nonce) + the F5 acceptance. See
+// audit/deepfix/task2/FIX_PLAN.md P0 + inv_I5_deploy_gate.md.
 // GRADE_TOKEN_MINT: gates whether gradeTypedTest actually mints tokens (touches GRADE_TOKEN_SECRET).
 // Default OFF so deploying this code does NOT add a live-grading dependency on the secret (Codex):
 // with both flags off, typed grading never calls gradeTokenSecret.value(), so a missing/misconfigured
 // secret cannot break grading. Rollout: create GRADE_TOKEN_SECRET → flip GRADE_TOKEN_MINT (tokens flow,
 // validate round-trip, still no enforcement/marker) → flip GRADE_TOKEN_ENFORCED (verify+stamp+overwrite).
 // Enforcement implies minting (mintTokens = MINT || ENFORCED) so the two can't desync into rejection.
-const GRADE_TOKEN_MINT = true;  // ON for validation: mints gradeTokens so the G2 round-trip is testable.
-// SAFE: minting is additive (extra return field the client ignores); GRADE_TOKEN_ENFORCED stays false,
-// so no typed write is rejected and no trusted marker is stamped. Real users are unaffected.
+const GRADE_TOKEN_MINT = false;  // deepfix (2026-07-15): DISARMED to match LIVE prod — David disabled MINT.
+// The tree carried `true` ("on for validation"); deploying that would RE-ENABLE minting on prod (adds a live
+// gradeTokenSecret.value() dependency + an extra response field). With BOTH GRADE_TOKEN flags false, typed
+// grading never touches GRADE_TOKEN_SECRET (fully dormant, byte-equivalent to prod). Flip true only per the
+// documented rollout: create GRADE_TOKEN_SECRET → flip GRADE_TOKEN_MINT (validate round-trip) → flip ENFORCED.
 const GRADE_TOKEN_VERSION = 1;
 
 // ============================================================================
@@ -366,7 +380,19 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
   // Validate shape + ownership + enrollment + list entitlement. submitVocabAttempt already
   // authorized (before sanitize) and passes the result through to avoid a duplicate read;
   // any other caller (or none) falls back to authorizing here. Self-contained either way.
-  const {passThreshold, teacherId} = auth || await assertCanWriteAttempt(uid, ctx);
+  const authRes = auth || await assertCanWriteAttempt(uid, ctx);
+  const {passThreshold, teacherId} = authRes;
+
+  // deepfix P3 change 6 — M4 anchor validation (I-6 §1.2 #4): assert the client-echoed
+  // anchor (newWordStartIndex/EndIndex/wordsIntroduced/studyDay) against SERVER state.
+  // Covers both live writers (submitVocabAttempt + gradeTypedTest direct-write — F-9: 96%
+  // of live attempts flow here). SHADOW (ANCHOR_VALIDATION_SHADOW): LOG-ONLY
+  // (`anchor_rejected`, shadow:true); internally try/caught — can NEVER affect the write.
+  // ENFORCE (F-2, ANCHOR_VALIDATION_ENFORCE — P6-only, after the ≥14-day shadow soak): a
+  // real violation throws here (`anchor_rejected {enforced:true}`) and ABORTS the write
+  // before the transaction below. Both flags false in this draft ⇒ this call is a no-op
+  // (zero reads, never throws) ⇒ byte-identical to today.
+  await foundation.validateAttemptAnchorShadow(uid, ctx, authRes.classData);
 
   // Score against TOTAL questions presented, not answered (§Codex).
   const correctCount = attemptAnswers.filter((a) => a.isCorrect ?? a.correct).length;
@@ -398,6 +424,13 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
       "Typed grade write requires server-graded provenance (correctnessSource:'server-ai').");
   }
 
+  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (the C-19 read-surface
+  // widening). Computed PRE-transaction — it is a denormalized/best-effort field, NOT a
+  // transactional read. Null when TEACHER_IDS_WRITE_ENABLED is off (ZERO reads) ⇒ no field is
+  // added below ⇒ the written attempt doc is byte-identical to today.
+  const teacherIds = await foundation.computeTeacherIdsForAttempt(
+    {studentId: uid, listId: ctx.listId, stampTeacherId: teacherId});
+
   const ref = db.collection("attempts").doc(ctx.attemptDocId);
   return db.runTransaction(async (tx) => {
     const existing = await tx.get(ref);
@@ -425,6 +458,7 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
       classId: ctx.classId,
       listId: ctx.listId,
       teacherId,
+      ...(teacherIds ? {teacherIds} : {}), // [P10c] additive; omitted when the flag is off
       // Echoed session context (anchor + display) — same fields db.js submit*Attempt flattens.
       isFirstDay: ctx.isFirstDay ?? null,
       listTitle: ctx.listTitle ?? null,
@@ -440,8 +474,8 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
       // downstream (override) treats null as untrusted. No 'server-mcq' until Phase E (MCQ stays client-
       // computed; selectedOptionId is forgeable — see PLAN_server_authoritative_grading.md §1).
       correctnessSource: opts?.correctnessSource ?? null,
-      submittedAt: admin.firestore.FieldValue.serverTimestamp(),
-      gradedAt: admin.firestore.FieldValue.serverTimestamp(),
+      submittedAt: FieldValue.serverTimestamp(),
+      gradedAt: FieldValue.serverTimestamp(),
       writtenBy: "cloud-function",
     };
     tx.set(ref, attemptData);
@@ -568,34 +602,17 @@ exports.markReviewComplete = onCall({enforceAppCheck: false}, async (request) =>
     testType: "mcq",
     sessionType: "review",
   });
-  const ref = db.collection("attempts").doc(markerId);
-  // Idempotent: if it exists (and is ours), no-op; else write.
-  const existing = await ref.get();
-  if (existing.exists) {
-    if (existing.data().studentId !== uid) {
-      throw new HttpsError("permission-denied", "Marker belongs to another user");
-    }
-    return {success: true, alreadyWritten: true, attemptId: markerId};
-  }
-  await ref.set({
-    studentId: uid,
-    teacherId: auth.teacherId ?? null,
-    classId,
-    listId,
-    studyDay: dayNumber,
-    testType: "mcq",
-    sessionType: "review",
-    score: 100,
-    passed: true,
-    totalQuestions: 0,
-    correctCount: 0,
-    answers: [],
-    autoCompleted: true,
-    manualReviewNote: "Auto-completed: no review available — all segment words mastered (21-day rest).",
-    submittedAt: admin.firestore.FieldValue.serverTimestamp(),
-    writtenBy: "cloud-function",
-  });
-  return {success: true, alreadyWritten: false, attemptId: markerId};
+  // deepfix P3 change 5 — W2 UPGRADED (I-6 M6 / I-2 S7; the C-14/C-34 fix): the marker
+  // write is delegated to the shared foundation writer, which stamps the day's anchor
+  // range (newWordStartIndex/newWordEndIndex — derived SERVER-side from the day's
+  // twi-defining passed `new` attempt, never client-echoed) so it satisfies exact-range
+  // pairing (db.js:3449-3450), plus a PARSEABLE testId
+  // (`vocaboost_test_{classId}_{listId}_review`) so it survives the gradebook testId
+  // parse (db.js:1976-1984). Same deterministic markerId + idempotency + ownership
+  // semantics as before; completeSession's internal marker path uses the SAME writer,
+  // so the two routes converge on one doc. This callable stays traffic-dormant until
+  // the client SERVER_REVIEW_MARKER flag flips at P4 (featureFlags.js:28 = false).
+  return foundation.writeUpgradedReviewMarker(uid, classId, listId, dayNumber, auth.teacherId ?? null);
 });
 
 /**
@@ -660,8 +677,8 @@ exports.submitChallenge = onCall({enforceAppCheck: false}, async (request) => {
     if (availableChallengeTokens(history) <= 0) {
       throw new HttpsError("failed-precondition", "No challenge tokens available");
     }
-    const now = admin.firestore.Timestamp.now();
-    const replenishAt = admin.firestore.Timestamp.fromMillis(now.toMillis() + REPLENISH_MS);
+    const now = Timestamp.now();
+    const replenishAt = Timestamp.fromMillis(now.toMillis() + REPLENISH_MS);
     // Write A: challenge metadata on the one answer ONLY (never isCorrect/score/passed).
     const updatedAnswers = answers.slice();
     updatedAnswers[idx] = {
@@ -872,7 +889,7 @@ async function claimOrRecoverGradingJob(uid, jobKey) {
         leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
         attemptCount: (job.attemptCount ?? 0) + 1,
         version: GRADE_JOB_VERSION,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       return {action: "grade", leaseId};
     }
@@ -881,8 +898,8 @@ async function claimOrRecoverGradingJob(uid, jobKey) {
       leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
       attemptCount: 1,
       version: GRADE_JOB_VERSION,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     });
     return {action: "grade", leaseId};
   });
@@ -915,8 +932,8 @@ async function persistGradingJobResult(uid, jobKey, leaseId, payload) {
       if ((job.leaseExpiresAt ?? 0) < Date.now()) return "lease_expired";
       tx.set(ref, {
         status: "graded", payload,
-        gradedAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        gradedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
       return "persisted";
     });
@@ -1049,7 +1066,20 @@ exports.gradeTypedTest = onCall(
       // submitVocabAttempt, presenting the token (G2). PHASE 1: cache this payload on the job
       // (fenced) so a lost-response retry returns it instead of re-grading.
       if (!writeContext) {
-        const payload = {results: gradeResults, gradeToken, gradeTokenCreatedAt};
+        // deepfix P3 change 7 — nonce F2, server leg (inv_I5 §2): echo the attemptDocId
+        // the token was MINTED against so the client's write leg can prefer the
+        // server-bound identity over a re-derived local nonce (the 06-29 grade/save
+        // docId-divergence class). Because `payload` is ALSO what
+        // persistGradingJobResult caches on the grading job, the recovery paths
+        // (getGradingStatus / pollForGrade) return the same echoed id. Additive —
+        // today's client ignores the extra field; the consuming client legs (F1/F3)
+        // ship at P4.
+        const payload = {
+          results: gradeResults,
+          gradeToken,
+          gradeTokenCreatedAt,
+          attemptDocId: bindCtx?.attemptDocId ?? null,
+        };
         if (gradeJob.enabled && gradeJob.leaseId) {
           const outcome = await persistGradingJobResult(uid, gradeJob.jobKey, gradeJob.leaseId, payload);
           // Fencing: a worker may return ITS grade only when the server CONFIRMED it is still
@@ -1574,9 +1604,9 @@ exports.createSession = onCall(
         flaggedQuestions: [],
         annotations: {},
         strikethroughs: {},
-        lastHeartbeat: admin.firestore.FieldValue.serverTimestamp(),
-        lastAction: admin.firestore.FieldValue.serverTimestamp(),
-        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastHeartbeat: FieldValue.serverTimestamp(),
+        lastAction: FieldValue.serverTimestamp(),
+        startedAt: FieldValue.serverTimestamp(),
         completedAt: null,
       };
 
@@ -1646,7 +1676,7 @@ exports.submitTest = onCall(
         if (session.status !== "COMPLETED") {
           tx.update(sessionRef, {
             status: "COMPLETED",
-            completedAt: admin.firestore.FieldValue.serverTimestamp(),
+            completedAt: FieldValue.serverTimestamp(),
           });
         }
         return {resultId, alreadySubmitted: true};
@@ -1716,7 +1746,7 @@ exports.submitTest = onCall(
       const result = buildTestResult(session, test, questions, frqData);
 
       // Add server-side fields
-      result.completedAt = admin.firestore.FieldValue.serverTimestamp();
+      result.completedAt = FieldValue.serverTimestamp();
       result.gradedAt = null;
       result.isLateSubmission = isLateSubmission;
 
@@ -1724,7 +1754,7 @@ exports.submitTest = onCall(
       tx.set(resultRef, result);
       tx.update(sessionRef, {
         status: "COMPLETED",
-        completedAt: admin.firestore.FieldValue.serverTimestamp(),
+        completedAt: FieldValue.serverTimestamp(),
       });
 
       logger.info(`Test submitted: ${resultId}`, {
@@ -1759,8 +1789,8 @@ exports.pauseStaleSessions = onSchedule(
   },
   async () => {
     const firestore = admin.firestore();
-    const now = admin.firestore.Timestamp.now();
-    const staleThreshold = new admin.firestore.Timestamp(
+    const now = Timestamp.now();
+    const staleThreshold = new Timestamp(
       now.seconds - 60,
       now.nanoseconds
     );
@@ -1893,6 +1923,201 @@ exports.renameStudent = onCall(
   },
 );
 
+// ============================================================================
+// deepfix P6 · FND-4 (F4-3) — teacher provisioning (closes C-28/#1b).
+//
+// Why: the P6 rules deny `role:'teacher'` on user-doc CREATE and deny any
+// owner UPDATE that touches `role` — which also removes the ONLY path a real
+// teacher had (the Signup.jsx self-select radio WAS the C-28 hole). This
+// callable is the replacement path (FIX_PLAN P6(b): "role changes to
+// teacher/admin go through a callable / admin path only"): David mints a
+// single-use invite code with scripts/cs/create-teacher-invite.mjs (Admin SDK
+// writes teacher_invites/{sha256(code)} — clients can neither read nor write
+// that collection), hands the code to the new teacher, and the teacher redeems
+// it here (Signup.jsx invite field, or any later redemption surface). The
+// Admin SDK write bypasses rules, so the role flip works under the lockdown.
+//
+// Design notes:
+// - Invite lookup is a direct doc get on sha256(code) — no query, no plaintext
+//   codes at rest, and an attacker probing codes gets uniform permission-denied.
+// - Single-use + optional expiry + revocable (`revoked:true` via Admin SDK).
+// - Transactional: consume-invite + role flip commit atomically; a retry after
+//   success is idempotent (usedBy === caller → success, no second consume).
+// - Stamps `roleProvisioning` provenance on the user doc; the P6 rules exclude
+//   that field from owner updates, so provenance can't be forged post-hoc
+//   (F-4c hygiene: any live teacher-role doc WITHOUT provenance predates P6 or
+//   is suspect).
+// - DORMANT (flag false) per the P3/P6 draft rule; flip WITH the P6 rules
+//   deploy (precondition 1 in firestore.rules' header) via the G1 flag table.
+// - The FULL role mechanism (custom claim vs doc-field-forever) is David's
+//   decision 4 and gates P10, not P6 — this callable is compatible with both.
+//   [deepfix P10 · OVR part (d)] RESOLVED: David U7 = Option A (custom auth claim).
+//   The claim mint (admin.auth().setCustomUserClaims) is wired BELOW, gated
+//   SEPARATELY by TEACHER_CLAIM_ENABLED (a P10-cutover flip, distinct from the P6
+//   TEACHER_PROVISIONING_ENABLED gate) — the doc role stays for UI; the CLAIM is the
+//   P10(d) rules source of truth (firestore.rules isTeacher() → request.auth.token.role).
+// ============================================================================
+// Gates provisionTeacher. Flip true in the SAME release train as the P6 rules
+// deploy (the rules close self-select signup; this is the replacement path).
+const TEACHER_PROVISIONING_ENABLED = false;
+// [deepfix P10 · OVR part (d)] Gates the custom-claim role mint in provisionTeacher
+// (David U7 = Option A). SEPARATE from TEACHER_PROVISIONING_ENABLED because the CLAIM is
+// the P10(d) rules source of truth (firestore.rules isTeacher() → request.auth.token.role):
+// it flips at the P10 cutover, AFTER the one-time claim backfill
+// (scripts/cs/deepfix-backfill-teacher-claims.mjs) and BEFORE the rules narrowing deploys
+// (firestore.rules header D1-D4). Flag-off ⇒ provisionTeacher behaves EXACTLY as P6
+// (doc-role only, NO auth write) ⇒ byte-equivalent client behavior.
+const TEACHER_CLAIM_ENABLED = false;
+
+/** SHA-256 hex of a trimmed invite code (the teacher_invites docId scheme). */
+function hashInviteCode(code) {
+  return crypto.createHash("sha256").update(String(code).trim(), "utf8").digest("hex");
+}
+
+/**
+ * provisionTeacher — redeem a single-use invite code; sets the CALLER's
+ * users/{uid}.role to 'teacher' (self-service redemption; the invite itself is
+ * the authorization, minted only via Admin SDK).
+ *
+ * data: { inviteCode: string }
+ * returns: { success: true, role: 'teacher', alreadyProvisioned: boolean }
+ */
+exports.provisionTeacher = onCall({enforceAppCheck: false}, async (request) => {
+  if (!TEACHER_PROVISIONING_ENABLED) {
+    throw new HttpsError(
+      "failed-precondition",
+      "provisionTeacher is not enabled (TEACHER_PROVISIONING_ENABLED=false)",
+    );
+  }
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Authentication required");
+  }
+  const uid = request.auth.uid;
+  const {inviteCode} = request.data || {};
+  if (!inviteCode || typeof inviteCode !== "string" || inviteCode.trim().length < 8) {
+    throw new HttpsError("invalid-argument", "A valid invite code is required.");
+  }
+
+  const inviteId = hashInviteCode(inviteCode);
+  const inviteRef = db.doc(`teacher_invites/${inviteId}`);
+  const userRef = db.doc(`users/${uid}`);
+
+  const outcome = await db.runTransaction(async (txn) => {
+    const [inviteSnap, userSnap] = await Promise.all([txn.get(inviteRef), txn.get(userRef)]);
+
+    if (!inviteSnap.exists) {
+      // Uniform error for unknown/mistyped codes — no oracle for probing.
+      throw new HttpsError("permission-denied", "Invalid invite code.");
+    }
+    const invite = inviteSnap.data();
+    if (invite.revoked === true) {
+      throw new HttpsError("permission-denied", "This invite code has been revoked.");
+    }
+    if (invite.usedBy && invite.usedBy !== uid) {
+      throw new HttpsError("permission-denied", "This invite code has already been used.");
+    }
+    if (invite.expiresAt && invite.expiresAt.toMillis && invite.expiresAt.toMillis() < Date.now()) {
+      throw new HttpsError("permission-denied", "This invite code has expired.");
+    }
+    if (!userSnap.exists) {
+      // Signup creates the user doc (as a student) BEFORE redemption; a missing
+      // doc means the flow ran out of order — don't consume the invite.
+      throw new HttpsError(
+        "failed-precondition",
+        "User profile not found — complete signup first, then redeem the invite.",
+      );
+    }
+
+    const userData = userSnap.data() || {};
+    // Idempotent success paths: retry after a committed redemption, or an
+    // already-provisioned teacher pasting a code — never burn the invite twice.
+    if (invite.usedBy === uid || userData.role === "teacher") {
+      return {alreadyProvisioned: true};
+    }
+
+    const now = Timestamp.now();
+    txn.update(inviteRef, {usedBy: uid, usedAt: now});
+    txn.set(userRef, {
+      role: "teacher",
+      roleProvisioning: {
+        via: "invite",
+        inviteId,
+        provisionedAt: now,
+        invitedBy: invite.createdBy ?? null,
+        note: invite.note ?? null,
+      },
+    }, {merge: true});
+    return {alreadyProvisioned: false};
+  });
+
+  // [deepfix P10 · OVR part (d)] Mint the custom auth CLAIM (David U7 = Option A) so the
+  // P10(d) rules (isTeacher() → request.auth.token.role) recognize this teacher. Gated by
+  // TEACHER_CLAIM_ENABLED (a P10-cutover flip), SEPARATE from the P6 provisioning gate. Set on
+  // BOTH the fresh AND the idempotent alreadyProvisioned path (setCustomUserClaims is idempotent
+  // + cheap) so a retry repairs a doc-set-but-claim-missing state. Auth writes cannot join the
+  // Firestore transaction, so this runs AFTER the commit. FAIL-CLOSED: on failure we throw so the
+  // caller retries — the txn already committed the role doc + consumed the invite, so a retry
+  // hits the idempotent alreadyProvisioned branch and re-attempts ONLY the claim (never re-burns
+  // the invite). NOTE the promote→re-login lag (U7): the new claim reaches the caller's session
+  // only after a token refresh (re-login or ~1h ID-token TTL) — surface it in the UX.
+  if (TEACHER_CLAIM_ENABLED) {
+    try {
+      // MERGE (read-then-set) so any OTHER custom claim is preserved, not clobbered — matches the
+      // backfill script's additive discipline (Codex P10d-2). One extra Auth read, only inside
+      // this dormant flag block.
+      const userRecord = await admin.auth().getUser(uid);
+      await admin.auth().setCustomUserClaims(uid, {...(userRecord.customClaims || {}), role: "teacher"});
+    } catch (err) {
+      logger.error("provisionTeacher: setCustomUserClaims failed", {uid, error: err.message});
+      throw new HttpsError(
+        "internal",
+        "Your teacher role was granted but the sign-in token could not be updated. Please redeem the code again to finish.",
+      );
+    }
+  }
+
+  // Audit trail (same uniform shape as foundation.js logSystemEventServer;
+  // best-effort — the role flip has already committed).
+  try {
+    await db.collection("system_logs").add({
+      type: "teacher_provisioned",
+      severity: "info",
+      uid,
+      inviteId,
+      alreadyProvisioned: outcome.alreadyProvisioned,
+      writtenBy: "cloud-function",
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  } catch (err) {
+    logger.warn("teacher_provisioned log write failed (non-fatal)", {error: err.message});
+  }
+
+  logger.info(`provisionTeacher: ${uid} provisioned via invite ${inviteId}`, {
+    alreadyProvisioned: outcome.alreadyProvisioned,
+  });
+  return {success: true, role: "teacher", alreadyProvisioned: outcome.alreadyProvisioned};
+});
+
+// ============================================================================
+// deepfix P3 · FND-1 — the foundation callables (FIX_PLAN.md P3 changes 1-3, 9).
+// Defined in foundation.js; re-exported here so they deploy as functions.
+// ALL DORMANT: each one is gated on its own server flag (false in this draft —
+// see FOUNDATION_FLAGS in the version probe) and NO client code routes to any
+// of them until P4 (FND-2). Disabled callable ⇒ `failed-precondition`, no
+// reads, no writes.
+// ============================================================================
+exports.completeSession = foundation.completeSession;
+exports.resolveListProgress = foundation.resolveListProgress;
+exports.resetProgress = foundation.resetProgress;
+exports.advanceForChallenge = foundation.advanceForChallenge;
+// deepfix P10 · OVR (FIX_PLAN P10 (a)+(b)) — the override + full server-side
+// reviewChallenge callables. DORMANT: gated on FOUNDATION_FLAGS
+// SERVER_OVERRIDE_ENABLED / SERVER_REVIEW_CHALLENGE_ENABLED (false); the client
+// routes to them only under SERVER_OVERRIDE (src/config/featureFlags.js). Their
+// flags surface in the `version` probe via `...foundation.FOUNDATION_FLAGS` below.
+exports.reviewChallenge = foundation.reviewChallenge;
+exports.overrideAttempt = foundation.overrideAttempt;
+
 // Deploy-provenance probe. After any deploy, call this and compare `sha` to
 // `git rev-parse HEAD` in the repo you deployed from — they must match. Also reports the
 // LIVE runtime flags so "is enforcement on right now?" is one call, not behavioural detective
@@ -1906,6 +2131,15 @@ exports.version = onCall(async (request) => {
       GRADE_TOKEN_MINT,
       GRADE_JOB_ENABLED,
       GRADE_JOB_LEASE_MS,
+      // deepfix P6 (F4-3): teacher provisioning — must be ON when the P6 rules
+      // deploy lands (the rules close self-select teacher signup).
+      TEACHER_PROVISIONING_ENABLED,
+      // deepfix P10 · OVR part (d): custom-claim role mint (David U7 = Option A) — must be ON
+      // (+ the claim backfill run) BEFORE the P10(d) rules narrowing deploys (isTeacher()→claim).
+      TEACHER_CLAIM_ENABLED,
+      // deepfix P3: the foundation-surface flags, so the I-5 G1 flag-assertion
+      // table can assert the FULL server posture in one probe call.
+      ...foundation.FOUNDATION_FLAGS,
     },
     serverTime: new Date().toISOString(),
   };

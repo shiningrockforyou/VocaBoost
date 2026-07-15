@@ -1,0 +1,54 @@
+{
+  "id": "EcLMtUCc6uI1JJDcKuNI",
+  "name": "26SM 미주 SAT Final",
+  "assignments": {
+    "AObYOowhLoOOHx9wW2Sq": {
+      "testOptionsCount": 6,
+      "reviewTestSizeMin": 20,
+      "testMode": "typed",
+      "assignedAt": {
+        "_seconds": 1780174888,
+        "_nanoseconds": 630000000
+      },
+      "pace": 100,
+      "passThreshold": 92,
+      "reviewTestType": "mcq",
+      "testSizeNew": 35,
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92
+    },
+    "dVliNv0p9jqZYp9rfLpN": {
+      "testOptionsCount": 6,
+      "reviewTestSizeMin": 20,
+      "testMode": "typed",
+      "assignedAt": {
+        "_seconds": 1780261288,
+        "_nanoseconds": 630000000
+      },
+      "pace": 100,
+      "passThreshold": 92,
+      "reviewTestType": "mcq",
+      "testSizeNew": 35,
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780088488,
+        "_nanoseconds": 0
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 92,
+      "testSizeNew": 35,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

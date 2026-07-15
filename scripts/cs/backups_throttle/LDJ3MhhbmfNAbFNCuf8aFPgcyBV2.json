@@ -1,0 +1,68 @@
+{
+  "email": "lucyyoo27@gmail.com",
+  "uid": "LDJ3MhhbmfNAbFNCuf8aFPgcyBV2",
+  "cp": "CKDTCxTTvscEZAY1DbUN_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 7,
+    "twi": 480,
+    "interventionLevel": 1,
+    "recentSessions": [
+      {
+        "newWordScore": 0.97,
+        "reviewScore": 0.16666666666666666,
+        "date": {
+          "_seconds": 1783905844,
+          "_nanoseconds": 870000000
+        },
+        "wordsReviewed": 60,
+        "segmentEndIndex": 228,
+        "wordsIntroduced": 0,
+        "wordsTested": 30,
+        "segmentStartIndex": 169,
+        "day": 4
+      },
+      {
+        "reviewScore": 0.16666666666666666,
+        "newWordScore": 0.97,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1784000217,
+          "_nanoseconds": 492000000
+        },
+        "segmentEndIndex": 366,
+        "day": 5,
+        "wordsTested": 30,
+        "segmentStartIndex": 307,
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 6,
+        "date": {
+          "_seconds": 1784078226,
+          "_nanoseconds": 998000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.1,
+        "segmentStartIndex": 0,
+        "segmentEndIndex": 63,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      },
+      {
+        "day": 7,
+        "newWordScore": null,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 400,
+        "segmentEndIndex": 479,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 30,
+        "wordsTested": 30,
+        "date": {
+          "_seconds": 1784080327,
+          "_nanoseconds": 779000000
+        }
+      }
+    ]
+  }
+}

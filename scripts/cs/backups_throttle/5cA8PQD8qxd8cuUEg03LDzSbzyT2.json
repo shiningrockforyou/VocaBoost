@@ -1,0 +1,54 @@
+{
+  "email": "joeymxlee@gmail.com",
+  "uid": "5cA8PQD8qxd8cuUEg03LDzSbzyT2",
+  "cp": "jDDw2GEurOj5kD9JswI7_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 560,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsIntroduced": 0,
+        "reviewScore": 0.2,
+        "newWordScore": 0.97,
+        "segmentStartIndex": 331,
+        "day": 5,
+        "date": {
+          "_seconds": 1783927228,
+          "_nanoseconds": 822000000
+        },
+        "segmentEndIndex": 390,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      },
+      {
+        "wordsIntroduced": 0,
+        "reviewScore": 0.16666666666666666,
+        "newWordScore": 1,
+        "date": {
+          "_seconds": 1783933033,
+          "_nanoseconds": 433000000
+        },
+        "segmentEndIndex": 95,
+        "day": 6,
+        "segmentStartIndex": 0,
+        "wordsTested": 30,
+        "wordsReviewed": 60
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784099852,
+          "_nanoseconds": 443000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 152,
+        "segmentEndIndex": 271,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "email": "xiaseunghyun@gmail.com",
+  "uid": "3DLuAzqMtsQAvoOG2bZp8jNOmXG2",
+  "cp": "qeCkS6BpZLVGLe2G5O7Z_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 12,
+    "twi": 1200,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "reviewScore": 0,
+        "wordsIntroduced": 0,
+        "wordsTested": 30,
+        "newWordScore": 1,
+        "wordsReviewed": 60,
+        "segmentStartIndex": 830,
+        "day": 10,
+        "segmentEndIndex": 889,
+        "date": {
+          "_seconds": 1783918853,
+          "_nanoseconds": 863000000
+        }
+      },
+      {
+        "wordsIntroduced": 0,
+        "wordsTested": 30,
+        "newWordScore": 0.94,
+        "segmentStartIndex": 6,
+        "wordsReviewed": 60,
+        "reviewScore": 0,
+        "segmentEndIndex": 83,
+        "day": 11,
+        "date": {
+          "_seconds": 1784013898,
+          "_nanoseconds": 809000000
+        }
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1784091816,
+          "_nanoseconds": 661000000
+        },
+        "newWordScore": 0.94,
+        "reviewScore": 0,
+        "segmentStartIndex": 343,
+        "segmentEndIndex": 419,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

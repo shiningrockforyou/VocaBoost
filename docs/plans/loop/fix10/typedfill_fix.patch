@@ -1,0 +1,185 @@
+diff --git a/audit/playwright/lsr_ui.mjs b/audit/playwright/lsr_ui.mjs
+index 94a2fa9..77d7495 100644
+--- a/audit/playwright/lsr_ui.mjs
++++ b/audit/playwright/lsr_ui.mjs
+@@ -183,8 +183,12 @@ export async function readVisibleProgress(page, { timeout = 12000 } = {}) {
+ // Enter a session and STOP (Run L L2 negative control — must NOT study cards or skip to the test,
+ // which driveNewWordsToTest does). Clicks Start/Continue to reach the study screen — enough to
+ // fire getOrCreateClassProgress — then returns without going deeper. Caller leaves via goDashboard.
++// enterSessionOnly == Codex's `enterSessionAny` (RB-1): enter a class's session via WHATEVER study affordance
++// is on the dashboard. Needed for the cross-class Phase-1 case — class B (no class-local progress yet) renders
++// "Start new words / Start Session" not "Review", but ENTERING reconciles the list-wide position and routes to
++// review-study. So never assume a dashboard "Review" CTA; enter, then observe the in-session phase.
+ export async function enterSessionOnly(page, findings, label) {
+-  const start = page.getByRole('button', { name: /start session|start new words|^continue$|start review/i }).first();
++  const start = page.getByRole('button', { name: /start session|start new words|^continue$|start review|^review$/i }).first();
+   if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Start Session/Continue to enter the session`); return { entered: false }; }
+   await start.click().catch(() => {});
+   await sleep(2500);
+@@ -264,9 +268,62 @@ export async function dismissModal(page) {
+   await sleep(400);
+ }
+ 
++// Clear the durable session_state that a reload/header-nav does NOT (so a stale phase=complete doesn't make
++// the NEXT day render a "Day N Complete" wall — re-entry guard DailySessionFlow.jsx:751). There are TWO
++// student-visible clearing paths; a real student uses one, so the harness must too. Call before leaving a
++// COMPLETED day. Returns true ONLY on a real, settled click (Codex D2F-1: a swallowed failure that still
++// returned true would leave the state uncleared → the wall recurs).
++//   1. Day-2+ RE-ENTRY MODAL "Move On to Next Day" (cancelLabel → handleReEntryMoveOn → handleMoveToNextDay
++//      → clearSessionState; DailySessionFlow.jsx:1466-1474, 1840-1842). Try FIRST — the modal can OVERLAY the
++//      completion screen and intercept the pointer, so a "Back to Dashboard" click underneath would fail.
++//   2. Bare Day-1 COMPLETION screen "Back to Dashboard" (onClick → clearAllSessionStates + clearSessionState;
++//      DailySessionFlow.jsx:1785-1788). Gated on a completion CONTEXT so an unrelated "Back to Dashboard"
++//      (e.g. an apBoost report card) is never mistaken for the study-completion clear (Codex D2F-2).
++export async function clearCompletionIfPresent(page) {
++  const moveOn = page.getByRole('button', { name: /move on to next day/i }).first();
++  if (await moveOn.isVisible().catch(() => false)) {
++    const clicked = await moveOn.click({ timeout: 5000 }).then(() => true).catch(() => false);
++    if (!clicked) return false;
++    await sleep(1800);
++    return true;
++  }
++  const onComplete = await page.getByText(/Session Summary|Great Job|Day \d+ Complete/i).first().isVisible().catch(() => false);
++  if (onComplete) {
++    const back = page.getByRole('button', { name: /back to dashboard/i }).first();
++    if (await back.isVisible().catch(() => false)) {
++      const clicked = await back.click({ timeout: 5000 }).then(() => true).catch(() => false);
++      if (clicked) { await sleep(1800); return true; }
++    }
++  }
++  return false;
++}
++
++// After a session-FINAL test the harness is on the TEST page's results screen (route /typedtest|/mcqtest).
++// The state-CLEARING controls (CompletePhase "Back to Dashboard" / re-entry "Move On to Next Day") exist ONLY
++// after clicking the results-page "Continue" → handleContinue → handleBackToSession → navigate(returnPath,
++// {testCompleted:true}) → DailySessionFlow renders CompletePhase (TypedTest.jsx:1259-1263/1273/1354,
++// MCQTest.jsx:927/937). So: click results "Continue", let the daily flow render, THEN clearCompletionIfPresent.
++// Gated to the test-results route so an unrelated "Continue" is never clicked. Call right after a FINAL
++// driveTest (day-1 new / day-2+ review). Returns true iff a completion was cleared. (Codex D2F-3.)
++export async function returnFromResultsAndClearCompletion(page, findings, label) {
++  if (/\/(typedtest|mcqtest)\//i.test(page.url())) {
++    const cont = page.getByRole('button', { name: /^continue$/i }).first(); // NOT "Continue Test" (a modal)
++    if (await cont.isVisible().catch(() => false)) {
++      await cont.click({ timeout: 5000 }).catch(() => {});
++      await sleep(2800); // let DailySessionFlow process location.state.testCompleted → CompletePhase
++    } else if (findings) {
++      findings.add('flow-gap', `[${label || 'return'}] on test-results route but no "Continue" button`);
++    }
++  }
++  return clearCompletionIfPresent(page);
++}
++
+ export async function goDashboard(page) {
+-  // Visible navigation: prefer an in-app Dashboard/Home link; fall back to browser back-to-root.
+   await dismissModal(page);
++  // On a completion screen, "Back to Dashboard" is the state-CLEARING exit (see clearCompletionIfPresent) —
++  // prefer it so the NEXT day doesn't inherit a stale phase=complete.
++  if (await clearCompletionIfPresent(page)) return;
++  // Otherwise: visible navigation — prefer an in-app Dashboard/Home link; fall back to browser back-to-root.
+   const nav = page.getByRole('link', { name: /dashboard|home/i }).or(page.getByRole('button', { name: /dashboard|home/i })).first();
+   const clicked = await nav.click({ timeout: 5000 }).then(() => true).catch(() => false);
+   if (!clicked) await page.goto(BASE, { waitUntil: 'domcontentloaded' }).catch(() => {});
+@@ -305,10 +362,23 @@ export async function switchClass(page, className, findings) {
+ // Open the session kebab menu (aria-label "Session menu", SessionMenu.jsx:92) and click
+ // "Skip to Test", then accept the confirm modal. Robust exact selectors (replaces the
+ // nondeterministic getByRole('button').last() fallback that failed on day-2/MCQ layouts).
++// Wait until a locator is visible (generous ceiling — DETERMINISTIC: fails only if it TRULY never appears)
++// and RECORD how long it took → turns the "flaky 8s cliff" into latency DATA + a perf-slow signal. A control
++// that takes >=slowMs to appear is candidate STUDENT-FACING lag, surfaced regardless of the test outcome
++// (appends to findings/reach_latency.tsv: iso \t label \t what \t ms \t ok).
++export async function waitVisibleTimed(locator, { label, what, findings, timeout = 30000, slowMs = 3000 } = {}) {
++  const t0 = Date.now();
++  const ok = await locator.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
++  const ms = Date.now() - t0;
++  try { appendFileSync(`${AUD}/findings/reach_latency.tsv`, `${new Date().toISOString()}\t${label || '-'}\t${what || '-'}\t${ms}\t${ok}\n`); } catch { /* non-fatal */ }
++  if (findings && ok && ms >= slowMs) findings.add('perf-slow', `[${label}] "${what}" took ${ms}ms to appear (>=${slowMs}ms — candidate student-facing lag)`);
++  return { ok, ms };
++}
++
+ export async function skipToTest(page, findings, label) {
+   const menuBtn = page.getByRole('button', { name: 'Session menu' }).first();
+-  const menuReady = await menuBtn.waitFor({ state: 'visible', timeout: 8000 }).then(() => true).catch(() => false);
+-  if (!menuReady) { findings.add('selector-gap', `[${label}] Session-menu button not visible`); await shot(page, `lsr_menugap_${label.replace(/[^a-z0-9]+/gi,"_")}`); return false; }
++  const { ok: menuReady, ms } = await waitVisibleTimed(menuBtn, { label, what: 'Session menu', findings, timeout: 30000 });
++  if (!menuReady) { findings.add('selector-gap', `[${label}] Session-menu button not visible after ${ms}ms`); await shot(page, `lsr_menugap_${label.replace(/[^a-z0-9]+/gi,"_")}`); return false; }
+   await menuBtn.click().catch(() => {});
+   await sleep(600);
+   const skip = page.getByRole('button', { name: /skip to test/i }).first();
+@@ -325,7 +395,8 @@ export async function skipToTest(page, findings, label) {
+ // Dashboard → new-words study → typed test, all via visible controls.
+ export async function driveNewWordsToTest(page, findings, label) {
+   const start = page.getByRole('button', { name: /start new words|continue/i }).first();
+-  if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Start-New-Words/Continue button`); return { reached: false }; }
++  const startWait = await waitVisibleTimed(start, { label, what: 'Start-New-Words/Continue', findings, timeout: 20000 });
++  if (!startWait.ok) { findings.add('flow-gap', `[${label}] no Start-New-Words/Continue button after ${startWait.ms}ms`); return { reached: false }; }
+   await start.click(); await sleep(2500);
+   const study = page.getByRole('button', { name: /start studying/i }).first();
+   if (await study.isVisible().catch(() => false)) await study.click();
+@@ -334,8 +405,8 @@ export async function driveNewWordsToTest(page, findings, label) {
+   await skipToTest(page, findings, label);
+   // Test page reached = typed inputs (typed mode) OR the MCQ nav arrow (MCQ mode).
+   const reached = await Promise.race([
+-    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 15000 }).then(() => true),
+-    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 15000 }).then(() => true),
++    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 30000 }).then(() => true),
++    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 30000 }).then(() => true),
+   ]).catch(() => false);
+   if (!reached) findings.add('flow-gap', `[${label}] test page (typed or MCQ) not reached`);
+   await sleep(700);
+@@ -344,7 +415,8 @@ export async function driveNewWordsToTest(page, findings, label) {
+ 
+ export async function driveReviewToTest(page, findings, label) {
+   const start = page.getByRole('button', { name: /review|continue/i }).first();
+-  if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Review/Continue button`); return { reached: false }; }
++  const startWait = await waitVisibleTimed(start, { label, what: 'Review/Continue', findings, timeout: 20000 });
++  if (!startWait.ok) { findings.add('flow-gap', `[${label}] no Review/Continue button after ${startWait.ms}ms`); return { reached: false }; }
+   await start.click(); await sleep(2500);
+   const study = page.getByRole('button', { name: /start studying|start review/i }).first();
+   if (await study.isVisible().catch(() => false)) await study.click();
+@@ -352,23 +424,38 @@ export async function driveReviewToTest(page, findings, label) {
+   await sleep(1000);
+   await skipToTest(page, findings, label);
+   const reached = await Promise.race([
+-    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 15000 }).then(() => true),
+-    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 15000 }).then(() => true),
++    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 30000 }).then(() => true),
++    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 30000 }).then(() => true),
+   ]).catch(() => false);
+   await sleep(700);
+   return { reached };
+ }
+ 
+ // Read the typed-test rows via locator traversal (visible text only — no evaluate).
++// The word <span>s render a BEAT AFTER the inputs, so a bare single read races them and can return ALL-EMPTY
++// words → carefulAnswers fills blanks → an empty test submission → score 0 (the "day-2 flake" — NOT wordmap
++// gaps; the words are all present, confirmed). So RETRY-until-populated: re-read until >=90% of the word spans
++// have text, or a deadline. Deterministic (same shape returned).
+ export async function readTestRows(page) {
+   const inputs = page.locator('input[placeholder*="definition" i]');
+   const n = await inputs.count();
+-  const rows = [];
+-  for (let i = 0; i < n; i++) {
+-    const word = await inputs.nth(i).locator('xpath=..').locator('span.font-medium').first().innerText({ timeout: 2000 }).catch(() => '');
+-    rows.push({ idx: i, word: word.trim() });
++  const readOnce = async () => {
++    const rows = [];
++    for (let i = 0; i < n; i++) {
++      const word = await inputs.nth(i).locator('xpath=..').locator('span.font-medium').first().innerText({ timeout: 3000 }).catch(() => '');
++      rows.push({ idx: i, word: word.trim() });
++    }
++    return rows;
++  };
++  const need = Math.max(1, Math.ceil(n * 0.9));
++  let rows = [];
++  for (let attempt = 0; attempt < 8; attempt++) {
++    rows = await readOnce();
++    const populated = rows.filter((r) => r.word).length;
++    if (populated >= need) return rows;         // spans rendered → good
++    await sleep(1200);                            // else the spans are still rendering — wait + re-read
+   }
+-  return rows;
++  return rows; // best effort after deadline (coverage/verdict still apply downstream)
+ }
+ 
+ export function carefulAnswers(rows) {

@@ -1,0 +1,641 @@
+diff --git a/audit/deepfix/task3/P10d_impl_notes.md b/audit/deepfix/task3/P10d_impl_notes.md
+new file mode 100644
+index 0000000..e9f905b
+--- /dev/null
++++ b/audit/deepfix/task3/P10d_impl_notes.md
+@@ -0,0 +1,225 @@
++# DEEPFIX Task 3 — P10 (OVR) implementation notes — part (d): the custom-claim role model + the rules NARROWING
++
++> **Status:** STAGED, DORMANT, LOCAL-ONLY draft (2026-07-14). This is the **security point-of-no-return** of
++> the P10 program. Built on the converged P3–P10(a/b/c) foundation (all uncommitted in this working tree).
++> **David decision U7 = Option A: custom auth claim.** Nothing here is deployed, committed, branched, or run
++> live: the `firestore.rules` narrowing takes effect ONLY at the David-run P10 cutover rules deploy (the file
++> is a not-yet-deployed draft that already carries the P6 cutoff + the P10c additive read clause); the
++> claim-mint in `provisionTeacher` is flag-guarded (`TEACHER_CLAIM_ENABLED=false`); and the claim backfill
++> script is **`--dry`-only** in anyone's hands but David's (write-guarded like the P5 migration).
++> Follows `P10_IMPL_PLAN.md` ★ OWNER DECISIONS (U7=A) + §1(d) + §3, and `FIX_PLAN.md` P10 (`:815-816`).
++
++---
++
++## §0 · What part (d) is (and what it is NOT)
++
++Part (d) does THREE things, all staged:
++1. **Role model = custom auth claim** (U7=A). `provisionTeacher` also mints `setCustomUserClaims(uid,{role:'teacher'})`
++   for every NEW teacher (gated); a one-time `--dry` backfill stamps the claim onto every EXISTING role-doc
++   teacher. The user-doc `role` field STAYS (it drives the client UI, unchanged); the CLAIM is the rules
++   source of truth. `provisionTeacher` sets BOTH so they agree.
++2. **`isTeacher()` → the claim.** The rules helper stops doing a per-eval `users/{uid}` `get()` and reads
++   `request.auth.token.role == 'teacher'`.
++3. **Execute the two named P6/P10 rule TODOs** (the narrowings that became legal once P10(b) moved
++   `reviewChallenge` server-side): the users-subcollection teacher-WRITE breadth → `isOwner`, and the attempts
++   teacher-of-record UPDATE branch → removed (attempts fully server-owned).
++
++It is **NOT**: the token-policy matrix (C-18 — zero-code, ships independently); the P10c additive read clause
++(`firestore.rules` `match /attempts` read — converged, untouched); the `teacherIds` denorm/backfill work
++(converged, untouched); any client role-read change (AuthContext keeps reading the doc role for UI).
++
++---
++
++## §1 · What changed (real working-tree anchors, post-apply)
++
++### `firestore.rules` (STAGED narrowing — dormant until the P10 cutover deploy)
++
++| # | Change | Anchor (post-apply) |
++|---|---|---|
++| d1 | **File-header P10d note** — the **FOUR narrowings**, the **BLAST RADIUS enumeration** (~14 rules), the transition-safety choice (Option A), and HARD DEPLOY PRECONDITIONS **D1-D4** (claim-set live → backfill → token-refresh window → rules-test re-green), mirroring the P6 header. | `firestore.rules` header `Note (P10d …)` block |
++| d2 | **`isTeacher()` → custom claim.** `return request.auth.token.role == 'teacher';` (was `getUserData().role == 'teacher'`). `getUserData()` retained but now **unused** (kept as the Option-B fallback + for future doc-field rules). | `firestore.rules` `isTeacher()` (helper defn); `getUserData()` just above it |
++| d3 | **users/{u}/{subcollection} WRITE narrowed `isTeacher`→`isOwner`** (READ unchanged — teacher Students view still reads students' progress). Closes I-10 §7 breadth. | `firestore.rules` `match /{subcollection}/{docId}` `allow write` |
++| d4 | **attempts teacher-of-record UPDATE branch REMOVED** → `allow update: if false;` (attempts now create:false/update:false/delete:false — fully server-owned). | `firestore.rules` `match /attempts/{attemptId}` `allow update` |
++| d4b | **[Codex P10d-1 / U6] users/{u} UPDATE teacher OR-leg REMOVED** (was `isTeacher() && …hasOnly(['challenges'])`) → owner-only, KEEPING the `role`/`roleProvisioning` exclusion. Same dead-branch class: the only client teacher-write to a student's `challenges.history` was `reviewChallenge` (`db.js:2945`), now server-side. `submitChallenge` (`db.js:2803`) is the STUDENT/owner writing their OWN challenges → owner branch, unaffected. Same SERVER_OVERRIDE rollback coupling as d3/d4. | `firestore.rules` `match /users/{userId}` `allow update` |
++
++**Untouched (verified):** the P10c additive read clause (`allow read … 'teacherIds' in resource.data …`)
++and the whole teacherIds surface. Brace/paren/bracket balance re-checked (code-only, comments stripped):
++`{}=49/49, ()=101/101, []=5/5`.
++
++### `functions/index.js` (claim-wiring — flag-guarded, dormant)
++
++| # | Change | Anchor |
++|---|---|---|
++| d5 | **`TEACHER_CLAIM_ENABLED = false`** — a NEW gate SEPARATE from `TEACHER_PROVISIONING_ENABLED`; the claim is the P10(d) rules source of truth, flipped at the P10 cutover (after the backfill, before the rules narrow). Updated the stale P6 comment that said "a custom-claim future WOULD add setCustomUserClaims here" (now RESOLVED = A). | just after `const TEACHER_PROVISIONING_ENABLED = false;` |
++| d6 | **`provisionTeacher` mints the claim** — `if (TEACHER_CLAIM_ENABLED) { const r = await admin.auth().getUser(uid); await admin.auth().setCustomUserClaims(uid, {...(r.customClaims||{}), role:'teacher'}); }` AFTER the Firestore txn commits (auth writes can't join a Firestore txn), on BOTH the fresh and the idempotent `alreadyProvisioned` path. **[Codex P10d-2] MERGE (read-then-set)** — preserves any other custom claim (matches the backfill's additive discipline). **Fail-CLOSED**: throws `internal` on failure so the caller retries (the retry hits the idempotent branch and re-attempts ONLY the claim — never re-burns the invite). | inside `exports.provisionTeacher`, between the `runTransaction` and the audit-log |
++| d7 | **`TEACHER_CLAIM_ENABLED` surfaced in the `version` probe** flags block (so the I-5 G1 flag-assertion table can assert "claim-set live" before the rules narrow). | `exports.version` `flags:` object |
++
++### `scripts/cs/deepfix-backfill-teacher-claims.mjs` (NEW — `--dry`-only backfill)
++
++- P5/P10c-style: `--dry` default (write guard THROWS before any `setCustomUserClaims` ⇒ ZERO auth writes);
++  `--commit --confirm-claims=teacher-role-claims` guard (fixed sentinel forces intentionality). `--uid`,
++  `--limit` for targeted/sample runs. Report → `dsg-edits/srv_validate/` (gitignored, local only).
++- Lists every `users` doc with `role=='teacher'`; reads each user's CURRENT custom claims (Admin Auth
++  `getUser`); classifies `SET_CLAIM` / `SKIP_ALREADY` (already `role:'teacher'`) / `MISSING_AUTH`
++  (role-doc teacher with no Auth user — a data anomaly, flagged for triage, never auto-written).
++- **Idempotent + additive**: `--commit` MERGE-sets `{...existingClaims, role:'teacher'}` (preserves any other
++  custom claim — never wipes), read-back verifies, and prints the "everyone must refresh their token" (D3)
++  reminder. A re-run SKIPs already-claimed teachers.
++
++---
++
++## §2 · The transition-safety choice + the FULL blast-radius enumeration (the key uncertainty, answered)
++
++Switching `isTeacher()` to claim-only means **every** teacher-gated rule keys on the claim from the instant
++the narrowing deploys. A teacher WITHOUT the claim (un-backfilled, or backfilled-but-token-not-yet-refreshed —
++the promote→re-login lag) loses access to **all** of the following at once — NOT just override/review:
++
++| # | Rule (post-apply) | What a claimless teacher loses |
++|---|---|---|
++| 1 | `match /{path=**}/class_progress/{docId}` `allow read` | admin/teacher dashboard progress read (collection group) |
++| 2 | `match /users/{userId}/{subcollection}` `allow read` | the teacher Students view reading students' `list_progress`/`class_progress`/`study_states`/`session_states` |
++| 3 | `match /classes/{classId}` `allow create` | creating a class |
++| 4 | `match /lists/{listId}` `allow create` | creating a list |
++| 5 | `match /system_logs/{logId}` `allow read` | reading reconciliation/system logs |
++| 6 | `match /ap_tests` `allow write` | AP test authoring |
++| 7 | `match /ap_questions` `allow write` | AP question authoring |
++| 8 | `match /ap_stimuli` `allow write` | AP stimulus authoring |
++| 9 | `match /ap_answer_keys` `allow read, write` | AP answer-key read+write |
++| 10 | `match /ap_session_state` `allow read` (teacher OR-leg) | AP live-session monitoring read |
++| 11 | `match /ap_test_results` `allow read` (teacher OR-leg) | AP result read |
++| 12 | `match /ap_test_results` `allow update` | AP grading write |
++| 13 | `match /ap_classes` `allow write` | AP class management |
++| 14 | `match /ap_assignments` `allow write` | AP assignment management |
++
++(**14 rules switch to the claim** — down from 15: **[Codex P10d-1]** d4b now REMOVES `isTeacher()` from the
++`users/{userId}` UPDATE teacher/`challenges` OR-leg, so it is no longer in the switch set. In total, narrowings
++d3 [users-subcollection WRITE], d4 [attempts UPDATE], and d4b [users-doc `challenges` OR-leg] DROP `isTeacher()`
++from their rules entirely — they don't merely re-key on the claim.)
++
++**CHOICE = Option A (hard precondition), NOT Option B (transition-safe claim-OR-doc window).** Rationale:
++- The plan (U7) and the spec both recommend A, accepting the promote→re-login lag as a one-time, bounded,
++  operationally-known cost (ID-token TTL ≈ 1h, or a sign-out/in). Option B (`getUserData().role=='teacher' ||
++  request.auth.token.role=='teacher'`) would keep the per-eval `get()` on the exact rules it was meant to
++  remove, would leave the doc-role trust surface partially live through the window, and would then need a
++  SECOND narrowing deploy to remove the doc leg — more deploys, more state, for a lag that A already bounds.
++- A is enforced by the **hard preconditions D1-D4** in the rules header (claim-set live → backfill complete →
++  token-refresh window elapsed → rules-test re-green), exactly the P6-header discipline. The Option-B
++  one-liner is documented IN the `isTeacher()` comment so David can choose it if D3's refresh window is
++  operationally unacceptable (e.g., a teacher mid-session at cutover cannot be asked to re-login).
++
++**Blast-radius mitigation baked in:** D2 (backfill) covers the un-backfilled case; D3 (refresh window) covers
++the token-lag case; both are gated BEFORE the rules deploy, so at deploy time the intersection "teacher with
++no usable claim" is empty by construction.
++
++---
++
++## §3 · Flag-off / staging byte-equivalence argument (per file)
++
++- **`firestore.rules`** — the whole file is a **not-yet-deployed draft**. The LIVE ruleset is unchanged until
++  David runs `firebase deploy --only firestore:rules` at the P10 cutover. So d1-d4 are byte-equivalent to
++  "today's live behavior" for as long as the file is undeployed — identical to how the P6 cutoff and the P10c
++  read clause already sit dormant in this same file. There is NO client behavior tied to the rules file.
++- **`functions/index.js`** — `TEACHER_CLAIM_ENABLED=false` ⇒ the `if (TEACHER_CLAIM_ENABLED)` block is skipped
++  ⇒ `provisionTeacher` runs EXACTLY its P6 body (role-doc set only, no auth write) ⇒ byte-equivalent behavior
++  and an unchanged return shape `{success, role, alreadyProvisioned}` (client behavior consistent). The new
++  flag is inert data; the `version` probe just reports one more `false`. (Note: `provisionTeacher` itself is
++  ALSO still gated dark by `TEACHER_PROVISIONING_ENABLED=false` — a P6 flip.)
++- **`scripts/cs/deepfix-backfill-teacher-claims.mjs`** — new file; not imported by the app. `--dry` (default)
++  makes ZERO auth writes (guard throws). No effect on any runtime surface.
++
++---
++
++## §4 · Deploy order + hard preconditions (David's cutover — NOT run here)
++
++Extends the P6/P10 **functions → rules, rules LAST** discipline. The claim work inserts the backfill + refresh
++window between them:
++
++1. **`--only functions`** deploy carrying `provisionTeacher`'s claim-set, with **`TEACHER_CLAIM_ENABLED=true`**
++   (and `TEACHER_PROVISIONING_ENABLED=true` if not already). Now every NEW teacher mint stamps the claim.
++   Safe — dark for the rules (which still read the doc via the undeployed narrowing).
++2. **Claim backfill (`--commit`)** — `node scripts/cs/deepfix-backfill-teacher-claims.mjs --dry` → David
++   reviews the report → `--commit --confirm-claims=teacher-role-claims`. A CS event (SUPPORT_RUNBOOK +
++   change_action_log). Read-back must show 0 mismatches; triage any `MISSING_AUTH`.
++3. **Token-refresh window** — every live teacher re-logs-in OR ≈1h elapses (ID-token TTL) so the claim reaches
++   their token. (Optional UX accelerator — see U5: a forced `getIdToken(true)` on redemption.)
++4. **`--only firestore:rules`** NARROWING deploy (d1-d4b) — LAST, nothing rides along. Reversible via git +
++   redeploy. **Coupling:** if `SERVER_OVERRIDE` (client reviewChallenge→callable) is ever rolled back, revert
++   **d3+d4+d4b** in the SAME redeploy (their reverted client teacher-writes — study_states, attempts, and the
++   student's `challenges.history` — would otherwise be denied).
++
++**Preconditions = the rules-header D1-D4**, mirrored here. D-order is load-bearing: deploying the rules
++narrowing before D2+D3 complete would lock every teacher out (the §2 blast radius).
++
++---
++
++## §5 · Uncertainties (numbered) for Codex
++
++1. **U1 — the transition-safety choice (THE key call).** Chose **Option A (hard precondition D1-D4)** over
++   Option B (claim-OR-doc window). Confirm A is acceptable given the §2 blast radius, OR direct me to stage
++   Option B (`isTeacher()` = `getUserData().role=='teacher' || request.auth.token.role=='teacher'`, then a
++   later doc-leg-removal deploy). The Option-B one-liner is documented in the `isTeacher()` comment. The load
++   test for A: can EVERY live teacher be guaranteed a token refresh (D3) at cutover, including one mid-session?
++
++2. **U2 — `setCustomUserClaims` merge vs replace — RESOLVED [Codex P10d-2].** `provisionTeacher` now MERGE-sets
++   `{...(userRecord.customClaims||{}), role:'teacher'}` (read-then-set), matching the backfill script. Both
++   paths preserve any other custom claim rather than clobbering it. One extra `getUser` read, only inside the
++   dormant `if (TEACHER_CLAIM_ENABLED)` block; the fail-closed throw is retained.
++
++3. **U3 — fail-closed throw in `provisionTeacher`.** On `setCustomUserClaims` failure I throw `internal` (the
++   txn already committed the role doc + consumed the invite; a retry is idempotent and re-attempts only the
++   claim). Alternative: swallow + log + return `{claimSet:false}` so the client can prompt a manual re-try
++   without an error toast. Throwing is the conservative (fail-closed, at-least-once claim) choice; confirm the
++   UX is acceptable (Signup's `finishTeacherRedemption` currently surfaces the error and keeps the student
++   account working — see U5).
++
++4. **U4 — attempts UPDATE: remove vs narrow.** Chose full **removal** (`allow update: if false`) over narrowing
++   to the union, because (a) P10(b) enforces the I-10 §6 union SERVER-side (Admin SDK bypasses rules) and
++   (b) I grep-confirmed the only client teacher attempt-write is `reviewChallenge`'s (`db.js:2920`), which is
++   behind `SERVER_OVERRIDE` (ON at the deploy precondition); the student answers-write was already removed
++   (C-29). So no legitimate client teacher-write remains ⇒ removal is strictly safer. Confirm no other client
++   `updateDoc(attemptRef…)` teacher path exists that I missed.
++
++5. **U5 — token-refresh / re-login UX surfacing (the promote→re-login lag).** Signup's
++   `finishTeacherRedemption` already does `window.location.assign('/')` after redemption, which re-reads the
++   DOC role (UI works immediately) but does NOT refresh the ID token — so the new CLAIM (and thus rules access)
++   lags until the token refreshes. Recommended follow-up (NOT implemented — out of the named IMPLEMENT scope,
++   and A accepts the lag): call `auth.currentUser.getIdToken(true)` right after a successful `provisionTeacher`
++   to force a token mint that includes the claim, collapsing the lag for the signup path. Existing teachers
++   (backfill path) still need a natural refresh (D3). Should this accelerator ship WITH the claim cutover?
++
++6. **U6 — the users-DOC `challenges` teacher OR-leg — RESOLVED [Codex P10d-1] (narrowing d4b).** NARROWED to
++   owner-only (teacher OR-leg removed, `role`/`roleProvisioning` exclusion kept). Grep-CONFIRMED the only client
++   teacher-write to a student's `challenges.history` is `reviewChallenge` (`db.js:2945`, behind `SERVER_OVERRIDE`,
++   moved server-side by P10(b)); `submitChallenge` (`db.js:2803`) is the STUDENT/owner writing their OWN
++   `challenges.history` and passes the owner branch, unaffected. Same dead-branch class as d3/d4, with the same
++   `SERVER_OVERRIDE` rollback coupling. (Codex confirmed this is the same class and directed the narrowing; it is
++   now executed rather than deferred.)
++
++7. **U7 — server callable authz still reads the DOC role, not the claim.** `assertOverrideAuthz` /
++   `assertOverrideTargetAuthz` / `renameStudent` gate on `users/{caller}.role == 'teacher'` (Admin SDK doc
++   read), NOT `request.auth.token.role`. This is consistent (doc + claim agree post-provision) and callables
++   are Admin-SDK (rules-independent), so it is not a hole — but if David wants ONE source of truth, the
++   callables could switch to `request.auth.token.role` too (removes a doc read per call). Left as-is: the
++   spec scoped part (d) to the RULES `isTeacher()` + provisioning, not the callable authz. Flagging for a
++   consistency decision.
++
++8. **U8 — `getUserData()` left defined-but-unused.** After d2 no rule calls it. Kept (harmless; needed for
++   Option B and any future doc-field rule). Confirm keeping the dead helper is preferred over deleting it
++   (deleting is a larger, less-reversible edit; keeping documents the old path).
++
++---
++
++## §6 · Validation
++
++- **Parser:** `node --check functions/index.js` → OK. `node --check scripts/cs/deepfix-backfill-teacher-claims.mjs`
++  → OK.
++- **Rules (reviewed-not-executed; emulator = Task 6):** brace/paren/bracket balance (comments stripped) =
++  `{}=49/49, ()=101/101, []=5/5`, balanced. Manual walk of every `isTeacher()` call-site's new behavior = §2
++  table (15 switch to the claim; 2 drop the teacher branch entirely). Every guarded by `isAuthenticated()`
++  first ⇒ `request.auth` non-null when `isTeacher()` evaluates ⇒ `request.auth.token.role` is safe; absent
++  claim ⇒ null ⇒ `!= 'teacher'` ⇒ fail-closed.
++- **eslint delta vs reconstructed pre-(d) baseline = 0 new** (functions/index.js + the new script) — see the
++  diff-generation notes; the reconstruction reverse-applies d5-d7 to get the pre-(d) file.
++- **P10c read clause + teacherIds work UNCHANGED** — grep-verified (the `'teacherIds' in resource.data`
++  read clause and the whole teacherIds surface are byte-identical).
++- **Diff:** `audit/deepfix/task3/phase10d_diff.patch` (git-apply-clean + round-trip; new files noted).
+diff --git a/firestore.rules b/firestore.rules
+index 37256cc..d19d925 100644
+--- a/firestore.rules
++++ b/firestore.rules
+@@ -29,7 +29,51 @@ rules_version = '2';
+ // backfill + TEACHER_IDS_WRITE_ENABLED land) but its DEPLOY-ORDER INVARIANT binds: it must be
+ // deployed BEFORE/WITH the client TEACHER_IDS_READ flip (I-10 §4 query-vs-rules same-release).
+ // P10c adds NO narrowing — the isTeacher()→isOwner teacher-breadth narrowing, the attempts
+-// teacher-UPDATE narrowing, and the custom-claim role work are all part (d) (a separate draft).
++// teacher-UPDATE narrowing, and the custom-claim role work are all part (d), STAGED BELOW in
++// THIS same draft (see the P10d note next).
++//
++// Note (P10d — THE ROLE-MODEL NARROWING · the point-of-no-return · David U7 = Option A CUSTOM
++// CLAIM): this draft ALSO carries P10(d). FOUR narrowings are staged below; they take effect
++// ONLY at the P10 cutover rules deploy (dormant in the working tree = a not-yet-deployed file):
++//   (1) isTeacher() now reads the CUSTOM CLAIM `request.auth.token.role == 'teacher'` (NO
++//       per-eval user-doc get()) — the claim is minted by provisionTeacher's setCustomUserClaims
++//       (functions/index.js, gated TEACHER_CLAIM_ENABLED) + the one-time backfill
++//       (scripts/cs/deepfix-backfill-teacher-claims.mjs).
++//   (2) users/{u}/{subcollection} WRITE narrowed isTeacher→isOwner (closes the I-10 §7 breadth:
++//       "any teacher can write any student's study_states/session_states"). READ is unchanged.
++//   (3) attempts teacher-of-record UPDATE branch REMOVED — attempts become FULLY server-owned
++//       (create:false / update:false / delete:false).
++//   (4) users/{u} UPDATE teacher OR-leg REMOVED (was `isTeacher() && ...hasOnly(['challenges'])`)
++//       — same dead-branch class: it existed ONLY for client reviewChallenge's write of a
++//       STUDENT's challenges.history (db.js:2945), now server-side. Leaves owner-only (KEEPS the
++//       role/roleProvisioning exclusion). [Codex P10d-1]
++// P10(d) does NOT touch the P10c additive read clause (the `match /attempts` read rule) or the
++// teacherIds work — those are converged.
++// ⚠ BLAST RADIUS of (1) — isTeacher() gates ~14 rules; ALL switch from doc-role to the claim AT
++//   ONCE at this deploy: class_progress CG read, users subcollection READ, classes CREATE, lists
++//   CREATE, system_logs READ, and every ap_* teacher rule (ap_tests/ap_questions/ap_stimuli/
++//   ap_answer_keys/ap_session_state/ap_test_results read+update/ap_classes/ap_assignments) — the
++//   exact post-apply anchors are enumerated in P10d_impl_notes.md §2. (Narrowings (2)(3)(4) DROP
++//   isTeacher() from their rules entirely, so they are NOT in this switch set.) A teacher WITHOUT
++//   the claim (un-backfilled,
++//   or token not yet refreshed — the promote→re-login lag) loses ALL teacher access, not just
++//   override/review. An absent claim compares false (no existence guard: a missing custom-claim
++//   key yields null, null == 'teacher' is false ⇒ fail-CLOSED). TRANSITION-SAFETY CHOICE = Option
++//   A (hard precondition), NOT Option B (claim-OR-doc window) — see D1-D4.
++// HARD DEPLOY PRECONDITIONS (ALL — David-run only; ORDER-BOUND; mirror the P6 header):
++//   D1. functions deploy carrying provisionTeacher's setCustomUserClaims is LIVE with
++//       TEACHER_CLAIM_ENABLED=true — so every NEW teacher mint also stamps the claim.
++//   D2. The one-time claim backfill has run to COMPLETION for every existing role-doc teacher:
++//       `node scripts/cs/deepfix-backfill-teacher-claims.mjs --commit --confirm-claims=teacher-role-claims`
++//       (a David-authorized run; --dry only in anyone else's hands). Verify via its read-back.
++//   D3. A token-refresh window has elapsed: every live teacher re-logged-in OR ~1h passed
++//       (ID-token TTL) so the claim is in their token. This is the accepted U7 promote→re-login
++//       lag; surface it in the provisioning UX (Signup.jsx force-refresh — see P10d notes U5).
++//   D4. Rules-test matrix re-green under the CLAIM model (auth.token.role, not doc role).
++// Deploy: `firebase deploy --only firestore:rules` — NOTHING rides along (P6 discipline).
++// Revert: git-restore the P10d blocks + redeploy. Coupling: if SERVER_OVERRIDE (client
++//   reviewChallenge→callable) is ever rolled back, revert narrowings (2)+(3) in the SAME
++//   redeploy — their reverted client teacher-writes would otherwise be denied.
+ // ============================================================================
+ 
+ service cloud.firestore {
+@@ -43,12 +87,28 @@ service cloud.firestore {
+       return request.auth.uid == userId;
+     }
+ 
++    // [deepfix P6] The user-doc fetch. After the P10(d) claim switch (below) isTeacher() no
++    // longer calls this, so getUserData() is UNUSED in this draft. Retained (harmless; Firestore
++    // tolerates an unused function) as the fallback the transition-safe isTeacher() variant
++    // (Option B — see the file header P10d note) would use, and for any future doc-field rule.
+     function getUserData() {
+       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+     }
+ 
++    // [deepfix P10 · OVR part (d)] ROLE MODEL = David U7 Option A: CUSTOM AUTH CLAIM.
++    // isTeacher() reads request.auth.token.role (minted by provisionTeacher's setCustomUserClaims
++    // + the one-time claim backfill) instead of a per-eval users/{uid} get(). This removes the
++    // billed doc read on EVERY teacher-gated rule AND makes the TOKEN — not a doc field adjacent
++    // to client-writable ones — the rules source of truth. Callers always gate with
++    // isAuthenticated() first, so request.auth is non-null here. An absent claim compares false
++    // (a missing custom-claim key on request.auth.token yields null; null == 'teacher' is false
++    // ⇒ fail-CLOSED — no existence guard needed).
++    // ⚠ POINT OF NO RETURN: this gates ~15 rules (see the file header BLAST RADIUS). HARD
++    // PRECONDITION (header D1-D4): claims backfilled + tokens refreshed BEFORE this deploys, or
++    // teachers lose ALL access. Transition-safe alternative (Option B, NOT chosen — accepted the
++    // re-login lag): `return getUserData().role == 'teacher' || request.auth.token.role == 'teacher';`
+     function isTeacher() {
+-      return getUserData().role == 'teacher';
++      return request.auth.token.role == 'teacher';
+     }
+ 
+     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
+@@ -83,14 +143,20 @@ service cloud.firestore {
+       // merge-set that re-sends role:'student' UNCHANGED still passes (retry
+       // safety); any actual role change is denied. Ordinary profile/settings/
+       // enrolledClasses/challenges owner updates pass unchanged.
+-      // Teacher branch: unchanged — challenges only (reviewChallenge corrects
+-      // the student's challenges.history, db.js:2818).
+-      allow update: if isAuthenticated() && (
+-        (isOwner(userId)
+-          && !request.resource.data.diff(resource.data).affectedKeys()
+-            .hasAny(['role', 'roleProvisioning'])) ||
+-        (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
+-      );
++      // [deepfix P10 · OVR part (d)] Teacher OR-leg REMOVED (was
++      // `isTeacher() && ...affectedKeys().hasOnly(['challenges'])`). It survived ONLY for client
++      // reviewChallenge's teacher-write of the STUDENT's challenges.history (db.js:2945). P10(b)
++      // moved reviewChallenge server-side (Admin SDK bypasses rules), so NO legitimate client
++      // teacher-write to a student's `challenges` remains — submitChallenge (db.js:2803) is the
++      // STUDENT/owner writing their OWN challenges.history, which passes the owner branch below
++      // and is unaffected. Leaves owner-only, KEEPING the role/roleProvisioning exclusion. Same
++      // rollback coupling as the attempts-UPDATE / study_states narrowings: if SERVER_OVERRIDE
++      // (client reviewChallenge→callable) is rolled back, revert THIS narrowing in the SAME rules
++      // redeploy (else the reverted client teacher-write is denied).
++      allow update: if isAuthenticated()
++        && isOwner(userId)
++        && !request.resource.data.diff(resource.data).affectedKeys()
++          .hasAny(['role', 'roleProvisioning']);
+ 
+       // DELETE: no live client path deletes a user doc (grep 2026-07-13), and
+       // deleting one would wipe challenges.history (token rejections) and
+@@ -115,9 +181,19 @@ service cloud.firestore {
+       // long-standing TODO this rule replaces.
+       match /{subcollection}/{docId} {
+         allow read: if isAuthenticated() && (isOwner(userId) || isTeacher());
++        // [deepfix P10 · OVR part (d)] WRITE narrowed isTeacher→isOwner (was
++        // `isOwner(userId) || isTeacher()`). The teacher-breadth — ANY teacher writing ANY
++        // student's study_states/session_states, the I-10 §7 hazard — survived ONLY because
++        // client reviewChallenge wrote the student's study_states PASSED marker on accept
++        // (db.js:2824). P10(b) moved reviewChallenge server-side (Admin SDK bypasses rules, so
++        // the callable still performs that write), so NO legitimate client teacher-write to a
++        // student subcollection remains ⇒ drop isTeacher(). READ (above) KEEPS the teacher
++        // branch — the teacher Students view reads students' progress subcollections. HARD
++        // PRECONDITION: SERVER_OVERRIDE (client reviewChallenge→callable) ON + soaked BEFORE
++        // this deploys (header D-order + the SERVER_OVERRIDE rollback coupling).
+         allow write: if isAuthenticated()
+           && !(subcollection in ['list_progress', 'class_progress', 'progress_meta'])
+-          && (isOwner(userId) || isTeacher());
++          && isOwner(userId);
+       }
+     }
+ 
+@@ -204,11 +280,18 @@ service cloud.firestore {
+       // the W1 `submitChallenge` callable (functions/index.js:630, behind
+       // SERVER_CHALLENGE_WRITE — a P6 deploy precondition), so the student no
+       // longer writes answers[].challengeStatus from the client.
+-      // Teacher-of-record update survives: client reviewChallenge still writes
+-      // the recomputed answers/score/passed on accept/reject (db.js:2794)
+-      // until P10 moves review server-side.
+-      allow update: if isAuthenticated()
+-        && resource.data.teacherId == request.auth.uid && isTeacher();
++      // [deepfix P10 · OVR part (d)] Teacher-of-record UPDATE branch REMOVED (was
++      // `resource.data.teacherId == request.auth.uid && isTeacher()`). It survived only for
++      // client reviewChallenge's accept/reject write (recomputed answers/score/passed,
++      // db.js:2794). P10(b) moved reviewChallenge — and added overrideAttempt — server-side (the
++      // I-10 §6 authz UNION is enforced IN the callable; Admin SDK bypasses rules), so NO
++      // legitimate client teacher-write to an attempt remains. attempts are now FULLY
++      // server-owned (create:false / update:false / delete:false). U4: full removal (if false)
++      // is strictly safer than narrowing to the union — the union is server-enforced now. HARD
++      // PRECONDITION: SERVER_OVERRIDE ON + soaked BEFORE this deploys; if SERVER_OVERRIDE is ever
++      // rolled back, revert THIS narrowing in the SAME redeploy (else the reverted client
++      // teacher-write is denied).
++      allow update: if false;
+ 
+       // Owner-delete REMOVED (C-31 anchor-erasure half; C-08): deleting own
+       // attempts let a student strip their reconciliation anchors so safeTWI
+diff --git a/functions/index.js b/functions/index.js
+index 69e34c9..d23711e 100644
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -1945,12 +1945,24 @@ exports.renameStudent = onCall(
+ // - DORMANT (flag false) per the P3/P6 draft rule; flip WITH the P6 rules
+ //   deploy (precondition 1 in firestore.rules' header) via the G1 flag table.
+ // - The FULL role mechanism (custom claim vs doc-field-forever) is David's
+-//   decision 4 and gates P10, not P6 — this callable is compatible with both
+-//   (a custom-claim future would add admin.auth().setCustomUserClaims here).
++//   decision 4 and gates P10, not P6 — this callable is compatible with both.
++//   [deepfix P10 · OVR part (d)] RESOLVED: David U7 = Option A (custom auth claim).
++//   The claim mint (admin.auth().setCustomUserClaims) is wired BELOW, gated
++//   SEPARATELY by TEACHER_CLAIM_ENABLED (a P10-cutover flip, distinct from the P6
++//   TEACHER_PROVISIONING_ENABLED gate) — the doc role stays for UI; the CLAIM is the
++//   P10(d) rules source of truth (firestore.rules isTeacher() → request.auth.token.role).
+ // ============================================================================
+ // Gates provisionTeacher. Flip true in the SAME release train as the P6 rules
+ // deploy (the rules close self-select signup; this is the replacement path).
+ const TEACHER_PROVISIONING_ENABLED = false;
++// [deepfix P10 · OVR part (d)] Gates the custom-claim role mint in provisionTeacher
++// (David U7 = Option A). SEPARATE from TEACHER_PROVISIONING_ENABLED because the CLAIM is
++// the P10(d) rules source of truth (firestore.rules isTeacher() → request.auth.token.role):
++// it flips at the P10 cutover, AFTER the one-time claim backfill
++// (scripts/cs/deepfix-backfill-teacher-claims.mjs) and BEFORE the rules narrowing deploys
++// (firestore.rules header D1-D4). Flag-off ⇒ provisionTeacher behaves EXACTLY as P6
++// (doc-role only, NO auth write) ⇒ byte-equivalent client behavior.
++const TEACHER_CLAIM_ENABLED = false;
+ 
+ /** SHA-256 hex of a trimmed invite code (the teacher_invites docId scheme). */
+ function hashInviteCode(code) {
+@@ -2033,6 +2045,32 @@ exports.provisionTeacher = onCall({enforceAppCheck: false}, async (request) => {
+     return {alreadyProvisioned: false};
+   });
+ 
++  // [deepfix P10 · OVR part (d)] Mint the custom auth CLAIM (David U7 = Option A) so the
++  // P10(d) rules (isTeacher() → request.auth.token.role) recognize this teacher. Gated by
++  // TEACHER_CLAIM_ENABLED (a P10-cutover flip), SEPARATE from the P6 provisioning gate. Set on
++  // BOTH the fresh AND the idempotent alreadyProvisioned path (setCustomUserClaims is idempotent
++  // + cheap) so a retry repairs a doc-set-but-claim-missing state. Auth writes cannot join the
++  // Firestore transaction, so this runs AFTER the commit. FAIL-CLOSED: on failure we throw so the
++  // caller retries — the txn already committed the role doc + consumed the invite, so a retry
++  // hits the idempotent alreadyProvisioned branch and re-attempts ONLY the claim (never re-burns
++  // the invite). NOTE the promote→re-login lag (U7): the new claim reaches the caller's session
++  // only after a token refresh (re-login or ~1h ID-token TTL) — surface it in the UX.
++  if (TEACHER_CLAIM_ENABLED) {
++    try {
++      // MERGE (read-then-set) so any OTHER custom claim is preserved, not clobbered — matches the
++      // backfill script's additive discipline (Codex P10d-2). One extra Auth read, only inside
++      // this dormant flag block.
++      const userRecord = await admin.auth().getUser(uid);
++      await admin.auth().setCustomUserClaims(uid, {...(userRecord.customClaims || {}), role: "teacher"});
++    } catch (err) {
++      logger.error("provisionTeacher: setCustomUserClaims failed", {uid, error: err.message});
++      throw new HttpsError(
++        "internal",
++        "Your teacher role was granted but the sign-in token could not be updated. Please redeem the code again to finish.",
++      );
++    }
++  }
++
+   // Audit trail (same uniform shape as foundation.js logSystemEventServer;
+   // best-effort — the role flip has already committed).
+   try {
+@@ -2091,6 +2129,9 @@ exports.version = onCall(async (request) => {
+       // deepfix P6 (F4-3): teacher provisioning — must be ON when the P6 rules
+       // deploy lands (the rules close self-select teacher signup).
+       TEACHER_PROVISIONING_ENABLED,
++      // deepfix P10 · OVR part (d): custom-claim role mint (David U7 = Option A) — must be ON
++      // (+ the claim backfill run) BEFORE the P10(d) rules narrowing deploys (isTeacher()→claim).
++      TEACHER_CLAIM_ENABLED,
+       // deepfix P3: the foundation-surface flags, so the I-5 G1 flag-assertion
+       // table can assert the FULL server posture in one probe call.
+       ...foundation.FOUNDATION_FLAGS,
+diff --git a/scripts/cs/deepfix-backfill-teacher-claims.mjs b/scripts/cs/deepfix-backfill-teacher-claims.mjs
+new file mode 100644
+index 0000000..9644b1f
+--- /dev/null
++++ b/scripts/cs/deepfix-backfill-teacher-claims.mjs
+@@ -0,0 +1,169 @@
++/**
++ * P10d · OVR — teacher custom-CLAIM backfill (David U7 = Option A) — DRAFT (--dry ONLY)
++ * =====================================================================================
++ * David decision U7 = Option A: the "teacher" role is minted into the LOGIN TOKEN as a custom
++ * auth claim (request.auth.token.role == 'teacher'), and the P10(d) Firestore rules narrow
++ * isTeacher() to read that claim (NO per-eval user-doc get()). provisionTeacher stamps the claim
++ * for every NEW teacher going forward (gated TEACHER_CLAIM_ENABLED); THIS script is the ONE-TIME
++ * backfill that stamps the claim onto every EXISTING teacher (users/{uid}.role == 'teacher') so
++ * they are recognized by the narrowed rules. It is a HARD DEPLOY PRECONDITION of the rules
++ * narrowing (firestore.rules header D2): the narrowing must NOT deploy until this has run to
++ * completion + every teacher has refreshed their token (D3).
++ *
++ * WHAT IT DOES (idempotent, additive):
++ *   - Lists every user doc with role == 'teacher'.
++ *   - For each, reads the CURRENT custom claims (Admin Auth getUser) and would set
++ *     setCustomUserClaims(uid, { ...existingClaims, role: 'teacher' }) — MERGE, so any other
++ *     custom claim is preserved (never wiped). A teacher already carrying role:'teacher' is a
++ *     no-op SKIP.
++ *   - Flags a role-doc teacher with NO Auth user (getUser → user-not-found) as MISSING_AUTH
++ *     (a data anomaly to triage — never silently write).
++ *
++ * STATUS: DRAFT — `--dry` ONLY until David authorizes. In --dry the write guard THROWS before
++ *   any setCustomUserClaims call ⇒ ZERO auth writes (write-guarded exactly like the P5 migration
++ *   + the P10c teacherIds backfill). A `--commit` run is David's authorized action (a CS event:
++ *   SUPPORT_RUNBOOK entry + change_action_log row) and is part of the P10 cutover, AFTER the
++ *   functions deploy (provisionTeacher claim-set, TEACHER_CLAIM_ENABLED true) and BEFORE the
++ *   rules narrowing deploys. It flips NO flags and touches NO Firestore doc — Auth claims only.
++ *
++ * IDEMPOTENCY (P5 / P10c parity):
++ *   - Re-runnable: MERGE-set with role:'teacher'; a teacher already at role:'teacher' is SKIPPED.
++ *   - No demotion: the script only ADDS/sets role:'teacher'; it never clears a claim.
++ *
++ * USAGE (from /app; reads scripts/serviceAccountKey.json — gitignored, never commit):
++ *   NODE_PATH=/app/node_modules node scripts/cs/deepfix-backfill-teacher-claims.mjs [flags]
++ *     --dry                         default; NO auth writes (write guard throws). Writes a local
++ *                                   plan/report to dsg-edits/srv_validate/ (local only).
++ *     --commit --confirm-claims=teacher-role-claims
++ *                                   guarded writes; the confirm value MUST equal the fixed
++ *                                   sentinel `teacher-role-claims` (forces intentionality).
++ *     --uid=<userId>                restrict to one teacher (debug / targeted repair).
++ *     --limit=N                     process only the first N in-scope teachers (dry sampling).
++ *   25WT REHEARSAL FIRST is not applicable (claims are global, not cohort-scoped) — but a --dry
++ *   run + David review of the report IS the required rehearsal before --commit.
++ */
++import admin from 'firebase-admin';
++import { readFileSync, writeFileSync, mkdirSync } from 'fs';
++
++// ───────────────────────────── args + mode guards ─────────────────────────────
++const argv = process.argv.slice(2);
++const opt = new Map(argv.filter((a) => a.startsWith('--')).map((a) => {
++  const i = a.indexOf('='); return i === -1 ? [a.slice(2), true] : [a.slice(2, i), a.slice(i + 1)];
++}));
++const MODE = opt.has('commit') ? 'commit' : 'dry';
++const ONLY_UID = opt.get('uid') || null;
++const LIMIT = opt.has('limit') ? Number(opt.get('limit')) : null;
++const OUT_DIR = opt.get('out-dir') || '/app/dsg-edits/srv_validate';
++const MIGRATION_VERSION = 'P10d-TEACHER-CLAIMS-v1';
++const CONFIRM_SENTINEL = 'teacher-role-claims';
++
++if (MODE === 'commit') {
++  const confirm = opt.get('confirm-claims');
++  if (confirm !== CONFIRM_SENTINEL) {
++    console.error(`REFUSED: --commit requires --confirm-claims=${CONFIRM_SENTINEL} (exact sentinel).`);
++    console.error('This is a David-authorized CS event + P10 cutover step: SUPPORT_RUNBOOK entry +');
++    console.error('change_action_log row; run AFTER the functions deploy (TEACHER_CLAIM_ENABLED=true)');
++    console.error('and BEFORE the P10(d) rules narrowing deploys (firestore.rules header D2).');
++    process.exit(1);
++  }
++}
++const WRITES_ENABLED = MODE === 'commit';
++function guardWrite(what) { if (!WRITES_ENABLED) throw new Error(`WRITE BLOCKED (${MODE} mode): ${what}`); }
++
++admin.initializeApp({ credential: admin.credential.cert(JSON.parse(readFileSync('/app/scripts/serviceAccountKey.json', 'utf8'))) });
++const db = admin.firestore();
++const auth = admin.auth();
++const short = (u) => (u || '').slice(0, 8);
++
++console.log(`P10d teacher-claim backfill [${MODE.toUpperCase()}] v=${MIGRATION_VERSION}`);
++if (MODE === 'commit') console.log('⚠ COMMIT MODE — verify: functions deploy live (TEACHER_CLAIM_ENABLED=true), --dry reviewed by David.\n');
++
++// ───────────────────────────── scan role-doc teachers ─────────────────────────────
++let teacherDocs;
++if (ONLY_UID) {
++  const s = await db.doc(`users/${ONLY_UID}`).get();
++  teacherDocs = s.exists ? [s] : [];
++} else {
++  const snap = await db.collection('users').where('role', '==', 'teacher').get();
++  teacherDocs = snap.docs;
++}
++
++const plan = []; // {uid, existingRole, existingClaims, action}
++const counts = { scanned: 0, willSet: 0, skipAlready: 0, missingAuth: 0, notTeacher: 0 };
++
++for (const d of teacherDocs) {
++  if (LIMIT && plan.length >= LIMIT) break;
++  const uid = d.id;
++  const data = d.data() || {};
++  if (data.role !== 'teacher') { counts.notTeacher++; continue; } // --uid guard
++  counts.scanned++;
++
++  let existingClaims = null;
++  let action;
++  try {
++    const userRecord = await auth.getUser(uid);
++    existingClaims = userRecord.customClaims || {};
++    if (existingClaims.role === 'teacher') { action = 'SKIP_ALREADY'; counts.skipAlready++; }
++    else { action = 'SET_CLAIM'; counts.willSet++; }
++  } catch (err) {
++    if (err.code === 'auth/user-not-found') { action = 'MISSING_AUTH'; counts.missingAuth++; }
++    else { action = 'ERROR'; console.error(`  getUser(${short(uid)}) failed: ${err.message}`); }
++  }
++
++  plan.push({
++    uid, path: d.ref.path,
++    displayName: data.profile?.displayName || data.displayName || null,
++    existingClaims, action,
++  });
++}
++
++console.log(`role-doc teachers: ${plan.length} (scanned ${counts.scanned})`);
++console.log('actions:', JSON.stringify(counts));
++
++// ───────────────────────────── sample + report (the --dry artifact) ─────────────────────────────
++console.log('\n=== plan ===');
++for (const p of plan) {
++  const claimStr = p.existingClaims ? JSON.stringify(p.existingClaims) : '(no auth user)';
++  console.log(`  ${short(p.uid)} [${p.action}] name=${p.displayName || '?'} claims=${claimStr}`);
++}
++if (counts.missingAuth) {
++  console.log(`\n⚠ ${counts.missingAuth} role-doc teacher(s) have NO Auth user (MISSING_AUTH) — TRIAGE, do not auto-write.`);
++}
++
++mkdirSync(OUT_DIR, { recursive: true });
++const reportPath = `${OUT_DIR}/teacher_claims_backfill_${MODE}_${new Date().toISOString().slice(0, 10)}.json`;
++writeFileSync(reportPath, JSON.stringify({
++  generatedAt: new Date().toISOString(), mode: MODE, migrationVersion: MIGRATION_VERSION,
++  counts, plan: plan.map((p) => ({ uid: p.uid, path: p.path, displayName: p.displayName,
++    existingClaims: p.existingClaims, action: p.action })),
++}, null, 2));
++console.log(`\nfull plan → ${reportPath}`);
++
++// ───────────────────────────── COMMIT (guarded) ─────────────────────────────
++if (MODE === 'commit') {
++  guardWrite('teacher-claim backfill commit');
++  const toSet = plan.filter((p) => p.action === 'SET_CLAIM');
++  let written = 0;
++  for (const p of toSet) {
++    // MERGE: preserve any other custom claim, only add/overwrite role.
++    await auth.setCustomUserClaims(p.uid, { ...(p.existingClaims || {}), role: 'teacher' });
++    written++;
++    if (written % 20 === 0 || written === toSet.length) console.log(`  …${written}/${toSet.length} claims set`);
++  }
++  // post-write verification (read back).
++  let verified = 0, mismatched = 0;
++  for (const p of toSet) {
++    const r = await auth.getUser(p.uid);
++    if ((r.customClaims || {}).role === 'teacher') verified++;
++    else { mismatched++; console.error(`  read-back MISMATCH ${short(p.uid)}`); }
++  }
++  console.log(`\nCOMMIT complete: ${written} claims set | read-back ${verified} ok / ${mismatched} mismatched`);
++  console.log('\nNOW: every teacher must refresh their token (re-login or ~1h TTL) — firestore.rules header D3.');
++  console.log('THEN David deploys the P10(d) rules narrowing (isTeacher()→claim). NOTHING rides along.');
++} else {
++  console.log(`\n[DRY] NO auth writes were made (write guard active). would-set=${counts.willSet}.`);
++  console.log('Next: David reviews this plan → SUPPORT_RUNBOOK authorization →');
++  console.log(`--commit --confirm-claims=${CONFIRM_SENTINEL} (P10 cutover, after the functions deploy).`);
++}
++console.log(`\nFINAL: mode=${MODE} teachers=${plan.length} willSet=${counts.willSet} skipAlready=${counts.skipAlready} missingAuth=${counts.missingAuth}`);
++process.exit(0);

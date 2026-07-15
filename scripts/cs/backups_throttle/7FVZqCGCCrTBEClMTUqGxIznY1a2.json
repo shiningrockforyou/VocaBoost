@@ -1,0 +1,54 @@
+{
+  "email": "yeseoellie@gmail.com",
+  "uid": "7FVZqCGCCrTBEClMTUqGxIznY1a2",
+  "cp": "JFCtimk25DPR333XzJHU_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 420,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsTested": 30,
+        "wordsIntroduced": 0,
+        "segmentEndIndex": 296,
+        "reviewScore": 0,
+        "segmentStartIndex": 237,
+        "newWordScore": 0.92,
+        "day": 5,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783919635,
+          "_nanoseconds": 936000000
+        }
+      },
+      {
+        "wordsTested": 30,
+        "segmentEndIndex": 92,
+        "wordsIntroduced": 0,
+        "reviewScore": 0,
+        "segmentStartIndex": 1,
+        "day": 6,
+        "newWordScore": 1,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1784006278,
+          "_nanoseconds": 574000000
+        }
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784092295,
+          "_nanoseconds": 729000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 110,
+        "segmentEndIndex": 170,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

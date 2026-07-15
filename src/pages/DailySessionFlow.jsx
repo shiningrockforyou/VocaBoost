@@ -17,7 +17,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '../firebase'
-import { SERVER_REVIEW_MARKER } from '../config/featureFlags'
+import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
@@ -43,7 +43,7 @@ import {
   graduateSegmentWords,
   returnMasteredWords
 } from '../services/studyService'
-import { fetchAllWords } from '../services/db'
+import { fetchAllWords, logSystemEvent } from '../services/db'
 import {
   getSessionState,
   saveSessionState,
@@ -83,7 +83,18 @@ const PHASES = {
   COMPLETE: 'complete'
 }
 
+// P8 · CONT-A: route-level wrapper that keys the session component on (classId, listId) so an
+// in-app advance to the NEXT list (`navigate('/session/${classId}/${nextListId}')` from the
+// finished choice terminal) remounts with completely fresh state instead of re-running init
+// over the finished list's stale phase/config/results. No-op for every existing flow: nothing
+// else navigates session→session with different params, and the key is constant within a
+// session (mount behavior identical to today's).
 export default function DailySessionFlow() {
+  const { classId, listId } = useParams()
+  return <DailySessionFlowSession key={`${classId}_${listId}`} />
+}
+
+function DailySessionFlowSession() {
   const { classId, listId } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -120,6 +131,12 @@ export default function DailySessionFlow() {
 
   // Assignment settings
   const [assignmentSettings, setAssignmentSettings] = useState(null)
+
+  // P8 · CONT-A: the launching class's assigned list ids (config read captured at init) +
+  // the resolved continuation target for the finished choice terminal ({ nextListId,
+  // nextListTitle } or null). Both stay null/empty with CONTINUATION_LINKS off or no link set.
+  const [classAssignedListIds, setClassAssignedListIds] = useState([])
+  const [continuation, setContinuation] = useState(null)
 
   // Session summary
   const [sessionSummary, setSessionSummary] = useState(null)
@@ -535,6 +552,10 @@ export default function DailySessionFlow() {
         }
 
         setAssignmentSettings(assignment)
+        // P8 · CONT-A: remember which lists the launching class assigns, so the finished
+        // terminal never offers an advance to a link that has been unassigned since it was
+        // configured (dangling nextListId → no button, today's static terminal).
+        setClassAssignedListIds(Object.keys(classData.assignments || {}))
 
         // Get list title
         const listRef = doc(db, 'lists', listId)
@@ -622,12 +643,16 @@ export default function DailySessionFlow() {
           }
         }
 
-        // Load new words (failed carryover words are now handled via segment review priority)
+        // Load new words (failed carryover words are now handled via segment review priority).
+        // P9 · CYC (§3c): config.cyclingActive routes a cycling day's VIRTUAL range through the
+        // resolver so it wraps at the lap boundary (straddle day = tail + head). Flag-off →
+        // config.cyclingActive is undefined/false → legacy position filter (byte-equivalent).
         if (config.newWordCount > 0) {
           const words = await getNewWords(
             listId,
             config.newWordStartIndex,
-            config.newWordCount
+            config.newWordCount,
+            config.cyclingActive
           )
 
           setNewWords(words)
@@ -702,6 +727,9 @@ export default function DailySessionFlow() {
             reviewQueue: [],
             sessionConfig: recoveryConfig,
             assignmentSettings: assignment,
+            // P8 · CONT-A: carried so the finished terminal can validate the nextListId
+            // link on return (init is skipped on testCompleted re-entry).
+            classAssignedListIds: Object.keys(classData.assignments || {}),
             reviewTestAttempts: 0
           }))
 
@@ -819,6 +847,20 @@ export default function DailySessionFlow() {
         } else if (config.segment) {
           // Use the full review study set (capped segment + new-FAILED)
           const allWords = await buildReviewStudySet(config.segment)
+          if (allWords.length === 0) {
+            // Empty review segment on a review-only day = every word MASTERED & resting → the list-end /
+            // all-mastered TERMINAL NO-WORK state. Complete WITHOUT recording: do NOT reuse showNoReviewModal
+            // (its close handler calls completeSession() → recordSessionCompletion), and do NOT call
+            // completeSession here — so currentStudyDay / recentSessions / completed-session records do NOT
+            // advance for a no-work day (Codex ROI2-1 / guardrail 5 / plan test 6, "no fake empty-day
+            // completion"). Prevents the empty-review-test dead-end (Lens C #3). CompletePhase renders the §5
+            // finished terminal because sessionConfig.isListComplete is already set (:567/:740).
+            setPhase(PHASES.COMPLETE)
+            if (sim?.isFullSimulation) {
+              setTimeout(() => { sim.onSessionComplete() }, 500)
+            }
+            return
+          }
           setReviewQueue(allWords)
           setReviewQueueCurrent(allWords)
           setPhase(PHASES.REVIEW_STUDY)
@@ -832,12 +874,67 @@ export default function DailySessionFlow() {
           }
         }
       } catch (err) {
+        // [Codex P6 R1 over-deny fix] Entry-time hydration failure. Two controlled cases must
+        // NOT surface as a raw Firestore error to a live student: (a) the typed
+        // `progress_resolver_unavailable` — a resolver outage under SERVER_PROGRESS_WRITE, which
+        // now fails CLOSED instead of a denied legacy write (already logged at source); (b) a raw
+        // `permission-denied` on the legacy class_progress hydration write post-P6 (an old/flag-off
+        // path that the P6 rules deny — logged here as `legacy_write_denied` so CS sees it). Both
+        // → the same controlled reload/retry message the completion-path handler uses.
+        const isResolverDown = err?.code === 'progress_resolver_unavailable'
+        const isDenied = err?.code === 'permission-denied' || err?.code === 'functions/permission-denied'
+        if (isResolverDown || isDenied) {
+          if (isDenied) {
+            logSystemEvent('legacy_write_denied', {
+              userId: user?.uid ?? null, classId, listId, phase: 'session-init',
+              errCode: err?.code, errMessage: String(err?.message || '').slice(0, 300),
+            }, 'error')
+          }
+          setError('진행 정보를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요. (Couldn\'t load your progress — please reload the page and try again.)')
+          return
+        }
         setError(err.message || 'Failed to initialize session')
       }
     }
 
     init()
   }, [user?.uid, classId, listId, location.state?.testCompleted])
+
+  // ============================================================
+  // P8 · CONT-A: resolve the finished-terminal continuation target
+  // ============================================================
+  // When the session lands on the FINISHED terminal (phase COMPLETE + isListComplete) and the
+  // LAUNCHING class's assignment links a next list, fetch that list's title (read-only) so
+  // CompletePhase can offer "Advance to {nextList} →". Pure config read — nothing here (or in
+  // the advance handler) writes the finished list's progress record (§2.1 falsifier). Flag off
+  // or no valid link → continuation stays null → today's static terminal, byte-identical.
+  useEffect(() => {
+    if (!CONTINUATION_LINKS) return
+    if (phase !== PHASES.COMPLETE) return
+    if (sessionConfig?.isListComplete !== true) return
+    const nextListId = assignmentSettings?.nextListId
+    if (!nextListId || typeof nextListId !== 'string' || nextListId === listId) return
+    // Dangling-link guard: the target must still be assigned to the launching class,
+    // otherwise its session init would dead-end on 'List not assigned to this class'.
+    if (!classAssignedListIds.includes(nextListId)) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const nextListSnap = await getDoc(doc(db, 'lists', nextListId))
+        if (!cancelled && nextListSnap.exists()) {
+          setContinuation({
+            nextListId,
+            nextListTitle: nextListSnap.data().title || 'Vocabulary List',
+          })
+        }
+      } catch (err) {
+        // Fail closed to the static finished terminal — never a dead/broken button.
+        console.error('CONT-A: failed to resolve next list for the finished terminal:', err)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [phase, sessionConfig?.isListComplete, assignmentSettings?.nextListId, classAssignedListIds, listId])
 
   // ============================================================
   // PHASE 1: New Words Study
@@ -1100,6 +1197,28 @@ export default function DailySessionFlow() {
   // Test Navigation
   // ============================================================
 
+  // P9 · CYC (§3e): map a VIRTUAL new-word index to its lap-local 1-based display. Under
+  // cycling the counter climbs past cycleLength; the displayed range should read within the
+  // current lap ((virtual mod cycleLength)+1). Flag-off (cyclingActive falsy) → virtual+1,
+  // exactly today. Review-segment indices are already physical (lap-bounded pool) → unchanged.
+  //
+  // [deepfix FINAL-FOLD-C · N-2] KNOWN LIMITATION (flag-ON only, DOCUMENTED): a single day's
+  // new-word allocation can STRADDLE a lap boundary (e.g. virtual 95→104 with cycleLength 100),
+  // and because start/end are wrapped INDEPENDENTLY the header can read inverted — "Words 96–5"
+  // (96 in lap 1, 5 in lap 2). A cross-lap range has no coherent single "A–B" form; a proper fix
+  // must pair the two call sites (wordRangeStart/End) and pick a wrapped-range convention
+  // ("96–100 · 1–5" or clamp-to-boundary) with product/visual sign-off — out of scope for this
+  // byte-equivalent dark fold. Purely cosmetic (the test SAMPLE + graduation use physical wordIds,
+  // never these display numbers) and inert flag-off (cyclingActive falsy ⇒ v+1, no wrap).
+  const lapDisplayNewIndex = (virtual) => {
+    const v = virtual || 0
+    const cL = sessionConfig?.cycleLength || 0
+    if (sessionConfig?.cyclingActive && cL > 0) {
+      return (((v % cL) + cL) % cL) + 1
+    }
+    return v + 1
+  }
+
   const navigateToTest = (testPhase, mode) => {
     // D1: the review TEST pool is the segment ONLY. reviewQueue is the STUDY set, which
     // prepends today's new-FAILED words (study-only) — strip them here so they don't
@@ -1111,10 +1230,10 @@ export default function DailySessionFlow() {
 
     // Build context for test header
     const wordRangeStart = testPhase === 'new'
-      ? (sessionConfig?.newWordStartIndex || 0) + 1
+      ? lapDisplayNewIndex(sessionConfig?.newWordStartIndex)
       : (sessionConfig?.segment?.startIndex || 0) + 1
     const wordRangeEnd = testPhase === 'new'
-      ? (sessionConfig?.newWordEndIndex || 0) + 1
+      ? lapDisplayNewIndex(sessionConfig?.newWordEndIndex)
       : (sessionConfig?.segment?.endIndex || 0) + 1
 
     // Build complete test config (handles testSize limiting, defaults, etc.)
@@ -1160,6 +1279,9 @@ export default function DailySessionFlow() {
       reviewQueue,
       sessionConfig,
       assignmentSettings,
+      // P8 · CONT-A: carried so the finished terminal can validate the nextListId link
+      // on return from the test (init is skipped on testCompleted re-entry).
+      classAssignedListIds,
       reviewTestAttempts
     }))
 
@@ -1223,6 +1345,7 @@ export default function DailySessionFlow() {
         setNewWords(state.newWords)
         setReviewQueue(state.reviewQueue)
         setAssignmentSettings(state.assignmentSettings)
+        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
         setReviewTestAttempts(state.reviewTestAttempts || 0)
 
         // Reset study queue to allow re-study
@@ -1272,6 +1395,7 @@ export default function DailySessionFlow() {
         setNewWords(state.newWords)
         setReviewQueue(state.reviewQueue)
         setAssignmentSettings(state.assignmentSettings)
+        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
         setReviewTestAttempts(state.reviewTestAttempts || 0)
         // Restore new word test results (needed for session summary to show both scores)
         if (state.newWordTestResults) {
@@ -1399,10 +1523,31 @@ export default function DailySessionFlow() {
         segment: config?.segment,
         wordsIntroduced: wordsIntroduced.length,
         wordsReviewed: wordsReviewed.length,
-        wordsTested: newTotal + reviewTotal
+        wordsTested: newTotal + reviewTotal,
+        // [P9 · CYC · U5] cycling state → updateClassProgress resets intervention at a lap boundary.
+        // Inert when off (cyclingActive=false ⇒ no reset; not persisted to the session record).
+        cyclingActive: config?.cyclingActive === true,
+        cycleLength: config?.cycleLength || 0
       }
 
       const result = await recordSessionCompletion(user.uid, summary)
+
+      // [deepfix F-4 client counterpart — FINAL2-1] The server (SERVER_PROGRESS_WRITE path)
+      // refused to advance the day for lack of evidence — no passed day-N new-word anchor AND
+      // no server-verified review-only reason — or returned an unknown status (fail-closed).
+      // The completion did NOT apply and NOTHING was written server-side: do NOT graduate words
+      // and do NOT advance to the COMPLETE phase (that would falsely present success). Surface
+      // the same class of blocking "pass the new-word test, then retry/reload" UX this file uses
+      // for the legacy-write-cutoff case, and early-return. `completionNotApplied` is set ONLY on
+      // the SERVER_PROGRESS_WRITE server path (dormant) → flag-off ⇒ this guard is never hit ⇒
+      // the legacy DSF flow is byte-identical to today. (The parallel `result.dayGuardRejected`
+      // gap is PRE-EXISTING/live under LIST_SCOPED_RECON and is NOT handled here — see
+      // FINAL_FOLD_A_notes.md "DSF dayGuardRejected" flag.)
+      if (result?.completionNotApplied) {
+        console.warn('[DSF] completion not applied (no evidence / refused) — blocking success', { reason: result?.reason })
+        setError('아직 이 날을 완료할 수 없습니다. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요.\n(This day can\'t be completed yet — make sure the new-word test was passed, then retry; reload the page if this repeats.)')
+        return
+      }
 
       // Graduate percentage of words from segment after review test
       // Only do this if there was a review test (not Day 1)
@@ -1450,6 +1595,20 @@ export default function DailySessionFlow() {
         }, 1000)
       }
     } catch (err) {
+      // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] permission-denied on the
+      // completion write = the legacy-write-cutoff signature. Emit the server-visible
+      // `legacy_write_denied` event and prompt a reload (today's rules allow the owner write,
+      // so this branch is unreachable until P6).
+      if (err?.code === 'permission-denied' || err?.code === 'functions/permission-denied') {
+        logSystemEvent('legacy_write_denied', {
+          userId: user?.uid ?? null, classId, listId,
+          dayNumber: sessionConfig?.dayNumber ?? null, testType: 'session-flow',
+          errCode: err?.code,
+          errMessage: String(err?.message || '').slice(0, 300),
+        }, 'error')
+        setError('앱이 업데이트되었습니다. 페이지를 새로고침한 뒤 이어서 진행해 주세요. (The app was updated — please reload the page to continue.)')
+        return
+      }
       setError(err.message || 'Failed to record session')
     }
   }
@@ -1701,6 +1860,27 @@ export default function DailySessionFlow() {
         }
       />
 
+      {/* P9 · CYC (§3f ack) — inline "Lap N" badge. The lap boundary is crossed MID-session on
+          a straddle day, so a day-end "you completed the list" message is wrong; per the plan's
+          accepted alternative we show an unobtrusive inline lap badge instead of a one-time
+          interstitial (interstitial-vs-badge is recorded as an uncertainty for Codex). Gated
+          entirely on sessionConfig.cyclingActive, which is false whenever CYCLING_ENABLED is off
+          → this block never renders today (byte-equivalent). */}
+      {sessionConfig?.cyclingActive && (sessionConfig?.lapView?.lap ?? 1) >= 2 &&
+        (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
+        <div className="mx-auto mt-3 flex max-w-3xl items-center justify-center px-4">
+          <span className="inline-flex items-center gap-1.5 rounded-[--radius-button] bg-brand-primary/10 px-3 py-1 text-xs font-semibold text-brand-text">
+            Lap {sessionConfig.lapView.lap}
+            <span className="font-normal text-text-muted">
+              {/* §3b affordance: name the class that unlocked cycling when it isn't this one. */}
+              {sessionConfig.cyclingSourceClassName && sessionConfig.cyclingSourceClassId !== classId
+                ? `· cycling enabled via ${sessionConfig.cyclingSourceClassName}`
+                : '· reviewing this list again'}
+            </span>
+          </span>
+        </div>
+      )}
+
       {/* Progress Sheet */}
       <SessionProgressSheet
         isOpen={showProgressSheet}
@@ -1708,8 +1888,8 @@ export default function DailySessionFlow() {
         currentPhase={phase}
         isFirstDay={sessionConfig?.isFirstDay}
         dayNumber={sessionConfig?.dayNumber || 1}
-        wordRangeStart={(sessionConfig?.newWordStartIndex || 0) + 1}
-        wordRangeEnd={(sessionConfig?.newWordEndIndex || 0) + 1}
+        wordRangeStart={lapDisplayNewIndex(sessionConfig?.newWordStartIndex)}
+        wordRangeEnd={lapDisplayNewIndex(sessionConfig?.newWordEndIndex)}
         newWordsTestScore={newWordTestResults?.score}
         reviewTestScore={reviewTestResults?.score}
         cardsRemaining={currentQueueLength}
@@ -1788,6 +1968,38 @@ export default function DailySessionFlow() {
               navigate('/')
             }}
             progressInfo={progressInfo}
+            continuation={continuation}
+            onAdvance={continuation ? async () => {
+              // P8 · CONT-A continuous advance: identical cleanup to "Back to Dashboard"
+              // (local + session_state of the FINISHED list — never its progress record),
+              // then PURE navigation to the next list. Day 1 of the next list is created by
+              // the EXISTING initializeDailySession → getOrCreateClassProgress create-on-miss
+              // path on the NEW listId; no twi/csd is written for the finished list (§2.1).
+              clearAllSessionStates(user.uid, classId, listId)
+              await clearSessionState(user.uid, classId, listId)
+              navigate(`/session/${classId}/${continuation.nextListId}`)
+            } : undefined}
+            // P9 · CYC (§2.2 / task item 7): capability-gated "Start over" in the choice
+            // terminal. [deepfix FINAL-FOLD-C · F-10] Gate on EFFECTIVE cycling, not the raw
+            // global flag: `sessionConfig.cyclingSourceClassId` is the result of
+            // deriveEffectiveCycling (via resolveEffectiveCycling at init, studyService.js:355/505)
+            // — non-null IFF some enrolled class assigns this list with cyclingEnabled:true AND
+            // CYCLING_ENABLED is on (resolveEffectiveCycling short-circuits to null when the global
+            // flag is off). The old `CYCLING_ENABLED`-only gate rendered the button for EVERY
+            // finished student even though its handler can't serve a non-cycling student (re-enter
+            // → same finished terminal). This narrows it to the only case it is meaningful for: the
+            // finished-before-enable transition (list finished under cycling-off, then a class
+            // enabled cycling). With an ACTIVE-cycling assignment isListComplete stays false, so
+            // this terminal never shows anyway; the handler re-enters the SAME session where the
+            // (now cycling) allocation begins the next lap via the unchanged init path — no progress
+            // write (§2.1 parity with onAdvance). Flag-off (CYCLING_ENABLED false) ⇒ cyclingSourceClassId
+            // is null ⇒ prop false ⇒ nothing renders — byte-equivalent to today.
+            cyclingCapabilityLive={CYCLING_ENABLED && !!sessionConfig?.cyclingSourceClassId}
+            onStartOver={CYCLING_ENABLED && sessionConfig?.cyclingSourceClassId ? async () => {
+              clearAllSessionStates(user.uid, classId, listId)
+              await clearSessionState(user.uid, classId, listId)
+              navigate(`/session/${classId}/${listId}`)
+            } : undefined}
           />
         )}
       </div>
@@ -2176,22 +2388,61 @@ function CompletePhase({
   summary,
   sessionConfig,
   onDashboard,
-  progressInfo
+  progressInfo,
+  // P8 · CONT-A: continuation = { nextListId, nextListTitle } when the launching class's
+  // assignment links a next list (CONTINUATION_LINKS on); null otherwise → static terminal.
+  continuation,
+  onAdvance,
+  // P9 · CYC: capability-gated "Start over" (task item 7). Both false/undefined unless
+  // CYCLING_ENABLED — so the button never renders today (byte-equivalent terminal).
+  cyclingCapabilityLive = false,
+  onStartOver
 }) {
   const isFirstDay = sessionConfig?.isFirstDay
+  // §5 list-end terminal: once every word has been introduced, this is the distinct "finished the list"
+  // terminal state (not an ordinary day-complete). Copy is SELF-SUFFICIENT — cycling is automatic, so never
+  // promise teacher setup (Lens C #6). isListComplete is the persisted derivative (studyService.js:314);
+  // cycling (Phase 3) later replaces "new challenges may unlock later" with Lap-2 re-introduction.
+  const isListComplete = sessionConfig?.isListComplete === true
+  const listWordCount = sessionConfig?.totalListWords || sessionConfig?.totalWordsIntroduced || 0
 
   return (
     <div className="space-y-6">
-      {/* Success Header */}
-      <div className="text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
-          <span className="text-3xl">✓</span>
+      {/* Success Header — list-end terminal gets distinct congratulatory copy (§5) */}
+      {isListComplete ? (
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
+            <span className="text-3xl">🎉</span>
+          </div>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
+            List Complete
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-text-primary">You finished the list!</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">
+            {continuation ? (
+              <>
+                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words —
+                your next list, {continuation.nextListTitle}, is ready whenever you are.
+              </>
+            ) : (
+              <>
+                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words — keep
+                them sharp with review. New challenges may unlock later.
+              </>
+            )}
+          </p>
         </div>
-        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
-          Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
-        </p>
-        <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
-      </div>
+      ) : (
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
+            <span className="text-3xl">✓</span>
+          </div>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
+            Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
+        </div>
+      )}
 
       {/* Progress indicator */}
       {progressInfo && (
@@ -2228,9 +2479,37 @@ function CompletePhase({
         sessionConfig={sessionConfig}
       />
 
-      {/* Action Button */}
-      <div className="pt-4">
-        <Button onClick={onDashboard} variant="primary" size="lg" className="w-full">
+      {/* Action Buttons — P8 · CONT-A choice terminal: when the finished list links a next
+          list, "Advance" is the primary action (pure navigation — the finished list's record
+          is never written by it) and Dashboard becomes secondary. Otherwise: today's single
+          button, byte-identical.
+          P9 (cyclingEnabled): a "Start over" choice renders here ONLY once the cycling
+          capability is live — capability-gated rendering, never a dead button (§2.2). */}
+      <div className="pt-4 space-y-3">
+        {isListComplete && continuation && onAdvance && (
+          <Button onClick={onAdvance} variant="primary" size="lg" className="w-full">
+            Advance to {continuation.nextListTitle} →
+          </Button>
+        )}
+        {/* P9 · CYC: "Start over" joins the choice terminal ONLY when the cycling capability is
+            live (capability-gated — never a dead button, §2.2). Dormant while CYCLING_ENABLED
+            is false. Primary when there's no next-list advance offered, else a secondary option. */}
+        {isListComplete && cyclingCapabilityLive && onStartOver && (
+          <Button
+            onClick={onStartOver}
+            variant={continuation && onAdvance ? 'outline' : 'primary'}
+            size="lg"
+            className="w-full"
+          >
+            Start over (review the list again)
+          </Button>
+        )}
+        <Button
+          onClick={onDashboard}
+          variant={isListComplete && ((continuation && onAdvance) || (cyclingCapabilityLive && onStartOver)) ? 'outline' : 'primary'}
+          size="lg"
+          className="w-full"
+        >
           Back to Dashboard
         </Button>
       </div>

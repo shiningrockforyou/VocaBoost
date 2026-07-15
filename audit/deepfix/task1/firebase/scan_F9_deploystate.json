@@ -1,0 +1,24 @@
+{
+  "correctnessSource": {
+    "undefined": 8567,
+    "null": 11990,
+    "server-ai": 162
+  },
+  "writtenBy": {
+    "(none)": 5748,
+    "cloud-function": 14971
+  },
+  "recentAttempts": 20719,
+  "since": 1764108847,
+  "recentSince": "2026-06-22",
+  "csRecent": {
+    "null": 11990,
+    "undefined": 3481,
+    "server-ai": 162
+  },
+  "wbRecent": {
+    "cloud-function": 14970,
+    "(none)": 663
+  },
+  "recentCount": 15633
+}

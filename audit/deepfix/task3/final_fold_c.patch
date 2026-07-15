@@ -1,0 +1,307 @@
+diff --git a/src/pages/Signup.jsx b/src/pages/Signup.jsx
+--- a/src/pages/Signup.jsx
++++ b/src/pages/Signup.jsx
+@@ -1,6 +1,7 @@
+ import { useState } from 'react'
+ import { Link, useNavigate } from 'react-router-dom'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
++import { auth } from '../firebase'
+ import { useAuth } from '../contexts/AuthContext.jsx'
+ import { Button } from '../components/ui'
+ 
+@@ -42,6 +43,18 @@
+   const finishTeacherRedemption = async (inviteCode) => {
+     try {
+       await redeemTeacherInvite(inviteCode)
++      // [deepfix FINAL-FOLD-C · F-8] Force a token refresh so the freshly-minted `role`
++      // teacher claim (provisionTeacher, TEACHER_CLAIM_ENABLED) is present the moment the
++      // narrowed P10(d) rules read it — otherwise the redeemed teacher is DENIED until the
++      // ~1h ID-token TTL expires (firestore.rules D3 cited a force-refresh that did not exist).
++      // Best-effort: the redemption already SUCCEEDED, and the full reload below re-authenticates
++      // regardless, so a refresh hiccup must NOT masquerade as a redemption failure. Today (claims
++      // dormant) this is only an extra token refresh on the redemption success path.
++      try {
++        await auth.currentUser?.getIdToken(true)
++      } catch {
++        // ignore — reload re-auths and picks up the new claim on next token fetch
++      }
+       window.location.assign('/')
+       return true
+     } catch (err) {
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -1201,6 +1201,15 @@
+   // cycling the counter climbs past cycleLength; the displayed range should read within the
+   // current lap ((virtual mod cycleLength)+1). Flag-off (cyclingActive falsy) → virtual+1,
+   // exactly today. Review-segment indices are already physical (lap-bounded pool) → unchanged.
++  //
++  // [deepfix FINAL-FOLD-C · N-2] KNOWN LIMITATION (flag-ON only, DOCUMENTED): a single day's
++  // new-word allocation can STRADDLE a lap boundary (e.g. virtual 95→104 with cycleLength 100),
++  // and because start/end are wrapped INDEPENDENTLY the header can read inverted — "Words 96–5"
++  // (96 in lap 1, 5 in lap 2). A cross-lap range has no coherent single "A–B" form; a proper fix
++  // must pair the two call sites (wordRangeStart/End) and pick a wrapped-range convention
++  // ("96–100 · 1–5" or clamp-to-boundary) with product/visual sign-off — out of scope for this
++  // byte-equivalent dark fold. Purely cosmetic (the test SAMPLE + graduation use physical wordIds,
++  // never these display numbers) and inert flag-off (cyclingActive falsy ⇒ v+1, no wrap).
+   const lapDisplayNewIndex = (virtual) => {
+     const v = virtual || 0
+     const cL = sessionConfig?.cycleLength || 0
+@@ -1950,15 +1959,22 @@
+               navigate(`/session/${classId}/${continuation.nextListId}`)
+             } : undefined}
+             // P9 · CYC (§2.2 / task item 7): capability-gated "Start over" in the choice
+-            // terminal. Rendered ONLY when the cycling capability is live (CYCLING_ENABLED) —
+-            // never a dead button. NOTE: with an ACTIVE-cycling assignment the flow is
+-            // continuous (isListComplete stays false, so this terminal never shows), so the
+-            // button's live role is the capability-on / cross-class-unlock case (§3b); the
+-            // handler re-enters the SAME session, where the (now cycling) allocation begins the
+-            // next lap via the unchanged init path — no progress write here (§2.1 parity with
+-            // onAdvance). Dormant today: CYCLING_ENABLED === false ⇒ prop false ⇒ nothing renders.
+-            cyclingCapabilityLive={CYCLING_ENABLED}
+-            onStartOver={CYCLING_ENABLED ? async () => {
++            // terminal. [deepfix FINAL-FOLD-C · F-10] Gate on EFFECTIVE cycling, not the raw
++            // global flag: `sessionConfig.cyclingSourceClassId` is the result of
++            // deriveEffectiveCycling (via resolveEffectiveCycling at init, studyService.js:355/505)
++            // — non-null IFF some enrolled class assigns this list with cyclingEnabled:true AND
++            // CYCLING_ENABLED is on (resolveEffectiveCycling short-circuits to null when the global
++            // flag is off). The old `CYCLING_ENABLED`-only gate rendered the button for EVERY
++            // finished student even though its handler can't serve a non-cycling student (re-enter
++            // → same finished terminal). This narrows it to the only case it is meaningful for: the
++            // finished-before-enable transition (list finished under cycling-off, then a class
++            // enabled cycling). With an ACTIVE-cycling assignment isListComplete stays false, so
++            // this terminal never shows anyway; the handler re-enters the SAME session where the
++            // (now cycling) allocation begins the next lap via the unchanged init path — no progress
++            // write (§2.1 parity with onAdvance). Flag-off (CYCLING_ENABLED false) ⇒ cyclingSourceClassId
++            // is null ⇒ prop false ⇒ nothing renders — byte-equivalent to today.
++            cyclingCapabilityLive={CYCLING_ENABLED && !!sessionConfig?.cyclingSourceClassId}
++            onStartOver={CYCLING_ENABLED && sessionConfig?.cyclingSourceClassId ? async () => {
+               clearAllSessionStates(user.uid, classId, listId)
+               await clearSessionState(user.uid, classId, listId)
+               navigate(`/session/${classId}/${listId}`)
+diff --git a/src/pages/ClassDetail.jsx b/src/pages/ClassDetail.jsx
+--- a/src/pages/ClassDetail.jsx
++++ b/src/pages/ClassDetail.jsx
+@@ -95,6 +95,17 @@
+         // Once they begin lap 2 (twi > cycleLength) the row flips to lap-aware. Fixing the exact
+         // boundary would need per-student effective-cycling data this teacher view doesn't carry;
+         // the student's OWN session/dashboard uses the true cross-class predicate.
++        //
++        // KNOWN FALSE-POSITIVE ([deepfix FINAL-FOLD-C · N-1] — DOCUMENTED, accepted; P9-7 recorded
++        // only the false-NEGATIVE above): the `twi > cycleLength` proxy ALSO matches a legacy
++        // OVER-INTRODUCTION row (a pre-fix bug drove twi past the list length WITHOUT cycling) →
++        // under CYCLING_ENABLED such a row falsely renders "Lap 2". Distinguishing genuine
++        // cross-class cyclers from legacy over-introduction needs the same per-student
++        // effective-cycling data this teacher grid doesn't carry, so the `>` proxy can't tell them
++        // apart. Tightening to `list.cyclingEnabled === true` ALONE would erase the (accepted)
++        // cross-class-cycler case entirely — strictly worse — so the proxy is kept and the
++        // false-positive documented. Display-only; the P5 migration quarantines the underlying
++        // ANCHORLESS_TWI / TWI_EXCEEDS_ANCHOR data, and this is inert flag-off (CYCLING_ENABLED gate).
+         const cycleLength = cycleLengths[list.id] || totalWords
+         const cellCycling = CYCLING_ENABLED && cycleLength > 0 &&
+           (list.cyclingEnabled === true || wordsIntroduced > cycleLength)
+diff --git a/scripts/cs/deepfix-backfill-teacher-claims.mjs b/scripts/cs/deepfix-backfill-teacher-claims.mjs
+--- a/scripts/cs/deepfix-backfill-teacher-claims.mjs
++++ b/scripts/cs/deepfix-backfill-teacher-claims.mjs
+@@ -140,6 +140,7 @@
+ console.log(`\nfull plan → ${reportPath}`);
+ 
+ // ───────────────────────────── COMMIT (guarded) ─────────────────────────────
++let commitMismatched = 0;
+ if (MODE === 'commit') {
+   guardWrite('teacher-claim backfill commit');
+   const toSet = plan.filter((p) => p.action === 'SET_CLAIM');
+@@ -157,6 +158,7 @@
+     if ((r.customClaims || {}).role === 'teacher') verified++;
+     else { mismatched++; console.error(`  read-back MISMATCH ${short(p.uid)}`); }
+   }
++  commitMismatched = mismatched;
+   console.log(`\nCOMMIT complete: ${written} claims set | read-back ${verified} ok / ${mismatched} mismatched`);
+   console.log('\nNOW: every teacher must refresh their token (re-login or ~1h TTL) — firestore.rules header D3.');
+   console.log('THEN David deploys the P10(d) rules narrowing (isTeacher()→claim). NOTHING rides along.');
+@@ -165,5 +167,12 @@
+   console.log('Next: David reviews this plan → SUPPORT_RUNBOOK authorization →');
+   console.log(`--commit --confirm-claims=${CONFIRM_SENTINEL} (P10 cutover, after the functions deploy).`);
+ }
+-console.log(`\nFINAL: mode=${MODE} teachers=${plan.length} willSet=${counts.willSet} skipAlready=${counts.skipAlready} missingAuth=${counts.missingAuth}`);
+-process.exit(0);
++// [deepfix FINAL-FOLD-C · F-13] Match P5's NOT_READY exit-2 discipline. D2 makes the commit-mode
++// read-back a HARD precondition of the P10(d) rules narrowing, so a run whose read-back found a
++// role-claim MISMATCH — or that still carries any untriaged MISSING_AUTH role-doc teacher (no Auth
++// user; the script has no triage-ack, so any at commit is untriaged) — is NOT a clean backfill and
++// must exit non-zero, so a checklist keying on exit codes can't wave through a partial backfill.
++// --dry is unaffected (commitMismatched stays 0; missingAuth gates only under commit) → exit 0.
++const commitNotReady = MODE === 'commit' && (commitMismatched > 0 || counts.missingAuth > 0);
++console.log(`\nFINAL: ${MODE === 'commit' ? (commitNotReady ? 'NOT_READY ' : 'READY ') : ''}mode=${MODE} teachers=${plan.length} willSet=${counts.willSet} skipAlready=${counts.skipAlready} missingAuth=${counts.missingAuth}${MODE === 'commit' ? ` mismatched=${commitMismatched}` : ''}`);
++process.exit(commitNotReady ? 2 : 0);
+diff --git a/scripts/cs/deepfix-migrate-attempts-teacherids.mjs b/scripts/cs/deepfix-migrate-attempts-teacherids.mjs
+--- a/scripts/cs/deepfix-migrate-attempts-teacherids.mjs
++++ b/scripts/cs/deepfix-migrate-attempts-teacherids.mjs
+@@ -232,6 +232,7 @@
+ }
+ 
+ // ───────────────────────────── COMMIT (guarded) ─────────────────────────────
++let commitMismatched = 0;
+ if (MODE === 'commit') {
+   guardWrite('teacherIds backfill commit');
+   const toWrite = plan.filter((p) => p.action !== 'SKIP_DONE');
+@@ -259,6 +260,7 @@
+     if (sameSet(ti, p.merged) && d.data().teacherIdsBackfilledAt != null) verified++;
+     else { mismatched++; console.error(`  read-back MISMATCH ${short(p.id)}`); }
+   }
++  commitMismatched = mismatched;
+   console.log(`\nCOMMIT complete: ${written} attempts updated | read-back ${verified} ok / ${mismatched} mismatched`);
+   console.log('Backups →', BK_DIR);
+   console.log('\nNOW: deploy the teacherIds indexes (if not already), then David flips TEACHER_IDS_READ +');
+@@ -278,5 +280,10 @@
+   console.log('Next: deploy teacherIds indexes → David reviews this plan → 25WT rehearsal →');
+   console.log('SUPPORT_RUNBOOK authorization → --commit --confirm-teacherids=' + COHORT_LABEL + ' (OFF-PEAK).');
+ }
+-console.log(`\nFINAL: mode=${MODE} inScope=${plan.length} willWrite=${counts.willWrite} skipDone=${counts.skipDone}`);
+-process.exit(0);
++// [deepfix FINAL-FOLD-C · F-13] Match P5's NOT_READY exit-2 discipline. D2 makes the commit-mode
++// read-back a HARD precondition of the TEACHER_IDS cutover, so a run whose sampled read-back found
++// a teacherIds MISMATCH is NOT a clean backfill and must exit non-zero, so a checklist keying on
++// exit codes can't wave through a partial reindex. --dry is unaffected (commitMismatched stays 0).
++const commitNotReady = MODE === 'commit' && commitMismatched > 0;
++console.log(`\nFINAL: ${MODE === 'commit' ? (commitNotReady ? 'NOT_READY ' : 'READY ') : ''}mode=${MODE} inScope=${plan.length} willWrite=${counts.willWrite} skipDone=${counts.skipDone}${MODE === 'commit' ? ` mismatched=${commitMismatched}` : ''}`);
++process.exit(commitNotReady ? 2 : 0);
+diff --git a/scripts/cs/deepfix-migrate-list-progress.mjs b/scripts/cs/deepfix-migrate-list-progress.mjs
+--- a/scripts/cs/deepfix-migrate-list-progress.mjs
++++ b/scripts/cs/deepfix-migrate-list-progress.mjs
+@@ -31,13 +31,17 @@
+  *
+  * THE MANDATORY CSD-PLAUSIBILITY SCREEN (FIX_PLAN P5 amendment / Codex+verifier fold #5):
+  *   PRIMARY, DURABLE evidence for a legitimate csd−anchorDay gap = the count of DISTINCT
+- *   post-anchor REVIEW ATTEMPTS, keyed `(classId, listId, studyDay)`, with
+- *   `submittedAt > anchor.submittedAt`, SAME student+list lineage (see LINEAGE below),
+- *   capped ONE per `studyDay`. Attempts are the permanent ledger — one exists for every
+- *   review-only completion. The `reviewOnlyDay:true` session marker is NOT used: it lives
+- *   only on ephemeral `session_states` (overwritten each session) and is DELIBERATELY not
+- *   on the durable summary (studyService.js:1448-1455, verified 2026-07-13) — using it
+- *   would undercount and re-quarantine long-recovering students.
++ *   post-anchor REVIEW DAYS (day-granular, list-scoped: ONE per `studyDay` regardless of class —
++ *   the SAME unit as csd, so a dual-enrolled student's same-day reviews across two classes count
++ *   ONCE and never inflate the ceiling), over review ATTEMPTS with `submittedAt > anchor.submittedAt`
++ *   and SAME student+list lineage (see LINEAGE below). Attempts are the permanent ledger — one
++ *   exists for every review-only completion. EXCLUDED (FINAL-FOLD-C · carry F-4): attempts flagged
++ *   `autoCompleted:true` — the client/server "no review available" auto-markers are stand-ins, NOT
++ *   durable student review evidence, so they must not legitimise a pumped csd (parity with
++ *   foundation.js countPostAnchorReviewDays). The `reviewOnlyDay:true` session marker is NOT used
++ *   either: it lives only on ephemeral `session_states` (overwritten each session) and is
++ *   DELIBERATELY not on the durable summary (studyService.js:1448-1455, verified 2026-07-13) —
++ *   using it would undercount and re-quarantine long-recovering students.
+  *   A csd is plausible up to max(anchorDay + evidencedReviewDays + slack,
+  *   implausibleStudyDayThreshold) — beyond that → quarantine (default) or exclude-from-max
+  *   (`--csd-mode=exclude`, persist §8's letter; quarantine is the conservative default
+@@ -265,6 +269,28 @@
+   return attemptsCache.get(uid);
+ }
+ 
++// [FINAL-FOLD-C · carry F-6] reset-epoch tombstone read — parity with the F-6 anchor readers
++// (foundation getResetAtServer / db.js getMostRecentPassedNewTest). At migration time the tombstone
++// (written ONLY by the dormant server resetProgress; SERVER_RESET_PROGRESS_ENABLED=false — so it does
++// NOT exist in today's tree, making the read byte-equivalent) lives in the PRE-P5 location
++// users/{uid}/progress_meta/{listId}; LIST_PROGRESS_CANONICAL flips WITH this migration, so pre-flip
++// the legacy reset branch wrote there. Attempts with submittedAt < resetAt belong to the reset-away
++// progression and MUST be excluded from the anchor so a pre-epoch straggler can't re-promote twi
++// ("reset un-resets", F-6). Any read miss/denial → null → no exclusion (byte-equivalent).
++const resetMetaCache = new Map(); // `${uid}|${listId}` → { resetAt, resetEpoch } | null
++async function getResetMeta(uid, listId) {
++  const key = `${uid}|${listId}`;
++  if (!resetMetaCache.has(key)) {
++    let meta = null;
++    try {
++      const s = await db.collection('users').doc(uid).collection('progress_meta').doc(listId).get();
++      if (s.exists) { const d = s.data() || {}; if (d.resetAt != null) meta = { resetAt: d.resetAt, resetEpoch: d.resetEpoch ?? null }; }
++    } catch { /* missing/denied → no tombstone → no exclusion */ }
++    resetMetaCache.set(key, meta);
++  }
++  return resetMetaCache.get(key);
++}
++
+ // anchor semantics — db.js:3239 getMostRecentPassedNewTest (LIST_SCOPED_RECON) parity:
+ // max integer nwei (>=0), tie-break latest submittedAt. Enumerating ALL attempts here makes
+ // the client's paginate-past-floats loop unnecessary — Number.isInteger gives the same terminal pick.
+@@ -277,17 +303,20 @@
+   return best;
+ }
+ 
+-// THE CSD-PLAUSIBILITY SCREEN — evidence counter (header contract).
++// THE CSD-PLAUSIBILITY SCREEN — evidence counter (header contract). Day-granular, list-scoped:
++// one durable review-day per `studyDay`, the SAME unit as csd. [FINAL-FOLD-C · N-3] the old
++// `dedupe` Set (keyed classId|listId|studyDay) was built and NEVER read — removed; the operative
++// key is `studyDay` (via `days`), so the code now matches the header's one-per-studyDay contract.
+ function evidencedReviewDays(attempts, listId, afterSec) {
+-  const dedupe = new Set(); const days = new Set();
++  const days = new Set();
+   for (const a of attempts) {
+     if (a.sessionType !== 'review') continue;
++    if (a.autoCompleted === true) continue;                    // [FINAL-FOLD-C · carry F-4] auto "no-review" markers are NOT durable evidence (parity with foundation countPostAnchorReviewDays)
+     const lin = lineageOf(a);
+     if (lin.listId !== listId) continue;                       // same student+list lineage
+     if (!Number.isFinite(a.studyDay)) continue;
+     if (afterSec != null && !((tsSec(a.submittedAt) ?? -1) > afterSec)) continue; // post-anchor
+-    dedupe.add(`${lin.classId ?? '?'}|${listId}|${a.studyDay}`); // keyed (classId,listId,studyDay)
+-    days.add(a.studyDay);                                       // capped ONE per studyDay
++    days.add(a.studyDay);                                       // capped ONE per studyDay (day-granular)
+   }
+   return days.size;
+ }
+@@ -309,8 +338,14 @@
+     const at = await getAttempts(uid);
+     const size = listSizes[listId] || 0;
+ 
++    // [FINAL-FOLD-C · carry F-6] reset-epoch: exclude pre-reset attempts from the anchor pool
++    // (parity with the F-6 anchor readers). notPreReset is the identity today (no tombstone exists).
++    const resetMeta = await getResetMeta(uid, listId);
++    const resetSec = resetMeta ? tsSec(resetMeta.resetAt) : null;
++    const notPreReset = a => resetSec == null || (tsSec(a.submittedAt) ?? 0) >= resetSec;
++
+     // anchors (list + per-class own-anchors), invalid-anchor sizing
+-    const passedNew = at.filter(a => lineageOf(a).listId === listId && a.sessionType === 'new' && a.passed === true);
++    const passedNew = at.filter(a => notPreReset(a) && lineageOf(a).listId === listId && a.sessionType === 'new' && a.passed === true);
+     const valid = passedNew.filter(validNwei);
+     const invalid = passedNew.filter(a => !validNwei(a));
+     invalidAnchorAttempts += invalid.length;
+@@ -411,6 +446,16 @@
+       migrationVersion: MIGRATION_VERSION,
+       // dropped by allowlist: progressSnapshot, blindSpot*, classId (persist §2.1/§4)
+     };
++    // [FINAL-FOLD-C · carry F-6] carry a pre-existing reset-epoch tombstone onto the canonical doc
++    // (stream-A FOLD note (c): "the migration must fold progress_meta into the canonical doc it
++    // writes"), so post-P5 anchor readers keep excluding pre-reset attempts (parity with F-3, which
++    // stamps resetAt/resetEpoch on the canonical doc). resetAt/resetEpoch come from progress_meta,
++    // not the class_progress sources, so they are NOT in droppedFields. Absent in today's tree ⇒
++    // nothing added ⇒ byte-identical merged doc.
++    if (resetMeta) {
++      merged.resetAt = resetMeta.resetAt;
++      if (resetMeta.resetEpoch != null) merged.resetEpoch = resetMeta.resetEpoch;
++    }
+     const droppedFields = [...new Set(docs.flatMap(s => Object.keys(s.raw)))].filter(k =>
+       !['classId', 'listId', 'currentStudyDay', 'totalWordsIntroduced', 'programStartDate', 'interventionLevel',
+         'recentSessions', 'stats', 'streakDays', 'lastStudyDate', 'lastSessionAt', 'createdAt', 'updatedAt', 'migratedAt'].includes(k));
+diff --git a/audit/deepfix/task3/P7_RETIREMENT_INVENTORY.md b/audit/deepfix/task3/P7_RETIREMENT_INVENTORY.md
+--- a/audit/deepfix/task3/P7_RETIREMENT_INVENTORY.md
++++ b/audit/deepfix/task3/P7_RETIREMENT_INVENTORY.md
+@@ -73,6 +73,20 @@
+ - **Precondition:** SERVER_CHALLENGE_WRITE flipped TRUE at P4 + soaked; W3/P6 rules live.
+ - **Collapse:** keep the callable, drop the legacy body.
+ - **Disposition:** ✅ in patch.
++- **RULES FOLLOW-ON — [deepfix FINAL-FOLD-C · F-9] (DEFERRED to P7; do NOT change `firestore.rules`
++  now):** the challenge-token *ledger* `users/{userId}.challenges.history` is still OWNER-writable
++  under the `users/{userId}` owner-update rule, so a student can self-edit `challenges.history` to
++  mint unlimited challenge tokens (bounded — redemption still needs a teacher to accept). It stays
++  owner-forgeable ONLY because the legacy client `submitChallenge` body above writes
++  `challenges.history` from the client, so the owner-update rule must keep permitting it until that
++  write is gone. **THEREFORE, sequenced WITH this A.2 retirement** (SERVER_CHALLENGE_WRITE cutover
++  complete, the callable owns the ledger): add `challenges` to the `users/{userId}` owner-update
++  **exclusion list** in `firestore.rules` (alongside `role` and the other server-owned fields), or
++  move the ledger to a server-owned doc. Do them together so no window opens where the client can no
++  longer write its own challenge yet the rule still trusts a forged `challenges.history`. NOT folded
++  now (FINAL_REVIEW F-9 / Fable-B MED-5): editing the rule today would deny the still-live client
++  `submitChallenge` write. This is a **rules** change (P6/rules-cleanup surface), not part of P7's
++  `--only hosting` + deletion-script target — track it as the rules half of A.2's retirement.
+ 
+ #### A.3 · Client `reviewChallenge` day-advance to class_progress (SERVER_CHALLENGE_WRITE inner off-branch) — RET-2 `client_challenge_advance`
+ - **File / signature:** `src/services/db.js` — inside `reviewChallenge`, the inner

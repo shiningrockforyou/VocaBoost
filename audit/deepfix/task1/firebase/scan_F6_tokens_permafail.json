@@ -1,0 +1,61 @@
+{
+  "permafail": [
+    {
+      "uid": "HMp1QzFr",
+      "cls": "SAT Adv E [English only]",
+      "tokens": 0,
+      "activeRej": 5,
+      "byStatus": {
+        "accepted": 15,
+        "rejected": 5,
+        "pending": 1,
+        "other": 0
+      },
+      "maxFailedNewStreak": 3,
+      "worst": "dVliNv0p9jqZYp9rfLpN|2",
+      "recentFailedNew": 6
+    },
+    {
+      "uid": "uhJ41qPB",
+      "cls": "SAT Final A",
+      "tokens": 0,
+      "activeRej": 5,
+      "byStatus": {
+        "accepted": 1,
+        "rejected": 5,
+        "pending": 3,
+        "other": 0
+      },
+      "maxFailedNewStreak": 4,
+      "worst": "dVliNv0p9jqZYp9rfLpN|11",
+      "recentFailedNew": 8
+    },
+    {
+      "uid": "fc8sBxnz",
+      "cls": "SAT Inter B3",
+      "tokens": 0,
+      "activeRej": 6,
+      "byStatus": {
+        "accepted": 5,
+        "rejected": 6,
+        "pending": 0,
+        "other": 0
+      },
+      "maxFailedNewStreak": 6,
+      "worst": "RmNNkuLPectBlBPiLbAJ|2",
+      "recentFailedNew": 15
+    }
+  ],
+  "statusTotals": {
+    "accepted": 755,
+    "rejected": 126,
+    "pending": 614,
+    "other": 0
+  },
+  "counts": {
+    "scanned": 817,
+    "withHistory": 354,
+    "locked": 3,
+    "permafail": 3
+  }
+}

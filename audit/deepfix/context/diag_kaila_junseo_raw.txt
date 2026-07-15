@@ -1,0 +1,148 @@
+
+
+════════════════════════════════════════════════════════════
+CASE: ohhalyn101014@gmail.com
+════════════════════════════════════════════════════════════
+uid: RSV4gV3cnRTRTKpyZyuTkbGUpMi2 | name: 오하린
+
+-- CLASSES --
+  JFCtimk25DPR333XzJHU  name="26SM SAT Bridge (TOP)"
+      list RmNNkuLPectBlBPiLbAJ: pace=60 testMode=typed thr=92 testSizeNew=25 assignedAt=2026-05-31T21:01:28.414Z
+  sO7jN85mL5ZsaBY1BbGm  name="26SM SAT Inter B3"
+      list dVliNv0p9jqZYp9rfLpN: pace=80 testMode=mcq thr=92 testSizeNew=30 assignedAt=2026-06-22T04:05:19.314Z
+      list RmNNkuLPectBlBPiLbAJ: pace=80 testMode=typed thr=92 testSizeNew=30 assignedAt=2026-05-31T21:01:28.136Z
+
+-- CLASS_PROGRESS --
+  docId=JFCtimk25DPR333XzJHU_RmNNkuLPectBlBPiLbAJ
+     classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPectBlBPiLbAJ csd=10 twi=640 interv=0 lastSessionAt=2026-07-13T01:17:38.921Z
+     recentSessions (1):
+        day=10 new=0.92 rev=1 wIntro=0 wRev=60
+  docId=sO7jN85mL5ZsaBY1BbGm_RmNNkuLPectBlBPiLbAJ
+     classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPectBlBPiLbAJ csd=8 twi=640 interv=0 lastSessionAt=2026-06-16T08:03:09.511Z
+     recentSessions (0):
+
+-- LIST SIZES --
+  RmNNkuLPectBlBPiLbAJ: 1200
+  dVliNv0p9jqZYp9rfLpN: 1600
+
+-- ATTEMPTS (studentId==uid) --
+  d1 new passed=true score=98 nwsi=0 nwei=79 wIntro=undefined testId= classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=true at=undefined  [RSV4gV3cnR]
+  d1 new passed=true score=96 nwsi=0 nwei=59 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d1 new passed=false score=77 nwsi=0 nwei=79 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d1 new passed=false score=87 nwsi=0 nwei=79 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d1 new passed=false score=90 nwsi=0 nwei=79 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d2 new passed=true score=96 nwsi=60 nwei=119 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d2 new passed=false score=83 nwsi=80 nwei=159 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d2 new passed=true score=93 nwsi=80 nwei=159 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d2 review passed=true score=100 nwsi=60 nwei=119 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d2 review passed=true score=100 nwsi=160 nwei=239 wIntro=0 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d3 new passed=true score=92 nwsi=120 nwei=179 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d3 new passed=true score=97 nwsi=160 nwei=239 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d3 review passed=true score=93 nwsi=180 nwei=239 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d3 review passed=true score=97 nwsi=160 nwei=239 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d4 new passed=true score=92 nwsi=180 nwei=239 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d4 new passed=true score=100 nwsi=240 nwei=319 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d4 review passed=true score=97 nwsi=240 nwei=299 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d4 review passed=true score=100 nwsi=240 nwei=319 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d5 new passed=true score=96 nwsi=240 nwei=299 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d5 new passed=true score=100 nwsi=320 nwei=399 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d5 review passed=true score=83 nwsi=300 nwei=359 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d5 review passed=true score=100 nwsi=320 nwei=399 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d6 new passed=true score=96 nwsi=300 nwei=359 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d6 new passed=true score=100 nwsi=400 nwei=479 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d6 review passed=true score=90 nwsi=360 nwei=419 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d6 review passed=true score=100 nwsi=480 nwei=559 wIntro=0 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d7 new passed=true score=100 nwsi=360 nwei=419 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d7 new passed=true score=97 nwsi=480 nwei=559 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d7 review passed=true score=97 nwsi=420 nwei=479 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d7 review passed=true score=100 nwsi=560 nwei=639 wIntro=0 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d8 new passed=true score=100 nwsi=420 nwei=479 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d8 new passed=true score=100 nwsi=560 nwei=639 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d8 review passed=true score=97 nwsi=480 nwei=539 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d8 review passed=true score=97 nwsi=560 nwei=639 wIntro=80 testId=vocaboost_ classId=sO7jN85mL5ZsaBY1BbGm listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d9 new passed=true score=96 nwsi=480 nwei=539 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d9 review passed=true score=97 nwsi=540 nwei=599 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d10 new passed=true score=92 nwsi=540 nwei=599 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d10 review passed=true score=100 nwsi=540 nwei=599 wIntro=0 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+  d11 new passed=true score=96 nwsi=640 nwei=699 wIntro=60 testId=vocaboost_ classId=JFCtimk25DPR333XzJHU listId=RmNNkuLPec manual=false at=undefined  [RSV4gV3cnR]
+
+-- SESSION_STATES --
+  docId=JFCtimk25DPR333XzJHU_RmNNkuLPectBlBPiLbAJ
+     phase=new-words-study newWordsTestScore=undefined newWordsTestPassed=false reviewTestScore=null reviewOnlyDay=undefined updatedAt=undefined
+     sessionConfig: dayNumber=undefined newWordCount=undefined startPhase=undefined isListComplete=undefined allocation=undefined newWordStartIndex=undefined newWordEndIndex=undefined
+  docId=sO7jN85mL5ZsaBY1BbGm_RmNNkuLPectBlBPiLbAJ
+     phase=complete newWordsTestScore=1 newWordsTestPassed=true reviewTestScore=0.9666666666666667 reviewOnlyDay=undefined updatedAt=undefined
+     sessionConfig: dayNumber=undefined newWordCount=undefined startPhase=undefined isListComplete=undefined allocation=undefined newWordStartIndex=undefined newWordEndIndex=undefined
+
+
+════════════════════════════════════════════════════════════
+CASE: kimdongdongsuper1@gmail.com
+════════════════════════════════════════════════════════════
+uid: 0BhMnVjxmGRwtjKU0QTUKlZhKEA3 | name: 김동현
+
+-- CLASSES --
+  qIrJTbwlDOnCKLaTYoz4  name="26SM SAT Adv B2"
+      list AObYOowhLoOOHx9wW2Sq: pace=80 testMode=typed thr=92 testSizeNew=30 assignedAt=2026-05-30T21:01:28.319Z
+      list dVliNv0p9jqZYp9rfLpN: pace=80 testMode=typed thr=92 testSizeNew=30 assignedAt=2026-05-31T21:01:28.319Z
+
+-- CLASS_PROGRESS --
+  docId=qIrJTbwlDOnCKLaTYoz4_dVliNv0p9jqZYp9rfLpN
+     classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9jqZYp9rfLpN csd=20 twi=1600 interv=0 lastSessionAt=null
+     recentSessions (0):
+
+-- LIST SIZES --
+  AObYOowhLoOOHx9wW2Sq: 800
+  dVliNv0p9jqZYp9rfLpN: 1600
+
+-- ATTEMPTS (studentId==uid) --
+  d1 new passed=false score=90 nwsi=0 nwei=79 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d1 new passed=true score=97 nwsi=0 nwei=79 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d2 new passed=false score=90 nwsi=80 nwei=159 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d2 new passed=true score=100 nwsi=80 nwei=159 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d2 review passed=true score=100 nwsi=160 nwei=239 wIntro=0 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d3 new passed=true score=93 nwsi=160 nwei=239 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d3 review passed=true score=93 nwsi=160 nwei=239 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d4 new passed=true score=97 nwsi=240 nwei=319 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d4 review passed=true score=97 nwsi=240 nwei=319 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d5 new passed=true score=100 nwsi=320 nwei=399 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d5 review passed=true score=100 nwsi=320 nwei=399 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d6 new passed=true score=100 nwsi=400 nwei=479 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d6 review passed=true score=100 nwsi=400 nwei=479 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d7 new passed=true score=93 nwsi=480 nwei=559 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d7 review passed=true score=100 nwsi=480 nwei=559 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d8 new passed=true score=97 nwsi=560 nwei=639 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d8 review passed=true score=100 nwsi=560 nwei=639 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d9 new passed=true score=93 nwsi=640 nwei=719 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d9 review passed=true score=100 nwsi=640 nwei=719 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d10 new passed=true score=100 nwsi=720 nwei=799 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d10 review passed=true score=100 nwsi=720 nwei=799 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d11 new passed=true score=100 nwsi=800 nwei=879 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d11 review passed=true score=100 nwsi=800 nwei=879 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d12 new passed=true score=97 nwsi=880 nwei=959 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d12 review passed=true score=100 nwsi=880 nwei=959 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d13 new passed=false score=90 nwsi=960 nwei=1039 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d13 new passed=true score=97 nwsi=960 nwei=1039 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d13 review passed=true score=100 nwsi=960 nwei=1039 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d14 new passed=true score=93 nwsi=1040 nwei=1119 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d14 review passed=true score=100 nwsi=1040 nwei=1119 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d15 new passed=true score=97 nwsi=1120 nwei=1199 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d15 review passed=true score=100 nwsi=1120 nwei=1199 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d16 new passed=false score=83 nwsi=1200 nwei=1279 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d16 new passed=true score=100 nwsi=1200 nwei=1279 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d16 review passed=true score=97 nwsi=1200 nwei=1279 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d17 new passed=true score=93 nwsi=1280 nwei=1359 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d17 review passed=true score=100 nwsi=1280 nwei=1359 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d18 new passed=true score=97 nwsi=1360 nwei=1439 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d18 review passed=true score=100 nwsi=1360 nwei=1439 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d19 new passed=true score=100 nwsi=1440 nwei=1519 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d19 review passed=true score=100 nwsi=1440 nwei=1519 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d20 new passed=true score=100 nwsi=1520 nwei=1599 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d20 review passed=true score=100 nwsi=1520 nwei=1599 wIntro=80 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+  d21 review passed=true score=7 nwsi=1600 nwei=1599 wIntro=0 testId=vocaboost_ classId=qIrJTbwlDOnCKLaTYoz4 listId=dVliNv0p9j manual=false at=undefined  [0BhMnVjxmG]
+
+-- SESSION_STATES --
+  docId=qIrJTbwlDOnCKLaTYoz4_dVliNv0p9jqZYp9rfLpN
+     phase=review-study newWordsTestScore=undefined newWordsTestPassed=false reviewTestScore=null reviewOnlyDay=undefined updatedAt=undefined
+     sessionConfig: dayNumber=undefined newWordCount=undefined startPhase=undefined isListComplete=undefined allocation=undefined newWordStartIndex=undefined newWordEndIndex=undefined
+
+[done — READ-ONLY, no writes]

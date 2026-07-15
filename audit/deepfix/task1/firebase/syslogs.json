@@ -1,0 +1,49 @@
+{
+  "evField": "type",
+  "window": {
+    "from": "2026-07-12T04:34:01.000Z",
+    "to": "2026-07-13T12:52:23.000Z"
+  },
+  "sampleSize": 4000,
+  "interesting": {
+    "csd_anchor_invalid": 0,
+    "csd_implausible": 0,
+    "csd_anchor_query_error": 0,
+    "day_guard_rejected_session_cleared": 17,
+    "impossible_phase_detected": 3088,
+    "day1_with_passed_new_test": 0,
+    "attempt_day_fallback": 10,
+    "attempt_day_context_invalid": 0,
+    "review_only_completion": 0
+  },
+  "topAll": [
+    [
+      "impossible_phase_detected",
+      3088
+    ],
+    [
+      "csd_twi_reconciled",
+      853
+    ],
+    [
+      "grading_attempt_failed",
+      19
+    ],
+    [
+      "day_guard_rejected_session_cleared",
+      17
+    ],
+    [
+      "attempt_write_failed_client",
+      12
+    ],
+    [
+      "attempt_day_fallback",
+      10
+    ],
+    [
+      "grading_recovered",
+      1
+    ]
+  ]
+}

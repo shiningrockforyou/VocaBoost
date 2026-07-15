@@ -1,0 +1,54 @@
+{
+  "email": "jaden.jake.ian@gmail.com",
+  "uid": "MPFCOzeWcPQYrVyLr87dz8rKnPk1",
+  "cp": "qIrJTbwlDOnCKLaTYoz4_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 17,
+    "twi": 1360,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "day": 15,
+        "wordsIntroduced": 0,
+        "date": {
+          "_seconds": 1783852178,
+          "_nanoseconds": 966000000
+        },
+        "wordsTested": 30,
+        "newWordScore": 1,
+        "segmentStartIndex": 1008,
+        "wordsReviewed": 60,
+        "segmentEndIndex": 1067,
+        "reviewScore": 0.1
+      },
+      {
+        "wordsIntroduced": 0,
+        "date": {
+          "_seconds": 1784000855,
+          "_nanoseconds": 375000000
+        },
+        "day": 16,
+        "wordsTested": 30,
+        "segmentStartIndex": 1,
+        "newWordScore": 0.93,
+        "wordsReviewed": 60,
+        "segmentEndIndex": 135,
+        "reviewScore": 0.2
+      },
+      {
+        "day": 17,
+        "date": {
+          "_seconds": 1784077974,
+          "_nanoseconds": 43000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.13333333333333333,
+        "segmentStartIndex": 417,
+        "segmentEndIndex": 476,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

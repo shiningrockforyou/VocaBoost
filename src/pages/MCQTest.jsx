@@ -243,7 +243,11 @@ const MCQTest = () => {
       if (testConfig) {
         // All settings come from testConfig - no need to fetch or apply manually
         setOptionsCount(testConfig.testOptionsCount)
-        setRetakeThreshold(testConfig.passThresholdDecimal)
+        // C-23 fail-open: only adopt a finite threshold. Setting undefined/NaN would
+        // make every `score >= retakeThreshold` compare false (fail-closed verdicts).
+        if (Number.isFinite(testConfig.passThresholdDecimal)) {
+          setRetakeThreshold(testConfig.passThresholdDecimal)
+        }
         setCurrentTestType(testConfig.testType)
         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
         setConfiguredTestSize(effectiveTestSize)
@@ -317,7 +321,11 @@ const MCQTest = () => {
         })
 
         if (config.newWordCount > 0) {
-          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
+          // P9 · CYC (§3f): config.cyclingActive routes a cycling day's VIRTUAL range through
+          // the resolver (wraps at the lap boundary). Under cycling newWordCount === pace > 0,
+          // so the legacy "finished list" throw below becomes unreachable — the lap-aware
+          // outcome. Flag-off → cyclingActive falsy → today's legacy filter + throw exactly.
+          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
           wordsToTest = selectTestWords(newWords, testSize)
         } else {
           throw new Error('No new words available for testing')
@@ -528,6 +536,11 @@ const MCQTest = () => {
       // Determine if student passed (review tests always pass)
       const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
 
+      // C-23: authoritative verdict of the STORED attempt (server-computed under
+      // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
+      // null in practice mode — the result card then falls back to the local compare.
+      let serverPassed = null
+
       // Submit attempt for gradebook (non-practice mode only)
       if (!isPracticeMode) {
         // Get studyDay from sessionContext, or fetch from progress if standalone test
@@ -561,6 +574,26 @@ const MCQTest = () => {
               calculatedStudyDay: studyDay
             });
           } catch (err) {
+            // [Codex P6 R1 over-deny fix] A resolver outage under SERVER_PROGRESS_WRITE now fails
+            // CLOSED (typed `progress_resolver_unavailable`, already logged at source) rather than a
+            // denied legacy write. Without the study day we cannot safely stamp the attempt, so
+            // surface the SAME controlled reload/retry UX as the completion handler — not a raw
+            // permission error. (Rare: this fallback only runs when sessionContext lost the day.)
+            const isResolverDown = err?.code === 'progress_resolver_unavailable'
+            const isDenied = err?.code === 'permission-denied' || err?.code === 'functions/permission-denied'
+            if (isResolverDown || isDenied) {
+              // [Codex P6-3] Log the RAW-denial case here too (the resolver event is already logged
+              // at source) so CS observability matches the controlled UX we show.
+              if (isDenied) {
+                logSystemEvent('legacy_write_denied', {
+                  userId: user.uid, classId: classIdParam, listId, phase: 'test-entry-studyday',
+                  testType: 'mcq', errCode: err?.code, errMessage: String(err?.message || '').slice(0, 300),
+                }, 'error')
+              }
+              setSubmitError('진행 정보를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요. (Couldn\'t load your progress — please reload the page and try again.)')
+              setSubmitting(false)
+              return
+            }
             console.error('Failed to derive studyDay from progress:', err)
           }
         } else {
@@ -637,6 +670,9 @@ const MCQTest = () => {
               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
             )
             result = { id: resp.data.attemptId }
+            // C-23: surface the server's verdict (returned on fresh AND idempotent writes)
+            // so the result card renders the stored truth, not a client recompute.
+            serverPassed = typeof resp.data.passed === 'boolean' ? resp.data.passed : null
           } else {
             result = await withRetry(
               () => submitTestAttempt(
@@ -656,6 +692,9 @@ const MCQTest = () => {
               { maxRetries: 3, totalTimeoutMs: 15000 },
               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
             )
+            // C-23: the client-written attempt doc stores exactly this verdict — surface
+            // it so the result card always matches the stored gradebook row.
+            serverPassed = passed
           }
 
           console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
@@ -793,9 +832,35 @@ const MCQTest = () => {
                 : '답안은 저장되었지만 세션을 초기화하지 못했습니다. 페이지를 새로고침해 주세요 — 문제가 반복되면 선생님께 알려 주세요. (Your answers are saved, but the session could not be reset. Please reload the page — tell your teacher if this repeats.)')
               return
             }
+            // [deepfix F-4] Evidence-free completion refused by the server (no passed new-word
+            // anchor + not a review-only day) — or an unknown status (fail-closed). The attempt
+            // is saved but the day did NOT complete: block success and prompt to pass the
+            // new-word test / retry, never present success.
+            if (completion?.completionNotApplied) {
+              console.warn('completeSessionFromTest: completion not applied — blocking success', { reason: completion?.reason })
+              setSubmitError('아직 이 날을 완료할 수 없습니다. 답안은 저장되었어요. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요. (This day can\'t be completed yet — your answers are saved. Make sure the new-word test was passed, then retry; reload the page if this repeats.)')
+              return
+            }
             console.log('Session completed successfully from MCQTest')
           } catch (completionErr) {
             console.error('Failed to complete session from test:', completionErr)
+            // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] A permission-denied
+            // completion is the legacy-write-cutoff signature (an old/flag-off bundle writing
+            // class_progress after P6 denies it). Today's rules allow the owner write, so this
+            // branch is unreachable — it ships now so the bundle that spans the cutoff already
+            // carries the handler. On detection: emit the server-visible `legacy_write_denied`
+            // event and BLOCK with a reload prompt (not the results screen) — the attempt is
+            // saved, but nothing further will persist until the client reloads.
+            if (completionErr?.code === 'permission-denied' || completionErr?.code === 'functions/permission-denied') {
+              logSystemEvent('legacy_write_denied', {
+                userId: user.uid, classId: classIdParam, listId,
+                dayNumber: sessionContext?.dayNumber ?? null, testType: 'mcq',
+                errCode: completionErr?.code,
+                errMessage: String(completionErr?.message || '').slice(0, 300),
+              }, 'error')
+              setSubmitError('앱이 업데이트되었습니다. 답안은 저장되었으니, 페이지를 새로고침한 뒤 이어서 진행해 주세요. (The app was updated — your answers are saved. Please reload the page to continue.)')
+              return
+            }
             // Don't fail the whole submit - attempt is already saved
           }
         }
@@ -813,7 +878,8 @@ const MCQTest = () => {
         total: summary.total,
         failed: summary.failed,
         testType: currentTestType,
-        answerArray
+        answerArray,
+        serverPassed // C-23: authoritative stored verdict (null in practice mode)
       })
 
       console.log('[SUBMIT] Showing test results to user')
@@ -1039,7 +1105,12 @@ const MCQTest = () => {
     const renderResultsCard = () => {
       // New Word Test: Pass/Fail based on threshold
       if (currentTestType === 'new') {
-        const passed = score >= retakeThreshold
+        // C-23: trust the stored attempt's verdict when we have it (server-computed
+        // against the class's real threshold). Only practice mode falls back to the
+        // local compare, which fails OPEN on a non-finite threshold instead of
+        // failing every score against an unresolved default.
+        const passed = testResultsData.serverPassed
+          ?? (Number.isFinite(retakeThreshold) ? score >= retakeThreshold : true)
 
         return (
           <div className={`rounded-2xl p-8 text-center shadow-xl ${

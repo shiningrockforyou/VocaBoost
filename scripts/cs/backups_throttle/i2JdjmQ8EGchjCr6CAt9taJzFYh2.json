@@ -1,0 +1,54 @@
+{
+  "email": "moonchae216@gmail.com",
+  "uid": "i2JdjmQ8EGchjCr6CAt9taJzFYh2",
+  "cp": "CKDTCxTTvscEZAY1DbUN_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 4,
+    "twi": 320,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "segmentEndIndex": 19,
+        "wordsTested": 20,
+        "wordsReviewed": 20,
+        "date": {
+          "_seconds": 1783911550,
+          "_nanoseconds": 109000000
+        },
+        "newWordScore": 0.97,
+        "segmentStartIndex": 0,
+        "wordsIntroduced": 80,
+        "reviewScore": 0,
+        "day": 2
+      },
+      {
+        "day": 3,
+        "wordsIntroduced": 80,
+        "reviewScore": 0,
+        "segmentStartIndex": 40,
+        "newWordScore": 0.97,
+        "date": {
+          "_seconds": 1784006100,
+          "_nanoseconds": 131000000
+        },
+        "wordsReviewed": 40,
+        "wordsTested": 30,
+        "segmentEndIndex": 79
+      },
+      {
+        "day": 4,
+        "date": {
+          "_seconds": 1784084687,
+          "_nanoseconds": 820000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 120,
+        "segmentEndIndex": 179,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

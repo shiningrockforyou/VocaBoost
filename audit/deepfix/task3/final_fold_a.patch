@@ -1,0 +1,431 @@
+diff --git a/functions/foundation.js b/functions/foundation.js
+--- a/functions/foundation.js
++++ b/functions/foundation.js
+@@ -451,6 +451,29 @@
+ // ============================================================================
+ 
+ /**
++ * F-6: read the reset-epoch tombstone's `resetAt` for (uid, list). Pre-P5 the
++ * tombstone lives in `users/{uid}/progress_meta/{listId}`; post-P5 it is stamped
++ * on the canonical doc (resetProgress step 5 / F-3) — mirror durableProgressRef's
++ * LIST_PROGRESS_CANONICAL switch. Returns a Timestamp or null (null on absent doc,
++ * missing field, or read error → callers then apply NO filtering, i.e. today's
++ * behaviour). The ONLY writer is the dormant resetProgress, so this is null for
++ * ALL existing data.
++ */
++async function getResetAtServer(uid, listId) {
++  try {
++    const ref = LIST_PROGRESS_CANONICAL ?
++      canonicalProgressRef(uid, listId) :
++      getDb().doc(`users/${uid}/progress_meta/${listId}`);
++    const snap = await ref.get();
++    if (!snap.exists) return null;
++    const ra = snap.data().resetAt;
++    return (ra && typeof ra.toMillis === "function") ? ra : null;
++  } catch {
++    return null; // tombstone read failure ⇒ no filtering (fall toward today's behaviour)
++  }
++}
++
++/**
+  * Port of getMostRecentPassedNewTest (db.js:3248-3333), list-scoped leg only
+  * (the server is always list-scoped — LIST_SCOPED_RECON is ON in prod, F-9).
+  * Returns {status:'found',attempt}|{status:'none'}|{status:'query-error',error}.
+@@ -458,6 +481,16 @@
+ async function getListAnchor(uid, listId) {
+   try {
+     const attempts = getDb().collection("attempts");
++    // F-6: reset-epoch filter. When a reset stamped `resetAt` for (uid,list),
++    // EXCLUDE attempts submitted before it — a stale in-flight attempt that lands
++    // after a reset must NOT re-promote the anchor ("reset un-resets"). No tombstone
++    // (resetAt null — true for ALL existing data, the writer is dormant) ⇒ notPreReset
++    // is always true ⇒ selection is byte-equivalent to before.
++    const resetAt = await getResetAtServer(uid, listId);
++    const resetMs = resetAt ? resetAt.toMillis() : null;
++    const notPreReset = (data) => resetMs == null ||
++      (data.submittedAt && typeof data.submittedAt.toMillis === "function" &&
++        data.submittedAt.toMillis() >= resetMs);
+     let cursor = null;
+     for (;;) {
+       let q = attempts
+@@ -473,8 +506,9 @@
+       const snap = await q.get();
+       if (snap.empty) break;
+       const validDoc = snap.docs.find((d) => {
+-        const v = d.data().newWordEndIndex;
+-        return Number.isInteger(v) && v >= 0;
++        const data = d.data();
++        const v = data.newWordEndIndex;
++        return Number.isInteger(v) && v >= 0 && notPreReset(data);
+       });
+       if (validDoc) {
+         return {status: "found", attempt: {id: validDoc.id, ...validDoc.data()}};
+@@ -494,6 +528,10 @@
+       .get();
+     if (daySnap.empty) return {status: "none"};
+     const d = daySnap.docs[0];
++    // F-6: a pre-reset straggler in the (limit-1) fallback ⇒ no valid post-reset
++    // anchor here (conservative — preserves the reset). Byte-equivalent when
++    // resetMs is null (notPreReset always true → returns the doc as before).
++    if (!notPreReset(d.data())) return {status: "none"};
+     return {status: "found", attempt: {id: d.id, ...d.data()}};
+   } catch (err) {
+     return {status: "query-error", error: {message: err?.message ?? String(err), code: err?.code ?? null}};
+@@ -613,7 +651,15 @@
+       if (cursor) q = q.startAfter(cursor);
+       const snap = await q.get();
+       snap.docs.forEach((d) => {
+-        const sd = d.data().studyDay;
++        const data = d.data();
++        // F-4: auto-completed review markers (client automarker + server W2 marker,
++        // both `autoCompleted:true`) are server/client-minted "no review available"
++        // stand-ins, NOT durable student review evidence — excluding them keeps the
++        // CSD-plausibility screen from legitimising a pumped csd on marker-only days.
++        // (Coordinate: the P5 migration's own review-evidence counter — stream C —
++        // must apply the SAME exclusion, per FINAL_REVIEW_FINDINGS F-4.)
++        if (data.autoCompleted === true) return;
++        const sd = data.studyDay;
+         if (Number.isInteger(sd)) days.add(sd);
+       });
+       if (snap.docs.length < REVIEW_EVIDENCE_PAGE) break;
+@@ -838,14 +884,21 @@
+  *   newWordEndIndex   === nwsi + introducedCount − 1
+  *   introducedCount   ≤ server allocation (clamped to wordsRemaining)
+  *   studyDay          === serverCsd + 1
+- * LOG-ONLY (`anchor_rejected` with shadow:true) — NEVER throws, never blocks
+- * the write. ANCHOR_VALIDATION_ENFORCE (P6) is deliberately NOT consumed here
+- * yet: enforcement wiring lands with the P6 rules deploy, after the shadow
+- * soak proves ≈0 false rejects.
++ * SHADOW mode (ANCHOR_VALIDATION_SHADOW, ANCHOR_VALIDATION_ENFORCE=false): LOG-ONLY
++ * (`anchor_rejected` with shadow:true, enforced:false) — never throws, never blocks.
++ * ENFORCE mode (F-2 / FIX_PLAN P6d, ANCHOR_VALIDATION_ENFORCE=true, flipped ONLY after
++ * the ≥14-day shadow soak proves ≈0 false rejects): on a violation, logs
++ * `anchor_rejected {enforced:true}` and REJECTS the write (throws) — the C-31 backstop
++ * that was SPECIFIED but never wired (P3_impl_notes U9). The enforce throw is placed
++ * OUTSIDE the read try/catch so it PROPAGATES to the caller (the catch swallows only our
++ * OWN read errors → fail-open, never blocks a legit write on an infra hiccup). Returns a
++ * `{violations:[…]}` verdict (the caller ignores it; the throw is the enforcement leg).
++ * Both flags false (this dormant draft) ⇒ immediate no-op with ZERO reads ⇒ byte-identical.
+  */
+ async function validateAttemptAnchorShadow(uid, ctx, classData) {
+-  if (!ANCHOR_VALIDATION_SHADOW) return;
+-  if (!ctx || ctx.sessionType !== "new") return;
++  if (!ANCHOR_VALIDATION_SHADOW && !ANCHOR_VALIDATION_ENFORCE) return {violations: []};
++  if (!ctx || ctx.sessionType !== "new") return {violations: []};
++  let detectedViolations = [];
+   try {
+     const assignment = classData?.assignments?.[ctx.listId] || null;
+     // Server state: the same record the day-guard baselines on (legacy doc
+@@ -900,12 +953,14 @@
+     if (ctx.studyDay !== serverCsd + 1) violations.push("studyDay_ne_csd_plus_1");
+ 
+     if (violations.length > 0) {
+-      logger.warn("anchor_rejected (SHADOW — write NOT blocked)", {
++      logger.warn(ANCHOR_VALIDATION_ENFORCE ?
++        "anchor_rejected (ENFORCED — write BLOCKED)" :
++        "anchor_rejected (SHADOW — write NOT blocked)", {
+         uid, classId: ctx.classId, listId: ctx.listId, attemptDocId: ctx.attemptDocId, violations,
+       });
+       await logSystemEventServer("anchor_rejected", {
+-        shadow: true,
+-        enforced: false,
++        shadow: !ANCHOR_VALIDATION_ENFORCE,
++        enforced: ANCHOR_VALIDATION_ENFORCE,
+         userId: uid,
+         classId: ctx.classId,
+         listId: ctx.listId,
+@@ -923,12 +978,26 @@
+         },
+       });
+     }
++    detectedViolations = violations;
+   } catch (err) {
+-    // Shadow validation must NEVER affect the live write path.
++    // Our OWN read/validation error must NEVER affect the live write path
++    // (fail-open): swallow it and let the write proceed. Enforcement (below) is
++    // therefore never triggered by an infra hiccup — only by a real violation.
+     logger.warn("anchor shadow validation errored (non-fatal, write unaffected)", {
+       uid, error: err.message,
+     });
++    return {violations: [], readError: true};
+   }
++  // F-2 (M4 ENFORCE — FIX_PLAN P6d; completes P3_impl_notes U9): once
++  // ANCHOR_VALIDATION_ENFORCE is armed (P6, after the shadow soak), a real
++  // violation REJECTS the write. Thrown OUTSIDE the try/catch so it propagates
++  // (the catch is for our own read errors only). Dormant behind the flag ⇒ never
++  // taken in this draft ⇒ byte-equivalent (shadow/log-only when only SHADOW is on).
++  if (ANCHOR_VALIDATION_ENFORCE && detectedViolations.length > 0) {
++    throw new HttpsError("failed-precondition",
++      `Attempt anchor rejected by M4 enforcement (${detectedViolations.join(",")})`);
++  }
++  return {violations: detectedViolations};
+ }
+ 
+ // ============================================================================
+@@ -1064,6 +1133,21 @@
+       reviewOnlyReasons.allocationZero ||
+       reviewOnlyReasons.listComplete ||
+       reviewOnlyReasons.reviewStudyResume;
++
++    // ── F-4: EVIDENCE REQUIREMENT (do NOT advance csd/twi test-free) ──
++    // A completion may advance the day ONLY with evidence: a day-N passed `new`
++    // anchor (dayNewPass, list-wide under LIST_SCOPED_RECON) OR a server-verified
++    // review-only reason (allocationZero / listComplete / reviewStudyResume,
++    // computed above). A bare completeSession(csd+1) with neither is refused — it
++    // would pump csd/twi with no anchor AND mint the review-markers the P5
++    // CSD-plausibility screen trusts as durable evidence. The transactional
++    // day-guard + idempotency legs above are untouched; this only gates the
++    // actual advance. (dayNewPass.error was already rejected pre-txn.)
++    const hasNewAnchor = !!dayNewPass && Number.isInteger(dayNewPass.newWordEndIndex);
++    if (!hasNewAnchor && !reviewOnlyDay) {
++      return {status: "no_evidence", current, currentCsd, currentTwi, reviewOnlyReasons};
++    }
++
+     const serverNewWordCount = cycling ? Math.max(0, allocNew) : Math.min(allocNew, wordsRemaining); // studyService.js:235
+     const wordsIntroduced = reviewOnlyDay ? 0 : Math.max(0, serverNewWordCount); // clamp, :1339-1342
+ 
+@@ -1156,6 +1240,23 @@
+     };
+   }
+ 
++  // F-4: evidence-gated non-advance. The day-guard passed (dayNumber === csd+1)
++  // but there is no passed `new` anchor and no server-verified review-only reason
++  // — refuse to advance (nothing was written in the txn). The session is NOT
++  // cleared (unlike a day-guard collision): the student may simply need to pass
++  // the day's test, so the in-flight session should survive for a genuine retry.
++  if (txnResult.status === "no_evidence") {
++    await logSystemEventServer("complete_session_no_evidence", {
++      userId: uid, classId, listId,
++      sessionDay: dayNumber,
++      progressDay: txnResult.currentCsd,
++      reasons: txnResult.reviewOnlyReasons,
++      reason: "no passed-new anchor and no server-verified review-only reason",
++      source: "completeSession",
++    }, "warning");
++    return {status: "no_evidence", dayGuardRejected: false, advanced: false, progressDay: txnResult.currentCsd};
++  }
++
+   // Runtime client-vs-server reviewOnlyDay mismatch tripwire (FIX_PLAN P4
+   // "reviewonly_derivation_mismatch" — the server leg lives here so the log
+   // starts the moment P4 routes traffic; client just sends its preview).
+@@ -1352,11 +1453,16 @@
+       threshold,
+     });
+     // TWI screen (§8): a stored TWI above a VALID anchor is anchor-unbacked;
+-    // an anchorless nonzero TWI has no proof at all. Candidates only —
++    // a nonzero TWI with NO valid anchor has no proof at all. Candidates only —
+     // read-only mode never blocks (see header).
++    // F-7: the second leg fires for ANY not-valid-anchor status (none OR
++    // invalid-anchor OR query-error), aligning with the P5 migration's ANCHORLESS_TWI
++    // rule (`!hasValidData && twi>0`). The old `=== 'none'` let an invalid-anchor
++    // stored twi>0 canonicalise here while the migration would quarantine it — the
++    // resolver was LOOSER than the migration (FINAL_REVIEW_FINDINGS F-7).
+     const twiSuspect =
+       (anchor.hasValidData && (doc.data.totalWordsIntroduced || 0) > anchor.twi) ||
+-      (anchor.anchorStatus === "none" && (doc.data.totalWordsIntroduced || 0) > 0);
++      (!anchor.hasValidData && (doc.data.totalWordsIntroduced || 0) > 0);
+     if (screen.implausible || twiSuspect) {
+       quarantineCandidates.push({
+         docId: doc.id,
+@@ -1652,14 +1758,36 @@
+ 
+   // 5 · Reset-epoch tombstone (M7 / [C3-3b]).
+   const now = admin.firestore.Timestamp.now();
+-  const epochTarget = LIST_PROGRESS_CANONICAL ?
+-    canonicalProgressRef(uid, listId) :
+-    db.doc(`users/${uid}/progress_meta/${listId}`);
+-  await epochTarget.set({
++  const epochStamp = {
+     resetEpoch: admin.firestore.FieldValue.increment(1),
+     resetAt: now,
+     resetBy: "resetProgress",
+-  }, {merge: true});
++  };
++  if (LIST_PROGRESS_CANONICAL) {
++    // F-3: post-P5 the durable position IS the canonical doc — the SAME set that
++    // stamps the epoch MUST also zero it, else the reset is a NO-OP that leaves
++    // csd/twi/recentSessions intact AND (twi>0 with the wiped anchors) mints the
++    // anchorless-twi>0 signature the P5 migration quarantines. Default-shape zeros
++    // + a fresh programStartDate, merged onto the canonical doc.
++    await canonicalProgressRef(uid, listId).set({
++      ...epochStamp,
++      listId,
++      currentStudyDay: 0,
++      totalWordsIntroduced: 0,
++      interventionLevel: 0,
++      recentSessions: [],
++      stats: {avgNewWordScore: null, avgReviewScore: null},
++      streakDays: 0,
++      lastStudyDate: null,
++      lastSessionAt: null,
++      programStartDate: mondayOfWeekTimestamp(),
++      updatedAt: now,
++    }, {merge: true});
++  } else {
++    // Pre-P5 (legacy/dormant path — UNCHANGED): the epoch tombstone lives in
++    // progress_meta so the list_progress collection provably stays empty until P5.
++    await db.doc(`users/${uid}/progress_meta/${listId}`).set(epochStamp, {merge: true});
++  }
+ 
+   await logSystemEventServer("reset_progress_server", {
+     userId: uid, listId, deleted,
+@@ -1841,8 +1969,14 @@
+   if (!Object.prototype.hasOwnProperty.call(enrolled, classId)) {
+     throw new HttpsError("permission-denied", "The student is not enrolled in the target class.");
+   }
+-  // The class must assign the target list.
+-  if (!classData.assignments || !classData.assignments[listId]) {
++  // The class must assign the target list. F-12: accept the legacy `assignedLists`
++  // array too, matching the sibling gates (assertEnrolledAssigned :291-293 and
++  // computeTeacherIdsForAttempt :1889-1892 both admit assignedLists-only classes) —
++  // otherwise a legitimate legacy-assigned target is wrongly rejected.
++  const assignsList =
++    (classData.assignments && classData.assignments[listId]) ||
++    (Array.isArray(classData.assignedLists) && classData.assignedLists.includes(listId));
++  if (!assignsList) {
+     throw new HttpsError("invalid-argument", "The target class does not assign this list.");
+   }
+   return {via: "target", classData};
+@@ -2284,14 +2418,39 @@
+   const classData = classSnap.exists ? (classSnap.data() || {}) : {};
+   const assignment = classData.assignments?.[tListId] ?? null;
+   const teacherId = classData.ownerTeacherId || null;
++  // F-5: read list size + EFFECTIVE cross-class cycling ONCE, BEFORE deriving the
++  // anchor range, so the anchor can be clamped to the list end (below) and the
++  // same values feed the day-advance (reused, not re-read).
++  let totalListWords = null;
++  try {
++    const listSnap = await db.collection("lists").doc(tListId).get();
++    totalListWords = listSnap.exists ? (listSnap.data().wordCount || 0) : null;
++  } catch (_) {
++    totalListWords = null;
++  }
++  const cycling = (await resolveEffectiveCyclingServer(tStudentId, tListId)).enabled;
+   const attemptsSnap = await db.collection("attempts").where("studentId", "==", tStudentId).get();
+   const day1 = attemptsSnap.docs
+     .map((d) => d.data())
+-    .find((a) => a.sessionType === "new" && a.passed === true && a.classId === tClassId &&
++    // F-5: match the target LIST as well as the class (deterministic — the old
++    // class-only match could pick a day-1 anchor from a DIFFERENT list under the
++    // same class and derive a wrong pace).
++    .find((a) => a.sessionType === "new" && a.passed === true &&
++      a.classId === tClassId && a.listId === tListId &&
+       a.studyDay === 1 && Number.isInteger(a.newWordEndIndex));
+   const pace = day1 ? day1.newWordEndIndex + 1 : 80;
+-  const newWordStartIndex = (tStudyDay - 1) * pace;
+-  const newWordEndIndex = tStudyDay * pace - 1;
++  let newWordStartIndex = (tStudyDay - 1) * pace;
++  let newWordEndIndex = tStudyDay * pace - 1;
++  // F-5: NO forward-jump past the list size. On a NON-cycling list, clamp the
++  // anchor's end to totalListWords−1 so the reconciliation twi (= nwei+1) can
++  // never exceed the list (the "twi 400 on a 300-word list" forgery). Also clamp
++  // the start so wordsIntroduced never goes negative when the whole segment is
++  // past the list end. Under cycling the virtual index legitimately climbs past
++  // the list each lap → do NOT clamp (parity with the M4/allocation lap logic).
++  if (!cycling && Number.isInteger(totalListWords) && totalListWords > 0) {
++    newWordEndIndex = Math.min(newWordEndIndex, totalListWords - 1);
++    newWordStartIndex = Math.min(newWordStartIndex, newWordEndIndex);
++  }
+   // manual-pass.mjs:53 uses the assignment passThreshold with a 92 default (NOT the app's
+   // 95 — flagged in P10_impl_notes U-note as a manual-pass parity carry).
+   const passThreshold = assignment?.passThreshold ?? 92;
+@@ -2323,14 +2482,8 @@
+   // on the day-advance succeeding.
+   let advanceResult = null;
+   if (passed) {
+-    let totalListWords = null;
+-    try {
+-      const listSnap = await db.collection("lists").doc(tListId).get();
+-      totalListWords = listSnap.exists ? (listSnap.data().wordCount || 0) : null;
+-    } catch (_) {
+-      totalListWords = null;
+-    }
+-    const cycling = (await resolveEffectiveCyclingServer(tStudentId, tListId)).enabled;
++    // Reuse the list size + effective cycling resolved above (F-5) — same values,
++    // no second read.
+     advanceResult = await runChallengeDayAdvanceTxn({
+       attempt: anchor, assignment, phase: "new", studentId: tStudentId, classId: tClassId, listId: tListId,
+       newScore: score, totalListWords, cycling,
+diff --git a/functions/index.js b/functions/index.js
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -380,13 +380,15 @@
+   const authRes = auth || await assertCanWriteAttempt(uid, ctx);
+   const {passThreshold, teacherId} = authRes;
+ 
+-  // deepfix P3 change 6 — M4 anchor validation in SHADOW (I-6 §1.2 #4): assert the
+-  // client-echoed anchor (newWordStartIndex/EndIndex/wordsIntroduced/studyDay) against
+-  // SERVER state, LOG-ONLY (`anchor_rejected`, shadow:true). Covers both live writers
+-  // (submitVocabAttempt + gradeTypedTest direct-write — F-9: 96% of live attempts flow
+-  // here). Dormant behind ANCHOR_VALIDATION_SHADOW (false in this draft; the P3 deploy
+-  // flips it per the G1 flag table); internally try/caught — can NEVER affect the write.
+-  // Enforcement (clamp-or-reject) is P6-only, after the ≥14-day shadow soak.
++  // deepfix P3 change 6 — M4 anchor validation (I-6 §1.2 #4): assert the client-echoed
++  // anchor (newWordStartIndex/EndIndex/wordsIntroduced/studyDay) against SERVER state.
++  // Covers both live writers (submitVocabAttempt + gradeTypedTest direct-write — F-9: 96%
++  // of live attempts flow here). SHADOW (ANCHOR_VALIDATION_SHADOW): LOG-ONLY
++  // (`anchor_rejected`, shadow:true); internally try/caught — can NEVER affect the write.
++  // ENFORCE (F-2, ANCHOR_VALIDATION_ENFORCE — P6-only, after the ≥14-day shadow soak): a
++  // real violation throws here (`anchor_rejected {enforced:true}`) and ABORTS the write
++  // before the transaction below. Both flags false in this draft ⇒ this call is a no-op
++  // (zero reads, never throws) ⇒ byte-identical to today.
+   await foundation.validateAttemptAnchorShadow(uid, ctx, authRes.classData);
+ 
+   // Score against TOTAL questions presented, not answered (§Codex).
+diff --git a/src/services/db.js b/src/services/db.js
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -3518,6 +3518,27 @@
+       // no fixed client window a valid candidate could fall outside of. Real data is
+       // integer-only (server + manual-pass both write integers; Phase-0 audit found no
+       // floats) — this loop is the correctness guarantee, expected to hit page 1 doc 1.
++      //
++      // F-6 (reset-epoch filter — FINAL_REVIEW_FINDINGS): once reset is routed to the
++      // server, resetProgress stamps `resetAt` in users/{uid}/progress_meta/{listId} and
++      // EXCLUDES attempts submitted before it, so a stale in-flight attempt that lands
++      // AFTER a reset cannot re-promote the anchor ("reset un-resets"). Gated behind
++      // SERVER_RESET_PROGRESS — the tombstone's ONLY writer: flag OFF (today) ⇒ ZERO extra
++      // reads and NO filtering ⇒ byte-identical to today. Even flag-ON, no `resetAt` (never
++      // reset) ⇒ notPreReset always true ⇒ the anchor selection is unchanged.
++      let resetMs = null
++      if (SERVER_RESET_PROGRESS) {
++        try {
++          const metaSnap = await getDoc(doc(db, `users/${userId}/progress_meta/${listId}`))
++          const ra = metaSnap.exists() ? metaSnap.data().resetAt : null
++          resetMs = (ra && typeof ra.toMillis === 'function') ? ra.toMillis() : null
++        } catch {
++          resetMs = null // tombstone read failure ⇒ no filtering (today's behavior)
++        }
++      }
++      const notPreReset = (data) => resetMs == null ||
++        (data.submittedAt && typeof data.submittedAt.toMillis === 'function' &&
++          data.submittedAt.toMillis() >= resetMs)
+       const PAGE = 10
+       let cursor = null
+       for (;;) {
+@@ -3536,8 +3557,9 @@
+         const posSnap = await getDocs(qPos)
+         if (posSnap.empty) break
+         const validDoc = posSnap.docs.find(d => {
+-          const v = d.data().newWordEndIndex
+-          return Number.isInteger(v) && v >= 0
++          const data = d.data()
++          const v = data.newWordEndIndex
++          return Number.isInteger(v) && v >= 0 && notPreReset(data)
+         })
+         if (validDoc) {
+           const data = { id: validDoc.id, ...validDoc.data() }
+@@ -3573,6 +3595,13 @@
+       }
+       const d = daySnap.docs[0]
+       const data = { id: d.id, ...d.data() }
++      // F-6: a pre-reset straggler in the (limit-1) studyDay fallback ⇒ no valid
++      // post-reset anchor (conservative — preserves the reset). Byte-identical when
++      // resetMs is null (notPreReset always true → returns the doc as before).
++      if (!notPreReset(d.data())) {
++        console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped): studyDay-fallback anchor is pre-reset — excluded')
++        return { status: 'none' }
++      }
+       console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped, studyDay fallback):', {
+         attemptId: d.id, classId: data.classId, studyDay: data.studyDay,
+         newWordEndIndex: data.newWordEndIndex

@@ -1,0 +1,174 @@
+﻿
+===========================================================================================================================================================================================================================================================================================================================================================
+| FLAG-ON APPLIED (matrix=call, run=emu-r3)                                                                                                                                                                                                                                                                                                               |
+| functions/foundation.js: SERVER_COMPLETE_SESSION_ENABLED, SERVER_RESOLVE_LIST_PROGRESS_ENABLED, SERVER_RESET_PROGRESS_ENABLED, SERVER_ADVANCE_FOR_CHALLENGE_ENABLED, LIST_PROGRESS_CANONICAL, ANCHOR_VALIDATION_SHADOW, ANCHOR_VALIDATION_ENFORCE, CYCLING_ENABLED, SERVER_REVIEW_CHALLENGE_ENABLED, SERVER_OVERRIDE_ENABLED, TEACHER_IDS_WRITE_ENABLED |
+| src/config/featureFlags.js: SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER, CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, SERVER_RESET_PROGRESS, SERVER_OVERRIDE, TEACHER_IDS_READ                                                                                                                                                          |
+| backups: C:\Users\dmchw\vocaboost\audit\playwright\findings\flag_on_backup_emu-r3                                                                                                                                                                                                                                                                       |
+| RESTORE IS MANDATORY: --restore (or use --exec for a guaranteed restore).                                                                                                                                                                                                                                                                               |
+===========================================================================================================================================================================================================================================================================================================================================================
+
+[flag_on] exec: firebase emulators:exec --only functions,firestore,auth --project demo-vocaboost audit\deepfix\task6\run_callable_emu_r3.cmd
+[36m[1mi  emulators:[22m[39m Starting emulators: auth, functions, firestore
+[36m[1mi  emulators:[22m[39m Detected demo project ID "demo-vocaboost", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[33m[1m! [22m[39m Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection.
+[32m[1m+  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+[36m[1mi  functions:[22m[39m Watching "C:\Users\dmchw\vocaboost\functions" for Cloud Functions...
+[32m[1m+  functions:[22m[39m Using node@24 from host.
+Serving at port 8329
+
+{"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+
+[32m[1m+  functions:[22m[39m Loaded functions definitions from source: submitVocabAttempt, markReviewComplete, submitChallenge, gradeTypedTest, getGradingStatus, createSession, submitTest, pauseStaleSessions, renameStudent, provisionTeacher, completeSession, resolveListProgress, resetProgress, advanceForChallenge, reviewChallenge, overrideAttempt, version.
+[32m[1m+  functions[us-central1-submitVocabAttempt]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitVocabAttempt).
+[32m[1m+  functions[us-central1-markReviewComplete]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/markReviewComplete).
+[32m[1m+  functions[us-central1-submitChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitChallenge).
+[32m[1m+  functions[us-central1-gradeTypedTest]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/gradeTypedTest).
+[32m[1m+  functions[us-central1-getGradingStatus]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/getGradingStatus).
+[32m[1m+  functions[us-central1-createSession]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/createSession).
+[32m[1m+  functions[us-central1-submitTest]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/submitTest).
+[36m[1mi  functions[us-central1-pauseStaleSessions]:[22m[39m function ignored because the pubsub emulator does not exist or is not running.
+[32m[1m+  functions[us-central1-renameStudent]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/renameStudent).
+[32m[1m+  functions[us-central1-provisionTeacher]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/provisionTeacher).
+[32m[1m+  functions[us-central1-completeSession]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/completeSession).
+[32m[1m+  functions[us-central1-resolveListProgress]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/resolveListProgress).
+[32m[1m+  functions[us-central1-resetProgress]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/resetProgress).
+[32m[1m+  functions[us-central1-advanceForChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/advanceForChallenge).
+[32m[1m+  functions[us-central1-reviewChallenge]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/reviewChallenge).
+[32m[1m+  functions[us-central1-overrideAttempt]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/overrideAttempt).
+[32m[1m+  functions[us-central1-version]:[22m[39m [1mhttp[22m function initialized (http://127.0.0.1:5001/demo-vocaboost/us-central1/version).
+[36m[1mi [22m[39m Running script: [1maudit\deepfix\task6\run_callable_emu_r3.cmd[22m
+
+=== M-CALL (emu-r3) — emulator demo-vocaboost firestore=127.0.0.1:8080 functions=127.0.0.1:5001 ===
+
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 608.5698ms
+  [PASS ] CS-1     completeSession happy path → canonical csd+1/twi+=alloc/recentSessions
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 169.0305ms
+  [PASS ] CS-1e    completeSession no_evidence block (F-4): no anchor, not review-only ⇒ refuse to advance
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 159.2899ms
+  [PASS ] CS-2     completeSession day-guard reject: stale day ⇒ no advance + day_guard_rejected_session_cleared(uid)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 136.4596ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 133.7599ms
+  [PASS ] CS-3     completeSession idempotent retry: replay committed completion ⇒ already_completed, exactly one +1
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 239.842ms
+  [PASS ] CS-4a    reviewOnlyDay reason1 allocationZero (S3 throttle) ⇒ twi flat, wordsIntroduced=0
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 232.9663ms
+  [PASS ] CS-4b    reviewOnlyDay reason2 listComplete (S4/S5 list-end) ⇒ twi flat, wordsIntroduced=0
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 207.9544ms
+  [PASS ] CS-4c    reviewOnlyDay reason3 reviewStudyResume (S8/#9 already-absorbed) ⇒ twi flat, wordsIntroduced=0
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-markReviewComplete"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-markReviewComplete" in 513.4202ms
+  [PASS ] CS-5     markReviewComplete W2 upgraded: parseable testId + integer nwsi/nwei == day anchor (pairable)
+[36m[1mi  functions:[22m[39m Trying to access secret GRADE_TOKEN_SECRET@latest
+Authentication Error: Your credentials are no longer valid. Please run [1mfirebase login --reauth[22m
+
+For CI servers and headless environments, generate a new token with [1mfirebase login:ci[22m
+[31m[1m!!  functions:[22m[39m Unable to access secret environment variables from Google Cloud Secret Manager. Make sure the credential used for the Functions Emulator have access or provide override values in C:\Users\dmchw\vocaboost\functions\.secret.local:
+	FirebaseError: Authentication Error: Your credentials are no longer valid. Please run [1mfirebase login --reauth[22m
+
+For CI servers and headless environments, generate a new token with [1mfirebase login:ci[22m
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[90m> [39m {"uid":"VsviwaaFkfPNXQUVWLnyUz8kxiIu","classId":"25WTemur3cs6f","listId":"lsrlistemur3cs6f","attemptDocId":"VsviwaaFkfPNXQUVWLnyUz8kxiIu_25WTemur3cs6f_lsrlistemur3cs6f_forged","violations":["nwsi_ne_server_twi","introduced_over_allocation"],"severity":"WARNING","message":"anchor_rejected (ENFORCED — write BLOCKED)"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 537.7191ms
+  [PASS ] CS-6f    M4 ENFORCE forged anchor (nwsi≠serverTwi) ⇒ failed-precondition reject + anchor_rejected{enforced}(uid)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 201.5672ms
+  [PASS ] CS-6v    M4 ENFORCE valid anchor (nwsi==serverTwi, in-allocation) ⇒ silent pass (write lands, no anchor_rejected)
+  [SKIP ] CS-7     nonce F2 gradeTypedTest attemptDocId in grade return + cached job
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 473.8457ms
+  [PASS ] CS-8a    resolveListProgress canonical-first: existing canonical ⇒ mode=canonical, its csd/twi
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 201.1118ms
+  [PASS ] CS-8b    resolveListProgress straggler hydrate: legacy-only + valid anchor ⇒ create canonical (mode=canonical, hydrated)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resolveListProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resolveListProgress" in 105.9835ms
+  [PASS ] CS-8c    resolveListProgress quarantine: anchorless forged-high-twi ⇒ mode=quarantined + list_progress_quarantined
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-resetProgress"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-resetProgress" in 546.0885ms
+  [PASS ] CS-9     resetProgress: attempts wiped (all classes), session_states cleared, canonical zeroed + resetEpoch/resetAt
+  [SKIP ] CS-10    grading-job recovery suite (dsg-edits/srv_validate/grading_job_tests.mjs)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 140.0993ms
+  [PASS ] CS-11m   derivation-mismatch: client reviewOnlyDay disagrees with server ⇒ reviewonly_derivation_mismatch(uid)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-completeSession"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-completeSession" in 128.2914ms
+  [PASS ] CS-11a   derivation-agree: client reviewOnlyDay matches server ⇒ NO reviewonly_derivation_mismatch
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 629.4449ms
+  [PASS ] OV-1     overrideAttempt writes a FULL VALID anchor (nwsi/nwei/wordsIntroduced/testId) + day advances
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 237.7694ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 309.7093ms
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-overrideAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-overrideAttempt" in 78.0149ms
+  [PASS ] OV-2     override authz union: stamp(A)=allow, enrollment(B)=allow, outsider(C)=permission-denied
+[90m> [39m {"build":{"sha":"05e35277e1d314becc24cf56dc2b8f7da4c8049b","shortSha":"05e3527","branch":"main","dirty":true,"builtAt":"2026-06-29T15:06:44.991Z"},"severity":"INFO","message":"cold start"}
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-reviewChallenge"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-reviewChallenge" in 664.741ms
+  [PASS ] OV-3c    reviewChallenge new-phase accept near list-end (Day-1 completion): twi CLAMPED at listTotal (not unclamped)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-reviewChallenge"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-reviewChallenge" in 271.0681ms
+  [PASS ] OV-3p    reviewChallenge review-phase accept: phase gate ⇒ twi UNCHANGED (nwei:null hazard closed)
+[36m[1mi  functions:[22m[39m Beginning execution of "us-central1-submitVocabAttempt"
+[90m> [39m {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+[36m[1mi  functions:[22m[39m Finished "us-central1-submitVocabAttempt" in 198.6512ms
+  [PASS ] CY-3     lap-aware M4: under cycling, a lap-2 anchor (twi>listTotal) is NOT rejected (anchor_rejected=0)
+The system cannot find the path specified.
+
+artifacts:
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_call_emu-r3.json
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_call_emu-r3.md
+
+FINAL: CLEAN pass=21 fail=0 invalid=0 skip=2
+[32m[1m+ [22m[39m Script exited successfully (code 0)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  functions:[22m[39m Stopping Functions Emulator
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[33m[1m! [22m[39m Firestore Emulator has exited upon receiving signal: SIGINT
+[36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+[36m[1mi  eventarc:[22m[39m Stopping Eventarc Emulator
+[36m[1mi  tasks:[22m[39m Stopping Cloud Tasks Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
+[flag_on] restored functions/foundation.js
+[flag_on] restored src/config/featureFlags.js
+[flag_on] restore complete — flags OFF, working tree reverted to pre-apply state.

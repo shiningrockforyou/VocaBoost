@@ -1,0 +1,54 @@
+{
+  "id": "qIrJTbwlDOnCKLaTYoz4",
+  "name": "26SM SAT Adv B2",
+  "assignments": {
+    "AObYOowhLoOOHx9wW2Sq": {
+      "assignedAt": {
+        "_seconds": 1780174888,
+        "_nanoseconds": 319000000
+      },
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMax": 30,
+      "reviewTestType": "mcq",
+      "testMode": "typed",
+      "testSizeNew": 30,
+      "testOptionsCount": 6,
+      "reviewTestSizeMin": 20,
+      "passThreshold": 92,
+      "pace": 80,
+      "newWordRetakeThreshold": 0.92
+    },
+    "dVliNv0p9jqZYp9rfLpN": {
+      "assignedAt": {
+        "_seconds": 1780261288,
+        "_nanoseconds": 319000000
+      },
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMax": 30,
+      "reviewTestType": "mcq",
+      "testMode": "typed",
+      "testSizeNew": 30,
+      "testOptionsCount": 6,
+      "reviewTestSizeMin": 20,
+      "passThreshold": 92,
+      "pace": 80,
+      "newWordRetakeThreshold": 0.92
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780088488,
+        "_nanoseconds": 0
+      },
+      "pace": 80,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 92,
+      "testSizeNew": 30,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

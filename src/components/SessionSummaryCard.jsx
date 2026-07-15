@@ -5,6 +5,8 @@
  * Shows new words studied, test scores, words graduated, and overall progress.
  */
 
+import { computeLapView } from '../services/studyService'
+
 function SummaryRow({ label, value, highlight = false, icon = null }) {
   return (
     <div className="flex justify-between items-center">
@@ -20,9 +22,18 @@ function SummaryRow({ label, value, highlight = false, icon = null }) {
 function SessionSummaryCard({ summary, sessionConfig }) {
   // Use fresh TWI from progress (updated by completeSessionFromTest) with fallback to sessionConfig
   const totalWordsIntroduced = summary?.progress?.totalWordsIntroduced ?? sessionConfig?.totalWordsIntroduced ?? 0
-  const progressPercent = sessionConfig?.totalListWords > 0
-    ? Math.min(100, (totalWordsIntroduced / sessionConfig.totalListWords) * 100)
-    : 0
+  // P9 · CYC (§3e): under cycling show INTRODUCTION progress WITHIN the current lap
+  // ((twi mod cycleLength)/cycleLength) + "Lap N" — never the raw virtual counter over the
+  // list size (which would read >100% / "1250 / 1200"). Recomputed from the FRESH post-
+  // completion twi. Flag-off → cyclingActive falsy → today's exact percent + "twi / total".
+  const lapView = sessionConfig?.cyclingActive
+    ? computeLapView(totalWordsIntroduced, sessionConfig?.cycleLength)
+    : null
+  const progressPercent = lapView
+    ? lapView.pct
+    : (sessionConfig?.totalListWords > 0
+        ? Math.min(100, (totalWordsIntroduced / sessionConfig.totalListWords) * 100)
+        : 0)
 
   return (
     <div className="rounded-xl bg-surface border border-border-default p-5 shadow-sm">
@@ -77,9 +88,11 @@ function SessionSummaryCard({ summary, sessionConfig }) {
       {/* Progress Bar */}
       <div className="mt-4 pt-4 border-t border-border-default">
         <div className="flex justify-between text-sm mb-1">
-          <span className="text-text-muted">Total Progress</span>
+          <span className="text-text-muted">Total Progress{lapView ? ` · Lap ${lapView.lap}` : ''}</span>
           <span className="font-medium text-text-primary">
-            {totalWordsIntroduced} / {sessionConfig?.totalListWords ?? 0}
+            {lapView
+              ? `${lapView.numer} / ${lapView.denom}`
+              : `${totalWordsIntroduced} / ${sessionConfig?.totalListWords ?? 0}`}
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">

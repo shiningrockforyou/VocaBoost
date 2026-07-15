@@ -1,0 +1,232 @@
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+index ff358ee..649edd6 100644
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -819,6 +819,20 @@ export default function DailySessionFlow() {
+         } else if (config.segment) {
+           // Use the full review study set (capped segment + new-FAILED)
+           const allWords = await buildReviewStudySet(config.segment)
++          if (allWords.length === 0) {
++            // Empty review segment on a review-only day = every word MASTERED & resting → the list-end /
++            // all-mastered TERMINAL NO-WORK state. Complete WITHOUT recording: do NOT reuse showNoReviewModal
++            // (its close handler calls completeSession() → recordSessionCompletion), and do NOT call
++            // completeSession here — so currentStudyDay / recentSessions / completed-session records do NOT
++            // advance for a no-work day (Codex ROI2-1 / guardrail 5 / plan test 6, "no fake empty-day
++            // completion"). Prevents the empty-review-test dead-end (Lens C #3). CompletePhase renders the §5
++            // finished terminal because sessionConfig.isListComplete is already set (:567/:740).
++            setPhase(PHASES.COMPLETE)
++            if (sim?.isFullSimulation) {
++              setTimeout(() => { sim.onSessionComplete() }, 500)
++            }
++            return
++          }
+           setReviewQueue(allWords)
+           setReviewQueueCurrent(allWords)
+           setPhase(PHASES.REVIEW_STUDY)
+@@ -2179,19 +2193,41 @@ function CompletePhase({
+   progressInfo
+ }) {
+   const isFirstDay = sessionConfig?.isFirstDay
++  // §5 list-end terminal: once every word has been introduced, this is the distinct "finished the list"
++  // terminal state (not an ordinary day-complete). Copy is SELF-SUFFICIENT — cycling is automatic, so never
++  // promise teacher setup (Lens C #6). isListComplete is the persisted derivative (studyService.js:314);
++  // cycling (Phase 3) later replaces "new challenges may unlock later" with Lap-2 re-introduction.
++  const isListComplete = sessionConfig?.isListComplete === true
++  const listWordCount = sessionConfig?.totalListWords || sessionConfig?.totalWordsIntroduced || 0
+ 
+   return (
+     <div className="space-y-6">
+-      {/* Success Header */}
+-      <div className="text-center">
+-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
+-          <span className="text-3xl">✓</span>
++      {/* Success Header — list-end terminal gets distinct congratulatory copy (§5) */}
++      {isListComplete ? (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">🎉</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            List Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">You finished the list!</h2>
++          <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">
++            You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words — keep
++            them sharp with review. New challenges may unlock later.
++          </p>
+         </div>
+-        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
+-          Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
+-        </p>
+-        <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
+-      </div>
++      ) : (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">✓</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
++        </div>
++      )}
+ 
+       {/* Progress indicator */}
+       {progressInfo && (
+diff --git a/src/pages/Dashboard.jsx b/src/pages/Dashboard.jsx
+index 7a09f99..9cf5b8b 100644
+--- a/src/pages/Dashboard.jsx
++++ b/src/pages/Dashboard.jsx
+@@ -1559,6 +1559,10 @@ const Dashboard = () => {
+           const listTotal = getPrimaryFocus?.wordCount || 0
+           const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
+           const wordsLeft = Math.max(0, listTotal - tIntro)
++          // §5 persistent finished/terminal state: every word introduced. Derivable from PROGRESS alone
++          // (no Phase-2 allocation prediction needed) — the hero must then stop promising new words and
++          // congratulate + point to review, persistently (not just the day it completes).
++          const listFinished = listTotal > 0 && wordsLeft === 0
+           const day = (panelCState?.currentStudyDay ?? 0) + 1
+           const newCount = getPrimaryFocus?.pace || null
+           const phase = panelCState?.phase
+@@ -1650,15 +1654,24 @@ const Dashboard = () => {
+                         </span>
+                         {/* directive */}
+                         <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
+-                          {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
++                          {doneToday
++                            ? (listFinished ? 'List complete 🎉' : `Day ${day} done 🎉`)
++                            : reviewStage ? 'One step left — review'
++                              : listFinished ? 'Keep your words sharp'
++                                : newCount ? `Learn ${newCount} new words`
++                                  : "Start today's new words"}
+                         </h3>
+                         {/* help line */}
+                         <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
+                           {doneToday
+-                            ? "You're all caught up. Come back tomorrow."
++                            ? (listFinished
++                                ? "You've introduced every word — keep them sharp with review. New challenges may unlock later."
++                                : "You're all caught up. Come back tomorrow.")
+                             : reviewStage
+                               ? `Pass today's review test to complete Day ${day}.`
+-                              : 'Study them, then pass the test to unlock review.'}
++                              : listFinished
++                                ? "You've introduced every word in this list — today is review to lock them in."
++                                : 'Study them, then pass the test to unlock review.'}
+                         </p>
+                         {/* 2-step day tracker */}
+                         <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
+@@ -1678,7 +1691,7 @@ const Dashboard = () => {
+                           onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
+                           className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
+                         >
+-                          {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
++                          {doneToday ? (listFinished ? 'Review again →' : 'Practice again') : reviewStage ? 'Start review →' : listFinished ? 'Start review →' : 'Start new words →'}
+                         </button>
+                       </>
+                     )}
+diff --git a/src/services/studyService.js b/src/services/studyService.js
+index 54a12ad..2ee9ec5 100644
+--- a/src/services/studyService.js
++++ b/src/services/studyService.js
+@@ -1308,9 +1308,38 @@ export async function completeSessionFromTest({
+   // re-add it to TWI. FLAG-GATED so the flag-off path keeps the exact legacy `||` expression
+   // (Run-L byte-equivalence); only under LIST_SCOPED_RECON does an explicit 0 stay durable.
+   const cfgNewWordCount = sessionState?.sessionConfig?.newWordCount;
+-  const wordsIntroduced = LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
+-    ? cfgNewWordCount
+-    : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0);
++  // NEED_TO_FIX #11 — review-only day completion (PLAN_review_only_day_completion.md). A day that ASSIGNED
++  // zero new words (intervention throttle interv=1.0 → newWords=0, OR list-end wordsRemaining<=0) is a
++  // legitimately REVIEW-ONLY day: it has no new-word test, so the Day-2+ gate below must NOT block it — else
++  // the review that would lower intervention is never recorded (recordSessionCompletion runs only on
++  // completion) → PERMANENT stuck state. Flag-gated: the review-only CSD advance survives only via the
++  // non-demoting CSD guarantee under LIST_SCOPED_RECON. Use <= 0 (not === 0): newWordCount =
++  // min(allocation.newWords, wordsRemaining) can be NEGATIVE on over-introduction; ≤0 still means "no new
++  // words assignable," never "assigned-and-failed," and it matches isListComplete (wordsRemaining <= 0).
++  // A finite ≤0 cfgNewWordCount is a LEGIT review-only day ONLY when a session-config reason CONFIRMS that
++  // zero new words were assignable — otherwise a STALE (or forged) finite 0 on an ordinary assigned-new day
++  // would false-open the gate (Codex ROI-1 / acceptance test 4b). The three legit causes are all authoritative
++  // fields written by initializeDailySession and persisted verbatim in dailySessionState (both persist sites
++  // store the full sessionConfig — verified DailySessionFlow.jsx:1161 main path + :703 recovery path):
++  //   • intervention throttle          → allocation.newWords <= 0   (studyService.js:182,235,286)
++  //   • list end / over-introduced list → isListComplete === true   (:314)
++  //   • Fix #9 review-resume (new already passed in another class, nwCount forced to 0) → startPhase REVIEW_STUDY (:264,317)
++  const sessionCfg = sessionState?.sessionConfig || {};
++  const allocationNewWords = sessionCfg?.allocation?.newWords;
++  const reviewOnlyReasonConfirmed =
++    (Number.isFinite(allocationNewWords) && allocationNewWords <= 0) ||
++    sessionCfg.isListComplete === true ||
++    sessionCfg.startPhase === SESSION_PHASE.REVIEW_STUDY;
++  const reviewOnlyDay = LIST_SCOPED_RECON
++    && Number.isFinite(cfgNewWordCount) && cfgNewWordCount <= 0
++    && reviewOnlyReasonConfirmed;
++  // Durable words-introduced count: CLAMP to >= 0. cfgNewWordCount feeds updateClassProgress's
++  // `totalWordsIntroduced += wordsIntroduced`, so an unclamped negative would DECREMENT TWI. A review-only day
++  // introduces 0 → TWI stays flat.
++  const wordsIntroduced = reviewOnlyDay ? 0
++    : (LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
++        ? cfgNewWordCount
++        : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0));
+   const wordsReviewed = sessionState?.reviewQueue?.length || 0;
+ 
+   console.log('completeSessionFromTest called:', {
+@@ -1373,11 +1402,17 @@ export async function completeSessionFromTest({
+       // where passed=true with a lower score). The local `threshold` may be a wrong
+       // default (0.95) because assignments don't store newWordRetakeThreshold.
+       newWordAttemptPassed = newWordAttempt.passed === true;
++    } else if (reviewOnlyDay) {
++      // Legitimately REVIEW-ONLY day (0 new words assigned): there is NO new-word test to find, and its
++      // absence is EXPECTED — not a fault. Keep newWordScore LITERAL null (not 0) so it is excluded from
++      // avgNewWordScore (progressService filters null scores) and renders as "—" rather than a spurious
++      // "New: 0%". The gate below is skipped for this day, so this null never drives a not-passed decision.
++      newWordScore = null;
+     } else {
+       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
+-      // No prior new-word attempt found: keep newWordScore a valid number (0) rather
+-      // than undefined, so the gate below evaluates as not-passed and the session
+-      // write (if reached) succeeds. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
++      // No prior new-word attempt found on a day that WAS assigned new words: keep newWordScore a valid
++      // number (0) rather than undefined, so the gate below evaluates as not-passed and blocks. (0 >=
++      // threshold === false.)
+       newWordScore = 0;
+     }
+ 
+@@ -1388,7 +1423,11 @@ export async function completeSessionFromTest({
+     // saveSessionState(... phase: COMPLETE ...) below — otherwise the durable session_state
+     // cache gets stamped COMPLETE even though we return requiresNewWordRetake, leaving
+     // contradictory state for UI/support/admin tooling (audit Blocker, 2026-06-17).
+-    if (newWordAttemptPassed !== true && newWordScore < threshold) {
++    // reviewOnlyDay short-circuits the gate: a day that assigned zero new words has no new-word test to pass,
++    // so blocking it would strand the review (never recorded → intervention never drops → permanent stuck
++    // state, NEED_TO_FIX #11). newWordScore is null on that path; `null < threshold` would coerce to true, so
++    // the explicit !reviewOnlyDay guard — not the score comparison — is what lets the review-only day through.
++    if (!reviewOnlyDay && newWordAttemptPassed !== true && newWordScore < threshold) {
+       console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
+         dayNumber, newWordScore, threshold, newWordAttemptPassed
+       });
+@@ -1400,12 +1439,20 @@ export async function completeSessionFromTest({
+       };
+     }
+ 
+-    // Update session_states with final status (prevents race condition). Only reached
+-    // once the Day-2+ gate above has confirmed the new-word test was passed.
++    // Update session_states with final status (prevents race condition). Only reached once the Day-2+ gate
++    // above has passed (or the day is review-only). The new-word fields are LITERAL null ONLY when no real
++    // new-word attempt existed for the day — i.e. `newWordScore === null`, set solely by the
++    // `else if (reviewOnlyDay)` no-attempt branch above. It is NOT keyed on reviewOnlyDay itself: a Fix #9
++    // REVIEW_STUDY resume IS a reviewOnlyDay yet has a genuine PASSING new-word attempt (found above), and its
++    // real score must persist so session_state matches the summary/recentSessions (Lens A #1). Literal null
++    // (never `null >= threshold`, which coerces to a contradictory `false`). reviewOnlyDay:true is a
++    // write-only marker for future support/admin tooling (no consumer yet; deliberately not on the summary).
++    const newAttemptMissing = newWordScore === null;
+     await saveSessionState(userId, classId, listId, {
+       newWordsTestScore: newWordScore,
+-      newWordsTestPassed: newWordScore >= threshold,
++      newWordsTestPassed: newAttemptMissing ? null : (newWordScore >= threshold),
+       reviewTestScore: reviewScore,
++      ...(reviewOnlyDay ? { reviewOnlyDay: true } : {}),
+       phase: SESSION_PHASE.COMPLETE
+     });
+   }

@@ -1,0 +1,54 @@
+{
+  "email": "psihyeon30@gmail.com",
+  "uid": "esj1R1wzxreTGyUbrRSkkoPHx5w2",
+  "cp": "wRoGjp2QTa89DxAk9PlT_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 420,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "reviewScore": 0.23333333333333334,
+        "newWordScore": 1,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783908875,
+          "_nanoseconds": 706000000
+        },
+        "segmentEndIndex": 296,
+        "segmentStartIndex": 237,
+        "wordsTested": 30,
+        "day": 5,
+        "wordsIntroduced": 0
+      },
+      {
+        "segmentEndIndex": 79,
+        "day": 6,
+        "wordsTested": 30,
+        "segmentStartIndex": 3,
+        "wordsIntroduced": 60,
+        "reviewScore": 0.2,
+        "newWordScore": 1,
+        "wordsReviewed": 49,
+        "date": {
+          "_seconds": 1783910125,
+          "_nanoseconds": 529000000
+        }
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1783996818,
+          "_nanoseconds": 642000000
+        },
+        "newWordScore": 0.92,
+        "reviewScore": 0.13333333333333333,
+        "segmentStartIndex": 99,
+        "segmentEndIndex": 166,
+        "wordsIntroduced": 60,
+        "wordsReviewed": 59,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

@@ -22,8 +22,17 @@ import {
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
+import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ } from '../config/featureFlags'
 import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+
+// deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
+// never falls back when assignedLists is an empty array (`[]` is truthy) → "0 assigned lists" split-brain.
+// Use a length check. (Do NOT use at the two intentional accumulator seeds, db.js ~811/~835.)
+function getAssignedListIds(classData) {
+  return (classData?.assignedLists?.length
+    ? classData.assignedLists
+    : Object.keys(classData?.assignments || {}))
+}
 
 const defaultProfile = {
   displayName: '',
@@ -499,7 +508,7 @@ export const fetchStudentClasses = async (studentId) => {
           assignments[key].testMode = 'mcq'
         }
       })
-      const assignedListIds = classData.assignedLists || Object.keys(assignments)
+      const assignedListIds = getAssignedListIds(classData)  // C-35
 
       const assignedListDetails = await Promise.all(
         assignedListIds.map(async (listId) => {
@@ -934,6 +943,38 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
     updates.testSizeNew = sizeValue
   }
 
+  // P8 · CONT-A (CONTINUATION_LINKS): `nextListId` — the per-class list-sequence link
+  // (nullable). Teacher-authored policy config at the SAME trust level and write site as
+  // pace/testSizeNew (owner-teacher-only via the same `classes` rules surface). Absent/null
+  // = today's behavior exactly. Validated against the class's OWN assignments: the link
+  // must point at another list assigned to THIS class, never at itself.
+  if (settings.nextListId !== undefined) {
+    if (settings.nextListId === null || settings.nextListId === '') {
+      updates.nextListId = null
+    } else {
+      if (typeof settings.nextListId !== 'string') {
+        throw new Error('Next list must be a list id or null.')
+      }
+      if (settings.nextListId === listId) {
+        throw new Error('A list cannot be its own next list.')
+      }
+      if (!assignments[settings.nextListId]) {
+        throw new Error('Next list must be another list assigned to this class.')
+      }
+      updates.nextListId = settings.nextListId
+    }
+  }
+
+  // P9 · CYC (CYCLING_ENABLED): `cyclingEnabled` — the per-assignment second key of the
+  // two-key cycling gate (x/plan §3b/§4.5). Owner-teacher-only, SAME trust level + write
+  // site + `classes` rules surface as pace/testSizeNew (a student cannot flip it,
+  // firestore.rules:55). Only PERSISTED when the global CYCLING_ENABLED build flag is on —
+  // with the flag off the key is never written (undefined ⇒ untouched), so flag-off saves
+  // are byte-identical to today's. Absent/false ⇒ today's behavior exactly (no cycling).
+  if (CYCLING_ENABLED && settings.cyclingEnabled !== undefined) {
+    updates.cyclingEnabled = settings.cyclingEnabled === true
+  }
+
   assignments[listId] = {
     ...assignments[listId],
     ...updates,
@@ -1143,6 +1184,42 @@ export const calculateCredibility = (answers, userWordStates) => {
 }
 
 /**
+ * [deepfix P10 · OVR part (c) / David U1 = Option A] CLIENT twin of the server
+ * foundation.computeTeacherIdsForAttempt — the additive `teacherIds` denormalization set the
+ * teacher gradebook `array-contains` query matches (the C-19 read-surface widening). KEEP IN
+ * SYNC with functions/foundation.js computeTeacherIdsForAttempt and the backfill migration
+ * scripts/cs/deepfix-migrate-attempts-teacherids.mjs:
+ *   teacherIds = { stampTeacherId (if set) }
+ *              ∪ { classes/{c}.ownerTeacherId : student CURRENTLY enrolled in c AND c assigns listId }
+ * List-scoped (owner of an enrolled class that ASSIGNS the list). Best-effort: read errors
+ * fall back to the stamp-only set (never throws — the field is additive/denormalized). Callers
+ * gate on TEACHER_IDS_READ, so this runs ONLY when the flag is on (byte-equivalent when off).
+ */
+const computeTeacherIdsClient = async ({ studentId, listId, stampTeacherId }) => {
+  const ids = new Set()
+  if (stampTeacherId) ids.add(stampTeacherId)
+  try {
+    if (studentId) {
+      const studentSnap = await getDoc(doc(db, 'users', studentId))
+      const enrolled = studentSnap.exists() ? Object.keys(studentSnap.data().enrolledClasses || {}) : []
+      for (const classId of enrolled) {
+        const classSnap = await getDoc(doc(db, 'classes', classId))
+        if (!classSnap.exists()) continue
+        const c = classSnap.data() || {}
+        const assignsList = listId != null && (
+          (c.assignments && c.assignments[listId]) ||
+          (Array.isArray(c.assignedLists) && c.assignedLists.includes(listId))
+        )
+        if (assignsList && c.ownerTeacherId) ids.add(c.ownerTeacherId)
+      }
+    }
+  } catch (err) {
+    console.error('computeTeacherIdsClient failed (stamp-only set used):', err)
+  }
+  return [...ids].sort()
+}
+
+/**
  * Submit an MCQ test attempt and create a gradebook entry.
  * This creates an attempt document in the 'attempts' collection for teacher visibility.
  *
@@ -1239,6 +1316,13 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
   }
   if (teacherId) {
     attemptData.teacherId = teacherId
+  }
+
+  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (the C-19 read-surface
+  // widening). Dormant unless TEACHER_IDS_READ — the field is NOT set when the flag is off, so
+  // the attempt doc is byte-identical to today.
+  if (TEACHER_IDS_READ) {
+    attemptData.teacherIds = await computeTeacherIdsClient({ studentId: userId, listId, stampTeacherId: teacherId })
   }
 
   // Use deterministic doc id when caller supplies one — makes withRetry safe.
@@ -1394,6 +1478,12 @@ export const submitTypedTestAttempt = async (
       newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
     }
 
+    // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (dormant unless
+    // TEACHER_IDS_READ). Field omitted when the flag is off ⇒ byte-identical attempt doc.
+    if (TEACHER_IDS_READ) {
+      attemptData.teacherIds = await computeTeacherIdsClient({ studentId: userId, listId, stampTeacherId: teacherId })
+    }
+
     console.log('Saving attempt document:', attemptData)
 
     // Use deterministic doc id when caller supplies one — see submitTestAttempt.
@@ -1435,7 +1525,7 @@ export const fetchClassAttempts = async (classId) => {
   const classData = classSnap.data()
   // Support both old assignedLists array and new assignments map
   const assignments = classData.assignments || {}
-  const assignedListIds = classData.assignedLists || Object.keys(assignments)
+  const assignedListIds = getAssignedListIds(classData)  // C-35
 
   if (assignedListIds.length === 0) {
     return []
@@ -1458,15 +1548,20 @@ export const fetchClassAttempts = async (classId) => {
     // Extract listId from testId - handle multiple formats:
     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
     // New: vocaboost_test_{classId}_{listId}_{testType}
-    let listId = null
+    let parsedListId = null
     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
     if (oldFormatMatch) {
-      listId = oldFormatMatch[2]
+      parsedListId = oldFormatMatch[2]
     } else if (newFormatMatch) {
-      listId = newFormatMatch[1]
+      parsedListId = newFormatMatch[1]
     }
+
+    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
+    // have no parseable testId); the testId parse is the legacy fallback. Drop only
+    // when BOTH are absent.
+    const listId = attemptData.listId ?? parsedListId
 
     if (!listId) continue
     if (!assignedListIds.includes(listId)) continue
@@ -1528,7 +1623,7 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
   for (const klass of teacherClasses) {
     const classId = klass.id
     const className = klass.name
-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
+    const assignedListIds = getAssignedListIds(klass)  // C-35
     classListMap.set(classId, assignedListIds)
 
     // Query members subcollection for this class
@@ -1603,15 +1698,20 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
     // Extract listId from testId - handle multiple formats:
     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
     // New: vocaboost_test_{classId}_{listId}_{testType}
-    let listId = null
+    let parsedListId = null
     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
     if (oldFormatMatch) {
-      listId = oldFormatMatch[2]
+      parsedListId = oldFormatMatch[2]
     } else if (newFormatMatch) {
-      listId = newFormatMatch[1]
+      parsedListId = newFormatMatch[1]
     }
+
+    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
+    // have no parseable testId); the testId parse is the legacy fallback. Drop only
+    // when BOTH are absent.
+    const listId = attemptData.listId ?? parsedListId
 
     if (!listId) continue
 
@@ -1772,6 +1872,10 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
 // Cache for teacher data to avoid re-fetching on every filter change
 const teacherDataCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+// [deepfix P10 · OVR part (c)] Cap on the union-roster (ex-roster / inherited-attempt) scan
+// used only when TEACHER_IDS_READ is on (see getTeacherData). Bounds the extra read on very
+// large teachers; the scan is cached with the rest of getTeacherData (CACHE_TTL).
+const EX_ROSTER_SCAN_LIMIT = 2000
 
 /**
  * Get cached or fresh teacher data (classes, students, lists)
@@ -1805,7 +1909,7 @@ async function getTeacherData(teacherId) {
   for (const klass of teacherClasses) {
     const classId = klass.id
     const className = klass.name
-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
+    const assignedListIds = getAssignedListIds(klass)  // C-35
 
     try {
       const membersRef = collection(db, 'classes', classId, 'members')
@@ -1827,6 +1931,45 @@ async function getTeacherData(teacherId) {
       })
     } catch (err) {
       console.error(`Error fetching members for class ${classId}:`, err)
+    }
+  }
+
+  // [deepfix P10 · OVR part (c)] Union-roster augmentation for the C-19 ex-roster name filter.
+  // Under TEACHER_IDS_READ the gradebook surfaces INHERITED attempts of students promoted OFF
+  // this teacher's current roster, whose names are absent from the current-member maps built
+  // above — so a Name filter on such a student resolves to [] and hits the hard-empty guard in
+  // queryTeacherAttempts (zero rows returned). Resolve those names too: scan the teacher's
+  // `teacherIds array-contains` attempts for studentIds NOT in the current roster and hydrate
+  // their display names into the same maps. Bounded (EX_ROSTER_SCAN_LIMIT) + cached with the
+  // rest of getTeacherData. Flag OFF ⇒ this block is skipped entirely ⇒ getTeacherData is
+  // byte-identical to today (no extra reads). See P10c_impl_notes U6 (chicken/egg + cost).
+  if (TEACHER_IDS_READ) {
+    try {
+      const inheritedSnap = await getDocs(query(
+        collection(db, 'attempts'),
+        where('teacherIds', 'array-contains', teacherId),
+        orderBy('submittedAt', 'desc'),
+        limit(EX_ROSTER_SCAN_LIMIT),
+      ))
+      const exRosterIds = new Set()
+      inheritedSnap.docs.forEach((d) => {
+        const sid = d.data().studentId
+        if (sid && !studentIdSet.has(sid)) exRosterIds.add(sid)
+      })
+      for (const sid of exRosterIds) {
+        try {
+          const uDoc = await getDoc(doc(db, 'users', sid))
+          const u = uDoc.exists() ? uDoc.data() : {}
+          const name = u.displayName || u.profile?.displayName || u.email || 'Unknown Student'
+          studentIdSet.add(sid)
+          studentIdToNameMap.set(sid, name)
+          studentNameToIdMap.set(name.toLowerCase(), sid)
+        } catch (e) {
+          console.error(`ex-roster name hydrate failed for ${sid}:`, e)
+        }
+      }
+    } catch (err) {
+      console.error('ex-roster union-roster scan failed (name filter falls back to current members):', err)
     }
   }
 
@@ -1920,10 +2063,20 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
   return { attempts: [], lastVisible: null, hasMore: false }
 }
 
-  // Build query - start with teacherId (single query, no batching!)
+  // Build query - start with the teacher predicate (single query, no batching!).
+  // [deepfix P10 · OVR part (c)] C-19 read-surface WIDENING (David U1 = Option A): with
+  // TEACHER_IDS_READ on, the base predicate widens from `teacherId ==` (equality — can NEVER
+  // show B's teacher an A-stamped inherited attempt) to `teacherIds array-contains` (sees
+  // inherited attempts of a promoted student). This does NOT change the <=30 DNF disjunction
+  // budget shared with the C-33 studentId push below: array-contains matches a single value,
+  // contributing a factor of 1 to the DNF product (the class/student `in` disjuncts still
+  // multiply exactly as today — see P10c_impl_notes). Flag OFF ⇒ today's `teacherId ==` query
+  // verbatim (byte-equivalent; needs no new index).
   let attemptsQuery = query(
     collection(db, 'attempts'),
-    where('teacherId', '==', teacherId),
+    TEACHER_IDS_READ
+      ? where('teacherIds', 'array-contains', teacherId)
+      : where('teacherId', '==', teacherId),
     orderBy('submittedAt', 'desc')
   )
 
@@ -1932,6 +2085,22 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
     attemptsQuery = query(attemptsQuery, where('classId', '==', filterClassIds[0]))
   } else if (filterClassIds.length > 1 && filterClassIds.length <= 10) {
     attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+  }
+
+  // C-33: push the resolved Name filter (studentIds) server-side so a filtered
+  // student's attempts are found however deep they rank teacher-wide. Single id
+  // -> '==', 2..30 ids -> 'in' (guarded so class 'in' disjuncts x student ids
+  // stays within Firestore's <=30 disjunction budget). Larger matches keep
+  // today's degraded mode — the post-filter below remains as the backstop.
+  const classDisjuncts = Math.max(filterClassIds.length, 1)
+  if (filterStudentIds.length === 1) {
+    attemptsQuery = query(attemptsQuery, where('studentId', '==', filterStudentIds[0]))
+  } else if (
+    filterStudentIds.length > 1 &&
+    filterStudentIds.length <= 30 &&
+    classDisjuncts * filterStudentIds.length <= 30
+  ) {
+    attemptsQuery = query(attemptsQuery, where('studentId', 'in', filterStudentIds))
   }
 
   // Apply date filter at query level
@@ -1964,15 +2133,20 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
     // Extract listId from testId - handle multiple formats:
     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
     // New: vocaboost_test_{classId}_{listId}_{testType}
-    let listId = null
+    let parsedListId = null
     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
     if (oldFormatMatch) {
-      listId = oldFormatMatch[2]
+      parsedListId = oldFormatMatch[2]
     } else if (newFormatMatch) {
-      listId = newFormatMatch[1]
+      parsedListId = newFormatMatch[1]
     }
+
+    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
+    // have no parseable testId); the testId parse is the legacy fallback. Drop only
+    // when BOTH are absent.
+    const listId = attemptData.listId ?? parsedListId
 
     if (!listId) continue
 
@@ -2153,15 +2327,20 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
     // Extract listId from testId - handle multiple formats:
     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
     // New: vocaboost_test_{classId}_{listId}_{testType}
-    let listId = null
+    let parsedListId = null
     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
 
     if (oldFormatMatch) {
-      listId = oldFormatMatch[2]
+      parsedListId = oldFormatMatch[2]
     } else if (newFormatMatch) {
-      listId = newFormatMatch[1]
+      parsedListId = newFormatMatch[1]
     }
+
+    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
+    // have no parseable testId); the testId parse is the legacy fallback. Drop only
+    // when BOTH are absent.
+    const listId = attemptData.listId ?? parsedListId
 
     if (!listId) continue
 
@@ -2311,7 +2490,7 @@ export const fetchAttemptDetails = async (attemptId) => {
               const classSnap = await getDoc(doc(db, 'classes', classId))
               if (classSnap.exists()) {
                 const classData = classSnap.data()
-                const assignedLists = classData.assignedLists || Object.keys(classData.assignments || {})
+                const assignedLists = getAssignedListIds(classData)  // C-35
                 if (assignedLists.includes(listId)) {
                   className = classData.name || 'Unknown Class'
                   break
@@ -2433,7 +2612,7 @@ export const fetchUserAttempts = async (uid) => {
           classLookup[classId] = {
             name: classData.name || classInfo.name || 'Unknown Class',
             id: classId,
-            assignedLists: classData.assignedLists || Object.keys(classData.assignments || {}),
+            assignedLists: getAssignedListIds(classData),  // C-35
           }
         }
       } catch (err) {
@@ -2653,6 +2832,20 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
     throw new Error('teacherId, attemptId, and wordId are required.')
   }
 
+  // [deepfix P10 · OVR (b)] Under SERVER_OVERRIDE, route the WHOLE review to the server
+  // `reviewChallenge` callable (functions/foundation.js), FINISHING the migration P4 began
+  // (P4 routed only the day-advance under SERVER_CHALLENGE_WRITE, :2868). The callable
+  // applies the I-10 §6 authz UNION (teacher-of-record OR current-enrollment owner) and
+  // moves the answer-flip / score / challenges.history / study_states legs server-side. It
+  // uses request.auth.uid, not the passed teacherId. Flag OFF (default) ⇒ the existing
+  // client body below runs VERBATIM (byte-equivalent), including its own
+  // SERVER_CHALLENGE_WRITE day-advance sub-branch.
+  if (SERVER_OVERRIDE) {
+    const fn = httpsCallable(getFunctions(), 'reviewChallenge', { timeout: 30000 })
+    const res = await fn({ attemptId, wordId, accepted })
+    return res.data
+  }
+
   // Get attempt document
   const attemptRef = doc(db, 'attempts', attemptId)
   const attemptSnap = await getDoc(attemptRef)
@@ -2776,6 +2969,22 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
 
         if (listId) {
           try {
+            // [deepfix P4 · FND-2, F5-HIGH-2] The challenge-accept day-advance is the 3rd twi
+            // writer. Under SERVER_CHALLENGE_WRITE, route it to the P3 `advanceForChallenge`
+            // callable (functions/foundation.js:1594) INSTEAD of the direct class_progress
+            // write below: the server re-derives the pass threshold + fail→pass transition +
+            // current-day boundary guard + phase gate, and CLAMPS the twi add to wordsRemaining
+            // (closing the unclamped :2900 over-add, I-6 §3-row-8). The client already wrote the
+            // recomputed score to the attempt doc above (:2794), so the server reads it as
+            // attempt.score and `previousScore` = the pre-acceptance score (attemptData is the
+            // pre-update snapshot from :2730). Flag OFF (default) → the direct write below,
+            // byte-equivalent to today. Post-P5 the direct write would target a dead collection
+            // (canonical is authoritative); post-P7 it would no-op — this route writes the
+            // record the foundation owns (legacy pre-P5, canonical post-P5) instead.
+            if (SERVER_CHALLENGE_WRITE) {
+              const advanceForChallengeFn = httpsCallable(getFunctions(), 'advanceForChallenge', { timeout: 30000 })
+              await advanceForChallengeFn({ attemptId, previousScore: attemptData.score || 0 })
+            } else {
             // Get pass threshold from assignment (stored in assignments map, not assignedLists array)
             const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
             const assignment = classDoc.exists()
@@ -2837,6 +3046,7 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
                 }
               }
             }
+            } // end SERVER_CHALLENGE_WRITE else — direct class_progress day-advance (flag-off fallback)
           } catch (err) {
             console.error('Error checking day progression after challenge:', err)
             // Don't fail the challenge review if day progression check fails
@@ -2847,6 +3057,35 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
   }
 
   return { success: true }
+}
+
+/**
+ * [deepfix P10 · OVR (a)] Teacher override — the in-product manual-pass. Calls the server
+ * `overrideAttempt` callable (functions/foundation.js), which authorizes via the I-10 §6
+ * union, writes a VALID reconciliation anchor (newWordStartIndex / newWordEndIndex /
+ * wordsIntroduced / testId — the CLAUDE.md anchor rule, mirroring scripts/cs/manual-pass.mjs),
+ * advances the day via the shared foundation transaction, and audit-logs the override. This
+ * is the path for an ungradeable / teacherId:null / inherited attempt (a superset of
+ * reviewChallenge — no dependence on a challengeable answer).
+ *
+ * DORMANT DRAFT (P10 (a)): this is the callable WIRING + a dormant caller — it refuses when
+ * SERVER_OVERRIDE is off, so no live path reaches it (byte-equivalent: a new export that is
+ * never invoked). The Gradebook override BUTTON (the surface that supplies studentId /
+ * classId / listId / studyDay / score for an orphaned attempt) is DEFERRED to the P10 (c)
+ * read-surface release: an orphaned/inherited attempt is not yet VISIBLE in the gradebook
+ * until (c)'s widening leg lands, so there is no row to attach the action to yet. See
+ * P10_impl_notes for the (c)/(d) deferral.
+ *
+ * @param {{studentId:string, classId:string, listId:string, studyDay:number, score:number, attemptId?:string}} params
+ * @returns {Promise<Object>} { success, docId, passed, newWordStartIndex, newWordEndIndex, advance }
+ */
+export const overrideAttempt = async ({ studentId, classId, listId, studyDay, score, attemptId = null }) => {
+  if (!SERVER_OVERRIDE) {
+    throw new Error('Teacher override is not enabled (SERVER_OVERRIDE=false).')
+  }
+  const fn = httpsCallable(getFunctions(), 'overrideAttempt', { timeout: 30000 })
+  const res = await fn({ studentId, classId, listId, studyDay, score, attemptId })
+  return res.data
 }
 
 /**
@@ -2892,6 +3131,24 @@ export async function resetStudentProgress(userId, classId, listId) {
 
   if (!userId || !classId || !listId) {
     throw new Error('Missing required parameters: userId, classId, and listId are required')
+  }
+
+  // [deepfix P4 · FND-2, SERVER_RESET_PROGRESS / F6-3, v2 HIGH-3] Route reset through the
+  // `resetProgress` callable (functions/foundation.js): self-service (uid = caller — same
+  // guarantee as the check above), LIST-WIDE across ALL classes (the persist §5.3 fix for
+  // this function's class-scoped legacy delete), attempts-first ordering, legacy-testId
+  // sweep, and a durable reset-epoch tombstone. With this flag ON, no LIVE client path
+  // deletes attempt docs — the prerequisite for P6 removing the attempts owner-delete rules
+  // branch ([C5-5]). Flag OFF (default) → the legacy client batch-delete below,
+  // byte-equivalent to today (and still rules-legal until P6).
+  if (SERVER_RESET_PROGRESS) {
+    const resetProgressFn = httpsCallable(getFunctions(), 'resetProgress', { timeout: 60000 })
+    const resp = await resetProgressFn({ listId })
+    const d = resp?.data?.deleted || {}
+    return {
+      success: resp?.data?.success === true,
+      deletedCount: (d.attempts || 0) + (d.sessionStates || 0) + (d.studyStates || 0) + (d.classProgress || 0)
+    }
   }
 
   let deletedCount = 0
@@ -3261,6 +3518,27 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
       // no fixed client window a valid candidate could fall outside of. Real data is
       // integer-only (server + manual-pass both write integers; Phase-0 audit found no
       // floats) — this loop is the correctness guarantee, expected to hit page 1 doc 1.
+      //
+      // F-6 (reset-epoch filter — FINAL_REVIEW_FINDINGS): once reset is routed to the
+      // server, resetProgress stamps `resetAt` in users/{uid}/progress_meta/{listId} and
+      // EXCLUDES attempts submitted before it, so a stale in-flight attempt that lands
+      // AFTER a reset cannot re-promote the anchor ("reset un-resets"). Gated behind
+      // SERVER_RESET_PROGRESS — the tombstone's ONLY writer: flag OFF (today) ⇒ ZERO extra
+      // reads and NO filtering ⇒ byte-identical to today. Even flag-ON, no `resetAt` (never
+      // reset) ⇒ notPreReset always true ⇒ the anchor selection is unchanged.
+      let resetMs = null
+      if (SERVER_RESET_PROGRESS) {
+        try {
+          const metaSnap = await getDoc(doc(db, `users/${userId}/progress_meta/${listId}`))
+          const ra = metaSnap.exists() ? metaSnap.data().resetAt : null
+          resetMs = (ra && typeof ra.toMillis === 'function') ? ra.toMillis() : null
+        } catch {
+          resetMs = null // tombstone read failure ⇒ no filtering (today's behavior)
+        }
+      }
+      const notPreReset = (data) => resetMs == null ||
+        (data.submittedAt && typeof data.submittedAt.toMillis === 'function' &&
+          data.submittedAt.toMillis() >= resetMs)
       const PAGE = 10
       let cursor = null
       for (;;) {
@@ -3279,8 +3557,9 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
         const posSnap = await getDocs(qPos)
         if (posSnap.empty) break
         const validDoc = posSnap.docs.find(d => {
-          const v = d.data().newWordEndIndex
-          return Number.isInteger(v) && v >= 0
+          const data = d.data()
+          const v = data.newWordEndIndex
+          return Number.isInteger(v) && v >= 0 && notPreReset(data)
         })
         if (validDoc) {
           const data = { id: validDoc.id, ...validDoc.data() }
@@ -3316,6 +3595,13 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
       }
       const d = daySnap.docs[0]
       const data = { id: d.id, ...d.data() }
+      // F-6: a pre-reset straggler in the (limit-1) studyDay fallback ⇒ no valid
+      // post-reset anchor (conservative — preserves the reset). Byte-identical when
+      // resetMs is null (notPreReset always true → returns the doc as before).
+      if (!notPreReset(d.data())) {
+        console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped): studyDay-fallback anchor is pre-reset — excluded')
+        return { status: 'none' }
+      }
       console.log('[RECONCILIATION] getMostRecentPassedNewTest (list-scoped, studyDay fallback):', {
         attemptId: d.id, classId: data.classId, studyDay: data.studyDay,
         newWordEndIndex: data.newWordEndIndex

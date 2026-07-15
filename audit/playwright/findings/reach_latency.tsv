@@ -1,0 +1,2896 @@
+2026-07-12T11:51:00.608Z	s1-A-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T11:51:04.182Z	s1-A-d1-new	Session menu	5	true
+2026-07-12T11:51:33.257Z	s1-A-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T11:52:26.787Z	s1-A-d2-new	Session menu	29999	false
+2026-07-12T11:53:27.891Z	s1-B-review	Review/Continue	20001	false
+2026-07-12T12:09:46.239Z	s1-A-d1-new	Start-New-Words/Continue	14	true
+2026-07-12T12:09:49.826Z	s1-A-d1-new	Session menu	5	true
+2026-07-12T12:10:19.765Z	s1-A-d2-new	Start-New-Words/Continue	8	true
+2026-07-12T12:10:23.319Z	s1-A-d2-new	Session menu	5	true
+2026-07-12T12:11:11.327Z	s1-B-review	Review/Continue	19998	false
+2026-07-12T12:15:23.656Z	d1-new	Start-New-Words/Continue	5	true
+2026-07-12T12:15:27.238Z	d1-new	Session menu	5	true
+2026-07-12T12:16:00.910Z	d2-new	Start-New-Words/Continue	5	true
+2026-07-12T12:16:04.451Z	d2-new	Session menu	4	true
+2026-07-12T12:16:31.240Z	d2-review	Review/Continue	4	true
+2026-07-12T12:16:34.781Z	d2-review	Session menu	4	true
+2026-07-12T12:17:02.708Z	d3-new	Start-New-Words/Continue	8	true
+2026-07-12T12:17:06.243Z	d3-new	Session menu	5	true
+2026-07-12T12:17:30.469Z	d3-review	Review/Continue	4	true
+2026-07-12T12:17:34.010Z	d3-review	Session menu	5	true
+2026-07-12T12:18:03.568Z	d4-new	Start-New-Words/Continue	5	true
+2026-07-12T12:18:07.106Z	d4-new	Session menu	5	true
+2026-07-12T12:18:31.398Z	d4-review	Review/Continue	4	true
+2026-07-12T12:18:34.937Z	d4-review	Session menu	5	true
+2026-07-12T13:50:44.842Z	s1-A-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T13:50:48.418Z	s1-A-d1-new	Session menu	5	true
+2026-07-12T13:51:18.154Z	s1-A-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T13:51:21.695Z	s1-A-d2-new	Session menu	4	true
+2026-07-12T13:51:52.534Z	s1-B-review	Session menu	4	true
+2026-07-12T13:57:50.373Z	s1-A-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T13:57:53.948Z	s1-A-d1-new	Session menu	6	true
+2026-07-12T13:58:20.749Z	s1-A-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T13:58:24.297Z	s1-A-d2-new	Session menu	4	true
+2026-07-12T13:58:54.268Z	s1-B-review	Session menu	5	true
+2026-07-12T14:05:21.000Z	s1-A-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T14:05:24.574Z	s1-A-d1-new	Session menu	4	true
+2026-07-12T14:05:54.357Z	s1-A-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T14:05:57.898Z	s1-A-d2-new	Session menu	5	true
+2026-07-12T14:06:27.903Z	s1-B-review	Session menu	16	true
+2026-07-12T14:24:19.735Z	d1-new	Start-New-Words/Continue	6	true
+2026-07-12T14:24:23.402Z	d1-new	Session menu	15	true
+2026-07-12T14:24:54.357Z	d2-new	Start-New-Words/Continue	6	true
+2026-07-12T14:24:57.917Z	d2-new	Session menu	5	true
+2026-07-12T14:25:21.710Z	d2-review	Review/Continue	5	true
+2026-07-12T14:25:25.260Z	d2-review	Session menu	5	true
+2026-07-12T14:25:53.123Z	d3-new	Start-New-Words/Continue	5	true
+2026-07-12T14:25:56.673Z	d3-new	Session menu	5	true
+2026-07-12T14:26:20.959Z	d3-review	Review/Continue	5	true
+2026-07-12T14:26:24.517Z	d3-review	Session menu	6	true
+2026-07-12T14:26:54.058Z	d4-new	Start-New-Words/Continue	5	true
+2026-07-12T14:26:57.599Z	d4-new	Session menu	4	true
+2026-07-12T14:27:21.863Z	d4-review	Review/Continue	5	true
+2026-07-12T14:27:25.414Z	d4-review	Session menu	5	true
+2026-07-12T14:32:18.336Z	d1-new	Start-New-Words/Continue	6	true
+2026-07-12T14:32:21.922Z	d1-new	Session menu	7	true
+2026-07-12T14:32:56.638Z	d2-new	Start-New-Words/Continue	7	true
+2026-07-12T14:33:00.196Z	d2-new	Session menu	5	true
+2026-07-12T14:33:24.029Z	d2-review	Review/Continue	5	true
+2026-07-12T14:33:27.577Z	d2-review	Session menu	4	true
+2026-07-12T14:33:55.224Z	d3-new	Start-New-Words/Continue	4	true
+2026-07-12T14:33:58.762Z	d3-new	Session menu	5	true
+2026-07-12T14:34:22.449Z	d3-review	Review/Continue	4	true
+2026-07-12T14:34:25.997Z	d3-review	Session menu	5	true
+2026-07-12T14:34:55.441Z	d4-new	Start-New-Words/Continue	6	true
+2026-07-12T14:34:58.973Z	d4-new	Session menu	4	true
+2026-07-12T14:35:23.127Z	d4-review	Review/Continue	5	true
+2026-07-12T14:35:26.674Z	d4-review	Session menu	5	true
+2026-07-12T14:35:56.952Z	d5-new	Start-New-Words/Continue	6	true
+2026-07-12T14:36:00.513Z	d5-new	Session menu	4	true
+2026-07-12T14:36:26.262Z	d5-review	Review/Continue	4	true
+2026-07-12T14:36:29.798Z	d5-review	Session menu	4	true
+2026-07-12T14:36:59.798Z	d6-new	Start-New-Words/Continue	6	true
+2026-07-12T14:37:03.345Z	d6-new	Session menu	4	true
+2026-07-12T14:37:27.508Z	d6-review	Review/Continue	4	true
+2026-07-12T14:37:31.061Z	d6-review	Session menu	4	true
+2026-07-12T14:38:01.186Z	d7-new	Start-New-Words/Continue	11	true
+2026-07-12T14:38:04.760Z	d7-new	Session menu	5	true
+2026-07-12T14:38:29.178Z	d7-review	Review/Continue	7	true
+2026-07-12T14:38:32.724Z	d7-review	Session menu	5	true
+2026-07-12T14:39:03.435Z	d8-new	Start-New-Words/Continue	5	true
+2026-07-12T14:39:06.983Z	d8-new	Session menu	4	true
+2026-07-12T14:39:49.569Z	d8-review	Review/Continue	19999	false
+2026-07-12T16:36:41.061Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T16:36:44.646Z	ascent-d1-new	Session menu	6	true
+2026-07-12T16:37:29.433Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T16:37:32.992Z	ascent-d2-new	Session menu	5	true
+2026-07-12T16:38:07.372Z	ascent-d2-review	Session menu	5	true
+2026-07-12T16:38:09.685Z	ascent-d2-review	review test page	6	true
+2026-07-12T16:41:25.542Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T16:41:29.116Z	base-d1-new	Session menu	7	true
+2026-07-12T16:41:32.343Z	base-d1-new	Start-New-Words/Continue	9	true
+2026-07-12T16:41:35.933Z	base-d1-new	Session menu	6	true
+2026-07-12T16:41:38.036Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T16:41:41.625Z	ascent-d1-new	Session menu	5	true
+2026-07-12T16:42:06.817Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T16:42:10.365Z	base-d2-new	Session menu	6	true
+2026-07-12T16:42:12.847Z	base-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T16:42:16.397Z	base-d2-new	Session menu	5	true
+2026-07-12T16:42:18.029Z	ascent-d2-new	Start-New-Words/Continue	3	true
+2026-07-12T16:42:21.578Z	ascent-d2-new	Session menu	4	true
+2026-07-12T16:42:45.397Z	base-d2-review	Session menu	4	true
+2026-07-12T16:42:47.711Z	base-d2-review	review test page	6	true
+2026-07-12T16:42:51.187Z	base-d2-review	Session menu	5	true
+2026-07-12T16:42:53.511Z	base-d2-review	review test page	6	true
+2026-07-12T16:42:55.766Z	ascent-d2-review	Session menu	5	true
+2026-07-12T16:42:58.079Z	ascent-d2-review	review test page	6	true
+2026-07-12T16:43:18.931Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T16:43:22.471Z	base-d3-new	Session menu	4	true
+2026-07-12T16:43:22.615Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T16:43:26.159Z	base-d3-new	Session menu	5	true
+2026-07-12T16:43:56.774Z	base-d3-review	Session menu	5	true
+2026-07-12T16:43:59.114Z	base-d3-review	review test page	6	true
+2026-07-12T16:43:59.988Z	base-d3-review	Session menu	5	true
+2026-07-12T16:44:02.325Z	base-d3-review	review test page	4	true
+2026-07-12T16:44:24.454Z	base-d4-new	Start-New-Words/Continue	3	true
+2026-07-12T16:44:27.999Z	base-d4-new	Session menu	4	true
+2026-07-12T16:44:51.505Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T16:44:55.051Z	ascent-d1-new	Session menu	5	true
+2026-07-12T16:45:02.271Z	base-d4-review	Session menu	5	true
+2026-07-12T16:45:04.593Z	base-d4-review	review test page	6	true
+2026-07-12T16:45:29.332Z	ascent-d1-review	Session menu	4	true
+2026-07-12T16:45:31.667Z	ascent-d1-review	review test page	5	true
+2026-07-12T16:45:38.465Z	base-d5-review-BLOCKED	Session menu	5	true
+2026-07-12T16:45:40.787Z	base-d5-review-BLOCKED	review test page	6	true
+2026-07-12T16:45:45.446Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T16:45:48.998Z	ascent-d1-new	Session menu	5	true
+2026-07-12T16:46:06.637Z	ascent-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T16:46:10.172Z	ascent-d2-new	Session menu	3	true
+2026-07-12T16:46:25.874Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T16:46:29.424Z	ascent-d2-new	Session menu	3	true
+2026-07-12T16:46:43.674Z	ascent-d2-review	Session menu	3	true
+2026-07-12T16:46:45.986Z	ascent-d2-review	review test page	4	true
+2026-07-12T16:47:04.743Z	ascent-d2-review	Session menu	4	true
+2026-07-12T16:47:07.057Z	ascent-d2-review	review test page	6	true
+2026-07-12T16:47:41.670Z	ascent-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T16:47:45.215Z	ascent-d3-new	Session menu	4	true
+2026-07-12T16:48:18.148Z	ascent-d3-review	Session menu	5	true
+2026-07-12T16:48:20.461Z	ascent-d3-review	review test page	5	true
+2026-07-12T16:54:06.493Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T16:54:10.062Z	ascent-d1-new	Session menu	5	true
+2026-07-12T16:54:50.388Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T16:54:53.931Z	ascent-d2-new	Session menu	4	true
+2026-07-12T16:55:29.645Z	ascent-d2-review	Session menu	4	true
+2026-07-12T16:55:31.965Z	ascent-d2-review	review test page	5	true
+2026-07-12T16:57:25.943Z	ascent-d1-new	Start-New-Words/Continue	3	true
+2026-07-12T16:57:29.480Z	ascent-d1-new	Session menu	4	true
+2026-07-12T16:58:04.128Z	ascent-d1-review	Session menu	4	true
+2026-07-12T16:58:06.435Z	ascent-d1-review	review test page	5	true
+2026-07-12T16:58:40.899Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T16:58:44.459Z	ascent-d2-new	Session menu	4	true
+2026-07-12T16:59:18.046Z	ascent-d2-review	Session menu	4	true
+2026-07-12T16:59:20.359Z	ascent-d2-review	review test page	5	true
+2026-07-12T17:04:17.163Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T17:04:20.745Z	base-d1-new	Session menu	4	true
+2026-07-12T17:21:47.053Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T17:21:50.621Z	ascent-d1-new	Session menu	5	true
+2026-07-12T17:22:45.310Z	ascent-d1-exit	results Continue	19999	false
+2026-07-12T17:23:13.578Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T17:23:17.120Z	ascent-d1-new	Session menu	5	true
+2026-07-12T17:23:39.191Z	ascent-d1-exit	results Continue	6	true
+2026-07-12T17:32:11.572Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T17:32:15.155Z	ascent-d1-new	Session menu	8	true
+2026-07-12T17:33:11.827Z	ascent-d1-exit	results Continue	19997	false
+2026-07-12T17:33:39.810Z	ascent-d1-new	Start-New-Words/Continue	3	true
+2026-07-12T17:33:43.364Z	ascent-d1-new	Session menu	4	true
+2026-07-12T17:34:05.023Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T17:41:21.056Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T17:41:21.063Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T17:41:24.632Z	ascent-d1-new	Session menu	5	true
+2026-07-12T17:41:24.632Z	ascent-d1-new	Session menu	5	true
+2026-07-12T17:41:50.260Z	ascent-d1-exit	results Continue	6	true
+2026-07-12T17:41:50.323Z	ascent-d1-exit	results Continue	3	true
+2026-07-12T17:42:05.181Z	ascent-d2-new	Start-New-Words/Continue	3	true
+2026-07-12T17:42:05.253Z	ascent-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T17:42:08.713Z	ascent-d2-new	Session menu	5	true
+2026-07-12T17:42:08.799Z	ascent-d2-new	Session menu	5	true
+2026-07-12T17:42:42.614Z	ascent-d2-review	Session menu	5	true
+2026-07-12T17:42:42.897Z	ascent-d2-review	Session menu	4	true
+2026-07-12T17:42:44.928Z	ascent-d2-review	review test page	4	true
+2026-07-12T17:42:45.216Z	ascent-d2-review	review test page	6	true
+2026-07-12T17:43:04.836Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T17:43:05.051Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T17:46:10.794Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T17:46:10.809Z	base-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T17:46:14.372Z	base-d1-new	Session menu	4	true
+2026-07-12T17:46:14.388Z	base-d1-new	Session menu	4	true
+2026-07-12T17:46:36.398Z	base-d1-exit	results Continue	5	true
+2026-07-12T17:46:37.904Z	base-d1-exit	results Continue	3	true
+2026-07-12T17:46:51.393Z	base-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T17:46:52.927Z	base-d2-new	Start-New-Words/Continue	3	true
+2026-07-12T17:46:54.938Z	base-d2-new	Session menu	4	true
+2026-07-12T17:46:56.471Z	base-d2-new	Session menu	4	true
+2026-07-12T17:47:29.709Z	base-d2-review	Session menu	4	true
+2026-07-12T17:47:31.248Z	base-d2-review	Session menu	9	true
+2026-07-12T17:47:32.052Z	base-d2-review	review test page	7	true
+2026-07-12T17:47:33.646Z	base-d2-review	review test page	12	true
+2026-07-12T17:47:45.307Z	base-d2-exit	results Continue	20	true
+2026-07-12T17:47:54.407Z	base-d2-exit	results Continue	4	true
+2026-07-12T17:48:00.527Z	base-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T17:48:04.072Z	base-d3-new	Session menu	7	true
+2026-07-12T17:48:09.460Z	base-d3-new	Start-New-Words/Continue	10	true
+2026-07-12T17:48:13.017Z	base-d3-new	Session menu	4	true
+2026-07-12T17:48:40.056Z	base-d3-review	Session menu	4	true
+2026-07-12T17:48:42.374Z	base-d3-review	review test page	6	true
+2026-07-12T17:48:47.340Z	base-d3-review	Session menu	14	true
+2026-07-12T17:48:49.652Z	base-d3-review	review test page	6	true
+2026-07-12T17:48:54.646Z	base-d3-exit	results Continue	9	true
+2026-07-12T17:49:09.631Z	base-d4-new	Start-New-Words/Continue	4	true
+2026-07-12T17:49:13.130Z	base-d3-exit	results Continue	5	true
+2026-07-12T17:49:13.177Z	base-d4-new	Session menu	6	true
+2026-07-12T17:49:51.957Z	base-d4-review	Session menu	3	true
+2026-07-12T17:49:54.276Z	base-d4-review	review test page	5	true
+2026-07-12T17:50:05.250Z	base-d4-exit	results Continue	5	true
+2026-07-12T17:50:27.136Z	base-d5-review-BLOCKED	Session menu	4	true
+2026-07-12T17:50:29.445Z	base-d5-review-BLOCKED	review test page	6	true
+2026-07-12T17:50:35.133Z	ascent-d1-new	Start-New-Words/Continue	8	true
+2026-07-12T17:50:38.667Z	ascent-d1-new	Session menu	4	true
+2026-07-12T17:51:00.484Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T17:51:07.538Z	base-d6-review-BLOCKED	Session menu	4	true
+2026-07-12T17:51:09.853Z	base-d6-review-BLOCKED	review test page	5	true
+2026-07-12T17:51:15.333Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T17:51:18.882Z	ascent-d2-new	Session menu	5	true
+2026-07-12T17:51:53.602Z	ascent-d2-review	Session menu	4	true
+2026-07-12T17:51:55.915Z	ascent-d2-review	review test page	6	true
+2026-07-12T17:52:16.019Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T17:52:30.986Z	ascent-d3-new	Start-New-Words/Continue	3	true
+2026-07-12T17:52:34.524Z	ascent-d3-new	Session menu	5	true
+2026-07-12T17:53:09.706Z	ascent-d3-review	Session menu	4	true
+2026-07-12T17:53:12.017Z	ascent-d3-review	review test page	6	true
+2026-07-12T17:53:33.148Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T18:03:27.800Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:03:27.808Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:03:31.387Z	base-d1-new	Session menu	4	true
+2026-07-12T18:03:31.387Z	base-d1-new	Session menu	5	true
+2026-07-12T18:03:41.386Z	base-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:03:44.966Z	base-d1-new	Session menu	5	true
+2026-07-12T18:03:59.000Z	base-d1-exit	results Continue	4	true
+2026-07-12T18:03:59.478Z	base-d1-exit	results Continue	10	true
+2026-07-12T18:04:10.037Z	base-d1-exit	results Continue	20	true
+2026-07-12T18:04:14.035Z	base-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T18:04:14.541Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T18:04:17.581Z	base-d2-new	Session menu	4	true
+2026-07-12T18:04:18.082Z	base-d2-new	Session menu	5	true
+2026-07-12T18:04:25.198Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T18:04:28.747Z	base-d2-new	Session menu	4	true
+2026-07-12T18:04:52.473Z	base-d2-review	Session menu	7	true
+2026-07-12T18:04:53.068Z	base-d2-review	Session menu	6	true
+2026-07-12T18:04:54.879Z	base-d2-review	review test page	7	true
+2026-07-12T18:04:55.431Z	base-d2-review	review test page	6	true
+2026-07-12T18:05:03.805Z	base-d2-review	Session menu	5	true
+2026-07-12T18:05:06.133Z	base-d2-review	review test page	5	true
+2026-07-12T18:05:06.241Z	base-d2-exit	results Continue	6	true
+2026-07-12T18:05:15.157Z	base-d2-exit	results Continue	4	true
+2026-07-12T18:05:21.194Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:05:24.748Z	base-d3-new	Session menu	6	true
+2026-07-12T18:05:26.306Z	base-d2-exit	results Continue	4	true
+2026-07-12T18:05:30.070Z	base-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T18:05:33.615Z	base-d3-new	Session menu	6	true
+2026-07-12T18:05:41.468Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:05:45.006Z	base-d3-new	Session menu	4	true
+2026-07-12T18:06:00.184Z	base-d3-review	Session menu	5	true
+2026-07-12T18:06:02.515Z	base-d3-review	review test page	5	true
+2026-07-12T18:06:08.014Z	base-d3-review	Session menu	4	true
+2026-07-12T18:06:10.330Z	base-d3-review	review test page	5	true
+2026-07-12T18:06:15.597Z	base-d3-exit	results Continue	12	true
+2026-07-12T18:06:19.823Z	base-d3-review	Session menu	4	true
+2026-07-12T18:06:22.146Z	base-d3-review	review test page	5	true
+2026-07-12T18:06:30.534Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T18:06:31.602Z	base-d3-exit	results Continue	8	true
+2026-07-12T18:06:34.083Z	base-d4-new	Session menu	7	true
+2026-07-12T18:06:43.873Z	base-d3-exit	results Continue	5	true
+2026-07-12T18:07:08.572Z	base-d4-review	Session menu	5	true
+2026-07-12T18:07:10.914Z	base-d4-review	review test page	7	true
+2026-07-12T18:07:21.840Z	base-d4-exit	results Continue	7	true
+2026-07-12T18:07:43.856Z	base-d5-review-BLOCKED	Session menu	6	true
+2026-07-12T18:07:46.207Z	base-d5-review-BLOCKED	review test page	6	true
+2026-07-12T18:07:53.795Z	ascent-d1-new	Start-New-Words/Continue	3	true
+2026-07-12T18:07:57.330Z	ascent-d1-new	Session menu	5	true
+2026-07-12T18:08:06.178Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T18:08:09.710Z	ascent-d1-new	Session menu	5	true
+2026-07-12T18:08:18.817Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T18:08:25.362Z	base-d6-review-BLOCKED	Session menu	4	true
+2026-07-12T18:08:27.683Z	base-d6-review-BLOCKED	review test page	5	true
+2026-07-12T18:08:32.266Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T18:08:33.761Z	ascent-d2-new	Start-New-Words/Continue	3	true
+2026-07-12T18:08:37.312Z	ascent-d2-new	Session menu	6	true
+2026-07-12T18:08:47.171Z	ascent-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T18:08:50.725Z	ascent-d2-new	Session menu	4	true
+2026-07-12T18:09:12.109Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:09:14.421Z	ascent-d2-review	review test page	5	true
+2026-07-12T18:09:24.910Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:09:27.225Z	ascent-d2-review	review test page	5	true
+2026-07-12T18:09:34.529Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T18:09:46.865Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T18:09:49.400Z	ascent-d3-new	Start-New-Words/Continue	8	true
+2026-07-12T18:09:52.987Z	ascent-d3-new	Session menu	10	true
+2026-07-12T18:10:01.948Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:10:05.490Z	ascent-d3-new	Session menu	6	true
+2026-07-12T18:10:27.803Z	ascent-d3-review	Session menu	4	true
+2026-07-12T18:10:30.126Z	ascent-d3-review	review test page	6	true
+2026-07-12T18:10:41.521Z	ascent-d3-review	Session menu	5	true
+2026-07-12T18:10:43.830Z	ascent-d3-review	review test page	4	true
+2026-07-12T18:10:51.057Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T18:11:04.519Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T18:16:09.971Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:16:13.551Z	base-d1-new	Session menu	5	true
+2026-07-12T18:16:40.545Z	base-d1-exit	results Continue	4	true
+2026-07-12T18:16:55.534Z	base-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T18:16:59.082Z	base-d2-new	Session menu	5	true
+2026-07-12T18:17:34.899Z	base-d2-review	Session menu	4	true
+2026-07-12T18:17:37.216Z	base-d2-review	review test page	7	true
+2026-07-12T18:17:48.260Z	base-d2-exit	results Continue	9	true
+2026-07-12T18:18:03.219Z	base-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T18:18:06.759Z	base-d3-new	Session menu	5	true
+2026-07-12T18:18:41.541Z	base-d3-review	Session menu	5	true
+2026-07-12T18:18:43.862Z	base-d3-review	review test page	5	true
+2026-07-12T18:18:54.842Z	base-d3-exit	results Continue	7	true
+2026-07-12T18:19:09.721Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T18:19:13.268Z	base-d4-new	Session menu	4	true
+2026-07-12T18:19:48.484Z	base-d4-review	Session menu	4	true
+2026-07-12T18:19:50.807Z	base-d4-review	review test page	6	true
+2026-07-12T18:20:02.317Z	base-d4-exit	results Continue	5	true
+2026-07-12T18:20:24.145Z	base-d5-review-BLOCKED	Session menu	4	true
+2026-07-12T18:20:26.450Z	base-d5-review-BLOCKED	review test page	5	true
+2026-07-12T18:21:04.561Z	base-d6-review-BLOCKED	Session menu	5	true
+2026-07-12T18:21:06.881Z	base-d6-review-BLOCKED	review test page	7	true
+2026-07-12T18:30:07.573Z	ascent-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T18:30:07.853Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:30:08.278Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T18:30:10.893Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T18:30:11.146Z	ascent-d1-new	Session menu	6	true
+2026-07-12T18:30:11.380Z	ascent-d1-new	Start-New-Words/Continue	11	true
+2026-07-12T18:30:11.429Z	base-d1-new	Session menu	7	true
+2026-07-12T18:30:11.874Z	ascent-d1-new	Session menu	6	true
+2026-07-12T18:30:13.561Z	base-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:30:14.459Z	base-d1-new	Session menu	7	true
+2026-07-12T18:30:14.987Z	ascent-d1-new	Session menu	8	true
+2026-07-12T18:30:17.168Z	base-d1-new	Session menu	5	true
+2026-07-12T18:30:18.487Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:30:22.069Z	ascent-d1-new	Session menu	6	true
+2026-07-12T18:30:25.816Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T18:30:29.395Z	ascent-d1-new	Session menu	6	true
+2026-07-12T18:30:36.849Z	ascent-d1-exit	results Continue	6	true
+2026-07-12T18:30:36.941Z	ascent-d1-exit	results Continue	8	true
+2026-07-12T18:30:36.960Z	base-d1-exit	results Continue	8	true
+2026-07-12T18:30:37.151Z	base-d1-exit	results Continue	6	true
+2026-07-12T18:30:37.707Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T18:30:39.251Z	base-d1-exit	results Continue	6	true
+2026-07-12T18:30:51.482Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T18:30:52.454Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T18:30:52.461Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T18:30:52.545Z	ascent-d2-new	Start-New-Words/Continue	8	true
+2026-07-12T18:30:52.539Z	base-d2-new	Start-New-Words/Continue	10	true
+2026-07-12T18:30:52.927Z	ascent-d1-exit	results Continue	17	true
+2026-07-12T18:30:52.931Z	ascent-d2-new	Start-New-Words/Continue	25	true
+2026-07-12T18:30:54.355Z	base-d2-new	Start-New-Words/Continue	13	true
+2026-07-12T18:30:56.012Z	base-d2-new	Session menu	5	true
+2026-07-12T18:30:56.018Z	ascent-d2-new	Session menu	7	true
+2026-07-12T18:30:56.121Z	base-d2-new	Session menu	10	true
+2026-07-12T18:30:56.129Z	ascent-d2-new	Session menu	11	true
+2026-07-12T18:30:56.608Z	ascent-d2-new	Session menu	5	true
+2026-07-12T18:30:57.935Z	base-d2-new	Session menu	7	true
+2026-07-12T18:31:06.945Z	ascent-d2-new	Start-New-Words/Continue	8	true
+2026-07-12T18:31:08.181Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T18:31:10.490Z	ascent-d2-new	Session menu	4	true
+2026-07-12T18:31:11.728Z	ascent-d2-new	Session menu	5	true
+2026-07-12T18:31:31.544Z	base-d2-review	Session menu	19	true
+2026-07-12T18:31:31.745Z	ascent-d2-review	Session menu	6	true
+2026-07-12T18:31:32.135Z	base-d2-review	Session menu	5	true
+2026-07-12T18:31:32.191Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:31:32.764Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:31:33.751Z	base-d2-review	Session menu	8	true
+2026-07-12T18:31:33.882Z	base-d2-review	review test page	8	true
+2026-07-12T18:31:34.096Z	ascent-d2-review	review test page	7	true
+2026-07-12T18:31:34.442Z	base-d2-review	review test page	6	true
+2026-07-12T18:31:34.554Z	ascent-d2-review	review test page	5	true
+2026-07-12T18:31:35.089Z	ascent-d2-review	review test page	16	true
+2026-07-12T18:31:36.196Z	base-d2-review	review test page	19	true
+2026-07-12T18:31:45.149Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:31:47.457Z	ascent-d2-review	review test page	8	true
+2026-07-12T18:31:50.473Z	ascent-d2-review	Session menu	5	true
+2026-07-12T18:31:52.803Z	ascent-d2-review	review test page	6	true
+2026-07-12T18:31:54.760Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T18:31:55.116Z	base-d2-exit	results Continue	27	true
+2026-07-12T18:31:56.239Z	base-d2-exit	results Continue	13	true
+2026-07-12T18:31:56.279Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T18:31:56.415Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T18:31:59.387Z	base-d2-exit	results Continue	13	true
+2026-07-12T18:32:07.823Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T18:32:09.628Z	ascent-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T18:32:10.166Z	base-d3-new	Start-New-Words/Continue	24	true
+2026-07-12T18:32:11.203Z	ascent-d3-new	Start-New-Words/Continue	16	true
+2026-07-12T18:32:11.222Z	base-d3-new	Start-New-Words/Continue	17	true
+2026-07-12T18:32:11.415Z	ascent-d3-new	Start-New-Words/Continue	8	true
+2026-07-12T18:32:13.199Z	ascent-d3-new	Session menu	4	true
+2026-07-12T18:32:13.772Z	base-d3-new	Session menu	5	true
+2026-07-12T18:32:14.543Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:32:14.775Z	ascent-d3-new	Session menu	10	true
+2026-07-12T18:32:14.793Z	base-d3-new	Session menu	25	true
+2026-07-12T18:32:15.002Z	ascent-d3-new	Session menu	17	true
+2026-07-12T18:32:15.104Z	ascent-d2-exit	results Continue	27	true
+2026-07-12T18:32:18.097Z	base-d3-new	Session menu	9	true
+2026-07-12T18:32:23.214Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:32:26.751Z	ascent-d3-new	Session menu	4	true
+2026-07-12T18:32:30.044Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:32:33.583Z	ascent-d3-new	Session menu	5	true
+2026-07-12T18:32:48.354Z	ascent-d3-review	Session menu	5	true
+2026-07-12T18:32:48.904Z	base-d3-review	Session menu	7	true
+2026-07-12T18:32:49.738Z	ascent-d3-review	Session menu	6	true
+2026-07-12T18:32:49.810Z	base-d3-review	Session menu	6	true
+2026-07-12T18:32:50.215Z	ascent-d3-review	Session menu	7	true
+2026-07-12T18:32:50.714Z	ascent-d3-review	review test page	5	true
+2026-07-12T18:32:51.238Z	base-d3-review	review test page	6	true
+2026-07-12T18:32:52.103Z	ascent-d3-review	review test page	8	true
+2026-07-12T18:32:52.195Z	base-d3-review	review test page	8	true
+2026-07-12T18:32:52.553Z	ascent-d3-review	review test page	7	true
+2026-07-12T18:32:53.012Z	base-d3-review	Session menu	12	true
+2026-07-12T18:32:55.482Z	base-d3-review	review test page	5	true
+2026-07-12T18:33:01.099Z	ascent-d3-review	Session menu	4	true
+2026-07-12T18:33:03.421Z	ascent-d3-review	review test page	6	true
+2026-07-12T18:33:08.035Z	ascent-d3-review	Session menu	5	true
+2026-07-12T18:33:10.433Z	ascent-d3-review	review test page	8	true
+2026-07-12T18:33:11.594Z	ascent-d3-exit	results Continue	15	true
+2026-07-12T18:33:12.240Z	base-d3-exit	results Continue	6	true
+2026-07-12T18:33:13.287Z	base-d3-exit	results Continue	5	true
+2026-07-12T18:33:13.645Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T18:33:14.090Z	ascent-d3-exit	results Continue	12	true
+2026-07-12T18:33:16.369Z	base-d3-exit	results Continue	7	true
+2026-07-12T18:33:23.801Z	ascent-d3-exit	results Continue	41	true
+2026-07-12T18:33:26.638Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T18:33:27.195Z	base-d4-new	Start-New-Words/Continue	13	true
+2026-07-12T18:33:28.179Z	base-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T18:33:28.615Z	ascent-d4-new	Start-New-Words/Continue	9	true
+2026-07-12T18:33:29.126Z	ascent-d4-new	Start-New-Words/Continue	11	true
+2026-07-12T18:33:30.213Z	ascent-d4-new	Session menu	28	true
+2026-07-12T18:33:30.791Z	base-d4-new	Session menu	21	true
+2026-07-12T18:33:31.460Z	base-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T18:33:31.774Z	base-d4-new	Session menu	12	true
+2026-07-12T18:33:32.279Z	ascent-d4-new	Session menu	5	true
+2026-07-12T18:33:32.497Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T18:33:32.716Z	ascent-d4-new	Session menu	5	true
+2026-07-12T18:33:35.080Z	base-d4-new	Session menu	6	true
+2026-07-12T18:33:39.043Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T18:33:42.594Z	ascent-d4-new	Session menu	4	true
+2026-07-12T18:33:47.482Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T18:33:51.025Z	ascent-d4-new	Session menu	4	true
+2026-07-12T18:34:04.907Z	ascent-d4-review	Session menu	12	true
+2026-07-12T18:34:05.598Z	base-d4-review	Session menu	17	true
+2026-07-12T18:34:07.341Z	ascent-d4-review	review test page	6	true
+2026-07-12T18:34:07.698Z	ascent-d4-review	Session menu	4	true
+2026-07-12T18:34:07.823Z	base-d4-review	Session menu	5	true
+2026-07-12T18:34:07.937Z	ascent-d4-review	Session menu	5	true
+2026-07-12T18:34:08.046Z	base-d4-review	review test page	8	true
+2026-07-12T18:34:10.145Z	ascent-d4-review	review test page	31	true
+2026-07-12T18:34:10.318Z	base-d4-review	review test page	30	true
+2026-07-12T18:34:10.565Z	ascent-d4-review	review test page	7	true
+2026-07-12T18:34:11.967Z	base-d4-review	Session menu	12	true
+2026-07-12T18:34:14.372Z	base-d4-review	review test page	15	true
+2026-07-12T18:34:17.377Z	ascent-d4-review	Session menu	5	true
+2026-07-12T18:34:19.692Z	ascent-d4-review	review test page	5	true
+2026-07-12T18:34:26.777Z	ascent-d4-review	Session menu	5	true
+2026-07-12T18:34:28.248Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T18:34:29.142Z	ascent-d4-review	review test page	28	true
+2026-07-12T18:34:29.662Z	base-d4-exit	results Continue	5	true
+2026-07-12T18:34:31.487Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T18:34:31.654Z	base-d4-exit	results Continue	5	true
+2026-07-12T18:34:31.889Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T18:34:35.435Z	base-d4-exit	results Continue	40	true
+2026-07-12T18:34:40.151Z	ascent-d4-exit	results Continue	51	true
+2026-07-12T18:34:43.190Z	ascent-d5-new	Start-New-Words/Continue	8	true
+2026-07-12T18:34:44.694Z	base-d5-new	Start-New-Words/Continue	11	true
+2026-07-12T18:34:46.553Z	ascent-d5-new	Start-New-Words/Continue	38	true
+2026-07-12T18:34:46.707Z	base-d5-new	Start-New-Words/Continue	12	true
+2026-07-12T18:34:46.778Z	ascent-d5-new	Session menu	19	true
+2026-07-12T18:34:47.050Z	ascent-d5-new	Start-New-Words/Continue	21	true
+2026-07-12T18:34:48.313Z	base-d5-new	Session menu	10	true
+2026-07-12T18:34:50.657Z	ascent-d4-exit	results Continue	89	true
+2026-07-12T18:34:50.722Z	base-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T18:34:52.231Z	base-d5-new	Session menu	10	true
+2026-07-12T18:34:52.351Z	ascent-d5-new	Session menu	42	true
+2026-07-12T18:34:52.638Z	ascent-d5-new	Session menu	26	true
+2026-07-12T18:34:55.068Z	base-d5-new	Session menu	5	true
+2026-07-12T18:34:56.047Z	ascent-d5-new	Start-New-Words/Continue	7	true
+2026-07-12T18:35:02.241Z	ascent-d5-new	Session menu	27	true
+2026-07-12T18:35:06.057Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T18:35:09.426Z	base-d5-review	Session menu	5	true
+2026-07-12T18:35:10.037Z	ascent-d5-new	Session menu	5	true
+2026-07-12T18:35:11.788Z	base-d5-review	review test page	7	true
+2026-07-12T18:35:23.019Z	ascent-d5-review	Session menu	5	true
+2026-07-12T18:35:23.308Z	base-d5-exit	results Continue	5	true
+2026-07-12T18:35:25.637Z	ascent-d5-review	review test page	8	true
+2026-07-12T18:35:33.901Z	base-d5-review	Session menu	6	true
+2026-07-12T18:35:34.267Z	ascent-d5-review	Session menu	6	true
+2026-07-12T18:35:34.660Z	ascent-d5-review	Session menu	15	true
+2026-07-12T18:35:34.883Z	base-d5-review	Session menu	39	true
+2026-07-12T18:35:36.571Z	base-d5-review	review test page	13	true
+2026-07-12T18:35:37.023Z	ascent-d5-review	review test page	54	true
+2026-07-12T18:35:37.496Z	ascent-d5-review	review test page	27	true
+2026-07-12T18:35:37.982Z	base-d5-review	review test page	34	true
+2026-07-12T18:35:39.838Z	ascent-d5-review	Session menu	14	true
+2026-07-12T18:35:42.350Z	ascent-d5-review	review test page	5	true
+2026-07-12T18:35:47.515Z	ascent-d5-review	Session menu	6	true
+2026-07-12T18:35:49.343Z	ascent-d5-exit	results Continue	12	true
+2026-07-12T18:35:49.935Z	ascent-d5-review	review test page	6	true
+2026-07-12T18:35:59.215Z	base-d5-exit	results Continue	15451	true
+2026-07-12T18:36:00.869Z	base-d5-exit	results Continue	23	true
+2026-07-12T18:36:02.177Z	ascent-d5-exit	results Continue	15	true
+2026-07-12T18:36:02.199Z	ascent-d5-exit	results Continue	41	true
+2026-07-12T18:36:04.782Z	ascent-d6-new	Start-New-Words/Continue	4	true
+2026-07-12T18:36:05.350Z	ascent-d5-exit	results Continue	12	true
+2026-07-12T18:36:09.900Z	ascent-d6-new	Session menu	5	true
+2026-07-12T18:36:11.387Z	ascent-d5-exit	results Continue	10	true
+2026-07-12T18:36:14.570Z	base-d5-new	Start-New-Words/Continue	20001	false
+2026-07-12T18:36:14.725Z	base-d6-new	Start-New-Words/Continue	10	true
+2026-07-12T18:36:16.147Z	base-d6-new	Start-New-Words/Continue	19	true
+2026-07-12T18:36:17.466Z	ascent-d6-new	Start-New-Words/Continue	17	true
+2026-07-12T18:36:17.715Z	ascent-d6-new	Start-New-Words/Continue	26	true
+2026-07-12T18:36:18.788Z	base-d6-new	Session menu	41	true
+2026-07-12T18:36:20.701Z	base-d6-new	Session menu	8	true
+2026-07-12T18:36:20.894Z	ascent-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T18:36:21.866Z	ascent-d6-new	Session menu	10	true
+2026-07-12T18:36:21.909Z	ascent-d6-new	Session menu	16	true
+2026-07-12T18:36:25.785Z	ascent-d6-new	Session menu	23	true
+2026-07-12T18:36:27.033Z	ascent-d6-new	Start-New-Words/Continue	20	true
+2026-07-12T18:36:33.948Z	ascent-d6-new	Session menu	6	true
+2026-07-12T18:36:41.676Z	base-d5-new	Start-New-Words/Continue	20000	false
+2026-07-12T18:36:47.332Z	ascent-d6-review	Session menu	6	true
+2026-07-12T18:36:49.696Z	ascent-d6-review	review test page	6	true
+2026-07-12T18:36:56.529Z	base-d6-review	Session menu	18	true
+2026-07-12T18:36:57.611Z	base-d6-review	Session menu	17	true
+2026-07-12T18:36:58.974Z	base-d6-review	review test page	14	true
+2026-07-12T18:37:00.103Z	base-d6-review	review test page	24	true
+2026-07-12T18:37:00.459Z	ascent-d6-review	Session menu	8	true
+2026-07-12T18:37:00.483Z	ascent-d6-review	Session menu	10	true
+2026-07-12T18:37:02.929Z	ascent-d6-review	review test page	6	true
+2026-07-12T18:37:02.934Z	ascent-d6-review	review test page	6	true
+2026-07-12T18:37:03.604Z	ascent-d6-review	Session menu	4	true
+2026-07-12T18:37:05.927Z	ascent-d6-review	review test page	8	true
+2026-07-12T18:37:10.454Z	ascent-d6-review	Session menu	4	true
+2026-07-12T18:37:11.160Z	ascent-d6-exit	results Continue	6	true
+2026-07-12T18:37:12.795Z	ascent-d6-review	review test page	5	true
+2026-07-12T18:37:21.252Z	base-d6-exit	results Continue	9	true
+2026-07-12T18:37:22.246Z	base-d6-exit	results Continue	6	true
+2026-07-12T18:37:23.448Z	ascent-d6-exit	results Continue	7	true
+2026-07-12T18:37:24.334Z	ascent-d6-exit	results Continue	25	true
+2026-07-12T18:37:26.321Z	ascent-d7-new	Start-New-Words/Continue	10	true
+2026-07-12T18:37:27.144Z	ascent-d6-exit	results Continue	23	true
+2026-07-12T18:37:31.158Z	ascent-d7-new	Session menu	9	true
+2026-07-12T18:37:33.477Z	ascent-d6-exit	results Continue	5	true
+2026-07-12T18:37:36.508Z	base-d7-new	Start-New-Words/Continue	19	true
+2026-07-12T18:37:38.759Z	ascent-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T18:37:39.754Z	ascent-d7-new	Start-New-Words/Continue	23	true
+2026-07-12T18:37:40.122Z	base-d7-new	Session menu	12	true
+2026-07-12T18:37:42.459Z	ascent-d7-new	Start-New-Words/Continue	8	true
+2026-07-12T18:37:42.865Z	ascent-d7-new	Session menu	8	true
+2026-07-12T18:37:43.689Z	ascent-d7-new	Session menu	8	true
+2026-07-12T18:37:46.728Z	ascent-d7-new	Session menu	52	true
+2026-07-12T18:37:48.822Z	ascent-d7-new	Start-New-Words/Continue	13	true
+2026-07-12T18:37:54.010Z	ascent-d7-new	Session menu	9	true
+2026-07-12T18:38:11.973Z	ascent-d7-review	Session menu	10	true
+2026-07-12T18:38:14.492Z	ascent-d7-review	review test page	12	true
+2026-07-12T18:38:16.407Z	base-d7-review	Session menu	12	true
+2026-07-12T18:38:18.814Z	base-d7-review	review test page	7	true
+2026-07-12T18:38:19.904Z	ascent-d7-review	Session menu	31	true
+2026-07-12T18:38:22.049Z	ascent-d7-review	Session menu	10	true
+2026-07-12T18:38:22.430Z	ascent-d7-review	review test page	6	true
+2026-07-12T18:38:23.625Z	ascent-d7-review	Session menu	8	true
+2026-07-12T18:38:24.519Z	ascent-d7-review	review test page	5	true
+2026-07-12T18:38:25.996Z	ascent-d7-review	review test page	19	true
+2026-07-12T18:38:30.704Z	ascent-d7-review	Session menu	9	true
+2026-07-12T18:38:33.160Z	ascent-d7-review	review test page	10	true
+2026-07-12T18:38:36.000Z	ascent-d7-exit	results Continue	59	true
+2026-07-12T18:38:40.542Z	base-d7-exit	results Continue	11	true
+2026-07-12T18:38:42.900Z	ascent-d7-exit	results Continue	12	true
+2026-07-12T18:38:45.359Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T18:38:46.703Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:38:47.587Z	ascent-d7-exit	results Continue	8	true
+2026-07-12T18:38:50.283Z	ascent-d1-new	Session menu	5	true
+2026-07-12T18:38:51.132Z	ascent-d8-new	Start-New-Words/Continue	6	true
+2026-07-12T18:38:54.362Z	ascent-d7-exit	results Continue	12	true
+2026-07-12T18:38:55.641Z	base-d8-new	Start-New-Words/Continue	6	true
+2026-07-12T18:38:56.562Z	ascent-d8-new	Session menu	8	true
+2026-07-12T18:38:58.267Z	ascent-d8-new	Start-New-Words/Continue	8	true
+2026-07-12T18:38:59.184Z	base-d8-new	Session menu	13	true
+2026-07-12T18:39:00.435Z	ascent-d8-new	Start-New-Words/Continue	23	true
+2026-07-12T18:39:02.385Z	ascent-d8-new	Session menu	8	true
+2026-07-12T18:39:02.849Z	ascent-d8-new	Start-New-Words/Continue	12	true
+2026-07-12T18:39:04.422Z	ascent-d8-new	Session menu	7	true
+2026-07-12T18:39:06.862Z	ascent-d8-new	Session menu	18	true
+2026-07-12T18:39:09.525Z	ascent-d8-new	Start-New-Words/Continue	6	true
+2026-07-12T18:39:13.890Z	ascent-d8-new	Session menu	7	true
+2026-07-12T18:39:14.094Z	ascent-d1-exit	results Continue	11	true
+2026-07-12T18:39:28.629Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T18:39:29.062Z	ascent-d2-new	Start-New-Words/Continue	30	true
+2026-07-12T18:39:32.248Z	ascent-d1-new	Session menu	10	true
+2026-07-12T18:39:32.738Z	ascent-d2-new	Session menu	7	true
+2026-07-12T18:39:33.400Z	ascent-d8-review	Session menu	7	true
+2026-07-12T18:39:35.372Z	base-d8-review	Session menu	9	true
+2026-07-12T18:39:35.754Z	ascent-d8-review	review test page	6	true
+2026-07-12T18:39:38.329Z	base-d8-review	review test page	9	true
+2026-07-12T18:39:40.300Z	ascent-d8-review	Session menu	15	true
+2026-07-12T18:39:42.996Z	ascent-d8-review	review test page	11	true
+2026-07-12T18:39:44.021Z	ascent-d8-review	Session menu	5	true
+2026-07-12T18:39:45.005Z	ascent-d8-review	Session menu	5	true
+2026-07-12T18:39:46.405Z	ascent-d8-review	review test page	12	true
+2026-07-12T18:39:47.433Z	ascent-d8-review	review test page	9	true
+2026-07-12T18:39:49.429Z	ascent-d8-review	Session menu	10	true
+2026-07-12T18:39:51.814Z	ascent-d8-review	review test page	7	true
+2026-07-12T18:39:57.619Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T18:40:00.868Z	ascent-d8-exit	results Continue	6	true
+2026-07-12T18:40:01.801Z	base-d8-exit	results Continue	6	true
+2026-07-12T18:40:04.780Z	ascent-d8-exit	results Continue	66	true
+2026-07-12T18:40:07.944Z	ascent-d8-exit	results Continue	7	true
+2026-07-12T18:40:08.031Z	ascent-d8-exit	results Continue	18	true
+2026-07-12T18:40:09.842Z	ascent-d2-review	Session menu	9	true
+2026-07-12T18:40:12.212Z	ascent-d2-review	review test page	6	true
+2026-07-12T18:40:12.759Z	ascent-d8-exit	results Continue	7	true
+2026-07-12T18:40:13.283Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T18:40:16.163Z	ascent-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T18:40:16.848Z	ascent-d2-new	Session menu	7	true
+2026-07-12T18:40:17.113Z	base-d9-new	Start-New-Words/Continue	11	true
+2026-07-12T18:40:20.134Z	ascent-d9-new	Start-New-Words/Continue	3	true
+2026-07-12T18:40:21.171Z	ascent-d9-new	Session menu	18	true
+2026-07-12T18:40:21.682Z	base-d9-new	Session menu	7	true
+2026-07-12T18:40:23.276Z	ascent-d9-new	Start-New-Words/Continue	6	true
+2026-07-12T18:40:23.496Z	ascent-d9-new	Start-New-Words/Continue	12	true
+2026-07-12T18:40:23.917Z	ascent-d9-new	Session menu	14	true
+2026-07-12T18:40:28.050Z	ascent-d9-new	Start-New-Words/Continue	19	true
+2026-07-12T18:40:29.409Z	ascent-d9-new	Session menu	10	true
+2026-07-12T18:40:29.858Z	ascent-d9-new	Session menu	8	true
+2026-07-12T18:40:33.291Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T18:40:33.692Z	ascent-d9-new	Session menu	8	true
+2026-07-12T18:40:48.262Z	ascent-d3-new	Start-New-Words/Continue	10	true
+2026-07-12T18:40:51.771Z	ascent-d2-review	Session menu	7	true
+2026-07-12T18:40:51.847Z	ascent-d3-new	Session menu	6	true
+2026-07-12T18:40:54.279Z	ascent-d2-review	review test page	9	true
+2026-07-12T18:41:00.379Z	base-d9-review	Session menu	11	true
+2026-07-12T18:41:01.033Z	ascent-d9-review	Session menu	6	true
+2026-07-12T18:41:02.273Z	ascent-d9-review	Session menu	19	true
+2026-07-12T18:41:02.852Z	base-d9-review	review test page	29	true
+2026-07-12T18:41:03.474Z	ascent-d9-review	review test page	8	true
+2026-07-12T18:41:04.784Z	ascent-d9-review	review test page	8	true
+2026-07-12T18:41:05.410Z	ascent-d9-review	Session menu	8	true
+2026-07-12T18:41:05.882Z	ascent-d9-review	Session menu	12	true
+2026-07-12T18:41:07.912Z	ascent-d9-review	review test page	41	true
+2026-07-12T18:41:08.435Z	ascent-d9-review	review test page	7	true
+2026-07-12T18:41:10.352Z	ascent-d9-review	Session menu	6	true
+2026-07-12T18:41:12.728Z	ascent-d9-review	review test page	8	true
+2026-07-12T18:41:16.142Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T18:41:24.082Z	base-d9-exit	results Continue	11	true
+2026-07-12T18:41:24.936Z	ascent-d9-exit	results Continue	8	true
+2026-07-12T18:41:26.630Z	ascent-d9-exit	results Continue	7	true
+2026-07-12T18:41:28.051Z	ascent-d3-review	Session menu	11	true
+2026-07-12T18:41:29.615Z	ascent-d9-exit	results Continue	20	true
+2026-07-12T18:41:29.736Z	ascent-d9-exit	results Continue	16	true
+2026-07-12T18:41:30.483Z	ascent-d3-review	review test page	16	true
+2026-07-12T18:41:31.338Z	ascent-d3-new	Start-New-Words/Continue	7	true
+2026-07-12T18:41:33.956Z	ascent-d9-exit	results Continue	6	true
+2026-07-12T18:41:34.945Z	ascent-d3-new	Session menu	6	true
+2026-07-12T18:41:39.436Z	base-d10-new	Start-New-Words/Continue	4	true
+2026-07-12T18:41:40.491Z	ascent-d10-new	Start-New-Words/Continue	12	true
+2026-07-12T18:41:41.880Z	ascent-d10-new	Start-New-Words/Continue	14	true
+2026-07-12T18:41:43.618Z	base-d10-new	Session menu	9	true
+2026-07-12T18:41:44.933Z	ascent-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T18:41:45.313Z	ascent-d10-new	Start-New-Words/Continue	11	true
+2026-07-12T18:41:45.648Z	ascent-d10-new	Session menu	8	true
+2026-07-12T18:41:45.933Z	ascent-d10-new	Session menu	8	true
+2026-07-12T18:41:49.225Z	ascent-d10-new	Start-New-Words/Continue	7	true
+2026-07-12T18:41:50.056Z	ascent-d10-new	Session menu	21	true
+2026-07-12T18:41:50.436Z	ascent-d10-new	Session menu	37	true
+2026-07-12T18:41:52.683Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T18:41:54.679Z	ascent-d10-new	Session menu	16	true
+2026-07-12T18:42:07.873Z	ascent-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T18:42:11.448Z	ascent-d4-new	Session menu	6	true
+2026-07-12T18:42:21.752Z	base-d10-review	Session menu	32	true
+2026-07-12T18:42:23.664Z	ascent-d10-review	Session menu	6	true
+2026-07-12T18:42:24.255Z	base-d10-review	review test page	7	true
+2026-07-12T18:42:24.399Z	ascent-d10-review	Session menu	7	true
+2026-07-12T18:42:26.082Z	ascent-d10-review	review test page	15	true
+2026-07-12T18:42:26.475Z	ascent-d10-review	Session menu	7	true
+2026-07-12T18:42:26.864Z	ascent-d10-review	review test page	15	true
+2026-07-12T18:42:29.017Z	ascent-d10-review	review test page	20	true
+2026-07-12T18:42:29.828Z	ascent-d10-review	Session menu	19	true
+2026-07-12T18:42:32.093Z	ascent-d10-review	Session menu	5	true
+2026-07-12T18:42:32.220Z	ascent-d10-review	review test page	6	true
+2026-07-12T18:42:34.437Z	ascent-d10-review	review test page	6	true
+2026-07-12T18:42:45.760Z	base-d10-exit	results Continue	8	true
+2026-07-12T18:42:47.522Z	ascent-d4-review	Session menu	4	true
+2026-07-12T18:42:48.003Z	ascent-d10-exit	results Continue	4	true
+2026-07-12T18:42:48.819Z	ascent-d10-exit	results Continue	6	true
+2026-07-12T18:42:49.973Z	ascent-d4-review	review test page	5	true
+2026-07-12T18:42:51.861Z	ascent-d10-exit	results Continue	7	true
+2026-07-12T18:42:54.771Z	ascent-d10-exit	results Continue	28	true
+2026-07-12T18:42:54.849Z	ascent-d10-exit	results Continue	50	true
+2026-07-12T18:43:00.824Z	base-d11-new	Start-New-Words/Continue	8	true
+2026-07-12T18:43:03.173Z	ascent-d11-new	Start-New-Words/Continue	8	true
+2026-07-12T18:43:04.143Z	ascent-d11-new	Start-New-Words/Continue	7	true
+2026-07-12T18:43:04.813Z	base-d11-new	Session menu	6	true
+2026-07-12T18:43:07.095Z	ascent-d11-new	Start-New-Words/Continue	11	true
+2026-07-12T18:43:07.649Z	ascent-d11-new	Session menu	8	true
+2026-07-12T18:43:09.638Z	ascent-d11-new	Session menu	5	true
+2026-07-12T18:43:10.360Z	ascent-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T18:43:10.405Z	ascent-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T18:43:11.666Z	ascent-d4-exit	results Continue	8	true
+2026-07-12T18:43:12.019Z	ascent-d11-new	Session menu	11	true
+2026-07-12T18:43:15.855Z	ascent-d11-new	Session menu	26	true
+2026-07-12T18:43:16.396Z	ascent-d11-new	Session menu	6	true
+2026-07-12T18:43:24.551Z	base-d11-review	Session menu	4	true
+2026-07-12T18:43:26.770Z	ascent-d5-new	Start-New-Words/Continue	12	true
+2026-07-12T18:43:26.851Z	base-d11-review	review test page	5	true
+2026-07-12T18:43:30.322Z	ascent-d5-new	Session menu	6	true
+2026-07-12T18:43:37.668Z	base-d11-exit	results Continue	5	true
+2026-07-12T18:43:45.256Z	ascent-d11-review	Session menu	19	true
+2026-07-12T18:43:47.694Z	ascent-d11-review	review test page	13	true
+2026-07-12T18:43:47.696Z	ascent-d11-review	Session menu	17	true
+2026-07-12T18:43:50.030Z	ascent-d11-review	Session menu	20	true
+2026-07-12T18:43:50.324Z	ascent-d11-review	review test page	19	true
+2026-07-12T18:43:52.546Z	ascent-d11-review	review test page	7	true
+2026-07-12T18:43:52.617Z	ascent-d11-review	Session menu	7	true
+2026-07-12T18:43:53.915Z	ascent-d11-review	Session menu	6	true
+2026-07-12T18:43:55.023Z	ascent-d11-review	review test page	7	true
+2026-07-12T18:43:56.251Z	ascent-d11-review	review test page	12	true
+2026-07-12T18:44:04.257Z	ascent-d5-review	Session menu	5	true
+2026-07-12T18:44:06.601Z	ascent-d5-review	review test page	7	true
+2026-07-12T18:44:10.964Z	ascent-d11-exit	results Continue	9	true
+2026-07-12T18:44:12.067Z	ascent-d11-exit	results Continue	18	true
+2026-07-12T18:44:13.291Z	ascent-d11-exit	results Continue	15	true
+2026-07-12T18:44:15.809Z	ascent-d11-exit	results Continue	6	true
+2026-07-12T18:44:16.525Z	ascent-d1-new	Start-New-Words/Continue	11	true
+2026-07-12T18:44:17.061Z	ascent-d11-exit	results Continue	49	true
+2026-07-12T18:44:20.144Z	ascent-d1-new	Session menu	9	true
+2026-07-12T18:44:26.046Z	ascent-d12-new	Start-New-Words/Continue	16	true
+2026-07-12T18:44:27.336Z	ascent-d12-new	Start-New-Words/Continue	15	true
+2026-07-12T18:44:28.402Z	ascent-d12-new	Start-New-Words/Continue	21	true
+2026-07-12T18:44:28.709Z	ascent-d5-exit	results Continue	136	true
+2026-07-12T18:44:28.823Z	base-d11-new	Start-New-Words/Continue	20004	false
+2026-07-12T18:44:31.022Z	ascent-d12-new	Start-New-Words/Continue	10	true
+2026-07-12T18:44:32.627Z	ascent-d12-new	Start-New-Words/Continue	42	true
+2026-07-12T18:44:32.816Z	ascent-d12-new	Session menu	8	true
+2026-07-12T18:44:35.362Z	ascent-d12-new	Session menu	7	true
+2026-07-12T18:44:35.478Z	ascent-d12-new	Session menu	14	true
+2026-07-12T18:44:37.299Z	ascent-d12-new	Session menu	7	true
+2026-07-12T18:44:38.829Z	ascent-d12-new	Session menu	16	true
+2026-07-12T18:44:42.641Z	ascent-d1-exit	results Continue	15	true
+2026-07-12T18:44:44.430Z	ascent-d6-new	Start-New-Words/Continue	4	true
+2026-07-12T18:44:48.001Z	ascent-d6-new	Session menu	11	true
+2026-07-12T18:44:56.264Z	base-d11-new	Start-New-Words/Continue	20003	false
+2026-07-12T18:44:58.109Z	ascent-d2-new	Start-New-Words/Continue	11	true
+2026-07-12T18:45:01.667Z	ascent-d2-new	Session menu	6	true
+2026-07-12T18:45:10.832Z	ascent-d12-review	Session menu	33	true
+2026-07-12T18:45:13.573Z	ascent-d12-review	review test page	10	true
+2026-07-12T18:45:15.171Z	ascent-d12-review	Session menu	20	true
+2026-07-12T18:45:15.708Z	ascent-d12-review	Session menu	18	true
+2026-07-12T18:45:17.405Z	ascent-d12-review	Session menu	6	true
+2026-07-12T18:45:17.688Z	ascent-d12-review	review test page	5	true
+2026-07-12T18:45:18.140Z	ascent-d12-review	review test page	7	true
+2026-07-12T18:45:18.485Z	ascent-d12-review	Session menu	5	true
+2026-07-12T18:45:19.771Z	ascent-d12-review	review test page	27	true
+2026-07-12T18:45:20.969Z	ascent-d12-review	review test page	16	true
+2026-07-12T18:45:24.988Z	ascent-d6-review	Session menu	6	true
+2026-07-12T18:45:27.311Z	ascent-d6-review	review test page	5	true
+2026-07-12T18:45:36.024Z	ascent-d12-exit	results Continue	6	true
+2026-07-12T18:45:37.084Z	ascent-d2-review	Session menu	12	true
+2026-07-12T18:45:39.413Z	ascent-d12-exit	results Continue	6	true
+2026-07-12T18:45:39.542Z	ascent-d12-exit	results Continue	15	true
+2026-07-12T18:45:39.557Z	ascent-d2-review	review test page	19	true
+2026-07-12T18:45:40.276Z	ascent-d12-exit	results Continue	7	true
+2026-07-12T18:45:42.236Z	ascent-d12-exit	results Continue	5	true
+2026-07-12T18:45:48.139Z	ascent-d6-exit	results Continue	6	true
+2026-07-12T18:45:51.184Z	ascent-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T18:45:54.484Z	ascent-d13-new	Start-New-Words/Continue	8	true
+2026-07-12T18:45:55.498Z	ascent-d13-new	Start-New-Words/Continue	13	true
+2026-07-12T18:45:56.931Z	ascent-d13-new	Session menu	16	true
+2026-07-12T18:45:57.544Z	ascent-d13-new	Start-New-Words/Continue	10	true
+2026-07-12T18:46:01.003Z	ascent-d2-exit	results Continue	26	true
+2026-07-12T18:46:02.432Z	ascent-d13-new	Session menu	8	true
+2026-07-12T18:46:02.587Z	ascent-d13-new	Session menu	17	true
+2026-07-12T18:46:05.405Z	ascent-d13-new	Session menu	4	true
+2026-07-12T18:46:16.393Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:46:19.978Z	ascent-d3-new	Session menu	31	true
+2026-07-12T18:46:35.353Z	ascent-d13-review	Session menu	13	true
+2026-07-12T18:46:37.874Z	ascent-d13-review	review test page	14	true
+2026-07-12T18:46:39.942Z	ascent-d13-review	Session menu	5	true
+2026-07-12T18:46:40.001Z	ascent-d13-review	Session menu	9	true
+2026-07-12T18:46:42.274Z	ascent-d13-review	review test page	6	true
+2026-07-12T18:46:42.365Z	ascent-d13-review	review test page	7	true
+2026-07-12T18:46:42.919Z	ascent-d13-review	Session menu	10	true
+2026-07-12T18:46:45.405Z	ascent-d13-review	review test page	12	true
+2026-07-12T18:46:55.507Z	ascent-d3-review	Session menu	6	true
+2026-07-12T18:46:57.857Z	ascent-d3-review	review test page	6	true
+2026-07-12T18:46:58.407Z	ascent-d13-exit	results Continue	5	true
+2026-07-12T18:47:04.434Z	ascent-d13-exit	results Continue	22	true
+2026-07-12T18:47:06.150Z	ascent-d13-exit	results Continue	9	true
+2026-07-12T18:47:06.592Z	ascent-d13-exit	results Continue	32	true
+2026-07-12T18:47:13.557Z	ascent-d14-new	Start-New-Words/Continue	12	true
+2026-07-12T18:47:17.947Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:47:18.108Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T18:47:18.896Z	ascent-d14-new	Session menu	5	true
+2026-07-12T18:47:19.782Z	ascent-d14-new	Start-New-Words/Continue	10	true
+2026-07-12T18:47:21.438Z	ascent-d14-new	Start-New-Words/Continue	6	true
+2026-07-12T18:47:21.956Z	ascent-d14-new	Start-New-Words/Continue	16	true
+2026-07-12T18:47:22.937Z	ascent-d1-new	Session menu	20	true
+2026-07-12T18:47:27.006Z	ascent-d14-new	Session menu	54	true
+2026-07-12T18:47:28.516Z	ascent-d14-new	Session menu	8	true
+2026-07-12T18:47:29.980Z	ascent-d14-new	Session menu	5	true
+2026-07-12T18:47:33.585Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T18:47:36.858Z	base-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:47:37.162Z	ascent-d4-new	Session menu	4	true
+2026-07-12T18:47:40.444Z	base-d1-new	Session menu	7	true
+2026-07-12T18:47:56.831Z	ascent-d14-review	Session menu	5	true
+2026-07-12T18:47:57.295Z	ascent-d1-new	Start-New-Words/Continue	28	true
+2026-07-12T18:47:59.191Z	ascent-d14-review	review test page	7	true
+2026-07-12T18:48:00.223Z	ascent-d1-review	Session menu	30	true
+2026-07-12T18:48:00.911Z	ascent-d1-new	Session menu	10	true
+2026-07-12T18:48:02.792Z	ascent-d1-review	review test page	6	true
+2026-07-12T18:48:03.426Z	base-d1-exit	results Continue	6	true
+2026-07-12T18:48:04.011Z	ascent-d14-review	Session menu	6	true
+2026-07-12T18:48:05.545Z	ascent-d14-review	Session menu	8	true
+2026-07-12T18:48:06.442Z	ascent-d14-review	review test page	13	true
+2026-07-12T18:48:07.935Z	ascent-d14-review	review test page	8	true
+2026-07-12T18:48:09.396Z	ascent-d14-review	Session menu	8	true
+2026-07-12T18:48:11.095Z	ascent-d4-review	Session menu	5	true
+2026-07-12T18:48:11.783Z	ascent-d14-review	review test page	9	true
+2026-07-12T18:48:13.473Z	ascent-d4-review	review test page	17	true
+2026-07-12T18:48:18.655Z	base-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T18:48:20.906Z	ascent-d14-exit	results Continue	6	true
+2026-07-12T18:48:22.210Z	base-d2-new	Session menu	3	true
+2026-07-12T18:48:23.660Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T18:48:24.004Z	ascent-d1-exit	results Continue	9	true
+2026-07-12T18:48:26.378Z	ascent-d14-exit	results Continue	5	true
+2026-07-12T18:48:28.363Z	ascent-d14-exit	results Continue	4	true
+2026-07-12T18:48:33.508Z	ascent-d14-exit	results Continue	9	true
+2026-07-12T18:48:34.596Z	ascent-d4-exit	results Continue	9	true
+2026-07-12T18:48:36.176Z	ascent-d15-new	Start-New-Words/Continue	6	true
+2026-07-12T18:48:39.140Z	ascent-d2-new	Start-New-Words/Continue	13	true
+2026-07-12T18:48:39.473Z	ascent-d2-new	Start-New-Words/Continue	47	true
+2026-07-12T18:48:42.004Z	ascent-d15-new	Start-New-Words/Continue	10	true
+2026-07-12T18:48:43.400Z	ascent-d2-new	Session menu	16	true
+2026-07-12T18:48:43.718Z	ascent-d15-new	Session menu	51	true
+2026-07-12T18:48:44.001Z	ascent-d15-new	Start-New-Words/Continue	34	true
+2026-07-12T18:48:46.788Z	ascent-d2-new	Session menu	11	true
+2026-07-12T18:48:49.299Z	ascent-d15-new	Start-New-Words/Continue	6	true
+2026-07-12T18:48:49.902Z	ascent-d15-new	Session menu	7	true
+2026-07-12T18:48:50.302Z	ascent-d5-new	Start-New-Words/Continue	9	true
+2026-07-12T18:48:50.575Z	ascent-d15-new	Session menu	7	true
+2026-07-12T18:48:53.877Z	ascent-d5-new	Session menu	6	true
+2026-07-12T18:48:55.734Z	ascent-d15-new	Session menu	7	true
+2026-07-12T18:48:57.627Z	base-d2-review	Session menu	5	true
+2026-07-12T18:49:00.023Z	base-d2-review	review test page	17	true
+2026-07-12T18:49:16.126Z	base-d2-exit	results Continue	9	true
+2026-07-12T18:49:20.486Z	ascent-d2-review	Session menu	23	true
+2026-07-12T18:49:23.786Z	ascent-d2-review	review test page	31	true
+2026-07-12T18:49:25.049Z	ascent-d15-review	Session menu	15	true
+2026-07-12T18:49:28.044Z	ascent-d15-review	review test page	21	true
+2026-07-12T18:49:29.911Z	ascent-d2-review	Session menu	14	true
+2026-07-12T18:49:32.121Z	ascent-d5-review	Session menu	15	true
+2026-07-12T18:49:32.623Z	ascent-d2-review	review test page	7	true
+2026-07-12T18:49:32.867Z	base-d3-new	Start-New-Words/Continue	22	true
+2026-07-12T18:49:33.605Z	ascent-d15-review	Session menu	9	true
+2026-07-12T18:49:34.029Z	ascent-d15-review	Session menu	11	true
+2026-07-12T18:49:34.653Z	ascent-d5-review	review test page	24	true
+2026-07-12T18:49:36.036Z	ascent-d15-review	review test page	7	true
+2026-07-12T18:49:36.450Z	base-d3-new	Session menu	6	true
+2026-07-12T18:49:36.574Z	ascent-d15-review	review test page	5	true
+2026-07-12T18:49:36.602Z	ascent-d15-review	Session menu	5	true
+2026-07-12T18:49:38.993Z	ascent-d15-review	review test page	6	true
+2026-07-12T18:49:47.891Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T18:49:50.366Z	ascent-d15-exit	results Continue	5	true
+2026-07-12T18:49:54.326Z	ascent-d2-exit	results Continue	7	true
+2026-07-12T18:49:55.857Z	ascent-d5-exit	results Continue	7	true
+2026-07-12T18:49:56.307Z	ascent-d15-exit	results Continue	6	true
+2026-07-12T18:49:57.846Z	ascent-d15-exit	results Continue	4	true
+2026-07-12T18:50:00.328Z	ascent-d15-exit	results Continue	7	true
+2026-07-12T18:50:03.071Z	ascent-d3-new	Start-New-Words/Continue	7	true
+2026-07-12T18:50:05.587Z	ascent-d16-new	Start-New-Words/Continue	6	true
+2026-07-12T18:50:06.647Z	ascent-d3-new	Session menu	19	true
+2026-07-12T18:50:09.563Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T18:50:11.043Z	ascent-d6-new	Start-New-Words/Continue	8	true
+2026-07-12T18:50:11.632Z	ascent-d16-new	Start-New-Words/Continue	15	true
+2026-07-12T18:50:12.019Z	ascent-d16-new	Session menu	7	true
+2026-07-12T18:50:12.621Z	base-d3-review	Session menu	9	true
+2026-07-12T18:50:13.280Z	ascent-d16-new	Start-New-Words/Continue	6	true
+2026-07-12T18:50:15.046Z	ascent-d6-new	Session menu	8	true
+2026-07-12T18:50:15.111Z	base-d3-review	review test page	24	true
+2026-07-12T18:50:15.753Z	ascent-d16-new	Start-New-Words/Continue	11	true
+2026-07-12T18:50:15.956Z	ascent-d3-new	Session menu	28	true
+2026-07-12T18:50:18.671Z	ascent-d16-new	Session menu	19	true
+2026-07-12T18:50:21.401Z	ascent-d16-new	Session menu	6	true
+2026-07-12T18:50:23.390Z	ascent-d16-new	Session menu	6	true
+2026-07-12T18:50:28.161Z	base-d3-exit	results Continue	9	true
+2026-07-12T18:50:42.241Z	ascent-d3-review	Session menu	8	true
+2026-07-12T18:50:43.161Z	base-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T18:50:44.575Z	ascent-d3-review	review test page	5	true
+2026-07-12T18:50:46.826Z	base-d4-new	Session menu	23	true
+2026-07-12T18:50:51.387Z	ascent-d16-review	Session menu	23	true
+2026-07-12T18:50:54.146Z	ascent-d16-review	review test page	20	true
+2026-07-12T18:50:56.923Z	ascent-d3-review	Session menu	15	true
+2026-07-12T18:50:56.928Z	ascent-d6-review	Session menu	24	true
+2026-07-12T18:50:59.448Z	ascent-d6-review	review test page	9	true
+2026-07-12T18:50:59.490Z	ascent-d3-review	review test page	13	true
+2026-07-12T18:51:00.385Z	ascent-d16-review	Session menu	7	true
+2026-07-12T18:51:03.075Z	ascent-d16-review	review test page	10	true
+2026-07-12T18:51:03.661Z	ascent-d16-review	Session menu	6	true
+2026-07-12T18:51:04.061Z	ascent-d16-review	Session menu	6	true
+2026-07-12T18:51:05.936Z	ascent-d3-exit	results Continue	7	true
+2026-07-12T18:51:06.033Z	ascent-d16-review	review test page	12	true
+2026-07-12T18:51:06.444Z	ascent-d16-review	review test page	7	true
+2026-07-12T18:51:17.018Z	ascent-d16-exit	results Continue	27	true
+2026-07-12T18:51:20.892Z	ascent-d4-new	Start-New-Words/Continue	3	true
+2026-07-12T18:51:21.370Z	ascent-d3-exit	results Continue	9	true
+2026-07-12T18:51:21.376Z	ascent-d6-exit	results Continue	36	true
+2026-07-12T18:51:24.372Z	ascent-d16-exit	results Continue	11	true
+2026-07-12T18:51:24.466Z	ascent-d4-new	Session menu	33	true
+2026-07-12T18:51:24.830Z	base-d4-review	Session menu	6	true
+2026-07-12T18:51:27.174Z	ascent-d16-exit	results Continue	13	true
+2026-07-12T18:51:27.191Z	base-d4-review	review test page	13	true
+2026-07-12T18:51:27.755Z	ascent-d16-exit	results Continue	6	true
+2026-07-12T18:51:32.475Z	ascent-d17-new	Start-New-Words/Continue	11	true
+2026-07-12T18:51:36.626Z	ascent-d7-new	Start-New-Words/Continue	11	true
+2026-07-12T18:51:36.773Z	ascent-d4-new	Start-New-Words/Continue	20	true
+2026-07-12T18:51:38.551Z	base-d4-exit	results Continue	165	true
+2026-07-12T18:51:39.357Z	ascent-d17-new	Session menu	28	true
+2026-07-12T18:51:40.046Z	ascent-d17-new	Start-New-Words/Continue	5	true
+2026-07-12T18:51:41.038Z	ascent-d7-new	Session menu	11	true
+2026-07-12T18:51:43.634Z	ascent-d4-new	Session menu	8	true
+2026-07-12T18:51:46.108Z	ascent-d17-new	Session menu	6	true
+2026-07-12T18:51:59.547Z	ascent-d4-review	Session menu	4	true
+2026-07-12T18:52:00.636Z	base-d5-review-BLOCKED	Session menu	5	true
+2026-07-12T18:52:01.863Z	ascent-d4-review	review test page	7	true
+2026-07-12T18:52:02.965Z	base-d5-review-BLOCKED	review test page	9	true
+2026-07-12T18:52:15.405Z	ascent-d17-review	Session menu	7	true
+2026-07-12T18:52:15.520Z	ascent-d7-review	Session menu	6	true
+2026-07-12T18:52:17.759Z	ascent-d17-review	review test page	11	true
+2026-07-12T18:52:17.971Z	ascent-d7-review	review test page	10	true
+2026-07-12T18:52:21.127Z	ascent-d4-review	Session menu	7	true
+2026-07-12T18:52:23.222Z	ascent-d4-exit	results Continue	40	true
+2026-07-12T18:52:23.485Z	ascent-d4-review	review test page	6	true
+2026-07-12T18:52:24.673Z	ascent-d17-review	Session menu	10	true
+2026-07-12T18:52:27.030Z	ascent-d17-review	review test page	7	true
+2026-07-12T18:52:39.032Z	ascent-d17-exit	results Continue	6	true
+2026-07-12T18:52:41.373Z	base-d6-review-BLOCKED	Session menu	7	true
+2026-07-12T18:52:42.812Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T18:52:43.748Z	base-d6-review-BLOCKED	review test page	7	true
+2026-07-12T18:52:43.995Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T18:52:47.374Z	ascent-d17-exit	results Continue	5	true
+2026-07-12T18:52:50.799Z	summit-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T18:52:54.242Z	ascent-d18-new	Start-New-Words/Continue	5	true
+2026-07-12T18:52:54.344Z	summit-d1-new	Session menu	5	true
+2026-07-12T18:52:57.891Z	ascent-d8-new	Start-New-Words/Continue	8	true
+2026-07-12T18:52:59.028Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T18:52:59.889Z	ascent-d18-new	Session menu	8	true
+2026-07-12T18:53:01.805Z	ascent-d8-new	Session menu	7	true
+2026-07-12T18:53:02.579Z	ascent-d18-new	Start-New-Words/Continue	6	true
+2026-07-12T18:53:05.082Z	ascent-d5-new	Session menu	29	true
+2026-07-12T18:53:08.711Z	ascent-d18-new	Session menu	6	true
+2026-07-12T18:53:17.099Z	base-d7-review-BLOCKED	Session menu	4	true
+2026-07-12T18:53:17.506Z	summit-d1-exit	results Continue	6	true
+2026-07-12T18:53:19.417Z	base-d7-review-BLOCKED	review test page	6	true
+2026-07-12T18:53:32.371Z	summit-d2-new	Start-New-Words/Continue	10	true
+2026-07-12T18:53:35.946Z	summit-d2-new	Session menu	4	true
+2026-07-12T18:53:36.623Z	ascent-d18-review	Session menu	7	true
+2026-07-12T18:53:37.651Z	ascent-d8-review	Session menu	6	true
+2026-07-12T18:53:39.054Z	ascent-d18-review	review test page	8	true
+2026-07-12T18:53:40.107Z	ascent-d8-review	review test page	20	true
+2026-07-12T18:53:43.813Z	ascent-d5-review	Session menu	5	true
+2026-07-12T18:53:45.861Z	ascent-d18-review	Session menu	6	true
+2026-07-12T18:53:46.129Z	ascent-d5-review	review test page	6	true
+2026-07-12T18:53:48.288Z	ascent-d18-review	review test page	10	true
+2026-07-12T18:53:49.481Z	base-d8-review-BLOCKED	Session menu	6	true
+2026-07-12T18:53:51.795Z	base-d8-review-BLOCKED	review test page	6	true
+2026-07-12T18:53:57.592Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T18:54:00.514Z	ascent-d18-exit	results Continue	4	true
+2026-07-12T18:54:01.143Z	ascent-d1-new	Session menu	6	true
+2026-07-12T18:54:01.729Z	ascent-d8-exit	results Continue	4	true
+2026-07-12T18:54:07.829Z	ascent-d5-exit	results Continue	5	true
+2026-07-12T18:54:09.050Z	ascent-d18-exit	results Continue	5	true
+2026-07-12T18:54:11.327Z	summit-d2-review	Session menu	6	true
+2026-07-12T18:54:13.689Z	summit-d2-review	review test page	6	true
+2026-07-12T18:54:15.627Z	ascent-d19-new	Start-New-Words/Continue	4	true
+2026-07-12T18:54:16.711Z	ascent-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T18:54:20.997Z	ascent-d9-new	Session menu	7	true
+2026-07-12T18:54:21.692Z	ascent-d19-new	Session menu	6	true
+2026-07-12T18:54:22.950Z	ascent-d6-new	Start-New-Words/Continue	3	true
+2026-07-12T18:54:24.330Z	ascent-d19-new	Start-New-Words/Continue	8	true
+2026-07-12T18:54:29.460Z	ascent-d6-new	Session menu	6	true
+2026-07-12T18:54:30.796Z	ascent-d19-new	Session menu	7	true
+2026-07-12T18:54:33.754Z	summit-d2-exit	results Continue	7	true
+2026-07-12T18:54:35.774Z	ascent-d1-review	Session menu	6	true
+2026-07-12T18:54:38.097Z	ascent-d1-review	review test page	5	true
+2026-07-12T18:54:48.647Z	summit-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T18:54:52.183Z	summit-d3-new	Session menu	5	true
+2026-07-12T18:54:56.704Z	ascent-d9-review	Session menu	6	true
+2026-07-12T18:54:58.548Z	ascent-d1-exit	results Continue	6	true
+2026-07-12T18:54:59.076Z	ascent-d9-review	review test page	12	true
+2026-07-12T18:54:59.577Z	ascent-d19-review	Session menu	5	true
+2026-07-12T18:55:02.000Z	ascent-d19-review	review test page	53	true
+2026-07-12T18:55:09.570Z	ascent-d19-review	Session menu	31	true
+2026-07-12T18:55:09.609Z	ascent-d6-review	Session menu	15	true
+2026-07-12T18:55:11.960Z	ascent-d6-review	review test page	7	true
+2026-07-12T18:55:11.964Z	ascent-d19-review	review test page	7	true
+2026-07-12T18:55:13.904Z	ascent-d2-new	Start-New-Words/Continue	9	true
+2026-07-12T18:55:17.447Z	ascent-d2-new	Session menu	5	true
+2026-07-12T18:55:20.577Z	ascent-d9-exit	results Continue	6	true
+2026-07-12T18:55:25.533Z	ascent-d19-exit	results Continue	5	true
+2026-07-12T18:55:26.394Z	summit-d3-review	Session menu	7	true
+2026-07-12T18:55:28.726Z	summit-d3-review	review test page	7	true
+2026-07-12T18:55:32.448Z	ascent-d6-exit	results Continue	5	true
+2026-07-12T18:55:32.842Z	ascent-d19-exit	results Continue	4	true
+2026-07-12T18:55:35.876Z	ascent-d10-new	Start-New-Words/Continue	10	true
+2026-07-12T18:55:41.025Z	ascent-d20-new	Start-New-Words/Continue	6	true
+2026-07-12T18:55:41.064Z	ascent-d10-new	Session menu	7	true
+2026-07-12T18:55:47.934Z	ascent-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T18:55:48.263Z	ascent-d20-new	Session menu	14	true
+2026-07-12T18:55:48.304Z	ascent-d20-new	Start-New-Words/Continue	10	true
+2026-07-12T18:55:49.549Z	summit-d3-exit	results Continue	29	true
+2026-07-12T18:55:53.520Z	ascent-d2-review	Session menu	24	true
+2026-07-12T18:55:55.781Z	ascent-d7-new	Session menu	5	true
+2026-07-12T18:55:55.967Z	ascent-d2-review	review test page	5	true
+2026-07-12T18:55:56.618Z	ascent-d20-new	Session menu	11	true
+2026-07-12T18:56:04.772Z	summit-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T18:56:08.321Z	summit-d4-new	Session menu	6	true
+2026-07-12T18:56:16.625Z	ascent-d2-exit	results Continue	11	true
+2026-07-12T18:56:18.282Z	ascent-d10-review	Session menu	4	true
+2026-07-12T18:56:20.628Z	ascent-d10-review	review test page	18	true
+2026-07-12T18:56:32.602Z	ascent-d20-review	Session menu	12	true
+2026-07-12T18:56:34.721Z	ascent-d7-review	Session menu	5	true
+2026-07-12T18:56:34.983Z	ascent-d20-review	review test page	4	true
+2026-07-12T18:56:35.110Z	ascent-d20-review	Session menu	5	true
+2026-07-12T18:56:37.039Z	ascent-d7-review	review test page	6	true
+2026-07-12T18:56:37.441Z	ascent-d20-review	review test page	6	true
+2026-07-12T18:56:41.694Z	ascent-d10-exit	results Continue	4	true
+2026-07-12T18:56:42.650Z	summit-d4-review	Session menu	5	true
+2026-07-12T18:56:44.973Z	summit-d4-review	review test page	7	true
+2026-07-12T18:56:56.236Z	ascent-d20-exit	results Continue	5	true
+2026-07-12T18:56:56.717Z	ascent-d11-new	Start-New-Words/Continue	4	true
+2026-07-12T18:56:57.424Z	ascent-d7-exit	results Continue	7	true
+2026-07-12T18:56:58.216Z	ascent-d20-exit	results Continue	7	true
+2026-07-12T18:57:00.263Z	ascent-d11-new	Session menu	4	true
+2026-07-12T18:57:13.501Z	summit-d4-exit	results Continue	5	true
+2026-07-12T18:57:28.367Z	summit-d5-new	Start-New-Words/Continue	4	true
+2026-07-12T18:57:31.907Z	summit-d5-new	Session menu	7	true
+2026-07-12T18:57:36.058Z	ascent-d11-review	Session menu	5	true
+2026-07-12T18:57:38.381Z	ascent-d11-review	review test page	6	true
+2026-07-12T18:57:58.663Z	ascent-d11-exit	results Continue	6	true
+2026-07-12T18:58:06.341Z	summit-d5-review	Session menu	5	true
+2026-07-12T18:58:08.658Z	summit-d5-review	review test page	7	true
+2026-07-12T18:58:13.652Z	ascent-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T18:58:17.618Z	ascent-d12-new	Session menu	5	true
+2026-07-12T18:58:20.567Z	summit-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T18:58:24.121Z	summit-d1-new	Session menu	6	true
+2026-07-12T18:58:29.572Z	summit-d5-exit	results Continue	12	true
+2026-07-12T18:58:44.565Z	summit-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T18:58:46.382Z	summit-d1-exit	results Continue	6	true
+2026-07-12T18:58:48.117Z	summit-d6-new	Session menu	5	true
+2026-07-12T18:58:55.227Z	ascent-d12-review	Session menu	5	true
+2026-07-12T18:58:57.536Z	ascent-d12-review	review test page	4	true
+2026-07-12T18:59:01.284Z	summit-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T18:59:04.828Z	summit-d2-new	Session menu	6	true
+2026-07-12T18:59:17.766Z	ascent-d12-exit	results Continue	6	true
+2026-07-12T18:59:22.978Z	summit-d6-review	Session menu	4	true
+2026-07-12T18:59:25.303Z	summit-d6-review	review test page	6	true
+2026-07-12T18:59:32.785Z	ascent-d13-new	Start-New-Words/Continue	4	true
+2026-07-12T18:59:37.673Z	ascent-d13-new	Session menu	7	true
+2026-07-12T18:59:40.164Z	summit-d2-review	Session menu	5	true
+2026-07-12T18:59:42.475Z	summit-d2-review	review test page	6	true
+2026-07-12T18:59:45.680Z	summit-d6-exit	results Continue	3	true
+2026-07-12T19:00:00.616Z	summit-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T19:00:01.737Z	summit-d2-exit	results Continue	6	true
+2026-07-12T19:00:04.155Z	summit-d7-new	Session menu	4	true
+2026-07-12T19:00:13.366Z	ascent-d13-review	Session menu	4	true
+2026-07-12T19:00:15.678Z	ascent-d13-review	review test page	5	true
+2026-07-12T19:00:16.703Z	summit-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T19:00:20.253Z	summit-d3-new	Session menu	3	true
+2026-07-12T19:00:35.538Z	ascent-d13-exit	results Continue	6	true
+2026-07-12T19:00:38.591Z	summit-d7-review	Session menu	6	true
+2026-07-12T19:00:40.908Z	summit-d7-review	review test page	6	true
+2026-07-12T19:00:50.624Z	ascent-d14-new	Start-New-Words/Continue	4	true
+2026-07-12T19:00:54.192Z	summit-d3-review	Session menu	5	true
+2026-07-12T19:00:55.520Z	ascent-d14-new	Session menu	9	true
+2026-07-12T19:00:56.506Z	summit-d3-review	review test page	7	true
+2026-07-12T19:01:00.807Z	summit-d7-exit	results Continue	6	true
+2026-07-12T19:01:15.733Z	summit-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T19:01:16.489Z	summit-d3-exit	results Continue	5	true
+2026-07-12T19:01:19.422Z	summit-d8-new	Session menu	5	true
+2026-07-12T19:01:31.421Z	summit-d4-new	Start-New-Words/Continue	4	true
+2026-07-12T19:01:31.911Z	ascent-d14-review	Session menu	6	true
+2026-07-12T19:01:34.242Z	ascent-d14-review	review test page	5	true
+2026-07-12T19:01:34.961Z	summit-d4-new	Session menu	5	true
+2026-07-12T19:01:53.989Z	summit-d8-review	Session menu	4	true
+2026-07-12T19:01:54.459Z	ascent-d14-exit	results Continue	6	true
+2026-07-12T19:01:56.317Z	summit-d8-review	review test page	5	true
+2026-07-12T19:02:09.421Z	summit-d4-review	Session menu	4	true
+2026-07-12T19:02:09.500Z	ascent-d15-new	Start-New-Words/Continue	8	true
+2026-07-12T19:02:11.796Z	summit-d4-review	review test page	7	true
+2026-07-12T19:02:14.918Z	ascent-d15-new	Session menu	5	true
+2026-07-12T19:02:16.250Z	summit-d8-exit	results Continue	6	true
+2026-07-12T19:02:32.271Z	summit-d4-exit	results Continue	4	true
+2026-07-12T19:02:50.616Z	ascent-d15-review	Session menu	5	true
+2026-07-12T19:02:52.929Z	ascent-d15-review	review test page	7	true
+2026-07-12T19:03:13.214Z	ascent-d15-exit	results Continue	5	true
+2026-07-12T19:03:28.102Z	ascent-d16-new	Start-New-Words/Continue	5	true
+2026-07-12T19:03:33.480Z	ascent-d16-new	Session menu	6	true
+2026-07-12T19:04:09.269Z	ascent-d16-review	Session menu	4	true
+2026-07-12T19:04:11.586Z	ascent-d16-review	review test page	6	true
+2026-07-12T19:04:31.986Z	ascent-d16-exit	results Continue	5	true
+2026-07-12T19:04:47.027Z	ascent-d17-new	Start-New-Words/Continue	4	true
+2026-07-12T19:04:51.872Z	ascent-d17-new	Session menu	4	true
+2026-07-12T19:05:29.269Z	ascent-d17-review	Session menu	6	true
+2026-07-12T19:05:31.583Z	ascent-d17-review	review test page	6	true
+2026-07-12T19:05:51.197Z	ascent-d17-exit	results Continue	7	true
+2026-07-12T19:06:06.249Z	ascent-d18-new	Start-New-Words/Continue	4	true
+2026-07-12T19:06:11.678Z	ascent-d18-new	Session menu	10	true
+2026-07-12T19:06:48.035Z	ascent-d18-review	Session menu	6	true
+2026-07-12T19:06:50.352Z	ascent-d18-review	review test page	6	true
+2026-07-12T19:07:11.659Z	ascent-d18-exit	results Continue	5	true
+2026-07-12T19:07:26.650Z	ascent-d19-new	Start-New-Words/Continue	3	true
+2026-07-12T19:07:32.171Z	ascent-d19-new	Session menu	16	true
+2026-07-12T19:08:07.803Z	ascent-d19-review	Session menu	5	true
+2026-07-12T19:08:10.109Z	ascent-d19-review	review test page	5	true
+2026-07-12T19:08:30.801Z	ascent-d19-exit	results Continue	5	true
+2026-07-12T19:08:45.793Z	ascent-d20-new	Start-New-Words/Continue	4	true
+2026-07-12T19:08:51.149Z	ascent-d20-new	Session menu	5	true
+2026-07-12T19:09:28.341Z	ascent-d20-review	Session menu	4	true
+2026-07-12T19:09:30.672Z	ascent-d20-review	review test page	6	true
+2026-07-12T19:09:51.425Z	ascent-d20-exit	results Continue	4	true
+2026-07-12T19:10:15.231Z	ascent-d21-review-BLOCKED	Session menu	5	true
+2026-07-12T19:10:17.544Z	ascent-d21-review-BLOCKED	review test page	5	true
+2026-07-12T19:20:53.340Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T19:20:53.346Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T19:20:56.925Z	ascent-d1-new	Session menu	4	true
+2026-07-12T19:20:56.939Z	base-d1-new	Session menu	4	true
+2026-07-12T19:21:06.813Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T19:21:10.393Z	base-d1-new	Session menu	6	true
+2026-07-12T19:21:23.084Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T19:21:23.116Z	base-d1-exit	results Continue	6	true
+2026-07-12T19:21:34.019Z	base-d1-exit	results Continue	6	true
+2026-07-12T19:21:38.101Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T19:21:38.160Z	base-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T19:21:41.656Z	ascent-d2-new	Session menu	5	true
+2026-07-12T19:21:41.706Z	base-d2-new	Session menu	5	true
+2026-07-12T19:21:49.118Z	base-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T19:21:52.670Z	base-d2-new	Session menu	5	true
+2026-07-12T19:22:16.312Z	ascent-d2-review	Session menu	7	true
+2026-07-12T19:22:18.678Z	ascent-d2-review	review test page	7	true
+2026-07-12T19:22:18.730Z	base-d2-review	Session menu	9	true
+2026-07-12T19:22:21.044Z	base-d2-review	review test page	6	true
+2026-07-12T19:22:29.602Z	base-d2-review	Session menu	4	true
+2026-07-12T19:22:31.923Z	base-d2-review	review test page	5	true
+2026-07-12T19:22:40.061Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T19:22:41.336Z	base-d2-exit	results Continue	4	true
+2026-07-12T19:22:52.676Z	base-d2-exit	results Continue	5	true
+2026-07-12T19:22:54.997Z	ascent-d3-new	Start-New-Words/Continue	7	true
+2026-07-12T19:22:56.250Z	base-d3-new	Start-New-Words/Continue	7	true
+2026-07-12T19:22:58.555Z	ascent-d3-new	Session menu	6	true
+2026-07-12T19:22:59.801Z	base-d3-new	Session menu	4	true
+2026-07-12T19:23:07.624Z	base-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T19:23:11.162Z	base-d3-new	Session menu	5	true
+2026-07-12T19:23:33.762Z	base-d3-review	Session menu	4	true
+2026-07-12T19:23:36.082Z	base-d3-review	review test page	5	true
+2026-07-12T19:23:46.083Z	base-d3-review	Session menu	6	true
+2026-07-12T19:23:48.398Z	base-d3-review	review test page	7	true
+2026-07-12T19:23:56.878Z	base-d3-exit	results Continue	5	true
+2026-07-12T19:24:09.164Z	base-d3-exit	results Continue	6	true
+2026-07-12T19:24:11.938Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T19:24:15.474Z	base-d4-new	Session menu	4	true
+2026-07-12T19:24:24.062Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T19:24:27.606Z	base-d4-new	Session menu	4	true
+2026-07-12T19:24:49.824Z	base-d4-review	Session menu	4	true
+2026-07-12T19:24:52.140Z	base-d4-review	review test page	5	true
+2026-07-12T19:25:02.456Z	base-d4-review	Session menu	5	true
+2026-07-12T19:25:04.774Z	base-d4-review	review test page	6	true
+2026-07-12T19:25:12.405Z	base-d4-exit	results Continue	5	true
+2026-07-12T19:25:26.036Z	base-d4-exit	results Continue	5	true
+2026-07-12T19:25:27.354Z	base-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T19:25:30.904Z	base-d5-new	Session menu	5	true
+2026-07-12T19:25:41.018Z	base-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T19:25:44.561Z	base-d5-new	Session menu	5	true
+2026-07-12T19:25:49.421Z	base-d5-review	Session menu	5	true
+2026-07-12T19:25:51.749Z	base-d5-review	review test page	6	true
+2026-07-12T19:26:12.210Z	base-d5-exit	results Continue	6	true
+2026-07-12T19:26:18.332Z	base-d5-review	Session menu	6	true
+2026-07-12T19:26:20.655Z	base-d5-review	review test page	4	true
+2026-07-12T19:26:41.385Z	base-d5-exit	results Continue	6	true
+2026-07-12T19:26:49.325Z	base-d5-review	Session menu	4	true
+2026-07-12T19:26:51.651Z	base-d5-review	review test page	5	true
+2026-07-12T19:26:56.298Z	base-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T19:26:59.843Z	base-d6-new	Session menu	6	true
+2026-07-12T19:27:11.755Z	base-d5-exit	results Continue	4	true
+2026-07-12T19:27:26.716Z	base-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T19:27:30.259Z	base-d6-new	Session menu	5	true
+2026-07-12T19:27:35.256Z	base-d6-review	Session menu	4	true
+2026-07-12T19:27:37.574Z	base-d6-review	review test page	5	true
+2026-07-12T19:27:58.325Z	base-d6-exit	results Continue	5	true
+2026-07-12T19:28:04.593Z	base-d6-review	Session menu	4	true
+2026-07-12T19:28:06.917Z	base-d6-review	review test page	6	true
+2026-07-12T19:28:13.321Z	base-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T19:28:16.866Z	base-d7-new	Session menu	5	true
+2026-07-12T19:28:27.658Z	base-d6-exit	results Continue	5	true
+2026-07-12T19:28:42.612Z	base-d7-new	Start-New-Words/Continue	4	true
+2026-07-12T19:28:46.164Z	base-d7-new	Session menu	5	true
+2026-07-12T19:28:51.102Z	base-d7-review	Session menu	6	true
+2026-07-12T19:28:53.427Z	base-d7-review	review test page	5	true
+2026-07-12T19:29:13.749Z	base-d7-exit	results Continue	6	true
+2026-07-12T19:29:21.281Z	base-d7-review	Session menu	5	true
+2026-07-12T19:29:23.596Z	base-d7-review	review test page	5	true
+2026-07-12T19:29:28.818Z	base-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T19:29:32.362Z	base-d8-new	Session menu	5	true
+2026-07-12T19:29:44.739Z	base-d7-exit	results Continue	4	true
+2026-07-12T19:29:59.700Z	base-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T19:30:03.241Z	base-d8-new	Session menu	4	true
+2026-07-12T19:30:06.710Z	base-d8-review	Session menu	5	true
+2026-07-12T19:30:09.026Z	base-d8-review	review test page	5	true
+2026-07-12T19:30:29.148Z	base-d8-exit	results Continue	4	true
+2026-07-12T19:30:37.423Z	base-d8-review	Session menu	5	true
+2026-07-12T19:30:39.745Z	base-d8-review	review test page	5	true
+2026-07-12T19:30:44.131Z	base-d9-new	Start-New-Words/Continue	6	true
+2026-07-12T19:30:47.669Z	base-d9-new	Session menu	5	true
+2026-07-12T19:31:00.000Z	base-d8-exit	results Continue	5	true
+2026-07-12T19:31:14.995Z	base-d9-new	Start-New-Words/Continue	4	true
+2026-07-12T19:31:18.531Z	base-d9-new	Session menu	5	true
+2026-07-12T19:31:22.447Z	base-d9-review	Session menu	5	true
+2026-07-12T19:31:24.778Z	base-d9-review	review test page	6	true
+2026-07-12T19:31:46.121Z	base-d9-exit	results Continue	5	true
+2026-07-12T19:31:53.605Z	base-d9-review	Session menu	6	true
+2026-07-12T19:31:55.919Z	base-d9-review	review test page	5	true
+2026-07-12T19:32:01.161Z	base-d10-new	Start-New-Words/Continue	4	true
+2026-07-12T19:32:04.697Z	base-d10-new	Session menu	5	true
+2026-07-12T19:32:16.101Z	base-d9-exit	results Continue	6	true
+2026-07-12T19:32:31.101Z	base-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T19:32:34.645Z	base-d10-new	Session menu	5	true
+2026-07-12T19:32:39.225Z	base-d10-review	Session menu	5	true
+2026-07-12T19:32:41.545Z	base-d10-review	review test page	4	true
+2026-07-12T19:33:01.261Z	base-d10-exit	results Continue	5	true
+2026-07-12T19:33:09.227Z	base-d10-review	Session menu	7	true
+2026-07-12T19:33:11.561Z	base-d10-review	review test page	6	true
+2026-07-12T19:33:16.276Z	base-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T19:33:20.263Z	base-d11-new	Session menu	5	true
+2026-07-12T19:33:32.244Z	base-d10-exit	results Continue	5	true
+2026-07-12T19:33:39.114Z	base-d11-review	Session menu	5	true
+2026-07-12T19:33:41.416Z	base-d11-review	review test page	5	true
+2026-07-12T19:33:47.355Z	base-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T19:33:50.908Z	base-d11-new	Session menu	4	true
+2026-07-12T19:33:53.196Z	base-d11-exit	results Continue	5	true
+2026-07-12T19:34:09.548Z	base-d11-review	Session menu	3	true
+2026-07-12T19:34:11.845Z	base-d11-review	review test page	4	true
+2026-07-12T19:34:26.532Z	base-d11-exit	results Continue	4	true
+2026-07-12T19:34:30.719Z	base-d11-review	Session menu	4	true
+2026-07-12T19:34:33.034Z	base-d11-review	review test page	5	true
+2026-07-12T19:34:52.677Z	base-d11-exit	results Continue	4	true
+2026-07-12T19:35:04.320Z	base-d11-review	Session menu	5	true
+2026-07-12T19:35:06.654Z	base-d11-review	review test page	5	true
+2026-07-12T19:35:07.782Z	base-d12-new	Start-New-Words/Continue	6	true
+2026-07-12T19:35:12.244Z	base-d12-new	Session menu	5	true
+2026-07-12T19:35:27.486Z	base-d11-exit	results Continue	5	true
+2026-07-12T19:35:42.507Z	base-d12-new	Start-New-Words/Continue	5	true
+2026-07-12T19:35:47.421Z	base-d12-new	Session menu	5	true
+2026-07-12T19:35:47.758Z	base-d12-review	Session menu	5	true
+2026-07-12T19:35:50.083Z	base-d12-review	review test page	4	true
+2026-07-12T19:36:10.485Z	base-d12-exit	results Continue	5	true
+2026-07-12T19:36:22.076Z	base-d12-review	Session menu	5	true
+2026-07-12T19:36:24.392Z	base-d12-review	review test page	6	true
+2026-07-12T19:36:25.549Z	base-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T19:36:29.442Z	base-d13-new	Session menu	6	true
+2026-07-12T19:36:44.545Z	base-d12-exit	results Continue	4	true
+2026-07-12T19:36:59.648Z	base-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T19:37:04.542Z	base-d13-new	Session menu	4	true
+2026-07-12T19:37:05.111Z	base-d13-review	Session menu	5	true
+2026-07-12T19:37:07.425Z	base-d13-review	review test page	5	true
+2026-07-12T19:37:25.871Z	base-d13-exit	results Continue	14407	true
+2026-07-12T19:37:39.576Z	base-d13-review	Session menu	5	true
+2026-07-12T19:37:40.924Z	base-d14-new	Start-New-Words/Continue	6	true
+2026-07-12T19:37:41.891Z	base-d13-review	review test page	7	true
+2026-07-12T19:37:45.441Z	base-d14-new	Session menu	7	true
+2026-07-12T19:38:01.247Z	base-d13-exit	results Continue	14913	true
+2026-07-12T19:38:16.253Z	base-d14-new	Start-New-Words/Continue	4	true
+2026-07-12T19:38:20.929Z	base-d14-review	Session menu	6	true
+2026-07-12T19:38:21.248Z	base-d14-new	Session menu	4	true
+2026-07-12T19:38:23.267Z	base-d14-review	review test page	4	true
+2026-07-12T19:38:44.086Z	base-d14-exit	results Continue	5	true
+2026-07-12T19:38:57.124Z	base-d14-review	Session menu	5	true
+2026-07-12T19:38:59.174Z	base-d15-new	Start-New-Words/Continue	4	true
+2026-07-12T19:38:59.446Z	base-d14-review	review test page	6	true
+2026-07-12T19:39:04.049Z	base-d15-new	Session menu	5	true
+2026-07-12T19:39:20.654Z	base-d14-exit	results Continue	4	true
+2026-07-12T19:39:35.767Z	base-d15-new	Start-New-Words/Continue	4	true
+2026-07-12T19:39:40.627Z	base-d15-new	Session menu	5	true
+2026-07-12T19:39:40.727Z	base-d15-review	Session menu	4	true
+2026-07-12T19:39:43.037Z	base-d15-review	review test page	4	true
+2026-07-12T19:40:03.297Z	base-d15-exit	results Continue	4	true
+2026-07-12T19:40:16.365Z	base-d15-review	Session menu	5	true
+2026-07-12T19:40:18.698Z	base-d15-review	review test page	13	true
+2026-07-12T19:40:39.470Z	base-d15-exit	results Continue	9	true
+2026-07-12T19:42:01.913Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T19:42:05.455Z	ascent-d1-new	Session menu	4	true
+2026-07-12T19:42:27.422Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T19:42:42.294Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T19:42:45.835Z	ascent-d2-new	Session menu	6	true
+2026-07-12T19:43:19.700Z	ascent-d2-review	Session menu	4	true
+2026-07-12T19:43:22.014Z	ascent-d2-review	review test page	5	true
+2026-07-12T19:43:42.132Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T19:43:57.224Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T19:44:00.775Z	ascent-d3-new	Session menu	4	true
+2026-07-12T19:44:34.898Z	ascent-d3-review	Session menu	5	true
+2026-07-12T19:44:37.212Z	ascent-d3-review	review test page	6	true
+2026-07-12T19:44:58.051Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T19:45:12.974Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T19:45:16.519Z	ascent-d4-new	Session menu	4	true
+2026-07-12T19:45:54.951Z	ascent-d4-review	Session menu	5	true
+2026-07-12T19:45:57.270Z	ascent-d4-review	review test page	5	true
+2026-07-12T19:46:18.314Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T19:46:33.246Z	ascent-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T19:46:36.777Z	ascent-d5-new	Session menu	4	true
+2026-07-12T19:47:10.447Z	ascent-d5-review	Session menu	7	true
+2026-07-12T19:47:12.763Z	ascent-d5-review	review test page	5	true
+2026-07-12T19:47:33.831Z	ascent-d5-exit	results Continue	5	true
+2026-07-12T19:47:48.762Z	ascent-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T19:47:52.302Z	ascent-d6-new	Session menu	4	true
+2026-07-12T19:48:26.058Z	ascent-d6-review	Session menu	7	true
+2026-07-12T19:48:28.375Z	ascent-d6-review	review test page	5	true
+2026-07-12T19:48:48.523Z	ascent-d6-exit	results Continue	4	true
+2026-07-12T19:49:03.435Z	ascent-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T19:49:06.985Z	ascent-d7-new	Session menu	6	true
+2026-07-12T19:49:41.113Z	ascent-d7-review	Session menu	5	true
+2026-07-12T19:49:43.431Z	ascent-d7-review	review test page	5	true
+2026-07-12T19:50:04.106Z	ascent-d7-exit	results Continue	4	true
+2026-07-12T19:50:19.076Z	ascent-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T19:50:22.623Z	ascent-d8-new	Session menu	4	true
+2026-07-12T19:50:57.856Z	ascent-d8-review	Session menu	5	true
+2026-07-12T19:51:00.177Z	ascent-d8-review	review test page	4	true
+2026-07-12T19:51:20.715Z	ascent-d8-exit	results Continue	10	true
+2026-07-12T19:56:43.959Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T19:56:44.308Z	base-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T19:56:47.537Z	base-d1-new	Session menu	4	true
+2026-07-12T19:56:47.886Z	base-d1-new	Session menu	4	true
+2026-07-12T19:56:52.731Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T19:56:56.303Z	ascent-d1-new	Session menu	5	true
+2026-07-12T19:57:11.858Z	base-d1-exit	results Continue	4	true
+2026-07-12T19:57:12.018Z	base-d1-exit	results Continue	5	true
+2026-07-12T19:57:18.211Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T19:57:26.896Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T19:57:26.978Z	base-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T19:57:30.436Z	base-d2-new	Session menu	4	true
+2026-07-12T19:57:30.523Z	base-d2-new	Session menu	6	true
+2026-07-12T19:57:33.251Z	ascent-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T19:57:36.785Z	ascent-d2-new	Session menu	4	true
+2026-07-12T19:58:05.083Z	base-d2-review	Session menu	4	true
+2026-07-12T19:58:05.540Z	base-d2-review	Session menu	6	true
+2026-07-12T19:58:07.390Z	base-d2-review	review test page	5	true
+2026-07-12T19:58:07.853Z	base-d2-review	review test page	5	true
+2026-07-12T19:58:11.588Z	ascent-d2-review	Session menu	4	true
+2026-07-12T19:58:13.897Z	ascent-d2-review	review test page	6	true
+2026-07-12T19:58:27.571Z	base-d2-exit	results Continue	4	true
+2026-07-12T19:58:28.745Z	base-d2-exit	results Continue	4	true
+2026-07-12T19:58:34.015Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T19:58:42.468Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T19:58:43.740Z	base-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T19:58:46.009Z	base-d3-new	Session menu	5	true
+2026-07-12T19:58:47.278Z	base-d3-new	Session menu	4	true
+2026-07-12T19:58:49.157Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T19:58:52.700Z	ascent-d3-new	Session menu	4	true
+2026-07-12T19:59:05.437Z	ascent-d3-new-RETAKE	Start-New-Words/Continue	4	true
+2026-07-12T19:59:08.972Z	ascent-d3-new-RETAKE	Session menu	4	true
+2026-07-12T19:59:19.729Z	base-d3-review	Session menu	4	true
+2026-07-12T19:59:21.612Z	base-d3-review	Session menu	5	true
+2026-07-12T19:59:22.047Z	base-d3-review	review test page	5	true
+2026-07-12T19:59:23.951Z	base-d3-review	review test page	5	true
+2026-07-12T19:59:42.639Z	base-d3-exit	results Continue	4	true
+2026-07-12T19:59:44.039Z	ascent-d3-review	Session menu	3	true
+2026-07-12T19:59:44.521Z	base-d3-exit	results Continue	4	true
+2026-07-12T19:59:46.346Z	ascent-d3-review	review test page	6	true
+2026-07-12T19:59:57.569Z	base-d4-new	Start-New-Words/Continue	4	true
+2026-07-12T19:59:59.430Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T20:00:01.104Z	base-d4-new	Session menu	4	true
+2026-07-12T20:00:02.973Z	base-d4-new	Session menu	5	true
+2026-07-12T20:00:06.576Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T20:00:21.578Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T20:00:25.119Z	ascent-d4-new	Session menu	4	true
+2026-07-12T20:00:35.560Z	base-d4-review	Session menu	6	true
+2026-07-12T20:00:37.721Z	base-d4-review	Session menu	4	true
+2026-07-12T20:00:37.892Z	base-d4-review	review test page	4	true
+2026-07-12T20:00:40.044Z	base-d4-review	review test page	6	true
+2026-07-12T20:00:59.031Z	base-d4-exit	results Continue	9	true
+2026-07-12T20:00:59.325Z	ascent-d4-review	Session menu	5	true
+2026-07-12T20:01:01.136Z	base-d4-exit	results Continue	11	true
+2026-07-12T20:01:01.639Z	ascent-d4-review	review test page	4	true
+2026-07-12T20:01:13.987Z	base-d5-new	Start-New-Words/Continue	4	true
+2026-07-12T20:01:16.099Z	base-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T20:01:17.530Z	base-d5-new	Session menu	5	true
+2026-07-12T20:01:19.648Z	base-d5-new	Session menu	4	true
+2026-07-12T20:01:21.707Z	ascent-d4-exit	results Continue	3	true
+2026-07-12T20:01:36.083Z	base-d5-review	Session menu	3	true
+2026-07-12T20:01:38.393Z	base-d5-review	review test page	5	true
+2026-07-12T20:01:48.029Z	base-d5-exit	results Continue	4323	true
+2026-07-12T20:01:57.865Z	base-d5-review	Session menu	4	true
+2026-07-12T20:02:00.188Z	base-d5-review	review test page	5	true
+2026-07-12T20:02:22.778Z	base-d5-exit	results Continue	7	true
+2026-07-12T20:02:25.026Z	base-d5-review	Session menu	5	true
+2026-07-12T20:02:27.336Z	base-d5-review	review test page	10	true
+2026-07-12T20:02:37.713Z	base-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T20:02:41.255Z	base-d6-new	Session menu	4	true
+2026-07-12T20:02:48.314Z	base-d5-exit	results Continue	16907	true
+2026-07-12T20:03:03.231Z	base-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T20:03:06.769Z	base-d6-new	Session menu	3	true
+2026-07-12T20:03:15.456Z	base-d6-review	Session menu	3	true
+2026-07-12T20:03:17.776Z	base-d6-review	review test page	5	true
+2026-07-12T20:03:37.878Z	base-d6-exit	results Continue	4	true
+2026-07-12T20:03:41.886Z	base-d6-review	Session menu	3	true
+2026-07-12T20:03:44.205Z	base-d6-review	review test page	5	true
+2026-07-12T20:03:52.916Z	base-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T20:03:56.449Z	base-d7-new	Session menu	5	true
+2026-07-12T20:04:05.296Z	base-d6-exit	results Continue	5	true
+2026-07-12T20:04:20.209Z	base-d7-new	Start-New-Words/Continue	6	true
+2026-07-12T20:04:23.747Z	base-d7-new	Session menu	5	true
+2026-07-12T20:04:30.587Z	base-d7-review	Session menu	5	true
+2026-07-12T20:04:32.901Z	base-d7-review	review test page	4	true
+2026-07-12T20:04:53.542Z	base-d7-exit	results Continue	5	true
+2026-07-12T20:04:58.902Z	base-d7-review	Session menu	8	true
+2026-07-12T20:05:01.218Z	base-d7-review	review test page	5	true
+2026-07-12T20:05:08.478Z	base-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T20:05:12.024Z	base-d8-new	Session menu	4	true
+2026-07-12T20:05:21.802Z	base-d7-exit	results Continue	4	true
+2026-07-12T20:05:36.727Z	base-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T20:05:40.272Z	base-d8-new	Session menu	4	true
+2026-07-12T20:05:46.244Z	base-d8-review	Session menu	6	true
+2026-07-12T20:05:48.561Z	base-d8-review	review test page	4	true
+2026-07-12T20:06:08.131Z	base-d8-exit	results Continue	5	true
+2026-07-12T20:06:15.189Z	base-d8-review	Session menu	4	true
+2026-07-12T20:06:17.512Z	base-d8-review	review test page	5	true
+2026-07-12T20:06:23.113Z	base-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T20:06:26.653Z	base-d9-new	Session menu	4	true
+2026-07-12T20:06:42.306Z	base-d8-exit	results Continue	4	true
+2026-07-12T20:06:57.253Z	base-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T20:07:00.803Z	base-d9-new	Session menu	6	true
+2026-07-12T20:07:00.945Z	base-d9-review	Session menu	3	true
+2026-07-12T20:07:03.259Z	base-d9-review	review test page	4	true
+2026-07-12T20:07:24.516Z	base-d9-exit	results Continue	4	true
+2026-07-12T20:07:36.552Z	base-d9-review	Session menu	5	true
+2026-07-12T20:07:38.870Z	base-d9-review	review test page	5	true
+2026-07-12T20:07:39.523Z	base-d10-new	Start-New-Words/Continue	3	true
+2026-07-12T20:07:43.061Z	base-d10-new	Session menu	3	true
+2026-07-12T20:07:59.568Z	base-d9-exit	results Continue	4	true
+2026-07-12T20:08:14.504Z	base-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T20:08:18.044Z	base-d10-new	Session menu	4	true
+2026-07-12T20:08:18.212Z	base-d10-review	Session menu	4	true
+2026-07-12T20:08:20.534Z	base-d10-review	review test page	6	true
+2026-07-12T20:08:42.283Z	base-d10-exit	results Continue	5	true
+2026-07-12T20:08:52.809Z	base-d10-review	Session menu	4	true
+2026-07-12T20:08:55.127Z	base-d10-review	review test page	5	true
+2026-07-12T20:08:57.320Z	base-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T20:09:00.857Z	base-d11-new	Session menu	5	true
+2026-07-12T20:09:17.212Z	base-d10-exit	results Continue	3	true
+2026-07-12T20:09:32.245Z	base-d11-new	Start-New-Words/Continue	4	true
+2026-07-12T20:09:34.626Z	base-d11-review	Session menu	4	true
+2026-07-12T20:09:35.829Z	base-d11-new	Session menu	5	true
+2026-07-12T20:09:36.945Z	base-d11-review	review test page	5	true
+2026-07-12T20:09:54.337Z	base-d11-review	Session menu	5	true
+2026-07-12T20:09:56.661Z	base-d11-review	review test page	4	true
+2026-07-12T20:09:57.033Z	base-d11-exit	results Continue	6	true
+2026-07-12T20:10:09.337Z	base-d11-exit	results Continue	5	true
+2026-07-12T20:10:12.123Z	base-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T20:10:15.862Z	base-d12-new	Session menu	4	true
+2026-07-12T20:10:46.914Z	base-d11-review	Session menu	5	true
+2026-07-12T20:10:49.245Z	base-d11-review	review test page	5	true
+2026-07-12T20:10:50.157Z	base-d12-review	Session menu	4	true
+2026-07-12T20:10:52.470Z	base-d12-review	review test page	6	true
+2026-07-12T20:11:09.956Z	base-d11-exit	results Continue	24	true
+2026-07-12T20:11:12.607Z	base-d12-exit	results Continue	4	true
+2026-07-12T20:11:24.996Z	base-d12-new	Start-New-Words/Continue	5	true
+2026-07-12T20:11:27.659Z	base-d13-new	Start-New-Words/Continue	4	true
+2026-07-12T20:11:28.626Z	base-d12-new	Session menu	5	true
+2026-07-12T20:11:31.537Z	base-d13-new	Session menu	6	true
+2026-07-12T20:12:06.434Z	base-d13-review	Session menu	5	true
+2026-07-12T20:12:08.746Z	base-d13-review	review test page	6	true
+2026-07-12T20:12:21.093Z	base-d12-review	Session menu	6	true
+2026-07-12T20:12:23.414Z	base-d12-review	review test page	5	true
+2026-07-12T20:12:27.744Z	base-d13-exit	results Continue	14913	true
+2026-07-12T20:12:42.772Z	base-d14-new	Start-New-Words/Continue	4	true
+2026-07-12T20:12:43.094Z	base-d12-exit	results Continue	6	true
+2026-07-12T20:12:47.218Z	base-d14-new	Session menu	7	true
+2026-07-12T20:12:58.198Z	base-d13-new	Start-New-Words/Continue	4	true
+2026-07-12T20:13:02.787Z	base-d13-new	Session menu	5	true
+2026-07-12T20:13:22.008Z	base-d14-review	Session menu	4	true
+2026-07-12T20:13:24.331Z	base-d14-review	review test page	9	true
+2026-07-12T20:13:36.718Z	base-d13-review	Session menu	4	true
+2026-07-12T20:13:39.036Z	base-d13-review	review test page	5	true
+2026-07-12T20:13:44.922Z	base-d14-exit	results Continue	6	true
+2026-07-12T20:13:57.061Z	base-d13-exit	results Continue	13981	true
+2026-07-12T20:14:00.078Z	base-d15-new	Start-New-Words/Continue	6	true
+2026-07-12T20:14:04.590Z	base-d15-new	Session menu	5	true
+2026-07-12T20:14:12.137Z	base-d14-new	Start-New-Words/Continue	5	true
+2026-07-12T20:14:16.047Z	base-d14-new	Session menu	4	true
+2026-07-12T20:14:39.155Z	base-d15-review	Session menu	5	true
+2026-07-12T20:14:41.468Z	base-d15-review	review test page	6	true
+2026-07-12T20:14:50.482Z	base-d14-review	Session menu	4	true
+2026-07-12T20:14:52.800Z	base-d14-review	review test page	5	true
+2026-07-12T20:15:01.525Z	base-d15-exit	results Continue	5	true
+2026-07-12T20:15:13.504Z	base-d14-exit	results Continue	4	true
+2026-07-12T20:15:28.621Z	base-d15-new	Start-New-Words/Continue	5	true
+2026-07-12T20:15:33.075Z	base-d15-new	Session menu	5	true
+2026-07-12T20:16:09.665Z	base-d15-review	Session menu	4	true
+2026-07-12T20:16:11.995Z	base-d15-review	review test page	5	true
+2026-07-12T20:16:23.657Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:16:27.201Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:16:31.565Z	base-d15-exit	results Continue	5	true
+2026-07-12T20:16:49.122Z	ascent-d1-exit	results Continue	6	true
+2026-07-12T20:17:03.995Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T20:17:07.532Z	ascent-d2-new	Session menu	4	true
+2026-07-12T20:17:43.830Z	ascent-d2-review	Session menu	4	true
+2026-07-12T20:17:46.146Z	ascent-d2-review	review test page	4	true
+2026-07-12T20:18:04.005Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T20:18:05.822Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T20:18:06.575Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T20:18:07.574Z	base-d1-new	Session menu	5	true
+2026-07-12T20:18:10.145Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:18:14.167Z	base-d1-new	Start-New-Words/Continue	4	true
+2026-07-12T20:18:17.740Z	base-d1-new	Session menu	5	true
+2026-07-12T20:18:20.723Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T20:18:24.255Z	ascent-d3-new	Session menu	4	true
+2026-07-12T20:18:30.123Z	base-d1-exit	results Continue	5	true
+2026-07-12T20:18:34.070Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T20:18:42.397Z	base-d1-exit	results Continue	6	true
+2026-07-12T20:18:45.244Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T20:18:48.790Z	base-d2-new	Session menu	4	true
+2026-07-12T20:18:49.062Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T20:18:52.604Z	ascent-d2-new	Session menu	5	true
+2026-07-12T20:18:57.400Z	base-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T20:18:58.440Z	ascent-d3-review	Session menu	4	true
+2026-07-12T20:19:00.759Z	ascent-d3-review	review test page	6	true
+2026-07-12T20:19:00.937Z	base-d2-new	Session menu	4	true
+2026-07-12T20:19:21.454Z	ascent-d3-exit	results Continue	53	true
+2026-07-12T20:19:23.607Z	base-d2-review	Session menu	7	true
+2026-07-12T20:19:25.933Z	base-d2-review	review test page	6	true
+2026-07-12T20:19:27.506Z	ascent-d2-review	Session menu	4	true
+2026-07-12T20:19:29.823Z	ascent-d2-review	review test page	8	true
+2026-07-12T20:19:36.135Z	base-d2-review	Session menu	3	true
+2026-07-12T20:19:36.426Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T20:19:38.465Z	base-d2-review	review test page	5	true
+2026-07-12T20:19:39.965Z	ascent-d4-new	Session menu	4	true
+2026-07-12T20:19:46.093Z	base-d2-exit	results Continue	7	true
+2026-07-12T20:19:50.014Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T20:19:59.089Z	base-d2-exit	results Continue	5	true
+2026-07-12T20:20:01.206Z	base-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T20:20:04.748Z	base-d3-new	Session menu	4	true
+2026-07-12T20:20:04.917Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T20:20:08.464Z	ascent-d3-new	Session menu	5	true
+2026-07-12T20:20:14.005Z	base-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T20:20:14.283Z	ascent-d4-review	Session menu	6	true
+2026-07-12T20:20:16.600Z	ascent-d4-review	review test page	6	true
+2026-07-12T20:20:17.543Z	base-d3-new	Session menu	5	true
+2026-07-12T20:20:21.406Z	ascent-d3-new-RETAKE	Start-New-Words/Continue	5	true
+2026-07-12T20:20:24.943Z	ascent-d3-new-RETAKE	Session menu	5	true
+2026-07-12T20:20:36.216Z	ascent-d4-exit	results Continue	4	true
+2026-07-12T20:20:39.547Z	base-d3-review	Session menu	5	true
+2026-07-12T20:20:41.886Z	base-d3-review	review test page	5	true
+2026-07-12T20:20:51.192Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T20:20:52.318Z	base-d3-review	Session menu	5	true
+2026-07-12T20:20:54.630Z	base-d3-review	review test page	6	true
+2026-07-12T20:20:54.730Z	ascent-d5-new	Session menu	6	true
+2026-07-12T20:20:59.734Z	ascent-d3-review	Session menu	5	true
+2026-07-12T20:21:02.048Z	ascent-d3-review	review test page	5	true
+2026-07-12T20:21:02.575Z	base-d3-exit	results Continue	4	true
+2026-07-12T20:21:15.302Z	base-d3-exit	results Continue	4	true
+2026-07-12T20:21:17.539Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T20:21:21.075Z	base-d4-new	Session menu	4	true
+2026-07-12T20:21:22.155Z	ascent-d3-exit	results Continue	4	true
+2026-07-12T20:21:28.928Z	ascent-d5-review	Session menu	5	true
+2026-07-12T20:21:31.172Z	base-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T20:21:31.246Z	ascent-d5-review	review test page	6	true
+2026-07-12T20:21:34.705Z	base-d4-new	Session menu	4	true
+2026-07-12T20:21:37.111Z	ascent-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T20:21:40.656Z	ascent-d4-new	Session menu	4	true
+2026-07-12T20:21:51.965Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T20:21:55.811Z	base-d4-review	Session menu	4	true
+2026-07-12T20:21:58.134Z	base-d4-review	review test page	5	true
+2026-07-12T20:22:06.963Z	ascent-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T20:22:09.155Z	base-d4-review	Session menu	3	true
+2026-07-12T20:22:10.506Z	ascent-d6-new	Session menu	7	true
+2026-07-12T20:22:11.482Z	base-d4-review	review test page	5	true
+2026-07-12T20:22:14.972Z	ascent-d4-review	Session menu	4	true
+2026-07-12T20:22:17.294Z	ascent-d4-review	review test page	6	true
+2026-07-12T20:22:19.329Z	base-d4-exit	results Continue	4	true
+2026-07-12T20:22:32.991Z	base-d4-exit	results Continue	4	true
+2026-07-12T20:22:34.286Z	base-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T20:22:37.473Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T20:22:37.835Z	base-d5-new	Session menu	3	true
+2026-07-12T20:22:44.756Z	ascent-d6-review	Session menu	4	true
+2026-07-12T20:22:47.070Z	ascent-d6-review	review test page	5	true
+2026-07-12T20:22:48.018Z	base-d5-new	Start-New-Words/Continue	25	true
+2026-07-12T20:22:51.591Z	base-d5-new	Session menu	4	true
+2026-07-12T20:22:52.508Z	ascent-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T20:22:56.050Z	ascent-d5-new	Session menu	5	true
+2026-07-12T20:22:56.386Z	base-d5-review	Session menu	4	true
+2026-07-12T20:22:58.698Z	base-d5-review	review test page	6	true
+2026-07-12T20:23:06.289Z	base-d5-exit	results Continue	2304	true
+2026-07-12T20:23:07.933Z	ascent-d6-exit	results Continue	4	true
+2026-07-12T20:23:22.882Z	ascent-d7-new	Start-New-Words/Continue	6	true
+2026-07-12T20:23:26.430Z	ascent-d7-new	Session menu	5	true
+2026-07-12T20:23:26.885Z	base-d5-review	Session menu	3	true
+2026-07-12T20:23:29.218Z	base-d5-review	review test page	5	true
+2026-07-12T20:23:29.867Z	ascent-d5-review	Session menu	5	true
+2026-07-12T20:23:32.198Z	ascent-d5-review	review test page	8	true
+2026-07-12T20:23:43.364Z	base-d5-review	Session menu	5	true
+2026-07-12T20:23:45.687Z	base-d5-review	review test page	6	true
+2026-07-12T20:23:49.981Z	base-d5-exit	results Continue	14	true
+2026-07-12T20:23:52.259Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T20:24:00.666Z	ascent-d7-review	Session menu	3	true
+2026-07-12T20:24:02.984Z	ascent-d7-review	review test page	7	true
+2026-07-12T20:24:05.005Z	base-d6-new	Start-New-Words/Continue	4	true
+2026-07-12T20:24:05.832Z	base-d5-exit	results Continue	6	true
+2026-07-12T20:24:07.194Z	ascent-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T20:24:08.545Z	base-d6-new	Session menu	5	true
+2026-07-12T20:24:10.741Z	ascent-d6-new	Session menu	4	true
+2026-07-12T20:24:20.803Z	base-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T20:24:23.171Z	ascent-d7-exit	results Continue	15	true
+2026-07-12T20:24:24.099Z	ascent-d6-new-RETAKE	Start-New-Words/Continue	5	true
+2026-07-12T20:24:24.343Z	base-d6-new	Session menu	3	true
+2026-07-12T20:24:27.639Z	ascent-d6-new-RETAKE	Session menu	5	true
+2026-07-12T20:24:38.161Z	ascent-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T20:24:41.720Z	ascent-d8-new	Session menu	9	true
+2026-07-12T20:24:43.212Z	base-d6-review	Session menu	5	true
+2026-07-12T20:24:45.537Z	base-d6-review	review test page	9	true
+2026-07-12T20:24:58.040Z	base-d6-review	Session menu	3	true
+2026-07-12T20:25:00.431Z	base-d6-review	review test page	5	true
+2026-07-12T20:25:01.465Z	ascent-d6-review	Session menu	6	true
+2026-07-12T20:25:03.785Z	ascent-d6-review	review test page	7	true
+2026-07-12T20:25:06.259Z	base-d6-exit	results Continue	5	true
+2026-07-12T20:25:17.238Z	ascent-d8-review	Session menu	4	true
+2026-07-12T20:25:19.567Z	ascent-d8-review	review test page	12	true
+2026-07-12T20:25:21.258Z	base-d7-new	Start-New-Words/Continue	4	true
+2026-07-12T20:25:21.602Z	base-d6-exit	results Continue	11	true
+2026-07-12T20:25:24.493Z	ascent-d6-exit	results Continue	4	true
+2026-07-12T20:25:24.801Z	base-d7-new	Session menu	5	true
+2026-07-12T20:25:36.624Z	base-d7-new	Start-New-Words/Continue	4	true
+2026-07-12T20:25:39.499Z	ascent-d7-new	Start-New-Words/Continue	6	true
+2026-07-12T20:25:39.753Z	ascent-d8-exit	results Continue	4	true
+2026-07-12T20:25:40.165Z	base-d7-new	Session menu	5	true
+2026-07-12T20:25:43.033Z	ascent-d7-new	Session menu	5	true
+2026-07-12T20:26:03.621Z	base-d7-review	Session menu	4	true
+2026-07-12T20:26:05.940Z	base-d7-review	review test page	4	true
+2026-07-12T20:26:14.419Z	base-d7-review	Session menu	5	true
+2026-07-12T20:26:16.738Z	base-d7-review	review test page	4	true
+2026-07-12T20:26:16.800Z	ascent-d7-review	Session menu	4	true
+2026-07-12T20:26:19.122Z	ascent-d7-review	review test page	5	true
+2026-07-12T20:26:27.106Z	base-d7-exit	results Continue	5	true
+2026-07-12T20:26:39.272Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T20:26:39.937Z	base-d7-exit	results Continue	4	true
+2026-07-12T20:26:42.085Z	base-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T20:26:45.629Z	base-d8-new	Session menu	4	true
+2026-07-12T20:26:54.273Z	ascent-d8-new	Start-New-Words/Continue	9	true
+2026-07-12T20:26:54.969Z	base-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T20:26:57.812Z	ascent-d8-new	Session menu	4	true
+2026-07-12T20:26:58.519Z	base-d8-new	Session menu	4	true
+2026-07-12T20:27:19.828Z	base-d8-review	Session menu	5	true
+2026-07-12T20:27:22.152Z	base-d8-review	review test page	6	true
+2026-07-12T20:27:31.614Z	ascent-d8-review	Session menu	5	true
+2026-07-12T20:27:32.832Z	base-d8-review	Session menu	6	true
+2026-07-12T20:27:33.935Z	ascent-d8-review	review test page	6	true
+2026-07-12T20:27:35.170Z	base-d8-review	review test page	6	true
+2026-07-12T20:27:42.260Z	base-d8-exit	results Continue	9	true
+2026-07-12T20:27:54.560Z	ascent-d8-exit	results Continue	5	true
+2026-07-12T20:27:56.773Z	base-d8-exit	results Continue	4	true
+2026-07-12T20:27:57.243Z	base-d9-new	Start-New-Words/Continue	4	true
+2026-07-12T20:28:00.786Z	base-d9-new	Session menu	4	true
+2026-07-12T20:28:11.775Z	base-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T20:28:15.320Z	base-d9-new	Session menu	4	true
+2026-07-12T20:28:35.022Z	base-d9-review	Session menu	4	true
+2026-07-12T20:28:37.349Z	base-d9-review	review test page	5	true
+2026-07-12T20:28:52.505Z	base-d9-review	Session menu	3	true
+2026-07-12T20:28:54.823Z	base-d9-review	review test page	5	true
+2026-07-12T20:28:58.024Z	base-d9-exit	results Continue	4	true
+2026-07-12T20:29:13.027Z	base-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T20:29:15.592Z	base-d9-exit	results Continue	5	true
+2026-07-12T20:29:16.566Z	base-d10-new	Session menu	5	true
+2026-07-12T20:29:30.641Z	base-d10-new	Start-New-Words/Continue	4	true
+2026-07-12T20:29:34.179Z	base-d10-new	Session menu	4	true
+2026-07-12T20:29:50.847Z	base-d10-review	Session menu	4	true
+2026-07-12T20:29:53.168Z	base-d10-review	review test page	5	true
+2026-07-12T20:30:08.334Z	base-d10-review	Session menu	4	true
+2026-07-12T20:30:10.656Z	base-d10-review	review test page	6	true
+2026-07-12T20:30:15.358Z	base-d10-exit	results Continue	6	true
+2026-07-12T20:30:30.410Z	base-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T20:30:31.226Z	base-d10-exit	results Continue	18	true
+2026-07-12T20:30:34.143Z	base-d11-new	Session menu	5	true
+2026-07-12T20:30:46.228Z	base-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T20:30:49.775Z	base-d11-new	Session menu	5	true
+2026-07-12T20:30:52.694Z	base-d11-review	Session menu	5	true
+2026-07-12T20:30:55.006Z	base-d11-review	review test page	6	true
+2026-07-12T20:31:07.228Z	base-d11-exit	results Continue	6859	true
+2026-07-12T20:31:23.502Z	base-d11-review	Session menu	5	true
+2026-07-12T20:31:25.808Z	base-d11-review	review test page	4	true
+2026-07-12T20:31:44.734Z	base-d11-review	Session menu	4	true
+2026-07-12T20:31:45.966Z	base-d11-exit	results Continue	4	true
+2026-07-12T20:31:47.043Z	base-d11-review	review test page	5	true
+2026-07-12T20:32:01.002Z	base-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T20:32:04.565Z	base-d12-new	Session menu	6	true
+2026-07-12T20:32:07.240Z	base-d11-exit	results Continue	6	true
+2026-07-12T20:32:22.298Z	base-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T20:32:26.163Z	base-d12-new	Session menu	5	true
+2026-07-12T20:32:40.549Z	base-d12-review	Session menu	4	true
+2026-07-12T20:32:42.868Z	base-d12-review	review test page	5	true
+2026-07-12T20:33:00.443Z	base-d12-review	Session menu	5	true
+2026-07-12T20:33:02.786Z	base-d12-review	review test page	6	true
+2026-07-12T20:33:03.037Z	base-d12-exit	results Continue	5	true
+2026-07-12T20:33:18.021Z	base-d13-new	Start-New-Words/Continue	5	true
+2026-07-12T20:33:21.916Z	base-d13-new	Session menu	5	true
+2026-07-12T20:33:23.338Z	base-d12-exit	results Continue	6	true
+2026-07-12T20:33:38.335Z	base-d13-new	Start-New-Words/Continue	5	true
+2026-07-12T20:33:42.176Z	base-d13-new	Session menu	4	true
+2026-07-12T20:33:57.394Z	base-d13-review	Session menu	4	true
+2026-07-12T20:33:59.714Z	base-d13-review	review test page	5	true
+2026-07-12T20:34:17.219Z	base-d13-review	Session menu	5	true
+2026-07-12T20:34:18.246Z	base-d13-exit	results Continue	14473	true
+2026-07-12T20:34:19.528Z	base-d13-review	review test page	5	true
+2026-07-12T20:34:33.334Z	base-d14-new	Start-New-Words/Continue	4	true
+2026-07-12T20:34:37.257Z	base-d14-new	Session menu	5	true
+2026-07-12T20:34:45.650Z	base-d13-exit	results Continue	4	true
+2026-07-12T20:35:00.754Z	base-d14-new	Start-New-Words/Continue	5	true
+2026-07-12T20:35:05.229Z	base-d14-new	Session menu	5	true
+2026-07-12T20:35:12.759Z	base-d14-review	Session menu	4	true
+2026-07-12T20:35:15.072Z	base-d14-review	review test page	5	true
+2026-07-12T20:35:35.184Z	base-d14-exit	results Continue	4	true
+2026-07-12T20:35:40.812Z	base-d14-review	Session menu	4	true
+2026-07-12T20:35:43.121Z	base-d14-review	review test page	4	true
+2026-07-12T20:35:50.280Z	base-d15-new	Start-New-Words/Continue	5	true
+2026-07-12T20:35:54.752Z	base-d15-new	Session menu	6	true
+2026-07-12T20:36:03.703Z	base-d14-exit	results Continue	4	true
+2026-07-12T20:36:18.811Z	base-d15-new	Start-New-Words/Continue	5	true
+2026-07-12T20:36:23.347Z	base-d15-new	Session menu	5	true
+2026-07-12T20:36:30.211Z	base-d15-review	Session menu	6	true
+2026-07-12T20:36:32.532Z	base-d15-review	review test page	4	true
+2026-07-12T20:36:58.567Z	base-d15-review	Session menu	4	true
+2026-07-12T20:37:00.880Z	base-d15-review	review test page	5	true
+2026-07-12T20:37:21.407Z	base-d15-exit	results Continue	5	true
+2026-07-12T20:38:44.355Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T20:38:47.896Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:39:10.202Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T20:39:25.054Z	ascent-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T20:39:28.595Z	ascent-d2-new	Session menu	5	true
+2026-07-12T20:40:03.179Z	ascent-d2-review	Session menu	6	true
+2026-07-12T20:40:05.495Z	ascent-d2-review	review test page	5	true
+2026-07-12T20:40:25.509Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T20:40:40.453Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T20:40:43.987Z	ascent-d3-new	Session menu	4	true
+2026-07-12T20:41:18.206Z	ascent-d3-review	Session menu	5	true
+2026-07-12T20:41:20.522Z	ascent-d3-review	review test page	5	true
+2026-07-12T20:41:40.532Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T20:41:55.421Z	ascent-d4-new	Start-New-Words/Continue	4	true
+2026-07-12T20:41:58.965Z	ascent-d4-new	Session menu	4	true
+2026-07-12T20:42:33.139Z	ascent-d4-review	Session menu	4	true
+2026-07-12T20:42:35.459Z	ascent-d4-review	review test page	6	true
+2026-07-12T20:42:55.497Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T20:43:10.467Z	ascent-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T20:43:14.007Z	ascent-d5-new	Session menu	5	true
+2026-07-12T20:43:47.709Z	ascent-d5-review	Session menu	5	true
+2026-07-12T20:43:50.030Z	ascent-d5-review	review test page	6	true
+2026-07-12T20:44:10.075Z	ascent-d5-exit	results Continue	5	true
+2026-07-12T20:44:25.020Z	ascent-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T20:44:28.554Z	ascent-d6-new	Session menu	4	true
+2026-07-12T20:45:02.188Z	ascent-d6-review	Session menu	4	true
+2026-07-12T20:45:04.506Z	ascent-d6-review	review test page	4	true
+2026-07-12T20:45:26.580Z	ascent-d6-exit	results Continue	5	true
+2026-07-12T20:45:41.541Z	ascent-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T20:45:45.083Z	ascent-d7-new	Session menu	5	true
+2026-07-12T20:46:19.228Z	ascent-d7-review	Session menu	4	true
+2026-07-12T20:46:21.539Z	ascent-d7-review	review test page	5	true
+2026-07-12T20:46:41.164Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T20:46:56.097Z	ascent-d8-new	Start-New-Words/Continue	4	true
+2026-07-12T20:46:59.639Z	ascent-d8-new	Session menu	4	true
+2026-07-12T20:47:34.257Z	ascent-d8-review	Session menu	4	true
+2026-07-12T20:47:36.578Z	ascent-d8-review	review test page	5	true
+2026-07-12T20:47:56.096Z	ascent-d8-exit	results Continue	5	true
+2026-07-12T20:53:40.025Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:53:40.043Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:53:40.046Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:53:40.078Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T20:53:43.144Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:53:43.593Z	base-d1-new	Session menu	7	true
+2026-07-12T20:53:43.627Z	base-d1-new	Session menu	5	true
+2026-07-12T20:53:43.628Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:53:43.659Z	ascent-d1-new	Session menu	6	true
+2026-07-12T20:53:46.724Z	base-d1-new	Session menu	7	true
+2026-07-12T20:53:47.504Z	ascent-d1-new	Start-New-Words/Continue	20	true
+2026-07-12T20:53:51.176Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:53:51.992Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T20:53:54.690Z	ascent-d1-new	Start-New-Words/Continue	13	true
+2026-07-12T20:53:55.578Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:53:58.272Z	ascent-d1-new	Session menu	5	true
+2026-07-12T20:54:09.914Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T20:54:10.010Z	base-d1-exit	results Continue	6	true
+2026-07-12T20:54:10.061Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T20:54:10.115Z	base-d1-exit	results Continue	8	true
+2026-07-12T20:54:10.438Z	base-d1-exit	results Continue	6	true
+2026-07-12T20:54:13.243Z	ascent-d1-exit	results Continue	16	true
+2026-07-12T20:54:17.666Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T20:54:20.301Z	ascent-d1-exit	results Continue	8	true
+2026-07-12T20:54:24.935Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T20:54:25.067Z	base-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T20:54:25.324Z	ascent-d2-new	Start-New-Words/Continue	8	true
+2026-07-12T20:54:25.404Z	base-d2-new	Start-New-Words/Continue	14	true
+2026-07-12T20:54:26.062Z	base-d2-new	Start-New-Words/Continue	19	true
+2026-07-12T20:54:28.471Z	ascent-d2-new	Session menu	5	true
+2026-07-12T20:54:28.606Z	base-d2-new	Session menu	6	true
+2026-07-12T20:54:28.629Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T20:54:28.936Z	ascent-d2-new	Session menu	7	true
+2026-07-12T20:54:29.009Z	base-d2-new	Session menu	6	true
+2026-07-12T20:54:29.728Z	base-d2-new	Session menu	6	true
+2026-07-12T20:54:32.182Z	ascent-d2-new	Session menu	10	true
+2026-07-12T20:54:32.901Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T20:54:35.514Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T20:54:36.480Z	ascent-d2-new	Session menu	6	true
+2026-07-12T20:54:39.055Z	ascent-d2-new	Session menu	5	true
+2026-07-12T20:55:03.274Z	ascent-d2-review	Session menu	5	true
+2026-07-12T20:55:03.360Z	base-d2-review	Session menu	4	true
+2026-07-12T20:55:03.690Z	ascent-d2-review	Session menu	5	true
+2026-07-12T20:55:04.056Z	base-d2-review	Session menu	6	true
+2026-07-12T20:55:04.769Z	base-d2-review	Session menu	9	true
+2026-07-12T20:55:05.637Z	ascent-d2-review	review test page	6	true
+2026-07-12T20:55:05.720Z	base-d2-review	review test page	5	true
+2026-07-12T20:55:06.041Z	ascent-d2-review	review test page	6	true
+2026-07-12T20:55:06.396Z	base-d2-review	review test page	6	true
+2026-07-12T20:55:06.849Z	ascent-d2-review	Session menu	16	true
+2026-07-12T20:55:07.143Z	base-d2-review	review test page	8	true
+2026-07-12T20:55:09.269Z	ascent-d2-review	review test page	9	true
+2026-07-12T20:55:11.602Z	ascent-d2-review	Session menu	6	true
+2026-07-12T20:55:13.801Z	ascent-d2-review	Session menu	4	true
+2026-07-12T20:55:13.923Z	ascent-d2-review	review test page	6	true
+2026-07-12T20:55:16.127Z	ascent-d2-review	review test page	5	true
+2026-07-12T20:55:26.275Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T20:55:27.106Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T20:55:28.096Z	base-d2-exit	results Continue	5	true
+2026-07-12T20:55:28.498Z	base-d2-exit	results Continue	4	true
+2026-07-12T20:55:29.051Z	base-d2-exit	results Continue	6	true
+2026-07-12T20:55:30.235Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T20:55:34.308Z	ascent-d2-exit	results Continue	7	true
+2026-07-12T20:55:36.371Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T20:55:41.221Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T20:55:42.105Z	ascent-d3-new	Start-New-Words/Continue	7	true
+2026-07-12T20:55:43.008Z	base-d3-new	Start-New-Words/Continue	14	true
+2026-07-12T20:55:43.449Z	base-d3-new	Start-New-Words/Continue	8	true
+2026-07-12T20:55:44.040Z	base-d3-new	Start-New-Words/Continue	9	true
+2026-07-12T20:55:44.770Z	ascent-d3-new	Session menu	5	true
+2026-07-12T20:55:45.396Z	ascent-d3-new	Start-New-Words/Continue	4	true
+2026-07-12T20:55:45.652Z	ascent-d3-new	Session menu	5	true
+2026-07-12T20:55:46.600Z	base-d3-new	Session menu	4	true
+2026-07-12T20:55:47.031Z	base-d3-new	Session menu	6	true
+2026-07-12T20:55:47.587Z	base-d3-new	Session menu	4	true
+2026-07-12T20:55:48.945Z	ascent-d3-new	Session menu	14	true
+2026-07-12T20:55:49.444Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T20:55:51.482Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T20:55:53.000Z	ascent-d3-new	Session menu	6	true
+2026-07-12T20:55:55.049Z	ascent-d3-new	Session menu	14	true
+2026-07-12T20:56:18.720Z	ascent-d3-review	Session menu	5	true
+2026-07-12T20:56:20.237Z	ascent-d3-review	Session menu	5	true
+2026-07-12T20:56:21.158Z	ascent-d3-review	review test page	11	true
+2026-07-12T20:56:21.665Z	base-d3-review	Session menu	6	true
+2026-07-12T20:56:22.669Z	ascent-d3-review	review test page	6	true
+2026-07-12T20:56:22.717Z	base-d3-review	Session menu	4	true
+2026-07-12T20:56:22.903Z	base-d3-review	Session menu	4	true
+2026-07-12T20:56:23.874Z	ascent-d3-review	Session menu	6	true
+2026-07-12T20:56:24.001Z	base-d3-review	review test page	8	true
+2026-07-12T20:56:25.033Z	base-d3-review	review test page	7	true
+2026-07-12T20:56:25.263Z	base-d3-review	review test page	14	true
+2026-07-12T20:56:26.297Z	ascent-d3-review	review test page	13	true
+2026-07-12T20:56:27.899Z	ascent-d3-review	Session menu	9	true
+2026-07-12T20:56:29.610Z	ascent-d3-review	Session menu	4	true
+2026-07-12T20:56:30.228Z	ascent-d3-review	review test page	1	false
+2026-07-12T21:00:22.005Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T21:00:22.024Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T21:00:23.418Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T21:00:23.694Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T21:00:24.112Z	base-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:00:24.353Z	base-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T21:00:24.440Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:00:24.913Z	ascent-d1-new	Start-New-Words/Continue	10	true
+2026-07-12T21:00:25.635Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:00:25.648Z	ascent-d1-new	Session menu	6	true
+2026-07-12T21:00:26.993Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:00:27.273Z	base-d1-new	Session menu	5	true
+2026-07-12T21:00:27.686Z	base-d1-new	Session menu	5	true
+2026-07-12T21:00:27.919Z	base-d1-new	Session menu	5	true
+2026-07-12T21:00:28.021Z	ascent-d1-new	Session menu	6	true
+2026-07-12T21:00:28.488Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:00:49.593Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T21:00:49.916Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T21:00:50.007Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T21:00:50.537Z	base-d1-exit	results Continue	5	true
+2026-07-12T21:00:51.227Z	base-d1-exit	results Continue	7	true
+2026-07-12T21:00:51.583Z	base-d1-exit	results Continue	6	true
+2026-07-12T21:00:51.848Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T21:00:53.203Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T21:01:04.585Z	ascent-d2-new	Start-New-Words/Continue	4	true
+2026-07-12T21:01:04.991Z	ascent-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T21:01:05.079Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:01:05.790Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:01:06.386Z	base-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T21:01:06.586Z	base-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:01:07.036Z	ascent-d2-new	Start-New-Words/Continue	9	true
+2026-07-12T21:01:08.129Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:01:08.294Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:01:08.552Z	ascent-d2-new	Session menu	4	true
+2026-07-12T21:01:08.625Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:01:09.367Z	base-d2-new	Session menu	4	true
+2026-07-12T21:01:10.033Z	base-d2-new	Session menu	6	true
+2026-07-12T21:01:10.147Z	base-d2-new	Session menu	9	true
+2026-07-12T21:01:10.605Z	ascent-d2-new	Session menu	4	true
+2026-07-12T21:01:11.836Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:01:43.139Z	ascent-d2-review	Session menu	10	true
+2026-07-12T21:01:43.548Z	ascent-d2-review	Session menu	6	true
+2026-07-12T21:01:44.637Z	base-d2-review	Session menu	6	true
+2026-07-12T21:01:45.294Z	base-d2-review	Session menu	6	true
+2026-07-12T21:01:45.419Z	ascent-d2-review	Session menu	5	true
+2026-07-12T21:01:45.572Z	ascent-d2-review	review test page	7	true
+2026-07-12T21:01:45.924Z	ascent-d2-review	review test page	7	true
+2026-07-12T21:01:46.002Z	base-d2-review	Session menu	5	true
+2026-07-12T21:01:47.014Z	base-d2-review	review test page	8	true
+2026-07-12T21:01:47.105Z	ascent-d2-review	Session menu	14	true
+2026-07-12T21:01:47.648Z	base-d2-review	review test page	7	true
+2026-07-12T21:01:47.796Z	ascent-d2-review	review test page	9	true
+2026-07-12T21:01:47.937Z	ascent-d2-review	Session menu	5	true
+2026-07-12T21:01:48.335Z	base-d2-review	review test page	5	true
+2026-07-12T21:01:49.464Z	ascent-d2-review	review test page	8	true
+2026-07-12T21:01:50.325Z	ascent-d2-review	review test page	7	true
+2026-07-12T21:02:06.068Z	ascent-d2-exit	results Continue	30	true
+2026-07-12T21:02:06.382Z	ascent-d2-exit	results Continue	22	true
+2026-07-12T21:02:07.381Z	base-d2-exit	results Continue	6	true
+2026-07-12T21:02:08.366Z	base-d2-exit	results Continue	25	true
+2026-07-12T21:02:08.921Z	base-d2-exit	results Continue	4	true
+2026-07-12T21:02:08.961Z	ascent-d2-exit	results Continue	19	true
+2026-07-12T21:02:09.872Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T21:02:11.078Z	ascent-d2-exit	results Continue	9	true
+2026-07-12T21:02:21.228Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:02:21.602Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:02:22.397Z	base-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:02:23.339Z	base-d3-new	Start-New-Words/Continue	11	true
+2026-07-12T21:02:23.880Z	base-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:02:24.206Z	ascent-d3-new	Start-New-Words/Continue	20	true
+2026-07-12T21:02:24.770Z	ascent-d3-new	Session menu	8	true
+2026-07-12T21:02:24.923Z	ascent-d3-new	Start-New-Words/Continue	20	true
+2026-07-12T21:02:25.177Z	ascent-d3-new	Session menu	8	true
+2026-07-12T21:02:25.962Z	base-d3-new	Session menu	6	true
+2026-07-12T21:02:26.346Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:02:26.882Z	base-d3-new	Session menu	6	true
+2026-07-12T21:02:27.433Z	base-d3-new	Session menu	6	true
+2026-07-12T21:02:27.768Z	ascent-d3-new	Session menu	4	true
+2026-07-12T21:02:28.540Z	ascent-d3-new	Session menu	13	true
+2026-07-12T21:02:29.907Z	ascent-d3-new	Session menu	16	true
+2026-07-12T21:02:59.762Z	ascent-d3-review	Session menu	10	true
+2026-07-12T21:03:00.449Z	ascent-d3-review	Session menu	11	true
+2026-07-12T21:03:01.544Z	base-d3-review	Session menu	11	true
+2026-07-12T21:03:01.907Z	base-d3-review	Session menu	4	true
+2026-07-12T21:03:02.247Z	ascent-d3-review	review test page	7	true
+2026-07-12T21:03:02.633Z	ascent-d3-review	Session menu	5	true
+2026-07-12T21:03:02.729Z	base-d3-review	Session menu	9	true
+2026-07-12T21:03:02.896Z	ascent-d3-review	review test page	6	true
+2026-07-12T21:03:03.217Z	ascent-d3-review	Session menu	4	true
+2026-07-12T21:03:03.921Z	base-d3-review	review test page	10	true
+2026-07-12T21:03:04.086Z	ascent-d3-review	Session menu	5	true
+2026-07-12T21:03:04.298Z	base-d3-review	review test page	11	true
+2026-07-12T21:03:04.995Z	ascent-d3-review	review test page	7	true
+2026-07-12T21:03:05.141Z	base-d3-review	review test page	6	true
+2026-07-12T21:03:05.607Z	ascent-d3-review	review test page	29	true
+2026-07-12T21:03:06.460Z	ascent-d3-review	review test page	19	true
+2026-07-12T21:03:22.834Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T21:03:23.888Z	ascent-d3-exit	results Continue	6	true
+2026-07-12T21:03:24.996Z	base-d3-exit	results Continue	6	true
+2026-07-12T21:03:26.164Z	base-d3-exit	results Continue	8	true
+2026-07-12T21:03:26.633Z	ascent-d3-exit	results Continue	5	true
+2026-07-12T21:03:27.143Z	ascent-d3-exit	results Continue	4	true
+2026-07-12T21:03:27.531Z	ascent-d3-exit	results Continue	4	true
+2026-07-12T21:03:28.832Z	base-d3-exit	results Continue	15	true
+2026-07-12T21:03:37.822Z	ascent-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T21:03:38.939Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T21:03:39.926Z	base-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:03:41.138Z	base-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:03:41.379Z	ascent-d4-new	Session menu	4	true
+2026-07-12T21:03:41.724Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T21:03:42.137Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:03:42.491Z	ascent-d4-new	Session menu	9	true
+2026-07-12T21:03:42.613Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:03:43.497Z	base-d4-new	Session menu	9	true
+2026-07-12T21:03:43.835Z	base-d4-new	Start-New-Words/Continue	14	true
+2026-07-12T21:03:44.692Z	base-d4-new	Session menu	5	true
+2026-07-12T21:03:45.275Z	ascent-d4-new	Session menu	6	true
+2026-07-12T21:03:45.694Z	ascent-d4-new	Session menu	5	true
+2026-07-12T21:03:46.193Z	ascent-d4-new	Session menu	5	true
+2026-07-12T21:03:47.413Z	base-d4-new	Session menu	10	true
+2026-07-12T21:04:16.300Z	ascent-d4-review	Session menu	9	true
+2026-07-12T21:04:17.057Z	ascent-d4-review	Session menu	8	true
+2026-07-12T21:04:18.086Z	base-d4-review	Session menu	19	true
+2026-07-12T21:04:18.706Z	ascent-d4-review	review test page	13	true
+2026-07-12T21:04:19.316Z	ascent-d4-review	Session menu	8	true
+2026-07-12T21:04:19.459Z	ascent-d4-review	review test page	8	true
+2026-07-12T21:04:19.686Z	base-d4-review	Session menu	8	true
+2026-07-12T21:04:19.912Z	ascent-d4-review	Session menu	11	true
+2026-07-12T21:04:20.605Z	base-d4-review	review test page	15	true
+2026-07-12T21:04:21.002Z	ascent-d4-review	Session menu	23	true
+2026-07-12T21:04:21.738Z	ascent-d4-review	review test page	8	true
+2026-07-12T21:04:22.023Z	base-d4-review	Session menu	6	true
+2026-07-12T21:04:22.097Z	base-d4-review	review test page	8	true
+2026-07-12T21:04:22.390Z	ascent-d4-review	review test page	6	true
+2026-07-12T21:04:23.385Z	ascent-d4-review	review test page	11	true
+2026-07-12T21:04:24.476Z	base-d4-review	review test page	4	true
+2026-07-12T21:04:39.636Z	ascent-d4-exit	results Continue	10	true
+2026-07-12T21:04:40.788Z	ascent-d4-exit	results Continue	13	true
+2026-07-12T21:04:41.380Z	base-d4-exit	results Continue	6	true
+2026-07-12T21:04:42.073Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T21:04:42.991Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T21:04:43.171Z	base-d4-exit	results Continue	5	true
+2026-07-12T21:04:43.707Z	ascent-d4-exit	results Continue	4	true
+2026-07-12T21:04:45.531Z	base-d4-exit	results Continue	6	true
+2026-07-12T21:04:54.698Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T21:04:55.820Z	ascent-d5-new	Start-New-Words/Continue	4	true
+2026-07-12T21:04:56.347Z	base-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T21:04:57.129Z	ascent-d5-new	Start-New-Words/Continue	12	true
+2026-07-12T21:04:57.944Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T21:04:58.199Z	base-d5-new	Start-New-Words/Continue	9	true
+2026-07-12T21:04:58.255Z	ascent-d5-new	Session menu	9	true
+2026-07-12T21:04:58.739Z	ascent-d5-new	Start-New-Words/Continue	13	true
+2026-07-12T21:04:59.402Z	ascent-d5-new	Session menu	16	true
+2026-07-12T21:04:59.915Z	base-d5-new	Session menu	7	true
+2026-07-12T21:05:00.533Z	base-d5-new	Start-New-Words/Continue	8	true
+2026-07-12T21:05:00.714Z	ascent-d5-new	Session menu	7	true
+2026-07-12T21:05:01.496Z	ascent-d5-new	Session menu	7	true
+2026-07-12T21:05:01.773Z	base-d5-new	Session menu	13	true
+2026-07-12T21:05:02.388Z	ascent-d5-new	Session menu	7	true
+2026-07-12T21:05:04.120Z	base-d5-new	Session menu	5	true
+2026-07-12T21:05:19.011Z	base-d5-review	Session menu	3	true
+2026-07-12T21:05:20.933Z	base-d5-review	Session menu	7	true
+2026-07-12T21:05:21.330Z	base-d5-review	review test page	4	true
+2026-07-12T21:05:23.277Z	base-d5-review	review test page	5	true
+2026-07-12T21:05:30.968Z	base-d5-exit	results Continue	4330	true
+2026-07-12T21:05:35.377Z	ascent-d5-review	Session menu	5	true
+2026-07-12T21:05:35.796Z	base-d5-exit	results Continue	16	true
+2026-07-12T21:05:35.940Z	ascent-d5-review	Session menu	7	true
+2026-07-12T21:05:35.986Z	ascent-d5-review	Session menu	23	true
+2026-07-12T21:05:36.603Z	ascent-d5-review	Session menu	4	true
+2026-07-12T21:05:37.653Z	ascent-d5-review	Session menu	5	true
+2026-07-12T21:05:37.793Z	ascent-d5-review	review test page	6	true
+2026-07-12T21:05:38.369Z	ascent-d5-review	review test page	7	true
+2026-07-12T21:05:38.421Z	ascent-d5-review	review test page	4	true
+2026-07-12T21:05:38.914Z	ascent-d5-review	review test page	6	true
+2026-07-12T21:05:39.212Z	base-d5-review	Session menu	5	true
+2026-07-12T21:05:40.003Z	ascent-d5-review	review test page	13	true
+2026-07-12T21:05:41.615Z	base-d5-review	review test page	6	true
+2026-07-12T21:05:57.624Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T21:05:59.113Z	ascent-d5-exit	results Continue	19	true
+2026-07-12T21:05:59.429Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T21:06:01.383Z	base-d5-exit	results Continue	4	true
+2026-07-12T21:06:01.390Z	ascent-d5-exit	results Continue	6	true
+2026-07-12T21:06:03.441Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T21:06:08.260Z	base-d5-review	Session menu	4	true
+2026-07-12T21:06:10.614Z	base-d5-review	review test page	7	true
+2026-07-12T21:06:12.572Z	ascent-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T21:06:12.999Z	base-d5-review	Session menu	7	true
+2026-07-12T21:06:14.136Z	ascent-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T21:06:14.391Z	ascent-d6-new	Start-New-Words/Continue	4	true
+2026-07-12T21:06:15.355Z	base-d5-review	review test page	11	true
+2026-07-12T21:06:16.126Z	ascent-d6-new	Session menu	10	true
+2026-07-12T21:06:16.425Z	base-d6-new	Start-New-Words/Continue	14	true
+2026-07-12T21:06:16.477Z	ascent-d6-new	Start-New-Words/Continue	13	true
+2026-07-12T21:06:17.709Z	ascent-d6-new	Session menu	19	true
+2026-07-12T21:06:18.039Z	ascent-d6-new	Session menu	6	true
+2026-07-12T21:06:18.461Z	ascent-d6-new	Start-New-Words/Continue	6	true
+2026-07-12T21:06:19.984Z	base-d6-new	Session menu	6	true
+2026-07-12T21:06:20.105Z	ascent-d6-new	Session menu	13	true
+2026-07-12T21:06:22.014Z	ascent-d6-new	Session menu	7	true
+2026-07-12T21:06:29.345Z	base-d5-exit	results Continue	14321	true
+2026-07-12T21:06:37.517Z	base-d5-exit	results Continue	5	true
+2026-07-12T21:06:44.324Z	base-d6-new	Start-New-Words/Continue	4	true
+2026-07-12T21:06:47.868Z	base-d6-new	Session menu	5	true
+2026-07-12T21:06:51.108Z	ascent-d6-review	Session menu	18	true
+2026-07-12T21:06:52.642Z	base-d6-new	Start-New-Words/Continue	13	true
+2026-07-12T21:06:52.911Z	ascent-d6-review	Session menu	12	true
+2026-07-12T21:06:53.702Z	ascent-d6-review	review test page	15	true
+2026-07-12T21:06:54.938Z	base-d6-review	Session menu	17	true
+2026-07-12T21:06:55.012Z	ascent-d6-review	Session menu	6	true
+2026-07-12T21:06:55.525Z	ascent-d6-review	review test page	23	true
+2026-07-12T21:06:56.283Z	ascent-d6-review	Session menu	5	true
+2026-07-12T21:06:56.576Z	base-d6-new	Session menu	7	true
+2026-07-12T21:06:57.344Z	base-d6-review	review test page	5	true
+2026-07-12T21:06:57.406Z	ascent-d6-review	review test page	4	true
+2026-07-12T21:06:57.495Z	ascent-d6-review	Session menu	4	true
+2026-07-12T21:06:58.598Z	ascent-d6-review	review test page	7	true
+2026-07-12T21:06:59.852Z	ascent-d6-review	review test page	15	true
+2026-07-12T21:07:14.362Z	ascent-d6-exit	results Continue	5	true
+2026-07-12T21:07:15.823Z	ascent-d6-exit	results Continue	26	true
+2026-07-12T21:07:18.504Z	base-d6-exit	results Continue	12	true
+2026-07-12T21:07:18.718Z	ascent-d6-exit	results Continue	15	true
+2026-07-12T21:07:18.985Z	ascent-d6-exit	results Continue	14	true
+2026-07-12T21:07:20.151Z	ascent-d6-exit	results Continue	108	true
+2026-07-12T21:07:23.625Z	base-d6-review	Session menu	4	true
+2026-07-12T21:07:25.978Z	base-d6-review	review test page	5	true
+2026-07-12T21:07:29.348Z	ascent-d7-new	Start-New-Words/Continue	6	true
+2026-07-12T21:07:30.628Z	base-d6-review	Session menu	5	true
+2026-07-12T21:07:30.879Z	ascent-d7-new	Start-New-Words/Continue	7	true
+2026-07-12T21:07:32.887Z	ascent-d7-new	Session menu	4	true
+2026-07-12T21:07:32.992Z	base-d6-review	review test page	5	true
+2026-07-12T21:07:33.539Z	base-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T21:07:33.825Z	ascent-d7-new	Start-New-Words/Continue	7	true
+2026-07-12T21:07:34.077Z	ascent-d7-new	Start-New-Words/Continue	7	true
+2026-07-12T21:07:34.449Z	ascent-d7-new	Session menu	14	true
+2026-07-12T21:07:35.330Z	ascent-d7-new	Start-New-Words/Continue	8	true
+2026-07-12T21:07:37.409Z	base-d7-new	Session menu	5	true
+2026-07-12T21:07:38.281Z	ascent-d7-new	Session menu	13	true
+2026-07-12T21:07:38.362Z	ascent-d7-new	Session menu	6	true
+2026-07-12T21:07:39.488Z	ascent-d7-new	Session menu	6	true
+2026-07-12T21:07:46.858Z	base-d6-exit	results Continue	5	true
+2026-07-12T21:07:54.584Z	base-d6-exit	results Continue	5	true
+2026-07-12T21:08:07.866Z	ascent-d7-review	Session menu	4	true
+2026-07-12T21:08:08.742Z	ascent-d7-review	Session menu	5	true
+2026-07-12T21:08:09.645Z	base-d7-new	Start-New-Words/Continue	7	true
+2026-07-12T21:08:10.215Z	ascent-d7-review	review test page	16	true
+2026-07-12T21:08:11.191Z	ascent-d7-review	review test page	20	true
+2026-07-12T21:08:12.281Z	base-d7-review	Session menu	21	true
+2026-07-12T21:08:14.139Z	base-d7-new	Session menu	14	true
+2026-07-12T21:08:14.550Z	ascent-d7-review	Session menu	7	true
+2026-07-12T21:08:14.823Z	base-d7-review	review test page	8	true
+2026-07-12T21:08:15.309Z	ascent-d7-review	Session menu	4	true
+2026-07-12T21:08:15.489Z	ascent-d7-review	Session menu	4	true
+2026-07-12T21:08:16.925Z	ascent-d7-review	review test page	7	true
+2026-07-12T21:08:17.637Z	ascent-d7-review	review test page	8	true
+2026-07-12T21:08:17.843Z	ascent-d7-review	review test page	6	true
+2026-07-12T21:08:32.343Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T21:08:33.345Z	ascent-d7-exit	results Continue	4	true
+2026-07-12T21:08:35.161Z	base-d7-exit	results Continue	10	true
+2026-07-12T21:08:37.712Z	ascent-d7-exit	results Continue	42	true
+2026-07-12T21:08:37.901Z	ascent-d7-exit	results Continue	6	true
+2026-07-12T21:08:38.170Z	ascent-d7-exit	results Continue	7	true
+2026-07-12T21:08:47.444Z	ascent-d8-new	Start-New-Words/Continue	8	true
+2026-07-12T21:08:48.442Z	ascent-d8-new	Start-New-Words/Continue	25	true
+2026-07-12T21:08:49.077Z	base-d7-review	Session menu	10	true
+2026-07-12T21:08:50.267Z	base-d8-new	Start-New-Words/Continue	8	true
+2026-07-12T21:08:51.567Z	base-d7-review	review test page	6	true
+2026-07-12T21:08:51.578Z	ascent-d8-new	Session menu	6	true
+2026-07-12T21:08:52.515Z	ascent-d8-new	Session menu	7	true
+2026-07-12T21:08:52.915Z	ascent-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T21:08:53.093Z	ascent-d8-new	Start-New-Words/Continue	8	true
+2026-07-12T21:08:53.476Z	ascent-d8-new	Start-New-Words/Continue	10	true
+2026-07-12T21:08:53.819Z	base-d8-new	Session menu	7	true
+2026-07-12T21:08:57.826Z	ascent-d8-new	Session menu	6	true
+2026-07-12T21:08:58.701Z	ascent-d8-new	Session menu	9	true
+2026-07-12T21:08:58.978Z	ascent-d8-new	Session menu	4	true
+2026-07-12T21:09:10.046Z	ascent-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T21:09:12.162Z	base-d7-exit	results Continue	5	true
+2026-07-12T21:09:13.592Z	ascent-d1-new	Session menu	6	true
+2026-07-12T21:09:27.224Z	base-d8-new	Start-New-Words/Continue	13	true
+2026-07-12T21:09:28.292Z	ascent-d8-review	Session menu	7	true
+2026-07-12T21:09:28.362Z	ascent-d8-review	Session menu	5	true
+2026-07-12T21:09:30.665Z	ascent-d8-review	review test page	6	true
+2026-07-12T21:09:30.691Z	base-d8-review	Session menu	6	true
+2026-07-12T21:09:30.809Z	ascent-d8-review	review test page	15	true
+2026-07-12T21:09:30.799Z	base-d8-new	Session menu	22	true
+2026-07-12T21:09:33.255Z	base-d8-review	review test page	15	true
+2026-07-12T21:09:35.239Z	ascent-d8-review	Session menu	19	true
+2026-07-12T21:09:35.461Z	ascent-d8-review	Session menu	5	true
+2026-07-12T21:09:35.894Z	ascent-d1-exit	results Continue	4	true
+2026-07-12T21:09:36.439Z	ascent-d8-review	Session menu	4	true
+2026-07-12T21:09:37.632Z	ascent-d8-review	review test page	5	true
+2026-07-12T21:09:37.798Z	ascent-d8-review	review test page	5	true
+2026-07-12T21:09:38.772Z	ascent-d8-review	review test page	15	true
+2026-07-12T21:09:50.806Z	ascent-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T21:09:52.797Z	ascent-d8-exit	results Continue	4	true
+2026-07-12T21:09:53.613Z	ascent-d8-exit	results Continue	5	true
+2026-07-12T21:09:54.338Z	ascent-d2-new	Session menu	5	true
+2026-07-12T21:09:54.776Z	base-d8-exit	results Continue	6	true
+2026-07-12T21:09:59.073Z	ascent-d8-exit	results Continue	11	true
+2026-07-12T21:09:59.688Z	ascent-d8-exit	results Continue	5	true
+2026-07-12T21:09:59.873Z	ascent-d8-exit	results Continue	4	true
+2026-07-12T21:10:06.312Z	base-d8-review	Session menu	3	true
+2026-07-12T21:10:07.868Z	ascent-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T21:10:08.635Z	base-d8-review	review test page	7	true
+2026-07-12T21:10:08.692Z	ascent-d9-new	Start-New-Words/Continue	7	true
+2026-07-12T21:10:10.196Z	base-d9-new	Start-New-Words/Continue	50	true
+2026-07-12T21:10:12.012Z	ascent-d9-new	Session menu	6	true
+2026-07-12T21:10:13.579Z	ascent-d9-new	Session menu	4	true
+2026-07-12T21:10:14.190Z	base-d9-new	Session menu	6	true
+2026-07-12T21:10:14.223Z	ascent-d9-new	Start-New-Words/Continue	5	true
+2026-07-12T21:10:14.993Z	ascent-d9-new	Start-New-Words/Continue	9	true
+2026-07-12T21:10:15.391Z	ascent-d9-new	Start-New-Words/Continue	7	true
+2026-07-12T21:10:19.613Z	ascent-d9-new	Session menu	7	true
+2026-07-12T21:10:20.563Z	ascent-d9-new	Session menu	10	true
+2026-07-12T21:10:20.816Z	ascent-d9-new	Session menu	6	true
+2026-07-12T21:10:30.526Z	base-d8-exit	results Continue	4	true
+2026-07-12T21:10:30.573Z	ascent-d2-review	Session menu	6	true
+2026-07-12T21:10:32.907Z	ascent-d2-review	review test page	5	true
+2026-07-12T21:10:45.570Z	base-d9-new	Start-New-Words/Continue	6	true
+2026-07-12T21:10:48.545Z	ascent-d9-review	Session menu	79	true
+2026-07-12T21:10:49.650Z	base-d9-new	Session menu	5	true
+2026-07-12T21:10:50.328Z	ascent-d9-review	Session menu	4	true
+2026-07-12T21:10:50.502Z	base-d9-review	Session menu	13	true
+2026-07-12T21:10:50.945Z	ascent-d9-review	review test page	6	true
+2026-07-12T21:10:52.704Z	ascent-d9-review	review test page	8	true
+2026-07-12T21:10:52.821Z	ascent-d2-exit	results Continue	11	true
+2026-07-12T21:10:52.975Z	base-d9-review	review test page	17	true
+2026-07-12T21:10:55.808Z	ascent-d9-review	Session menu	13	true
+2026-07-12T21:10:56.949Z	ascent-d9-review	Session menu	8	true
+2026-07-12T21:10:58.170Z	ascent-d9-review	review test page	6	true
+2026-07-12T21:10:58.458Z	ascent-d9-review	Session menu	4	true
+2026-07-12T21:10:59.293Z	ascent-d9-review	review test page	6	true
+2026-07-12T21:11:00.782Z	ascent-d9-review	review test page	4	true
+2026-07-12T21:11:07.869Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:11:11.413Z	ascent-d3-new	Session menu	3	true
+2026-07-12T21:11:11.869Z	ascent-d9-exit	results Continue	6	true
+2026-07-12T21:11:14.698Z	base-d9-exit	results Continue	5	true
+2026-07-12T21:11:14.929Z	ascent-d9-exit	results Continue	7	true
+2026-07-12T21:11:18.907Z	ascent-d9-exit	results Continue	10	true
+2026-07-12T21:11:19.694Z	ascent-d9-exit	results Continue	6	true
+2026-07-12T21:11:21.450Z	ascent-d9-exit	results Continue	4	true
+2026-07-12T21:11:25.049Z	base-d9-review	Session menu	4	true
+2026-07-12T21:11:26.936Z	ascent-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T21:11:27.369Z	base-d9-review	review test page	6	true
+2026-07-12T21:11:29.777Z	base-d10-new	Start-New-Words/Continue	6	true
+2026-07-12T21:11:30.025Z	ascent-d10-new	Start-New-Words/Continue	9	true
+2026-07-12T21:11:30.566Z	ascent-d10-new	Session menu	6	true
+2026-07-12T21:11:34.074Z	ascent-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T21:11:34.189Z	ascent-d10-new	Session menu	7	true
+2026-07-12T21:11:34.432Z	base-d10-new	Session menu	7	true
+2026-07-12T21:11:34.792Z	ascent-d10-new	Start-New-Words/Continue	10	true
+2026-07-12T21:11:36.727Z	ascent-d10-new	Start-New-Words/Continue	12	true
+2026-07-12T21:11:38.959Z	ascent-d10-new	Session menu	11	true
+2026-07-12T21:11:39.110Z	ascent-d10-new	Session menu	11	true
+2026-07-12T21:11:41.461Z	ascent-d10-new	Session menu	5	true
+2026-07-12T21:11:45.525Z	ascent-d3-review	Session menu	10	true
+2026-07-12T21:11:47.894Z	ascent-d3-review	review test page	5	true
+2026-07-12T21:11:48.132Z	base-d9-exit	results Continue	5	true
+2026-07-12T21:12:03.196Z	base-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T21:12:06.098Z	ascent-d10-review	Session menu	11	true
+2026-07-12T21:12:07.137Z	base-d10-new	Session menu	9	true
+2026-07-12T21:12:08.375Z	ascent-d3-exit	results Continue	7	true
+2026-07-12T21:12:08.575Z	ascent-d10-review	review test page	7	true
+2026-07-12T21:12:10.157Z	ascent-d10-review	Session menu	5	true
+2026-07-12T21:12:10.523Z	base-d10-review	Session menu	10	true
+2026-07-12T21:12:12.624Z	ascent-d10-review	review test page	14	true
+2026-07-12T21:12:13.062Z	base-d10-review	review test page	16	true
+2026-07-12T21:12:15.568Z	ascent-d10-review	Session menu	18	true
+2026-07-12T21:12:17.498Z	ascent-d10-review	Session menu	4	true
+2026-07-12T21:12:17.996Z	ascent-d10-review	review test page	4	true
+2026-07-12T21:12:19.032Z	ascent-d10-review	Session menu	5	true
+2026-07-12T21:12:19.848Z	ascent-d10-review	review test page	5	true
+2026-07-12T21:12:21.362Z	ascent-d10-review	review test page	6	true
+2026-07-12T21:12:23.468Z	ascent-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:12:27.006Z	ascent-d4-new	Session menu	5	true
+2026-07-12T21:12:28.984Z	ascent-d10-exit	results Continue	5	true
+2026-07-12T21:12:34.994Z	ascent-d10-exit	results Continue	4	true
+2026-07-12T21:12:35.353Z	base-d10-exit	results Continue	6	true
+2026-07-12T21:12:39.878Z	ascent-d10-exit	results Continue	6	true
+2026-07-12T21:12:40.789Z	ascent-d10-exit	results Continue	9	true
+2026-07-12T21:12:41.570Z	ascent-d10-exit	results Continue	7	true
+2026-07-12T21:12:42.879Z	base-d10-review	Session menu	4	true
+2026-07-12T21:12:44.031Z	ascent-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T21:12:45.212Z	base-d10-review	review test page	10	true
+2026-07-12T21:12:48.868Z	ascent-d11-new	Session menu	5	true
+2026-07-12T21:12:50.138Z	ascent-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T21:12:50.571Z	base-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T21:12:55.034Z	ascent-d11-new	Start-New-Words/Continue	5	true
+2026-07-12T21:12:55.221Z	ascent-d11-new	Session menu	6	true
+2026-07-12T21:12:55.599Z	base-d11-new	Session menu	6	true
+2026-07-12T21:12:56.147Z	ascent-d11-new	Start-New-Words/Continue	10	true
+2026-07-12T21:12:57.142Z	ascent-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T21:12:59.392Z	ascent-d11-new	Session menu	19	true
+2026-07-12T21:13:01.506Z	ascent-d11-new	Session menu	7	true
+2026-07-12T21:13:02.228Z	ascent-d4-review	Session menu	4	true
+2026-07-12T21:13:02.794Z	ascent-d11-new	Session menu	15	true
+2026-07-12T21:13:04.554Z	ascent-d4-review	review test page	5	true
+2026-07-12T21:13:06.000Z	base-d10-exit	results Continue	9	true
+2026-07-12T21:13:21.167Z	base-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T21:13:24.962Z	base-d11-new	Session menu	12	true
+2026-07-12T21:13:25.238Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T21:13:28.504Z	ascent-d11-review	Session menu	9	true
+2026-07-12T21:13:30.955Z	ascent-d11-review	review test page	29	true
+2026-07-12T21:13:31.701Z	ascent-d11-review	Session menu	7	true
+2026-07-12T21:13:32.850Z	base-d11-review	Session menu	6	true
+2026-07-12T21:13:34.075Z	ascent-d11-review	review test page	10	true
+2026-07-12T21:13:34.786Z	ascent-d11-review	Session menu	10	true
+2026-07-12T21:13:35.227Z	base-d11-review	review test page	11	true
+2026-07-12T21:13:37.378Z	ascent-d11-review	review test page	6	true
+2026-07-12T21:13:38.277Z	ascent-d11-review	Session menu	5	true
+2026-07-12T21:13:39.260Z	ascent-d11-review	Session menu	4	true
+2026-07-12T21:13:40.487Z	ascent-d5-new	Start-New-Words/Continue	5	true
+2026-07-12T21:13:40.605Z	ascent-d11-review	review test page	5	true
+2026-07-12T21:13:41.579Z	ascent-d11-review	review test page	6	true
+2026-07-12T21:13:44.031Z	ascent-d5-new	Session menu	4	true
+2026-07-12T21:13:52.185Z	ascent-d11-exit	results Continue	5	true
+2026-07-12T21:13:55.821Z	ascent-d11-exit	results Continue	5	true
+2026-07-12T21:13:58.116Z	base-d11-exit	results Continue	5	true
+2026-07-12T21:13:58.632Z	ascent-d11-exit	results Continue	7	true
+2026-07-12T21:14:00.079Z	base-d11-review	Session menu	4	true
+2026-07-12T21:14:01.119Z	ascent-d11-exit	results Continue	13	true
+2026-07-12T21:14:01.836Z	ascent-d11-exit	results Continue	5	true
+2026-07-12T21:14:02.392Z	base-d11-review	review test page	8	true
+2026-07-12T21:14:07.210Z	ascent-d12-new	Start-New-Words/Continue	6	true
+2026-07-12T21:14:10.856Z	ascent-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T21:14:11.140Z	ascent-d12-new	Session menu	6	true
+2026-07-12T21:14:13.256Z	base-d12-new	Start-New-Words/Continue	5	true
+2026-07-12T21:14:13.882Z	ascent-d12-new	Start-New-Words/Continue	7	true
+2026-07-12T21:14:15.704Z	ascent-d12-new	Session menu	61	true
+2026-07-12T21:14:16.460Z	ascent-d12-new	Start-New-Words/Continue	6	true
+2026-07-12T21:14:17.110Z	ascent-d12-new	Start-New-Words/Continue	6	true
+2026-07-12T21:14:18.472Z	base-d12-new	Session menu	7	true
+2026-07-12T21:14:18.861Z	ascent-d5-review	Session menu	5	true
+2026-07-12T21:14:19.442Z	ascent-d12-new	Session menu	19	true
+2026-07-12T21:14:21.344Z	ascent-d5-review	review test page	6	true
+2026-07-12T21:14:22.517Z	ascent-d12-new	Session menu	7	true
+2026-07-12T21:14:23.262Z	ascent-d12-new	Session menu	16	true
+2026-07-12T21:14:23.284Z	base-d11-exit	results Continue	43	true
+2026-07-12T21:14:38.430Z	base-d12-new	Start-New-Words/Continue	4	true
+2026-07-12T21:14:42.448Z	ascent-d5-exit	results Continue	4	true
+2026-07-12T21:14:43.474Z	base-d12-new	Session menu	21	true
+2026-07-12T21:14:48.253Z	ascent-d12-review	Session menu	6	true
+2026-07-12T21:14:50.632Z	ascent-d12-review	review test page	8	true
+2026-07-12T21:14:52.358Z	ascent-d12-review	Session menu	9	true
+2026-07-12T21:14:54.907Z	ascent-d12-review	review test page	7	true
+2026-07-12T21:14:56.089Z	ascent-d12-review	Session menu	13	true
+2026-07-12T21:14:57.776Z	ascent-d6-new	Start-New-Words/Continue	14	true
+2026-07-12T21:14:58.567Z	ascent-d12-review	review test page	7	true
+2026-07-12T21:15:00.136Z	ascent-d12-review	Session menu	16	true
+2026-07-12T21:15:00.179Z	ascent-d12-review	Session menu	22	true
+2026-07-12T21:15:01.581Z	ascent-d6-new	Session menu	5	true
+2026-07-12T21:15:02.546Z	ascent-d12-review	review test page	5	true
+2026-07-12T21:15:02.689Z	ascent-d12-review	review test page	5	true
+2026-07-12T21:15:03.341Z	base-d12-review	Session menu	6	true
+2026-07-12T21:15:05.702Z	base-d12-review	review test page	4	true
+2026-07-12T21:15:11.463Z	ascent-d12-exit	results Continue	8	true
+2026-07-12T21:15:16.660Z	ascent-d12-exit	results Continue	5	true
+2026-07-12T21:15:19.071Z	base-d12-review	Session menu	5	true
+2026-07-12T21:15:20.209Z	ascent-d12-exit	results Continue	6	true
+2026-07-12T21:15:21.415Z	base-d12-review	review test page	6	true
+2026-07-12T21:15:23.040Z	ascent-d12-exit	results Continue	11	true
+2026-07-12T21:15:23.399Z	ascent-d12-exit	results Continue	7	true
+2026-07-12T21:15:25.559Z	base-d12-exit	results Continue	5	true
+2026-07-12T21:15:26.721Z	ascent-d13-new	Start-New-Words/Continue	7	true
+2026-07-12T21:15:31.799Z	ascent-d13-new	Session menu	5	true
+2026-07-12T21:15:35.598Z	ascent-d13-new	Start-New-Words/Continue	11	true
+2026-07-12T21:15:36.233Z	ascent-d6-review	Session menu	8	true
+2026-07-12T21:15:38.429Z	ascent-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T21:15:38.615Z	ascent-d6-review	review test page	6	true
+2026-07-12T21:15:38.869Z	ascent-d13-new	Start-New-Words/Continue	8	true
+2026-07-12T21:15:40.560Z	ascent-d13-new	Session menu	13	true
+2026-07-12T21:15:40.921Z	base-d13-new	Start-New-Words/Continue	7	true
+2026-07-12T21:15:41.674Z	base-d12-exit	results Continue	48	true
+2026-07-12T21:15:44.710Z	ascent-d13-new	Session menu	12	true
+2026-07-12T21:15:44.924Z	ascent-d13-new	Session menu	13	true
+2026-07-12T21:15:46.007Z	base-d13-new	Session menu	6	true
+2026-07-12T21:15:56.917Z	base-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T21:15:59.789Z	ascent-d6-exit	results Continue	6	true
+2026-07-12T21:16:00.814Z	base-d13-new	Session menu	6	true
+2026-07-12T21:16:07.219Z	ascent-d13-review	Session menu	4	true
+2026-07-12T21:16:09.527Z	ascent-d13-review	review test page	5	true
+2026-07-12T21:16:18.294Z	ascent-d13-review	Session menu	35	true
+2026-07-12T21:16:20.840Z	ascent-d13-review	review test page	21	true
+2026-07-12T21:16:23.484Z	ascent-d13-review	Session menu	49	true
+2026-07-12T21:16:25.174Z	ascent-d13-review	Session menu	5	true
+2026-07-12T21:16:25.521Z	base-d13-review	Session menu	5	true
+2026-07-12T21:16:25.998Z	ascent-d13-review	review test page	7	true
+2026-07-12T21:16:27.546Z	ascent-d13-review	review test page	7	true
+2026-07-12T21:16:27.933Z	base-d13-review	review test page	7	true
+2026-07-12T21:16:30.106Z	ascent-d13-exit	results Continue	7	true
+2026-07-12T21:16:38.578Z	base-d13-review	Session menu	6	true
+2026-07-12T21:16:40.906Z	base-d13-review	review test page	9	true
+2026-07-12T21:16:43.952Z	ascent-d13-exit	results Continue	9	true
+2026-07-12T21:16:45.650Z	ascent-d14-new	Start-New-Words/Continue	7	true
+2026-07-12T21:16:46.872Z	ascent-d13-exit	results Continue	6	true
+2026-07-12T21:16:49.035Z	base-d13-exit	results Continue	18	true
+2026-07-12T21:16:49.366Z	ascent-d13-exit	results Continue	14	true
+2026-07-12T21:16:51.827Z	ascent-d14-new	Session menu	17	true
+2026-07-12T21:16:55.584Z	ascent-d1-new	Start-New-Words/Continue	15	true
+2026-07-12T21:16:59.370Z	ascent-d14-new	Start-New-Words/Continue	5	true
+2026-07-12T21:17:00.202Z	ascent-d1-new	Session menu	14	true
+2026-07-12T21:17:00.958Z	base-d13-exit	results Continue	14682	true
+2026-07-12T21:17:02.424Z	ascent-d14-new	Start-New-Words/Continue	6	true
+2026-07-12T21:17:04.767Z	base-d14-new	Start-New-Words/Continue	19	true
+2026-07-12T21:17:04.835Z	ascent-d14-new	Start-New-Words/Continue	10	true
+2026-07-12T21:17:04.894Z	ascent-d14-new	Session menu	53	true
+2026-07-12T21:17:10.623Z	ascent-d14-new	Session menu	6	true
+2026-07-12T21:17:11.465Z	base-d14-new	Session menu	11	true
+2026-07-12T21:17:12.277Z	ascent-d14-new	Session menu	26	true
+2026-07-12T21:17:16.523Z	base-d14-new	Start-New-Words/Continue	10	true
+2026-07-12T21:17:21.522Z	base-d14-new	Session menu	13	true
+2026-07-12T21:17:29.329Z	ascent-d14-review	Session menu	5	true
+2026-07-12T21:17:31.655Z	ascent-d14-review	review test page	5	true
+2026-07-12T21:17:37.116Z	ascent-d1-review	Session menu	4	true
+2026-07-12T21:17:39.464Z	ascent-d1-review	review test page	22	true
+2026-07-12T21:17:42.473Z	ascent-d14-review	Session menu	5	true
+2026-07-12T21:17:44.917Z	ascent-d14-review	review test page	8	true
+2026-07-12T21:17:49.071Z	base-d14-review	Session menu	10	true
+2026-07-12T21:17:49.566Z	ascent-d14-review	Session menu	7	true
+2026-07-12T21:17:51.076Z	ascent-d14-review	Session menu	6	true
+2026-07-12T21:17:51.415Z	base-d14-review	review test page	6	true
+2026-07-12T21:17:51.587Z	ascent-d14-exit	results Continue	5	true
+2026-07-12T21:17:51.909Z	ascent-d14-review	review test page	7	true
+2026-07-12T21:17:53.403Z	ascent-d14-review	review test page	7	true
+2026-07-12T21:17:57.482Z	base-d14-review	Session menu	8	true
+2026-07-12T21:17:59.804Z	base-d14-review	review test page	7	true
+2026-07-12T21:18:00.758Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T21:18:06.800Z	ascent-d15-new	Start-New-Words/Continue	7	true
+2026-07-12T21:18:07.167Z	ascent-d14-exit	results Continue	13	true
+2026-07-12T21:18:11.213Z	base-d14-exit	results Continue	5	true
+2026-07-12T21:18:11.725Z	ascent-d15-new	Session menu	6	true
+2026-07-12T21:18:13.189Z	ascent-d14-exit	results Continue	8	true
+2026-07-12T21:18:13.804Z	ascent-d14-exit	results Continue	4	true
+2026-07-12T21:18:15.922Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:18:19.182Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:18:20.375Z	base-d14-exit	results Continue	5	true
+2026-07-12T21:18:21.029Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:18:22.269Z	ascent-d15-new	Start-New-Words/Continue	5	true
+2026-07-12T21:18:22.761Z	ascent-d1-new	Session menu	7	true
+2026-07-12T21:18:26.511Z	base-d15-new	Start-New-Words/Continue	11	true
+2026-07-12T21:18:27.577Z	ascent-d15-new	Session menu	6	true
+2026-07-12T21:18:28.506Z	ascent-d15-new	Start-New-Words/Continue	6	true
+2026-07-12T21:18:29.181Z	ascent-d15-new	Start-New-Words/Continue	9	true
+2026-07-12T21:18:31.628Z	base-d15-new	Session menu	17	true
+2026-07-12T21:18:35.396Z	ascent-d15-new	Session menu	12	true
+2026-07-12T21:18:35.666Z	base-d15-new	Start-New-Words/Continue	8	true
+2026-07-12T21:18:36.251Z	ascent-d15-new	Session menu	4	true
+2026-07-12T21:18:40.041Z	base-d15-new	Session menu	6	true
+2026-07-12T21:18:46.162Z	ascent-d1-exit	results Continue	16	true
+2026-07-12T21:18:49.463Z	ascent-d15-review	Session menu	6	true
+2026-07-12T21:18:51.816Z	ascent-d15-review	review test page	7	true
+2026-07-12T21:18:57.314Z	ascent-d2-review	Session menu	13	true
+2026-07-12T21:18:59.630Z	ascent-d2-review	review test page	8	true
+2026-07-12T21:19:01.439Z	ascent-d2-new	Start-New-Words/Continue	14	true
+2026-07-12T21:19:05.117Z	ascent-d2-new	Session menu	8	true
+2026-07-12T21:19:05.664Z	ascent-d15-review	Session menu	5	true
+2026-07-12T21:19:08.098Z	ascent-d15-review	review test page	34	true
+2026-07-12T21:19:08.536Z	base-d15-review	Session menu	16	true
+2026-07-12T21:19:11.104Z	base-d15-review	review test page	11	true
+2026-07-12T21:19:12.648Z	ascent-d15-exit	results Continue	10	true
+2026-07-12T21:19:13.382Z	ascent-d15-review	Session menu	12	true
+2026-07-12T21:19:15.136Z	ascent-d15-review	Session menu	4	true
+2026-07-12T21:19:15.749Z	ascent-d15-review	review test page	8	true
+2026-07-12T21:19:16.261Z	base-d15-review	Session menu	6	true
+2026-07-12T21:19:17.475Z	ascent-d15-review	review test page	6	true
+2026-07-12T21:19:18.589Z	base-d15-review	review test page	5	true
+2026-07-12T21:19:20.509Z	ascent-d2-exit	results Continue	9	true
+2026-07-12T21:19:27.852Z	ascent-d16-new	Start-New-Words/Continue	5	true
+2026-07-12T21:19:30.047Z	ascent-d15-exit	results Continue	13	true
+2026-07-12T21:19:32.247Z	base-d15-exit	results Continue	6	true
+2026-07-12T21:19:32.822Z	ascent-d16-new	Session menu	5	true
+2026-07-12T21:19:35.718Z	ascent-d3-new	Start-New-Words/Continue	15	true
+2026-07-12T21:19:36.623Z	ascent-d15-exit	results Continue	9	true
+2026-07-12T21:19:38.956Z	base-d15-exit	results Continue	5	true
+2026-07-12T21:19:39.159Z	ascent-d15-exit	results Continue	6	true
+2026-07-12T21:19:40.436Z	ascent-d2-review	Session menu	4	true
+2026-07-12T21:19:41.353Z	ascent-d3-new	Session menu	4	true
+2026-07-12T21:19:42.757Z	ascent-d2-review	review test page	6	true
+2026-07-12T21:19:45.318Z	ascent-d16-new	Start-New-Words/Continue	6	true
+2026-07-12T21:19:50.709Z	ascent-d16-new	Session menu	6	true
+2026-07-12T21:19:51.931Z	ascent-d16-new	Start-New-Words/Continue	4	true
+2026-07-12T21:19:54.498Z	ascent-d16-new	Start-New-Words/Continue	13	true
+2026-07-12T21:19:58.429Z	ascent-d16-new	Session menu	11	true
+2026-07-12T21:20:00.601Z	ascent-d16-new	Session menu	6	true
+2026-07-12T21:20:03.373Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T21:20:09.726Z	ascent-d16-review	Session menu	5	true
+2026-07-12T21:20:12.099Z	ascent-d16-review	review test page	5	true
+2026-07-12T21:20:18.404Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:20:21.963Z	ascent-d3-new	Session menu	4	true
+2026-07-12T21:20:27.880Z	ascent-d3-review	Session menu	6	true
+2026-07-12T21:20:28.051Z	ascent-d16-review	Session menu	4	true
+2026-07-12T21:20:30.206Z	ascent-d3-review	review test page	7	true
+2026-07-12T21:20:30.423Z	ascent-d16-review	review test page	6	true
+2026-07-12T21:20:32.566Z	ascent-d16-exit	results Continue	7	true
+2026-07-12T21:20:35.785Z	ascent-d16-review	Session menu	6	true
+2026-07-12T21:20:35.819Z	ascent-d3-new-RETAKE	Start-New-Words/Continue	8	true
+2026-07-12T21:20:38.042Z	ascent-d16-review	Session menu	5	true
+2026-07-12T21:20:38.170Z	ascent-d16-review	review test page	6	true
+2026-07-12T21:20:39.410Z	ascent-d3-new-RETAKE	Session menu	8	true
+2026-07-12T21:20:40.370Z	ascent-d16-review	review test page	5	true
+2026-07-12T21:20:47.706Z	ascent-d17-new	Start-New-Words/Continue	5	true
+2026-07-12T21:20:51.654Z	ascent-d3-exit	results Continue	13	true
+2026-07-12T21:20:51.905Z	ascent-d16-exit	results Continue	4	true
+2026-07-12T21:20:52.778Z	ascent-d17-new	Session menu	5	true
+2026-07-12T21:20:58.907Z	ascent-d16-exit	results Continue	4	true
+2026-07-12T21:21:00.217Z	ascent-d16-exit	results Continue	8	true
+2026-07-12T21:21:01.501Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T21:21:05.038Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:21:06.897Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T21:21:07.150Z	ascent-d17-new	Start-New-Words/Continue	6	true
+2026-07-12T21:21:13.141Z	ascent-d4-new	Session menu	4	true
+2026-07-12T21:21:13.443Z	ascent-d17-new	Session menu	6	true
+2026-07-12T21:21:14.034Z	ascent-d3-review	Session menu	5	true
+2026-07-12T21:21:16.378Z	ascent-d3-review	review test page	6	true
+2026-07-12T21:21:27.788Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T21:21:29.450Z	ascent-d17-review	Session menu	5	true
+2026-07-12T21:21:31.804Z	ascent-d17-review	review test page	5	true
+2026-07-12T21:21:35.392Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:21:37.127Z	ascent-d3-exit	results Continue	7	true
+2026-07-12T21:21:38.966Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:21:42.799Z	ascent-d2-new	Start-New-Words/Continue	9	true
+2026-07-12T21:21:46.355Z	ascent-d2-new	Session menu	7	true
+2026-07-12T21:21:50.040Z	ascent-d4-review	Session menu	4	true
+2026-07-12T21:21:50.137Z	ascent-d17-review	Session menu	5	true
+2026-07-12T21:21:52.222Z	ascent-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T21:21:52.363Z	ascent-d4-review	review test page	6	true
+2026-07-12T21:21:52.488Z	ascent-d17-review	review test page	4	true
+2026-07-12T21:21:52.662Z	ascent-d17-exit	results Continue	6	true
+2026-07-12T21:21:55.766Z	ascent-d4-new	Session menu	5	true
+2026-07-12T21:22:01.810Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T21:22:07.754Z	ascent-d18-new	Start-New-Words/Continue	6	true
+2026-07-12T21:22:12.560Z	ascent-d17-exit	results Continue	5	true
+2026-07-12T21:22:12.886Z	ascent-d4-exit	results Continue	4	true
+2026-07-12T21:22:13.440Z	ascent-d18-new	Session menu	5	true
+2026-07-12T21:22:16.940Z	ascent-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T21:22:20.484Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:22:20.794Z	ascent-d2-review	Session menu	4	true
+2026-07-12T21:22:21.569Z	summit-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T21:22:23.105Z	ascent-d2-review	review test page	14	true
+2026-07-12T21:22:25.135Z	summit-d1-new	Session menu	6	true
+2026-07-12T21:22:27.712Z	ascent-d18-new	Start-New-Words/Continue	9	true
+2026-07-12T21:22:28.066Z	ascent-d5-new	Start-New-Words/Continue	8	true
+2026-07-12T21:22:30.206Z	ascent-d4-review	Session menu	10	true
+2026-07-12T21:22:32.648Z	ascent-d4-review	review test page	6	true
+2026-07-12T21:22:34.262Z	ascent-d5-new	Session menu	5	true
+2026-07-12T21:22:34.297Z	ascent-d18-new	Session menu	5	true
+2026-07-12T21:22:43.512Z	ascent-d2-exit	results Continue	5	true
+2026-07-12T21:22:47.447Z	summit-d1-exit	results Continue	8	true
+2026-07-12T21:22:49.307Z	ascent-d18-review	Session menu	6	true
+2026-07-12T21:22:51.615Z	ascent-d18-review	review test page	6	true
+2026-07-12T21:22:52.476Z	ascent-d4-exit	results Continue	6	true
+2026-07-12T21:22:55.329Z	ascent-d2-review	Session menu	5	true
+2026-07-12T21:22:57.648Z	ascent-d2-review	review test page	6	true
+2026-07-12T21:22:58.487Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:23:00.796Z	base-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:23:02.031Z	ascent-d3-new	Session menu	5	true
+2026-07-12T21:23:02.396Z	summit-d2-new	Start-New-Words/Continue	11	true
+2026-07-12T21:23:04.380Z	base-d1-new	Session menu	8	true
+2026-07-12T21:23:05.959Z	summit-d2-new	Session menu	9	true
+2026-07-12T21:23:07.595Z	ascent-d5-new	Start-New-Words/Continue	7	true
+2026-07-12T21:23:11.286Z	ascent-d18-review	Session menu	5	true
+2026-07-12T21:23:11.388Z	ascent-d5-new	Session menu	5	true
+2026-07-12T21:23:12.120Z	ascent-d5-review	Session menu	5	true
+2026-07-12T21:23:13.081Z	ascent-d18-exit	results Continue	6	true
+2026-07-12T21:23:13.600Z	ascent-d18-review	review test page	6	true
+2026-07-12T21:23:14.438Z	ascent-d5-review	review test page	12	true
+2026-07-12T21:23:17.782Z	ascent-d2-exit	results Continue	6	true
+2026-07-12T21:23:28.286Z	base-d1-exit	results Continue	10	true
+2026-07-12T21:23:28.304Z	ascent-d19-new	Start-New-Words/Continue	6	true
+2026-07-12T21:23:32.937Z	ascent-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:23:33.762Z	ascent-d19-new	Session menu	9	true
+2026-07-12T21:23:34.610Z	ascent-d18-exit	results Continue	5	true
+2026-07-12T21:23:34.800Z	ascent-d5-exit	results Continue	7	true
+2026-07-12T21:23:36.480Z	ascent-d3-new	Session menu	5	true
+2026-07-12T21:23:38.583Z	ascent-d3-review	Session menu	6	true
+2026-07-12T21:23:40.902Z	summit-d2-review	Session menu	6	true
+2026-07-12T21:23:40.973Z	ascent-d3-review	review test page	5	true
+2026-07-12T21:23:43.216Z	summit-d2-review	review test page	8	true
+2026-07-12T21:23:43.452Z	base-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T21:23:46.081Z	ascent-d5-review	Session menu	11	true
+2026-07-12T21:23:47.010Z	base-d2-new	Session menu	5	true
+2026-07-12T21:23:48.408Z	ascent-d5-review	review test page	5	true
+2026-07-12T21:23:50.021Z	ascent-d19-new	Start-New-Words/Continue	5	true
+2026-07-12T21:23:50.246Z	ascent-d6-new	Start-New-Words/Continue	8	true
+2026-07-12T21:23:56.175Z	ascent-d19-new	Session menu	4	true
+2026-07-12T21:23:56.329Z	ascent-d6-new	Session menu	5	true
+2026-07-12T21:24:01.831Z	ascent-d3-exit	results Continue	11	true
+2026-07-12T21:24:04.241Z	summit-d2-exit	results Continue	4	true
+2026-07-12T21:24:08.984Z	ascent-d5-exit	results Continue	8	true
+2026-07-12T21:24:10.233Z	ascent-d19-review	Session menu	4	true
+2026-07-12T21:24:12.312Z	ascent-d3-review	Session menu	6	true
+2026-07-12T21:24:12.546Z	ascent-d19-review	review test page	5	true
+2026-07-12T21:24:14.631Z	ascent-d3-review	review test page	6	true
+2026-07-12T21:24:16.819Z	ascent-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T21:24:19.236Z	summit-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:24:20.371Z	ascent-d4-new	Session menu	6	true
+2026-07-12T21:24:22.787Z	summit-d3-new	Session menu	5	true
+2026-07-12T21:24:23.060Z	base-d2-review	Session menu	4	true
+2026-07-12T21:24:24.014Z	ascent-d6-new	Start-New-Words/Continue	7	true
+2026-07-12T21:24:25.455Z	base-d2-review	review test page	13	true
+2026-07-12T21:24:27.659Z	ascent-d6-new	Session menu	5	true
+2026-07-12T21:24:33.639Z	ascent-d19-exit	results Continue	50	true
+2026-07-12T21:24:35.081Z	ascent-d6-review	Session menu	5	true
+2026-07-12T21:24:35.130Z	ascent-d19-review	Session menu	8	true
+2026-07-12T21:24:36.190Z	ascent-d3-exit	results Continue	8	true
+2026-07-12T21:24:36.929Z	base-d2-exit	results Continue	6	true
+2026-07-12T21:24:37.445Z	ascent-d6-review	review test page	5	true
+2026-07-12T21:24:37.474Z	ascent-d19-review	review test page	5	true
+2026-07-12T21:24:41.994Z	ascent-d6-new-RETAKE	Start-New-Words/Continue	4	true
+2026-07-12T21:24:45.557Z	ascent-d6-new-RETAKE	Session menu	4	true
+2026-07-12T21:24:48.929Z	ascent-d20-new	Start-New-Words/Continue	6	true
+2026-07-12T21:24:51.303Z	ascent-d4-new	Start-New-Words/Continue	8	true
+2026-07-12T21:24:51.958Z	base-d3-new	Start-New-Words/Continue	12	true
+2026-07-12T21:24:54.711Z	ascent-d4-review	Session menu	11	true
+2026-07-12T21:24:54.895Z	ascent-d4-new	Session menu	7	true
+2026-07-12T21:24:55.515Z	ascent-d20-new	Session menu	9	true
+2026-07-12T21:24:55.583Z	base-d3-new	Session menu	11	true
+2026-07-12T21:24:57.104Z	ascent-d4-review	review test page	5	true
+2026-07-12T21:24:57.814Z	summit-d3-review	Session menu	5	true
+2026-07-12T21:24:58.343Z	ascent-d19-exit	results Continue	7	true
+2026-07-12T21:24:58.390Z	ascent-d6-exit	results Continue	7	true
+2026-07-12T21:25:00.221Z	summit-d3-review	review test page	6	true
+2026-07-12T21:25:13.572Z	ascent-d20-new	Start-New-Words/Continue	5	true
+2026-07-12T21:25:13.687Z	ascent-d7-new	Start-New-Words/Continue	6	true
+2026-07-12T21:25:18.319Z	ascent-d4-exit	results Continue	11	true
+2026-07-12T21:25:20.457Z	ascent-d20-new	Session menu	7	true
+2026-07-12T21:25:20.834Z	ascent-d7-new	Session menu	6	true
+2026-07-12T21:25:21.616Z	ascent-d6-review	Session menu	5	true
+2026-07-12T21:25:21.908Z	summit-d3-exit	results Continue	4	true
+2026-07-12T21:25:23.950Z	ascent-d6-review	review test page	16	true
+2026-07-12T21:25:29.933Z	ascent-d4-review	Session menu	6	true
+2026-07-12T21:25:30.826Z	base-d3-review	Session menu	18	true
+2026-07-12T21:25:32.313Z	ascent-d4-review	review test page	6	true
+2026-07-12T21:25:33.241Z	base-d3-review	review test page	12	true
+2026-07-12T21:25:33.464Z	ascent-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T21:25:34.244Z	ascent-d20-review	Session menu	7	true
+2026-07-12T21:25:36.616Z	ascent-d20-review	review test page	6	true
+2026-07-12T21:25:37.013Z	ascent-d5-new	Session menu	5	true
+2026-07-12T21:25:37.102Z	summit-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:25:40.645Z	summit-d4-new	Session menu	5	true
+2026-07-12T21:25:45.367Z	ascent-d6-exit	results Continue	6	true
+2026-07-12T21:25:45.437Z	base-d3-exit	results Continue	13	true
+2026-07-12T21:25:53.385Z	ascent-d4-exit	results Continue	7	true
+2026-07-12T21:25:57.417Z	ascent-d20-exit	results Continue	22	true
+2026-07-12T21:26:00.074Z	ascent-d20-review	Session menu	19	true
+2026-07-12T21:26:00.252Z	ascent-d7-review	Session menu	6	true
+2026-07-12T21:26:00.755Z	ascent-d7-new	Start-New-Words/Continue	5	true
+2026-07-12T21:26:00.772Z	base-d4-new	Start-New-Words/Continue	6	true
+2026-07-12T21:26:02.457Z	ascent-d20-review	review test page	10	true
+2026-07-12T21:26:02.670Z	ascent-d7-review	review test page	9	true
+2026-07-12T21:26:04.359Z	base-d4-new	Session menu	9	true
+2026-07-12T21:26:04.506Z	ascent-d7-new	Session menu	10	true
+2026-07-12T21:26:08.826Z	ascent-d5-new	Start-New-Words/Continue	7	true
+2026-07-12T21:26:11.696Z	ascent-d5-review	Session menu	5	true
+2026-07-12T21:26:12.377Z	ascent-d5-new	Session menu	5	true
+2026-07-12T21:26:14.036Z	ascent-d5-review	review test page	10	true
+2026-07-12T21:26:15.973Z	summit-d4-review	Session menu	12	true
+2026-07-12T21:26:18.338Z	summit-d4-review	review test page	8	true
+2026-07-12T21:26:23.096Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T21:26:23.156Z	ascent-d20-exit	results Continue	6	true
+2026-07-12T21:26:34.132Z	ascent-d5-exit	results Continue	5	true
+2026-07-12T21:26:38.810Z	summit-d4-exit	results Continue	3	true
+2026-07-12T21:26:39.527Z	ascent-d7-review	Session menu	6	true
+2026-07-12T21:26:41.864Z	ascent-d7-review	review test page	10	true
+2026-07-12T21:26:46.834Z	base-d4-review	Session menu	6	true
+2026-07-12T21:26:47.873Z	ascent-d5-review	Session menu	4	true
+2026-07-12T21:26:49.160Z	base-d4-review	review test page	4	true
+2026-07-12T21:26:49.312Z	ascent-d6-new	Start-New-Words/Continue	7	true
+2026-07-12T21:26:50.232Z	ascent-d5-review	review test page	9	true
+2026-07-12T21:26:52.873Z	ascent-d6-new	Session menu	4	true
+2026-07-12T21:26:53.884Z	summit-d5-new	Start-New-Words/Continue	6	true
+2026-07-12T21:26:57.438Z	summit-d5-new	Session menu	6	true
+2026-07-12T21:27:00.703Z	base-d4-exit	results Continue	11	true
+2026-07-12T21:27:01.881Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T21:27:11.240Z	ascent-d5-exit	results Continue	8	true
+2026-07-12T21:27:16.913Z	ascent-d8-new	Start-New-Words/Continue	5	true
+2026-07-12T21:27:20.461Z	ascent-d8-new	Session menu	10	true
+2026-07-12T21:27:22.587Z	base-d5-review-BLOCKED	Session menu	4	true
+2026-07-12T21:27:24.913Z	base-d5-review-BLOCKED	review test page	7	true
+2026-07-12T21:27:26.330Z	ascent-d6-new	Start-New-Words/Continue	7	true
+2026-07-12T21:27:27.411Z	ascent-d6-review	Session menu	4	true
+2026-07-12T21:27:29.752Z	ascent-d6-review	review test page	13	true
+2026-07-12T21:27:29.890Z	ascent-d6-new	Session menu	6	true
+2026-07-12T21:27:31.884Z	summit-d5-review	Session menu	5	true
+2026-07-12T21:27:34.218Z	summit-d5-review	review test page	7	true
+2026-07-12T21:27:46.394Z	summit-d1-new	Start-New-Words/Continue	6	true
+2026-07-12T21:27:49.928Z	summit-d1-new	Session menu	4	true
+2026-07-12T21:27:49.993Z	ascent-d6-exit	results Continue	5	true
+2026-07-12T21:27:54.224Z	summit-d5-exit	results Continue	11	true
+2026-07-12T21:27:55.637Z	ascent-d8-review	Session menu	6	true
+2026-07-12T21:27:57.982Z	ascent-d8-review	review test page	5	true
+2026-07-12T21:27:59.881Z	ascent-d1-new	Start-New-Words/Continue	5	true
+2026-07-12T21:28:03.533Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:28:04.249Z	ascent-d6-review	Session menu	5	true
+2026-07-12T21:28:04.874Z	base-d6-review-BLOCKED	Session menu	6	true
+2026-07-12T21:28:05.187Z	ascent-d7-new	Start-New-Words/Continue	11	true
+2026-07-12T21:28:06.604Z	ascent-d6-review	review test page	11	true
+2026-07-12T21:28:07.268Z	base-d6-review-BLOCKED	review test page	9	true
+2026-07-12T21:28:08.750Z	ascent-d7-new	Session menu	5	true
+2026-07-12T21:28:09.328Z	summit-d6-new	Start-New-Words/Continue	5	true
+2026-07-12T21:28:12.110Z	summit-d1-exit	results Continue	9	true
+2026-07-12T21:28:12.880Z	summit-d6-new	Session menu	6	true
+2026-07-12T21:28:18.406Z	ascent-d8-exit	results Continue	7	true
+2026-07-12T21:28:27.028Z	summit-d2-new	Start-New-Words/Continue	6	true
+2026-07-12T21:28:28.061Z	ascent-d1-exit	results Continue	7	true
+2026-07-12T21:28:28.536Z	ascent-d6-exit	results Continue	7	true
+2026-07-12T21:28:30.575Z	summit-d2-new	Session menu	4	true
+2026-07-12T21:28:42.794Z	ascent-d7-review	Session menu	6	true
+2026-07-12T21:28:43.213Z	ascent-d2-new	Start-New-Words/Continue	7	true
+2026-07-12T21:28:43.609Z	ascent-d7-new	Start-New-Words/Continue	9	true
+2026-07-12T21:28:45.129Z	base-d7-review-BLOCKED	Session menu	6	true
+2026-07-12T21:28:45.157Z	ascent-d7-review	review test page	25	true
+2026-07-12T21:28:46.764Z	ascent-d2-new	Session menu	6	true
+2026-07-12T21:28:47.102Z	summit-d6-review	Session menu	5	true
+2026-07-12T21:28:47.185Z	ascent-d7-new	Session menu	6	true
+2026-07-12T21:28:47.575Z	base-d7-review-BLOCKED	review test page	6	true
+2026-07-12T21:28:49.418Z	summit-d6-review	review test page	5	true
+2026-07-12T21:29:05.362Z	ascent-d7-exit	results Continue	5	true
+2026-07-12T21:29:05.628Z	summit-d2-review	Session menu	3	true
+2026-07-12T21:29:07.944Z	summit-d2-review	review test page	6	true
+2026-07-12T21:29:10.473Z	summit-d6-exit	results Continue	4	true
+2026-07-12T21:29:15.875Z	base-d8-review-BLOCKED	Session menu	5	true
+2026-07-12T21:29:18.208Z	base-d8-review-BLOCKED	review test page	6	true
+2026-07-12T21:29:20.385Z	ascent-d8-new	Start-New-Words/Continue	6	true
+2026-07-12T21:29:21.510Z	ascent-d2-review	Session menu	12	true
+2026-07-12T21:29:22.845Z	ascent-d7-review	Session menu	4	true
+2026-07-12T21:29:23.907Z	ascent-d2-review	review test page	8	true
+2026-07-12T21:29:23.938Z	ascent-d8-new	Session menu	4	true
+2026-07-12T21:29:25.160Z	ascent-d7-review	review test page	5	true
+2026-07-12T21:29:25.569Z	summit-d7-new	Start-New-Words/Continue	7	true
+2026-07-12T21:29:28.264Z	summit-d2-exit	results Continue	7	true
+2026-07-12T21:29:29.439Z	summit-d7-new	Session menu	5	true
+2026-07-12T21:29:43.272Z	summit-d3-new	Start-New-Words/Continue	5	true
+2026-07-12T21:29:43.774Z	ascent-d2-exit	results Continue	9	true
+2026-07-12T21:29:46.453Z	ascent-d7-exit	results Continue	8	true
+2026-07-12T21:29:46.829Z	summit-d3-new	Session menu	16	true
+2026-07-12T21:29:58.756Z	ascent-d3-new	Start-New-Words/Continue	6	true
+2026-07-12T21:29:58.835Z	ascent-d8-review	Session menu	5	true
+2026-07-12T21:30:01.185Z	ascent-d8-review	review test page	9	true
+2026-07-12T21:30:01.518Z	ascent-d8-new	Start-New-Words/Continue	17	true
+2026-07-12T21:30:02.309Z	ascent-d3-new	Session menu	9	true
+2026-07-12T21:30:03.930Z	summit-d7-review	Session menu	10	true
+2026-07-12T21:30:05.108Z	ascent-d8-new	Session menu	7	true
+2026-07-12T21:30:06.276Z	summit-d7-review	review test page	5	true
+2026-07-12T21:30:20.767Z	summit-d3-review	Session menu	4	true
+2026-07-12T21:30:22.071Z	ascent-d8-exit	results Continue	7	true
+2026-07-12T21:30:23.085Z	summit-d3-review	review test page	6	true
+2026-07-12T21:30:25.985Z	summit-d7-exit	results Continue	6	true
+2026-07-12T21:30:37.246Z	ascent-d3-review	Session menu	6	true
+2026-07-12T21:30:39.535Z	ascent-d8-review	Session menu	5	true
+2026-07-12T21:30:39.603Z	ascent-d3-review	review test page	6	true
+2026-07-12T21:30:40.993Z	summit-d8-new	Start-New-Words/Continue	7	true
+2026-07-12T21:30:41.922Z	ascent-d8-review	review test page	6	true
+2026-07-12T21:30:42.745Z	summit-d3-exit	results Continue	7	true
+2026-07-12T21:30:44.546Z	summit-d8-new	Session menu	4	true
+2026-07-12T21:30:57.681Z	summit-d4-new	Start-New-Words/Continue	5	true
+2026-07-12T21:31:01.186Z	ascent-d3-exit	results Continue	4	true
+2026-07-12T21:31:01.227Z	summit-d4-new	Session menu	5	true
+2026-07-12T21:31:02.247Z	ascent-d8-exit	results Continue	4	true
+2026-07-12T21:31:16.140Z	ascent-d4-new	Start-New-Words/Continue	7	true
+2026-07-12T21:31:17.299Z	ascent-d9-new	Start-New-Words/Continue	11	true
+2026-07-12T21:31:19.332Z	summit-d8-review	Session menu	5	true
+2026-07-12T21:31:19.696Z	ascent-d4-new	Session menu	5	true
+2026-07-12T21:31:20.876Z	ascent-d9-new	Session menu	5	true
+2026-07-12T21:31:21.668Z	summit-d8-review	review test page	6	true
+2026-07-12T21:31:35.827Z	summit-d4-review	Session menu	4	true
+2026-07-12T21:31:38.156Z	summit-d4-review	review test page	6	true
+2026-07-12T21:31:42.104Z	summit-d8-exit	results Continue	7	true
+2026-07-12T21:31:54.296Z	ascent-d4-review	Session menu	4	true
+2026-07-12T21:31:55.405Z	ascent-d9-review	Session menu	5	true
+2026-07-12T21:31:56.616Z	ascent-d4-review	review test page	5	true
+2026-07-12T21:31:57.725Z	ascent-d9-review	review test page	7	true
+2026-07-12T21:31:58.432Z	summit-d4-exit	results Continue	5	true
+2026-07-12T21:32:17.328Z	ascent-d4-exit	results Continue	5	true
+2026-07-12T21:32:17.973Z	ascent-d9-exit	results Continue	5	true
+2026-07-12T21:32:33.059Z	ascent-d10-new	Start-New-Words/Continue	5	true
+2026-07-12T21:32:36.907Z	ascent-d10-new	Session menu	5	true
+2026-07-12T21:33:12.013Z	ascent-d10-review	Session menu	4	true
+2026-07-12T21:33:14.331Z	ascent-d10-review	review test page	5	true
+2026-07-12T21:33:34.987Z	ascent-d10-exit	results Continue	9	true
+2026-07-12T21:33:50.022Z	ascent-d11-new	Start-New-Words/Continue	6	true
+2026-07-12T21:33:51.238Z	ascent-d1-new	Start-New-Words/Continue	7	true
+2026-07-12T21:33:53.946Z	ascent-d11-new	Session menu	4	true
+2026-07-12T21:33:54.776Z	ascent-d1-new	Session menu	5	true
+2026-07-12T21:34:28.593Z	ascent-d11-review	Session menu	4	true
+2026-07-12T21:34:29.479Z	ascent-d1-review	Session menu	4	true
+2026-07-12T21:34:30.913Z	ascent-d11-review	review test page	5	true
+2026-07-12T21:34:31.795Z	ascent-d1-review	review test page	7	true
+2026-07-12T21:34:51.489Z	ascent-d11-exit	results Continue	5	true
+2026-07-12T21:34:51.892Z	ascent-d1-exit	results Continue	5	true
+2026-07-12T21:35:07.417Z	ascent-d2-new	Start-New-Words/Continue	5	true
+2026-07-12T21:35:07.537Z	ascent-d12-new	Start-New-Words/Continue	5	true
+2026-07-12T21:35:10.952Z	ascent-d2-new	Session menu	4	true
+2026-07-12T21:35:12.042Z	ascent-d12-new	Session menu	5	true
+2026-07-12T21:35:46.607Z	ascent-d2-review	Session menu	4	true
+2026-07-12T21:35:46.741Z	ascent-d12-review	Session menu	5	true
+2026-07-12T21:35:48.917Z	ascent-d2-review	review test page	5	true
+2026-07-12T21:35:49.050Z	ascent-d12-review	review test page	4	true
+2026-07-12T21:36:09.830Z	ascent-d12-exit	results Continue	6	true
+2026-07-12T21:36:10.613Z	ascent-d2-exit	results Continue	4	true
+2026-07-12T21:36:25.054Z	ascent-d13-new	Start-New-Words/Continue	6	true
+2026-07-12T21:36:29.092Z	ascent-d13-new	Session menu	5	true
+2026-07-12T21:37:05.773Z	ascent-d13-review	Session menu	4	true
+2026-07-12T21:37:08.077Z	ascent-d13-review	review test page	6	true
+2026-07-12T21:37:28.618Z	ascent-d13-exit	results Continue	4	true
+2026-07-12T21:37:43.597Z	ascent-d14-new	Start-New-Words/Continue	4	true
+2026-07-12T21:37:48.191Z	ascent-d14-new	Session menu	5	true
+2026-07-12T21:38:23.941Z	ascent-d14-review	Session menu	5	true
+2026-07-12T21:38:26.252Z	ascent-d14-review	review test page	4	true
+2026-07-12T21:38:46.327Z	ascent-d14-exit	results Continue	6	true
+2026-07-12T21:39:01.467Z	ascent-d15-new	Start-New-Words/Continue	4	true
+2026-07-12T21:39:06.333Z	ascent-d15-new	Session menu	4	true
+2026-07-12T21:39:41.355Z	ascent-d15-review	Session menu	4	true
+2026-07-12T21:39:43.662Z	ascent-d15-review	review test page	5	true
+2026-07-12T21:40:04.212Z	ascent-d15-exit	results Continue	6	true
+2026-07-12T21:40:19.337Z	ascent-d16-new	Start-New-Words/Continue	4	true
+2026-07-12T21:40:24.187Z	ascent-d16-new	Session menu	4	true
+2026-07-12T21:40:59.674Z	ascent-d16-review	Session menu	4	true
+2026-07-12T21:41:01.986Z	ascent-d16-review	review test page	5	true
+2026-07-12T21:41:22.124Z	ascent-d16-exit	results Continue	4	true
+2026-07-12T21:41:37.160Z	ascent-d17-new	Start-New-Words/Continue	4	true
+2026-07-12T21:41:42.090Z	ascent-d17-new	Session menu	7	true
+2026-07-12T21:42:17.851Z	ascent-d17-review	Session menu	4	true
+2026-07-12T21:42:20.167Z	ascent-d17-review	review test page	6	true
+2026-07-12T21:42:39.818Z	ascent-d17-exit	results Continue	4	true
+2026-07-12T21:42:54.930Z	ascent-d18-new	Start-New-Words/Continue	5	true
+2026-07-12T21:42:59.809Z	ascent-d18-new	Session menu	5	true
+2026-07-12T21:43:35.319Z	ascent-d18-review	Session menu	4	true
+2026-07-12T21:43:37.621Z	ascent-d18-review	review test page	5	true
+2026-07-12T21:43:58.218Z	ascent-d18-exit	results Continue	4	true
+2026-07-12T21:44:13.326Z	ascent-d19-new	Start-New-Words/Continue	5	true
+2026-07-12T21:44:18.190Z	ascent-d19-new	Session menu	5	true
+2026-07-12T21:44:54.225Z	ascent-d19-review	Session menu	4	true
+2026-07-12T21:44:56.534Z	ascent-d19-review	review test page	5	true
+2026-07-12T21:45:16.132Z	ascent-d19-exit	results Continue	6	true
+2026-07-12T21:45:31.372Z	ascent-d20-new	Start-New-Words/Continue	5	true
+2026-07-12T21:45:36.227Z	ascent-d20-new	Session menu	6	true
+2026-07-12T21:46:12.259Z	ascent-d20-review	Session menu	4	true
+2026-07-12T21:46:14.571Z	ascent-d20-review	review test page	5	true
+2026-07-12T21:46:35.854Z	ascent-d20-exit	results Continue	8	true
+2026-07-12T21:47:00.036Z	ascent-d21-review-BLOCKED	Session menu	6	true
+2026-07-12T21:47:02.353Z	ascent-d21-review-BLOCKED	review test page	5	true
+2026-07-14T15:29:57.485Z	RA1	Session menu	4	true
+2026-07-14T15:29:59.810Z	RA1	review test page	4	true
+2026-07-14T15:30:15.326Z	RA1	results Continue	4	true
+2026-07-14T15:31:42.775Z	RA2-d0	Session menu	8	true
+2026-07-14T15:31:45.140Z	RA2-d0	review test page	6	true
+2026-07-14T15:32:15.560Z	RA2-d0	results Continue	20009	false
+2026-07-14T15:43:18.894Z	RA1	Session menu	30016	false
+2026-07-14T15:44:41.240Z	RA2-d0	Session menu	4	true
+2026-07-14T15:44:43.597Z	RA2-d0	review test page	3	true
+2026-07-14T15:45:13.996Z	RA2-d0	results Continue	20009	false
+2026-07-14T15:54:12.596Z	RA1	Session menu	30013	false
+2026-07-14T15:56:04.639Z	RA2-d0	Session menu	30007	false
+2026-07-14T16:05:05.914Z	RA1	Session menu	30009	false
+2026-07-14T16:07:00.902Z	RA2-d0	Session menu	30007	false
+2026-07-14T16:18:09.694Z	RA1	Session menu	30004	false
+2026-07-14T16:20:15.156Z	RA2-d0	Session menu	30014	false
+2026-07-14T20:37:45.155Z	RS-4	Start-New-Words/Continue	6	true
+2026-07-14T20:37:48.757Z	RS-4	Session menu	3	true
+2026-07-14T20:39:32.615Z	RO-S1	Start-New-Words/Continue	6	true
+2026-07-14T20:39:36.198Z	RO-S1	Session menu	4	true
+2026-07-14T20:40:07.237Z	RO-S1	results Continue	20011	false
+2026-07-14T20:43:17.880Z	RO-S10	Start-New-Words/Continue	7	true
+2026-07-14T20:43:21.459Z	RO-S10	Session menu	4	true
+2026-07-14T20:45:35.644Z	RA1	Session menu	30010	false
+2026-07-14T20:47:45.008Z	RA2-d0	Session menu	30015	false
+2026-07-14T21:05:32.934Z	RS-4	Start-New-Words/Continue	9	true
+2026-07-14T21:05:36.522Z	RS-4	Session menu	3	true
+2026-07-14T21:07:20.453Z	RO-S1	Start-New-Words/Continue	5	true
+2026-07-14T21:07:24.044Z	RO-S1	Session menu	4	true
+2026-07-14T21:07:59.620Z	RO-S1	results Continue	20004	false
+2026-07-14T21:11:05.594Z	RO-S10	Start-New-Words/Continue	7	true
+2026-07-14T21:11:09.174Z	RO-S10	Session menu	4	true
+2026-07-14T21:23:28.652Z	RO-S1	Start-New-Words/Continue	8	true
+2026-07-14T21:23:32.272Z	RO-S1	Session menu	5	true
+2026-07-14T21:23:36.553Z	RS-4	Start-New-Words/Continue	5	true
+2026-07-14T21:23:40.126Z	RS-4	Session menu	4	true
+2026-07-14T21:24:05.347Z	RO-S1	results Continue	20012	false
+2026-07-14T21:25:22.541Z	RO-S10	Start-New-Words/Continue	4	true
+2026-07-14T21:25:26.120Z	RO-S10	Session menu	3	true
+2026-07-14T21:32:56.311Z	W-RA3g-pos	Session menu	4	true
+2026-07-14T21:32:58.665Z	W-RA3g-pos	review test page	4	true
+2026-07-14T21:33:30.898Z	W-RA3g-pos	results Continue	20014	false
+2026-07-14T21:34:42.807Z	W-RA4	Start-New-Words/Continue	10	true
+2026-07-14T21:34:46.386Z	W-RA4	Session menu	4	true
+2026-07-14T21:36:30.099Z	W-RA4b	Start-New-Words/Continue	5	true
+2026-07-14T21:36:33.680Z	W-RA4b	Session menu	3	true
+2026-07-14T21:38:18.079Z	CS-11-mismatch	Start-New-Words/Continue	10	true
+2026-07-14T21:38:21.671Z	CS-11-mismatch	Session menu	5	true
+2026-07-14T21:39:01.516Z	CS-11-mismatch	results Continue	20000	false
+2026-07-14T21:39:04.401Z	CS-11-agree	Start-New-Words/Continue	8	true
+2026-07-14T21:39:07.975Z	CS-11-agree	Session menu	3	true
+2026-07-14T21:40:34.359Z	CUT-5	Start-New-Words/Continue	8	true
+2026-07-14T21:40:37.942Z	CUT-5	Session menu	3	true
+2026-07-14T21:42:02.229Z	CUT-6	Start-New-Words/Continue	5	true
+2026-07-14T21:42:05.800Z	CUT-6	Session menu	4	true
+2026-07-14T21:49:57.080Z	W-RA3g-pos	Session menu	4	true
+2026-07-14T21:49:59.418Z	W-RA3g-pos	review test page	3	true
+2026-07-14T21:50:11.148Z	W-RA3g-pos	results Continue	3	true
+2026-07-14T21:51:26.745Z	W-RA4	Start-New-Words/Continue	7	true
+2026-07-14T21:51:30.340Z	W-RA4	Session menu	4	true
+2026-07-14T21:53:15.276Z	W-RA4b	Start-New-Words/Continue	13	true
+2026-07-14T21:53:18.853Z	W-RA4b	Session menu	4	true
+2026-07-14T21:55:03.336Z	CUT-5	Start-New-Words/Continue	10	true
+2026-07-14T21:55:06.919Z	CUT-5	Session menu	5	true
+2026-07-14T21:56:43.375Z	RO-S1	Start-New-Words/Continue	10	true
+2026-07-14T21:56:46.954Z	RO-S1	Session menu	4	true
+2026-07-14T21:56:56.829Z	RO-S1	results Continue	3	true
+2026-07-15T10:37:54.128Z	RO-S1	Start-New-Words/Continue	4	true
+2026-07-15T10:37:57.712Z	RO-S1	Session menu	4	true
+2026-07-15T10:38:13.867Z	RO-S1	results Continue	4	true
+2026-07-15T11:30:40.760Z	NET	Start-New-Words/Continue	4	true
+2026-07-15T11:30:44.329Z	NET	Session menu	4	true
+2026-07-15T11:32:19.815Z	NET	Start-New-Words/Continue	3	true
+2026-07-15T11:32:23.388Z	NET	Session menu	4	true
+2026-07-15T11:34:03.244Z	NET	Start-New-Words/Continue	4	true
+2026-07-15T11:34:06.834Z	NET	Session menu	8	true
+2026-07-15T11:46:35.446Z	NET	Start-New-Words/Continue	4	true
+2026-07-15T11:46:39.030Z	NET	Session menu	4	true
+2026-07-15T11:48:29.384Z	NET	Start-New-Words/Continue	3	true
+2026-07-15T11:48:32.980Z	NET	Session menu	3	true
+2026-07-15T11:50:15.186Z	NET	Start-New-Words/Continue	4	true
+2026-07-15T11:50:18.773Z	NET	Session menu	4	true
+2026-07-15T12:03:14.943Z	W-RA4	Start-New-Words/Continue	20005	false
+2026-07-15T12:05:17.036Z	W-RA4b	Start-New-Words/Continue	20013	false
+2026-07-15T12:07:19.983Z	CS-11-mismatch	Start-New-Words/Continue	20013	false
+2026-07-15T12:09:22.678Z	CUT-5	Start-New-Words/Continue	20001	false
+2026-07-15T12:11:25.553Z	CUT-6	Start-New-Words/Continue	20016	false

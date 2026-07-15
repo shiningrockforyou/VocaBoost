@@ -1,0 +1,54 @@
+{
+  "email": "s22280753@sjajeju.kr",
+  "uid": "2ACysdmATeV2dVylcjsJSOyBSdr1",
+  "cp": "7PDT5jGKWNBh8oB0tjYh_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 18,
+    "twi": 1440,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsIntroduced": 80,
+        "date": {
+          "_seconds": 1783906023,
+          "_nanoseconds": 897000000
+        },
+        "wordsReviewed": 60,
+        "newWordScore": 0.93,
+        "reviewScore": 0,
+        "segmentEndIndex": 59,
+        "segmentStartIndex": 0,
+        "wordsTested": 30,
+        "day": 16
+      },
+      {
+        "segmentEndIndex": 334,
+        "wordsTested": 30,
+        "day": 17,
+        "segmentStartIndex": 274,
+        "newWordScore": 0.93,
+        "wordsReviewed": 60,
+        "reviewScore": 0,
+        "date": {
+          "_seconds": 1784081718,
+          "_nanoseconds": 83000000
+        },
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 18,
+        "date": {
+          "_seconds": 1784088035,
+          "_nanoseconds": 65000000
+        },
+        "newWordScore": 0.93,
+        "reviewScore": 0,
+        "segmentStartIndex": 578,
+        "segmentEndIndex": 641,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

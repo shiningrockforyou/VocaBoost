@@ -1,0 +1,54 @@
+{
+  "email": "minhasong20091222@gmail.com",
+  "uid": "P2W374VUFjZPzCGewbyEUT3J2mg1",
+  "cp": "qeCkS6BpZLVGLe2G5O7Z_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 7,
+    "twi": 700,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "date": {
+          "_seconds": 1783923337,
+          "_nanoseconds": 593000000
+        },
+        "segmentEndIndex": 447,
+        "day": 5,
+        "newWordScore": 0.97,
+        "wordsTested": 30,
+        "reviewScore": 0,
+        "segmentStartIndex": 388,
+        "wordsReviewed": 60,
+        "wordsIntroduced": 0
+      },
+      {
+        "reviewScore": 0,
+        "wordsReviewed": 60,
+        "segmentStartIndex": 20,
+        "wordsIntroduced": 100,
+        "date": {
+          "_seconds": 1783946165,
+          "_nanoseconds": 481000000
+        },
+        "segmentEndIndex": 102,
+        "newWordScore": 0.94,
+        "day": 6,
+        "wordsTested": 30
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784093695,
+          "_nanoseconds": 510000000
+        },
+        "newWordScore": 0.94,
+        "reviewScore": 0,
+        "segmentStartIndex": 175,
+        "segmentEndIndex": 234,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

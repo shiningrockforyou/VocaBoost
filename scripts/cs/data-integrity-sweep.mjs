@@ -14,7 +14,7 @@
  */
 import admin from 'firebase-admin';
 import { readFileSync } from 'fs';
-admin.initializeApp({ credential: admin.credential.cert(JSON.parse(readFileSync('/app/scripts/serviceAccountKey.json','utf8'))) });
+admin.initializeApp({ credential: admin.credential.cert(JSON.parse(readFileSync(process.env.LSR_SA_KEY || new URL('../serviceAccountKey.json', import.meta.url), 'utf8'))) });
 const db = admin.firestore();
 const filter = new RegExp(process.argv[2] || '26SM', 'i');
 

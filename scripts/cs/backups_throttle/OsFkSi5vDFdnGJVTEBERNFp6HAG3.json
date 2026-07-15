@@ -1,0 +1,54 @@
+{
+  "email": "1004hyunwookim@gmail.com",
+  "uid": "OsFkSi5vDFdnGJVTEBERNFp6HAG3",
+  "cp": "7PDT5jGKWNBh8oB0tjYh_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 17,
+    "twi": 1360,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsTested": 30,
+        "segmentEndIndex": 1072,
+        "date": {
+          "_seconds": 1783905464,
+          "_nanoseconds": 533000000
+        },
+        "wordsReviewed": 60,
+        "segmentStartIndex": 1013,
+        "newWordScore": 0.93,
+        "day": 15,
+        "wordsIntroduced": 0,
+        "reviewScore": 0.13333333333333333
+      },
+      {
+        "wordsIntroduced": 80,
+        "reviewScore": 0.1,
+        "day": 16,
+        "newWordScore": 0.97,
+        "segmentStartIndex": 0,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783913896,
+          "_nanoseconds": 37000000
+        },
+        "segmentEndIndex": 190,
+        "wordsTested": 30
+      },
+      {
+        "day": 17,
+        "date": {
+          "_seconds": 1784021701,
+          "_nanoseconds": 956000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0.26666666666666666,
+        "segmentStartIndex": 413,
+        "segmentEndIndex": 474,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

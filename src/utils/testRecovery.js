@@ -10,6 +10,30 @@ const RECOVERY_WINDOW_MS = 3 * 60 * 1000 // 3 minutes
 const INTENTIONAL_EXIT_KEY = 'vocaboost_intentional_exit'
 const NONCE_SUFFIX = '_nonce'
 
+// [I-5 §2 F3] Layer 1 of the attempt-nonce store: module-level memo, keyed by testId.
+// Always writable (per page load), checked FIRST — this is what guarantees that within one
+// page load every getOrCreateAttemptNonce(testId) call returns the SAME nonce even when
+// browser storage throws (webview/private mode). The 06-29 outage root cause was the old
+// catch minting a FRESH nonce per call → grade-docId !== save-docId under enforcement.
+const attemptNonceMemo = new Map()
+
+// [I-5 §2 F4] Emit `nonce_storage_degraded` at most once per page load, and only when BOTH
+// persistence layers (localStorage AND sessionStorage) fail — measures the webview/private
+// population BEFORE grade-token enforcement is re-armed. Dynamic import so this pure utility
+// gains no static Firebase dependency (and a failed logger can never break the nonce path).
+let nonceStorageDegradedLogged = false
+function logNonceStorageDegraded(testId, error) {
+  if (nonceStorageDegradedLogged) return
+  nonceStorageDegradedLogged = true
+  import('../services/db')
+    .then(({ logSystemEvent }) => logSystemEvent('nonce_storage_degraded', {
+      testId,
+      errName: error?.name || null,
+      errMessage: String(error?.message || '').slice(0, 200),
+    }, 'warning'))
+    .catch(() => { /* observability only — never break the submit path */ })
+}
+
 /**
  * Generate a unique test ID
  * @param {string} classId - Class ID
@@ -74,40 +98,104 @@ export function getTestState(testId) {
  * @param {string} testId - Unique test identifier
  */
 export function clearTestState(testId) {
+  // [I-5 §2 F3] Success-path rollover: the module memo entry MUST go too, or the next
+  // attempt in the same page load would reuse the old docId. Cleared unconditionally
+  // (the Map can't throw), then each storage layer independently best-effort.
+  attemptNonceMemo.delete(testId)
   try {
     localStorage.removeItem(testId)
     localStorage.removeItem(testId + NONCE_SUFFIX)
   } catch (error) {
     console.warn('Failed to clear test state:', error)
   }
+  try {
+    sessionStorage.removeItem(testId + NONCE_SUFFIX)
+  } catch {
+    // sessionStorage unavailable — nothing persisted there to clear
+  }
 }
 
 /**
  * Return a stable per-session nonce for use as part of an idempotent attempt
- * document ID. Lazily created on first call for a given testId and persisted
- * to localStorage so it survives refresh-resume within the recovery window.
- * Cleared as a side effect of clearTestState (success path or expiration).
+ * document ID. Cleared as a side effect of clearTestState (success path or
+ * expiration), which rolls the docId over for the next attempt.
  *
  * Why: withRetry can replay submitTestAttempt; addDoc would create duplicates.
  * A deterministic docId like ${userId}_${testId}_${nonce} lets us use setDoc
  * so retries are no-op overwrites of identical data.
  *
+ * [I-5 §2 F3] Layered memoized store (deepfix P4 · FND-2). Lookup order:
+ *   1. module-level Map (always writable, single instance per page load);
+ *   2. localStorage (survives tab close within the recovery window);
+ *   3. sessionStorage fallback (survives refresh in-tab; available in most
+ *      storage-restricted webviews).
+ * On ANY storage failure the minted nonce is MEMOIZED in the Map and the same
+ * value is returned on every subsequent call — the catch NEVER re-mints per
+ * call (the old behavior handed the grade leg and the save leg two different
+ * docIds in degraded storage: the 06-29 grade-token outage, I-5 §1).
+ * Degraded-storage behavior is therefore: idempotent within the page load
+ * (covers grade→save and Retry Save); non-idempotent only across a full
+ * reload after a completed grade — which the server-echoed attemptDocId (F2)
+ * + the server-side pre-write idempotency read already absorb.
+ *
  * @param {string} testId - Unique test identifier
  * @returns {string} Stable nonce string
  */
 export function getOrCreateAttemptNonce(testId) {
+  // Layer 1: module memo — the authoritative in-flight value.
+  const memoized = attemptNonceMemo.get(testId)
+  if (memoized) return memoized
+
   const key = testId + NONCE_SUFFIX
+
+  // Layer 2: localStorage (refresh-resume within the recovery window).
+  let localReadError = null
   try {
     const existing = localStorage.getItem(key)
-    if (existing) return existing
-    const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
-    localStorage.setItem(key, nonce)
-    return nonce
+    if (existing) {
+      attemptNonceMemo.set(testId, existing)
+      return existing
+    }
   } catch (error) {
-    console.warn('Failed to get/create attempt nonce:', error)
-    // Fall back to an in-memory nonce; submission still works, just non-idempotent
-    return `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+    localReadError = error
   }
+
+  // Layer 3: sessionStorage (in-tab refresh survival when localStorage is blocked).
+  try {
+    const existing = sessionStorage.getItem(key)
+    if (existing) {
+      attemptNonceMemo.set(testId, existing)
+      return existing
+    }
+  } catch {
+    // fall through to mint
+  }
+
+  // Mint ONCE, memoize FIRST (the Map cannot fail), then best-effort persist.
+  const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
+  attemptNonceMemo.set(testId, nonce)
+
+  let persisted = false
+  let persistError = localReadError
+  try {
+    localStorage.setItem(key, nonce)
+    persisted = true
+  } catch (error) {
+    persistError = error
+  }
+  if (!persisted) {
+    try {
+      sessionStorage.setItem(key, nonce)
+      persisted = true
+    } catch (error) {
+      persistError = persistError || error
+    }
+  }
+  if (!persisted) {
+    console.warn('Attempt nonce not persisted (storage degraded) — memoized in-memory:', persistError)
+    logNonceStorageDegraded(testId, persistError) // [F4] once per page load
+  }
+  return nonce
 }
 
 /**

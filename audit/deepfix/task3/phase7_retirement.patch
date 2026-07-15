@@ -1,0 +1,540 @@
+PREPARED — DO NOT APPLY until POST-DEPLOY per the preconditions in
+audit/deepfix/task3/P7_RETIREMENT_INVENTORY.md.
+
+Phase P7 (FND-5 — retire legacy), WRITE-PATH LEG ONLY. This patch retires the three
+transitional WRITE-path flags whose cutover completes by P6 and removes their now-dead
+client fallbacks:
+  • SERVER_REVIEW_MARKER   — client empty-review automarker setDoc (DailySessionFlow)
+  • SERVER_CHALLENGE_WRITE  — client submitChallenge write + reviewChallenge direct
+                              class_progress day-advance (db.js)  [RET-2 client_challenge_advance]
+  • SERVER_RESET_PROGRESS   — client reset batch-delete incl. the class_progress delete (db.js)
+
+PRECONDITIONS (all must hold before applying — see inventory §(a),(e)):
+  1. P4 cutover deployed + soaked: SERVER_REVIEW_MARKER / SERVER_CHALLENGE_WRITE /
+     SERVER_RESET_PROGRESS flipped TRUE and their server callables (markReviewComplete,
+     submitChallenge, advanceForChallenge, resetProgress) live.
+  2. P6 rules deployed + ≥14 days soaked; ≥7 consecutive days of zero `legacy_write_denied`.
+  3. Acceptance oracle: audit/playwright/lsr_deepfix_static.mjs --target=shipped RET-2
+     (client_automarker, client_challenge_advance) must read 0 after apply.
+
+CAVEAT — flag-value context (inventory §(a)): the two src/config/featureFlags.js hunks were
+generated against the dormant-draft tree where these consts read `= false`. At P7 apply-time
+they read `= true` (flipped at the P4 cutover). If the featureFlags hunks reject, hand-reconcile
+the single `= true` token (or regenerate those two hunks against the live tree). The db.js /
+DailySessionFlow.jsx hunks key on the guard STRUCTURE (`if (FLAG)`), not the value — they apply
+regardless.
+
+NOT INCLUDED HERE (see inventory — flagged / deferred to the reconciliation-core leg + P10 leg):
+  • RET-2 dup_resume_branch (entangled with the live-rendered Re-Entry modal — flagged §(a)).
+  • RET-2 neg_twi_passthrough + LIST_SCOPED_RECON / SERVER_PROGRESS_WRITE / LIST_PROGRESS_CANONICAL
+    (39+23+12 sites through the CSD/TWI reconciliation core — no local behavioral test harness).
+  • Full class_progress zeroing (RET-1) + the CS-script rework (F6-3).
+  • SERVER_OVERRIDE / TEACHER_IDS_READ / isTeacher() (P9/P10 — NOT soaked at P7).
+
+Line endings: LF-uniform. DailySessionFlow.jsx is CRLF in the working tree (anomaly; HEAD is LF);
+`git apply` normalizes it to LF on apply (benign, aligns with HEAD + siblings). Apply with:
+  git apply audit/deepfix/task3/phase7_retirement.patch
+========================================================================================
+
+diff --git a/src/services/db.js b/src/services/db.js
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -22,7 +22,7 @@
+ } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db, auth } from '../firebase'
+-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ } from '../config/featureFlags'
++import { LIST_SCOPED_RECON, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
+ // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
+@@ -2736,87 +2736,12 @@
+   // Server-side path (PLAN_attempt_write_lockdown.md W1): the `submitChallenge` callable
+   // validates ownership + tokens and writes challenges.history + answers atomically, so the
+   // client never writes `attempts.answers` directly (closes the answers[] forgery, #1c). The
+-  // callable uses request.auth.uid, not the passed userId. Legacy client path below stays as a
+-  // flag-off fallback until the fn is deployed + validated, then W3 rules remove the client write.
+-  if (SERVER_CHALLENGE_WRITE) {
+-    const fn = httpsCallable(getFunctions(), 'submitChallenge')
+-    const res = await fn({ attemptId, wordId, note })
+-    return res.data
+-  }
+-
+-  // --- legacy client path (fallback; removed once SERVER_CHALLENGE_WRITE is validated) ---
+-  // Get user document
+-  const userRef = doc(db, 'users', userId)
+-  const userSnap = await getDoc(userRef)
+-  if (!userSnap.exists()) {
+-    throw new Error('User not found.')
+-  }
+-
+-  const userData = userSnap.data()
+-  const challengeHistory = userData.challenges?.history || []
+-
+-  // Calculate available tokens
+-  const availableTokens = getAvailableChallengeTokens(challengeHistory)
+-  if (availableTokens === 0) {
+-    throw new Error('No challenge tokens available. You have active rejections.')
+-  }
+-
+-  // Get attempt document
+-  const attemptRef = doc(db, 'attempts', attemptId)
+-  const attemptSnap = await getDoc(attemptRef)
+-  if (!attemptSnap.exists()) {
+-    throw new Error('Attempt not found.')
+-  }
+-
+-  const attemptData = attemptSnap.data()
+-
+-  // Verify this is the student's attempt
+-  if (attemptData.studentId !== userId) {
+-    throw new Error('Unauthorized: This is not your attempt.')
+-  }
+-
+-  // Find the answer with matching wordId
+-  const answers = attemptData.answers || []
+-  const answerIndex = answers.findIndex((a) => a.wordId === wordId)
+-  if (answerIndex === -1) {
+-    throw new Error('Answer not found in attempt.')
+-  }
+-
+-  // Check if already challenged
+-  if (answers[answerIndex].challengeStatus === 'pending') {
+-    throw new Error('This answer is already being challenged.')
+-  }
+-
+-  // Add new entry to challenges.history
+-  const replenishAt = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+-  const newChallengeEntry = {
+-    attemptId,
+-    wordId,
+-    challengedAt: Timestamp.now(),
+-    replenishAt,
+-    status: 'pending',
+-  }
+-
+-  const updatedHistory = [...challengeHistory, newChallengeEntry]
+-
+-  // Update user document
+-  await updateDoc(userRef, {
+-    'challenges.history': updatedHistory,
+-  })
+-
+-  // Update the specific answer in attempts document
+-  const updatedAnswers = [...answers]
+-  updatedAnswers[answerIndex] = {
+-    ...updatedAnswers[answerIndex],
+-    challengeStatus: 'pending',
+-    challengeNote: note || null,
+-  }
+-
+-  await updateDoc(attemptRef, {
+-    answers: updatedAnswers,
+-  })
+-
+-  return { success: true }
++  // callable uses request.auth.uid, not the passed userId.
++  // [deepfix P7] SERVER_CHALLENGE_WRITE retired — the legacy client attempts.answers/challenges
++  // write fallback is removed (W3/P6 rules already deny the direct client write).
++  const fn = httpsCallable(getFunctions(), 'submitChallenge')
++  const res = await fn({ attemptId, wordId, note })
++  return res.data
+ }
+ 
+ /**
+@@ -2970,83 +2895,16 @@
+         if (listId) {
+           try {
+             // [deepfix P4 · FND-2, F5-HIGH-2] The challenge-accept day-advance is the 3rd twi
+-            // writer. Under SERVER_CHALLENGE_WRITE, route it to the P3 `advanceForChallenge`
+-            // callable (functions/foundation.js:1594) INSTEAD of the direct class_progress
+-            // write below: the server re-derives the pass threshold + fail→pass transition +
+-            // current-day boundary guard + phase gate, and CLAMPS the twi add to wordsRemaining
+-            // (closing the unclamped :2900 over-add, I-6 §3-row-8). The client already wrote the
+-            // recomputed score to the attempt doc above (:2794), so the server reads it as
+-            // attempt.score and `previousScore` = the pre-acceptance score (attemptData is the
+-            // pre-update snapshot from :2730). Flag OFF (default) → the direct write below,
+-            // byte-equivalent to today. Post-P5 the direct write would target a dead collection
+-            // (canonical is authoritative); post-P7 it would no-op — this route writes the
+-            // record the foundation owns (legacy pre-P5, canonical post-P5) instead.
+-            if (SERVER_CHALLENGE_WRITE) {
+-              const advanceForChallengeFn = httpsCallable(getFunctions(), 'advanceForChallenge', { timeout: 30000 })
+-              await advanceForChallengeFn({ attemptId, previousScore: attemptData.score || 0 })
+-            } else {
+-            // Get pass threshold from assignment (stored in assignments map, not assignedLists array)
+-            const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
+-            const assignment = classDoc.exists()
+-              ? classDoc.data().assignments?.[listId]
+-              : null
+-            const passThreshold = assignment?.passThreshold || 95
+-
+-            const oldScore = attemptData.score || 0
+-
+-            // If old score was below threshold and new score is at/above threshold
+-            if (oldScore < passThreshold && newScore >= passThreshold) {
+-              // Fetch class_progress to get current day
+-              const progressDocId = `${attemptData.classId}_${listId}`
+-              const progressRef = doc(db, `users/${studentId}/class_progress`, progressDocId)
+-              const progressSnap = await getDoc(progressRef)
+-
+-              if (progressSnap.exists()) {
+-                const progress = progressSnap.data()
+-                const currentDay = progress.currentStudyDay || 0
+-                const isFirstDay = currentDay === 0
+-
+-                // Stale-day guard: only progress the day when the CHALLENGED attempt is
+-                // the student's current day boundary (its studyDay is exactly the next
+-                // day to complete: studyDay === currentDay + 1). Without this, an
+-                // accepted challenge for an OLD test still bumped the student's CURRENT
+-                // day (over-advance). When the attempt is NOT the current boundary, the
+-                // score/study_state are still corrected above; only the day stays put.
+-                const attemptStudyDay = attemptData.studyDay
+-                const isCurrentBoundary =
+-                  Number.isInteger(attemptStudyDay) && attemptStudyDay === currentDay + 1
+-
+-                if (isCurrentBoundary && phase === 'new' && !isFirstDay) {
+-                  // Day 2+ New Word Test pass: Advance to Review Study phase (don't increment day)
+-                  // The student still needs to complete the Review Test
+-                  const sessionDocId = `${attemptData.classId}_${listId}`
+-                  const sessionRef = doc(db, `users/${studentId}/session_states`, sessionDocId)
+-                  await setDoc(sessionRef, {
+-                    phase: 'review-study',
+-                    newWordsTestPassed: true,
+-                    newWordsTestScore: newScore / 100,
+-                    lastUpdated: serverTimestamp()
+-                  }, { merge: true })
+-                } else if (isCurrentBoundary) {
+-                  // Day 1 New Word Test pass OR Review Test pass: Complete session
+-                  // Increment day and totalWordsIntroduced
+-                  const interventionLevel = progress.interventionLevel || 0
+-
+-                  // Calculate newWordCount with intervention (same as calculateDailyAllocation)
+-                  // Assignment stores 'pace' as daily pace directly
+-                  const dailyPace = assignment?.pace || 20
+-                  const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
+-
+-                  await updateDoc(progressRef, {
+-                    currentStudyDay: currentDay + 1,
+-                    totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
+-                    lastSessionAt: serverTimestamp(),
+-                    updatedAt: serverTimestamp(),
+-                  })
+-                }
+-              }
+-            }
+-            } // end SERVER_CHALLENGE_WRITE else — direct class_progress day-advance (flag-off fallback)
++            // writer — routed to the P3 `advanceForChallenge` callable (functions/foundation.js):
++            // the server re-derives the pass threshold + fail→pass transition + current-day
++            // boundary guard + phase gate, and CLAMPS the twi add to wordsRemaining (closing the
++            // old unclamped client over-add, I-6 §3-row-8). The client already wrote the recomputed
++            // score to the attempt doc above, so the server reads it as attempt.score and
++            // `previousScore` = the pre-acceptance score (attemptData is the pre-update snapshot).
++            // [deepfix P7] SERVER_CHALLENGE_WRITE retired — the direct client class_progress
++            // day-advance fallback is removed (the foundation owns csd/twi post-cutover).
++            const advanceForChallengeFn = httpsCallable(getFunctions(), 'advanceForChallenge', { timeout: 30000 })
++            await advanceForChallengeFn({ attemptId, previousScore: attemptData.score || 0 })
+           } catch (err) {
+             console.error('Error checking day progression after challenge:', err)
+             // Don't fail the challenge review if day progression check fails
+@@ -3106,15 +2964,12 @@
+ }
+ 
+ /**
+- * Reset a student's progress for a specific class/list back to initial state.
++ * Reset a student's progress for a list back to initial state.
+  *
+- * Deletes:
+- * - class_progress document
+- * - session_states document
+- * - All study_states for the list
+- * - All attempts for the class/list combination
+- *
+- * This is a complete reset - the student will start from day 0.
++ * [deepfix P7] Delegates to the `resetProgress` Cloud Function, which performs the wipe
++ * server-side (LIST-WIDE across all classes: durable progress doc, session_states,
++ * study_states, and attempts) and stamps a reset-epoch tombstone. This is a complete reset —
++ * the student starts from day 0.
+  *
+  * @param {string} userId - The student's user ID
+  * @param {string} classId - The class ID
+@@ -3133,145 +2988,20 @@
+     throw new Error('Missing required parameters: userId, classId, and listId are required')
+   }
+ 
+-  // [deepfix P4 · FND-2, SERVER_RESET_PROGRESS / F6-3, v2 HIGH-3] Route reset through the
+-  // `resetProgress` callable (functions/foundation.js): self-service (uid = caller — same
+-  // guarantee as the check above), LIST-WIDE across ALL classes (the persist §5.3 fix for
+-  // this function's class-scoped legacy delete), attempts-first ordering, legacy-testId
+-  // sweep, and a durable reset-epoch tombstone. With this flag ON, no LIVE client path
+-  // deletes attempt docs — the prerequisite for P6 removing the attempts owner-delete rules
+-  // branch ([C5-5]). Flag OFF (default) → the legacy client batch-delete below,
+-  // byte-equivalent to today (and still rules-legal until P6).
+-  if (SERVER_RESET_PROGRESS) {
+-    const resetProgressFn = httpsCallable(getFunctions(), 'resetProgress', { timeout: 60000 })
+-    const resp = await resetProgressFn({ listId })
+-    const d = resp?.data?.deleted || {}
+-    return {
+-      success: resp?.data?.success === true,
+-      deletedCount: (d.attempts || 0) + (d.sessionStates || 0) + (d.studyStates || 0) + (d.classProgress || 0)
+-    }
+-  }
+-
+-  let deletedCount = 0
+-
+-  // 1. Delete class_progress document
+-  const progressDocId = `${classId}_${listId}`
+-  const progressRef = doc(db, `users/${userId}/class_progress`, progressDocId)
+-  try {
+-    await deleteDoc(progressRef)
+-    deletedCount++
+-  } catch (err) {
+-    // Document may not exist, that's ok
+-    console.log('class_progress document not found or already deleted')
+-  }
+-
+-  // 2. Delete session_states document
+-  const sessionDocId = `${classId}_${listId}`
+-  const sessionRef = doc(db, `users/${userId}/session_states`, sessionDocId)
+-  try {
+-    await deleteDoc(sessionRef)
+-    deletedCount++
+-  } catch (err) {
+-    // Document may not exist, that's ok
+-    console.log('session_states document not found or already deleted')
+-  }
+-
+-  // 3. Query and batch delete all study_states for this listId
+-  const studyStatesRef = collection(db, `users/${userId}/study_states`)
+-  const q = query(studyStatesRef, where('listId', '==', listId))
+-
+-  try {
+-    const snapshot = await getDocs(q)
+-
+-    if (snapshot.size > 0) {
+-      // Use batched writes (max 500 per batch)
+-      const batchSize = 500
+-      let batch = writeBatch(db)
+-      let batchCount = 0
+-
+-      for (const docSnap of snapshot.docs) {
+-        batch.delete(docSnap.ref)
+-        batchCount++
+-        deletedCount++
+-
+-        // Commit batch when it reaches the limit
+-        if (batchCount >= batchSize) {
+-          await batch.commit()
+-          batch = writeBatch(db)
+-          batchCount = 0
+-        }
+-      }
+-
+-      // Commit any remaining deletions
+-      if (batchCount > 0) {
+-        await batch.commit()
+-      }
+-    }
+-  } catch (err) {
+-    console.error('Error deleting study_states:', err)
+-    throw new Error('Failed to delete word study states')
+-  }
+-
+-  // 4. Query and batch delete all attempts for this class/list
+-  // Note: attempts don't have listId as a field, it's embedded in testId
+-  const attemptsRef = collection(db, 'attempts')
+-  const attemptsQuery = query(
+-    attemptsRef,
+-    where('studentId', '==', userId),
+-    where('classId', '==', classId)
+-  )
+-
+-  try {
+-    const attemptsSnapshot = await getDocs(attemptsQuery)
+-
+-    if (attemptsSnapshot.size > 0) {
+-      // Filter attempts by parsing testId to match listId
+-      // testId format: vocaboost_test_{classId}_{listId}_{sessionType}
+-      const attemptsToDelete = attemptsSnapshot.docs.filter(doc => {
+-        const testId = doc.data().testId
+-        if (!testId) return false
+-
+-        const parts = testId.split('_')
+-        // parts: ['vocaboost', 'test', classId, listId, sessionType]
+-        if (parts.length >= 5) {
+-          const attemptListId = parts[3]
+-          return attemptListId === listId
+-        }
+-        return false
+-      })
+-
+-      console.log(`[RESET] Found ${attemptsToDelete.length} attempts to delete for list ${listId}`)
+-
+-      if (attemptsToDelete.length > 0) {
+-        // Use batched writes (max 500 per batch)
+-        const batchSize = 500
+-        let batch = writeBatch(db)
+-        let batchCount = 0
+-
+-        for (const docSnap of attemptsToDelete) {
+-          batch.delete(docSnap.ref)
+-          batchCount++
+-          deletedCount++
+-
+-          // Commit batch when it reaches the limit
+-          if (batchCount >= batchSize) {
+-            await batch.commit()
+-            batch = writeBatch(db)
+-            batchCount = 0
+-          }
+-        }
+-
+-        // Commit any remaining deletions
+-        if (batchCount > 0) {
+-          await batch.commit()
+-        }
+-      }
+-    }
+-  } catch (err) {
+-    console.error('Error deleting attempts:', err)
+-    throw new Error('Failed to delete attempt records')
+-  }
+-
+-  return { success: true, deletedCount }
++  // [deepfix P7 · FND-5] Reset runs entirely server-side through the `resetProgress` callable
++  // (functions/foundation.js): self-service (uid = caller — same guarantee as the check above),
++  // LIST-WIDE across ALL classes (the persist §5.3 fix for the old class-scoped delete),
++  // attempts-first ordering, legacy-testId sweep, and a durable reset-epoch tombstone. No client
++  // path deletes attempt docs — the prerequisite for P6 having removed the attempts owner-delete
++  // rules branch ([C5-5]). SERVER_RESET_PROGRESS retired: the legacy client batch-delete (which
++  // deleted the class_progress doc directly) is gone.
++  const resetProgressFn = httpsCallable(getFunctions(), 'resetProgress', { timeout: 60000 })
++  const resp = await resetProgressFn({ listId })
++  const d = resp?.data?.deleted || {}
++  return {
++    success: resp?.data?.success === true,
++    deletedCount: (d.attempts || 0) + (d.sessionStates || 0) + (d.studyStates || 0) + (d.classProgress || 0)
++  }
+ }
+ 
+ /**
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -14,10 +14,10 @@
+ 
+ import { useState, useEffect, useCallback } from 'react'
+ import { useParams, useNavigate, useLocation } from 'react-router-dom'
+-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
++import { doc, getDoc, Timestamp } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db } from '../firebase'
+-import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
++import { CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
+ import { useAuth } from '../contexts/AuthContext'
+ import Flashcard from '../components/Flashcard'
+ import Watermark from '../components/Watermark'
+@@ -1054,34 +1054,12 @@
+     try {
+       const dayNumber = sessionConfig?.dayNumber
+       if (user?.uid && classId && listId && Number.isInteger(dayNumber) && dayNumber > 1) {
+-        if (SERVER_REVIEW_MARKER) {
+-          // Server-side marker write (W2): required before W3 makes attempts create-only.
+-          const fn = httpsCallable(getFunctions(), 'markReviewComplete')
+-          await fn({ classId, listId, dayNumber })
+-        } else {
+-          // Legacy client write (fallback until SERVER_REVIEW_MARKER validated + W3 rules).
+-          const classSnap = await getDoc(doc(db, 'classes', classId))
+-          const ownerTeacherId = classSnap.exists() ? (classSnap.data().ownerTeacherId ?? null) : null
+-          // Deterministic id => idempotent (re-entry can't duplicate the marker)
+-          const markerId = `${user.uid}_${classId}_${listId}_day${dayNumber}_review_automarker`
+-          await setDoc(doc(db, 'attempts', markerId), {
+-            studentId: user.uid,
+-            teacherId: ownerTeacherId,
+-            classId,
+-            listId,
+-            studyDay: dayNumber,
+-            testType: 'mcq',
+-            sessionType: 'review',
+-            score: 100,
+-            passed: true,
+-            totalQuestions: 0,
+-            correctCount: 0,
+-            answers: [],
+-            autoCompleted: true,
+-            manualReviewNote: 'Auto-completed: no review available — all segment words mastered (21-day rest).',
+-            submittedAt: Timestamp.now()
+-          })
+-        }
++        // Server-side marker write (W2): attempts are create-restricted after the W3/P6 rules,
++        // so the empty-review marker MUST go through the markReviewComplete callable.
++        // [deepfix P7] SERVER_REVIEW_MARKER retired — the legacy client attempt-create fallback
++        // (a now-rules-denied direct setDoc on `attempts`) is removed.
++        const fn = httpsCallable(getFunctions(), 'markReviewComplete')
++        await fn({ classId, listId, dayNumber })
+       }
+     } catch (err) {
+       // Non-fatal: the day still completed; reconciliation may revert it until the
+diff --git a/src/config/featureFlags.js b/src/config/featureFlags.js
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -9,29 +9,12 @@
+ // + redeploy if grading/attempt issues appear. See PLAN_server_side_attempt_write_v2.md.
+ export const SERVER_ATTEMPT_WRITE = true;
+ 
+-// SERVER_CHALLENGE_WRITE: route challenge submission through the `submitChallenge`
+-// Cloud Function (server-side, transactional, token-checked) instead of the client
+-// writing `users/{uid}.challenges.history` + `attempts.answers` directly. That client
+-// write is the path that lets a student forge `answers[].isCorrect` (reviewChallenge then
+-// launders it into a passing score) — closing it is the point. Rollout
+-// (PLAN_attempt_write_lockdown.md W1): deploy the fn first → flip ON + rebuild → validate →
+-// then W3 rules remove the student `answers`-update branch. Roll back = flip false + rebuild
+-// (old client path still permitted until W3 rules deploy). Default OFF until fn is live + validated.
+-// [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
+-// deploy + soak, together with the server-side flag flips (FOUNDATION_FLAGS in
+-// functions/foundation.js). Deliberately NOT flipped in this working tree (dormant-draft pattern).
+-export const SERVER_CHALLENGE_WRITE = false;
+-
+-// SERVER_REVIEW_MARKER: write the empty-review "automarker" attempt via the
+-// `markReviewComplete` Cloud Function instead of a client `setDoc` (DailySessionFlow).
+-// Required before W3 sets attempts `create:false` — otherwise the client marker write
+-// (the only remaining live client attempt-create) would be denied and Day-2+ completion
+-// would break. Rollout (PLAN_attempt_write_lockdown.md W2): deploy fn first → flip ON +
+-// rebuild → validate Day-2+ empty-review completion → then W3 rules. Default OFF until live.
+-// [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
+-// deploy + soak (the upgraded W2 marker lives in `markReviewComplete`, functions/index.js →
+-// foundation.writeUpgradedReviewMarker). Deliberately NOT flipped in this working tree.
+-export const SERVER_REVIEW_MARKER = false;
++// [deepfix P7 · FND-5] SERVER_CHALLENGE_WRITE and SERVER_REVIEW_MARKER retired here.
++// Their client fallbacks (the direct challenges.history/attempts.answers write in db.js
++// submitChallenge, the direct class_progress day-advance in reviewChallenge, and the client
++// empty-review automarker setDoc in DailySessionFlow) were removed once the P4 cutover routed
++// those writes to `submitChallenge` / `advanceForChallenge` / `markReviewComplete` and the
++// P6/W3 rules denied the direct client writes. Retired ≥14 days after the P6 cutover soak.
+ 
+ // LIST_SCOPED_RECON: Phase 1 of PLAN_list_progress_persist.md (v3.7) — make the CSD/TWI
+ // reconciliation + anchor readers STUDENT+LIST scoped instead of class-scoped, so a
+@@ -97,19 +80,11 @@
+ // flag-off behavior is byte-equivalent to today (verified by diff + the M-STATIC harness).
+ export const CYCLING_ENABLED = false;
+ 
+-// SERVER_RESET_PROGRESS (deepfix P4 · FND-2, v2 HIGH-3 / F6-3): route student progress reset
+-// through the `resetProgress` Cloud Function (self-service, LIST-WIDE across all classes,
+-// attempts-first ordering, reset-epoch tombstone — functions/foundation.js) instead of the
+-// client batch-delete in db.js `resetStudentProgress`. REQUIRED before P6 removes the
+-// attempts owner-delete rules branch (firestore.rules `allow delete: resource.data.studentId
+-// == request.auth.uid`) — with the flag ON, no LIVE client path deletes attempt docs, so the
+-// P6 rules cutover cannot break reset ([C5-5]: server-move and owner-delete-removal ship as
+-// the two halves of one change; this flag is the client half).
+-// DEPLOY ORDER: P3 functions deploy (SERVER_RESET_PROGRESS_ENABLED) must be live first.
+-// Flips TRUE only at the P4 DEPLOY-time cutover (David). Roll back = flip false + rebuild
+-// (the client-delete fallback stays legal until the P6 rules deploy).
+-// Default OFF — flag-off behavior is byte-equivalent to today.
+-export const SERVER_RESET_PROGRESS = false;
++// [deepfix P7 · FND-5] SERVER_RESET_PROGRESS retired here. The client batch-delete fallback in
++// db.js `resetStudentProgress` (which deleted class_progress + session_states + study_states +
++// attempts directly) was removed once the P4 cutover routed reset to the `resetProgress`
++// callable and P6 removed the attempts owner-delete rules branch ([C5-5]). Retired ≥14 days
++// after the P6 cutover soak.
+ 
+ // SERVER_OVERRIDE (deepfix P10 · OVR — teacher override + challenge redesign, FIX_PLAN
+ // P10 (a)+(b) / I-7 / I-10): the CLIENT gate for the P10 override + full server-side

@@ -10,9 +10,28 @@
  */
 import { chromium } from 'playwright';
 import { readFileSync, appendFileSync, existsSync, writeFileSync } from 'fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const BASE = 'https://vocaboostone.netlify.app';
-export const AUD = '/app/audit/playwright';
+// LOCAL-ONLY cycle (David 2026-07-12): the review-only Phase-1 fix + its Playwright audits are LOCAL-ONLY —
+// live (https://vocaboostone.netlify.app) has ACTIVE students and MUST NOT be a target. BASE now DEFAULTS to the
+// local dev server (NO live fallback) and can only be overridden to another localhost http origin.
+export const BASE = process.env.LSR_BASE_URL || 'http://localhost:5173';
+// ── IMPORT-TIME FAIL-CLOSED BASE GUARD (safety-critical) ──────────────────────────────────────────────────
+// Runs for EVERY importer (lsr_reviewonly, lsr_persona, whitebox, …) the instant this module loads — BEFORE any
+// browser launches or any page.goto. Throws (process-fatal) unless BASE is an http://localhost|127.0.0.1 origin,
+// physically preventing the audit from ever driving the live/prod site. Targeting live would require editing THIS
+// code — exactly the friction we want this cycle. (Design §0.1; Codex RAD-4 + Lens B BLK1.)
+;(function assertLocalBase() {
+  let u;
+  try { u = new URL(BASE); } catch { throw new Error(`[BASE GUARD] LSR_BASE_URL is not a valid URL: ${JSON.stringify(BASE)} — refusing to run (INVALID)`); }
+  const hostOk = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+  const protoOk = u.protocol === 'http:';
+  if (!hostOk || !protoOk) {
+    throw new Error(`[BASE GUARD] REFUSING to run — BASE='${BASE}' is not an http://localhost origin (host=${u.hostname}, proto=${u.protocol}). This is the LOCAL-ONLY audit cycle; the live site must never be a target. Set LSR_BASE_URL=http://localhost:5173.`);
+  }
+})();
+export const AUD = dirname(fileURLToPath(import.meta.url)); // repo-relative (this file lives in audit/playwright/) — portable across WSL 9p + native Windows
 // Credentials are NOT hard-coded (Codex security finding). Load from LSR_AUDIT_PW or a
 // gitignored secret file; fail loudly if neither is present.
 function loadPassword() {
@@ -24,7 +43,7 @@ export const PASS = loadPassword();
 export const SEEDED = JSON.parse(readFileSync(`${AUD}/seeded_accounts.json`, 'utf8')).accounts || [];
 export const WM = existsSync(`${AUD}/wordmap.json`)
   ? JSON.parse(readFileSync(`${AUD}/wordmap.json`, 'utf8'))
-  : JSON.parse(readFileSync('/app/dsg-edits/srv_validate/wordmap.json', 'utf8')); // read-only reference data
+  : JSON.parse(readFileSync(resolve(AUD, '..', '..', 'dsg-edits', 'srv_validate', 'wordmap.json'), 'utf8')); // read-only reference data (repo-relative)
 export const norm = (w) => (w || '').toLowerCase().trim();
 export const bareWord = (w) => (w || '').split(/[\r\n]/)[0].replace(/\s*\([^)]*\)\s*$/, '').trim(); // first line strips '(old English)'-style annotations
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -183,8 +202,12 @@ export async function readVisibleProgress(page, { timeout = 12000 } = {}) {
 // Enter a session and STOP (Run L L2 negative control — must NOT study cards or skip to the test,
 // which driveNewWordsToTest does). Clicks Start/Continue to reach the study screen — enough to
 // fire getOrCreateClassProgress — then returns without going deeper. Caller leaves via goDashboard.
+// enterSessionOnly == Codex's `enterSessionAny` (RB-1): enter a class's session via WHATEVER study affordance
+// is on the dashboard. Needed for the cross-class Phase-1 case — class B (no class-local progress yet) renders
+// "Start new words / Start Session" not "Review", but ENTERING reconciles the list-wide position and routes to
+// review-study. So never assume a dashboard "Review" CTA; enter, then observe the in-session phase.
 export async function enterSessionOnly(page, findings, label) {
-  const start = page.getByRole('button', { name: /start session|start new words|^continue$|start review/i }).first();
+  const start = page.getByRole('button', { name: /start session|start new words|^continue$|start review|^review$/i }).first();
   if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Start Session/Continue to enter the session`); return { entered: false }; }
   await start.click().catch(() => {});
   await sleep(2500);
@@ -264,9 +287,86 @@ export async function dismissModal(page) {
   await sleep(400);
 }
 
+// Clear the durable session_state that a reload/header-nav does NOT (so a stale phase=complete doesn't make
+// the NEXT day render a "Day N Complete" wall — re-entry guard DailySessionFlow.jsx:751). There are TWO
+// student-visible clearing paths; a real student uses one, so the harness must too. Call before leaving a
+// COMPLETED day. Returns true ONLY on a real, settled click (Codex D2F-1: a swallowed failure that still
+// returned true would leave the state uncleared → the wall recurs).
+//   1. Day-2+ RE-ENTRY MODAL "Move On to Next Day" (cancelLabel → handleReEntryMoveOn → handleMoveToNextDay
+//      → clearSessionState; DailySessionFlow.jsx:1466-1474, 1840-1842). Try FIRST — the modal can OVERLAY the
+//      completion screen and intercept the pointer, so a "Back to Dashboard" click underneath would fail.
+//   2. Bare Day-1 COMPLETION screen "Back to Dashboard" (onClick → clearAllSessionStates + clearSessionState;
+//      DailySessionFlow.jsx:1785-1788). Gated on a completion CONTEXT so an unrelated "Back to Dashboard"
+//      (e.g. an apBoost report card) is never mistaken for the study-completion clear (Codex D2F-2).
+export async function clearCompletionIfPresent(page) {
+  const moveOn = page.getByRole('button', { name: /move on to next day/i }).first();
+  if (await moveOn.isVisible().catch(() => false)) {
+    const clicked = await moveOn.click({ timeout: 5000 }).then(() => true).catch(() => false);
+    if (!clicked) return false;
+    await sleep(1800);
+    return true;
+  }
+  const onComplete = await page.getByText(/Session Summary|Great Job|Day \d+ Complete/i).first().isVisible().catch(() => false);
+  if (onComplete) {
+    const back = page.getByRole('button', { name: /back to dashboard/i }).first();
+    if (await back.isVisible().catch(() => false)) {
+      const clicked = await back.click({ timeout: 5000 }).then(() => true).catch(() => false);
+      if (clicked) { await sleep(1800); return true; }
+    }
+  }
+  return false;
+}
+
+// A test entered while a PRIOR test was left unfinished shows a "Resume Previous Test?" modal (Start Fresh /
+// Resume) that OVERLAYS the test and intercepts the Submit click (→ 30s click timeout). Seen on consecutive
+// BLOCKED days (the blocked day's review is never "finished", so the next entry offers to resume it). Click
+// "Start Fresh" for a clean, deterministic test. Returns true iff the modal was present + dismissed.
+export async function dismissResumeModal(page) {
+  const modal = page.getByText(/Resume Previous Test\?|이전.*시험.*계속|unfinished test/i).first();
+  if (await modal.isVisible().catch(() => false)) {
+    const fresh = page.getByRole('button', { name: /start fresh|새로 시작|처음부터/i }).first();
+    if (await fresh.isVisible().catch(() => false)) { await fresh.click().catch(() => {}); await sleep(1500); return true; }
+  }
+  return false;
+}
+
+// After a session-FINAL test the harness is on the TEST page's results screen (route /typedtest|/mcqtest).
+// The state-CLEARING controls (CompletePhase "Back to Dashboard" / re-entry "Move On to Next Day") exist ONLY
+// after clicking the results-page "Continue" → handleContinue → handleBackToSession → navigate(returnPath,
+// {testCompleted:true}) → DailySessionFlow renders CompletePhase (TypedTest.jsx:1259-1263/1273/1354,
+// MCQTest.jsx:927/937). So: click results "Continue", let the daily flow render, THEN clearCompletionIfPresent.
+// Gated to the test-results route so an unrelated "Continue" is never clicked. Call right after a FINAL
+// driveTest (day-1 new / day-2+ review). Returns true iff a completion was cleared. (Codex D2F-3.)
+// PH3-2: WAIT for the results "Continue" button (it renders a beat after grading) instead of a one-shot
+// isVisible() check — the check-once race meant a late Continue was never clicked → CompletePhase never
+// rendered → the day never finalized (csd/twi frozen). Returns a STATUS OBJECT so the persona runner can
+// distinguish: continueClicked (finalization path taken), cleared (completion state cleared), onResults (was on
+// a test-results route at all). Backward-compatible — existing callers (lsr_runSL_phase1) ignore the return.
+export async function returnFromResultsAndClearCompletion(page, findings, label) {
+  let onResults = false, continueClicked = false;
+  if (/\/(typedtest|mcqtest)\//i.test(page.url())) {
+    onResults = true;
+    const cont = page.getByRole('button', { name: /^continue$/i }).first(); // NOT "Continue Test" (a modal)
+    const { ok } = await waitVisibleTimed(cont, { label: label || 'return', what: 'results Continue', findings, timeout: 20000 });
+    if (ok) {
+      await cont.click({ timeout: 5000 }).catch(() => {});
+      continueClicked = true;
+      await sleep(2800); // let DailySessionFlow process location.state.testCompleted → CompletePhase
+    } else if (findings) {
+      await shot(page, `lsr_nocontinue_${(label || 'return').replace(/[^a-z0-9]+/gi, '_')}`).catch(() => {});
+      findings.add('flow-gap', `[${label || 'return'}] on test-results route but "Continue" never appeared (20s)`);
+    }
+  }
+  const cleared = await clearCompletionIfPresent(page);
+  return { onResults, continueClicked, cleared };
+}
+
 export async function goDashboard(page) {
-  // Visible navigation: prefer an in-app Dashboard/Home link; fall back to browser back-to-root.
   await dismissModal(page);
+  // On a completion screen, "Back to Dashboard" is the state-CLEARING exit (see clearCompletionIfPresent) —
+  // prefer it so the NEXT day doesn't inherit a stale phase=complete.
+  if (await clearCompletionIfPresent(page)) return;
+  // Otherwise: visible navigation — prefer an in-app Dashboard/Home link; fall back to browser back-to-root.
   const nav = page.getByRole('link', { name: /dashboard|home/i }).or(page.getByRole('button', { name: /dashboard|home/i })).first();
   const clicked = await nav.click({ timeout: 5000 }).then(() => true).catch(() => false);
   if (!clicked) await page.goto(BASE, { waitUntil: 'domcontentloaded' }).catch(() => {});
@@ -305,10 +405,23 @@ export async function switchClass(page, className, findings) {
 // Open the session kebab menu (aria-label "Session menu", SessionMenu.jsx:92) and click
 // "Skip to Test", then accept the confirm modal. Robust exact selectors (replaces the
 // nondeterministic getByRole('button').last() fallback that failed on day-2/MCQ layouts).
+// Wait until a locator is visible (generous ceiling — DETERMINISTIC: fails only if it TRULY never appears)
+// and RECORD how long it took → turns the "flaky 8s cliff" into latency DATA + a perf-slow signal. A control
+// that takes >=slowMs to appear is candidate STUDENT-FACING lag, surfaced regardless of the test outcome
+// (appends to findings/reach_latency.tsv: iso \t label \t what \t ms \t ok).
+export async function waitVisibleTimed(locator, { label, what, findings, timeout = 30000, slowMs = 3000 } = {}) {
+  const t0 = Date.now();
+  const ok = await locator.waitFor({ state: 'visible', timeout }).then(() => true).catch(() => false);
+  const ms = Date.now() - t0;
+  try { appendFileSync(`${AUD}/findings/reach_latency.tsv`, `${new Date().toISOString()}\t${label || '-'}\t${what || '-'}\t${ms}\t${ok}\n`); } catch { /* non-fatal */ }
+  if (findings && ok && ms >= slowMs) findings.add('perf-slow', `[${label}] "${what}" took ${ms}ms to appear (>=${slowMs}ms — candidate student-facing lag)`);
+  return { ok, ms };
+}
+
 export async function skipToTest(page, findings, label) {
   const menuBtn = page.getByRole('button', { name: 'Session menu' }).first();
-  const menuReady = await menuBtn.waitFor({ state: 'visible', timeout: 8000 }).then(() => true).catch(() => false);
-  if (!menuReady) { findings.add('selector-gap', `[${label}] Session-menu button not visible`); await shot(page, `lsr_menugap_${label.replace(/[^a-z0-9]+/gi,"_")}`); return false; }
+  const { ok: menuReady, ms } = await waitVisibleTimed(menuBtn, { label, what: 'Session menu', findings, timeout: 30000 });
+  if (!menuReady) { findings.add('selector-gap', `[${label}] Session-menu button not visible after ${ms}ms`); await shot(page, `lsr_menugap_${label.replace(/[^a-z0-9]+/gi,"_")}`); return false; }
   await menuBtn.click().catch(() => {});
   await sleep(600);
   const skip = page.getByRole('button', { name: /skip to test/i }).first();
@@ -325,7 +438,8 @@ export async function skipToTest(page, findings, label) {
 // Dashboard → new-words study → typed test, all via visible controls.
 export async function driveNewWordsToTest(page, findings, label) {
   const start = page.getByRole('button', { name: /start new words|continue/i }).first();
-  if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Start-New-Words/Continue button`); return { reached: false }; }
+  const startWait = await waitVisibleTimed(start, { label, what: 'Start-New-Words/Continue', findings, timeout: 20000 });
+  if (!startWait.ok) { findings.add('flow-gap', `[${label}] no Start-New-Words/Continue button after ${startWait.ms}ms`); return { reached: false }; }
   await start.click(); await sleep(2500);
   const study = page.getByRole('button', { name: /start studying/i }).first();
   if (await study.isVisible().catch(() => false)) await study.click();
@@ -334,8 +448,8 @@ export async function driveNewWordsToTest(page, findings, label) {
   await skipToTest(page, findings, label);
   // Test page reached = typed inputs (typed mode) OR the MCQ nav arrow (MCQ mode).
   const reached = await Promise.race([
-    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 15000 }).then(() => true),
-    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 15000 }).then(() => true),
+    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 30000 }).then(() => true),
+    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 30000 }).then(() => true),
   ]).catch(() => false);
   if (!reached) findings.add('flow-gap', `[${label}] test page (typed or MCQ) not reached`);
   await sleep(700);
@@ -344,7 +458,8 @@ export async function driveNewWordsToTest(page, findings, label) {
 
 export async function driveReviewToTest(page, findings, label) {
   const start = page.getByRole('button', { name: /review|continue/i }).first();
-  if (!(await start.isVisible().catch(() => false))) { findings.add('flow-gap', `[${label}] no Review/Continue button`); return { reached: false }; }
+  const startWait = await waitVisibleTimed(start, { label, what: 'Review/Continue', findings, timeout: 20000 });
+  if (!startWait.ok) { findings.add('flow-gap', `[${label}] no Review/Continue button after ${startWait.ms}ms`); return { reached: false }; }
   await start.click(); await sleep(2500);
   const study = page.getByRole('button', { name: /start studying|start review/i }).first();
   if (await study.isVisible().catch(() => false)) await study.click();
@@ -352,27 +467,90 @@ export async function driveReviewToTest(page, findings, label) {
   await sleep(1000);
   await skipToTest(page, findings, label);
   const reached = await Promise.race([
-    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 15000 }).then(() => true),
-    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 15000 }).then(() => true),
+    page.locator('input[placeholder*="definition" i]').first().waitFor({ timeout: 30000 }).then(() => true),
+    page.getByRole('button', { name: /Next question|Previous question/ }).first().waitFor({ timeout: 30000 }).then(() => true),
   ]).catch(() => false);
   await sleep(700);
   return { reached };
 }
 
+// HARDENED review entry (persona runner, §4.9 / C5). Root cause of the day-8 "review-not-reached" flake:
+// driveReviewToTest clicks the dashboard Review CTA then SWALLOWS the Card-counter wait (.catch) — a session
+// that never actually entered proceeds to a skipToTest that fails on the missing Session menu, reported as a
+// hard "review not reached." Fix: reuse enterSessionOnly (which CONFIRMS in-session via Card/Session-menu/Quit
+// before proceeding), then skipToTest, then confirm the test page. Returns { reached, retryable } — a false
+// reach is RETRYABLE by the caller (route back through dashReady first), not an immediate day-fail. Mirrors
+// the new-word path but for review, and leaves the legacy driveReviewToTest intact for lsr_runSL_phase1.
+export async function enterReviewSession(page, findings, label) {
+  const ent = await enterSessionOnly(page, findings, label);
+  if (!ent.entered) return { reached: false, retryable: true };
+  await sleep(800);
+  const skipped = await skipToTest(page, findings, label);
+  if (!skipped) return { reached: false, retryable: true };
+  const testWait = await waitVisibleTimed(
+    page.locator('input[placeholder*="definition" i]').first()
+      .or(page.getByRole('button', { name: /Next question|Previous question/ }).first()),
+    { label, what: 'review test page', findings, timeout: 30000 });
+  await sleep(700);
+  return { reached: testWait.ok, retryable: !testWait.ok };
+}
+
 // Read the typed-test rows via locator traversal (visible text only — no evaluate).
+// The word <span>s render a BEAT AFTER the inputs, so a bare single read races them and can return ALL-EMPTY
+// words → carefulAnswers fills blanks → an empty test submission → score 0 (the "day-2 flake" — NOT wordmap
+// gaps; the words are all present, confirmed). So RETRY-until-populated: re-read until >=90% of the word spans
+// have text, or a deadline. Deterministic (same shape returned).
 export async function readTestRows(page) {
   const inputs = page.locator('input[placeholder*="definition" i]');
   const n = await inputs.count();
-  const rows = [];
-  for (let i = 0; i < n; i++) {
-    const word = await inputs.nth(i).locator('xpath=..').locator('span.font-medium').first().innerText({ timeout: 2000 }).catch(() => '');
-    rows.push({ idx: i, word: word.trim() });
+  const readOnce = async () => {
+    const rows = [];
+    for (let i = 0; i < n; i++) {
+      const word = await inputs.nth(i).locator('xpath=..').locator('span.font-medium').first().innerText({ timeout: 3000 }).catch(() => '');
+      rows.push({ idx: i, word: word.trim() });
+    }
+    return rows;
+  };
+  const need = Math.max(1, Math.ceil(n * 0.9));
+  let rows = [];
+  for (let attempt = 0; attempt < 8; attempt++) {
+    rows = await readOnce();
+    const populated = rows.filter((r) => r.word).length;
+    if (populated >= need) return rows;         // spans rendered → good
+    await sleep(1200);                            // else the spans are still rendering — wait + re-read
   }
+  // deadline exhausted — return best effort, but SURFACE how many populated (Codex observability note)
+  const populated = rows.filter((r) => r.word).length;
+  if (populated < need) console.warn(`[readTestRows] word spans still under-populated after deadline: ${populated}/${n}`);
   return rows;
 }
 
 export function carefulAnswers(rows) {
   return rows.map((r) => { const e = WM[norm(bareWord(r.word))]; return e ? (e.def || e.ko || '') : ''; });
+}
+
+// Persona-runner variant: answer from an EXPLICIT wordmap (the active tier's map), NOT the global WM.
+// The fleet spans Base Camp/Ascent/Summit; each list's server-side grader backfills `correctDefinition`
+// from THAT list's word doc, so the harness must answer from the matching tier map. Falls back to WM only
+// if the tier map misses a word (should never happen — the data gate proved 100% coverage).
+export function carefulAnswersFrom(rows, tierMap) {
+  return rows.map((r) => {
+    const k = norm(bareWord(r.word));
+    const e = (tierMap && tierMap[k]) || WM[k];
+    // PREFER Korean (e.ko) over English (e.def): the AI grader rejects verbatim-English answers as
+    // "restated word-for-word" (anti-copying) but accepts Korean/paraphrase as genuine understanding.
+    // Falls back to English only if a word has no Korean.
+    return e ? (e.ko || e.def || '') : '';
+  });
+}
+
+// BLANK-based partial answers (§4.8 / C7). The lenient AI grader can't be trusted to mark plausible-wrong
+// TEXT as WRONG, so the ONLY deterministic WRONG is a BLANK. To score exactly `nCorrect` of `rows.length`,
+// fill the first `nCorrect` from the tier map and leave the rest blank. Used by the retake/threshold/
+// throttle/freeze personas (L9/L10/L12/L14) to drive a precise, repeatable score.
+export function partialAnswers(rows, nCorrect, tierMap) {
+  const full = carefulAnswersFrom(rows, tierMap);
+  return full.map((a, i) => (i < nCorrect ? a : ''));
 }
 
 // Fill + submit + wait for a visible outcome. Asserts CS-matrix EXT-1/EXT-2 on the way:

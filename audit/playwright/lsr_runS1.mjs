@@ -25,8 +25,9 @@ const PACE = 20;                       // Day1 = words 0..19, Day2 = words 20..3
 const THR = 92, TEST_SIZE = 30;
 
 const { BASE, makeFindings, launch, newAuditPage, login, joinClass, switchClass,
-        leaveSessionViaQuit, driveNewWordsToTest, driveReviewToTest,
-        driveTest, goDashboard, dismissModal, armDialog } = await import('./lsr_ui.mjs');
+        leaveSessionViaQuit, enterSessionOnly, skipToTest, driveNewWordsToTest, driveReviewToTest,
+        driveTest, goDashboard, dismissModal, armDialog, clearCompletionIfPresent,
+        returnFromResultsAndClearCompletion } = await import('./lsr_ui.mjs');
 const { createClass, assignList, readJoinCode } = await import('./lsr_teacher.mjs');
 
 const LISTS = JSON.parse(readFileSync(`${AUD}/lsr_lists.json`, 'utf8')).lists;
@@ -77,6 +78,9 @@ try {
     return page.getByText(escRe(className)).first().isVisible().catch(() => false);
   }
   async function dashReady(className) {
+    // Clear a stale COMPLETE session_state FIRST (only "Back to Dashboard" clears it; a reload does not).
+    // Otherwise the next day inherits phase=complete → "Day N Complete" wall (DailySessionFlow.jsx:751/1787).
+    await clearCompletionIfPresent(page).catch(() => {});
     let ok = false;
     for (let attempt = 0; attempt < 3 && !ok; attempt++) {
       // ACCEPT the beforeunload dialog so navigating away from a stuck in-session/rebuild screen
@@ -112,6 +116,9 @@ try {
     const d1 = d1new.reached ? await driveTest(page, F, 's1-A-d1-new') : { outcome: 'not-reached' };
     out.steps.day1 = { reached: d1new.reached, outcome: d1.outcome };
     console.log(`  Day1 A: reached=${d1new.reached} outcome=${d1.outcome}`);
+    // Day 1 = session-final completion → return from the test-results screen to CompletePhase and click
+    // "Back to Dashboard" (clears session_states) so Day 2 doesn't inherit phase=complete. (Codex D2F-3)
+    if (d1.outcome === 'results') await returnFromResultsAndClearCompletion(page, F, 's1-A-d1').catch(() => {});
   }
 
   // ── STEP 2: Day 2 in A — pass new, advance to review-study, LEAVE before review ──
@@ -128,23 +135,38 @@ try {
     await leaveSessionViaQuit(page, F, 's1-A-d2-leave');
   }
 
-  // ── STEP 3: switch to B, complete the Day-2 review; MUST NOT hit the retake gate ──
+  // ── STEP 3: switch to B, ENTER the session, complete the Day-2 review; MUST NOT hit the retake gate ──
+  // RB-1 (Codex): B's cross-class Phase-1 dashboard shows "Start new words / Start Session" (B has no
+  // class-local progress → renders Day-1), NOT a "Review" CTA. ENTERING reconciles the list-wide position and
+  // routes to review-study. So enter-then-observe, don't look for a dashboard "Review" button.
   if (liveOk) {
     await dashReady(classBName);
-    const rev = await driveReviewToTest(page, F, 's1-B-review');
-    const revOut = rev.reached ? await driveTest(page, F, 's1-B-review') : { outcome: 'not-reached' };
-    out.steps.reviewInB = { reached: rev.reached, outcome: revOut.outcome };
-    console.log(`  Review B: reached=${rev.reached} outcome=${revOut.outcome}`);
+    const entered = await enterSessionOnly(page, F, 's1-B-enter');
+    const reviewStudy = await page.getByText(/review study|복습/i).first().isVisible().catch(() => false);
+    const newWordsOnly = await page.getByText(/learn \d+ new words|new words study/i).first().isVisible().catch(() => false);
+    const toTest = entered.entered ? await skipToTest(page, F, 's1-B-review') : false;
+    const revOut = toTest ? await driveTest(page, F, 's1-B-review') : { outcome: 'not-reached' };
+    out.steps.reviewInB = { entered: entered.entered, reviewStudy, newWordsOnly, reached: toTest, outcome: revOut.outcome };
+    console.log(`  Review B: entered=${entered.entered} reviewStudy=${reviewStudy} reached=${toTest} outcome=${revOut.outcome}`);
+    // Diagnostic only (Codex RB-2 note): the "Review Study" text is brittle — the DATA oracle (bRange_ok:
+    // a B review attempt for day 2 at the right range) is the real gate for "B served the review, not new".
+    if (newWordsOnly && !reviewStudy) F.add('note-b-newwords', 'B entry showed new-words text, not "Review Study" (diagnostic; oracle bRange_ok gates)');
     if (revOut.outcome === 'retake-gate') F.add('BUG9-retake', 'B review completion forced a new-word retake gate');
   }
 
-  // ── STEP 4: re-enter A, assert no retake/re-review prompt (A/B convergence) ──
+  // ── STEP 4: re-enter A, ENTER the session (triggers reconciliation: A should recognize the Day-2 review
+  // done in B → converge to csd=2, NO re-review/retake). A dashboard-only check is misleading under Phase-1
+  // class-keyed display (Codex), so enter and observe the in-session phase. ──
   if (liveOk) {
     await dashReady(classAName);
+    const entered = await enterSessionOnly(page, F, 's1-A-reenter');
+    if (!entered.entered) F.add('fail', 'A re-entry did not reach an in-session screen (RB-2 — Step 4 UI path unproven)');
     const retakeInA = await page.getByText(/이 날을 완료하려면|Day not complete|pass the new-word test/i).first().isVisible().catch(() => false);
-    out.steps.reenterA = { retakePrompt: retakeInA };
-    console.log(`  Re-enter A: retakePrompt=${retakeInA}`);
+    const reReviewDay2 = await page.getByText(/review study.*day\s*2|day\s*2.*review study/i).first().isVisible().catch(() => false);
+    out.steps.reenterA = { entered: entered.entered, retakePrompt: retakeInA, reReviewDay2 };
+    console.log(`  Re-enter A: entered=${entered.entered} retakePrompt=${retakeInA} reReviewDay2=${reReviewDay2}`);
     if (retakeInA) F.add('BUG9-Astale', 'A re-entry shows a retake/re-review prompt (A/B divergence)');
+    if (reReviewDay2) F.add('BUG9-Areview', 'A re-entry re-serves the Day-2 review already completed in B');
   }
 } catch (e) {
   F.add('exception', String(e).slice(0, 300)); liveOk = false;
@@ -178,11 +200,24 @@ if (uid && aId && bId) {
 }
 
 const findings = F.raw || [];
-const bugFindings = findings.filter((x) => /BUG9|verify-fail|exception|fail/i.test(x.kind || ''));
+// Benign Firestore realtime-channel teardown (Listen/Write channel ERR_ABORTED) surfaces as `request-failed`.
+// The old bare /fail/ matched the substring in "request-FAILed" → 14 benign aborts FAILed a clean acceptance
+// (r6: oracle all-green). Allowlist those (matches lsr_runSL_phase1/overlay isAllowedRequestFailure) and
+// anchor the fatal kinds so "request-failed" no longer matches on the "fail" substring.
+const isAllowedReqFail = (d = '') => /firestore\.googleapis\.com/i.test(d) && /(Listen|Write)\/channel/i.test(d) && /ERR_ABORTED/i.test(d);
+const bugFindings = findings.filter((x) => {
+  const k = x.kind || '';
+  if (k === 'request-failed') return !isAllowedReqFail(x.detail || '');
+  return /^(BUG9|verify-fail|exception|fail|login-failed|modal-dead)/i.test(k);
+});
 const o = out.oracle;
 const oracleClean = o && o.A_csd_ok && o.A_twi_ok && o.B_csd_ok && o.B_twi_ok && o.bRange_ok;
-const noRetake = out.steps.reviewInB?.outcome !== 'retake-gate' && !out.steps.reenterA?.retakePrompt;
-out.verdict = (liveOk && oracleClean && noRetake && bugFindings.length === 0) ? 'PASS'
+// RB-2 (Codex): the UI paths must be PROVEN, not merely diagnostic — else a silently-failed A re-entry could
+// PASS on B's data alone. Gate on the actual actions/results; the data oracle stays the primary teeth.
+const bReviewDriven = out.steps.reviewInB?.entered === true && out.steps.reviewInB?.reached === true && out.steps.reviewInB?.outcome === 'results';
+const aReentryClean = out.steps.reenterA?.entered === true && !out.steps.reenterA?.retakePrompt && !out.steps.reenterA?.reReviewDay2;
+const noRetake = out.steps.reviewInB?.outcome !== 'retake-gate';
+out.verdict = (liveOk && oracleClean && bReviewDriven && aReentryClean && noRetake && bugFindings.length === 0) ? 'PASS'
   : (!liveOk ? 'INVALID (flow incomplete)' : 'FAIL');
 out.findings = findings;
 

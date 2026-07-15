@@ -1,0 +1,54 @@
+{
+  "email": "kimms090206@gmail.com",
+  "uid": "dbKzROX2yndiauRRHzcirntRhvG2",
+  "cp": "Nys1FfB9Pkl1iyO5FYhx_AObYOowhLoOOHx9wW2Sq",
+  "before": {
+    "csd": 8,
+    "twi": 640,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "day": 6,
+        "segmentEndIndex": 61,
+        "date": {
+          "_seconds": 1783920037,
+          "_nanoseconds": 38000000
+        },
+        "reviewScore": 0.13333333333333333,
+        "newWordScore": 0.93,
+        "wordsTested": 30,
+        "wordsIntroduced": 80,
+        "segmentStartIndex": 0,
+        "wordsReviewed": 60
+      },
+      {
+        "segmentStartIndex": 103,
+        "wordsReviewed": 60,
+        "newWordScore": 0.97,
+        "wordsTested": 30,
+        "wordsIntroduced": 80,
+        "reviewScore": 0.13333333333333333,
+        "date": {
+          "_seconds": 1784014738,
+          "_nanoseconds": 74000000
+        },
+        "day": 7,
+        "segmentEndIndex": 173
+      },
+      {
+        "day": 8,
+        "date": {
+          "_seconds": 1784092444,
+          "_nanoseconds": 303000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.2,
+        "segmentStartIndex": 242,
+        "segmentEndIndex": 315,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

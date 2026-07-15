@@ -1,0 +1,791 @@
+diff --git a/functions/foundation.js b/functions/foundation.js
+index a0bea73..f5027e4 100644
+--- a/functions/foundation.js
++++ b/functions/foundation.js
+@@ -96,6 +96,16 @@ const SERVER_REVIEW_CHALLENGE_ENABLED = false;
+ // mirroring scripts/cs/manual-pass.mjs). Flipped at the P10 cutover with SERVER_OVERRIDE.
+ // Disabled ⇒ `failed-precondition`, no reads/writes. DORMANT at merge (P3 draft rule).
+ const SERVER_OVERRIDE_ENABLED = false;
++// deepfix P10 · OVR part (c) — the SERVER half of the C-19 read-surface widening (David
++// U1 = Option A `teacherIds` denormalization). Gates the ADDITIVE `teacherIds`-array
++// write-stamp on the SERVER attempt-write paths (writeAttemptTxn [index.js],
++// writeUpgradedReviewMarker, overrideAttempt, reviewChallenge). Mirrors the CLIENT flag
++// TEACHER_IDS_READ (src/config/featureFlags.js) which gates the widened gradebook READ
++// query + the client attempt-write stamp; the two flip TOGETHER at the P10c cutover.
++// Disabled ⇒ computeTeacherIdsForAttempt() short-circuits to null with ZERO reads and NO
++// `teacherIds` field is written ⇒ every server attempt doc is byte-identical to today.
++// DORMANT at merge (P3 draft rule).
++const TEACHER_IDS_WRITE_ENABLED = false;
+ 
+ // Exported for the `version` provenance probe (index.js) so the I-5 G1
+ // flag-assertion table can assert these on every deploy.
+@@ -110,6 +120,7 @@ const FOUNDATION_FLAGS = {
+   CYCLING_ENABLED,
+   SERVER_REVIEW_CHALLENGE_ENABLED,
+   SERVER_OVERRIDE_ENABLED,
++  TEACHER_IDS_WRITE_ENABLED,
+ };
+ 
+ // ============================================================================
+@@ -783,9 +794,14 @@ async function writeUpgradedReviewMarker(uid, classId, listId, dayNumber, teache
+       userId: uid, classId, listId, dayNumber,
+     });
+   }
++  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (dormant unless
++  // TEACHER_IDS_WRITE_ENABLED). Null when the flag is off ⇒ the field is omitted ⇒ the
++  // marker doc is byte-identical to today.
++  const teacherIds = await computeTeacherIdsForAttempt({studentId: uid, listId, stampTeacherId: teacherId});
+   await ref.set({
+     studentId: uid,
+     teacherId: teacherId ?? null,
++    ...(teacherIds ? {teacherIds} : {}),
+     classId,
+     listId,
+     // C-34: parseable testId (new-format regex + resetStudentProgress's
+@@ -1832,6 +1848,58 @@ async function assertOverrideTargetAuthz(callerId, {studentId, classId, listId})
+   return {via: "target", classData};
+ }
+ 
++/**
++ * [deepfix P10 · OVR part (c) / David U1 = Option A] Compute the additive `teacherIds`
++ * denormalization array for an attempt — the SET the teacher gradebook `array-contains`
++ * query should match (the C-19 read-surface widening). Definition, kept IN SYNC with the
++ * client (db.js computeTeacherIdsClient) and the backfill migration
++ * (scripts/cs/deepfix-migrate-attempts-teacherids.mjs):
++ *
++ *   teacherIds = { stampTeacherId (if set) }
++ *              UNION { classes/{c}.ownerTeacherId : the student is CURRENTLY enrolled in c
++ *                      AND c assigns the attempt's listId }
++ *
++ * i.e. the teacher-of-record STAMP unioned with the current-enrollment owners "for that
++ * list". Deliberately LIST-SCOPED (owner of an enrolled class that ASSIGNS the list), which
++ * is TIGHTER than the broad "owns ANY enrolled class" union of assertOverrideAuthz — see
++ * P10c_impl_notes U1/U-membership for the narrowing rationale and the open question.
++ *
++ * STRICT DORMANCY: returns null immediately (ZERO reads) when TEACHER_IDS_WRITE_ENABLED is
++ * false, so callers add NO `teacherIds` field ⇒ the written attempt doc is byte-identical to
++ * today. Best-effort: any read error falls back to the stamp-only set and NEVER throws — the
++ * field is additive/denormalized, never correctness-bearing for the attempt write.
++ *
++ * @param {{studentId:string, listId?:(string|null), stampTeacherId?:(string|null)}} p
++ * @returns {Promise<(string[]|null)>} sorted unique ids, or null when the flag is off
++ */
++async function computeTeacherIdsForAttempt({studentId, listId, stampTeacherId}) {
++  if (!TEACHER_IDS_WRITE_ENABLED) return null; // strict dormancy: no reads, no field written
++  const db = getDb();
++  const ids = new Set();
++  if (stampTeacherId) ids.add(stampTeacherId);
++  try {
++    if (studentId) {
++      const studentSnap = await db.doc(`users/${studentId}`).get();
++      const enrolled = studentSnap.exists ?
++        Object.keys(studentSnap.data().enrolledClasses || {}) : [];
++      for (const classId of enrolled) {
++        const classSnap = await db.doc(`classes/${classId}`).get();
++        if (!classSnap.exists) continue;
++        const c = classSnap.data() || {};
++        const assignsList = listId != null && (
++          (c.assignments && c.assignments[listId]) ||
++          (Array.isArray(c.assignedLists) && c.assignedLists.includes(listId))
++        );
++        if (assignsList && c.ownerTeacherId) ids.add(c.ownerTeacherId);
++      }
++    }
++  } catch (err) {
++    logger.warn("computeTeacherIdsForAttempt read failed (stamp-only set used)",
++      {studentId, listId, error: err.message});
++  }
++  return [...ids].sort();
++}
++
+ // ============================================================================
+ // 9 · advanceForChallenge — the 3rd twi writer's day-advance, server-side
+ //     (FIX_PLAN P3 change 9; v3 F5-HIGH-2; I-6 §3 row 8)
+@@ -2049,7 +2117,17 @@ const reviewChallenge = onCall({enforceAppCheck: false}, async (request) => {
+   const newPassed = attempt.sessionType === "review" ? true : newScore >= passThreshold;
+ 
+   // Persist the attempt update (db.js:2804-2808).
+-  await attemptRef.update({answers: updatedAnswers, score: newScore, passed: newPassed});
++  // [deepfix P10 · OVR part (c)] Additively RE-STAMP the teacherIds set so a teacher who acted
++  // on an INHERITED (A-stamped) attempt persists in the read surface even if the attempt
++  // pre-dates the backfill (dormant unless TEACHER_IDS_WRITE_ENABLED). arrayUnion is additive —
++  // it never removes an existing member and creates the field if absent; null/empty ⇒ the
++  // update payload is byte-identical to today. See P10c_impl_notes U-restamp.
++  const reviewTeacherIds = await computeTeacherIdsForAttempt({studentId: attempt.studentId, listId: attempt.listId ?? null, stampTeacherId: attempt.teacherId});
++  await attemptRef.update({
++    answers: updatedAnswers, score: newScore, passed: newPassed,
++    ...(reviewTeacherIds && reviewTeacherIds.length ?
++      {teacherIds: admin.firestore.FieldValue.arrayUnion(...reviewTeacherIds)} : {}),
++  });
+ 
+   // challenges.history + study_states PASSED (db.js:2810-2843).
+   const studentId = attempt.studentId;
+@@ -2219,8 +2297,12 @@ const overrideAttempt = onCall({enforceAppCheck: false}, async (request) => {
+   const passThreshold = assignment?.passThreshold ?? 92;
+   const passed = score >= passThreshold;
+   const docId = `${tStudentId}_${tClassId}_${tListId}_day${tStudyDay}_typed_new_manual`;
++  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization on the fresh anchor
++  // (dormant unless TEACHER_IDS_WRITE_ENABLED). Null ⇒ field omitted ⇒ byte-identical anchor.
++  const anchorTeacherIds = await computeTeacherIdsForAttempt({studentId: tStudentId, listId: tListId, stampTeacherId: teacherId});
+   const anchor = {
+     studentId: tStudentId, classId: tClassId, listId: tListId, teacherId,
++    ...(anchorTeacherIds ? {teacherIds: anchorTeacherIds} : {}),
+     testId: `vocaboost_test_${tClassId}_${tListId}_new`,
+     sessionType: "new", testType: "typed", studyDay: tStudyDay,
+     score, passed, graded: true,
+@@ -2279,5 +2361,8 @@ module.exports = {
+   validateAttemptAnchorShadow,
+   writeUpgradedReviewMarker,
+   deriveDayAnchorRange,
++  // deepfix P10 · OVR part (c) — the teacherIds denormalization helper (dormant unless
++  // TEACHER_IDS_WRITE_ENABLED); consumed by writeAttemptTxn in index.js.
++  computeTeacherIdsForAttempt,
+   FOUNDATION_FLAGS,
+ };
+diff --git a/functions/index.js b/functions/index.js
+index 5ee2bc6..0c56bbf 100644
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -419,6 +419,13 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
+       "Typed grade write requires server-graded provenance (correctnessSource:'server-ai').");
+   }
+ 
++  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (the C-19 read-surface
++  // widening). Computed PRE-transaction — it is a denormalized/best-effort field, NOT a
++  // transactional read. Null when TEACHER_IDS_WRITE_ENABLED is off (ZERO reads) ⇒ no field is
++  // added below ⇒ the written attempt doc is byte-identical to today.
++  const teacherIds = await foundation.computeTeacherIdsForAttempt(
++    {studentId: uid, listId: ctx.listId, stampTeacherId: teacherId});
++
+   const ref = db.collection("attempts").doc(ctx.attemptDocId);
+   return db.runTransaction(async (tx) => {
+     const existing = await tx.get(ref);
+@@ -446,6 +453,7 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
+       classId: ctx.classId,
+       listId: ctx.listId,
+       teacherId,
++      ...(teacherIds ? {teacherIds} : {}), // [P10c] additive; omitted when the flag is off
+       // Echoed session context (anchor + display) — same fields db.js submit*Attempt flattens.
+       isFirstDay: ctx.isFirstDay ?? null,
+       listTitle: ctx.listTitle ?? null,
+diff --git a/src/services/db.js b/src/services/db.js
+index 9215284..3f60b12 100644
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -22,7 +22,7 @@ import {
+ } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db, auth } from '../firebase'
+-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE } from '../config/featureFlags'
++import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
+ // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
+@@ -1183,6 +1183,42 @@ export const calculateCredibility = (answers, userWordStates) => {
+   return correctCount / answers.length
+ }
+ 
++/**
++ * [deepfix P10 · OVR part (c) / David U1 = Option A] CLIENT twin of the server
++ * foundation.computeTeacherIdsForAttempt — the additive `teacherIds` denormalization set the
++ * teacher gradebook `array-contains` query matches (the C-19 read-surface widening). KEEP IN
++ * SYNC with functions/foundation.js computeTeacherIdsForAttempt and the backfill migration
++ * scripts/cs/deepfix-migrate-attempts-teacherids.mjs:
++ *   teacherIds = { stampTeacherId (if set) }
++ *              ∪ { classes/{c}.ownerTeacherId : student CURRENTLY enrolled in c AND c assigns listId }
++ * List-scoped (owner of an enrolled class that ASSIGNS the list). Best-effort: read errors
++ * fall back to the stamp-only set (never throws — the field is additive/denormalized). Callers
++ * gate on TEACHER_IDS_READ, so this runs ONLY when the flag is on (byte-equivalent when off).
++ */
++const computeTeacherIdsClient = async ({ studentId, listId, stampTeacherId }) => {
++  const ids = new Set()
++  if (stampTeacherId) ids.add(stampTeacherId)
++  try {
++    if (studentId) {
++      const studentSnap = await getDoc(doc(db, 'users', studentId))
++      const enrolled = studentSnap.exists() ? Object.keys(studentSnap.data().enrolledClasses || {}) : []
++      for (const classId of enrolled) {
++        const classSnap = await getDoc(doc(db, 'classes', classId))
++        if (!classSnap.exists()) continue
++        const c = classSnap.data() || {}
++        const assignsList = listId != null && (
++          (c.assignments && c.assignments[listId]) ||
++          (Array.isArray(c.assignedLists) && c.assignedLists.includes(listId))
++        )
++        if (assignsList && c.ownerTeacherId) ids.add(c.ownerTeacherId)
++      }
++    }
++  } catch (err) {
++    console.error('computeTeacherIdsClient failed (stamp-only set used):', err)
++  }
++  return [...ids].sort()
++}
++
+ /**
+  * Submit an MCQ test attempt and create a gradebook entry.
+  * This creates an attempt document in the 'attempts' collection for teacher visibility.
+@@ -1282,6 +1318,13 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions
+     attemptData.teacherId = teacherId
+   }
+ 
++  // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (the C-19 read-surface
++  // widening). Dormant unless TEACHER_IDS_READ — the field is NOT set when the flag is off, so
++  // the attempt doc is byte-identical to today.
++  if (TEACHER_IDS_READ) {
++    attemptData.teacherIds = await computeTeacherIdsClient({ studentId: userId, listId, stampTeacherId: teacherId })
++  }
++
+   // Use deterministic doc id when caller supplies one — makes withRetry safe.
+   // setDoc on the same id is an idempotent overwrite of identical data.
+   const attemptsCol = collection(db, 'attempts')
+@@ -1435,6 +1478,12 @@ export const submitTypedTestAttempt = async (
+       newWordEndIndex: sessionContext?.newWordEndIndex ?? null,
+     }
+ 
++    // [deepfix P10 · OVR part (c)] Additive teacherIds denormalization (dormant unless
++    // TEACHER_IDS_READ). Field omitted when the flag is off ⇒ byte-identical attempt doc.
++    if (TEACHER_IDS_READ) {
++      attemptData.teacherIds = await computeTeacherIdsClient({ studentId: userId, listId, stampTeacherId: teacherId })
++    }
++
+     console.log('Saving attempt document:', attemptData)
+ 
+     // Use deterministic doc id when caller supplies one — see submitTestAttempt.
+@@ -1823,6 +1872,10 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+ // Cache for teacher data to avoid re-fetching on every filter change
+ const teacherDataCache = new Map()
+ const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
++// [deepfix P10 · OVR part (c)] Cap on the union-roster (ex-roster / inherited-attempt) scan
++// used only when TEACHER_IDS_READ is on (see getTeacherData). Bounds the extra read on very
++// large teachers; the scan is cached with the rest of getTeacherData (CACHE_TTL).
++const EX_ROSTER_SCAN_LIMIT = 2000
+ 
+ /**
+  * Get cached or fresh teacher data (classes, students, lists)
+@@ -1881,6 +1934,45 @@ async function getTeacherData(teacherId) {
+     }
+   }
+ 
++  // [deepfix P10 · OVR part (c)] Union-roster augmentation for the C-19 ex-roster name filter.
++  // Under TEACHER_IDS_READ the gradebook surfaces INHERITED attempts of students promoted OFF
++  // this teacher's current roster, whose names are absent from the current-member maps built
++  // above — so a Name filter on such a student resolves to [] and hits the hard-empty guard in
++  // queryTeacherAttempts (zero rows returned). Resolve those names too: scan the teacher's
++  // `teacherIds array-contains` attempts for studentIds NOT in the current roster and hydrate
++  // their display names into the same maps. Bounded (EX_ROSTER_SCAN_LIMIT) + cached with the
++  // rest of getTeacherData. Flag OFF ⇒ this block is skipped entirely ⇒ getTeacherData is
++  // byte-identical to today (no extra reads). See P10c_impl_notes U6 (chicken/egg + cost).
++  if (TEACHER_IDS_READ) {
++    try {
++      const inheritedSnap = await getDocs(query(
++        collection(db, 'attempts'),
++        where('teacherIds', 'array-contains', teacherId),
++        orderBy('submittedAt', 'desc'),
++        limit(EX_ROSTER_SCAN_LIMIT),
++      ))
++      const exRosterIds = new Set()
++      inheritedSnap.docs.forEach((d) => {
++        const sid = d.data().studentId
++        if (sid && !studentIdSet.has(sid)) exRosterIds.add(sid)
++      })
++      for (const sid of exRosterIds) {
++        try {
++          const uDoc = await getDoc(doc(db, 'users', sid))
++          const u = uDoc.exists() ? uDoc.data() : {}
++          const name = u.displayName || u.profile?.displayName || u.email || 'Unknown Student'
++          studentIdSet.add(sid)
++          studentIdToNameMap.set(sid, name)
++          studentNameToIdMap.set(name.toLowerCase(), sid)
++        } catch (e) {
++          console.error(`ex-roster name hydrate failed for ${sid}:`, e)
++        }
++      }
++    } catch (err) {
++      console.error('ex-roster union-roster scan failed (name filter falls back to current members):', err)
++    }
++  }
++
+   // Get teacher's lists for list filter
+   const teacherLists = await fetchTeacherLists(teacherId)
+   const listIdToNameMap = new Map()
+@@ -1971,10 +2063,20 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+   return { attempts: [], lastVisible: null, hasMore: false }
+ }
+ 
+-  // Build query - start with teacherId (single query, no batching!)
++  // Build query - start with the teacher predicate (single query, no batching!).
++  // [deepfix P10 · OVR part (c)] C-19 read-surface WIDENING (David U1 = Option A): with
++  // TEACHER_IDS_READ on, the base predicate widens from `teacherId ==` (equality — can NEVER
++  // show B's teacher an A-stamped inherited attempt) to `teacherIds array-contains` (sees
++  // inherited attempts of a promoted student). This does NOT change the <=30 DNF disjunction
++  // budget shared with the C-33 studentId push below: array-contains matches a single value,
++  // contributing a factor of 1 to the DNF product (the class/student `in` disjuncts still
++  // multiply exactly as today — see P10c_impl_notes). Flag OFF ⇒ today's `teacherId ==` query
++  // verbatim (byte-equivalent; needs no new index).
+   let attemptsQuery = query(
+     collection(db, 'attempts'),
+-    where('teacherId', '==', teacherId),
++    TEACHER_IDS_READ
++      ? where('teacherIds', 'array-contains', teacherId)
++      : where('teacherId', '==', teacherId),
+     orderBy('submittedAt', 'desc')
+   )
+ 
+diff --git a/src/config/featureFlags.js b/src/config/featureFlags.js
+index df3e54a..a983aac 100644
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -133,3 +133,35 @@ export const SERVER_RESET_PROGRESS = false;
+ // (an orphaned attempt is not yet VISIBLE to attach the action to). Default OFF —
+ // flag-off behavior is byte-equivalent to today (Run-L discipline).
+ export const SERVER_OVERRIDE = false;
++
++// TEACHER_IDS_READ (deepfix P10 · OVR part (c) — the C-19 read-surface WIDENING, FIX_PLAN
++// P10 read-surface leg / I-10 §3-4; David decision U1 = Option A `teacherIds`-array
++// denormalization + reindex). The CLIENT gate for the "a promoted student's old-teacher-
++// stamped attempts must show in the new teacher's gradebook" fix. Three CLIENT things ride
++// this flag (all byte-equivalent when OFF):
++//   (1) the teacher gradebook query (db.js queryTeacherAttempts) widens from the base
++//       `where('teacherId','==',uid)` equality to `where('teacherIds','array-contains',uid)`
++//       so an inherited (A-stamped) attempt of a student now enrolled with teacher B is
++//       VISIBLE to B. The already-shipped C-33 studentId server-filter + class filter +
++//       pagination are preserved, and the <=30 DNF disjunction budget is UNCHANGED
++//       (array-contains contributes a factor of 1 — see P10c_impl_notes disjunction-budget).
++//   (2) the ex-roster name filter (db.js getTeacherData) resolves student names against a
++//       UNION roster (current members plus students appearing on the teacher's inherited
++//       attempts) so a promoted student's name no longer hard-empty-returns the gradebook.
++//   (3) the CLIENT attempt-write stamp (db.js submitTestAttempt / submitTypedTestAttempt)
++//       writes the additive `teacherIds` array on NEW attempts. (The SERVER write paths are
++//       gated by the mirrored server flag TEACHER_IDS_WRITE_ENABLED in
++//       functions/foundation.js FOUNDATION_FLAGS — the two flip TOGETHER at the P10c cutover.)
++// DEPLOY ORDER (critical, mirrors the C-33 index precedent): the NEW `teacherIds` composite
++// indexes (firestore.indexes.json) must be `--only firestore:indexes` deployed AND the one-
++// time `--dry`->`--commit` backfill (scripts/cs/deepfix-migrate-attempts-teacherids.mjs) run
++// BEFORE this flips true — a flag-on array-contains query without the index (or against
++// un-backfilled attempts) returns a query-error / empty. The additive attempts READ-rule
++// clause (firestore.rules — a teacher listed in `teacherIds` may read) IS in this (c) draft
++// [Codex P10c-1] and MUST be deployed before this flips (I-10 §4 query-vs-rules same-release);
++// only the rules NARROWING stays in part (d). Flips TRUE only at the P10c cutover (David),
++// after the P3-P10(a/b)
++// foundation soak. Roll back = flip false + rebuild (the `teacherId==` path is still legal;
++// the denormalized field is additive and harmless when unread). Default OFF — flag-off
++// behavior is byte-equivalent to today (Run-L discipline). DORMANT at merge (P3 draft rule).
++export const TEACHER_IDS_READ = false;
+diff --git a/firestore.rules b/firestore.rules
+index 9d93ff8..37fac34 100755
+--- a/firestore.rules
++++ b/firestore.rules
+@@ -23,6 +23,13 @@ rules_version = '2';
+ // holds only until P7 deletes legacy docs.
+ // Note (P6(d)): M4 anchor shadow→ENFORCE is a SERVER flag flip
+ // (functions/foundation.js ANCHOR_VALIDATION_ENFORCE), not a rules change.
++// Note (P10c): the attempts read rule carries ONE additive P10c clause — a teacher in an
++// attempt's denormalized `teacherIds` array may read it (the C-19 read-surface widening; see
++// the `match /attempts` read rule). It is additive/safe-anytime (inert until the teacherIds
++// backfill + TEACHER_IDS_WRITE_ENABLED land) but its DEPLOY-ORDER INVARIANT binds: it must be
++// deployed BEFORE/WITH the client TEACHER_IDS_READ flip (I-10 §4 query-vs-rules same-release).
++// P10c adds NO narrowing — the isTeacher()→isOwner teacher-breadth narrowing, the attempts
++// teacher-UPDATE narrowing, and the custom-claim role work are all part (d) (a separate draft).
+ // ============================================================================
+ 
+ service cloud.firestore {
+@@ -165,11 +172,25 @@ service cloud.firestore {
+     // + the P4 SERVER_RESET_PROGRESS cutover ship first ([C5-5]). See the file
+     // header for the hard deploy preconditions.
+     match /attempts/{attemptId} {
+-      // Unchanged: student-of-record + teacher-of-record read (the C-19 stamp
+-      // model; widening teacher reads is P10's work, not P6's).
++      // student-of-record + teacher-of-record read (the C-19 stamp model), PLUS
++      // the P10c read-surface WIDENING (below).
++      // [deepfix P10 · OVR part (c)] C-19 read-surface WIDENING (David U1 = Option A). Third OR
++      // clause: a teacher listed in the attempt's denormalized `teacherIds` array may read it —
++      // so B's teacher sees a promoted student's A-stamped INHERITED attempt (the gradebook
++      // query in db.js queryTeacherAttempts widens to `array-contains` under TEACHER_IDS_READ;
++      // I-10 §4 makes the query change + this read-rule change ONE release). Pure ADDITIVE read
++      // WIDENING: it grants EXACTLY `uid ∈ teacherIds` and nothing else. Safe to deploy at ANY
++      // time — pre-backfill NO attempt carries `teacherIds`, so the `'teacherIds' in
++      // resource.data` existence guard (house idiom, cf. the role guard ~:72) short-circuits the
++      // membership check and the clause matches NOTHING until the write-flag + backfill land ⇒
++      // no behavior change until cutover. DEPLOY-ORDER INVARIANT: this rule MUST be deployed
++      // BEFORE/WITH the TEACHER_IDS_READ flag flip (a query-only widen would hit this backstop).
++      // NARROWING (isTeacher()→isOwner teacher-breadth, the attempts teacher-UPDATE branch,
++      // study_states, custom-claim) is part (d) — NOT here.
+       allow read: if isAuthenticated() && (
+         resource.data.studentId == request.auth.uid ||
+-        resource.data.teacherId == request.auth.uid
++        resource.data.teacherId == request.auth.uid ||
++        ('teacherIds' in resource.data && request.auth.uid in resource.data.teacherIds)
+       );
+ 
+       // Server-only create (C-29/#1c): attempts are written by the callables
+diff --git a/firestore.indexes.json b/firestore.indexes.json
+index a31dbc5..440f915 100755
+--- a/firestore.indexes.json
++++ b/firestore.indexes.json
+@@ -868,6 +868,78 @@
+           "order": "DESCENDING"
+         }
+       ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherIds",
++          "arrayConfig": "CONTAINS"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherIds",
++          "arrayConfig": "CONTAINS"
++        },
++        {
++          "fieldPath": "classId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherIds",
++          "arrayConfig": "CONTAINS"
++        },
++        {
++          "fieldPath": "studentId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherIds",
++          "arrayConfig": "CONTAINS"
++        },
++        {
++          "fieldPath": "classId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "studentId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
+     }
+   ],
+   "fieldOverrides": []
+diff --git a/scripts/cs/deepfix-migrate-attempts-teacherids.mjs b/scripts/cs/deepfix-migrate-attempts-teacherids.mjs
+new file mode 100644
+index 0000000..64caa47
+--- /dev/null
++++ b/scripts/cs/deepfix-migrate-attempts-teacherids.mjs
+@@ -0,0 +1,282 @@
++/**
++ * P10c · OVR — attempts `teacherIds` backfill (the C-19 read-surface reindex) — DRAFT
++ * =====================================================================================
++ * David decision U1 = Option A: denormalize the authorized-teacher set onto each attempt as
++ * a `teacherIds` array so the teacher gradebook can `where('teacherIds','array-contains',uid)`
++ * and SEE inherited (old-teacher-stamped) attempts of a promoted student (FIX_PLAN P10
++ * read-surface leg / I-10 §3-4; P10_IMPL_PLAN §1(c) / U1). This is the ONE-TIME backfill of
++ * the EXISTING `attempts` collection; the going-forward stamp lives on the write paths
++ * (writeAttemptTxn / writeUpgradedReviewMarker / overrideAttempt / reviewChallenge — server,
++ * flag TEACHER_IDS_WRITE_ENABLED; submitTestAttempt / submitTypedTestAttempt — client, flag
++ * TEACHER_IDS_READ).
++ *
++ * THE MEMBERSHIP SET (kept IN SYNC with functions/foundation.js computeTeacherIdsForAttempt
++ * and src/services/db.js computeTeacherIdsClient — same definition in all three):
++ *   teacherIds = { attempt.teacherId (the write-time STAMP, if set) }
++ *              ∪ { classes/{c}.ownerTeacherId : the student is CURRENTLY enrolled in c
++ *                  AND c assigns the attempt's listId (assignments[listId] OR legacy
++ *                  assignedLists) }
++ *   listId = attempt.listId, else parsed from a canonical/legacy testId (gradebook parse
++ *            parity, db.js queryTeacherAttempts). List-scoped (NOT the broad "owns any
++ *            enrolled class" union of assertOverrideAuthz) — see P10c_impl_notes U1.
++ *
++ * STATUS: DRAFT — `--dry` ONLY until David authorizes. A `--commit` run is a CS EVENT
++ *   (SUPPORT_RUNBOOK CS entry + change_action_log row + OFF-PEAK window). This script is a
++ *   DERIVED/VERIFIED writer: it only ever writes the COMPUTED union onto `teacherIds`
++ *   (additive — never removes a member) + a `teacherIdsBackfilledAt` idempotency stamp; it
++ *   flips NO flags and touches NO other field. The client flag TEACHER_IDS_READ / server flag
++ *   TEACHER_IDS_WRITE_ENABLED cutover is a SEPARATE, David-run step. Deploy the new
++ *   `teacherIds` composite indexes (firestore.indexes.json) FIRST (like the C-33 precedent).
++ *
++ * IDEMPOTENCY / CONFLICT RULES (P5 parity):
++ *   - Re-runnable: teacherIds is written as the UNION(existing teacherIds, computed set), so a
++ *     re-run is stable and NEVER demotes an existing member (a flag-on live write-stamp or a
++ *     prior backfill only ADDS). `teacherIdsBackfilledAt` marks a processed doc.
++ *   - SKIP a doc iff it already carries `teacherIdsBackfilledAt` AND its existing teacherIds is
++ *     already a superset of the freshly computed set (nothing to add) — cheap re-run.
++ *   - A doc whose computed set == existing teacherIds but has NO stamp yet (backfilledAt absent)
++ *     is still stamped (backfilledAt written) so the idempotency mark is complete.
++ *   - Backups (before value of teacherId + teacherIds) are written per batch BEFORE any write.
++ *
++ * USAGE (from /app; reads scripts/serviceAccountKey.json — gitignored, never commit):
++ *   NODE_PATH=/app/node_modules node scripts/cs/deepfix-migrate-attempts-teacherids.mjs [cohortRegex=26SM] [flags]
++ *     --dry                     default; NO Firestore writes (write guard throws). Writes a
++ *                               local plan/report to dsg-edits/srv_validate/ (local only).
++ *     --commit --confirm-teacherids=<cohortRegex>
++ *                               guarded writes; the confirm value MUST equal the active cohort
++ *                               regex (or ALL with --all). Backups written first, per batch.
++ *     --all                     no cohort filter (EXT scope needs David's decision).
++ *     --limit=N                 process only the first N in-scope attempts (dry sampling).
++ *     --uid=<studentId>         restrict to one student (debug).
++ *     --backup                  also write local backup files during --dry.
++ *   25WT REHEARSAL FIRST (idempotent re-run check).
++ */
++import admin from 'firebase-admin';
++import { readFileSync, writeFileSync, mkdirSync } from 'fs';
++
++// ───────────────────────────── args + mode guards ─────────────────────────────
++const argv = process.argv.slice(2);
++const positional = argv.filter((a) => !a.startsWith('--'));
++const opt = new Map(argv.filter((a) => a.startsWith('--')).map((a) => {
++  const i = a.indexOf('='); return i === -1 ? [a.slice(2), true] : [a.slice(2, i), a.slice(i + 1)];
++}));
++const ALL = opt.has('all');
++const COHORT_RE = ALL ? null : new RegExp(positional[0] || '26SM', 'i');
++const COHORT_LABEL = ALL ? 'ALL' : COHORT_RE.source;
++const MODE = opt.has('commit') ? 'commit' : 'dry';
++const LIMIT = opt.has('limit') ? Number(opt.get('limit')) : null;
++const ONLY_UID = opt.get('uid') || null;
++const DRY_BACKUP = opt.has('backup');
++const BK_DIR = '/app/dsg-edits/srv_validate/teacherids_backups';
++const OUT_DIR = opt.get('out-dir') || '/app/dsg-edits/srv_validate';
++const MIGRATION_VERSION = 'P10c-TEACHERIDS-v1';
++const BATCH_SIZE = 400; // < Firestore's 500-op batch limit
++
++if (MODE === 'commit') {
++  const confirm = opt.get('confirm-teacherids');
++  if (confirm !== COHORT_LABEL) {
++    console.error(`REFUSED: --commit requires --confirm-teacherids=${COHORT_LABEL} (exactly the active cohort scope).`);
++    console.error('This is a David-authorized CS event: SUPPORT_RUNBOOK entry + change_action_log row,');
++    console.error('OFF-PEAK window, teacherIds indexes deployed first, 25WT rehearsal done.');
++    process.exit(1);
++  }
++}
++const WRITES_ENABLED = MODE === 'commit';
++function guardWrite(what) { if (!WRITES_ENABLED) throw new Error(`WRITE BLOCKED (${MODE} mode): ${what}`); }
++
++admin.initializeApp({ credential: admin.credential.cert(JSON.parse(readFileSync('/app/scripts/serviceAccountKey.json', 'utf8'))) });
++const db = admin.firestore();
++const nowTs = () => admin.firestore.Timestamp.now();
++
++// ───────────────────────────── helpers (membership set — 3-way sync) ─────────────────────────────
++const short = (u) => (u || '').slice(0, 8);
++const TESTID_NEW_RE = /^vocaboost_test_[^_]+_([^_]+)_/; // vocaboost_test_<classId>_<listId>_<type>
++const TESTID_OLD_RE = /^(?:test|typed)_([^_]+)_/; // legacy test_<listId>_ / typed_<listId>_
++function listIdOf(a) {
++  if (typeof a.listId === 'string' && a.listId) return a.listId;
++  const t = a.testId || '';
++  const mNew = TESTID_NEW_RE.exec(t); if (mNew) return mNew[1];
++  const mOld = TESTID_OLD_RE.exec(t); if (mOld) return mOld[1];
++  return null;
++}
++
++// classes: id → {name, cohort, ownerTeacherId, assignments, assignedLists}
++console.log(`P10c teacherIds backfill [${MODE.toUpperCase()}] cohort=/${COHORT_LABEL}/i v=${MIGRATION_VERSION}`);
++if (MODE === 'commit') console.log('⚠ COMMIT MODE — verify: off-peak window, teacherIds indexes deployed, 25WT rehearsed.\n');
++
++const classesSnap = await db.collection('classes').get();
++const classes = new Map();
++classesSnap.forEach((d) => {
++  const c = d.data();
++  classes.set(d.id, {
++    name: c.name || '(unnamed)',
++    cohort: ALL ? true : COHORT_RE.test(c.name || ''),
++    ownerTeacherId: c.ownerTeacherId || null,
++    assignments: c.assignments || {},
++    assignedLists: Array.isArray(c.assignedLists) ? c.assignedLists : [],
++  });
++});
++const cohortClassIds = [...classes.entries()].filter(([, c]) => c.cohort).map(([id]) => id);
++console.log(`classes=${classes.size} | cohort classes=${cohortClassIds.length}`);
++
++// student enrollment cache: studentId → [classId]
++const studentEnrollCache = new Map();
++async function enrolledClassesOf(studentId) {
++  if (!studentEnrollCache.has(studentId)) {
++    const s = await db.doc(`users/${studentId}`).get();
++    studentEnrollCache.set(studentId, s.exists ? Object.keys(s.data().enrolledClasses || {}) : []);
++  }
++  return studentEnrollCache.get(studentId);
++}
++
++// THE membership set (3-way sync — see header).
++async function computeTeacherIds({ studentId, listId, stampTeacherId }) {
++  const ids = new Set();
++  if (stampTeacherId) ids.add(stampTeacherId);
++  if (studentId) {
++    for (const classId of await enrolledClassesOf(studentId)) {
++      const c = classes.get(classId);
++      if (!c) continue;
++      const assignsList = listId != null &&
++        ((c.assignments && c.assignments[listId]) || c.assignedLists.includes(listId));
++      if (assignsList && c.ownerTeacherId) ids.add(c.ownerTeacherId);
++    }
++  }
++  return [...ids].sort();
++}
++
++const sameSet = (a, b) => {
++  const A = new Set(a || []); const B = new Set(b || []);
++  if (A.size !== B.size) return false;
++  for (const x of A) if (!B.has(x)) return false;
++  return true;
++};
++const isSuperset = (existing, computed) => {
++  const E = new Set(existing || []);
++  return (computed || []).every((x) => E.has(x));
++};
++
++// ───────────────────────────── scan in-scope attempts ─────────────────────────────
++// Scope = attempts whose classId is a cohort class (standard CS cohort scoping). An attempt
++// whose class is non-cohort but whose student is a cohort student is OUT of scope by this rule
++// (documented limitation — run --all for a full reindex). One query per cohort class bounds
++// the read to the cohort.
++const plan = []; // {ref, id, path, studentId, listId, stampTeacherId, before, computed, merged, action}
++const counts = { scanned: 0, willWrite: 0, skipNoop: 0, skipDone: 0, noListId: 0 };
++const actionCounts = {};
++
++for (const classId of cohortClassIds) {
++  if (LIMIT && plan.length >= LIMIT) break;
++  let snap;
++  try {
++    snap = await db.collection('attempts').where('classId', '==', classId).get();
++  } catch (e) {
++    console.error(`  attempts query failed for class ${short(classId)}: ${e.message}`);
++    continue;
++  }
++  for (const d of snap.docs) {
++    if (LIMIT && plan.length >= LIMIT) break;
++    const a = d.data();
++    if (ONLY_UID && a.studentId !== ONLY_UID) continue;
++    counts.scanned++;
++    const listId = listIdOf(a);
++    if (listId == null) counts.noListId++;
++    const stampTeacherId = a.teacherId || null;
++    const computed = await computeTeacherIds({ studentId: a.studentId, listId, stampTeacherId });
++    const existing = Array.isArray(a.teacherIds) ? a.teacherIds : null;
++    const merged = [...new Set([...(existing || []), ...computed])].sort();
++    const backfilled = a.teacherIdsBackfilledAt != null;
++
++    let action;
++    if (backfilled && isSuperset(existing, computed)) action = 'SKIP_DONE';
++    else if (existing && sameSet(existing, merged)) action = 'WRITE_STAMP_ONLY'; // set unchanged, mark backfilledAt
++    else action = 'WRITE_MERGE'; // add computed members (+ stamp)
++
++    if (action === 'SKIP_DONE') counts.skipDone++;
++    else counts.willWrite++;
++    actionCounts[action] = (actionCounts[action] || 0) + 1;
++
++    plan.push({
++      ref: d.ref, id: d.id, path: d.ref.path, studentId: a.studentId, listId,
++      stampTeacherId, before: existing, computed, merged, action,
++    });
++  }
++}
++console.log(`in-scope attempts: ${plan.length} (scanned ${counts.scanned}; no-listId ${counts.noListId})`);
++console.log('actions:', JSON.stringify(actionCounts));
++console.log(`  willWrite=${counts.willWrite} skipDone=${counts.skipDone}`);
++
++// ───────────────────────────── sample + report (the --dry artifact) ─────────────────────────────
++const sample = plan.filter((p) => p.action !== 'SKIP_DONE').slice(0, 15).map((p) => ({
++  id: short(p.id), student: short(p.studentId), listId: short(p.listId || ''),
++  stamp: short(p.stampTeacherId || ''), before: (p.before || []).map(short), computed: p.computed.map(short),
++  merged: p.merged.map(short), action: p.action, adds: p.merged.filter((x) => !(p.before || []).includes(x)).map(short),
++}));
++console.log('\n=== sample (first 15 changing) ===');
++for (const s of sample) {
++  console.log(`  ${s.id} st=${s.student} L=${s.listId} [${s.action}] before=[${s.before.join(',')}] -> merged=[${s.merged.join(',')}]${s.adds.length ? ` (+${s.adds.join(',')})` : ''}`);
++}
++
++mkdirSync(OUT_DIR, { recursive: true });
++const reportPath = `${OUT_DIR}/teacherids_backfill_${MODE}_${new Date().toISOString().slice(0, 10)}.json`;
++writeFileSync(reportPath, JSON.stringify({
++  generatedAt: new Date().toISOString(), mode: MODE, cohort: COHORT_LABEL, migrationVersion: MIGRATION_VERSION,
++  cohortClasses: cohortClassIds.length, counts, actions: actionCounts, sample,
++  plan: plan.map((p) => ({ id: p.id, path: p.path, studentId: p.studentId, listId: p.listId,
++    stampTeacherId: p.stampTeacherId, before: p.before, computed: p.computed, merged: p.merged, action: p.action })),
++}, null, 2));
++console.log(`\nfull plan → ${reportPath}`);
++
++if (DRY_BACKUP || MODE === 'commit') {
++  mkdirSync(BK_DIR, { recursive: true });
++}
++
++// ───────────────────────────── COMMIT (guarded) ─────────────────────────────
++if (MODE === 'commit') {
++  guardWrite('teacherIds backfill commit');
++  const toWrite = plan.filter((p) => p.action !== 'SKIP_DONE');
++  let written = 0;
++  for (let i = 0; i < toWrite.length; i += BATCH_SIZE) {
++    const chunk = toWrite.slice(i, i + BATCH_SIZE);
++    // backup FIRST (before-values) — restore path
++    writeFileSync(`${BK_DIR}/batch_${String(i / BATCH_SIZE).padStart(4, '0')}.json`, JSON.stringify({
++      backedUpAt: new Date().toISOString(), cohort: COHORT_LABEL,
++      docs: chunk.map((p) => ({ path: p.path, before: { teacherId: p.stampTeacherId, teacherIds: p.before } })),
++    }, null, 2));
++    const batch = db.batch();
++    for (const p of chunk) {
++      batch.update(p.ref, { teacherIds: p.merged, teacherIdsBackfilledAt: nowTs(), teacherIdsBackfillVersion: MIGRATION_VERSION });
++    }
++    await batch.commit();
++    written += chunk.length;
++    if (written % (BATCH_SIZE * 5) === 0 || i + BATCH_SIZE >= toWrite.length) console.log(`  …${written}/${toWrite.length} written`);
++  }
++  // post-write verification (read back a sample)
++  let verified = 0, mismatched = 0;
++  for (const p of toWrite.slice(0, 25)) {
++    const d = await p.ref.get();
++    const ti = d.exists ? (d.data().teacherIds || []) : [];
++    if (sameSet(ti, p.merged) && d.data().teacherIdsBackfilledAt != null) verified++;
++    else { mismatched++; console.error(`  read-back MISMATCH ${short(p.id)}`); }
++  }
++  console.log(`\nCOMMIT complete: ${written} attempts updated | read-back ${verified} ok / ${mismatched} mismatched`);
++  console.log('Backups →', BK_DIR);
++  console.log('\nNOW: deploy the teacherIds indexes (if not already), then David flips TEACHER_IDS_READ +');
++  console.log('TEACHER_IDS_WRITE_ENABLED at the cutover; SUPPORT_RUNBOOK CS entry + change_action_log row.');
++} else {
++  if (DRY_BACKUP) {
++    for (let i = 0; i < plan.length; i += BATCH_SIZE) {
++      const chunk = plan.slice(i, i + BATCH_SIZE);
++      writeFileSync(`${BK_DIR}/dry_batch_${String(i / BATCH_SIZE).padStart(4, '0')}.json`, JSON.stringify({
++        backedUpAt: new Date().toISOString(), dryRun: true,
++        docs: chunk.map((p) => ({ path: p.path, before: { teacherId: p.stampTeacherId, teacherIds: p.before } })),
++      }, null, 2));
++    }
++    console.log(`local backups → ${BK_DIR}`);
++  }
++  console.log(`\n[DRY] NO Firestore writes were made (write guard active). would-write=${counts.willWrite}.`);
++  console.log('Next: deploy teacherIds indexes → David reviews this plan → 25WT rehearsal →');
++  console.log('SUPPORT_RUNBOOK authorization → --commit --confirm-teacherids=' + COHORT_LABEL + ' (OFF-PEAK).');
++}
++console.log(`\nFINAL: mode=${MODE} inScope=${plan.length} willWrite=${counts.willWrite} skipDone=${counts.skipDone}`);
++process.exit(0);

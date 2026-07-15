@@ -1,0 +1,54 @@
+{
+  "email": "kayliejyoo@gmail.com",
+  "uid": "0DnzKs3qsuUBFn7G9RLDtjiSl5h1",
+  "cp": "teKHajONWBMe0YJSAeGl_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 11,
+    "twi": 880,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "day": 9,
+        "newWordScore": 0.97,
+        "segmentEndIndex": 523,
+        "wordsReviewed": 60,
+        "segmentStartIndex": 464,
+        "wordsTested": 30,
+        "reviewScore": 0.1,
+        "wordsIntroduced": 0,
+        "date": {
+          "_seconds": 1783863308,
+          "_nanoseconds": 485000000
+        }
+      },
+      {
+        "segmentEndIndex": 718,
+        "wordsReviewed": 60,
+        "day": 10,
+        "newWordScore": 1,
+        "date": {
+          "_seconds": 1783949239,
+          "_nanoseconds": 790000000
+        },
+        "segmentStartIndex": 659,
+        "wordsTested": 30,
+        "reviewScore": 0.16666666666666666,
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 11,
+        "date": {
+          "_seconds": 1784089467,
+          "_nanoseconds": 950000000
+        },
+        "newWordScore": 0.93,
+        "reviewScore": 0.3,
+        "segmentStartIndex": 1,
+        "segmentEndIndex": 84,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

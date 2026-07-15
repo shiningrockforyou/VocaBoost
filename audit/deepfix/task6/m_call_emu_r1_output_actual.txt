@@ -1,0 +1,12 @@
+﻿[eval]:1
+const {spawnSync}=require(child_process); const args=[audit/playwright/lsr_deepfix_flag_on.mjs,--matrix=call,--run=emu-r1,--exec,firebase
+                                                                                               ^^^^^^^^
+Expected ',', got '='
+System.Management.Automation.RemoteException
+SyntaxError: Invalid left-hand side in assignment
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:260:22)
+    at node:internal/main/eval_string:71:3
+System.Management.Automation.RemoteException
+Node.js v24.11.1

@@ -1,7 +1,16 @@
 # W3 — `attempts` rules lockdown (STAGED — apply LAST)
 
-This is the final deploy step of `PLAN_attempt_write_lockdown.md`. It is **intentionally NOT in the live
-`firestore.rules`** so that file stays safe to deploy at any time (Codex deploy-risk fix). Apply this block
+> **⚠️ SUPERSEDED (2026-07-13, deepfix P6 · FND-4).** The lockdown is now applied **directly in
+> `firestore.rules`** as part of the P6 cutoff draft (`audit/deepfix/task2/FIX_PLAN.md` P6(c);
+> impl notes: `audit/deepfix/task3/P6_impl_notes.md`), with ONE deliberate change from the block
+> below: **the owner attempt-delete branch is REMOVED (`allow delete: if false`)** — do NOT
+> re-apply this doc's "students may still delete their own attempts" line. That branch was the
+> anchor-erasure half of the safeTWI forgery (C-31) and reset now goes through the P3
+> `resetProgress` callable ([C5-5]: the two ship together). This doc is kept for the
+> preconditions checklist + rollback recipe only; the rules text of record is `firestore.rules`.
+
+This is the final deploy step of `PLAN_attempt_write_lockdown.md`. It is ~~intentionally NOT in the live
+`firestore.rules`~~ (superseded — see banner) so that file stays safe to deploy at any time (Codex deploy-risk fix). Apply this block
 ONLY after every preceding step is done and validated.
 
 ## Preconditions (ALL must hold before applying)

@@ -1,0 +1,34 @@
+[
+  {
+    "uid": "IRcn5Ksb",
+    "listId": "RmNNkuLP",
+    "maxTwi": 1280,
+    "studyStates": 1200,
+    "overBy": 80,
+    "isP": true
+  },
+  {
+    "uid": "MolfYHnf",
+    "listId": "dVliNv0p",
+    "maxTwi": 1300,
+    "studyStates": 1200,
+    "overBy": 100,
+    "isP": false
+  },
+  {
+    "uid": "TGJNuQ1v",
+    "listId": "dVliNv0p",
+    "maxTwi": 1600,
+    "studyStates": 1503,
+    "overBy": 97,
+    "isP": true
+  },
+  {
+    "uid": "hLSeh3q7",
+    "listId": "RmNNkuLP",
+    "maxTwi": 780,
+    "studyStates": 720,
+    "overBy": 60,
+    "isP": false
+  }
+]

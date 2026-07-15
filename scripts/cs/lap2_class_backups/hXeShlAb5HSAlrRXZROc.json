@@ -1,0 +1,52 @@
+{
+  "id": "hXeShlAb5HSAlrRXZROc",
+  "name": "26SM 제주 SAT TOP",
+  "assignments": {
+    "dVliNv0p9jqZYp9rfLpN": {
+      "reviewTestType": "mcq",
+      "assignedAt": {
+        "_seconds": 1780726135,
+        "_nanoseconds": 381000000
+      },
+      "reviewTestSizeMax": 30,
+      "pace": 100,
+      "newWordRetakeThreshold": 0.92,
+      "testSizeNew": 35,
+      "testMode": "typed",
+      "reviewTestSizeMin": 20,
+      "studyDaysPerWeek": 5,
+      "testOptionsCount": 6,
+      "passThreshold": 90
+    },
+    "AObYOowhLoOOHx9wW2Sq": {
+      "passThreshold": 90,
+      "testOptionsCount": 6,
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMin": 20,
+      "testMode": "typed",
+      "testSizeNew": 35,
+      "pace": 100,
+      "assignedAt": {
+        "_seconds": 1783395842,
+        "_nanoseconds": 614000000
+      },
+      "reviewTestType": "mcq",
+      "reviewTestSizeMax": 30
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780639735,
+        "_nanoseconds": 0
+      },
+      "pace": 100,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 90,
+      "testSizeNew": 35,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

@@ -73,3 +73,6 @@ audit/playwright/lsr_accept_state.json
 audit/playwright/lsr_accept_manifest.json
 audit/playwright/lsr_clean_accounts.json
 audit/playwright/lsr_accept_matrix.json
+
+# deepfix program — session transcripts (large, never commit)
+audit/deepfix/context/transcripts/

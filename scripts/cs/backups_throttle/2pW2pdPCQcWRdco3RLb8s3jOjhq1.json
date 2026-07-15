@@ -1,0 +1,54 @@
+{
+  "email": "hayeonu064@naver.com",
+  "uid": "2pW2pdPCQcWRdco3RLb8s3jOjhq1",
+  "cp": "wRoGjp2QTa89DxAk9PlT_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 12,
+    "twi": 720,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "newWordScore": 0.96,
+        "day": 10,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783903131,
+          "_nanoseconds": 50000000
+        },
+        "wordsTested": 30,
+        "segmentEndIndex": 555,
+        "wordsIntroduced": 0,
+        "reviewScore": 0.1,
+        "segmentStartIndex": 496
+      },
+      {
+        "day": 11,
+        "newWordScore": 1,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783908674,
+          "_nanoseconds": 724000000
+        },
+        "wordsTested": 30,
+        "wordsIntroduced": 60,
+        "segmentEndIndex": 77,
+        "reviewScore": 0.13333333333333333,
+        "segmentStartIndex": 4
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1783995806,
+          "_nanoseconds": 438000000
+        },
+        "newWordScore": 0.96,
+        "reviewScore": 0.13333333333333333,
+        "segmentStartIndex": 168,
+        "segmentEndIndex": 245,
+        "wordsIntroduced": 60,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "email": "tigeregina00@gmail.com",
+  "uid": "koHoQS4WUZQ8xXqfRp1TZRWBH1J3",
+  "cp": "qeCkS6BpZLVGLe2G5O7Z_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 7,
+    "twi": 700,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "date": {
+          "_seconds": 1783920011,
+          "_nanoseconds": 354000000
+        },
+        "reviewScore": 0,
+        "segmentStartIndex": 388,
+        "day": 5,
+        "wordsTested": 30,
+        "segmentEndIndex": 447,
+        "newWordScore": 0.94,
+        "wordsReviewed": 60,
+        "wordsIntroduced": 0
+      },
+      {
+        "reviewScore": 0,
+        "date": {
+          "_seconds": 1784012184,
+          "_nanoseconds": 615000000
+        },
+        "newWordScore": 0.94,
+        "wordsReviewed": 60,
+        "wordsIntroduced": 0,
+        "day": 6,
+        "segmentStartIndex": 11,
+        "wordsTested": 30,
+        "segmentEndIndex": 105
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784092472,
+          "_nanoseconds": 831000000
+        },
+        "newWordScore": 0.97,
+        "reviewScore": 0,
+        "segmentStartIndex": 177,
+        "segmentEndIndex": 236,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

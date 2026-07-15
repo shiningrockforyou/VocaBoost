@@ -1,0 +1,11 @@
+roster=817
+
+scanned=817 withChallengeHistory=354 err=0
+challenge status totals (all history): {"accepted":755,"rejected":126,"pending":614,"other":0}
+LOCKED (0 tokens): 3
+PERMANENT-FAIL CANDIDATES (locked + >=3 failed-new same day/list, 14d): 3
+   fc8sBxnz SAT Inter B3     tokens=0 activeRej=6 maxStreak=6 (RmNNkuLPectBlBPiLbAJ|2)
+   uhJ41qPB SAT Final A      tokens=0 activeRej=5 maxStreak=4 (dVliNv0p9jqZYp9rfLpN|11)
+   HMp1QzFr SAT Adv E [English only] tokens=0 activeRej=5 maxStreak=3 (dVliNv0p9jqZYp9rfLpN|2)
+
+wrote scan_F6_tokens_permafail.json

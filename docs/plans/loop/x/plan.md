@@ -5,6 +5,14 @@ foundation** (see §0/§3g). Not shippable standalone. · **Author:** Claude
 **Decision (David):** per-student cycling; scope = per-student-per-list; lap-state = accept-reset; twi stays
 monotonic (reconciliation untouched). Reviewed 3 loop rounds (Codex r001/r002 + two 3-agent audits).
 
+> **Persona-fleet finding F2 (2026-07-12, Codex-triaged) — #6 scope narrowed.** L16 observed that a same-list,
+> SAME-pace class move CARRIES csd/twi exactly under the currently-deployed LIST_SCOPED_RECON (before 4/320 →
+> after-reconcile 4/320, carried=true). So the classic #6 "class change resets progress" does NOT reproduce for
+> the same-list/same-pace reconciliation path. This foundation gate should NOT treat that case as an open
+> blocker. #6 remains open only for narrower/untested paths: DIFFERENT-pace transitions, list switch / 2nd-list
+> focus, flag-OFF, and stale/non-reconciled views. The broader durable list-owned-progress + server-auth-twi
+> foundation is still required for CYCLING itself (cap removal → forgery), independent of #6's status.
+
 ## 0. THIS PLAN IS A CAPSTONE — read first
 The v4 audit (Codex r002 + 3-agent) proved that safe cycling **requires removing the allocation cap**, which
 **removes the only clamp that today makes progress-forgery self-defeating**. Closing that forge is NOT what

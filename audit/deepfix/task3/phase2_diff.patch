@@ -1,0 +1,394 @@
+diff --git a/firestore.indexes.json b/firestore.indexes.json
+index cffc058..a31dbc5 100644
+--- a/firestore.indexes.json
++++ b/firestore.indexes.json
+@@ -828,6 +828,46 @@
+           "order": "DESCENDING"
+         }
+       ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "studentId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
++    },
++    {
++      "collectionGroup": "attempts",
++      "queryScope": "COLLECTION",
++      "fields": [
++        {
++          "fieldPath": "teacherId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "classId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "studentId",
++          "order": "ASCENDING"
++        },
++        {
++          "fieldPath": "submittedAt",
++          "order": "DESCENDING"
++        }
++      ]
+     }
+   ],
+   "fieldOverrides": []
+diff --git a/src/pages/MCQTest.jsx b/src/pages/MCQTest.jsx
+index a6dc083..d563406 100644
+--- a/src/pages/MCQTest.jsx
++++ b/src/pages/MCQTest.jsx
+@@ -243,7 +243,11 @@ const MCQTest = () => {
+       if (testConfig) {
+         // All settings come from testConfig - no need to fetch or apply manually
+         setOptionsCount(testConfig.testOptionsCount)
+-        setRetakeThreshold(testConfig.passThresholdDecimal)
++        // C-23 fail-open: only adopt a finite threshold. Setting undefined/NaN would
++        // make every `score >= retakeThreshold` compare false (fail-closed verdicts).
++        if (Number.isFinite(testConfig.passThresholdDecimal)) {
++          setRetakeThreshold(testConfig.passThresholdDecimal)
++        }
+         setCurrentTestType(testConfig.testType)
+         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
+         setConfiguredTestSize(effectiveTestSize)
+@@ -528,6 +532,11 @@ const MCQTest = () => {
+       // Determine if student passed (review tests always pass)
+       const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+ 
++      // C-23: authoritative verdict of the STORED attempt (server-computed under
++      // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
++      // null in practice mode — the result card then falls back to the local compare.
++      let serverPassed = null
++
+       // Submit attempt for gradebook (non-practice mode only)
+       if (!isPracticeMode) {
+         // Get studyDay from sessionContext, or fetch from progress if standalone test
+@@ -637,6 +646,9 @@ const MCQTest = () => {
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
+             result = { id: resp.data.attemptId }
++            // C-23: surface the server's verdict (returned on fresh AND idempotent writes)
++            // so the result card renders the stored truth, not a client recompute.
++            serverPassed = typeof resp.data.passed === 'boolean' ? resp.data.passed : null
+           } else {
+             result = await withRetry(
+               () => submitTestAttempt(
+@@ -656,6 +668,9 @@ const MCQTest = () => {
+               { maxRetries: 3, totalTimeoutMs: 15000 },
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
++            // C-23: the client-written attempt doc stores exactly this verdict — surface
++            // it so the result card always matches the stored gradebook row.
++            serverPassed = passed
+           }
+ 
+           console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
+@@ -813,7 +828,8 @@ const MCQTest = () => {
+         total: summary.total,
+         failed: summary.failed,
+         testType: currentTestType,
+-        answerArray
++        answerArray,
++        serverPassed // C-23: authoritative stored verdict (null in practice mode)
+       })
+ 
+       console.log('[SUBMIT] Showing test results to user')
+@@ -1039,7 +1055,12 @@ const MCQTest = () => {
+     const renderResultsCard = () => {
+       // New Word Test: Pass/Fail based on threshold
+       if (currentTestType === 'new') {
+-        const passed = score >= retakeThreshold
++        // C-23: trust the stored attempt's verdict when we have it (server-computed
++        // against the class's real threshold). Only practice mode falls back to the
++        // local compare, which fails OPEN on a non-finite threshold instead of
++        // failing every score against an unresolved default.
++        const passed = testResultsData.serverPassed
++          ?? (Number.isFinite(retakeThreshold) ? score >= retakeThreshold : true)
+ 
+         return (
+           <div className={`rounded-2xl p-8 text-center shadow-xl ${
+diff --git a/src/pages/TypedTest.jsx b/src/pages/TypedTest.jsx
+index e2837bc..c82d2e7 100644
+--- a/src/pages/TypedTest.jsx
++++ b/src/pages/TypedTest.jsx
+@@ -288,7 +288,11 @@ const TypedTest = () => {
+       // PATH A: TestConfig provided (from DailySessionFlow with new flow)
+       if (testConfig) {
+         // All settings come from testConfig - already limited by testSize
+-        setRetakeThreshold(testConfig.passThresholdDecimal)
++        // C-23 fail-open: only adopt a finite threshold. Setting undefined/NaN would
++        // make every `score >= retakeThreshold` compare false (fail-closed verdicts).
++        if (Number.isFinite(testConfig.passThresholdDecimal)) {
++          setRetakeThreshold(testConfig.passThresholdDecimal)
++        }
+         setCurrentTestType(testConfig.testType)
+         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
+         setConfiguredTestSize(effectiveTestSize)
+@@ -790,6 +794,11 @@ const TypedTest = () => {
+         failed: failedIds
+       }
+ 
++      // C-23: authoritative verdict of the STORED attempt (server-computed under
++      // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
++      // null in practice mode — the result card then falls back to the local compare.
++      let serverPassed = null
++
+       // Show the results view. Shared by the practice path and by doWriteAndFinalize
+       // (so a write retry that succeeds lands on the same results screen). Captures
+       // summary + gradingResult from this handleSubmit invocation.
+@@ -806,7 +815,8 @@ const TypedTest = () => {
+           total: summary.total,
+           failed: summary.failed,
+           gradedResults: gradingResult.data.results,
+-          testType: currentTestType
++          testType: currentTestType,
++          serverPassed // C-23: authoritative stored verdict (null in practice mode)
+         })
+         setResults(gradingResult.data.results)
+         setShowResults(true)
+@@ -914,6 +924,9 @@ const TypedTest = () => {
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
+             result = { id: resp.data.attemptId }
++            // C-23: surface the server's verdict (returned on fresh AND idempotent writes)
++            // so the result card renders the stored truth, not a client recompute.
++            serverPassed = typeof resp.data.passed === 'boolean' ? resp.data.passed : null
+           } else {
+             result = await withRetry(
+               () => submitTypedTestAttempt(
+@@ -933,6 +946,9 @@ const TypedTest = () => {
+               { maxRetries: 3, totalTimeoutMs: 15000 },
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
++            // C-23: the client-written attempt doc stores exactly this verdict — surface
++            // it so the result card always matches the stored gradebook row.
++            serverPassed = passed
+           }
+         } catch (submitErr) {
+           // Attempt failed after retries — block progression, stay on page.
+@@ -1303,7 +1319,12 @@ const TypedTest = () => {
+     const renderResultsCard = () => {
+       // New Word Test: Pass/Fail based on threshold
+       if (currentTestType === 'new') {
+-        const passed = score >= retakeThreshold
++        // C-23: trust the stored attempt's verdict when we have it (server-computed
++        // against the class's real threshold). Only practice mode falls back to the
++        // local compare, which fails OPEN on a non-finite threshold instead of
++        // failing every score against an unresolved default.
++        const passed = testResultsData.serverPassed
++          ?? (Number.isFinite(retakeThreshold) ? score >= retakeThreshold : true)
+ 
+         return (
+           <div className={`rounded-2xl p-8 text-center shadow-xl ${
+diff --git a/src/services/db.js b/src/services/db.js
+index 8f4a9aa..0956876 100644
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -25,6 +25,15 @@ import { db, auth } from '../firebase'
+ import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
++// deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
++// never falls back when assignedLists is an empty array (`[]` is truthy) → "0 assigned lists" split-brain.
++// Use a length check. (Do NOT use at the two intentional accumulator seeds, db.js ~811/~835.)
++function getAssignedListIds(classData) {
++  return (classData?.assignedLists?.length
++    ? classData.assignedLists
++    : Object.keys(classData?.assignments || {}))
++}
++
+ const defaultProfile = {
+   displayName: '',
+   school: '',
+@@ -499,7 +508,7 @@ export const fetchStudentClasses = async (studentId) => {
+           assignments[key].testMode = 'mcq'
+         }
+       })
+-      const assignedListIds = classData.assignedLists || Object.keys(assignments)
++      const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+       const assignedListDetails = await Promise.all(
+         assignedListIds.map(async (listId) => {
+@@ -1435,7 +1444,7 @@ export const fetchClassAttempts = async (classId) => {
+   const classData = classSnap.data()
+   // Support both old assignedLists array and new assignments map
+   const assignments = classData.assignments || {}
+-  const assignedListIds = classData.assignedLists || Object.keys(assignments)
++  const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+   if (assignedListIds.length === 0) {
+     return []
+@@ -1458,16 +1467,21 @@ export const fetchClassAttempts = async (classId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+     if (!assignedListIds.includes(listId)) continue
+ 
+@@ -1528,7 +1542,7 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+     classListMap.set(classId, assignedListIds)
+ 
+     // Query members subcollection for this class
+@@ -1603,16 +1617,21 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -1805,7 +1824,7 @@ async function getTeacherData(teacherId) {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+ 
+     try {
+       const membersRef = collection(db, 'classes', classId, 'members')
+@@ -1934,6 +1953,22 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+   }
+ 
++  // C-33: push the resolved Name filter (studentIds) server-side so a filtered
++  // student's attempts are found however deep they rank teacher-wide. Single id
++  // -> '==', 2..30 ids -> 'in' (guarded so class 'in' disjuncts x student ids
++  // stays within Firestore's <=30 disjunction budget). Larger matches keep
++  // today's degraded mode — the post-filter below remains as the backstop.
++  const classDisjuncts = Math.max(filterClassIds.length, 1)
++  if (filterStudentIds.length === 1) {
++    attemptsQuery = query(attemptsQuery, where('studentId', '==', filterStudentIds[0]))
++  } else if (
++    filterStudentIds.length > 1 &&
++    filterStudentIds.length <= 30 &&
++    classDisjuncts * filterStudentIds.length <= 30
++  ) {
++    attemptsQuery = query(attemptsQuery, where('studentId', 'in', filterStudentIds))
++  }
++
+   // Apply date filter at query level
+   if (dateStart && dateEnd) {
+     attemptsQuery = query(attemptsQuery, where('submittedAt', '>=', dateStart), where('submittedAt', '<=', dateEnd))
+@@ -1964,16 +1999,21 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -2153,16 +2193,21 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     // Get list name
+@@ -2311,7 +2356,7 @@ export const fetchAttemptDetails = async (attemptId) => {
+               const classSnap = await getDoc(doc(db, 'classes', classId))
+               if (classSnap.exists()) {
+                 const classData = classSnap.data()
+-                const assignedLists = classData.assignedLists || Object.keys(classData.assignments || {})
++                const assignedLists = getAssignedListIds(classData)  // C-35
+                 if (assignedLists.includes(listId)) {
+                   className = classData.name || 'Unknown Class'
+                   break
+@@ -2433,7 +2478,7 @@ export const fetchUserAttempts = async (uid) => {
+           classLookup[classId] = {
+             name: classData.name || classInfo.name || 'Unknown Class',
+             id: classId,
+-            assignedLists: classData.assignedLists || Object.keys(classData.assignments || {}),
++            assignedLists: getAssignedListIds(classData),  // C-35
+           }
+         }
+       } catch (err) {

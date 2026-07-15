@@ -19,9 +19,21 @@ const PASS = process.env.LSR_AUDIT_PW
   || (() => { try { return JSON.parse(readFileSync('/app/audit/playwright/.lsr_secret.json', 'utf8')).password; } catch { return null; } })();
 if (!PASS) { console.error('LSR_AUDIT_PW not set and .lsr_secret.json missing — aborting provisioning'); process.exit(2); }
 
+// Roster size is env-configurable so the pool can grow (David 2026-07-12: provision fresh accounts as
+// needed — never reset; dirty accounts stay as records). Idempotent: existing accounts are left untouched.
+// TEACHER pool is env-configurable too (David 2026-07-12: 8 audit teachers for the persona expansion, to
+// match the ~8-concurrent ceiling). teacher_01 keeps its original 'LSR Teacher' displayName (idempotent-
+// untouched); new teachers get 'LSR Teacher NN'. Set LSR_ACCOUNT_COUNT to the CURRENT student count when
+// re-running so the roster file is not truncated (idempotent re-list of existing students).
+const TEACHER_COUNT = parseInt(process.env.LSR_TEACHER_COUNT || '8', 10);
+const ACCOUNT_COUNT = parseInt(process.env.LSR_ACCOUNT_COUNT || '46', 10);
 const ACCOUNTS = [
-  { email: 'lsr_teacher_01@vocaboost.test', role: 'teacher', name: 'LSR Teacher' },
-  ...Array.from({ length: 46 }, (_, i) => ({
+  ...Array.from({ length: TEACHER_COUNT }, (_, i) => ({
+    email: `lsr_teacher_${String(i + 1).padStart(2, '0')}@vocaboost.test`,
+    role: 'teacher',
+    name: i === 0 ? 'LSR Teacher' : `LSR Teacher ${String(i + 1).padStart(2, '0')}`,
+  })),
+  ...Array.from({ length: ACCOUNT_COUNT }, (_, i) => ({
     email: `lsr_s${String(i + 1).padStart(2, '0')}@vocaboost.test`,
     role: 'student',
     name: `LSR Student ${String(i + 1).padStart(2, '0')}`,

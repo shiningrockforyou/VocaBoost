@@ -1,22 +1,26 @@
-{
-  "turnOwner": "done",
-  "round": 2,
-  "taskId": "FIX10_OVERLAY_CODE",
-  "targetPlan": "docs/plans/loop/fix10/plan.md",
-  "handoff": "docs/plans/loop/handoffs/claude_to_codex_fix10overlay_002.md",
-  "changedFiles": [
-    "audit/playwright/lsr_fix10_overlay.mjs"
-  ],
-  "evidenceFiles": [
-    "docs/plans/loop/fix10/rounds/r03_overlay_synthesis.md"
-  ],
-  "claudeStatus": "converged",
-  "codexStatus": "review-written",
-  "codexDecision": "GO",
-  "state": "converged",
-  "note": "FIX10_OVERLAY_CODE CONVERGED at round 2 — Codex GO/CONVERGED-OK on overlay v2 (all 4 r1 findings + 3 fable lenses folded) + 3 non-blocking Codex r2 notes folded as v2 polish (comment/code match, guardFailed+fallback in stable key, red_state harnessRev+cellSet). Loop CLOSED. Harness ready: green mode after David deploys the fix (proves it); red mode against a pre-fix flag-ON build (2 consecutive runs = REPRO-CONFIRMED). Do NOT review further.",
-  "codexReview": "docs/plans/loop/codex_reviews/codex_review_fix10overlay_002.md",
-  "updatedBy": "claude",
-  "updatedAt": "2026-07-12T06:24:36.000Z",
-  "revision": 1
+﻿{
+    "turnOwner":  "claude",
+    "round":  6,
+    "taskId":  "DEEPFIX_ENDREVIEW_V3",
+    "targetPlan":  "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md",
+    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_deepfix_endreview_v3_001.md",
+    "changedFiles":  [
+                         "src/pages/Signup.jsx",
+                         "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md"
+                     ],
+    "evidenceFiles":  [
+                          "audit/deepfix/task3/Signup.p6.jsx",
+                          "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md",
+                          "docs/plans/loop/codex_reviews/codex_deepfix_endreview_v2_001.md"
+                      ],
+    "claudeStatus":  "endreview-v3-requested",
+    "codexStatus":  "review-written",
+    "codexDecision":  "GO",
+    "note":  "END-REVIEW v3 â€” confirm the F1 fix, initial-release gate. Your v2 BLOCKER was correct + verified: F1 (Signup invite-code -\u003e provisionTeacher) shipped ungated while TEACHER_PROVISIONING_ENABLED=false (index.js:1962/1986-1990; flag comment 1960-1961 says it flips in the SAME release train as the P6 rules). FIX APPLIED (your option 2, design-intended): reverted src/pages/Signup.jsx to HEAD (today\u0027s teacher self-registration stays live; git diff --stat on Signup.jsx now EMPTY; F1 was isolated to Signup.jsx = sole client provisionTeacher caller, grep-confirmed); F1 preserved at audit/deepfix/task3/Signup.p6.jsx for the P6 cutover; manifest updated (F1 moved A-\u003eD; E-invariant-4 now lists TEACHER_PROVISIONING_ENABLED among flags staying off). V3 GATE QUESTION (narrow now): (1) confirm F1 gone from release - src/pages/Signup.jsx==HEAD, no invite-code/provisionTeacher client call ships, today\u0027s signup byte-equivalent to prod; (2) ANY OTHER live delta in the tree that ships but is NOT whitelisted in the manifest A/B/C? (the completeness lens that caught F1) - if clean, GO; (3) prior confirmations still hold (GRADE_TOKEN_MINT=false, rules excluded, F2 index-before-hosting). Scope unchanged: initial staged release only (--only indexes-\u003efunctions-\u003ehosting, no rules, no flag flips). Out of scope: dormant flag cutovers, MED-3/4 (P5), rules R1-R3, cycling. DELIVERABLE: findings + EXPLICIT GO|NO-GO for the initial staged release. Review-only (I fix), ground in file:line. Write /out/reviews/codex_deepfix_endreview_v3_001.md, flip baton-\u003eclaude: turnOwner=claude round=6 codexStatus=review-written codexDecision=\u003cGO|NO-GO\u003e codexConverged=\u003cbool\u003e codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix_endreview_v3_001.md updatedBy=codex revision=83.",
+    "codexReview":  "/out/reviews/codex_deepfix_endreview_v3_001.md",
+    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_deepfix_endreview_v3_001.md",
+    "updatedBy":  "codex",
+    "updatedAt":  "2026-07-16T00:14:00.0000000+09:00",
+    "revision":  83,
+    "codexConverged":  true
 }

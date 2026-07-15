@@ -8,6 +8,33 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 11. Full-freeze intervention is a PERMANENT stuck state — a maxed-out student can never self-recover  ·  backend/intervention  ·  HIGH (confirmed by persona-fleet audit)
+
+**Credit: surfaced by the Run S-Long persona expansion (persona L14); confirmed from fleet3 data; triaged by Codex 2026-07-12.**
+
+**What's broken.** Once `interventionLevel` reaches 1.0 (≥3 recent review scores ≤~0.30), `calculateDailyAllocation`
+gives `newWordCount = 0`. On Day 2+, `completeSessionFromTest` blocks completion (no same-day passed new-word
+attempt) → retake-required, csd/twi FROZEN. The student can still DO the review, but the day never COMPLETES.
+
+**Why it happens (root cause).** `calculateInterventionLevel` reads the last 3 non-null review scores from
+`class_progress.recentSessions`, which is appended ONLY in `recordSessionCompletion` (a COMPLETED day). A
+full-freeze day never completes, so even high-scoring reviews are NEVER recorded → the intervention window stays
+pinned on the old low reviews → interv stays 1.0 → newWordCount stays 0 → every next day re-blocks. Self-reinforcing.
+
+**Evidence (fleet3 / L14, 2026-07-12).** Student froze at day 5. `recentSessions` ends at day 4 (reviews
+0.27/0.27/0.27). On the stuck day the student submitted 4 review attempts, ALL `passed=true score=100` — NONE
+appended to `recentSessions`; csd frozen at 4 throughout. High reviews had zero effect on intervention.
+
+**Impact.** A student who hits full-freeze is PERMANENTLY STUCK — no self-service path out; only a manual/admin
+progress fix or a teacher class-change reconciliation unsticks them. Silent (looks like "review required" daily).
+Rare trigger (needs ≥3 very low reviews) but a total dead-end when hit.
+
+**Fix direction (Codex).** Floor `newWordCount ≥ 1` on any day that still gates completion on a same-day new pass
+(don't let intervention zero it out); OR add a recovery path that lets sustained high reviews lower intervention
+WITHOUT requiring day completion (record blocked-day review scores into the intervention window, or a separate
+recovery signal). **Effort/risk:** backend logic + careful validation against the freeze/throttle personas; not a
+one-liner. Its own plan + go-ahead before any code (per standing rule).
+
 ## 10. Flag-ON self-race: pre-completion reconciliation advances CSD → session completion is stale-blocked → "session refreshed" rebuild  ·  backend/reconciliation  ·  MEDIUM (latent; harness-surfaced)
 
 **Credit: Codex root-caused this; Claude verified against code (corrects an earlier wrong "harness-only" conclusion).**
@@ -223,6 +250,12 @@ hiccup — your work is safe, tap Try Again"; deterministic (`invalid-argument`)
 "Please reload this page and submit again." Reassure in both that progress isn't lost; fix the contradictory
 "Your answers are saved" line. **Effort/risk:** small, frontend-only.
 
+**Reliability baseline (persona-fleet audit, fleet3 2026-07-12).** Across ~220 test-days: ~3 transients, all
+RECOVERED by client retry — `gradeTypedTest` → `FirebaseError: internal` (grading-retry N/3) ×2, and one
+"Couldn't Save Your Results"/Retry-Save (grading OK, durable save failed). ≈1.4% recovered-transient rate; no
+data loss. Track as a baseline; escalate to its own item only if a future run shows UNrecovered grading/save
+failure, data loss, or a materially higher rate. (Codex disposition: fold here, don't open a new root-cause bug.)
+
 ---
 
 ## 1. No teacher/TA grade-override path → single disputed answer blocks the whole day  ·  product+backend  ·  HIGH
@@ -410,3 +443,41 @@ entry from EITHER class on that list resolves to the same completed-day state.**
 **Effort/risk.** Small code change, but on the hardened list-scoped path — must be reviewed + regression-tested.
 **Run S overlay S-1/S-3 is the regression test** — asserts CORRECT behavior (review completes, no retake, AND
 final `twi` stays the anchor TWI `2p`, not `3p`) → expected-RED against current code until this ships.
+
+## 12. Cross-class list carry INTERMITTENTLY strands class-promoted students at Day 1  ·  reconciliation/client  ·  MED (real, CS-confirmed 2026-07-13)
+**Symptom:** a student promoted to a new class on the SAME list (e.g. INT→ADV, both Ascent `dVliNv0p`) sometimes sees the list at **Day 1 / 0 introduced** in the new class instead of their carried progress. CS-confirmed for 3 of 안이연/유혜준/Lucy (26SM ADV[한]); reconciled manually (SUPPORT_RUNBOOK CS-2026-07-13).
+**What it is NOT (ruled out read-only):** not a missing index (composite #13 present), not an anchor-query error (`csd_anchor_query_error` = 0 cohort-wide), not the anchor query itself (`getMostRecentPassedNewTest`, db.js:3250, IS student+list scoped and returns the correct cross-class anchor when run directly). The reconciliation is designed to carry (safeTWI = anchor `nwei+1` when found).
+**Evidence it's real:** Lucy (luckyjiu1004) finished Inter[한] to day 11 (nwei 879, by 7/06), then on 7/07 started ADV[한] at **Day 1** and re-did days 1–5 — despite `csd_twi_reconciled` firing on her ADV[한] loads (7/09–7/13). So the reconciliation RAN but applied her ADV[한]-native position, not the 879 Inter[한] anchor. Meanwhile the SAME mechanism carried correctly for 홍승연 (Inter→Adv), 6 Final-movers, and Sarah Sung (into ADV[한]) → INTERMITTENT.
+**Where to look:** app-level session build / class-switch / progress-caching on the promoted entry (initializeDailySession → getOrCreateClassProgress ordering; getPrimaryFocus/class context; any sessionStorage/context caching of a prior class's session). Needs an app repro with reconciliation logging (can't pin from Firestore data alone). Blast radius: every class-promotion on a shared list; silent (student just re-does words). Workaround: manual reconcile (`scripts/cs/reconcile-ascent-carry.mjs`) or possibly a plain re-entry.
+
+## 13. Test size mis-generated at boundaries (day-1 enrollment / post-promotion retake / dup re-serve)  ·  backend/test-gen  ·  MED (CS-observed 2026-07-13)
+Multiple students got a WRONG-sized test at an edge, while the class config was correct. VERIFIED: 이혜성
+(hyeseong1028, 미주 INT, cross-class Inter+Adv) — class `testSizeNew=30` but her **Day-1 new test = totalQ=10**
+(introduced 80 words), Days 2-4 correct at 30 → self-healed. 김호형 (Adv E→Final A promotion, David self-flagged
+UNRESOLVED) — retake showed out-of-30 not out-of-35 (Final pace-100 → 35); could NOT verify (email no auth record).
+이서현 (INT B3 d9) — 15 questions, David: "같은 시험을 여러번 보게 돼서 꼬임" = duplicate/re-serve. (Adv A2 12/12 =
+legit list-end remainder, benign.) Pattern = test-generation size wrong at day-1 / promotion-retake / dup.
+**Action:** read-only cohort audit of `attempts.totalQuestions` vs the class's `testSizeNew` to size it, then
+find the generation path (first-day/enrollment race? cross-class config pick? retake size source?). See
+`docs/audits/TA_CHATLOG_TRIAGE_2026-07-13.md` N1.
+
+## 14. Permanent-fail deadlock: grader false-negative + challenge-token exhaustion + no teacher override  ·  grader/product  ·  HIGH (recurring, CS-2026-07 heavy load)
+A SECOND stuck-state class (distinct from #11). When the AI grader DETERMINISTICALLY marks a correct answer wrong
+AND the student has no challenge tokens left, they can NEVER pass ("정답과 똑같이 써도 오답, no matter how many times,
+always fail" — 양서현, Final A). Recurred all week (이서현, 김재민, 윤여진, 안예진's classmate). Compounding factors:
+(a) grader calibration false-negatives on defensible/Korean-def answers (existing #2); (b) NO teacher grade-override
+path (existing #1) — only escape is off-platform 수기채점; (c) challenge tokens **replenish 30 days** after use
+(VERIFIED in `users/{uid}.challenges.history` replenishAt = +30d), but TAs were told "resets next week" → wrong
+guidance, students tokenless far longer; rejected challenges ALSO consume a token; (d) **promoted students often
+lack challenge/grade permission in the new class** ("승반한 친구라 단어 권한이 없습니다") → TA can't even manual-fix.
+**Action:** the durable fix is the teacher grade-override (#1) + grader calibration (#2); short-term, fix the CS
+guidance (30-day replenish) and the promotion permission gap. See triage N2.
+
+## 15. No review-RETAKE path; reviews are non-gating so an accidental/garbage review is permanent  ·  product  ·  MED
+박서준 (INT B3) accidentally submitted his Day-7 review, scored 2%, wants a retake — no mechanism exists. Because
+reviews always "pass" (non-gating; they don't block CSD), a mis-submitted or near-zero review still advances the
+day and can't be redone (김지오 asked to roll back a below-cutline review-advance — that's by DESIGN, not a bug,
+but it exposes the gap). Also ties to #11-throttle: chronic near-zero reviews (이서현 13/20%, Junseo 27/10/40)
+that still "pass" drive intervention→1.0 → newWordCount=0 → the #11 review-only freeze MID-list. **Action:**
+consider a review-retake affordance + surfacing review quality to teachers (a student passing reviews at 13% is a
+pedagogy signal the current model hides). See triage N3/N4.

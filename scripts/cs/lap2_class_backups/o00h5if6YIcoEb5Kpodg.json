@@ -1,0 +1,54 @@
+{
+  "id": "o00h5if6YIcoEb5Kpodg",
+  "name": "26SM 미주 SAT Adv.",
+  "assignments": {
+    "AObYOowhLoOOHx9wW2Sq": {
+      "assignedAt": {
+        "_seconds": 1780174888,
+        "_nanoseconds": 586000000
+      },
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMin": 20,
+      "pace": 80,
+      "passThreshold": 92,
+      "reviewTestSizeMax": 30,
+      "reviewTestType": "mcq",
+      "testOptionsCount": 6,
+      "testSizeNew": 30,
+      "testMode": "typed",
+      "newWordRetakeThreshold": 0.92
+    },
+    "dVliNv0p9jqZYp9rfLpN": {
+      "assignedAt": {
+        "_seconds": 1780261288,
+        "_nanoseconds": 586000000
+      },
+      "studyDaysPerWeek": 5,
+      "reviewTestSizeMin": 20,
+      "pace": 80,
+      "passThreshold": 92,
+      "reviewTestSizeMax": 30,
+      "reviewTestType": "mcq",
+      "testOptionsCount": 6,
+      "testSizeNew": 30,
+      "testMode": "typed",
+      "newWordRetakeThreshold": 0.92
+    },
+    "RmNNkuLPectBlBPiLbAJ": {
+      "assignedAt": {
+        "_seconds": 1780088488,
+        "_nanoseconds": 0
+      },
+      "pace": 80,
+      "testOptionsCount": 6,
+      "testMode": "typed",
+      "passThreshold": 92,
+      "testSizeNew": 30,
+      "reviewTestType": "mcq",
+      "reviewTestSizeMin": 20,
+      "reviewTestSizeMax": 30,
+      "newWordRetakeThreshold": 0.92,
+      "studyDaysPerWeek": 5
+    }
+  }
+}

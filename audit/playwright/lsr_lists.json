@@ -1,22 +1,307 @@
 {
-  "clonedAt": "2026-07-05T06:09:57.942Z",
+  "clonedAt": "2026-07-12T15:55:19.785Z",
   "teacherUid": "hUIHGkru2IZwFSt1atYF5BsLTmo1",
   "lists": [
     {
       "srcId": "8RMews2H7C3UJUAsOBzR",
       "title": "LSR TOP Vocab (audit clone)",
+      "tier": "legacy",
       "newId": "EQ0Dc9rb7gvoerflHlnz",
-      "wordsCopied": 3381,
-      "verified": 3381,
-      "status": "cloned"
+      "status": "existed"
     },
     {
       "srcId": "aRGjnGXdU4aupiS8SlXR",
       "title": "LSR CORE Vocab (audit clone)",
+      "tier": "legacy",
       "newId": "aDVcq3MoCvVYPTpb83IU",
-      "wordsCopied": 3380,
-      "verified": 3380,
-      "status": "cloned"
+      "status": "existed"
+    },
+    {
+      "srcId": "RmNNkuLPectBlBPiLbAJ",
+      "title": "LSR Base Camp (audit clone)",
+      "tier": "base",
+      "newId": "0HrPB6ejvDxQ16arUh7C",
+      "status": "existed"
+    },
+    {
+      "srcId": "dVliNv0p9jqZYp9rfLpN",
+      "title": "LSR Ascent (audit clone)",
+      "tier": "ascent",
+      "newId": "Hjrp1NuNCVYRa1zSD6qq",
+      "status": "existed"
+    },
+    {
+      "srcId": "AObYOowhLoOOHx9wW2Sq",
+      "title": "LSR Summit (audit clone)",
+      "tier": "summit",
+      "newId": "cZGeAN5gGdarI81Wh8kK",
+      "status": "existed"
     }
-  ]
+  ],
+  "teachers": {
+    "lsr_teacher_01@vocaboost.test": {
+      "uid": "hUIHGkru2IZwFSt1atYF5BsLTmo1",
+      "lists": [
+        {
+          "srcId": "8RMews2H7C3UJUAsOBzR",
+          "title": "LSR TOP Vocab (audit clone)",
+          "tier": "legacy",
+          "newId": "EQ0Dc9rb7gvoerflHlnz",
+          "status": "existed"
+        },
+        {
+          "srcId": "aRGjnGXdU4aupiS8SlXR",
+          "title": "LSR CORE Vocab (audit clone)",
+          "tier": "legacy",
+          "newId": "aDVcq3MoCvVYPTpb83IU",
+          "status": "existed"
+        },
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "0HrPB6ejvDxQ16arUh7C",
+          "status": "existed"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "Hjrp1NuNCVYRa1zSD6qq",
+          "status": "existed"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "cZGeAN5gGdarI81Wh8kK",
+          "status": "existed"
+        }
+      ]
+    },
+    "lsr_teacher_02@vocaboost.test": {
+      "uid": "81A0XjqAZHgDbsRVSeQ2c4RvMTX2",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "uhKYwNKHDtbFaY2goHQh",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "ssjsJSyeUk6F9yRXBuwN",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "l6I0h6S82iJyqti3eCDT",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_03@vocaboost.test": {
+      "uid": "ecWlryrONJRhBM2qje2SfBehndH3",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "3wM2qkPnqXILJE0QBsXs",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "A6ZZqhd2BoetgDesJ8yp",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "JmFJKz3hiEYBgWhHkwiN",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_04@vocaboost.test": {
+      "uid": "RP7oHszHKKaVOZUVFsP7ne6RQdh2",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "QwyGU8LMo1ffWazxyjrN",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "WK2Z6Hilz9oZcMn4Cpie",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "MTzplKmU3tKpKSifgQBf",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_05@vocaboost.test": {
+      "uid": "EgCtSkVNk9evbBSB6ssw0YTOk1V2",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "DF4Buy113hRfF6uXzede",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "RWb8nTrwmOnfM67WMsGv",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "ZjDI2aAMtbebau0WH4tU",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_06@vocaboost.test": {
+      "uid": "iESFs2j41mPHWXoebkBNTvlI9FF2",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "8f2uKIOGrZnIN3BS2VKP",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "eYhQWDkK3ys0cBIQnh46",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "TOxiQxj9VlGzLKc1JehB",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_07@vocaboost.test": {
+      "uid": "xPiCsgu9BkaXcdio91LTrWF4cJl1",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "dOGKls986xp2ZqSBybLp",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "UGcKjowXSY7NvUuLuEU7",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "lXjZ8TUJOeAJE9grFxbt",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    },
+    "lsr_teacher_08@vocaboost.test": {
+      "uid": "2VqqrjT1pNYPWvmqfvQALt74MPo1",
+      "lists": [
+        {
+          "srcId": "RmNNkuLPectBlBPiLbAJ",
+          "title": "LSR Base Camp (audit clone)",
+          "tier": "base",
+          "newId": "PVLgp1KZALQMxd4gZkPM",
+          "wordsCopied": 1200,
+          "verified": 1200,
+          "status": "cloned"
+        },
+        {
+          "srcId": "dVliNv0p9jqZYp9rfLpN",
+          "title": "LSR Ascent (audit clone)",
+          "tier": "ascent",
+          "newId": "83wXe3N6wb8CXHiOOwmv",
+          "wordsCopied": 1600,
+          "verified": 1600,
+          "status": "cloned"
+        },
+        {
+          "srcId": "AObYOowhLoOOHx9wW2Sq",
+          "title": "LSR Summit (audit clone)",
+          "tier": "summit",
+          "newId": "Oy9ZRus5ZqdYd6JiKeqK",
+          "wordsCopied": 800,
+          "verified": 800,
+          "status": "cloned"
+        }
+      ]
+    }
+  }
 }

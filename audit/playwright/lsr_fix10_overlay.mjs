@@ -60,9 +60,22 @@
  *     loose (can match test-page text); the poll-until-stable + settle + PASS-verify above neutralize its
  *     false-RED locally. Tightening the shared matcher is deferred (it affects Phase-1 + other harnesses).
  *
+ * ── CHANGELOG v2→v3 (Run 1 live driver iteration — FIX10_OVERLAY_BUILD_LOG.md; NO oracle change) ──────
+ *  R1-3: SETTLE_MS 25s→90s (the csd-advance wait) — typed grading runs through the slow AI-grading fn, so
+ *     25s left TD1 `unsettled`; MCQ grades instantly. stableRead gets its OWN shorter STABLE_TIMEOUT (25s).
+ *  R1-4: bounded reach-retry (`reachTest`) around setup + measure — nav to the test page (skip-to-test /
+ *     session menu) is flaky across days; on a miss, reload to a fresh dashboard and re-drive (BEFORE the
+ *     measurement window opens → oracle-safe).
+ *  R1-1: `flow-gap`/`selector-gap` REMOVED from FATAL — in this overlay they can only make a cell
+ *     NOT-MEASURED (→ INCOMPLETE, never PASS) or a sub-threshold final (→ NOT-MEASURED via finalFailVisible);
+ *     neither yields a false-GREEN. Load-bearing guards unchanged: the 6 discriminators + bindAndVerifyClass
+ *     + finalFailVisible + measured<CELLS gate. FAIL-CLOSED PRESERVED (self-verified). Still recorded, just
+ *     not verdict-gating. (Applied WITHOUT re-audit — owner-approved as a driver tweak; invariant re-checked.)
+ *
  *   PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright \
  *   LSR_BUILD_ID=<deployed build id, REQUIRED> [FIX10_EXPECT=green|red] [FIX10_NEGCTL=1] \
- *   [FIX10_S_TD1=… FIX10_S_TD2=… FIX10_S_MD1=… FIX10_S_MD2=…] [FIX10_MAX_MS=3600000] [FIX10_SETTLE_MS=25000] \
+ *   [FIX10_S_TD1=… FIX10_S_TD2=… FIX10_S_MD1=… FIX10_S_MD2=…] [FIX10_MAX_MS=3600000] \
+ *   [FIX10_SETTLE_MS=90000] [FIX10_STABLE_MS=25000] \
  *   NODE_PATH=/app/node_modules node audit/playwright/lsr_fix10_overlay.mjs [runId]
  *
  *   green: run against the DEPLOYED FIXED build. red: run against an UNFIXED + flag-ON (LIST_SCOPED_RECON=true
@@ -80,18 +93,30 @@ const EXPECT = (process.env.FIX10_EXPECT || 'green').toLowerCase(); // 'green' (
 const RUN_NEGCTL = process.env.FIX10_NEGCTL === '1';
 const PACE = 20, THR = 92, TEST_SIZE = 30;
 const MAX_MS = parseInt(process.env.FIX10_MAX_MS || String(60 * 60 * 1000), 10);
-const SETTLE_MS = parseInt(process.env.FIX10_SETTLE_MS || '25000', 10);
+const SETTLE_MS = parseInt(process.env.FIX10_SETTLE_MS || '90000', 10);  // v3: csd-advance wait — typed grading
+                                                                          // runs through the slow AI-grading fn
+                                                                          // (MCQ grades instantly); 25s was too short.
+const STABLE_TIMEOUT = parseInt(process.env.FIX10_STABLE_MS || '25000', 10); // v3: the poll-until-stable reads have
+                                                                          // their OWN (shorter) budget — they return
+                                                                          // early on stable; not the settle wait.
 const STABLE_POLLS = 2, STABLE_INTERVAL = 2500;                  // poll-until-stable: N identical reads
+const REACH_RETRIES = 2;                                         // v3: bounded reach-retry (nav to test is flaky)
 const RED_STATE = `${AUD}/findings/fix10_red_state.json`;       // consecutive-run tracker (red mode)
-const HARNESS_REV = 'v2';                                       // bump on harness edits so a stale candidate
+const HARNESS_REV = 'v5';                                       // bump on harness edits so a stale candidate
 const CELL_SET = 'TD1,TD2,MD1,MD2';                             // can't confirm across changes (Codex r2 note)
 
 if (!BUILD_ID) { console.error('LSR_BUILD_ID is REQUIRED (deployed build id) — aborting INVALID'); process.exit(2); }
 if (!['green', 'red'].includes(EXPECT)) { console.error(`FIX10_EXPECT must be green|red (got ${EXPECT})`); process.exit(2); }
 
+// v3: `flow-gap`/`selector-gap` are DRIVER-REACHABILITY signals (nav to test page, an assign/choice
+// selector) — they REMOVED from FATAL because in THIS overlay they can only make a cell NOT-MEASURED
+// (→ INCOMPLETE, never PASS) or, during MCQ answering, a sub-threshold final (→ NOT-MEASURED via
+// finalFailVisible). Neither produces a false-GREEN: the load-bearing guards are the 6 discriminators +
+// bindAndVerifyClass (assignment) + finalFailVisible (pass) + the measured<CELLS PASS-gate. They stay
+// RECORDED (visible in findings) — just not verdict-gating. All CORRUPTION signals below remain fatal.
 const FATAL_KINDS = new Set([
   'BUG', 'ui-fb-mismatch', 'unexpected-dialog', 'page-error', 'console-error', 'exception', 'fail',
-  'verify-fail', 'flow-gap', 'selector-gap', 'modal-dead', 'login-failed', 'request-failed',
+  'verify-fail', 'modal-dead', 'login-failed', 'request-failed',
 ]);
 function isAllowedRequestFailure(detail = '') {
   return /firestore\.googleapis\.com/i.test(detail)
@@ -106,7 +131,8 @@ function isFatal(x) {
 
 const { BASE, makeFindings, launch, newAuditPage, login, joinClass, switchClass, goDashboard,
         driveNewWordsToTest, driveReviewToTest, driveTest,
-        dismissModal, armDialog, lastDialog, shot, sleep } = await import('./lsr_ui.mjs');
+        dismissModal, armDialog, lastDialog, shot, sleep, clearCompletionIfPresent,
+        returnFromResultsAndClearCompletion } = await import('./lsr_ui.mjs');
 const { createClass, assignList, readJoinCode } = await import('./lsr_teacher.mjs');
 
 const LISTS = JSON.parse(readFileSync(`${AUD}/lsr_lists.json`, 'utf8')).lists;
@@ -189,6 +215,9 @@ let precededByAccept = false;
 async function freshDashboard(page, className) {
   const escRe = (s) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   precededByAccept = false;
+  // Clear a stale COMPLETE session_state FIRST (only "Back to Dashboard" clears it; a reload does not) →
+  // else the next day inherits phase=complete and shows a "Day N Complete" wall (DailySessionFlow.jsx:751/1787).
+  await clearCompletionIfPresent(page).catch(() => {});
   for (let attempt = 0; attempt < 3; attempt++) {
     armDialog(page, 'accept');
     const before = lastDialog(page);
@@ -223,7 +252,8 @@ async function finalFailVisible(page) {
 }
 
 // Generic poll-until-stable: call reader() until STABLE_POLLS consecutive identical keys, or deadline.
-async function stableRead(reader, keyer, { timeoutMs = SETTLE_MS } = {}) {
+// v3: default budget is STABLE_TIMEOUT (its own, shorter than the settle csd-wait — stable reads return early).
+async function stableRead(reader, keyer, { timeoutMs = STABLE_TIMEOUT } = {}) {
   const deadline = Date.now() + timeoutMs;
   let last = null, lastKey = null, streak = 0;
   while (Date.now() < deadline) {
@@ -255,11 +285,23 @@ async function settle(uid, classId, beforeCsd) {
   return { advanced: p.csd >= beforeCsd + 1, csd: p.csd };
 }
 
+// v3: bounded reach-retry. Navigating to the test page (skip-to-test menu / session menu) is flaky across
+// days; on a miss, reload to a fresh dashboard and re-drive. This is BEFORE the measurement window opens
+// (the `before` snapshot is taken after reach), so a reload here is oracle-safe.
+async function reachTest(page, className, isReview, label) {
+  for (let attempt = 0; attempt < REACH_RETRIES; attempt++) {
+    const r = isReview ? await driveReviewToTest(page, F, label) : await driveNewWordsToTest(page, F, label);
+    if (r.reached) return r;
+    if (attempt < REACH_RETRIES - 1) { await freshDashboard(page, className); await sleep(1200); }
+  }
+  return { reached: false };
+}
+
 // Drive + MEASURE one session-final completion. Window opens AFTER the session-entry reach and closes at
 // settle — NOT spanning any dashboard reload (Codex R2 boundary).
-async function measureCompletion(page, cell, uid, classId) {
+async function measureCompletion(page, cell, uid, classId, className) {
   const label = `${cell.name}-d${cell.dayNum}-${cell.isReview ? 'review' : 'new'}`;
-  const reach = cell.isReview ? await driveReviewToTest(page, F, label) : await driveNewWordsToTest(page, F, label);
+  const reach = await reachTest(page, className, cell.isReview, label);
   if (!reach.reached) return { cell: cell.name, ok: false, reason: 'final-test-not-reached' };
   // C1: the rendered page MUST match the class mode, else the matrix's "4 paths exercised" claim is false.
   const om = await observedMode(page);
@@ -353,36 +395,64 @@ async function measureCompletion(page, cell, uid, classId) {
     packet, settled };
 }
 
-// Drive the NEW portion of a day and require a PASS. RESUMES on a rebuild (F10O-1/B6): the broken build
-// still PERSISTS the day via reconcile, so if csd advanced we treat setup as complete (setup is UNMEASURED,
-// so this cannot touch the oracle). A setup-phase rebuild is recorded (rec.setupRebuilds) for DIAGNOSIS
-// only — it is NOT counted toward redCells; the resumed review-final is the measured oracle.
+// v4: poll until the student's NEW-attempt count reaches a target (or timeout). This is the right
+// confirmation for "the new test passed and persisted" on ANY day — the csd counter only advances on the
+// SESSION-FINAL test (day-1 new; day-2+ review), so a day-2 new pass leaves csd unchanged.
+async function pollNewAttempts(uid, classId, targetNew, { timeoutMs = SETTLE_MS } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const a = await attemptsState(uid, classId);
+    if (a.newAttempts >= targetNew) return a;
+    await sleep(2000);
+  }
+  return null;
+}
+
+// Drive the NEW portion of a day and require a PASS (UNMEASURED setup for a Day-2 cell). v4: confirm via
+// NEW-ATTEMPT persistence, not csd — on day 1 the new test IS the session-final (csd advances) but on day 2+
+// the new test is NOT final (csd stays; only the later review completes the day). Confirming csd for a day-2
+// new pass was the RUN-3 bug (`setup-d2new:setup-unsettled`). RESUMES on a rebuild (F10O-1/B6): the broken
+// build still persists via reconcile. Setup is unmeasured → cannot touch the oracle.
 async function driveNewPass(page, className, dayNum, label, uid, classId) {
+  const newIsFinal = dayNum === 1;   // day-1 new completes the day; day-2+ new does not
   if (!(await freshDashboard(page, className))) return { ok: false, reason: 'dash-not-ready' };
+  const before = await attemptsState(uid, classId);
   const beforeCsd = (await fbProgress(uid, classId)).csd;
-  const nw = await driveNewWordsToTest(page, F, label);
+  const nw = await reachTest(page, className, false, label);   // v3: bounded reach-retry (setup nav flaky)
   if (!nw.reached) return { ok: false, reason: 'new-test-not-reached' };
   const res = await driveTest(page, F, label);
   const rb = await classifyRebuild(page);
   if (rb !== 'clean') {
-    // On a rebuild during setup, the day may still have persisted (broken build reconcile OR a clean
-    // completion the harness raced). Re-check FB; if csd advanced, setup is effectively complete.
-    const s = await settle(uid, classId, beforeCsd);
+    // Rebuild during setup: recover if the new attempt persisted (and, for a final day, csd advanced too —
+    // the broken build persists the day via reconcile).
+    const persisted = await pollNewAttempts(uid, classId, before.newAttempts + 1);
+    const advanced = newIsFinal ? (await fbProgress(uid, classId)).csd >= beforeCsd + 1 : true;
     const setupRebuild = { screen: rb, dayGuardWarn: dayGuardWarnFrom(page), precededByAccept };
-    if (s.advanced) return { ok: true, resumedAfterRebuild: true, setupRebuild };
+    if (persisted && advanced) return { ok: true, resumedAfterRebuild: true, setupRebuild };
     return { ok: false, reason: `setup-rebuild-unrecovered:${rb}`, setupRebuild };
   }
   if (res.outcome !== 'results' || await finalFailVisible(page)) return { ok: false, reason: `new-not-passed:${res.outcome}` };
-  // Corroborate: csd advanced by exactly one (setup fidelity — C3).
-  const s = await settle(uid, classId, beforeCsd);
-  if (!s.advanced) return { ok: false, reason: 'setup-unsettled' };
+  // Confirm the new attempt persisted (correct for BOTH day 1 and day 2+).
+  const persisted = await pollNewAttempts(uid, classId, before.newAttempts + 1);
+  if (!persisted) return { ok: false, reason: 'setup-new-not-persisted' };
+  // For a day-1 (final) setup, additionally confirm the day completed (csd advanced).
+  if (newIsFinal) {
+    const s = await settle(uid, classId, beforeCsd);
+    if (!s.advanced) return { ok: false, reason: 'setup-unsettled' };
+    // Day-1 setup completed the day → return from results + click "Back to Dashboard" to CLEAR session_states
+    // so the NEXT setup day starts fresh, not on a stale phase=complete (Codex D2F-3). Day-2 new is NOT final
+    // (the measured review follows) → no clear, so we stay at review-study.
+    await returnFromResultsAndClearCompletion(page, F, `${label}-exit`).catch(() => {});
+  }
   return { ok: true };
 }
 
 // ── FIXTURE: teacher creates one typed + one mcq class, assigns the list, EXACT-verifies each. ──
 async function makeClass(tp, className, mode) {
   await createClass(tp, className, F);
-  await assignList(tp, className, LIST.title, { pace: PACE, thr: THR, mode, testSize: TEST_SIZE }, F);
+  // v5: set BOTH testMode (new) AND reviewTestType (review) to `mode` — the app's review type is a separate
+  // setting (default mcq), so a typed class needs reviewMode=typed to exercise TypedTest.jsx's review-final.
+  await assignList(tp, className, LIST.title, { pace: PACE, thr: THR, mode, reviewMode: mode, testSize: TEST_SIZE }, F);
   return readJoinCode(tp, className, F);
 }
 async function bindAndVerifyClass(className, mode) {
@@ -393,6 +463,7 @@ async function bindAndVerifyClass(className, mode) {
   const bad = !a ? 'list not assigned'
     : a.pace !== PACE ? `pace ${a.pace}!=${PACE}`
     : a.testMode !== mode ? `testMode ${a.testMode}!=${mode}`
+    : a.reviewTestType !== mode ? `reviewTestType ${a.reviewTestType}!=${mode}` // v5: review format matters (day-2 cell)
     : a.passThreshold !== THR ? `passThreshold ${a.passThreshold}!=${THR}`
     : a.testSizeNew !== TEST_SIZE ? `testSizeNew ${a.testSizeNew}!=${TEST_SIZE}`
     : null;
@@ -400,7 +471,7 @@ async function bindAndVerifyClass(className, mode) {
   return { classId };
 }
 
-console.log(`\n▶ #10 overlay v2 (${runId}, build ${BUILD_ID}, EXPECT=${EXPECT}) — 4-cell matrix, list=${LIST.title}\n`);
+console.log(`\n▶ #10 overlay v5 (${runId}, build ${BUILD_ID}, EXPECT=${EXPECT}) — 4-cell matrix, list=${LIST.title}\n`);
 const browser = await launch();
 
 try {
@@ -457,7 +528,7 @@ try {
         } else {
           if (!(await freshDashboard(page, className))) { rec.result = { ok: false, reason: 'dash-not-ready' }; out.cells.push(rec); await page.context().close().catch(() => {}); continue; }
         }
-        rec.result = await measureCompletion(page, cell, uid, classId);
+        rec.result = await measureCompletion(page, cell, uid, classId, className);
       } catch (e) {
         F.add('exception', `[${cell.name}] ${String(e).slice(0, 200)}`);
         rec.result = { ok: false, reason: `exception:${String(e).slice(0, 120)}` };
@@ -524,7 +595,7 @@ else if (EXPECT === 'green') {
 }
 
 writeFileSync(`${AUD}/findings/fix10_overlay_${runId}.json`, JSON.stringify(out, null, 2));
-console.log(`\n=== #10 OVERLAY v2 (${BUILD_ID}, EXPECT=${EXPECT}) ===`);
+console.log(`\n=== #10 OVERLAY v5 (${BUILD_ID}, EXPECT=${EXPECT}) ===`);
 console.log(`cells: ${measured.length}/${CELLS.length} measured | green: ${greenCells} | red: ${redCells} | fatal: ${fatals.length} | invalid: ${!!anyInvalid}`);
 const okVerdict = out.verdict.startsWith('PASS') || out.verdict.startsWith('REPRO-CONFIRMED');
 console.log(`\n${okVerdict ? '✅' : out.verdict.startsWith('INVALID') ? '🚫' : out.verdict.startsWith('REPRO-CANDIDATE') ? '🔁' : '⚠️'} ${out.verdict} → findings/fix10_overlay_${runId}.json`);

@@ -1,0 +1,36 @@
+classes=/26SM/i matched=32 | class-list pairs=96 | distinct students=816 | lists=3
+#7 split-brain classes (assignments>0 but assignedLists=[]): 0
+threshold distribution: {"92/0.92":84,"90/undefined":6,"92/undefined":4,"90/0.92":2}
+
+scanning 3009 distinct (student,class,list) enrollments...
+
+scanned=3009 started=1121 errors=0 flaggedRows=530
+=== SIGNATURE COUNTS (started students) ===
+  reviewOnlyListEnd: 183
+  reviewOnlyThrottle: 1
+  twiOverList: 1
+  twiOverMastery: 0
+  dualEnrollSameList: 98
+  invalidAnchor: 0
+  manualPatched: 82
+  reviewNoNewPass: 31
+  testSizeMismatch: 257
+  noClassAttempt: 0
+  csdImplausible: 0
+  missingPSD: 1
+  impossibleSession: 0
+  ghostProgress: 0
+  csdUndercountCand: 0
+
+=== system_logs (last 4000, field='type', 2026-07-12→2026-07-13) ===
+  csd_anchor_invalid: 0
+  csd_implausible: 0
+  csd_anchor_query_error: 0
+  day_guard_rejected_session_cleared: 17
+  impossible_phase_detected: 3088
+  day1_with_passed_new_test: 0
+  attempt_day_fallback: 10
+  attempt_day_context_invalid: 0
+  review_only_completion: 0
+
+wrote census_rows.json, census_classes.json, syslogs.json to task1/firebase/

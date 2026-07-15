@@ -1,0 +1,54 @@
+{
+  "email": "chanheewhitetiger10@gmail.com",
+  "uid": "gAM74J59NJUOZs7f8dDjOes80iH3",
+  "cp": "wRoGjp2QTa89DxAk9PlT_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 17,
+    "twi": 1020,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "date": {
+          "_seconds": 1783908703,
+          "_nanoseconds": 213000000
+        },
+        "segmentStartIndex": 796,
+        "wordsTested": 30,
+        "reviewScore": 0,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "segmentEndIndex": 855,
+        "day": 15,
+        "newWordScore": 0.96
+      },
+      {
+        "segmentStartIndex": 1,
+        "wordsTested": 30,
+        "reviewScore": 0.16666666666666666,
+        "wordsIntroduced": 0,
+        "date": {
+          "_seconds": 1783995179,
+          "_nanoseconds": 386000000
+        },
+        "day": 16,
+        "newWordScore": 0.92,
+        "segmentEndIndex": 240,
+        "wordsReviewed": 60
+      },
+      {
+        "day": 17,
+        "date": {
+          "_seconds": 1784081093,
+          "_nanoseconds": 137000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.16666666666666666,
+        "segmentStartIndex": 426,
+        "segmentEndIndex": 506,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

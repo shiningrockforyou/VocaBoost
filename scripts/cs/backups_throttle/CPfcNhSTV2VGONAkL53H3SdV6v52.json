@@ -1,0 +1,54 @@
+{
+  "email": "wisdomram11@gmail.com",
+  "uid": "CPfcNhSTV2VGONAkL53H3SdV6v52",
+  "cp": "k0j59bXvvtedgqi98apt_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 560,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "day": 5,
+        "segmentStartIndex": 317,
+        "newWordScore": 0.97,
+        "reviewScore": 0.16666666666666666,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30,
+        "date": {
+          "_seconds": 1783908337,
+          "_nanoseconds": 35000000
+        },
+        "segmentEndIndex": 376
+      },
+      {
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "newWordScore": 0.93,
+        "reviewScore": 0.13333333333333333,
+        "segmentStartIndex": 8,
+        "day": 6,
+        "date": {
+          "_seconds": 1784035608,
+          "_nanoseconds": 876000000
+        },
+        "segmentEndIndex": 101,
+        "wordsTested": 30
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784091616,
+          "_nanoseconds": 931000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.16666666666666666,
+        "segmentStartIndex": 142,
+        "segmentEndIndex": 202,
+        "wordsIntroduced": 80,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

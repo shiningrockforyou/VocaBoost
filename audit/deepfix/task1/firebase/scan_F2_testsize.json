@@ -1,0 +1,200 @@
+[
+  {
+    "uid": "qAvLSYA7",
+    "cls": "SAT Inter A1",
+    "listId": "RmNNkuLP",
+    "day": 8,
+    "q": 10,
+    "exp": 30,
+    "nwei": 639,
+    "isFirstDay": false,
+    "ts": 1783488074
+  },
+  {
+    "uid": "xiqn9EXL",
+    "cls": "SAT Adv B1",
+    "listId": "dVliNv0p",
+    "day": 11,
+    "q": 13,
+    "exp": 30,
+    "nwei": 879,
+    "isFirstDay": false,
+    "ts": 1782091520
+  },
+  {
+    "uid": "KRNf7ruu",
+    "cls": "SAT Inter B2",
+    "listId": "RmNNkuLP",
+    "day": 1,
+    "q": 14,
+    "exp": 30,
+    "nwei": 79,
+    "isFirstDay": true,
+    "ts": 1780914060
+  },
+  {
+    "uid": "KGaRt6pg",
+    "cls": "SAT Inter. O",
+    "listId": "RmNNkuLP",
+    "day": 2,
+    "q": 13,
+    "exp": 30,
+    "nwei": 159,
+    "isFirstDay": false,
+    "ts": 1782211888
+  },
+  {
+    "uid": "zagQDPW9",
+    "cls": "[온] Sat Adv. O",
+    "listId": "dVliNv0p",
+    "day": 2,
+    "q": 12,
+    "exp": 30,
+    "nwei": 159,
+    "isFirstDay": false,
+    "ts": 1781605067
+  },
+  {
+    "uid": "EmS3PpWO",
+    "cls": "유라시아 SAT Top",
+    "listId": "dVliNv0p",
+    "day": 2,
+    "q": 20,
+    "exp": 35,
+    "nwei": 99,
+    "isFirstDay": false,
+    "ts": 1781546679
+  },
+  {
+    "uid": "mwEHsXLG",
+    "cls": "[온] Sat Adv. O",
+    "listId": "dVliNv0p",
+    "day": 3,
+    "q": 13,
+    "exp": 30,
+    "nwei": 239,
+    "isFirstDay": false,
+    "ts": 1782287116
+  },
+  {
+    "uid": "3bWwRlE8",
+    "cls": "SAT Adv A2",
+    "listId": "dVliNv0p",
+    "day": 3,
+    "q": 13,
+    "exp": 30,
+    "nwei": 239,
+    "isFirstDay": false,
+    "ts": 1782053520
+  },
+  {
+    "uid": "4muHZXgX",
+    "cls": "SAT Adv A2",
+    "listId": "dVliNv0p",
+    "day": 7,
+    "q": 12,
+    "exp": 30,
+    "nwei": 559,
+    "isFirstDay": false,
+    "ts": 1783920137
+  },
+  {
+    "uid": "PRvQ0ase",
+    "cls": "미주 SAT Inter. [한국어 혼용]",
+    "listId": "RmNNkuLP",
+    "day": 4,
+    "q": 10,
+    "exp": 30,
+    "nwei": 319,
+    "isFirstDay": false,
+    "ts": 1781152226
+  },
+  {
+    "uid": "ZAbQhSLf",
+    "cls": "미주 SAT Inter.",
+    "listId": "RmNNkuLP",
+    "day": 1,
+    "q": 10,
+    "exp": 30,
+    "nwei": 79,
+    "isFirstDay": true,
+    "ts": 1783306752
+  },
+  {
+    "uid": "W15BX5uc",
+    "cls": "제주 SAT TOP",
+    "listId": "AObYOowh",
+    "day": 1,
+    "q": 10,
+    "exp": 35,
+    "nwei": 99,
+    "isFirstDay": true,
+    "ts": 1783396144
+  },
+  {
+    "uid": "WEnJ2LbU",
+    "cls": "SAT Adv B2",
+    "listId": "dVliNv0p",
+    "day": 1,
+    "q": 13,
+    "exp": 30,
+    "nwei": 79,
+    "isFirstDay": true,
+    "ts": 1782094503
+  },
+  {
+    "uid": "A2a7wgrL",
+    "cls": "SAT Final A",
+    "listId": "dVliNv0p",
+    "day": 5,
+    "q": 14,
+    "exp": 35,
+    "nwei": 499,
+    "isFirstDay": false,
+    "ts": 1781242100
+  },
+  {
+    "uid": "A2a7wgrL",
+    "cls": "SAT Final A",
+    "listId": "dVliNv0p",
+    "day": 11,
+    "q": 12,
+    "exp": 35,
+    "nwei": 1099,
+    "isFirstDay": false,
+    "ts": 1782106340
+  },
+  {
+    "uid": "x5sadyO8",
+    "cls": "SAT Inter A3",
+    "listId": "RmNNkuLP",
+    "day": 1,
+    "q": 10,
+    "exp": 30,
+    "nwei": 79,
+    "isFirstDay": true,
+    "ts": 1781040974
+  },
+  {
+    "uid": "GL7SXBWC",
+    "cls": "SAT Bridge (CORE)",
+    "listId": "RmNNkuLP",
+    "day": 6,
+    "q": 8,
+    "exp": 25,
+    "nwei": 359,
+    "isFirstDay": false,
+    "ts": 1783909750
+  },
+  {
+    "uid": "esj1R1wz",
+    "cls": "SAT Bridge (CORE)",
+    "listId": "RmNNkuLP",
+    "day": 6,
+    "q": 13,
+    "exp": 25,
+    "nwei": 359,
+    "isFirstDay": false,
+    "ts": 1783909983
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "email": "soyun080303@gmail.com",
+  "uid": "nwZjd8m3QEf1yhD3rIAg5hZ9fsx2",
+  "cp": "7PDT5jGKWNBh8oB0tjYh_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 17,
+    "twi": 1360,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "day": 15,
+        "segmentStartIndex": 996,
+        "reviewScore": 0,
+        "wordsTested": 30,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1783869872,
+          "_nanoseconds": 610000000
+        },
+        "wordsIntroduced": 0,
+        "newWordScore": 0.97,
+        "segmentEndIndex": 1055
+      },
+      {
+        "wordsIntroduced": 0,
+        "date": {
+          "_seconds": 1783910071,
+          "_nanoseconds": 935000000
+        },
+        "newWordScore": 1,
+        "segmentEndIndex": 59,
+        "day": 16,
+        "segmentStartIndex": 0,
+        "reviewScore": 0.6333333333333333,
+        "wordsTested": 30,
+        "wordsReviewed": 60
+      },
+      {
+        "day": 17,
+        "date": {
+          "_seconds": 1784004728,
+          "_nanoseconds": 928000000
+        },
+        "newWordScore": 0.93,
+        "reviewScore": 0.06666666666666667,
+        "segmentStartIndex": 444,
+        "segmentEndIndex": 503,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

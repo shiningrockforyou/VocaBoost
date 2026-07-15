@@ -1,0 +1,54 @@
+{
+  "email": "jenniekim10304@gmail.com",
+  "uid": "VjYM2hhscUUtEmjHbhdWxhfmQk12",
+  "cp": "qeCkS6BpZLVGLe2G5O7Z_AObYOowhLoOOHx9wW2Sq",
+  "before": {
+    "csd": 6,
+    "twi": 600,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "reviewScore": 0.23333333333333334,
+        "newWordScore": 1,
+        "segmentStartIndex": 209,
+        "day": 4,
+        "wordsReviewed": 60,
+        "wordsIntroduced": 0,
+        "wordsTested": 30,
+        "segmentEndIndex": 268,
+        "date": {
+          "_seconds": 1783918372,
+          "_nanoseconds": 342000000
+        }
+      },
+      {
+        "reviewScore": 0.16666666666666666,
+        "newWordScore": 1,
+        "day": 5,
+        "segmentStartIndex": 308,
+        "wordsIntroduced": 100,
+        "wordsReviewed": 60,
+        "wordsTested": 30,
+        "segmentEndIndex": 367,
+        "date": {
+          "_seconds": 1783939723,
+          "_nanoseconds": 386000000
+        }
+      },
+      {
+        "day": 6,
+        "date": {
+          "_seconds": 1784036881,
+          "_nanoseconds": 81000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 1,
+        "segmentEndIndex": 70,
+        "wordsIntroduced": 100,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

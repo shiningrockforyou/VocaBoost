@@ -1,0 +1,54 @@
+{
+  "email": "lukehong0111@gmail.com",
+  "uid": "ghXqlSS8PVWvMFcxbB0f8t612Ef1",
+  "cp": "k0j59bXvvtedgqi98apt_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 560,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "segmentEndIndex": 362,
+        "segmentStartIndex": 303,
+        "date": {
+          "_seconds": 1783908722,
+          "_nanoseconds": 171000000
+        },
+        "day": 5,
+        "wordsTested": 30,
+        "wordsIntroduced": 0,
+        "reviewScore": 0,
+        "wordsReviewed": 60,
+        "newWordScore": 1
+      },
+      {
+        "wordsTested": 30,
+        "wordsIntroduced": 0,
+        "day": 6,
+        "wordsReviewed": 60,
+        "newWordScore": 0.97,
+        "reviewScore": 0,
+        "segmentStartIndex": 0,
+        "date": {
+          "_seconds": 1783919296,
+          "_nanoseconds": 206000000
+        },
+        "segmentEndIndex": 60
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784089652,
+          "_nanoseconds": 206000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 120,
+        "segmentEndIndex": 179,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

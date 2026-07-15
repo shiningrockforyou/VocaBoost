@@ -1,0 +1,54 @@
+{
+  "email": "hyebinseo3383@gmail.com",
+  "uid": "v8n68SuUWWgtKklpksXZyzfDYYz1",
+  "cp": "wRoGjp2QTa89DxAk9PlT_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 7,
+    "twi": 420,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsReviewed": 58,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 242,
+        "newWordScore": 0.96,
+        "date": {
+          "_seconds": 1783907594,
+          "_nanoseconds": 127000000
+        },
+        "wordsTested": 30,
+        "segmentEndIndex": 299,
+        "day": 5,
+        "wordsIntroduced": 0
+      },
+      {
+        "wordsReviewed": 56,
+        "segmentStartIndex": 6,
+        "reviewScore": 0.2,
+        "newWordScore": 0.96,
+        "date": {
+          "_seconds": 1783994343,
+          "_nanoseconds": 876000000
+        },
+        "wordsTested": 30,
+        "segmentEndIndex": 106,
+        "day": 6,
+        "wordsIntroduced": 0
+      },
+      {
+        "day": 7,
+        "date": {
+          "_seconds": 1784080688,
+          "_nanoseconds": 627000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 128,
+        "segmentEndIndex": 204,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+diff --git a/functions/index.js b/functions/index.js
+index b57efa0..f964024 100644
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -55,10 +55,13 @@ const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
+ // Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
+ // (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
+ // only after the fn + client token-threading are deployed + validated (own Codex pass first).
+-const GRADE_TOKEN_ENFORCED = true;  // ⚠️ GLOBAL: every typed write now REQUIRES a valid gradeToken or it
+-// is rejected (incl. 26SM real students). The deployed client sends the token (G2 client code shipped), and
+-// MINT is on, so the round-trip should hold — but deploy in a QUIET WINDOW with rollback ready (flip false +
+-// redeploy). Validate immediately after deploy (direct harness + a live typed-grade smoke).
++const GRADE_TOKEN_ENFORCED = false;  // deepfix P0 (G1 disarm, 2026-07-13): DISARMED to match LIVE prod, which
++// runs false (F-9: recent 26SM attempts write correctnessSource:null ⇒ enforcement off). HEAD had carried `true`
++// (committed 4b82a0a, BEFORE the 06-29 mass-save outage; prod's false was never committed back), so deploying
++// functions as-is would RE-ARM the 06-29 outage — the localStorage-nonce → grade/save docId divergence
++// (testRecovery.js:98-111) is still UNPATCHED. RE-ARM (→ true) ONLY in the same review as the validated nonce fix
++// (FIX_PLAN.md P4 legs F1-F3: server-echoed attemptDocId + memoized nonce) + the F5 acceptance. See
++// audit/deepfix/task2/FIX_PLAN.md P0 + inv_I5_deploy_gate.md.
+ // GRADE_TOKEN_MINT: gates whether gradeTypedTest actually mints tokens (touches GRADE_TOKEN_SECRET).
+ // Default OFF so deploying this code does NOT add a live-grading dependency on the secret (Codex):
+ // with both flags off, typed grading never calls gradeTokenSecret.value(), so a missing/misconfigured

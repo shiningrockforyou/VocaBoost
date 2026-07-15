@@ -1,0 +1,742 @@
+--- a/functions/foundation.js
++++ b/functions/foundation.js
+@@ -83,6 +83,19 @@
+ // With this false, resolveEffectiveCyclingServer() short-circuits to not-cycling with NO read →
+ // every leg is byte-equivalent to today.
+ const CYCLING_ENABLED = false;
++// deepfix P10 · OVR — gates the reviewChallenge callable (the full server port of the
++// client db.js reviewChallenge answer-flip / score / challenges.history / study_states
++// legs, under the I-10 §6 authz UNION). Flipped at the P10 cutover TOGETHER with the
++// client SERVER_OVERRIDE routing flag (src/config/featureFlags.js), AFTER the P3–P6
++// foundation deploys + soak. Disabled ⇒ the callable throws `failed-precondition` and
++// touches nothing (dark on deploy, like every P3 callable). Flag-off ⇒ the client keeps
++// today's hybrid path verbatim (byte-equivalent). DORMANT at merge per the P3 draft rule.
++const SERVER_REVIEW_CHALLENGE_ENABLED = false;
++// deepfix P10 · OVR — gates the overrideAttempt callable (the in-product manual-pass:
++// a server-authorized teacher writes a VALID reconciliation anchor + advances the day,
++// mirroring scripts/cs/manual-pass.mjs). Flipped at the P10 cutover with SERVER_OVERRIDE.
++// Disabled ⇒ `failed-precondition`, no reads/writes. DORMANT at merge (P3 draft rule).
++const SERVER_OVERRIDE_ENABLED = false;
+ 
+ // Exported for the `version` provenance probe (index.js) so the I-5 G1
+ // flag-assertion table can assert these on every deploy.
+@@ -95,6 +108,8 @@
+   ANCHOR_VALIDATION_SHADOW,
+   ANCHOR_VALIDATION_ENFORCE,
+   CYCLING_ENABLED,
++  SERVER_REVIEW_CHALLENGE_ENABLED,
++  SERVER_OVERRIDE_ENABLED,
+ };
+ 
+ // ============================================================================
+@@ -1637,6 +1652,187 @@
+ });
+ 
+ // ============================================================================
++// deepfix P10 · OVR — shared primitives reused by advanceForChallenge (P4) +
++//     the P10 reviewChallenge / overrideAttempt callables (FIX_PLAN P10; I-10).
++// ============================================================================
++
++/**
++ * [deepfix P10 · OVR] The clamped + phase-gated challenge day-advance TRANSACTION —
++ * the SINGLE twi-writer primitive. Extracted VERBATIM from advanceForChallenge's
++ * inlined transaction (P4/F5-HIGH-2) so P10's reviewChallenge + overrideAttempt REUSE
++ * it rather than re-implement the clamp / phase-gate (the plan §0/§1b: those legs are
++ * ALREADY done here — do NOT rebuild them). Every caller resolves the same inputs
++ * (assignment, EFFECTIVE cross-class `cycling`, list size) in its own pre-transaction
++ * preamble and hands them in; the transaction body is identical for all three, so the
++ * clamp (I-6 §3-row-8 fix) and the `phase==='new'` gate live in exactly one place.
++ *
++ * @param {object} p resolved inputs (all read pre-transaction by the caller)
++ * @param {object} p.attempt   attempt data (uses .studyDay)
++ * @param {object|null} p.assignment  classes/{classId}.assignments[listId] (for .pace)
++ * @param {'new'|'review'} p.phase
++ * @param {string} p.studentId
++ * @param {string} p.classId
++ * @param {string} p.listId
++ * @param {number} p.newScore   post-acceptance score (0-100)
++ * @param {number|null} p.totalListWords  list size for the clamp (null ⇒ fail-open)
++ * @param {boolean} p.cycling   EFFECTIVE cross-class cycling (P9, resolved by caller)
++ * @returns {Promise<object>} the advance-result object
++ */
++async function runChallengeDayAdvanceTxn({attempt, assignment, phase, studentId, classId, listId, newScore, totalListWords, cycling}) {
++  const db = getDb();
++  const progressRef = durableProgressRef(studentId, classId, listId);
++  return db.runTransaction(async (tx) => {
++    const progressSnap = await tx.get(progressRef);
++    if (!progressSnap.exists) {
++      // exists()-guard parity (db.js:2804). Post-P5 a missing canonical doc is
++      // a straggler the resolver hydrates — surfaced by the log, owned by P10.
++      return {advanced: false, reason: "no_progress_doc"};
++    }
++    const progress = progressSnap.data();
++    const currentDay = progress.currentStudyDay || 0;
++    const isFirstDay = currentDay === 0;
++    // Stale-day guard (db.js:2809-2817): only the current day boundary advances.
++    const attemptStudyDay = attempt.studyDay;
++    const isCurrentBoundary = Number.isInteger(attemptStudyDay) && attemptStudyDay === currentDay + 1;
++    if (!isCurrentBoundary) return {advanced: false, reason: "not_current_boundary", currentDay};
++
++    const now = admin.firestore.Timestamp.now();
++    if (phase === "new" && !isFirstDay) {
++      // Day 2+ new-word pass → advance to review-study; day NOT incremented
++      // (db.js:2819-2829 parity, same session_states doc + fields).
++      const sessionRef = getDb().doc(`users/${studentId}/session_states/${getProgressDocId(classId, listId)}`);
++      tx.set(sessionRef, {
++        phase: "review-study",
++        newWordsTestPassed: true,
++        newWordsTestScore: newScore / 100,
++        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
++      }, {merge: true});
++      return {advanced: true, action: "session_advanced_to_review", currentDay};
++    }
++    // Day-1 new pass OR review pass at the boundary → complete the day
++    // (db.js:2830-2845), CLAMPED + PHASE-GATED per the plan.
++    const interventionLevel = progress.interventionLevel || 0;
++    const dailyPace = assignment?.pace || 20; // db.js:2837 parity (assignment pace is daily)
++    const rawNewWordCount = Math.round(dailyPace * (1 - interventionLevel)); // db.js:2838
++    const currentTwi = progress.totalWordsIntroduced || 0;
++    // Clamp to wordsRemaining (the I-6 §3-row-8 fix). Unknown list size (read
++    // failed) FAILS OPEN to the legacy unclamped-but-non-negative count — the
++    // clamp is an improvement and must not become a new silent-zero failure mode.
++    const wordsRemaining = totalListWords == null ? null : Math.max(0, totalListWords - currentTwi);
++    // P9 · CYC: keep the challenge-accept advance CONSISTENT with the completeSession/M4
++    // lap-modular clamp (the spec's "ensure lap-2 allocation/M4 is consistent"). Under
++    // cycling the wordsRemaining cap is removed so a lap-2 challenge accept advances by the
++    // full paced count (the counter is virtual/monotonic). The phase gate (twi only on
++    // phase==='new') is UNCHANGED. `cycling` is the EFFECTIVE cross-class result resolved
++    // pre-transaction by the caller (Codex P9-5). Flag-off ⇒ cycling false ⇒ today's exact clamp.
++    const clamped = cycling ?
++      Math.max(0, rawNewWordCount) :
++      (wordsRemaining == null ?
++        Math.max(0, rawNewWordCount) :
++        Math.max(0, Math.min(rawNewWordCount, wordsRemaining)));
++    const twiIncrement = phase === "new" ? clamped : 0; // phase gate (F5-HIGH-2)
++    tx.update(progressRef, {
++      currentStudyDay: currentDay + 1,
++      totalWordsIntroduced: currentTwi + twiIncrement,
++      lastSessionAt: now,
++      updatedAt: now,
++    });
++    return {
++      advanced: true, action: "day_completed",
++      currentDay: currentDay + 1,
++      twiIncrement, rawNewWordCount, clampedTo: wordsRemaining, phase,
++    };
++  });
++}
++
++/**
++ * [deepfix P10 · OVR] The I-10 §6 authorization UNION, enforced server-side (the Admin
++ * SDK bypasses Firestore rules). A caller may review / override an attempt IFF they are
++ * a teacher AND EITHER
++ *   (i)  the attempt's teacher-of-record STAMP  (attempt.teacherId === caller), OR
++ *   (ii) the CURRENT-enrollment owner — they own a class the student is enrolled in NOW
++ *        (the renameStudent pattern, index.js:1877-1893).
++ * Leg (i) is the stamp model reviewChallenge / advanceForChallenge use today (db.js:2743,
++ * foundation.js advanceForChallenge). Leg (ii) is renameStudent's enrollment-ownership
++ * model. C-19 is precisely the disjunction neither implements ALONE — P10 unions them, so
++ * teacher B can act on an A-stamped inherited attempt of a student promoted A→B. An
++ * unrelated teacher matches NEITHER leg ⇒ permission-denied.
++ *
++ * @param {string} callerId  request.auth.uid
++ * @param {object} attempt   attempt data (uses .teacherId, .studentId)
++ * @returns {Promise<{via:'stamp'|'enrollment', classId?:string}>}
++ */
++async function assertOverrideAuthz(callerId, attempt) {
++  const db = getDb();
++  // Role gate (renameStudent parity, index.js:1864-1868).
++  const callerSnap = await db.doc(`users/${callerId}`).get();
++  if (!callerSnap.exists || callerSnap.data().role !== "teacher") {
++    throw new HttpsError("permission-denied", "Only teachers can review or override attempts.");
++  }
++  // Leg (i): teacher-of-record stamp.
++  if (attempt.teacherId && attempt.teacherId === callerId) return {via: "stamp"};
++  // Leg (ii): current-enrollment ownership (renameStudent pattern, index.js:1877-1893).
++  const studentId = attempt.studentId;
++  if (studentId) {
++    const studentSnap = await db.doc(`users/${studentId}`).get();
++    const enrolled = studentSnap.exists ? Object.keys(studentSnap.data().enrolledClasses || {}) : [];
++    for (const classId of enrolled) {
++      const classSnap = await db.doc(`classes/${classId}`).get();
++      if (classSnap.exists && classSnap.data().ownerTeacherId === callerId) {
++        return {via: "enrollment", classId};
++      }
++    }
++  }
++  throw new HttpsError(
++    "permission-denied",
++    "You are not authorized to act on this attempt (neither its teacher of record nor a current-enrollment owner).",
++  );
++}
++
++/**
++ * [deepfix P10 · OVR / Codex P10-1] STRICT target-bound authorization for the NO-attemptId
++ * override path (the teacherId:null / ungradeable orphan — there is no loaded attempt to
++ * bind to). Because overrideAttempt writes a reconciliation-AUTHORITATIVE anchor and the
++ * Admin SDK bypasses rules, this binds authorization to the EXACT (studentId, classId,
++ * listId) write target — NOT the "owns ANY enrolled class" union leg (that breadth is the
++ * P10-1 hole for a caller-supplied target). Caller must be a teacher AND
++ *   • own the SPECIFIC target class (classes/{classId}.ownerTeacherId === caller), AND
++ *   • the student must be enrolled in THAT class (enrolledClasses[classId]), AND
++ *   • that class must assign the target list (assignments[listId] exists).
++ * Returns the loaded class doc so the caller can build the anchor without a second read.
++ *
++ * @param {string} callerId
++ * @param {{studentId:string, classId:string, listId:string}} target
++ * @returns {Promise<{via:'target', classData:object}>}
++ */
++async function assertOverrideTargetAuthz(callerId, {studentId, classId, listId}) {
++  const db = getDb();
++  // Role gate (renameStudent parity, index.js:1864-1868).
++  const callerSnap = await db.doc(`users/${callerId}`).get();
++  if (!callerSnap.exists || callerSnap.data().role !== "teacher") {
++    throw new HttpsError("permission-denied", "Only teachers can override attempts.");
++  }
++  // Caller must own the EXACT target class.
++  const classSnap = await db.doc(`classes/${classId}`).get();
++  if (!classSnap.exists) throw new HttpsError("not-found", "Target class not found.");
++  const classData = classSnap.data() || {};
++  if (classData.ownerTeacherId !== callerId) {
++    throw new HttpsError("permission-denied", "You do not own the target class for this override.");
++  }
++  // Student must be enrolled in THAT class.
++  const studentSnap = await db.doc(`users/${studentId}`).get();
++  const enrolled = studentSnap.exists ? (studentSnap.data().enrolledClasses || {}) : {};
++  if (!Object.prototype.hasOwnProperty.call(enrolled, classId)) {
++    throw new HttpsError("permission-denied", "The student is not enrolled in the target class.");
++  }
++  // The class must assign the target list.
++  if (!classData.assignments || !classData.assignments[listId]) {
++    throw new HttpsError("invalid-argument", "The target class does not assign this list.");
++  }
++  return {via: "target", classData};
++}
++
++// ============================================================================
+ // 9 · advanceForChallenge — the 3rd twi writer's day-advance, server-side
+ //     (FIX_PLAN P3 change 9; v3 F5-HIGH-2; I-6 §3 row 8)
+ // ============================================================================
+@@ -1735,72 +1931,16 @@
+     totalListWords = null;
+   }
+ 
+-  const progressRef = durableProgressRef(studentId, classId, listId);
+   // P9 · CYC (Codex P9-5): EFFECTIVE cross-class cycling for the STUDENT+list, resolved
+   // pre-transaction — the SAME predicate the client + completeSession + M4 use. Flag-off ⇒
+   // short-circuit, no read (byte-equivalent).
+   const cycling = (await resolveEffectiveCyclingServer(studentId, listId)).enabled;
+-  const result = await db.runTransaction(async (tx) => {
+-    const progressSnap = await tx.get(progressRef);
+-    if (!progressSnap.exists) {
+-      // exists()-guard parity (db.js:2804). Post-P5 a missing canonical doc is
+-      // a straggler the resolver hydrates — surfaced by the log, owned by P10.
+-      return {advanced: false, reason: "no_progress_doc"};
+-    }
+-    const progress = progressSnap.data();
+-    const currentDay = progress.currentStudyDay || 0;
+-    const isFirstDay = currentDay === 0;
+-    // Stale-day guard (db.js:2809-2817): only the current day boundary advances.
+-    const attemptStudyDay = attempt.studyDay;
+-    const isCurrentBoundary = Number.isInteger(attemptStudyDay) && attemptStudyDay === currentDay + 1;
+-    if (!isCurrentBoundary) return {advanced: false, reason: "not_current_boundary", currentDay};
+-
+-    const now = admin.firestore.Timestamp.now();
+-    if (phase === "new" && !isFirstDay) {
+-      // Day 2+ new-word pass → advance to review-study; day NOT incremented
+-      // (db.js:2819-2829 parity, same session_states doc + fields).
+-      const sessionRef = getDb().doc(`users/${studentId}/session_states/${getProgressDocId(classId, listId)}`);
+-      tx.set(sessionRef, {
+-        phase: "review-study",
+-        newWordsTestPassed: true,
+-        newWordsTestScore: newScore / 100,
+-        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+-      }, {merge: true});
+-      return {advanced: true, action: "session_advanced_to_review", currentDay};
+-    }
+-    // Day-1 new pass OR review pass at the boundary → complete the day
+-    // (db.js:2830-2845), CLAMPED + PHASE-GATED per the plan.
+-    const interventionLevel = progress.interventionLevel || 0;
+-    const dailyPace = assignment?.pace || 20; // db.js:2837 parity (assignment pace is daily)
+-    const rawNewWordCount = Math.round(dailyPace * (1 - interventionLevel)); // db.js:2838
+-    const currentTwi = progress.totalWordsIntroduced || 0;
+-    // Clamp to wordsRemaining (the I-6 §3-row-8 fix). Unknown list size (read
+-    // failed) FAILS OPEN to the legacy unclamped-but-non-negative count — the
+-    // clamp is an improvement and must not become a new silent-zero failure mode.
+-    const wordsRemaining = totalListWords == null ? null : Math.max(0, totalListWords - currentTwi);
+-    // P9 · CYC: keep the challenge-accept advance CONSISTENT with the completeSession/M4
+-    // lap-modular clamp (the spec's "ensure lap-2 allocation/M4 is consistent"). Under
+-    // cycling the wordsRemaining cap is removed so a lap-2 challenge accept advances by the
+-    // full paced count (the counter is virtual/monotonic). The phase gate (twi only on
+-    // phase==='new') is UNCHANGED. `cycling` is the EFFECTIVE cross-class result resolved
+-    // pre-transaction above (Codex P9-5). Flag-off ⇒ cycling false ⇒ today's exact clamp.
+-    const clamped = cycling ?
+-      Math.max(0, rawNewWordCount) :
+-      (wordsRemaining == null ?
+-        Math.max(0, rawNewWordCount) :
+-        Math.max(0, Math.min(rawNewWordCount, wordsRemaining)));
+-    const twiIncrement = phase === "new" ? clamped : 0; // phase gate (F5-HIGH-2)
+-    tx.update(progressRef, {
+-      currentStudyDay: currentDay + 1,
+-      totalWordsIntroduced: currentTwi + twiIncrement,
+-      lastSessionAt: now,
+-      updatedAt: now,
+-    });
+-    return {
+-      advanced: true, action: "day_completed",
+-      currentDay: currentDay + 1,
+-      twiIncrement, rawNewWordCount, clampedTo: wordsRemaining, phase,
+-    };
++  // [deepfix P10 · OVR] The clamped + phase-gated day-advance is now the shared
++  // runChallengeDayAdvanceTxn primitive (extracted VERBATIM from the transaction that lived
++  // inline here through P9), so P10's reviewChallenge + overrideAttempt REUSE the exact same
++  // twi clamp + phase gate. Behaviour is byte-identical to the inlined transaction.
++  const result = await runChallengeDayAdvanceTxn({
++    attempt, assignment, phase, studentId, classId, listId, newScore, totalListWords, cycling,
+   });
+ 
+   await logSystemEventServer("challenge_day_advance", {
+@@ -1811,12 +1951,330 @@
+   return result;
+ });
+ 
++// ============================================================================
++// deepfix P10 · OVR (a)+(b) — reviewChallenge (server port) + overrideAttempt
++//     (in-product manual-pass). FIX_PLAN P10; I-7/I-10; P10_IMPL_PLAN §1(a)(b).
++//
++// These FINISH the migration P4 began: advanceForChallenge (above) already owns
++// the clamped + phase-gated DAY-ADVANCE; P10 moves the REMAINING reviewChallenge
++// legs (answer-flip / score / challenges.history / study_states PASSED) server-side
++// and adds the override path — BOTH under the I-10 §6 authz UNION
++// (assertOverrideAuthz), BOTH reusing the shared runChallengeDayAdvanceTxn primitive
++// (the clamp + phase gate are NOT re-implemented — plan §0/§1b). DORMANT: gated on
++// SERVER_REVIEW_CHALLENGE_ENABLED / SERVER_OVERRIDE_ENABLED (false) ⇒ each throws
++// `failed-precondition` and touches nothing until the P10 cutover.
++// ============================================================================
++
++/**
++ * reviewChallenge({attemptId, wordId, accepted})
++ *
++ * Server port of the client `reviewChallenge` (db.js:2728-2944) — the FULL review, not
++ * just the P4 day-advance sub-leg. Absorbs the legs the client still owns today:
++ *   • answer-flip (db.js:2761-2773) — challengeStatus accepted/rejected + isCorrect.
++ *   • score/passed recompute with the persisted-`totalQuestions` denominator, and the
++ *     review-vs-new `newPassed` rule carried verbatim (db.js:2775-2801).
++ *   • challenges.history update (db.js:2810-2830).
++ *   • study_states PASSED write on accept (db.js:2832-2843) — the write that keeps the
++ *     firestore.rules users-subcollection teacher branch alive; moving it here is the
++ *     precondition for the §1(d) rules narrowing (NOT done in this draft).
++ *   • day-advance (db.js:2845-2939) → the shared runChallengeDayAdvanceTxn (clamp +
++ *     phase gate inherited from advanceForChallenge — plan §0).
++ * Authz = the I-10 §6 UNION (assertOverrideAuthz), replacing the client's stamp-only
++ * throw (db.js:2743). Idempotency: an already-reviewed challenge throws, matching the
++ * client (db.js:2757-2759).
++ *
++ * NOTE (U3): today the client does the answer-flip THEN a nested day-advance callable —
++ * two hops. This port preserves that two-hop shape server-side (the answer/score/history/
++ * study_state writes, then the day-advance transaction) rather than folding everything
++ * into ONE atomic transaction; the failure semantics therefore match today (an
++ * answer-flip can commit even if the day-advance no-ops). See P10_impl_notes U3.
++ */
++const reviewChallenge = onCall({enforceAppCheck: false}, async (request) => {
++  if (!SERVER_REVIEW_CHALLENGE_ENABLED) {
++    throw new HttpsError("failed-precondition", "reviewChallenge is not enabled (SERVER_REVIEW_CHALLENGE_ENABLED=false)");
++  }
++  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
++  const callerId = request.auth.uid;
++  const {attemptId, wordId, accepted} = request.data || {};
++  if (!attemptId || typeof attemptId !== "string") {
++    throw new HttpsError("invalid-argument", "attemptId is required");
++  }
++  if (!wordId || typeof wordId !== "string") {
++    throw new HttpsError("invalid-argument", "wordId is required");
++  }
++  if (typeof accepted !== "boolean") {
++    throw new HttpsError("invalid-argument", "accepted (boolean) is required");
++  }
++  const db = getDb();
++  const attemptRef = db.collection("attempts").doc(attemptId);
++  const attemptSnap = await attemptRef.get();
++  if (!attemptSnap.exists) throw new HttpsError("not-found", "Attempt not found.");
++  const attempt = attemptSnap.data();
++
++  // AUTHZ = the I-10 §6 union (replaces the client's stamp-only throw db.js:2743).
++  const authz = await assertOverrideAuthz(callerId, attempt);
++
++  // Find the challenged answer (db.js:2747-2759).
++  const answers = attempt.answers || [];
++  const answerIndex = answers.findIndex((a) => a.wordId === wordId);
++  if (answerIndex === -1) throw new HttpsError("not-found", "Answer not found in attempt.");
++  const answer = answers[answerIndex];
++  // Idempotency guard — already-reviewed throws today (db.js:2757-2759).
++  if (answer.challengeStatus !== "pending") {
++    throw new HttpsError("failed-precondition", "This challenge has already been reviewed.");
++  }
++
++  // Answer-flip (db.js:2761-2773).
++  const updatedAnswers = [...answers];
++  updatedAnswers[answerIndex] = {
++    ...answer,
++    challengeStatus: accepted ? "accepted" : "rejected",
++    challengeReviewedBy: callerId,
++    challengeReviewedAt: admin.firestore.Timestamp.now(),
++  };
++  if (accepted) updatedAnswers[answerIndex].isCorrect = true;
++
++  // Score/passed recompute with the PERSISTED totalQuestions denominator (db.js:2775-2801).
++  const correctCount = updatedAnswers.filter((a) => a.isCorrect).length;
++  const denom = attempt.totalQuestions || updatedAnswers.length;
++  const newScore = denom > 0 ? Math.round((correctCount / denom) * 100) : 0;
++  let passThreshold = DEFAULT_PASS_THRESHOLD; // db.js default 95
++  if (attempt.classId && attempt.listId) {
++    const classSnap = await db.collection("classes").doc(attempt.classId).get();
++    const assignment = classSnap.exists ? (classSnap.data().assignments?.[attempt.listId] ?? null) : null;
++    passThreshold = assignment?.passThreshold || DEFAULT_PASS_THRESHOLD;
++  }
++  const previousScore = attempt.score || 0;
++  // review branch is always PASSED; new branch gates on threshold (db.js:2800-2801).
++  const newPassed = attempt.sessionType === "review" ? true : newScore >= passThreshold;
++
++  // Persist the attempt update (db.js:2804-2808).
++  await attemptRef.update({answers: updatedAnswers, score: newScore, passed: newPassed});
++
++  // challenges.history + study_states PASSED (db.js:2810-2843).
++  const studentId = attempt.studentId;
++  let advanceResult = null;
++  const studentRef = db.collection("users").doc(studentId);
++  const studentSnap = await studentRef.get();
++  if (studentSnap.exists) {
++    const challengeHistory = studentSnap.data().challenges?.history || [];
++    const updatedHistory = challengeHistory.map((entry) =>
++      (entry.attemptId === attemptId && entry.wordId === wordId) ?
++        {...entry, status: accepted ? "accepted" : "rejected"} :
++        entry);
++    await studentRef.update({"challenges.history": updatedHistory});
++
++    if (accepted) {
++      const studyStateRef = db.doc(`users/${studentId}/study_states/${wordId}`);
++      await studyStateRef.set({
++        status: "PASSED",
++        lastTestedAt: admin.firestore.FieldValue.serverTimestamp(),
++      }, {merge: true});
++
++      // Day-advance (db.js:2845-2939) → the SHARED clamped + phase-gated helper.
++      // phase + listId derived from testId EXACTLY as the client did (db.js:2846-2852);
++      // the day-advance threshold/pace come from the testId-list's assignment, re-fetched
++      // as the client does (db.js:2872-2877 — may differ from the score-recompute list).
++      const testId = attempt.testId || "";
++      const testIdParts = testId.split("_");
++      const phase = testIdParts[testIdParts.length - 1];
++      if ((phase === "new" || phase === "review") && attempt.classId) {
++        const listId = testIdParts.length >= 4 ? testIdParts[testIdParts.length - 2] : null;
++        if (listId) {
++          const classDoc = await db.collection("classes").doc(attempt.classId).get();
++          const advAssignment = classDoc.exists ? (classDoc.data().assignments?.[listId] ?? null) : null;
++          const advThreshold = advAssignment?.passThreshold || DEFAULT_PASS_THRESHOLD;
++          // Only a below→at/above transition progresses the day (db.js:2882 parity).
++          if (previousScore < advThreshold && newScore >= advThreshold) {
++            let totalListWords = null;
++            try {
++              const listSnap = await db.collection("lists").doc(listId).get();
++              totalListWords = listSnap.exists ? (listSnap.data().wordCount || 0) : null;
++            } catch (_) {
++              totalListWords = null;
++            }
++            const cycling = (await resolveEffectiveCyclingServer(studentId, listId)).enabled;
++            advanceResult = await runChallengeDayAdvanceTxn({
++              attempt, assignment: advAssignment, phase, studentId, classId: attempt.classId, listId,
++              newScore, totalListWords, cycling,
++            });
++          }
++        }
++      }
++    }
++  }
++
++  await logSystemEventServer("challenge_reviewed", {
++    teacherId: callerId, userId: studentId, attemptId, wordId, accepted,
++    previousScore, newScore, newPassed, authzVia: authz.via, advance: advanceResult,
++  }, "info");
++  return {success: true, score: newScore, passed: newPassed, advance: advanceResult};
++});
++
++/**
++ * overrideAttempt({attemptId?, studentId, classId, listId, studyDay, score})
++ *
++ * The in-product manual-pass — a server-authorized teacher writes a VALID reconciliation
++ * anchor (nwsi/nwei/wordsIntroduced/testId — the CLAUDE.md anchor rule) so the day
++ * advances, exactly as CS does by hand with scripts/cs/manual-pass.mjs. This is the path
++ * for the case with NO challengeable answer (grader false-negative on the whole attempt,
++ * teacherId:null orphans) — a superset of reviewChallenge (§4).
++ *
++ * Semantics (U2): ALWAYS writes a FRESH valid-anchor `new` attempt at the deterministic
++ * manual-pass docId (idempotent merge) — the manual-pass model — regardless of whether an
++ * existing attempt is named. `attemptId` (optional) is used ONLY to authorize precisely
++ * against the real attempt's stamp; the fresh anchor is still written. (Alternative:
++ * repair an existing attempt in place — deferred, see P10_impl_notes U2.)
++ *
++ * Authz = the I-10 §6 UNION (assertOverrideAuthz). For the teacherId:null orphan (no real
++ * attempt to stamp-match), leg (ii) current-enrollment ownership decides.
++ * Audit-logs `teacher_override` with actor/target/before/after (§1(a)).
++ */
++const overrideAttempt = onCall({enforceAppCheck: false}, async (request) => {
++  if (!SERVER_OVERRIDE_ENABLED) {
++    throw new HttpsError("failed-precondition", "overrideAttempt is not enabled (SERVER_OVERRIDE_ENABLED=false)");
++  }
++  if (!request.auth) throw new HttpsError("unauthenticated", "Authentication required");
++  const callerId = request.auth.uid;
++  const {attemptId, studentId, classId, listId, studyDay, score} = request.data || {};
++  // `score` is the ONLY unconditionally-required input (the pass decision). The write
++  // TARGET (studentId/classId/listId/studyDay) is resolved + authorized per path below.
++  if (typeof score !== "number" || !Number.isFinite(score) || score < 0 || score > 100) {
++    throw new HttpsError("invalid-argument", "score (0-100) is required");
++  }
++  const db = getDb();
++
++  // [Codex P10-1] TARGET-BIND the authorization to the EXACT write target — the override
++  // writes a reconciliation-AUTHORITATIVE anchor and the Admin SDK bypasses rules, so the
++  // authorized subject MUST equal the written subject. Two paths:
++  let tStudentId; let tClassId; let tListId; let tStudyDay;
++  let priorAttempt = null;
++  let authzVia;
++  if (attemptId && typeof attemptId === "string") {
++    // (1) attemptId path — RE-ANCHOR the loaded attempt's OWN day. The write target is
++    //     derived FROM the loaded attempt, never from the request; any request target field
++    //     that conflicts hard-rejects (no authorize-X-write-Y). Authz is then the
++    //     reviewChallenge union applied to the loaded attempt (stamp OR current-enrollment),
++    //     which Codex accepted as target-bound.
++    const priorSnap = await db.collection("attempts").doc(attemptId).get();
++    if (!priorSnap.exists) throw new HttpsError("not-found", "Attempt not found.");
++    priorAttempt = priorSnap.data();
++    tStudentId = priorAttempt.studentId;
++    tClassId = priorAttempt.classId;
++    tListId = priorAttempt.listId ?? null;
++    if (!tListId && typeof priorAttempt.testId === "string") {
++      const parts = priorAttempt.testId.split("_");
++      tListId = parts.length >= 4 ? parts[parts.length - 2] : null;
++    }
++    tStudyDay = priorAttempt.studyDay;
++    if (!tStudentId || !tClassId || !tListId || !Number.isInteger(tStudyDay)) {
++      throw new HttpsError("invalid-argument", "Attempt is missing target fields (studentId/classId/listId/studyDay) — use the no-attemptId override path.");
++    }
++    if ((studentId && studentId !== tStudentId) ||
++        (classId && classId !== tClassId) ||
++        (listId && listId !== tListId) ||
++        (Number.isInteger(studyDay) && studyDay !== tStudyDay)) {
++      throw new HttpsError("invalid-argument", "Request target fields conflict with the attempt being overridden.");
++    }
++    authzVia = (await assertOverrideAuthz(callerId, priorAttempt)).via;
++  } else {
++    // (2) no-attemptId path (the teacherId:null / ungradeable orphan — the override's reason
++    //     to exist). No loaded attempt to bind to, so authorize the EXACT supplied target
++    //     with the STRICT dedicated check (own THIS class, student enrolled in THIS class,
++    //     class assigns THIS list) — NOT the "owns any enrolled class" union leg (P10-1).
++    if (!studentId || typeof studentId !== "string") {
++      throw new HttpsError("invalid-argument", "studentId is required");
++    }
++    if (!classId || typeof classId !== "string") {
++      throw new HttpsError("invalid-argument", "classId is required");
++    }
++    if (!listId || typeof listId !== "string") {
++      throw new HttpsError("invalid-argument", "listId is required");
++    }
++    if (!Number.isInteger(studyDay) || studyDay < 1) {
++      throw new HttpsError("invalid-argument", "studyDay (integer >= 1) is required");
++    }
++    tStudentId = studentId; tClassId = classId; tListId = listId; tStudyDay = studyDay;
++    authzVia = (await assertOverrideTargetAuthz(callerId, {studentId: tStudentId, classId: tClassId, listId: tListId})).via;
++  }
++
++  // Build the VALID reconciliation anchor for the TARGET-BOUND (tStudentId/tClassId/tListId/
++  // tStudyDay) subject — scripts/cs/manual-pass.mjs parity (payload field set verbatim).
++  // Derive pace from the student's day-1 passed-new attempt for this class (else the 80/day
++  // cohort default), exactly as the script does (manual-pass.mjs:37-40).
++  const classSnap = await db.collection("classes").doc(tClassId).get();
++  const classData = classSnap.exists ? (classSnap.data() || {}) : {};
++  const assignment = classData.assignments?.[tListId] ?? null;
++  const teacherId = classData.ownerTeacherId || null;
++  const attemptsSnap = await db.collection("attempts").where("studentId", "==", tStudentId).get();
++  const day1 = attemptsSnap.docs
++    .map((d) => d.data())
++    .find((a) => a.sessionType === "new" && a.passed === true && a.classId === tClassId &&
++      a.studyDay === 1 && Number.isInteger(a.newWordEndIndex));
++  const pace = day1 ? day1.newWordEndIndex + 1 : 80;
++  const newWordStartIndex = (tStudyDay - 1) * pace;
++  const newWordEndIndex = tStudyDay * pace - 1;
++  // manual-pass.mjs:53 uses the assignment passThreshold with a 92 default (NOT the app's
++  // 95 — flagged in P10_impl_notes U-note as a manual-pass parity carry).
++  const passThreshold = assignment?.passThreshold ?? 92;
++  const passed = score >= passThreshold;
++  const docId = `${tStudentId}_${tClassId}_${tListId}_day${tStudyDay}_typed_new_manual`;
++  const anchor = {
++    studentId: tStudentId, classId: tClassId, listId: tListId, teacherId,
++    testId: `vocaboost_test_${tClassId}_${tListId}_new`,
++    sessionType: "new", testType: "typed", studyDay: tStudyDay,
++    score, passed, graded: true,
++    newWordStartIndex, newWordEndIndex, wordsIntroduced: newWordEndIndex - newWordStartIndex + 1,
++    isFirstDay: tStudyDay === 1, totalQuestions: 30, answers: [], skipped: 0,
++    interventionLevel: 0, wordsReviewed: 0, segmentStartIndex: 0, segmentEndIndex: 0,
++    credibility: 1, retention: 1,
++    manualOverride: true,
++    manualReviewNote: `Teacher override (${new Date().toISOString().slice(0, 10)}) — valid anchor written by overrideAttempt (in-product manual-pass, caller ${callerId})`,
++    submittedAt: admin.firestore.Timestamp.now(),
++  };
++  await db.collection("attempts").doc(docId).set(anchor, {merge: true});
++
++  // Advance the day via the SAME clamped + phase-gated primitive reviewChallenge /
++  // advanceForChallenge use (the anchor is a fresh 'new' pass). BEST-EFFORT: the helper's
++  // current-boundary guard may no-op — the anchor still reconciles at next entry
++  // (twi = newWordEndIndex + 1, the manual-pass behaviour), so the override never DEPENDS
++  // on the day-advance succeeding.
++  let advanceResult = null;
++  if (passed) {
++    let totalListWords = null;
++    try {
++      const listSnap = await db.collection("lists").doc(tListId).get();
++      totalListWords = listSnap.exists ? (listSnap.data().wordCount || 0) : null;
++    } catch (_) {
++      totalListWords = null;
++    }
++    const cycling = (await resolveEffectiveCyclingServer(tStudentId, tListId)).enabled;
++    advanceResult = await runChallengeDayAdvanceTxn({
++      attempt: anchor, assignment, phase: "new", studentId: tStudentId, classId: tClassId, listId: tListId,
++      newScore: score, totalListWords, cycling,
++    });
++  }
++
++  // Audit-log the override (actor / target / before / after) — §1(a).
++  await logSystemEventServer("teacher_override", {
++    teacherId: callerId, userId: tStudentId, classId: tClassId, listId: tListId, studyDay: tStudyDay,
++    attemptId: attemptId || null, docId, authzVia,
++    before: priorAttempt ? {score: priorAttempt.score ?? null, passed: priorAttempt.passed ?? null} : null,
++    after: {score, passed, newWordStartIndex, newWordEndIndex, pace},
++    advance: advanceResult,
++  }, "info");
++  return {success: true, docId, passed, newWordStartIndex, newWordEndIndex, advance: advanceResult};
++});
++
+ module.exports = {
+   // callables (re-exported by index.js so they deploy as functions)
+   completeSession,
+   resolveListProgress,
+   resetProgress,
+   advanceForChallenge,
++  // deepfix P10 · OVR — the override + full-review callables (DORMANT).
++  reviewChallenge,
++  overrideAttempt,
+   // hooks/helpers consumed by index.js
+   validateAttemptAnchorShadow,
+   writeUpgradedReviewMarker,
+--- a/functions/index.js
++++ b/functions/index.js
+@@ -2059,6 +2059,13 @@
+ exports.resolveListProgress = foundation.resolveListProgress;
+ exports.resetProgress = foundation.resetProgress;
+ exports.advanceForChallenge = foundation.advanceForChallenge;
++// deepfix P10 · OVR (FIX_PLAN P10 (a)+(b)) — the override + full server-side
++// reviewChallenge callables. DORMANT: gated on FOUNDATION_FLAGS
++// SERVER_OVERRIDE_ENABLED / SERVER_REVIEW_CHALLENGE_ENABLED (false); the client
++// routes to them only under SERVER_OVERRIDE (src/config/featureFlags.js). Their
++// flags surface in the `version` probe via `...foundation.FOUNDATION_FLAGS` below.
++exports.reviewChallenge = foundation.reviewChallenge;
++exports.overrideAttempt = foundation.overrideAttempt;
+ 
+ // Deploy-provenance probe. After any deploy, call this and compare `sha` to
+ // `git rev-parse HEAD` in the repo you deployed from — they must match. Also reports the
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -110,3 +110,26 @@
+ // (the client-delete fallback stays legal until the P6 rules deploy).
+ // Default OFF — flag-off behavior is byte-equivalent to today.
+ export const SERVER_RESET_PROGRESS = false;
++
++// SERVER_OVERRIDE (deepfix P10 · OVR — teacher override + challenge redesign, FIX_PLAN
++// P10 (a)+(b) / I-7 / I-10): the CLIENT gate for the P10 override + full server-side
++// reviewChallenge migration. Two things ride this flag:
++//   (1) client `reviewChallenge` (db.js) routes the WHOLE review to the server
++//       `reviewChallenge` callable (functions/foundation.js) — finishing the migration P4
++//       began (P4 already routed only the day-advance under SERVER_CHALLENGE_WRITE). The
++//       callable applies the I-10 §6 authz UNION (attempt teacher-of-record OR current-
++//       enrollment owner) and moves the answer-flip / score / challenges.history /
++//       study_states legs server-side.
++//   (2) the teacher `overrideAttempt` entry point (db.js) — the in-product manual-pass:
++//       write a VALID reconciliation anchor + advance the day for an ungradeable /
++//       teacherId:null / inherited attempt (superset of reviewChallenge).
++// DEPLOY ORDER (critical): the P10 functions deploy MUST be live (server flags
++// SERVER_REVIEW_CHALLENGE_ENABLED / SERVER_OVERRIDE_ENABLED flipped) BEFORE this flips
++// true — flag-on against a dark server throws `failed-precondition`. Flips TRUE only at the
++// P10 DEPLOY-time cutover (David), after the P3–P6 foundation soak. Roll back = flip false
++// + rebuild (the client hybrid path stays legal). NOTE (P10 draft): parts (c) read-surface
++// widening + (d) rules narrowing are NOT in this flag's dormant draft — held pending owner
++// decisions (P10_impl_notes); the Gradebook override BUTTON is deferred to (c)'s release
++// (an orphaned attempt is not yet VISIBLE to attach the action to). Default OFF —
++// flag-off behavior is byte-equivalent to today (Run-L discipline).
++export const SERVER_OVERRIDE = false;
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -22,7 +22,7 @@
+ } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db, auth } from '../firebase'
+-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED } from '../config/featureFlags'
++import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
+ // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
+@@ -2730,6 +2730,20 @@
+     throw new Error('teacherId, attemptId, and wordId are required.')
+   }
+ 
++  // [deepfix P10 · OVR (b)] Under SERVER_OVERRIDE, route the WHOLE review to the server
++  // `reviewChallenge` callable (functions/foundation.js), FINISHING the migration P4 began
++  // (P4 routed only the day-advance under SERVER_CHALLENGE_WRITE, :2868). The callable
++  // applies the I-10 §6 authz UNION (teacher-of-record OR current-enrollment owner) and
++  // moves the answer-flip / score / challenges.history / study_states legs server-side. It
++  // uses request.auth.uid, not the passed teacherId. Flag OFF (default) ⇒ the existing
++  // client body below runs VERBATIM (byte-equivalent), including its own
++  // SERVER_CHALLENGE_WRITE day-advance sub-branch.
++  if (SERVER_OVERRIDE) {
++    const fn = httpsCallable(getFunctions(), 'reviewChallenge', { timeout: 30000 })
++    const res = await fn({ attemptId, wordId, accepted })
++    return res.data
++  }
++
+   // Get attempt document
+   const attemptRef = doc(db, 'attempts', attemptId)
+   const attemptSnap = await getDoc(attemptRef)
+@@ -2944,6 +2958,35 @@
+ }
+ 
+ /**
++ * [deepfix P10 · OVR (a)] Teacher override — the in-product manual-pass. Calls the server
++ * `overrideAttempt` callable (functions/foundation.js), which authorizes via the I-10 §6
++ * union, writes a VALID reconciliation anchor (newWordStartIndex / newWordEndIndex /
++ * wordsIntroduced / testId — the CLAUDE.md anchor rule, mirroring scripts/cs/manual-pass.mjs),
++ * advances the day via the shared foundation transaction, and audit-logs the override. This
++ * is the path for an ungradeable / teacherId:null / inherited attempt (a superset of
++ * reviewChallenge — no dependence on a challengeable answer).
++ *
++ * DORMANT DRAFT (P10 (a)): this is the callable WIRING + a dormant caller — it refuses when
++ * SERVER_OVERRIDE is off, so no live path reaches it (byte-equivalent: a new export that is
++ * never invoked). The Gradebook override BUTTON (the surface that supplies studentId /
++ * classId / listId / studyDay / score for an orphaned attempt) is DEFERRED to the P10 (c)
++ * read-surface release: an orphaned/inherited attempt is not yet VISIBLE in the gradebook
++ * until (c)'s widening leg lands, so there is no row to attach the action to yet. See
++ * P10_impl_notes for the (c)/(d) deferral.
++ *
++ * @param {{studentId:string, classId:string, listId:string, studyDay:number, score:number, attemptId?:string}} params
++ * @returns {Promise<Object>} { success, docId, passed, newWordStartIndex, newWordEndIndex, advance }
++ */
++export const overrideAttempt = async ({ studentId, classId, listId, studyDay, score, attemptId = null }) => {
++  if (!SERVER_OVERRIDE) {
++    throw new Error('Teacher override is not enabled (SERVER_OVERRIDE=false).')
++  }
++  const fn = httpsCallable(getFunctions(), 'overrideAttempt', { timeout: 30000 })
++  const res = await fn({ studentId, classId, listId, studyDay, score, attemptId })
++  return res.data
++}
++
++/**
+  * Normalize a study state document to ensure all fields exist.
+  *
+  * @param {Object} doc - Raw Firestore document data

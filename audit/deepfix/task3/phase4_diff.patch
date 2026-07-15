@@ -1,0 +1,1824 @@
+diff --git a/src/config/featureFlags.js b/src/config/featureFlags.js
+index 254da90..00f3bc3 100644
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -17,6 +17,9 @@ export const SERVER_ATTEMPT_WRITE = true;
+ // (PLAN_attempt_write_lockdown.md W1): deploy the fn first → flip ON + rebuild → validate →
+ // then W3 rules remove the student `answers`-update branch. Roll back = flip false + rebuild
+ // (old client path still permitted until W3 rules deploy). Default OFF until fn is live + validated.
++// [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
++// deploy + soak, together with the server-side flag flips (FOUNDATION_FLAGS in
++// functions/foundation.js). Deliberately NOT flipped in this working tree (dormant-draft pattern).
+ export const SERVER_CHALLENGE_WRITE = false;
+ 
+ // SERVER_REVIEW_MARKER: write the empty-review "automarker" attempt via the
+@@ -25,6 +28,9 @@ export const SERVER_CHALLENGE_WRITE = false;
+ // (the only remaining live client attempt-create) would be denied and Day-2+ completion
+ // would break. Rollout (PLAN_attempt_write_lockdown.md W2): deploy fn first → flip ON +
+ // rebuild → validate Day-2+ empty-review completion → then W3 rules. Default OFF until live.
++// [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
++// deploy + soak (the upgraded W2 marker lives in `markReviewComplete`, functions/index.js →
++// foundation.writeUpgradedReviewMarker). Deliberately NOT flipped in this working tree.
+ export const SERVER_REVIEW_MARKER = false;
+ 
+ // LIST_SCOPED_RECON: Phase 1 of PLAN_list_progress_persist.md (v3.7) — make the CSD/TWI
+@@ -39,3 +45,47 @@ export const SERVER_REVIEW_MARKER = false;
+ // indexes (firestore.indexes.json) deployed FIRST — flag-on without them = query-error
+ // fallbacks everywhere. Flag-off = byte-equivalent legacy (class-scoped) behavior.
+ export const LIST_SCOPED_RECON = true;
++
++// CONTINUATION_LINKS (FIX_PLAN Phase P8 · CONT-A): David's list-continuation feature —
++// per-class list SEQUENCE (`nextListId` on classes/{classId}.assignments[listId]), a
++// finished-list choice terminal ("Advance to {nextList} →"), and finished-list focus-yield
++// on the Dashboard (a FINISHED list — twi >= listTotal — yields primary focus to its linked
++// nextListId; handles BOTH the explicit-pin branch and the recency branch of getPrimaryFocus,
++// C-13/F6-5). "Advance" is PURE navigation + config read: the next list starts through the
++// EXISTING initializeDailySession create-on-miss path on a DIFFERENT listId; NO code behind
++// this flag writes the finished list's totalWordsIntroduced/currentStudyDay or alters
++// allocation (the §2.1 falsifier — if any such write appears, CONT-A re-gates behind P6).
++// "Start over" (cycling, P9) is NOT part of this flag and renders only once that capability
++// is live. Default OFF; with the flag off — or `nextListId` unset — behavior is today's
++// exactly (static P1 finished terminal, no yield, no teacher selector).
++export const CONTINUATION_LINKS = false;
++
++// SERVER_PROGRESS_WRITE (deepfix P4 · FND-2): route the durable session-completion write
++// through the `completeSession` Cloud Function (transactional day-guard, server-derived
++// reviewOnlyDay/wordsIntroduced — functions/foundation.js) instead of the client
++// updateClassProgress write, AND route progress hydration/render reads through the READ-ONLY
++// `resolveListProgress` callable (server performs today's entry-time reconciliation — the F4-1
++// leg — and returns the launch view; render paths consume the resolver's in-memory
++// reconciliation with NO write). Completion still targets the LEGACY class_progress doc until
++// P5 flips LIST_PROGRESS_CANONICAL server-side — no data migration is implied by this flag.
++// DEPLOY ORDER (critical): the P3 functions deploy MUST be live (server flags
++// SERVER_COMPLETE_SESSION_ENABLED / SERVER_RESOLVE_LIST_PROGRESS_ENABLED flipped) BEFORE this
++// flips true — flag-on against a dark server throws `failed-precondition` on every completion.
++// Flips TRUE only at the P4 DEPLOY-time cutover (David), after the P3 soak. Roll back = flip
++// false + rebuild (callables keep working idle; legacy client path untouched).
++// Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
++export const SERVER_PROGRESS_WRITE = false;
++
++// SERVER_RESET_PROGRESS (deepfix P4 · FND-2, v2 HIGH-3 / F6-3): route student progress reset
++// through the `resetProgress` Cloud Function (self-service, LIST-WIDE across all classes,
++// attempts-first ordering, reset-epoch tombstone — functions/foundation.js) instead of the
++// client batch-delete in db.js `resetStudentProgress`. REQUIRED before P6 removes the
++// attempts owner-delete rules branch (firestore.rules `allow delete: resource.data.studentId
++// == request.auth.uid`) — with the flag ON, no LIVE client path deletes attempt docs, so the
++// P6 rules cutover cannot break reset ([C5-5]: server-move and owner-delete-removal ship as
++// the two halves of one change; this flag is the client half).
++// DEPLOY ORDER: P3 functions deploy (SERVER_RESET_PROGRESS_ENABLED) must be live first.
++// Flips TRUE only at the P4 DEPLOY-time cutover (David). Roll back = flip false + rebuild
++// (the client-delete fallback stays legal until the P6 rules deploy).
++// Default OFF — flag-off behavior is byte-equivalent to today.
++export const SERVER_RESET_PROGRESS = false;
+diff --git a/src/main.jsx b/src/main.jsx
+index b9a1a6d..54cfa1f 100644
+--- a/src/main.jsx
++++ b/src/main.jsx
+@@ -1,6 +1,7 @@
+ import { StrictMode } from 'react'
+ import { createRoot } from 'react-dom/client'
+ import './index.css'
++import './utils/buildStamp.js' // [deepfix P4 / I-5 G3] hosting provenance probe (side-effect import)
+ import App from './App.jsx'
+ 
+ createRoot(document.getElementById('root')).render(
+diff --git a/src/pages/ClassDetail.jsx b/src/pages/ClassDetail.jsx
+index bccedb2..c7aa304 100644
+--- a/src/pages/ClassDetail.jsx
++++ b/src/pages/ClassDetail.jsx
+@@ -24,6 +24,7 @@ import {
+ } from '../services/db'
+ import { fetchStudentsProgressForClass } from '../services/progressService'
+ import { fetchStudentsSessionStates } from '../services/sessionService'
++import { CONTINUATION_LINKS } from '../config/featureFlags'
+ import AssignListModal from '../components/AssignListModal.jsx'
+ import LoadingSpinner from '../components/LoadingSpinner.jsx'
+ import HeaderBar from '../components/HeaderBar.jsx'
+@@ -134,7 +135,7 @@ const ClassDetail = () => {
+   const [listFilter, setListFilter] = useState('all')
+   const [generatingPDF, setGeneratingPDF] = useState(null)
+ const [settingsModalList, setSettingsModalList] = useState(null)
+-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60 })
++  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null })
+ const [savingSettings, setSavingSettings] = useState(false)
+ const [unassigningListId, setUnassigningListId] = useState(null)
+   const [removingStudentId, setRemovingStudentId] = useState(null)
+@@ -234,6 +235,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+           reviewTestType: assignment.reviewTestType || 'mcq',
+           reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
+           reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
++          nextListId: assignment.nextListId ?? null, // P8 · CONT-A list-sequence link
+         }
+       }),
+     )
+@@ -351,6 +353,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+       reviewTestType: list.reviewTestType || 'mcq',
+       reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
+       reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
++      nextListId: list.nextListId ?? null, // P8 · CONT-A
+     })
+   }
+ 
+@@ -373,6 +376,10 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+         reviewTestType: settingsForm.reviewTestType,
+         reviewTestSizeMin: settingsForm.reviewTestSizeMin,
+         reviewTestSizeMax: settingsForm.reviewTestSizeMax,
++        // P8 · CONT-A: only send nextListId while the feature is ON — with the flag off
++        // the key is omitted entirely (undefined → no-op in updateAssignmentSettings),
++        // keeping the flag-off write byte-identical to today's.
++        ...(CONTINUATION_LINKS ? { nextListId: settingsForm.nextListId || null } : {}),
+       })
+       setFeedback('List settings updated successfully.')
+       await loadClass()
+@@ -733,6 +740,17 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+                         <span className="text-emerald-600">
+                           Test Options: {list.testOptionsCount ?? 4} choices
+                         </span>
++                        {/* P8 · CONT-A: surface the configured sequence link on the card (display only;
++                            resolves the id against this class's assigned lists — a dangling link shows nothing) */}
++                        {CONTINUATION_LINKS && list.nextListId && (() => {
++                          const nextList = assignedLists.find((l) => l.id === list.nextListId)
++                          return nextList ? (
++                            <>
++                              <span className="text-text-muted">|</span>
++                              <span className="text-brand-text">Next: {nextList.title}</span>
++                            </>
++                          ) : null
++                        })()}
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-2">
+@@ -1233,6 +1251,41 @@ const [unassigningListId, setUnassigningListId] = useState(null)
+               </div>
+             </div>
+ 
++            {/* P8 · CONT-A (CONTINUATION_LINKS): list sequence — the ordered "what comes after this
++                list" affordance over the class's OWN assigned lists. Flag off = section absent and
++                nothing is ever written. */}
++            {CONTINUATION_LINKS && (
++              <div className="border-t border-border-default pt-4 mt-4">
++                <h3 className="text-sm font-semibold text-text-primary mb-3">List Sequence</h3>
++                <label className="block text-sm font-medium text-text-secondary">
++                  Next List (after this one is finished)
++                  <select
++                    value={settingsForm.nextListId ?? ''}
++                    onChange={(event) =>
++                      setSettingsForm((prev) => ({
++                        ...prev,
++                        nextListId: event.target.value || null,
++                      }))
++                    }
++                    className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:ring-2"
++                  >
++                    <option value="">None — finished students stay on this list</option>
++                    {assignedLists
++                      .filter((l) => l.id !== settingsModalList.id)
++                      .map((l) => (
++                        <option key={l.id} value={l.id}>
++                          {l.title}
++                        </option>
++                      ))}
++                  </select>
++                  <p className="mt-1 text-xs text-text-muted">
++                    Students who finish this list are offered &quot;Advance to the next list&quot; and their
++                    dashboard focus moves on automatically. Only lists assigned to this class can be linked.
++                  </p>
++                </label>
++              </div>
++            )}
++
+             <div className="mt-6 flex gap-3">
+               <Button variant="outline" size="lg" className="flex-1" onClick={closeSettingsModal} disabled={savingSettings}>
+                 Cancel
+diff --git a/src/pages/DailySessionFlow.jsx b/src/pages/DailySessionFlow.jsx
+index ff358ee..e03ed35 100644
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -17,7 +17,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
+ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db } from '../firebase'
+-import { SERVER_REVIEW_MARKER } from '../config/featureFlags'
++import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS } from '../config/featureFlags'
+ import { useAuth } from '../contexts/AuthContext'
+ import Flashcard from '../components/Flashcard'
+ import Watermark from '../components/Watermark'
+@@ -43,7 +43,7 @@ import {
+   graduateSegmentWords,
+   returnMasteredWords
+ } from '../services/studyService'
+-import { fetchAllWords } from '../services/db'
++import { fetchAllWords, logSystemEvent } from '../services/db'
+ import {
+   getSessionState,
+   saveSessionState,
+@@ -83,7 +83,18 @@ const PHASES = {
+   COMPLETE: 'complete'
+ }
+ 
++// P8 · CONT-A: route-level wrapper that keys the session component on (classId, listId) so an
++// in-app advance to the NEXT list (`navigate('/session/${classId}/${nextListId}')` from the
++// finished choice terminal) remounts with completely fresh state instead of re-running init
++// over the finished list's stale phase/config/results. No-op for every existing flow: nothing
++// else navigates session→session with different params, and the key is constant within a
++// session (mount behavior identical to today's).
+ export default function DailySessionFlow() {
++  const { classId, listId } = useParams()
++  return <DailySessionFlowSession key={`${classId}_${listId}`} />
++}
++
++function DailySessionFlowSession() {
+   const { classId, listId } = useParams()
+   const { user } = useAuth()
+   const navigate = useNavigate()
+@@ -121,6 +132,12 @@ export default function DailySessionFlow() {
+   // Assignment settings
+   const [assignmentSettings, setAssignmentSettings] = useState(null)
+ 
++  // P8 · CONT-A: the launching class's assigned list ids (config read captured at init) +
++  // the resolved continuation target for the finished choice terminal ({ nextListId,
++  // nextListTitle } or null). Both stay null/empty with CONTINUATION_LINKS off or no link set.
++  const [classAssignedListIds, setClassAssignedListIds] = useState([])
++  const [continuation, setContinuation] = useState(null)
++
+   // Session summary
+   const [sessionSummary, setSessionSummary] = useState(null)
+ 
+@@ -535,6 +552,10 @@ export default function DailySessionFlow() {
+         }
+ 
+         setAssignmentSettings(assignment)
++        // P8 · CONT-A: remember which lists the launching class assigns, so the finished
++        // terminal never offers an advance to a link that has been unassigned since it was
++        // configured (dangling nextListId → no button, today's static terminal).
++        setClassAssignedListIds(Object.keys(classData.assignments || {}))
+ 
+         // Get list title
+         const listRef = doc(db, 'lists', listId)
+@@ -702,6 +723,9 @@ export default function DailySessionFlow() {
+             reviewQueue: [],
+             sessionConfig: recoveryConfig,
+             assignmentSettings: assignment,
++            // P8 · CONT-A: carried so the finished terminal can validate the nextListId
++            // link on return (init is skipped on testCompleted re-entry).
++            classAssignedListIds: Object.keys(classData.assignments || {}),
+             reviewTestAttempts: 0
+           }))
+ 
+@@ -819,6 +843,20 @@ export default function DailySessionFlow() {
+         } else if (config.segment) {
+           // Use the full review study set (capped segment + new-FAILED)
+           const allWords = await buildReviewStudySet(config.segment)
++          if (allWords.length === 0) {
++            // Empty review segment on a review-only day = every word MASTERED & resting → the list-end /
++            // all-mastered TERMINAL NO-WORK state. Complete WITHOUT recording: do NOT reuse showNoReviewModal
++            // (its close handler calls completeSession() → recordSessionCompletion), and do NOT call
++            // completeSession here — so currentStudyDay / recentSessions / completed-session records do NOT
++            // advance for a no-work day (Codex ROI2-1 / guardrail 5 / plan test 6, "no fake empty-day
++            // completion"). Prevents the empty-review-test dead-end (Lens C #3). CompletePhase renders the §5
++            // finished terminal because sessionConfig.isListComplete is already set (:567/:740).
++            setPhase(PHASES.COMPLETE)
++            if (sim?.isFullSimulation) {
++              setTimeout(() => { sim.onSessionComplete() }, 500)
++            }
++            return
++          }
+           setReviewQueue(allWords)
+           setReviewQueueCurrent(allWords)
+           setPhase(PHASES.REVIEW_STUDY)
+@@ -839,6 +877,42 @@ export default function DailySessionFlow() {
+     init()
+   }, [user?.uid, classId, listId, location.state?.testCompleted])
+ 
++  // ============================================================
++  // P8 · CONT-A: resolve the finished-terminal continuation target
++  // ============================================================
++  // When the session lands on the FINISHED terminal (phase COMPLETE + isListComplete) and the
++  // LAUNCHING class's assignment links a next list, fetch that list's title (read-only) so
++  // CompletePhase can offer "Advance to {nextList} →". Pure config read — nothing here (or in
++  // the advance handler) writes the finished list's progress record (§2.1 falsifier). Flag off
++  // or no valid link → continuation stays null → today's static terminal, byte-identical.
++  useEffect(() => {
++    if (!CONTINUATION_LINKS) return
++    if (phase !== PHASES.COMPLETE) return
++    if (sessionConfig?.isListComplete !== true) return
++    const nextListId = assignmentSettings?.nextListId
++    if (!nextListId || typeof nextListId !== 'string' || nextListId === listId) return
++    // Dangling-link guard: the target must still be assigned to the launching class,
++    // otherwise its session init would dead-end on 'List not assigned to this class'.
++    if (!classAssignedListIds.includes(nextListId)) return
++
++    let cancelled = false
++    ;(async () => {
++      try {
++        const nextListSnap = await getDoc(doc(db, 'lists', nextListId))
++        if (!cancelled && nextListSnap.exists()) {
++          setContinuation({
++            nextListId,
++            nextListTitle: nextListSnap.data().title || 'Vocabulary List',
++          })
++        }
++      } catch (err) {
++        // Fail closed to the static finished terminal — never a dead/broken button.
++        console.error('CONT-A: failed to resolve next list for the finished terminal:', err)
++      }
++    })()
++    return () => { cancelled = true }
++  }, [phase, sessionConfig?.isListComplete, assignmentSettings?.nextListId, classAssignedListIds, listId])
++
+   // ============================================================
+   // PHASE 1: New Words Study
+   // ============================================================
+@@ -1160,6 +1234,9 @@ export default function DailySessionFlow() {
+       reviewQueue,
+       sessionConfig,
+       assignmentSettings,
++      // P8 · CONT-A: carried so the finished terminal can validate the nextListId link
++      // on return from the test (init is skipped on testCompleted re-entry).
++      classAssignedListIds,
+       reviewTestAttempts
+     }))
+ 
+@@ -1223,6 +1300,7 @@ export default function DailySessionFlow() {
+         setNewWords(state.newWords)
+         setReviewQueue(state.reviewQueue)
+         setAssignmentSettings(state.assignmentSettings)
++        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
+         setReviewTestAttempts(state.reviewTestAttempts || 0)
+ 
+         // Reset study queue to allow re-study
+@@ -1272,6 +1350,7 @@ export default function DailySessionFlow() {
+         setNewWords(state.newWords)
+         setReviewQueue(state.reviewQueue)
+         setAssignmentSettings(state.assignmentSettings)
++        setClassAssignedListIds(state.classAssignedListIds || []) // P8 · CONT-A (fail-closed: [] on stale blobs)
+         setReviewTestAttempts(state.reviewTestAttempts || 0)
+         // Restore new word test results (needed for session summary to show both scores)
+         if (state.newWordTestResults) {
+@@ -1450,6 +1529,20 @@ export default function DailySessionFlow() {
+         }, 1000)
+       }
+     } catch (err) {
++      // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] permission-denied on the
++      // completion write = the legacy-write-cutoff signature. Emit the server-visible
++      // `legacy_write_denied` event and prompt a reload (today's rules allow the owner write,
++      // so this branch is unreachable until P6).
++      if (err?.code === 'permission-denied' || err?.code === 'functions/permission-denied') {
++        logSystemEvent('legacy_write_denied', {
++          userId: user?.uid ?? null, classId, listId,
++          dayNumber: sessionConfig?.dayNumber ?? null, testType: 'session-flow',
++          errCode: err?.code,
++          errMessage: String(err?.message || '').slice(0, 300),
++        }, 'error')
++        setError('앱이 업데이트되었습니다. 페이지를 새로고침한 뒤 이어서 진행해 주세요. (The app was updated — please reload the page to continue.)')
++        return
++      }
+       setError(err.message || 'Failed to record session')
+     }
+   }
+@@ -1788,6 +1881,17 @@ export default function DailySessionFlow() {
+               navigate('/')
+             }}
+             progressInfo={progressInfo}
++            continuation={continuation}
++            onAdvance={continuation ? async () => {
++              // P8 · CONT-A continuous advance: identical cleanup to "Back to Dashboard"
++              // (local + session_state of the FINISHED list — never its progress record),
++              // then PURE navigation to the next list. Day 1 of the next list is created by
++              // the EXISTING initializeDailySession → getOrCreateClassProgress create-on-miss
++              // path on the NEW listId; no twi/csd is written for the finished list (§2.1).
++              clearAllSessionStates(user.uid, classId, listId)
++              await clearSessionState(user.uid, classId, listId)
++              navigate(`/session/${classId}/${continuation.nextListId}`)
++            } : undefined}
+           />
+         )}
+       </div>
+@@ -2176,22 +2280,57 @@ function CompletePhase({
+   summary,
+   sessionConfig,
+   onDashboard,
+-  progressInfo
++  progressInfo,
++  // P8 · CONT-A: continuation = { nextListId, nextListTitle } when the launching class's
++  // assignment links a next list (CONTINUATION_LINKS on); null otherwise → static terminal.
++  continuation,
++  onAdvance
+ }) {
+   const isFirstDay = sessionConfig?.isFirstDay
++  // §5 list-end terminal: once every word has been introduced, this is the distinct "finished the list"
++  // terminal state (not an ordinary day-complete). Copy is SELF-SUFFICIENT — cycling is automatic, so never
++  // promise teacher setup (Lens C #6). isListComplete is the persisted derivative (studyService.js:314);
++  // cycling (Phase 3) later replaces "new challenges may unlock later" with Lap-2 re-introduction.
++  const isListComplete = sessionConfig?.isListComplete === true
++  const listWordCount = sessionConfig?.totalListWords || sessionConfig?.totalWordsIntroduced || 0
+ 
+   return (
+     <div className="space-y-6">
+-      {/* Success Header */}
+-      <div className="text-center">
+-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
+-          <span className="text-3xl">✓</span>
++      {/* Success Header — list-end terminal gets distinct congratulatory copy (§5) */}
++      {isListComplete ? (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">🎉</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            List Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">You finished the list!</h2>
++          <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">
++            {continuation ? (
++              <>
++                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words —
++                your next list, {continuation.nextListTitle}, is ready whenever you are.
++              </>
++            ) : (
++              <>
++                You&apos;ve introduced all{listWordCount ? ` ${listWordCount.toLocaleString()}` : ''} words — keep
++                them sharp with review. New challenges may unlock later.
++              </>
++            )}
++          </p>
+         </div>
+-        <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
+-          Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
+-        </p>
+-        <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
+-      </div>
++      ) : (
++        <div className="text-center">
++          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-subtle">
++            <span className="text-3xl">✓</span>
++          </div>
++          <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-text-success">
++            Day {summary?.dayNumber || sessionConfig?.dayNumber} Complete
++          </p>
++          <h2 className="mt-1 text-2xl font-bold text-text-primary">Great Job!</h2>
++        </div>
++      )}
+ 
+       {/* Progress indicator */}
+       {progressInfo && (
+@@ -2228,9 +2367,24 @@ function CompletePhase({
+         sessionConfig={sessionConfig}
+       />
+ 
+-      {/* Action Button */}
+-      <div className="pt-4">
+-        <Button onClick={onDashboard} variant="primary" size="lg" className="w-full">
++      {/* Action Buttons — P8 · CONT-A choice terminal: when the finished list links a next
++          list, "Advance" is the primary action (pure navigation — the finished list's record
++          is never written by it) and Dashboard becomes secondary. Otherwise: today's single
++          button, byte-identical.
++          P9 (cyclingEnabled): a "Start over" choice renders here ONLY once the cycling
++          capability is live — capability-gated rendering, never a dead button (§2.2). */}
++      <div className="pt-4 space-y-3">
++        {isListComplete && continuation && onAdvance && (
++          <Button onClick={onAdvance} variant="primary" size="lg" className="w-full">
++            Advance to {continuation.nextListTitle} →
++          </Button>
++        )}
++        <Button
++          onClick={onDashboard}
++          variant={isListComplete && continuation && onAdvance ? 'outline' : 'primary'}
++          size="lg"
++          className="w-full"
++        >
+           Back to Dashboard
+         </Button>
+       </div>
+diff --git a/src/pages/Dashboard.jsx b/src/pages/Dashboard.jsx
+index 7a09f99..63dbba2 100644
+--- a/src/pages/Dashboard.jsx
++++ b/src/pages/Dashboard.jsx
+@@ -17,6 +17,8 @@ import {
+   updateUserSettings,
+ } from '../services/db'
+ import { getClassProgress } from '../services/progressService'
++import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE } from '../config/featureFlags'
++import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
+ import { db } from '../firebase'
+ import CreateClassModal from '../components/CreateClassModal.jsx'
+@@ -1040,6 +1042,19 @@ const Dashboard = () => {
+ 
+     const buildFocus = (klass, list) => {
+       const assignment = klass.assignments?.[list.id] || {}
++      // P8 · CONT-A: expose the assignment's continuation link on the focus object (title
++      // resolved against THIS class's assigned lists — a dangling link stays null). Read-only
++      // additions; both fields are null with the flag off, so flag-off consumers see today's
++      // object shape plus inert nulls.
++      let nextListId = null
++      let nextListTitle = null
++      if (CONTINUATION_LINKS && assignment.nextListId && assignment.nextListId !== list.id) {
++        const nextList = klass.assignedListDetails?.find((l) => l.id === assignment.nextListId)
++        if (nextList) {
++          nextListId = nextList.id
++          nextListTitle = nextList.title || 'Vocabulary List'
++        }
++      }
+       return {
+         id: list.id,
+         title: list.title || 'Vocabulary List',
+@@ -1049,9 +1064,44 @@ const Dashboard = () => {
+         studyDaysPerWeek: assignment.studyDaysPerWeek || 5, // Default to 5 (M-F)
+         wordCount: list.wordCount || 0,
+         stats: list.stats || {},
++        nextListId,
++        nextListTitle,
+       }
+     }
+ 
++    // P8 · CONT-A focus-yield (C-13 / F6-5): a FINISHED list (twi >= listTotal) yields primary
++    // focus to its linked nextListId. Applied at EVERY getPrimaryFocus return site — the
++    // explicit-PIN branch (1a/1b below, which returns FIRST — the ~287 CS-pinned students would
++    // never auto-advance if this lived only in recency) AND the recency branch (2a). PURE
++    // read/derivation: resolves the focus without writing the pin or ANY progress record (the
++    // §2.1 falsifier — the finished list's twi/csd are never touched). Chain-follows multi-list
++    // sequences with a visited-set so a teacher-configured loop can't spin. Lap-aware for P9:
++    // under cycling twi legitimately climbs past listTotal every lap, so the yield is gated
++    // OFF for a cyclingEnabled assignment (raw twi >= listTotal would misfire each lap; the
++    // choice terminal, not auto-yield, handles cycling lists).
++    const resolveContinuation = (klass, list) => {
++      if (!CONTINUATION_LINKS) return buildFocus(klass, list)
++      let current = list
++      const visited = new Set([current.id])
++      const maxHops = Object.keys(klass.assignments || {}).length + 1
++      for (let hop = 0; hop < maxHops; hop++) {
++        const assignment = klass.assignments?.[current.id] || {}
++        if (assignment.cyclingEnabled === true) break // P9 lap-aware gate: never auto-yield a cycling list
++        const nextId = assignment.nextListId
++        if (!nextId || nextId === current.id || visited.has(nextId)) break
++        const progress = progressData[`${klass.id}_${current.id}`]
++        const twi = progress?.totalWordsIntroduced || 0
++        const listTotal = current.wordCount || 0
++        const finished = listTotal > 0 && twi >= listTotal
++        if (!finished) break
++        const nextList = klass.assignedListDetails?.find((l) => l.id === nextId)
++        if (!nextList) break // dangling link (list unassigned since) — keep today's focus
++        visited.add(nextId)
++        current = nextList
++      }
++      return buildFocus(klass, current)
++    }
++
+     // 1. Check user preference first. Resolve by saved CLASS + LIST: a student can be in
+     //    two classes that assign the same list, so the list id alone is ambiguous.
+     if (userSettings?.primaryFocusListId) {
+@@ -1062,7 +1112,10 @@ const Dashboard = () => {
+           (l) => l.id === userSettings.primaryFocusListId
+         )
+         if (savedClass && savedList) {
+-          return buildFocus(savedClass, savedList)
++          // P8 · CONT-A: the PIN branch must also yield a pinned FINISHED list to its linked
++          // next list (F6-5 — this branch returns FIRST, before recency; the pin itself is NOT
++          // rewritten — the focus is resolved read-only past the finished link).
++          return resolveContinuation(savedClass, savedList)
+         }
+         // saved class gone / no longer has the list -> fall through to legacy list-only
+       }
+@@ -1072,7 +1125,8 @@ const Dashboard = () => {
+       for (const klass of studentClasses) {
+         const list = klass.assignedListDetails?.find((l) => l.id === userSettings.primaryFocusListId)
+         if (list) {
+-          return buildFocus(klass, list)
++          // P8 · CONT-A: legacy list-only pin variant yields the same way (F6-5).
++          return resolveContinuation(klass, list)
+         }
+       }
+       // Preference no longer valid - fall through to auto-select
+@@ -1105,7 +1159,9 @@ const Dashboard = () => {
+       progressCandidates.sort((a, b) =>
+         (b.lastMs - a.lastMs) || (b.csd - a.csd) || (b.assignedMs - a.assignedMs) || (a.tie < b.tie ? -1 : 1)
+       )
+-      return buildFocus(progressCandidates[0].klass, progressCandidates[0].list)
++      // P8 · CONT-A: recency branch yields a finished top candidate to its linked next list
++      // (the original C-13 fix — a finished list otherwise keeps winning on recency forever).
++      return resolveContinuation(progressCandidates[0].klass, progressCandidates[0].list)
+     }
+ 
+     // 2b. No progress on any assigned list → existing behavior: most recently assigned; first
+@@ -1135,6 +1191,41 @@ const Dashboard = () => {
+     return primaryList
+   }, [studentClasses, userSettings, progressData]) // F02: progress-preferring fallback reads progressData
+ 
++  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Reconciled resolver read for Panel C.
++  // Today Panel C feeds determineStartingPhase the RAW stored csd (progressData is a plain
++  // doc read, never reconciled) — a stale doc makes dayNumber wrong and fires the
++  // `impossible_phase_detected` noise (I-2 §2: Dashboard-only emitter, 531 real states).
++  // Flag ON: fetch the server-reconciled position via the READ-ONLY resolveListProgress
++  // callable — called WITHOUT classId, so it is a PURE read (no F4-1 recon write from a
++  // render path; the merged in-memory view is consumed, per the P4 read contract) — and
++  // Panel C derives the phase from the reconciled csd, retiring the emitter noise.
++  // Flag OFF (default): state stays null, no callable fires, Panel C byte-equivalent.
++  const [resolvedFocusCsd, setResolvedFocusCsd] = useState(null) // { classId, listId, csd } | null
++  useEffect(() => {
++    if (!SERVER_PROGRESS_WRITE) return undefined
++    if (isTeacher || !user?.uid || !getPrimaryFocus?.id) {
++      setResolvedFocusCsd(null)
++      return undefined
++    }
++    let cancelled = false
++    const focusClassId = getPrimaryFocus.classId
++    const focusListId = getPrimaryFocus.id
++    const resolveFn = httpsCallable(getFunctions(), 'resolveListProgress', { timeout: 30000 })
++    resolveFn({ listId: focusListId })
++      .then((resp) => {
++        if (cancelled) return
++        const csd = resp?.data?.csd
++        setResolvedFocusCsd(Number.isInteger(csd)
++          ? { classId: focusClassId, listId: focusListId, csd }
++          : null)
++      })
++      .catch(() => {
++        // Resolver dark/unreachable → Panel C falls back to the raw stored csd (today's read).
++        if (!cancelled) setResolvedFocusCsd(null)
++      })
++    return () => { cancelled = true }
++  }, [isTeacher, user?.uid, getPrimaryFocus?.classId, getPrimaryFocus?.id])
++
+   // F3 — Class control options: one per enrolled class.
+   const classOptions = useMemo(
+     () => studentClasses.map((k) => ({ classId: k.id, className: k.name })),
+@@ -1453,7 +1544,19 @@ const Dashboard = () => {
+       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
+       const progress = progressData[key]
+ 
+-      const currentStudyDay = progress?.currentStudyDay ?? 0
++      // [deepfix P4, SERVER_PROGRESS_WRITE] Prefer the server-RECONCILED csd for the focused
++      // list (resolveListProgress read — see the effect above) over the raw stored doc value:
++      // the raw read is what fed determineStartingPhase a stale dayNumber and fired the
++      // `impossible_phase_detected` noise. Guarded to the CURRENT focus so a stale resolution
++      // from a previous focus can never leak in. Flag OFF → resolvedFocusCsd is always null
++      // → exactly today's raw read.
++      const resolvedMatchesFocus = SERVER_PROGRESS_WRITE
++        && resolvedFocusCsd
++        && resolvedFocusCsd.classId === getPrimaryFocus.classId
++        && resolvedFocusCsd.listId === getPrimaryFocus.id
++      const currentStudyDay = resolvedMatchesFocus
++        ? Math.max(resolvedFocusCsd.csd, progress?.currentStudyDay ?? 0) // non-demoting (CSD contract)
++        : (progress?.currentStudyDay ?? 0)
+ 
+       // Phase-aware "what to do today" for the hero CTA — derived from attempts
+       // (authoritative), scoped to the active list. One of:
+@@ -1476,7 +1579,7 @@ const Dashboard = () => {
+         error: true
+       }
+     }
+-  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading])
++  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading, resolvedFocusCsd])
+ 
+ 
+   // Modal state
+@@ -1559,6 +1662,10 @@ const Dashboard = () => {
+           const listTotal = getPrimaryFocus?.wordCount || 0
+           const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
+           const wordsLeft = Math.max(0, listTotal - tIntro)
++          // §5 persistent finished/terminal state: every word introduced. Derivable from PROGRESS alone
++          // (no Phase-2 allocation prediction needed) — the hero must then stop promising new words and
++          // congratulate + point to review, persistently (not just the day it completes).
++          const listFinished = listTotal > 0 && wordsLeft === 0
+           const day = (panelCState?.currentStudyDay ?? 0) + 1
+           const newCount = getPrimaryFocus?.pace || null
+           const phase = panelCState?.phase
+@@ -1650,15 +1757,24 @@ const Dashboard = () => {
+                         </span>
+                         {/* directive */}
+                         <h3 className="font-heading text-xl font-extrabold leading-snug mb-1">
+-                          {doneToday ? `Day ${day} done 🎉` : reviewStage ? 'One step left — review' : newCount ? `Learn ${newCount} new words` : "Start today's new words"}
++                          {doneToday
++                            ? (listFinished ? 'List complete 🎉' : `Day ${day} done 🎉`)
++                            : reviewStage ? 'One step left — review'
++                              : listFinished ? 'Keep your words sharp'
++                                : newCount ? `Learn ${newCount} new words`
++                                  : "Start today's new words"}
+                         </h3>
+                         {/* help line */}
+                         <p className="font-body text-[13px] text-white/80 font-medium mb-3.5">
+                           {doneToday
+-                            ? "You're all caught up. Come back tomorrow."
++                            ? (listFinished
++                                ? "You've introduced every word — keep them sharp with review. New challenges may unlock later."
++                                : "You're all caught up. Come back tomorrow.")
+                             : reviewStage
+                               ? `Pass today's review test to complete Day ${day}.`
+-                              : 'Study them, then pass the test to unlock review.'}
++                              : listFinished
++                                ? "You've introduced every word in this list — today is review to lock them in."
++                                : 'Study them, then pass the test to unlock review.'}
+                         </p>
+                         {/* 2-step day tracker */}
+                         <div className="flex items-center gap-2 justify-center lg:justify-start mb-4">
+@@ -1678,8 +1794,26 @@ const Dashboard = () => {
+                           onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`)}
+                           className={`w-full font-extrabold rounded-button py-3.5 transition-colors ${doneToday ? 'bg-white/12 hover:bg-white/20 text-white' : 'bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30'}`}
+                         >
+-                          {doneToday ? 'Practice again' : reviewStage ? 'Start review →' : 'Start new words →'}
++                          {doneToday ? (listFinished ? 'Review again →' : 'Practice again') : reviewStage ? 'Start review →' : listFinished ? 'Start review →' : 'Start new words →'}
+                         </button>
++                        {/* P8 · CONT-A choice terminal (Dashboard finished hero): when THIS focus is a
++                            finished list whose launching class links a next list, offer the advance.
++                            PURE navigation — the next list's Day 1 starts through the existing
++                            initializeDailySession create-on-miss path; the finished list's record is
++                            never written here. (With focus-yield active this state is normally already
++                            resolved past the finished list; it renders when the yield is gated off —
++                            e.g. a P9 cyclingEnabled list — so the choice is never lost.)
++                            P9 (cyclingEnabled): a "Start over" button joins this block ONLY once the
++                            cycling capability is live — capability-gated rendering, never a dead button. */}
++                        {CONTINUATION_LINKS && listFinished && getPrimaryFocus.nextListId && getPrimaryFocus.nextListTitle && (
++                          <button
++                            type="button"
++                            onClick={() => navigate(`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.nextListId}`)}
++                            className="w-full mt-2 font-extrabold rounded-button py-3.5 transition-colors bg-brand-accent hover:bg-brand-accent-hover text-white shadow-lg shadow-brand-accent/30"
++                          >
++                            Advance to {getPrimaryFocus.nextListTitle} →
++                          </button>
++                        )}
+                       </>
+                     )}
+                   </div>
+diff --git a/src/pages/MCQTest.jsx b/src/pages/MCQTest.jsx
+index a6dc083..0758335 100644
+--- a/src/pages/MCQTest.jsx
++++ b/src/pages/MCQTest.jsx
+@@ -243,7 +243,11 @@ const MCQTest = () => {
+       if (testConfig) {
+         // All settings come from testConfig - no need to fetch or apply manually
+         setOptionsCount(testConfig.testOptionsCount)
+-        setRetakeThreshold(testConfig.passThresholdDecimal)
++        // C-23 fail-open: only adopt a finite threshold. Setting undefined/NaN would
++        // make every `score >= retakeThreshold` compare false (fail-closed verdicts).
++        if (Number.isFinite(testConfig.passThresholdDecimal)) {
++          setRetakeThreshold(testConfig.passThresholdDecimal)
++        }
+         setCurrentTestType(testConfig.testType)
+         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
+         setConfiguredTestSize(effectiveTestSize)
+@@ -528,6 +532,11 @@ const MCQTest = () => {
+       // Determine if student passed (review tests always pass)
+       const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+ 
++      // C-23: authoritative verdict of the STORED attempt (server-computed under
++      // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
++      // null in practice mode — the result card then falls back to the local compare.
++      let serverPassed = null
++
+       // Submit attempt for gradebook (non-practice mode only)
+       if (!isPracticeMode) {
+         // Get studyDay from sessionContext, or fetch from progress if standalone test
+@@ -637,6 +646,9 @@ const MCQTest = () => {
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
+             result = { id: resp.data.attemptId }
++            // C-23: surface the server's verdict (returned on fresh AND idempotent writes)
++            // so the result card renders the stored truth, not a client recompute.
++            serverPassed = typeof resp.data.passed === 'boolean' ? resp.data.passed : null
+           } else {
+             result = await withRetry(
+               () => submitTestAttempt(
+@@ -656,6 +668,9 @@ const MCQTest = () => {
+               { maxRetries: 3, totalTimeoutMs: 15000 },
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
++            // C-23: the client-written attempt doc stores exactly this verdict — surface
++            // it so the result card always matches the stored gradebook row.
++            serverPassed = passed
+           }
+ 
+           console.log('[SUBMIT] ✓ Submission completed successfully, attempt ID:', result.id)
+@@ -796,6 +811,23 @@ const MCQTest = () => {
+             console.log('Session completed successfully from MCQTest')
+           } catch (completionErr) {
+             console.error('Failed to complete session from test:', completionErr)
++            // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] A permission-denied
++            // completion is the legacy-write-cutoff signature (an old/flag-off bundle writing
++            // class_progress after P6 denies it). Today's rules allow the owner write, so this
++            // branch is unreachable — it ships now so the bundle that spans the cutoff already
++            // carries the handler. On detection: emit the server-visible `legacy_write_denied`
++            // event and BLOCK with a reload prompt (not the results screen) — the attempt is
++            // saved, but nothing further will persist until the client reloads.
++            if (completionErr?.code === 'permission-denied' || completionErr?.code === 'functions/permission-denied') {
++              logSystemEvent('legacy_write_denied', {
++                userId: user.uid, classId: classIdParam, listId,
++                dayNumber: sessionContext?.dayNumber ?? null, testType: 'mcq',
++                errCode: completionErr?.code,
++                errMessage: String(completionErr?.message || '').slice(0, 300),
++              }, 'error')
++              setSubmitError('앱이 업데이트되었습니다. 답안은 저장되었으니, 페이지를 새로고침한 뒤 이어서 진행해 주세요. (The app was updated — your answers are saved. Please reload the page to continue.)')
++              return
++            }
+             // Don't fail the whole submit - attempt is already saved
+           }
+         }
+@@ -813,7 +845,8 @@ const MCQTest = () => {
+         total: summary.total,
+         failed: summary.failed,
+         testType: currentTestType,
+-        answerArray
++        answerArray,
++        serverPassed // C-23: authoritative stored verdict (null in practice mode)
+       })
+ 
+       console.log('[SUBMIT] Showing test results to user')
+@@ -1039,7 +1072,12 @@ const MCQTest = () => {
+     const renderResultsCard = () => {
+       // New Word Test: Pass/Fail based on threshold
+       if (currentTestType === 'new') {
+-        const passed = score >= retakeThreshold
++        // C-23: trust the stored attempt's verdict when we have it (server-computed
++        // against the class's real threshold). Only practice mode falls back to the
++        // local compare, which fails OPEN on a non-finite threshold instead of
++        // failing every score against an unresolved default.
++        const passed = testResultsData.serverPassed
++          ?? (Number.isFinite(retakeThreshold) ? score >= retakeThreshold : true)
+ 
+         return (
+           <div className={`rounded-2xl p-8 text-center shadow-xl ${
+diff --git a/src/pages/TypedTest.jsx b/src/pages/TypedTest.jsx
+index e2837bc..43e48cc 100644
+--- a/src/pages/TypedTest.jsx
++++ b/src/pages/TypedTest.jsx
+@@ -288,7 +288,11 @@ const TypedTest = () => {
+       // PATH A: TestConfig provided (from DailySessionFlow with new flow)
+       if (testConfig) {
+         // All settings come from testConfig - already limited by testSize
+-        setRetakeThreshold(testConfig.passThresholdDecimal)
++        // C-23 fail-open: only adopt a finite threshold. Setting undefined/NaN would
++        // make every `score >= retakeThreshold` compare false (fail-closed verdicts).
++        if (Number.isFinite(testConfig.passThresholdDecimal)) {
++          setRetakeThreshold(testConfig.passThresholdDecimal)
++        }
+         setCurrentTestType(testConfig.testType)
+         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
+         setConfiguredTestSize(effectiveTestSize)
+@@ -790,6 +794,11 @@ const TypedTest = () => {
+         failed: failedIds
+       }
+ 
++      // C-23: authoritative verdict of the STORED attempt (server-computed under
++      // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
++      // null in practice mode — the result card then falls back to the local compare.
++      let serverPassed = null
++
+       // Show the results view. Shared by the practice path and by doWriteAndFinalize
+       // (so a write retry that succeeds lands on the same results screen). Captures
+       // summary + gradingResult from this handleSubmit invocation.
+@@ -806,7 +815,8 @@ const TypedTest = () => {
+           total: summary.total,
+           failed: summary.failed,
+           gradedResults: gradingResult.data.results,
+-          testType: currentTestType
++          testType: currentTestType,
++          serverPassed // C-23: authoritative stored verdict (null in practice mode)
+         })
+         setResults(gradingResult.data.results)
+         setShowResults(true)
+@@ -862,12 +872,28 @@ const TypedTest = () => {
+         }
+ 
+         // [PHASE 1] Write the attempt doc FIRST.
+-        // - Idempotent docId from a per-session nonce so withRetry / Try-Again
+-        //   overwrites the same doc instead of producing duplicates.
++        // - Idempotent docId so withRetry / Try-Again overwrites the same doc
++        //   instead of producing duplicates.
+         // - study_state mutations happen AFTER this succeeds, so a failed
+         //   submit cannot leave word stats ahead of the gradebook.
+-        const attemptNonce = getOrCreateAttemptNonce(testId)
+-        const attemptDocId = `${user.uid}_${testId}_${attemptNonce}`
++        //
++        // [I-5 §2 F1, deepfix P4] SINGLE identity per submit flow: reuse the docId the grade
++        // was bound to (gradeAttemptDocId, computed ONCE above before grading — mirrors
++        // MCQTest's single derivation). The old second getOrCreateAttemptNonce() call here
++        // could mint a DIFFERENT nonce under degraded storage → grade-docId !== save-docId
++        // (the 06-29 grade-token outage signature). [F2] Prefer the SERVER-echoed id the
++        // gradeToken was actually minted against (additive field on the grade-only payload,
++        // P3; absent from older deployed functions → nullish falls back to the local id).
++        // Divergence should be impossible after F1 — the log is the tripwire, not a handler.
++        const serverEchoedAttemptDocId = gradingResult.data?.attemptDocId ?? null
++        if (serverEchoedAttemptDocId && serverEchoedAttemptDocId !== gradeAttemptDocId) {
++          logSystemEvent('nonce_identity_divergence', {
++            userId: user.uid, classId: classIdParam, listId, testId,
++            localAttemptDocId: gradeAttemptDocId,
++            serverAttemptDocId: serverEchoedAttemptDocId,
++          }, 'error')
++        }
++        const attemptDocId = serverEchoedAttemptDocId ?? gradeAttemptDocId
+ 
+         // Write + finalize as a single re-runnable unit. A post-grade write failure is
+         // retried via the "Retry Save" button (pendingSaveRef), which re-invokes THIS
+@@ -914,6 +940,9 @@ const TypedTest = () => {
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
+             result = { id: resp.data.attemptId }
++            // C-23: surface the server's verdict (returned on fresh AND idempotent writes)
++            // so the result card renders the stored truth, not a client recompute.
++            serverPassed = typeof resp.data.passed === 'boolean' ? resp.data.passed : null
+           } else {
+             result = await withRetry(
+               () => submitTypedTestAttempt(
+@@ -933,6 +962,9 @@ const TypedTest = () => {
+               { maxRetries: 3, totalTimeoutMs: 15000 },
+               { userId: user.uid, classId: classIdParam, listId, studyDay, sessionType: currentTestType }
+             )
++            // C-23: the client-written attempt doc stores exactly this verdict — surface
++            // it so the result card always matches the stored gradebook row.
++            serverPassed = passed
+           }
+         } catch (submitErr) {
+           // Attempt failed after retries — block progression, stay on page.
+@@ -1059,6 +1091,24 @@ const TypedTest = () => {
+             console.log('Session completed successfully from TypedTest')
+           } catch (completionErr) {
+             console.error('Failed to complete session from test:', completionErr)
++            // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] A permission-denied
++            // completion is the legacy-write-cutoff signature (an old/flag-off bundle writing
++            // class_progress after P6 denies it). Today's rules allow the owner write, so this
++            // branch is unreachable — it ships now so the bundle that spans the cutoff already
++            // carries the handler. On detection: emit the server-visible `legacy_write_denied`
++            // event and BLOCK with a reload prompt (not the results screen) — the attempt is
++            // saved, but nothing further will persist until the client reloads.
++            if (completionErr?.code === 'permission-denied' || completionErr?.code === 'functions/permission-denied') {
++              logSystemEvent('legacy_write_denied', {
++                userId: user.uid, classId: classIdParam, listId,
++                dayNumber: sessionContext?.dayNumber ?? null, testType: 'typed',
++                errCode: completionErr?.code,
++                errMessage: String(completionErr?.message || '').slice(0, 300),
++              }, 'error')
++              setGradingError('앱이 업데이트되었습니다. 답안은 저장되었으니, 페이지를 새로고침한 뒤 이어서 진행해 주세요.\n(The app was updated — your answers are saved. Please reload the page to continue.)')
++              setIsSubmitting(false)
++              return
++            }
+             // Don't fail the whole submit - attempt is already saved
+           }
+         }
+@@ -1303,7 +1353,12 @@ const TypedTest = () => {
+     const renderResultsCard = () => {
+       // New Word Test: Pass/Fail based on threshold
+       if (currentTestType === 'new') {
+-        const passed = score >= retakeThreshold
++        // C-23: trust the stored attempt's verdict when we have it (server-computed
++        // against the class's real threshold). Only practice mode falls back to the
++        // local compare, which fails OPEN on a non-finite threshold instead of
++        // failing every score against an unresolved default.
++        const passed = testResultsData.serverPassed
++          ?? (Number.isFinite(retakeThreshold) ? score >= retakeThreshold : true)
+ 
+         return (
+           <div className={`rounded-2xl p-8 text-center shadow-xl ${
+diff --git a/src/services/db.js b/src/services/db.js
+index 8f4a9aa..e81e4df 100644
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -22,9 +22,18 @@ import {
+ } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db, auth } from '../firebase'
+-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
++import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
++// deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
++// never falls back when assignedLists is an empty array (`[]` is truthy) → "0 assigned lists" split-brain.
++// Use a length check. (Do NOT use at the two intentional accumulator seeds, db.js ~811/~835.)
++function getAssignedListIds(classData) {
++  return (classData?.assignedLists?.length
++    ? classData.assignedLists
++    : Object.keys(classData?.assignments || {}))
++}
++
+ const defaultProfile = {
+   displayName: '',
+   school: '',
+@@ -499,7 +508,7 @@ export const fetchStudentClasses = async (studentId) => {
+           assignments[key].testMode = 'mcq'
+         }
+       })
+-      const assignedListIds = classData.assignedLists || Object.keys(assignments)
++      const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+       const assignedListDetails = await Promise.all(
+         assignedListIds.map(async (listId) => {
+@@ -934,6 +943,28 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
+     updates.testSizeNew = sizeValue
+   }
+ 
++  // P8 · CONT-A (CONTINUATION_LINKS): `nextListId` — the per-class list-sequence link
++  // (nullable). Teacher-authored policy config at the SAME trust level and write site as
++  // pace/testSizeNew (owner-teacher-only via the same `classes` rules surface). Absent/null
++  // = today's behavior exactly. Validated against the class's OWN assignments: the link
++  // must point at another list assigned to THIS class, never at itself.
++  if (settings.nextListId !== undefined) {
++    if (settings.nextListId === null || settings.nextListId === '') {
++      updates.nextListId = null
++    } else {
++      if (typeof settings.nextListId !== 'string') {
++        throw new Error('Next list must be a list id or null.')
++      }
++      if (settings.nextListId === listId) {
++        throw new Error('A list cannot be its own next list.')
++      }
++      if (!assignments[settings.nextListId]) {
++        throw new Error('Next list must be another list assigned to this class.')
++      }
++      updates.nextListId = settings.nextListId
++    }
++  }
++
+   assignments[listId] = {
+     ...assignments[listId],
+     ...updates,
+@@ -1435,7 +1466,7 @@ export const fetchClassAttempts = async (classId) => {
+   const classData = classSnap.data()
+   // Support both old assignedLists array and new assignments map
+   const assignments = classData.assignments || {}
+-  const assignedListIds = classData.assignedLists || Object.keys(assignments)
++  const assignedListIds = getAssignedListIds(classData)  // C-35
+ 
+   if (assignedListIds.length === 0) {
+     return []
+@@ -1458,16 +1489,21 @@ export const fetchClassAttempts = async (classId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+     if (!assignedListIds.includes(listId)) continue
+ 
+@@ -1528,7 +1564,7 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+     classListMap.set(classId, assignedListIds)
+ 
+     // Query members subcollection for this class
+@@ -1603,16 +1639,21 @@ export const fetchAllTeacherAttempts = async (teacherId) => {
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -1805,7 +1846,7 @@ async function getTeacherData(teacherId) {
+   for (const klass of teacherClasses) {
+     const classId = klass.id
+     const className = klass.name
+-    const assignedListIds = klass.assignedLists || Object.keys(klass.assignments || {})
++    const assignedListIds = getAssignedListIds(klass)  // C-35
+ 
+     try {
+       const membersRef = collection(db, 'classes', classId, 'members')
+@@ -1934,6 +1975,22 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     attemptsQuery = query(attemptsQuery, where('classId', 'in', filterClassIds))
+   }
+ 
++  // C-33: push the resolved Name filter (studentIds) server-side so a filtered
++  // student's attempts are found however deep they rank teacher-wide. Single id
++  // -> '==', 2..30 ids -> 'in' (guarded so class 'in' disjuncts x student ids
++  // stays within Firestore's <=30 disjunction budget). Larger matches keep
++  // today's degraded mode — the post-filter below remains as the backstop.
++  const classDisjuncts = Math.max(filterClassIds.length, 1)
++  if (filterStudentIds.length === 1) {
++    attemptsQuery = query(attemptsQuery, where('studentId', '==', filterStudentIds[0]))
++  } else if (
++    filterStudentIds.length > 1 &&
++    filterStudentIds.length <= 30 &&
++    classDisjuncts * filterStudentIds.length <= 30
++  ) {
++    attemptsQuery = query(attemptsQuery, where('studentId', 'in', filterStudentIds))
++  }
++
+   // Apply date filter at query level
+   if (dateStart && dateEnd) {
+     attemptsQuery = query(attemptsQuery, where('submittedAt', '>=', dateStart), where('submittedAt', '<=', dateEnd))
+@@ -1964,16 +2021,21 @@ if ((hasClassFilter && filterClassIds.length === 0) ||
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     const studentId = attemptData.studentId
+@@ -2153,16 +2215,21 @@ export const queryStudentAttempts = async (studentId, filters = [], lastDoc = nu
+     // Extract listId from testId - handle multiple formats:
+     // Old: test_{listId}_{timestamp} or typed_{listId}_{timestamp}
+     // New: vocaboost_test_{classId}_{listId}_{testType}
+-    let listId = null
++    let parsedListId = null
+     const oldFormatMatch = testId.match(/^(test|typed)_([^_]+)_/)
+     const newFormatMatch = testId.match(/^vocaboost_test_[^_]+_([^_]+)_/)
+ 
+     if (oldFormatMatch) {
+-      listId = oldFormatMatch[2]
++      parsedListId = oldFormatMatch[2]
+     } else if (newFormatMatch) {
+-      listId = newFormatMatch[1]
++      parsedListId = newFormatMatch[1]
+     }
+ 
++    // C-34: prefer the attempt doc's own listId (automarker/manual rows carry it but
++    // have no parseable testId); the testId parse is the legacy fallback. Drop only
++    // when BOTH are absent.
++    const listId = attemptData.listId ?? parsedListId
++
+     if (!listId) continue
+ 
+     // Get list name
+@@ -2311,7 +2378,7 @@ export const fetchAttemptDetails = async (attemptId) => {
+               const classSnap = await getDoc(doc(db, 'classes', classId))
+               if (classSnap.exists()) {
+                 const classData = classSnap.data()
+-                const assignedLists = classData.assignedLists || Object.keys(classData.assignments || {})
++                const assignedLists = getAssignedListIds(classData)  // C-35
+                 if (assignedLists.includes(listId)) {
+                   className = classData.name || 'Unknown Class'
+                   break
+@@ -2433,7 +2500,7 @@ export const fetchUserAttempts = async (uid) => {
+           classLookup[classId] = {
+             name: classData.name || classInfo.name || 'Unknown Class',
+             id: classId,
+-            assignedLists: classData.assignedLists || Object.keys(classData.assignments || {}),
++            assignedLists: getAssignedListIds(classData),  // C-35
+           }
+         }
+       } catch (err) {
+@@ -2776,6 +2843,22 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
+ 
+         if (listId) {
+           try {
++            // [deepfix P4 · FND-2, F5-HIGH-2] The challenge-accept day-advance is the 3rd twi
++            // writer. Under SERVER_CHALLENGE_WRITE, route it to the P3 `advanceForChallenge`
++            // callable (functions/foundation.js:1594) INSTEAD of the direct class_progress
++            // write below: the server re-derives the pass threshold + fail→pass transition +
++            // current-day boundary guard + phase gate, and CLAMPS the twi add to wordsRemaining
++            // (closing the unclamped :2900 over-add, I-6 §3-row-8). The client already wrote the
++            // recomputed score to the attempt doc above (:2794), so the server reads it as
++            // attempt.score and `previousScore` = the pre-acceptance score (attemptData is the
++            // pre-update snapshot from :2730). Flag OFF (default) → the direct write below,
++            // byte-equivalent to today. Post-P5 the direct write would target a dead collection
++            // (canonical is authoritative); post-P7 it would no-op — this route writes the
++            // record the foundation owns (legacy pre-P5, canonical post-P5) instead.
++            if (SERVER_CHALLENGE_WRITE) {
++              const advanceForChallengeFn = httpsCallable(getFunctions(), 'advanceForChallenge', { timeout: 30000 })
++              await advanceForChallengeFn({ attemptId, previousScore: attemptData.score || 0 })
++            } else {
+             // Get pass threshold from assignment (stored in assignments map, not assignedLists array)
+             const classDoc = await getDoc(doc(db, 'classes', attemptData.classId))
+             const assignment = classDoc.exists()
+@@ -2837,6 +2920,7 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
+                 }
+               }
+             }
++            } // end SERVER_CHALLENGE_WRITE else — direct class_progress day-advance (flag-off fallback)
+           } catch (err) {
+             console.error('Error checking day progression after challenge:', err)
+             // Don't fail the challenge review if day progression check fails
+@@ -2894,6 +2978,24 @@ export async function resetStudentProgress(userId, classId, listId) {
+     throw new Error('Missing required parameters: userId, classId, and listId are required')
+   }
+ 
++  // [deepfix P4 · FND-2, SERVER_RESET_PROGRESS / F6-3, v2 HIGH-3] Route reset through the
++  // `resetProgress` callable (functions/foundation.js): self-service (uid = caller — same
++  // guarantee as the check above), LIST-WIDE across ALL classes (the persist §5.3 fix for
++  // this function's class-scoped legacy delete), attempts-first ordering, legacy-testId
++  // sweep, and a durable reset-epoch tombstone. With this flag ON, no LIVE client path
++  // deletes attempt docs — the prerequisite for P6 removing the attempts owner-delete rules
++  // branch ([C5-5]). Flag OFF (default) → the legacy client batch-delete below,
++  // byte-equivalent to today (and still rules-legal until P6).
++  if (SERVER_RESET_PROGRESS) {
++    const resetProgressFn = httpsCallable(getFunctions(), 'resetProgress', { timeout: 60000 })
++    const resp = await resetProgressFn({ listId })
++    const d = resp?.data?.deleted || {}
++    return {
++      success: resp?.data?.success === true,
++      deletedCount: (d.attempts || 0) + (d.sessionStates || 0) + (d.studyStates || 0) + (d.classProgress || 0)
++    }
++  }
++
+   let deletedCount = 0
+ 
+   // 1. Delete class_progress document
+diff --git a/src/services/progressService.js b/src/services/progressService.js
+index 784e362..c5a7af0 100644
+--- a/src/services/progressService.js
++++ b/src/services/progressService.js
+@@ -10,7 +10,8 @@ import {
+   serverTimestamp,
+   arrayUnion
+ } from 'firebase/firestore';
+-import { db } from '../firebase';
++import { db, auth } from '../firebase';
++import { getFunctions, httpsCallable } from 'firebase/functions';
+ import {
+   DEFAULT_CLASS_PROGRESS,
+   createClassProgress,
+@@ -18,7 +19,7 @@ import {
+   implausibleStudyDayThreshold
+ } from '../types/studyTypes';
+ import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
+-import { LIST_SCOPED_RECON } from '../config/featureFlags';
++import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE } from '../config/featureFlags';
+ 
+ // Observability-only (v5): a clean no-anchor record with CSD above this is worth a
+ // `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
+@@ -101,6 +102,18 @@ async function cleanupOrphanedReviews(userId, classId, listId, anchorDay, attemp
+  * @returns {Promise<{ progress: Object, attempts: Array }>} Progress document and recent attempts
+  */
+ export async function getOrCreateClassProgress(userId, classId, listId) {
++  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Route hydration through the READ-ONLY
++  // `resolveListProgress` callable: the SERVER performs today's entry-time reconciliation
++  // (create-on-miss + the F4-1 recon write on the launching legacy doc, byte-parity
++  // semantics) and logs resolve_list_progress / quarantine candidates. The callable is
++  // SELF-SERVICE (uid = caller), so only route when this call is for the signed-in user —
++  // any other caller falls through to the legacy client path unchanged.
++  if (SERVER_PROGRESS_WRITE && auth.currentUser?.uid === userId) {
++    const routed = await getOrCreateClassProgressViaResolver(userId, classId, listId);
++    if (routed) return routed;
++    // Resolver unavailable/failed → fall through to the legacy client path (fail-open:
++    // hydration must never hard-block session entry on a transient callable error).
++  }
+   console.log('[RECONCILIATION] ═══════════════════════════════════════');
+   console.log('[RECONCILIATION] getOrCreateClassProgress START');
+   console.log('[RECONCILIATION] Params:', { userId, classId, listId });
+@@ -339,6 +352,45 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
+   return { progress, attempts };
+ }
+ 
++/**
++ * [deepfix P4 · FND-2] SERVER_PROGRESS_WRITE hydration route for getOrCreateClassProgress.
++ *
++ * Calls the READ-ONLY `resolveListProgress({listId, classId})` callable (functions/
++ * foundation.js): with the launching classId supplied, the server executes today's
++ * entry-time reconciliation — create-on-miss (progressService.js:114-127 semantics) + the
++ * per-doc safeCSD/safeTWI recon write (:233-271 semantics) — on the LEGACY class_progress
++ * doc, keeping the completion day-guard baseline current (F4-1). It creates NO canonical
++ * list_progress doc pre-P5 (`canonicalWritten:false` contract). We then read the (now
++ * reconciled) legacy doc LOCALLY so consumers get real client Timestamp instances (the
++ * callable's serialized timestamps are plain objects — not safe for `.toDate()` callers),
++ * and fetch recent attempts exactly as the legacy path does (same return contract:
++ * `{ progress, attempts }`).
++ *
++ * Returns null on ANY failure so the caller can fall through to the legacy client path
++ * (old bundles stay legal during the P4 soak — rules unchanged).
++ */
++async function getOrCreateClassProgressViaResolver(userId, classId, listId) {
++  try {
++    const resolveFn = httpsCallable(getFunctions(), 'resolveListProgress', { timeout: 30000 });
++    await resolveFn({ listId, classId });
++
++    const docId = getProgressDocId(classId, listId);
++    const snapshot = await getDoc(doc(db, `users/${userId}/class_progress`, docId));
++    if (!snapshot.exists()) {
++      // Read-only mode guarantees create-on-miss for the launching class; a miss here means
++      // canonical mode (post-P5) or an unexpected server state — use the legacy path.
++      console.warn('[RECONCILIATION] resolver route: launching doc missing after resolve — falling back to legacy path');
++      return null;
++    }
++    const progress = { id: snapshot.id, ...snapshot.data() };
++    const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
++    return { progress, attempts };
++  } catch (err) {
++    console.warn('[RECONCILIATION] resolveListProgress route failed — falling back to legacy path:', err?.message);
++    return null;
++  }
++}
++
+ /**
+  * Calculate aggregate stats from recent sessions
+  * @param {Array} sessions - Array of session summary objects
+@@ -523,12 +575,36 @@ export async function fetchStudentsProgressForClass(studentIds, classId, listIds
+     progressMap[studentId] = {};
+   });
+ 
++  // [deepfix P4 · FND-2, F6-2] Teacher read path resolves from the FOUNDATION record when
++  // SERVER_PROGRESS_WRITE is on: canonical `users/{studentId}/list_progress/{listId}` FIRST
++  // (the resolveListProgress read order — the callable itself is self-service, so the
++  // teacher surface reads the doc directly; the generic /users/{userId}/{subcollection}
++  // teacher-read rule covers it), falling back to the legacy class_progress doc when no
++  // canonical doc exists. Pre-P5 the canonical collection is empty by contract, so flag-on
++  // output is identical to today; at P5 the canonical doc wins — the teacher "Students"
++  // view can no longer freeze on a stale class_progress doc (and survives its P7 deletion).
++  // Flag OFF (default) → the legacy read below, byte-equivalent to today.
++  const readStudentListProgress = async (studentId, listId) => {
++    if (SERVER_PROGRESS_WRITE) {
++      try {
++        const canonicalSnap = await getDoc(doc(db, `users/${studentId}/list_progress`, listId));
++        if (canonicalSnap.exists()) {
++          return { id: canonicalSnap.id, ...canonicalSnap.data(), source: 'list_progress' };
++        }
++      } catch (err) {
++        // Canonical read denied/unavailable → legacy fallback (never fail the whole view).
++        console.warn('canonical list_progress read failed — using legacy class_progress:', err?.message);
++      }
++    }
++    return getClassProgress(studentId, classId, listId);
++  };
++
+   // Batch fetch: For each student, fetch progress for all lists
+   const promises = [];
+   for (const studentId of studentIds) {
+     for (const listId of listIds) {
+       promises.push(
+-        getClassProgress(studentId, classId, listId)
++        readStudentListProgress(studentId, listId)
+           .then(progress => ({ studentId, listId, progress }))
+           .catch(() => ({ studentId, listId, progress: null }))
+       );
+diff --git a/src/services/studyService.js b/src/services/studyService.js
+index 54a12ad..f397838 100644
+--- a/src/services/studyService.js
++++ b/src/services/studyService.js
+@@ -46,7 +46,8 @@ import {
+ } from './progressService';
+ import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
+ import { logSystemEvent } from './db';
+-import { LIST_SCOPED_RECON } from '../config/featureFlags';
++import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE } from '../config/featureFlags';
++import { getFunctions, httpsCallable } from 'firebase/functions';
+ 
+ /**
+  * Determine starting phase based on attempt history for the current day.
+@@ -576,6 +577,14 @@ export async function updateQueueTracking(userId, wordIds) {
+  * @returns {Promise<Object>} Updated progress
+  */
+ export async function recordSessionCompletion(userId, sessionData) {
++  // [deepfix P4 · FND-2, SERVER_PROGRESS_WRITE] Route the durable completion write through
++  // the `completeSession` callable (functions/foundation.js): transactional day-guard,
++  // server-derived reviewOnlyDay/wordsIntroduced/intervention — the server OWNS csd/twi.
++  // Still targets the LEGACY class_progress doc until P5 (LIST_PROGRESS_CANONICAL, server-
++  // side). Flag OFF (default) → the legacy client path below, byte-equivalent to today.
++  if (SERVER_PROGRESS_WRITE) {
++    return recordSessionCompletionViaServer(userId, sessionData);
++  }
+   const {
+     classId,
+     listId,
+@@ -677,6 +686,110 @@ export async function recordSessionCompletion(userId, sessionData) {
+   };
+ }
+ 
++/**
++ * [deepfix P4 · FND-2] SERVER_PROGRESS_WRITE route for recordSessionCompletion.
++ *
++ * Calls the P3 `completeSession` callable, which performs the transactional day-guard +
++ * the csd/twi/summary/stats/streak write server-side (functions/foundation.js — sessionContext
++ * contract: {dayNumber, newWordScore?, reviewScore?, segmentStartIndex?, segmentEndIndex?,
++ * wordsReviewed?, wordsTested?, clientReviewOnlyDay?, clientWordsIntroduced?}; the server owns
++ * csd/twi/wordsIntroduced/interventionLevel — client fields feed only display/stats and the
++ * `reviewonly_derivation_mismatch` tripwire). Maps the callable's return onto the exact
++ * sentinel shapes today's callers consume (completeSessionFromTest / DailySessionFlow):
++ *   • 'day_guard_rejected' → {sessionId:null, progress, dayGuardRejected:true, sessionCleared}
++ *     (the SERVER already cleared session_states + logged day_guard_rejected_session_cleared —
++ *     the client must NOT re-clear or re-log);
++ *   • 'already_completed'  → success-shaped {sessionId:null, progress} (idempotent retry —
++ *     no second sessions-history record);
++ *   • 'completed'          → keep today's users/{uid}/sessions history record (client-owned,
++ *     not a progress write) and return {sessionId, progress}.
++ * NOTE: the returned `progress` carries the server's applied fields (currentStudyDay,
++ * totalWordsIntroduced, interventionLevel, stats, streakDays) — not the full legacy doc body.
++ * Current consumers read only these + dayGuardRejected (verified: studyService.js
++ * completeSessionFromTest, DailySessionFlow.jsx completeSession).
++ */
++async function recordSessionCompletionViaServer(userId, sessionData) {
++  const {
++    classId,
++    listId,
++    dayNumber,
++    newWordScore,
++    reviewScore,
++    segment,
++    wordsIntroduced,
++    wordsReviewed,
++    wordsTested,
++    clientReviewOnlyDay
++  } = sessionData;
++
++  const sessionContext = {
++    dayNumber: dayNumber || 1,
++    newWordScore: newWordScore ?? null,
++    reviewScore: reviewScore ?? null,
++    segmentStartIndex: segment?.startIndex || 0,
++    segmentEndIndex: segment?.endIndex || 0,
++    wordsReviewed: wordsReviewed || 0,
++    wordsTested: wordsTested || 0,
++  };
++  // Optional tripwire fields — only sent when present (the callable serializer must not
++  // see `undefined`; the server logs the mismatch only when clientReviewOnlyDay is boolean).
++  if (typeof clientReviewOnlyDay === 'boolean') {
++    sessionContext.clientReviewOnlyDay = clientReviewOnlyDay;
++    sessionContext.clientWordsIntroduced = Number.isFinite(wordsIntroduced) ? wordsIntroduced : null;
++  }
++
++  const completeSessionFn = httpsCallable(getFunctions(), 'completeSession', { timeout: 30000 });
++  const resp = await completeSessionFn({ classId, listId, sessionContext });
++  const data = resp?.data || {};
++
++  if (data.status === 'day_guard_rejected') {
++    // Server cleared the stale session doc + wrote the system_logs event (WITH uid) inside
++    // the callable — mirror ONLY the legacy sentinel shape here.
++    console.warn('[SESSION] day-guard rejection (server) — completion did not apply', {
++      userId, classId, listId, sessionDay: dayNumber, progressDay: data.progressDay ?? null
++    });
++    return {
++      sessionId: null,
++      progress: {
++        id: `${classId}_${listId}`,
++        currentStudyDay: data.progressDay ?? null,
++        dayGuardRejected: true
++      },
++      dayGuardRejected: true,
++      sessionCleared: data.sessionCleared === true
++    };
++  }
++
++  if (data.status === 'already_completed') {
++    // Idempotent retry of a committed completion — success-shaped, no duplicate history record.
++    return {
++      sessionId: null,
++      progress: data.progress || null
++    };
++  }
++
++  // status === 'completed': keep the legacy users/{uid}/sessions history record (client-owned
++  // audit trail; NOT a progress write — the server owns class_progress under this flag).
++  const sessionRef = doc(collection(db, `users/${userId}/sessions`));
++  const cleanSessionData = Object.fromEntries(
++    Object.entries(sessionData).filter(([, v]) => v !== undefined)
++  );
++  const batch = writeBatch(db);
++  batch.set(sessionRef, {
++    ...cleanSessionData,
++    // Server-derived truth for the record (the client's wordsIntroduced is its preview):
++    serverWordsIntroduced: data.wordsIntroduced ?? null,
++    serverReviewOnlyDay: data.reviewOnlyDay ?? null,
++    completedAt: Timestamp.now()
++  });
++  await batch.commit();
++
++  return {
++    sessionId: sessionRef.id,
++    progress: data.progress || null
++  };
++}
++
+ /**
+  * Initialize study states for new words
+  * 
+@@ -1308,9 +1421,38 @@ export async function completeSessionFromTest({
+   // re-add it to TWI. FLAG-GATED so the flag-off path keeps the exact legacy `||` expression
+   // (Run-L byte-equivalence); only under LIST_SCOPED_RECON does an explicit 0 stay durable.
+   const cfgNewWordCount = sessionState?.sessionConfig?.newWordCount;
+-  const wordsIntroduced = LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
+-    ? cfgNewWordCount
+-    : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0);
++  // NEED_TO_FIX #11 — review-only day completion (PLAN_review_only_day_completion.md). A day that ASSIGNED
++  // zero new words (intervention throttle interv=1.0 → newWords=0, OR list-end wordsRemaining<=0) is a
++  // legitimately REVIEW-ONLY day: it has no new-word test, so the Day-2+ gate below must NOT block it — else
++  // the review that would lower intervention is never recorded (recordSessionCompletion runs only on
++  // completion) → PERMANENT stuck state. Flag-gated: the review-only CSD advance survives only via the
++  // non-demoting CSD guarantee under LIST_SCOPED_RECON. Use <= 0 (not === 0): newWordCount =
++  // min(allocation.newWords, wordsRemaining) can be NEGATIVE on over-introduction; ≤0 still means "no new
++  // words assignable," never "assigned-and-failed," and it matches isListComplete (wordsRemaining <= 0).
++  // A finite ≤0 cfgNewWordCount is a LEGIT review-only day ONLY when a session-config reason CONFIRMS that
++  // zero new words were assignable — otherwise a STALE (or forged) finite 0 on an ordinary assigned-new day
++  // would false-open the gate (Codex ROI-1 / acceptance test 4b). The three legit causes are all authoritative
++  // fields written by initializeDailySession and persisted verbatim in dailySessionState (both persist sites
++  // store the full sessionConfig — verified DailySessionFlow.jsx:1161 main path + :703 recovery path):
++  //   • intervention throttle          → allocation.newWords <= 0   (studyService.js:182,235,286)
++  //   • list end / over-introduced list → isListComplete === true   (:314)
++  //   • Fix #9 review-resume (new already passed in another class, nwCount forced to 0) → startPhase REVIEW_STUDY (:264,317)
++  const sessionCfg = sessionState?.sessionConfig || {};
++  const allocationNewWords = sessionCfg?.allocation?.newWords;
++  const reviewOnlyReasonConfirmed =
++    (Number.isFinite(allocationNewWords) && allocationNewWords <= 0) ||
++    sessionCfg.isListComplete === true ||
++    sessionCfg.startPhase === SESSION_PHASE.REVIEW_STUDY;
++  const reviewOnlyDay = LIST_SCOPED_RECON
++    && Number.isFinite(cfgNewWordCount) && cfgNewWordCount <= 0
++    && reviewOnlyReasonConfirmed;
++  // Durable words-introduced count: CLAMP to >= 0. cfgNewWordCount feeds updateClassProgress's
++  // `totalWordsIntroduced += wordsIntroduced`, so an unclamped negative would DECREMENT TWI. A review-only day
++  // introduces 0 → TWI stays flat.
++  const wordsIntroduced = reviewOnlyDay ? 0
++    : (LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)
++        ? cfgNewWordCount
++        : (sessionState?.sessionConfig?.newWordCount || sessionState?.newWords?.length || 0));
+   const wordsReviewed = sessionState?.reviewQueue?.length || 0;
+ 
+   console.log('completeSessionFromTest called:', {
+@@ -1373,11 +1515,17 @@ export async function completeSessionFromTest({
+       // where passed=true with a lower score). The local `threshold` may be a wrong
+       // default (0.95) because assignments don't store newWordRetakeThreshold.
+       newWordAttemptPassed = newWordAttempt.passed === true;
++    } else if (reviewOnlyDay) {
++      // Legitimately REVIEW-ONLY day (0 new words assigned): there is NO new-word test to find, and its
++      // absence is EXPECTED — not a fault. Keep newWordScore LITERAL null (not 0) so it is excluded from
++      // avgNewWordScore (progressService filters null scores) and renders as "—" rather than a spurious
++      // "New: 0%". The gate below is skipped for this day, so this null never drives a not-passed decision.
++      newWordScore = null;
+     } else {
+       console.warn(`completeSessionFromTest: Could not find new word attempt for day ${dayNumber}`);
+-      // No prior new-word attempt found: keep newWordScore a valid number (0) rather
+-      // than undefined, so the gate below evaluates as not-passed and the session
+-      // write (if reached) succeeds. (newWordsTestPassed stays a boolean: 0 >= threshold === false.)
++      // No prior new-word attempt found on a day that WAS assigned new words: keep newWordScore a valid
++      // number (0) rather than undefined, so the gate below evaluates as not-passed and blocks. (0 >=
++      // threshold === false.)
+       newWordScore = 0;
+     }
+ 
+@@ -1388,7 +1536,11 @@ export async function completeSessionFromTest({
+     // saveSessionState(... phase: COMPLETE ...) below — otherwise the durable session_state
+     // cache gets stamped COMPLETE even though we return requiresNewWordRetake, leaving
+     // contradictory state for UI/support/admin tooling (audit Blocker, 2026-06-17).
+-    if (newWordAttemptPassed !== true && newWordScore < threshold) {
++    // reviewOnlyDay short-circuits the gate: a day that assigned zero new words has no new-word test to pass,
++    // so blocking it would strand the review (never recorded → intervention never drops → permanent stuck
++    // state, NEED_TO_FIX #11). newWordScore is null on that path; `null < threshold` would coerce to true, so
++    // the explicit !reviewOnlyDay guard — not the score comparison — is what lets the review-only day through.
++    if (!reviewOnlyDay && newWordAttemptPassed !== true && newWordScore < threshold) {
+       console.warn('completeSessionFromTest: Day 2+ completion blocked — new-word test not passed', {
+         dayNumber, newWordScore, threshold, newWordAttemptPassed
+       });
+@@ -1400,12 +1552,20 @@ export async function completeSessionFromTest({
+       };
+     }
+ 
+-    // Update session_states with final status (prevents race condition). Only reached
+-    // once the Day-2+ gate above has confirmed the new-word test was passed.
++    // Update session_states with final status (prevents race condition). Only reached once the Day-2+ gate
++    // above has passed (or the day is review-only). The new-word fields are LITERAL null ONLY when no real
++    // new-word attempt existed for the day — i.e. `newWordScore === null`, set solely by the
++    // `else if (reviewOnlyDay)` no-attempt branch above. It is NOT keyed on reviewOnlyDay itself: a Fix #9
++    // REVIEW_STUDY resume IS a reviewOnlyDay yet has a genuine PASSING new-word attempt (found above), and its
++    // real score must persist so session_state matches the summary/recentSessions (Lens A #1). Literal null
++    // (never `null >= threshold`, which coerces to a contradictory `false`). reviewOnlyDay:true is a
++    // write-only marker for future support/admin tooling (no consumer yet; deliberately not on the summary).
++    const newAttemptMissing = newWordScore === null;
+     await saveSessionState(userId, classId, listId, {
+       newWordsTestScore: newWordScore,
+-      newWordsTestPassed: newWordScore >= threshold,
++      newWordsTestPassed: newAttemptMissing ? null : (newWordScore >= threshold),
+       reviewTestScore: reviewScore,
++      ...(reviewOnlyDay ? { reviewOnlyDay: true } : {}),
+       phase: SESSION_PHASE.COMPLETE
+     });
+   }
+@@ -1421,7 +1581,11 @@ export async function completeSessionFromTest({
+     segment,
+     wordsIntroduced,
+     wordsReviewed,
+-    wordsTested: testResults.total || 0
++    wordsTested: testResults.total || 0,
++    // [deepfix P4, flag-gated] the client's reviewOnlyDay PREVIEW rides along for the server's
++    // `reviewonly_derivation_mismatch` tripwire (the server derives authoritatively; this field
++    // is compare-only). Flag OFF → field absent → summary byte-identical to today.
++    ...(SERVER_PROGRESS_WRITE ? { clientReviewOnlyDay: reviewOnlyDay } : {})
+   };
+ 
+   // Record session completion (updates CSD, recentSessions, etc.)
+diff --git a/src/utils/testRecovery.js b/src/utils/testRecovery.js
+index f741375..da9a316 100644
+--- a/src/utils/testRecovery.js
++++ b/src/utils/testRecovery.js
+@@ -10,6 +10,30 @@ const RECOVERY_WINDOW_MS = 3 * 60 * 1000 // 3 minutes
+ const INTENTIONAL_EXIT_KEY = 'vocaboost_intentional_exit'
+ const NONCE_SUFFIX = '_nonce'
+ 
++// [I-5 §2 F3] Layer 1 of the attempt-nonce store: module-level memo, keyed by testId.
++// Always writable (per page load), checked FIRST — this is what guarantees that within one
++// page load every getOrCreateAttemptNonce(testId) call returns the SAME nonce even when
++// browser storage throws (webview/private mode). The 06-29 outage root cause was the old
++// catch minting a FRESH nonce per call → grade-docId !== save-docId under enforcement.
++const attemptNonceMemo = new Map()
++
++// [I-5 §2 F4] Emit `nonce_storage_degraded` at most once per page load, and only when BOTH
++// persistence layers (localStorage AND sessionStorage) fail — measures the webview/private
++// population BEFORE grade-token enforcement is re-armed. Dynamic import so this pure utility
++// gains no static Firebase dependency (and a failed logger can never break the nonce path).
++let nonceStorageDegradedLogged = false
++function logNonceStorageDegraded(testId, error) {
++  if (nonceStorageDegradedLogged) return
++  nonceStorageDegradedLogged = true
++  import('../services/db')
++    .then(({ logSystemEvent }) => logSystemEvent('nonce_storage_degraded', {
++      testId,
++      errName: error?.name || null,
++      errMessage: String(error?.message || '').slice(0, 200),
++    }, 'warning'))
++    .catch(() => { /* observability only — never break the submit path */ })
++}
++
+ /**
+  * Generate a unique test ID
+  * @param {string} classId - Class ID
+@@ -74,40 +98,104 @@ export function getTestState(testId) {
+  * @param {string} testId - Unique test identifier
+  */
+ export function clearTestState(testId) {
++  // [I-5 §2 F3] Success-path rollover: the module memo entry MUST go too, or the next
++  // attempt in the same page load would reuse the old docId. Cleared unconditionally
++  // (the Map can't throw), then each storage layer independently best-effort.
++  attemptNonceMemo.delete(testId)
+   try {
+     localStorage.removeItem(testId)
+     localStorage.removeItem(testId + NONCE_SUFFIX)
+   } catch (error) {
+     console.warn('Failed to clear test state:', error)
+   }
++  try {
++    sessionStorage.removeItem(testId + NONCE_SUFFIX)
++  } catch {
++    // sessionStorage unavailable — nothing persisted there to clear
++  }
+ }
+ 
+ /**
+  * Return a stable per-session nonce for use as part of an idempotent attempt
+- * document ID. Lazily created on first call for a given testId and persisted
+- * to localStorage so it survives refresh-resume within the recovery window.
+- * Cleared as a side effect of clearTestState (success path or expiration).
++ * document ID. Cleared as a side effect of clearTestState (success path or
++ * expiration), which rolls the docId over for the next attempt.
+  *
+  * Why: withRetry can replay submitTestAttempt; addDoc would create duplicates.
+  * A deterministic docId like ${userId}_${testId}_${nonce} lets us use setDoc
+  * so retries are no-op overwrites of identical data.
+  *
++ * [I-5 §2 F3] Layered memoized store (deepfix P4 · FND-2). Lookup order:
++ *   1. module-level Map (always writable, single instance per page load);
++ *   2. localStorage (survives tab close within the recovery window);
++ *   3. sessionStorage fallback (survives refresh in-tab; available in most
++ *      storage-restricted webviews).
++ * On ANY storage failure the minted nonce is MEMOIZED in the Map and the same
++ * value is returned on every subsequent call — the catch NEVER re-mints per
++ * call (the old behavior handed the grade leg and the save leg two different
++ * docIds in degraded storage: the 06-29 grade-token outage, I-5 §1).
++ * Degraded-storage behavior is therefore: idempotent within the page load
++ * (covers grade→save and Retry Save); non-idempotent only across a full
++ * reload after a completed grade — which the server-echoed attemptDocId (F2)
++ * + the server-side pre-write idempotency read already absorb.
++ *
+  * @param {string} testId - Unique test identifier
+  * @returns {string} Stable nonce string
+  */
+ export function getOrCreateAttemptNonce(testId) {
++  // Layer 1: module memo — the authoritative in-flight value.
++  const memoized = attemptNonceMemo.get(testId)
++  if (memoized) return memoized
++
+   const key = testId + NONCE_SUFFIX
++
++  // Layer 2: localStorage (refresh-resume within the recovery window).
++  let localReadError = null
+   try {
+     const existing = localStorage.getItem(key)
+-    if (existing) return existing
+-    const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
++    if (existing) {
++      attemptNonceMemo.set(testId, existing)
++      return existing
++    }
++  } catch (error) {
++    localReadError = error
++  }
++
++  // Layer 3: sessionStorage (in-tab refresh survival when localStorage is blocked).
++  try {
++    const existing = sessionStorage.getItem(key)
++    if (existing) {
++      attemptNonceMemo.set(testId, existing)
++      return existing
++    }
++  } catch {
++    // fall through to mint
++  }
++
++  // Mint ONCE, memoize FIRST (the Map cannot fail), then best-effort persist.
++  const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
++  attemptNonceMemo.set(testId, nonce)
++
++  let persisted = false
++  let persistError = localReadError
++  try {
+     localStorage.setItem(key, nonce)
+-    return nonce
++    persisted = true
+   } catch (error) {
+-    console.warn('Failed to get/create attempt nonce:', error)
+-    // Fall back to an in-memory nonce; submission still works, just non-idempotent
+-    return `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
++    persistError = error
++  }
++  if (!persisted) {
++    try {
++      sessionStorage.setItem(key, nonce)
++      persisted = true
++    } catch (error) {
++      persistError = persistError || error
++    }
++  }
++  if (!persisted) {
++    console.warn('Attempt nonce not persisted (storage degraded) — memoized in-memory:', persistError)
++    logNonceStorageDegraded(testId, persistError) // [F4] once per page load
+   }
++  return nonce
+ }
+ 
+ /**
+diff --git a/vite.config.js b/vite.config.js
+index 8b0f57b..9f988f2 100644
+--- a/vite.config.js
++++ b/vite.config.js
+@@ -1,7 +1,35 @@
+ import { defineConfig } from 'vite'
+ import react from '@vitejs/plugin-react'
++import { execSync } from 'node:child_process'
++
++// [deepfix P4 · FND-2 / I-5 G3] Client build stamp: bake the git commit into the bundle at
++// build time so hosting deploys are provenance-verifiable (functions already have this via
++// scripts/stamp-build.mjs; hosting had NO stamp — F-1's "day_guard_rejected still firing after
++// the 07-12 deploy" was undecidable for exactly this reason). Surfaced at runtime by
++// src/utils/buildStamp.js (window.__VOCABOOST_BUILD__ probe + one console line). Never fails
++// the build: missing git → 'unknown'.
++const git = (cmd) => {
++  try {
++    return execSync(cmd, { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
++  } catch {
++    return 'unknown'
++  }
++}
++
++const gitStatus = git('git status --porcelain')
++const buildInfo = {
++  sha: git('git rev-parse HEAD'),
++  shortSha: git('git rev-parse --short HEAD'),
++  branch: git('git rev-parse --abbrev-ref HEAD'),
++  // true => built from uncommitted changes (e.g. a hand-flipped flag); a yellow flag for ops.
++  dirty: gitStatus !== '' && gitStatus !== 'unknown',
++  builtAt: new Date().toISOString(),
++}
+ 
+ // https://vite.dev/config/
+ export default defineConfig({
+   plugins: [react()],
++  define: {
++    __VOCABOOST_BUILD_INFO__: JSON.stringify(buildInfo),
++  },
+ })

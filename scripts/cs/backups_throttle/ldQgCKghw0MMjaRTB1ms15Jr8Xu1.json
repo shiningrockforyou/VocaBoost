@@ -1,0 +1,54 @@
+{
+  "email": "lydialee132612@gmail.com",
+  "uid": "ldQgCKghw0MMjaRTB1ms15Jr8Xu1",
+  "cp": "teKHajONWBMe0YJSAeGl_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 12,
+    "twi": 960,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "segmentEndIndex": 715,
+        "wordsReviewed": 60,
+        "day": 10,
+        "newWordScore": 0.97,
+        "wordsTested": 30,
+        "segmentStartIndex": 656,
+        "wordsIntroduced": 0,
+        "reviewScore": 0.06666666666666667,
+        "date": {
+          "_seconds": 1783923753,
+          "_nanoseconds": 120000000
+        }
+      },
+      {
+        "day": 11,
+        "newWordScore": 0.93,
+        "segmentEndIndex": 68,
+        "wordsReviewed": 60,
+        "date": {
+          "_seconds": 1784005266,
+          "_nanoseconds": 13000000
+        },
+        "wordsTested": 30,
+        "segmentStartIndex": 0,
+        "wordsIntroduced": 0,
+        "reviewScore": 0.23333333333333334
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1784089511,
+          "_nanoseconds": 483000000
+        },
+        "newWordScore": 0.93,
+        "reviewScore": 0.23333333333333334,
+        "segmentStartIndex": 226,
+        "segmentEndIndex": 286,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

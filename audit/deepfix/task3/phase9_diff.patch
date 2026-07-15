@@ -1,0 +1,1243 @@
+--- a/src/config/featureFlags.js
++++ b/src/config/featureFlags.js
+@@ -76,6 +76,27 @@
+ // Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
+ export const SERVER_PROGRESS_WRITE = false;
+ 
++// CYCLING_ENABLED (deepfix P9 · CYC — per-student list cycling / "start over"): the GLOBAL
++// build-time hard gate for finished-list lap cycling (x/plan v5). When a list is finished
++// (twi === totalListWords) the allocation cap is REMOVED so the student keeps introducing
++// words on a monotonic VIRTUAL index (twi climbs past cycleLength; the physical word is
++// fetched by wrapping the LOOKUP — positions[i mod cycleLength] — never the counter, so
++// reconciliation stays byte-identical, x/plan §2/§3a). Cap removal is what re-activates
++// progress-forgery, so cycling MUST NOT run until the server-authoritative-twi FOUNDATION
++// (P3–P6) is deployed and soaked (x/plan §3g HARD PREREQUISITE / FIX_PLAN P9 gate).
++//
++// TWO-KEY GATE (deliberate deviation from x/plan's "per-assignment only" — recorded as an
++// uncertainty for Codex, P9_impl_notes U1): a cycling code path executes ONLY when BOTH
++//   (1) this GLOBAL flag is true, AND
++//   (2) the per-assignment `classes/{classId}.assignments[listId].cyclingEnabled === true`
++//       (owner-teacher-only write, db.js updateAssignmentSettings).
++// The global flag enforces §3g's prerequisite IN CODE — cap removal literally cannot run in
++// this working tree until the flag flips at ship (after the foundation deploys) — and gives
++// byte-equivalent dormancy: with CYCLING_ENABLED === false EVERY touched path short-circuits
++// to today's exact behavior (the `&&` never reaches the per-assignment read). Default OFF —
++// flag-off behavior is byte-equivalent to today (verified by diff + the M-STATIC harness).
++export const CYCLING_ENABLED = false;
++
+ // SERVER_RESET_PROGRESS (deepfix P4 · FND-2, v2 HIGH-3 / F6-3): route student progress reset
+ // through the `resetProgress` Cloud Function (self-service, LIST-WIDE across all classes,
+ // attempts-first ordering, reset-epoch tombstone — functions/foundation.js) instead of the
+--- a/src/services/studyService.js
++++ b/src/services/studyService.js
+@@ -17,10 +17,11 @@
+   limit,
+   writeBatch,
+   Timestamp,
+-  increment
++  increment,
++  getCountFromServer
+ } from 'firebase/firestore';
+ import { db } from '../firebase';
+-import { getNewWordAttemptForDay } from './db';
++import { getNewWordAttemptForDay, fetchStudentClasses } from './db';
+ import {
+   calculateInterventionLevel,
+   calculateDailyAllocation,
+@@ -46,9 +47,165 @@
+ } from './progressService';
+ import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
+ import { logSystemEvent } from './db';
+-import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE } from '../config/featureFlags';
++import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags';
+ import { getFunctions, httpsCallable } from 'firebase/functions';
+ 
++// ============================================================================
++// P9 · CYC — per-student list cycling primitives (x/plan v5). ALL cycling
++// behavior is DOUBLE-gated: the global build flag CYCLING_ENABLED AND the
++// per-student-per-list EFFECTIVE cycling capability (§3b: any of the student's
++// enrolled classes assigning this list with cyclingEnabled:true unlocks it).
++// With CYCLING_ENABLED === false the `&&` short-circuits BEFORE any read, so
++// every caller below is byte-equivalent to today (the cycling branches are dead
++// code — no extra Firestore read is issued).
++// ============================================================================
++
++/**
++ * PURE §3b unlock (x/plan §3b, Codex P9-2): given the student's enrolled classes
++ * (each with an `assignments` map + `name`), is cycling unlocked for `listId`, and
++ * via which class? Cycling is unlocked iff ANY enrolled class assigns `listId` with
++ * `cyclingEnabled === true` (the current/launching class is just one of them). The
++ * FIRST such class is surfaced for the in-product "cycling enabled via {className}"
++ * affordance (Lens C C5). Pure over already-fetched data → reusable by the Dashboard
++ * (in-memory `studentClasses`) and by `resolveEffectiveCycling` (session path).
++ *
++ * @param {Array<{id?:string,name?:string,assignments?:Object}>} studentClasses
++ * @param {string} listId
++ * @returns {{ enabled: boolean, sourceClassId: string|null, sourceClassName: string|null }}
++ */
++export function deriveEffectiveCycling(studentClasses, listId) {
++  if (Array.isArray(studentClasses)) {
++    for (const k of studentClasses) {
++      if (k?.assignments?.[listId]?.cyclingEnabled === true) {
++        return { enabled: true, sourceClassId: k.id ?? null, sourceClassName: k.name ?? null };
++      }
++    }
++  }
++  return { enabled: false, sourceClassId: null, sourceClassName: null };
++}
++
++/**
++ * Resolve the EFFECTIVE (student+list, cross-class) cycling capability for the
++ * session path (§3b). Short-circuits on the global flag so flag-off issues NO read
++ * (byte-equivalent). Uses the EXISTING student-classes enumeration helper
++ * (`fetchStudentClasses`, db.js) rather than a raw re-query. Defensive: any read
++ * error (e.g. a teacher-initiated PDF/debug where the student-classes read is
++ * denied) fails CLOSED to "not cycling" — never breaks init.
++ *
++ * @param {string} userId
++ * @param {string} listId
++ * @returns {Promise<{ enabled: boolean, sourceClassId: string|null, sourceClassName: string|null }>}
++ */
++export async function resolveEffectiveCycling(userId, listId) {
++  if (!CYCLING_ENABLED) return { enabled: false, sourceClassId: null, sourceClassName: null };
++  try {
++    const classes = await fetchStudentClasses(userId);
++    return deriveEffectiveCycling(classes, listId);
++  } catch (err) {
++    console.warn('[CYC] resolveEffectiveCycling failed; treating as not cycling', err);
++    return { enabled: false, sourceClassId: null, sourceClassName: null };
++  }
++}
++
++/**
++ * CANONICAL cycle length (x/plan §2, Codex P9-3): `positions.length` — the count of
++ * ordered word docs, the ONE modulus for lap math / review bounds / display / wrap.
++ * Derived from the SAME `orderBy('position')` population as `resolveVirtualRange`
++ * (docs bearing a position field), via a cheap aggregate count (NOT a full doc load,
++ * and NOT the mutable `lists.wordCount`). Returns 0 on any error → callers fall back
++ * to the legacy (non-cycling) path.
++ *
++ * @param {string} listId
++ * @returns {Promise<number>} positions.length (canonical modulus)
++ */
++export async function getCycleLength(listId) {
++  try {
++    const wordsRef = collection(db, 'lists', listId, 'words');
++    const snap = await getCountFromServer(query(wordsRef, orderBy('position', 'asc')));
++    return snap.data().count || 0;
++  } catch (err) {
++    console.warn('[CYC] getCycleLength failed', err);
++    return 0;
++  }
++}
++
++/**
++ * PURE daily new-word allocation under the cycling gate (x/plan §3f) — extracted so
++ * the M-STATIC harness can assert cap-removal + byte-equivalence directly. Under
++ * cycling: REMOVE the wordsRemaining cap → the full paced allocation (still ≥0), so a
++ * FINISHED list (wordsRemaining ≤ 0) still yields newWordCount > 0. Non-cycling: TODAY'S
++ * EXACT expression `Math.min(allocationNewWords, wordsRemaining)` (may be negative on
++ * over-introduction; the completion path clamps it) → byte-equivalent when off.
++ *
++ * @param {number} allocationNewWords - round(pace*(1-intervention))
++ * @param {number} wordsRemaining - totalListWords - twi
++ * @param {boolean} cyclingActive
++ * @returns {number}
++ */
++export function computeCyclingAllocation(allocationNewWords, wordsRemaining, cyclingActive) {
++  return cyclingActive
++    ? Math.max(0, allocationNewWords)
++    : Math.min(allocationNewWords, wordsRemaining);
++}
++
++/**
++ * Lap-aware INTRODUCTION-progress view for a monotonic virtual twi (x/plan §2/§3e).
++ * cycleLength := positions.length is THE canonical modulus (never wordCount — pin
++ * one definition, Lens A F5). Boundary render: at twi = k·cycleLength show 100% of
++ * lap k, not 0% of lap k+1 (Lens C nit). Per-lap MASTERY % is a DROPPED non-goal
++ * (§3d) — this is introduction progress only. Returns null when cycleLength<=0 so
++ * callers fall back to the legacy display.
++ *
++ * @param {number} twi - monotonic virtual totalWordsIntroduced
++ * @param {number} cycleLength - positions.length (canonical modulus)
++ * @returns {{ lap:number, numer:number, denom:number, pct:number } | null}
++ */
++export function computeLapView(twi, cycleLength) {
++  const cl = Number(cycleLength) || 0;
++  if (cl <= 0) return null;
++  const t = Math.max(0, Number(twi) || 0);
++  const rawLap = Math.floor(t / cl);          // laps fully completed (0-indexed)
++  const posInLap = t - rawLap * cl;           // == t mod cl, non-negative
++  const atBoundary = posInLap === 0 && t > 0; // exactly at k·cycleLength
++  const lap = atBoundary ? rawLap : rawLap + 1;   // 1-indexed display lap
++  const numer = atBoundary ? cl : posInLap;       // show 100% of lap k at the boundary
++  const pct = Math.min(100, Math.round((numer / cl) * 100));
++  return { lap, numer, denom: cl, pct };
++}
++
++/**
++ * ONE virtual→physical resolver (x/plan §3c). Returns `count` physical word docs
++ * starting at VIRTUAL index `virtualStart`, wrapping the position-array LOOKUP
++ * `positions[i mod cycleLength]` (NEVER the counter twi → counter stays monotonic
++ * → reconciliation intact, §3a). Preserves virtual order, so the straddle day
++ * (tail of one lap + head of the next) comes back tail-then-head, off-by-one-free.
++ * cycleLength := positions.length (the loaded array length) — canonical modulus.
++ *
++ * Shape matches getNewWords: raw word docs { id, ...data }, NO studyState.
++ *
++ * @param {string} listId
++ * @param {number} virtualStart - virtual position (may be >= cycleLength)
++ * @param {number} count
++ * @returns {Promise<Array>} ordered physical word docs in virtual order
++ */
++export async function resolveVirtualRange(listId, virtualStart, count) {
++  if (!Number.isFinite(count) || count <= 0) return [];
++  const wordsRef = collection(db, 'lists', listId, 'words');
++  const wordsSnap = await getDocs(query(wordsRef, orderBy('position', 'asc')));
++  const positions = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
++  const cycleLength = positions.length; // CANONICAL modulus (§2 — never wordCount)
++  if (cycleLength === 0) return [];
++  const out = [];
++  const start = Math.max(0, Math.floor(virtualStart) || 0);
++  for (let i = 0; i < count; i++) {
++    const v = start + i;
++    // ((v % cl) + cl) % cl is a no-op for non-negative v, but keeps the lookup
++    // safe if a virtualStart ever arrives negative.
++    out.push(positions[((v % cycleLength) + cycleLength) % cycleLength]);
++  }
++  return out;
++}
++
+ /**
+  * Determine starting phase based on attempt history for the current day.
+  *
+@@ -186,6 +343,23 @@
+   const currentStudyDay = (progress.currentStudyDay || 0) + 1;
+   const totalWordsIntroduced = progress.totalWordsIntroduced || 0;
+ 
++  // P9 · CYC — resolve the EFFECTIVE (student+list, cross-class §3b) cycling capability
++  // and the CANONICAL cycle length (Codex P9-1/P9-2/P9-3). This is the single choke point
++  // every session caller (DailySessionFlow, MCQTest, TypedTest, PDF/debug helpers) flows
++  // through, so resolving here — NOT from the caller's curated `assignmentSettings` object
++  // (which drops `cyclingEnabled`) — is what actually activates cycling. When CYCLING_ENABLED
++  // is false, `resolveEffectiveCycling` short-circuits with NO read and `cycling` is false, so
++  // the rest of this function is byte-equivalent to today (no extra Firestore read). cycleLength
++  // is `positions.length` via `getCycleLength` (the SAME ordered-positions source as
++  // `resolveVirtualRange`) — never the mutable `lists.wordCount` (§2 one-modulus correctness rule).
++  const cyclingCap = await resolveEffectiveCycling(userId, listId);
++  const cycling = cyclingCap.enabled;
++  let cycleLength = 0;
++  if (cycling) {
++    cycleLength = await getCycleLength(listId);
++  }
++  const cyclingActive = cycling && cycleLength > 0;
++
+   // DEBUG: Log dayNumber calculation
+   console.log('DEBUG initializeDailySession:', {
+     progressCurrentStudyDay: progress.currentStudyDay,
+@@ -197,7 +371,8 @@
+   //   segment = (unmastered words / studyDaysPerWeek), the day-of-week-th slice,
+   //   capped at REVIEW_STUDY_CAP. segment.wordIds is the pinned effective set used by
+   //   study, test, AND graduation, so "everything that graduates was studied" holds.
+-  const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced);
++  const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced,
++    { cycling: cyclingActive, cycleLength });
+   const reviewBacklogTotal = unmasteredPool.length;
+   const sliceIds = computeUnmasteredSegmentIds(
+     unmasteredPool.map(w => w.id),
+@@ -231,9 +406,17 @@
+   const listData = listSnap.exists() ? listSnap.data() : {};
+   const totalListWords = listData.wordCount || 0;
+ 
+-  // Determine how many new words we can introduce
++  // Determine how many new words we can introduce.
++  // P9 · CYC (§3f allocation): under cycling the list never dead-ends — REMOVE the
++  // wordsRemaining cap and introduce the full paced allocation (still ≥0). The monotonic
++  // virtual twi climbs past cycleLength; the physical word is fetched by wrapping the
++  // LOOKUP (resolveVirtualRange), so the counter stays monotonic and reconciliation is
++  // untouched. Non-cycling keeps TODAY'S EXACT expression `Math.min(allocation.newWords,
++  // wordsRemaining)` (may be negative on over-introduction — the completion path clamps it
++  // at :1452) so the flag-off path is byte-equivalent (the ≥0 clamp the x/plan mentions for
++  // the non-cycling branch is deferred to preserve byte-equivalence — U-alloc-clamp).
+   const wordsRemaining = totalListWords - totalWordsIntroduced;
+-  const newWordCount = Math.min(allocation.newWords, wordsRemaining);
++  const newWordCount = computeCyclingAllocation(allocation.newWords, wordsRemaining, cyclingActive);
+ 
+   // Determine starting phase based on attempt history
+   const phaseInfo = determineStartingPhase(attempts, currentStudyDay);
+@@ -310,9 +493,24 @@
+     totalWordsIntroduced,
+     totalListWords,
+ 
++    // P9 · CYC — cycling state threaded to consumers (§4.5). `cyclingActive` gates the
++    // callers' getNewWords wrap + the lap-aware display; `cycleLength` is the CANONICAL
++    // modulus (positions.length); `lapView` is the introduction-progress display object
++    // (§3e); `cyclingSourceClassName` powers the "cycling enabled via {className}"
++    // affordance (§3b). All absent/inert (false/0/null) when CYCLING_ENABLED is off →
++    // byte-equivalent object today.
++    cyclingActive,
++    cycleLength,
++    lapView: cyclingActive ? computeLapView(totalWordsIntroduced, cycleLength) : null,
++    cyclingSourceClassId: cyclingCap.sourceClassId,
++    cyclingSourceClassName: cyclingCap.sourceClassName,
++
+     // Status
+     isFirstDay: currentStudyDay === 1,
+-    isListComplete: wordsRemaining <= 0,
++    // Under cycling the list NEVER completes — a finished list rolls into the next lap
++    // (§3f), so isListComplete must be false or the finished terminal / review-only
++    // derivation would misfire every lap. Non-cycling keeps today's `wordsRemaining <= 0`.
++    isListComplete: cyclingActive ? false : (wordsRemaining <= 0),
+ 
+     // Phase detection for session recovery
+     startPhase: phaseInfo.phase,
+@@ -407,15 +605,28 @@
+  * @param {string} userId
+  * @param {string} listId
+  * @param {number} totalWordsIntroduced
++ * @param {{ cycling?: boolean, cycleLength?: number }} [options] - P9 lap-bounding (§3c/§3d)
+  * @returns {Promise<Array<{ id: string, position: number }>>} position-ordered unmastered words
+  */
+-export async function getUnmasteredPool(userId, listId, totalWordsIntroduced) {
+-  if (!totalWordsIntroduced || totalWordsIntroduced <= 0) return [];
++export async function getUnmasteredPool(userId, listId, totalWordsIntroduced, options = {}) {
++  const { cycling = false, cycleLength = 0 } = options;
++  // P9 · CYC (§3c/§3d): under cycling the review pool is LAP-BOUNDED to the current lap's
++  // re-introduced words — physical positions [0, twi mod cycleLength). This is the SINGLE
++  // review mechanism (§3d): bounding to the current lap means the pool holds only this-lap
++  // re-introduced (reset-to-NEW) words, so selectReviewQueue's MASTERED filter is moot and
++  // the masteredAt/returnAt batch-clear is DROPPED. At an exact lap boundary (mod === 0)
++  // nothing has been re-introduced yet this lap → empty pool (like Day 1 of a fresh list).
++  // Flag-off: cycling=false → boundExclusive === totalWordsIntroduced → byte-equivalent
++  // (identical early-return + identical query bound).
++  const boundExclusive = (cycling && cycleLength > 0)
++    ? (totalWordsIntroduced % cycleLength)
++    : totalWordsIntroduced;
++  if (!boundExclusive || boundExclusive <= 0) return [];
+ 
+   // Bounded, position-ordered query of the introduced range (avoids loading the whole list).
+   const wordsRef = collection(db, 'lists', listId, 'words');
+   const wordsSnap = await getDocs(
+-    query(wordsRef, where('position', '<', totalWordsIntroduced), orderBy('position', 'asc'))
++    query(wordsRef, where('position', '<', boundExclusive), orderBy('position', 'asc'))
+   );
+ 
+   const introduced = wordsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+@@ -824,24 +1035,32 @@
+  *
+  * @param {string} userId - User ID
+  * @param {string} listId - List ID
+- * @param {number} endIndexExclusive - End index (exclusive) - words before this index
++ * @param {number} endIndexExclusive - End index (exclusive) - words before this index (VIRTUAL under cycling)
++ * @param {{ cycling?: boolean, cycleLength?: number }} [options] - P9 lap-bounding (§3c)
+  * @returns {Promise<Array>} Array of FAILED word objects
+  */
+-export async function getFailedFromPreviousNewWords(userId, listId, endIndexExclusive) {
+-  if (endIndexExclusive <= 0) return [];
++export async function getFailedFromPreviousNewWords(userId, listId, endIndexExclusive, options = {}) {
++  const { cycling = false, cycleLength = 0 } = options;
++  // P9 · CYC (§3c): the failed-carryover pool is the CURRENT lap's previously-introduced
++  // words only — physical positions [0, twi mod cycleLength). Flag-off → bound ===
++  // endIndexExclusive → byte-equivalent (identical early-return + identical filter bound).
++  const boundExclusive = (cycling && cycleLength > 0)
++    ? (endIndexExclusive % cycleLength)
++    : endIndexExclusive;
++  if (boundExclusive <= 0) return [];
+ 
+   // Get all words ordered by position
+   const wordsRef = collection(db, 'lists', listId, 'words');
+   const wordsQuery = query(wordsRef, orderBy('position', 'asc'));
+   const wordsSnap = await getDocs(wordsQuery);
+ 
+-  // Filter to words with position < endIndexExclusive
++  // Filter to words with position < boundExclusive
+   const previousWords = wordsSnap.docs
+     .map((docSnap) => ({
+       id: docSnap.id,
+       ...docSnap.data()
+     }))
+-    .filter(w => w.position < endIndexExclusive);
++    .filter(w => w.position < boundExclusive);
+ 
+   if (previousWords.length === 0) return [];
+ 
+@@ -864,11 +1083,19 @@
+  * Fetches the next batch of new words from a list.
+  *
+  * @param {string} listId - List ID
+- * @param {number} startIndex - Start index (inclusive)
++ * @param {number} startIndex - Start index (inclusive) — VIRTUAL index under cycling
+  * @param {number} count - Number of words to get
++ * @param {boolean} [cycling=false] - P9: route through resolveVirtualRange (wrap the lookup)
+  * @returns {Promise<Array>} Array of word objects
+  */
+-export async function getNewWords(listId, startIndex, count) {
++export async function getNewWords(listId, startIndex, count, cycling = false) {
++  // P9 · CYC (§3c): under cycling the new-word range is VIRTUAL and may straddle the lap
++  // boundary (tail of one lap + head of the next), so it goes through the ONE resolver,
++  // which wraps positions[i mod cycleLength]. Flag-off (cycling=false, the default for
++  // every legacy caller) → the exact legacy position filter below → byte-equivalent.
++  if (cycling) {
++    return resolveVirtualRange(listId, startIndex, count);
++  }
+   const wordsRef = collection(db, 'lists', listId, 'words');
+   const wordsQuery = query(wordsRef, orderBy('position', 'asc'));
+   const wordsSnap = await getDocs(wordsQuery);
+@@ -1094,16 +1321,18 @@
+       (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
+   });
+ 
+-  // Get new words (already have wordIndex from getNewWords)
++  // Get new words (already have wordIndex from getNewWords). P9: pass cyclingActive so a
++  // cycling day's straddle range wraps via the resolver (flag-off → legacy filter).
+   const newWords = config.newWordCount > 0
+-    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
++    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
+     : [];
+ 
+-  // Get failed carryover (words from previous days with FAILED status)
++  // Get failed carryover (words from previous days with FAILED status), lap-bounded under cycling.
+   const failedCarryover = await getFailedFromPreviousNewWords(
+     userId,
+     listId,
+-    config.newWordStartIndex
++    config.newWordStartIndex,
++    { cycling: config.cyclingActive, cycleLength: config.cycleLength }
+   );
+ 
+   // Get ALL segment words (full segment, not just prioritized queue)
+@@ -1140,9 +1369,9 @@
+       (Number(assignment.passThreshold) > 0 ? Number(assignment.passThreshold) / 100 : STUDY_ALGORITHM_CONSTANTS.DEFAULT_RETAKE_THRESHOLD)
+   });
+ 
+-  // Get new words
++  // Get new words. P9: cyclingActive routes a straddle range through the resolver.
+   const newWords = config.newWordCount > 0
+-    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
++    ? await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
+     : [];
+ 
+   // Get ALL words in segment (complete mode)
+--- a/src/services/db.js
++++ b/src/services/db.js
+@@ -22,7 +22,7 @@
+ } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db, auth } from '../firebase'
+-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS } from '../config/featureFlags'
++import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED } from '../config/featureFlags'
+ import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
+ 
+ // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
+@@ -965,6 +965,16 @@
+     }
+   }
+ 
++  // P9 · CYC (CYCLING_ENABLED): `cyclingEnabled` — the per-assignment second key of the
++  // two-key cycling gate (x/plan §3b/§4.5). Owner-teacher-only, SAME trust level + write
++  // site + `classes` rules surface as pace/testSizeNew (a student cannot flip it,
++  // firestore.rules:55). Only PERSISTED when the global CYCLING_ENABLED build flag is on —
++  // with the flag off the key is never written (undefined ⇒ untouched), so flag-off saves
++  // are byte-identical to today's. Absent/false ⇒ today's behavior exactly (no cycling).
++  if (CYCLING_ENABLED && settings.cyclingEnabled !== undefined) {
++    updates.cyclingEnabled = settings.cyclingEnabled === true
++  }
++
+   assignments[listId] = {
+     ...assignments[listId],
+     ...updates,
+--- a/functions/foundation.js
++++ b/functions/foundation.js
+@@ -72,6 +72,17 @@
+ // (the G1 lesson: never arm a rejection path without measuring what it would
+ // have rejected).
+ const ANCHOR_VALIDATION_ENFORCE = false;
++// P9 · CYC — server-side global gate for finished-list lap cycling, mirroring the client
++// build flag src/config/featureFlags.js CYCLING_ENABLED (the two-key gate: this AND the
++// per-assignment `cyclingEnabled` field, resolved cross-class §3b). It makes the server
++// allocation/M4-clamp legs LAP-AWARE (lap-modular clamp: a lap-2 day is NOT anchor-rejected
++// and does not derive review-only via listComplete) — see resolveEffectiveCyclingServer()
++// + the M4 / completeSession / advanceForChallenge legs. DORMANT at merge (per the P3 draft
++// rule); flips true ONLY at P9 ship, together with the client flag, AFTER the P3–P6 foundation
++// deploys + soaks (x/plan §3g HARD PREREQUISITE — cap removal must not run before server-auth twi).
++// With this false, resolveEffectiveCyclingServer() short-circuits to not-cycling with NO read →
++// every leg is byte-equivalent to today.
++const CYCLING_ENABLED = false;
+ 
+ // Exported for the `version` provenance probe (index.js) so the I-5 G1
+ // flag-assertion table can assert these on every deploy.
+@@ -83,6 +94,7 @@
+   LIST_PROGRESS_CANONICAL,
+   ANCHOR_VALIDATION_SHADOW,
+   ANCHOR_VALIDATION_ENFORCE,
++  CYCLING_ENABLED,
+ };
+ 
+ // ============================================================================
+@@ -158,6 +170,46 @@
+   return `${classId}_${listId}`;
+ }
+ 
++/**
++ * P9 · CYC — is finished-list cycling EFFECTIVELY active for this STUDENT+LIST
++ * (x/plan §3b cross-class unlock, Codex P9-5)? The server MUST use the SAME predicate
++ * as the client `deriveEffectiveCycling` (studyService.js) — cycling is unlocked iff ANY
++ * of the student's enrolled classes assigns this list with `cyclingEnabled === true` —
++ * or the launching class alone (the round-2 bug) disagrees with the client and rejects /
++ * zeroes a valid cross-class cycling day. Mirrors the client's class set exactly: the
++ * student's `users/{uid}.enrolledClasses` keys (the same source `fetchStudentClasses`
++ * reads), each class doc's `assignments[listId].cyclingEnabled`.
++ *
++ * The global CYCLING_ENABLED short-circuit is FIRST → with the flag OFF this returns
++ * not-cycling with NO Firestore read, preserving flag-off byte-equivalence + zero added
++ * reads. Fails CLOSED (not cycling) on any read error — never breaks the write path.
++ *
++ * @param {string} studentId
++ * @param {string} listId
++ * @returns {Promise<{enabled:boolean, sourceClassId:string|null, sourceClassName:string|null}>}
++ */
++async function resolveEffectiveCyclingServer(studentId, listId) {
++  if (!CYCLING_ENABLED) return {enabled: false, sourceClassId: null, sourceClassName: null};
++  try {
++    const userSnap = await getDb().collection("users").doc(studentId).get();
++    const enrolled = userSnap.exists ? Object.keys(userSnap.data().enrolledClasses || {}) : [];
++    if (enrolled.length === 0) return {enabled: false, sourceClassId: null, sourceClassName: null};
++    const refs = enrolled.map((id) => getDb().collection("classes").doc(id));
++    const snaps = await getDb().getAll(...refs);
++    for (const cs of snaps) {
++      if (!cs.exists) continue;
++      const data = cs.data() || {};
++      if (data.assignments?.[listId]?.cyclingEnabled === true) {
++        return {enabled: true, sourceClassId: cs.id, sourceClassName: data.name ?? null};
++      }
++    }
++    return {enabled: false, sourceClassId: null, sourceClassName: null};
++  } catch (err) {
++    logger.warn("resolveEffectiveCyclingServer failed; treating as not cycling", {studentId, error: err.message});
++    return {enabled: false, sourceClassId: null, sourceClassName: null};
++  }
++}
++
+ /** Legacy (pre-P5) progress doc ref. */
+ function legacyProgressRef(uid, classId, listId) {
+   return getDb().doc(`users/${uid}/class_progress/${getProgressDocId(classId, listId)}`);
+@@ -782,9 +834,22 @@
+     } catch (_) {
+       wordsRemaining = null; // unknown — skip the clamp leg, not the rest
+     }
+-    const allowedIntroduced = wordsRemaining == null ?
++    // P9 · CYC (FIX_PLAN P9 integration point): on a cycling list the monotonic virtual twi
++    // climbs past the list size, so `wordsRemaining` goes negative every lap and the plain
++    // clamp would make allowedIntroduced 0 → `introduced_over_allocation` on EVERY lap-2 day.
++    // Under cycling drop the wordsRemaining cap (lap-modular clamp = the paced allocation), so
++    // `anchor_rejected` stays ≈0 on lap-2 days. All other M4 legs are lap-safe as-is: nwsi ===
++    // serverTwi (virtual, monotonic), nwei === nwsi+count-1 (virtual range), studyDay ===
++    // csd+1. Codex P9-5: use the EFFECTIVE (cross-class §3b) predicate — SAME as the client —
++    // keyed on the STUDENT (uid) + list, not the launching class only, or a cross-class cycling
++    // day (unlocked via another class) is falsely rejected. Flag-off ⇒ resolver short-circuits
++    // (no read) ⇒ cycling false ⇒ today's exact clamp (byte-equivalent).
++    const cycling = (await resolveEffectiveCyclingServer(uid, ctx.listId)).enabled;
++    const allowedIntroduced = cycling ?
+       Math.max(0, allocNew) :
+-      Math.max(0, Math.min(allocNew, wordsRemaining));
++      (wordsRemaining == null ?
++        Math.max(0, allocNew) :
++        Math.max(0, Math.min(allocNew, wordsRemaining)));
+ 
+     const nwsi = ctx.newWordStartIndex;
+     const nwei = ctx.newWordEndIndex;
+@@ -921,6 +986,12 @@
+   const progressRef = durableProgressRef(uid, classId, listId);
+   const now = admin.firestore.Timestamp.now();
+ 
++  // P9 · CYC (Codex P9-5): resolve the EFFECTIVE cross-class cycling capability ONCE as a
++  // PRE-transaction read (§3b), keyed on the STUDENT+list — the SAME predicate the client used
++  // to remove the cap — so the server's derivation agrees with the client instead of checking
++  // only the launching class. Flag-off ⇒ short-circuit, no read (byte-equivalent).
++  const cycling = (await resolveEffectiveCyclingServer(uid, listId)).enabled;
++
+   const txnResult = await getDb().runTransaction(async (tx) => {
+     const snap = await tx.get(progressRef);
+     const current = snap.exists ? snap.data() : defaultProgressShape(classId, listId);
+@@ -943,20 +1014,26 @@
+     const serverInterv = calculateInterventionLevel(current.recentSessions || []);
+     const allocNew = Math.round(dailyPace * (1 - serverInterv)); // studyAlgorithm.js:107
+     const wordsRemaining = totalListWords - currentTwi;          // studyService.js:234
+-    const isListComplete = wordsRemaining <= 0;                  // studyService.js:314
++    // P9 · CYC (§3f): under cycling the list NEVER completes (twi climbs past the list size
++    // each lap) and the allocation cap is REMOVED — parity with studyService.js
++    // initializeDailySession (isListComplete=false, newWordCount=max(0,allocNew)). `cycling`
++    // is the EFFECTIVE cross-class result resolved pre-transaction above (Codex P9-5). Flag-off
++    // ⇒ cycling false ⇒ today's exact `wordsRemaining <= 0` / `min(allocNew, wordsRemaining)`
++    // (byte-equivalent).
++    const isListComplete = cycling ? false : (wordsRemaining <= 0); // studyService.js:314
+     const dayNewAbsorbed = !!dayNewPass &&
+       Number.isInteger(dayNewPass.newWordEndIndex) &&
+       dayNewPass.newWordEndIndex <= currentTwi - 1;              // reason 3 (S8/#9)
+     const reviewOnlyReasons = {
+       allocationZero: allocNew <= 0,        // reason 1 (S3 throttle)
+-      listComplete: isListComplete,         // reason 2 (S4/S5 list-end)
++      listComplete: isListComplete,         // reason 2 (S4/S5 list-end) — always false under cycling
+       reviewStudyResume: dayNewAbsorbed,    // reason 3 (S8 #9-resume)
+     };
+     const reviewOnlyDay =
+       reviewOnlyReasons.allocationZero ||
+       reviewOnlyReasons.listComplete ||
+       reviewOnlyReasons.reviewStudyResume;
+-    const serverNewWordCount = Math.min(allocNew, wordsRemaining); // studyService.js:235
++    const serverNewWordCount = cycling ? Math.max(0, allocNew) : Math.min(allocNew, wordsRemaining); // studyService.js:235
+     const wordsIntroduced = reviewOnlyDay ? 0 : Math.max(0, serverNewWordCount); // clamp, :1339-1342
+ 
+     // ── Summary (createSessionSummary shape, studyTypes.js:266-287) ──
+@@ -1659,6 +1736,10 @@
+   }
+ 
+   const progressRef = durableProgressRef(studentId, classId, listId);
++  // P9 · CYC (Codex P9-5): EFFECTIVE cross-class cycling for the STUDENT+list, resolved
++  // pre-transaction — the SAME predicate the client + completeSession + M4 use. Flag-off ⇒
++  // short-circuit, no read (byte-equivalent).
++  const cycling = (await resolveEffectiveCyclingServer(studentId, listId)).enabled;
+   const result = await db.runTransaction(async (tx) => {
+     const progressSnap = await tx.get(progressRef);
+     if (!progressSnap.exists) {
+@@ -1697,9 +1778,17 @@
+     // failed) FAILS OPEN to the legacy unclamped-but-non-negative count — the
+     // clamp is an improvement and must not become a new silent-zero failure mode.
+     const wordsRemaining = totalListWords == null ? null : Math.max(0, totalListWords - currentTwi);
+-    const clamped = wordsRemaining == null ?
++    // P9 · CYC: keep the challenge-accept advance CONSISTENT with the completeSession/M4
++    // lap-modular clamp (the spec's "ensure lap-2 allocation/M4 is consistent"). Under
++    // cycling the wordsRemaining cap is removed so a lap-2 challenge accept advances by the
++    // full paced count (the counter is virtual/monotonic). The phase gate (twi only on
++    // phase==='new') is UNCHANGED. `cycling` is the EFFECTIVE cross-class result resolved
++    // pre-transaction above (Codex P9-5). Flag-off ⇒ cycling false ⇒ today's exact clamp.
++    const clamped = cycling ?
+       Math.max(0, rawNewWordCount) :
+-      Math.max(0, Math.min(rawNewWordCount, wordsRemaining));
++      (wordsRemaining == null ?
++        Math.max(0, rawNewWordCount) :
++        Math.max(0, Math.min(rawNewWordCount, wordsRemaining)));
+     const twiIncrement = phase === "new" ? clamped : 0; // phase gate (F5-HIGH-2)
+     tx.update(progressRef, {
+       currentStudyDay: currentDay + 1,
+--- a/src/pages/DailySessionFlow.jsx
++++ b/src/pages/DailySessionFlow.jsx
+@@ -17,7 +17,7 @@
+ import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { db } from '../firebase'
+-import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS } from '../config/featureFlags'
++import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
+ import { useAuth } from '../contexts/AuthContext'
+ import Flashcard from '../components/Flashcard'
+ import Watermark from '../components/Watermark'
+@@ -643,12 +643,16 @@
+           }
+         }
+ 
+-        // Load new words (failed carryover words are now handled via segment review priority)
++        // Load new words (failed carryover words are now handled via segment review priority).
++        // P9 · CYC (§3c): config.cyclingActive routes a cycling day's VIRTUAL range through the
++        // resolver so it wraps at the lap boundary (straddle day = tail + head). Flag-off →
++        // config.cyclingActive is undefined/false → legacy position filter (byte-equivalent).
+         if (config.newWordCount > 0) {
+           const words = await getNewWords(
+             listId,
+             config.newWordStartIndex,
+-            config.newWordCount
++            config.newWordCount,
++            config.cyclingActive
+           )
+ 
+           setNewWords(words)
+@@ -1193,6 +1197,19 @@
+   // Test Navigation
+   // ============================================================
+ 
++  // P9 · CYC (§3e): map a VIRTUAL new-word index to its lap-local 1-based display. Under
++  // cycling the counter climbs past cycleLength; the displayed range should read within the
++  // current lap ((virtual mod cycleLength)+1). Flag-off (cyclingActive falsy) → virtual+1,
++  // exactly today. Review-segment indices are already physical (lap-bounded pool) → unchanged.
++  const lapDisplayNewIndex = (virtual) => {
++    const v = virtual || 0
++    const cL = sessionConfig?.cycleLength || 0
++    if (sessionConfig?.cyclingActive && cL > 0) {
++      return (((v % cL) + cL) % cL) + 1
++    }
++    return v + 1
++  }
++
+   const navigateToTest = (testPhase, mode) => {
+     // D1: the review TEST pool is the segment ONLY. reviewQueue is the STUDY set, which
+     // prepends today's new-FAILED words (study-only) — strip them here so they don't
+@@ -1204,10 +1221,10 @@
+ 
+     // Build context for test header
+     const wordRangeStart = testPhase === 'new'
+-      ? (sessionConfig?.newWordStartIndex || 0) + 1
++      ? lapDisplayNewIndex(sessionConfig?.newWordStartIndex)
+       : (sessionConfig?.segment?.startIndex || 0) + 1
+     const wordRangeEnd = testPhase === 'new'
+-      ? (sessionConfig?.newWordEndIndex || 0) + 1
++      ? lapDisplayNewIndex(sessionConfig?.newWordEndIndex)
+       : (sessionConfig?.segment?.endIndex || 0) + 1
+ 
+     // Build complete test config (handles testSize limiting, defaults, etc.)
+@@ -1813,6 +1830,27 @@
+         }
+       />
+ 
++      {/* P9 · CYC (§3f ack) — inline "Lap N" badge. The lap boundary is crossed MID-session on
++          a straddle day, so a day-end "you completed the list" message is wrong; per the plan's
++          accepted alternative we show an unobtrusive inline lap badge instead of a one-time
++          interstitial (interstitial-vs-badge is recorded as an uncertainty for Codex). Gated
++          entirely on sessionConfig.cyclingActive, which is false whenever CYCLING_ENABLED is off
++          → this block never renders today (byte-equivalent). */}
++      {sessionConfig?.cyclingActive && (sessionConfig?.lapView?.lap ?? 1) >= 2 &&
++        (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
++        <div className="mx-auto mt-3 flex max-w-3xl items-center justify-center px-4">
++          <span className="inline-flex items-center gap-1.5 rounded-[--radius-button] bg-brand-primary/10 px-3 py-1 text-xs font-semibold text-brand-text">
++            Lap {sessionConfig.lapView.lap}
++            <span className="font-normal text-text-muted">
++              {/* §3b affordance: name the class that unlocked cycling when it isn't this one. */}
++              {sessionConfig.cyclingSourceClassName && sessionConfig.cyclingSourceClassId !== classId
++                ? `· cycling enabled via ${sessionConfig.cyclingSourceClassName}`
++                : '· reviewing this list again'}
++            </span>
++          </span>
++        </div>
++      )}
++
+       {/* Progress Sheet */}
+       <SessionProgressSheet
+         isOpen={showProgressSheet}
+@@ -1820,8 +1858,8 @@
+         currentPhase={phase}
+         isFirstDay={sessionConfig?.isFirstDay}
+         dayNumber={sessionConfig?.dayNumber || 1}
+-        wordRangeStart={(sessionConfig?.newWordStartIndex || 0) + 1}
+-        wordRangeEnd={(sessionConfig?.newWordEndIndex || 0) + 1}
++        wordRangeStart={lapDisplayNewIndex(sessionConfig?.newWordStartIndex)}
++        wordRangeEnd={lapDisplayNewIndex(sessionConfig?.newWordEndIndex)}
+         newWordsTestScore={newWordTestResults?.score}
+         reviewTestScore={reviewTestResults?.score}
+         cardsRemaining={currentQueueLength}
+@@ -1911,6 +1949,20 @@
+               await clearSessionState(user.uid, classId, listId)
+               navigate(`/session/${classId}/${continuation.nextListId}`)
+             } : undefined}
++            // P9 · CYC (§2.2 / task item 7): capability-gated "Start over" in the choice
++            // terminal. Rendered ONLY when the cycling capability is live (CYCLING_ENABLED) —
++            // never a dead button. NOTE: with an ACTIVE-cycling assignment the flow is
++            // continuous (isListComplete stays false, so this terminal never shows), so the
++            // button's live role is the capability-on / cross-class-unlock case (§3b); the
++            // handler re-enters the SAME session, where the (now cycling) allocation begins the
++            // next lap via the unchanged init path — no progress write here (§2.1 parity with
++            // onAdvance). Dormant today: CYCLING_ENABLED === false ⇒ prop false ⇒ nothing renders.
++            cyclingCapabilityLive={CYCLING_ENABLED}
++            onStartOver={CYCLING_ENABLED ? async () => {
++              clearAllSessionStates(user.uid, classId, listId)
++              await clearSessionState(user.uid, classId, listId)
++              navigate(`/session/${classId}/${listId}`)
++            } : undefined}
+           />
+         )}
+       </div>
+@@ -2303,7 +2355,11 @@
+   // P8 · CONT-A: continuation = { nextListId, nextListTitle } when the launching class's
+   // assignment links a next list (CONTINUATION_LINKS on); null otherwise → static terminal.
+   continuation,
+-  onAdvance
++  onAdvance,
++  // P9 · CYC: capability-gated "Start over" (task item 7). Both false/undefined unless
++  // CYCLING_ENABLED — so the button never renders today (byte-equivalent terminal).
++  cyclingCapabilityLive = false,
++  onStartOver
+ }) {
+   const isFirstDay = sessionConfig?.isFirstDay
+   // §5 list-end terminal: once every word has been introduced, this is the distinct "finished the list"
+@@ -2398,9 +2454,22 @@
+             Advance to {continuation.nextListTitle} →
+           </Button>
+         )}
++        {/* P9 · CYC: "Start over" joins the choice terminal ONLY when the cycling capability is
++            live (capability-gated — never a dead button, §2.2). Dormant while CYCLING_ENABLED
++            is false. Primary when there's no next-list advance offered, else a secondary option. */}
++        {isListComplete && cyclingCapabilityLive && onStartOver && (
++          <Button
++            onClick={onStartOver}
++            variant={continuation && onAdvance ? 'outline' : 'primary'}
++            size="lg"
++            className="w-full"
++          >
++            Start over (review the list again)
++          </Button>
++        )}
+         <Button
+           onClick={onDashboard}
+-          variant={isListComplete && continuation && onAdvance ? 'outline' : 'primary'}
++          variant={isListComplete && ((continuation && onAdvance) || (cyclingCapabilityLive && onStartOver)) ? 'outline' : 'primary'}
+           size="lg"
+           className="w-full"
+         >
+--- a/src/pages/MCQTest.jsx
++++ b/src/pages/MCQTest.jsx
+@@ -321,7 +321,11 @@
+         })
+ 
+         if (config.newWordCount > 0) {
+-          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
++          // P9 · CYC (§3f): config.cyclingActive routes a cycling day's VIRTUAL range through
++          // the resolver (wraps at the lap boundary). Under cycling newWordCount === pace > 0,
++          // so the legacy "finished list" throw below becomes unreachable — the lap-aware
++          // outcome. Flag-off → cyclingActive falsy → today's legacy filter + throw exactly.
++          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
+           wordsToTest = selectTestWords(newWords, testSize)
+         } else {
+           throw new Error('No new words available for testing')
+--- a/src/pages/TypedTest.jsx
++++ b/src/pages/TypedTest.jsx
+@@ -380,7 +380,12 @@
+         })
+ 
+         if (config.newWordCount > 0) {
+-          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount)
++          // P9 · CYC (§3c / Codex P9-4): config.cyclingActive (now resolved cross-class inside
++          // initializeDailySession) routes a cycling day's VIRTUAL range through the resolver so
++          // it wraps at the lap boundary. Under cycling newWordCount === pace > 0, so the legacy
++          // "finished list" throw below is unreachable. Flag-off ⇒ cyclingActive falsy ⇒ today's
++          // legacy filter + throw exactly (byte-equivalent).
++          const newWords = await getNewWords(listId, config.newWordStartIndex, config.newWordCount, config.cyclingActive)
+           wordsToTest = selectTestWords(newWords, testSize)
+         } else {
+           throw new Error('No new words available for testing')
+--- a/src/pages/Dashboard.jsx
++++ b/src/pages/Dashboard.jsx
+@@ -17,14 +17,14 @@
+   updateUserSettings,
+ } from '../services/db'
+ import { getClassProgress } from '../services/progressService'
+-import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE } from '../config/featureFlags'
++import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags'
+ import { getFunctions, httpsCallable } from 'firebase/functions'
+ import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
+ import { db } from '../firebase'
+ import CreateClassModal from '../components/CreateClassModal.jsx'
+ import LoadingSpinner from '../components/LoadingSpinner.jsx'
+ import { downloadListAsPDF } from '../utils/pdfGenerator.js'
+-import { getTodaysBatchForPDF, getCompleteBatchForPDF, determineStartingPhase } from '../services/studyService'
++import { getTodaysBatchForPDF, getCompleteBatchForPDF, determineStartingPhase, computeLapView, deriveEffectiveCycling, getCycleLength } from '../services/studyService'
+ import { getSessionState, shouldShowReEntryModal, clearSessionState } from '../services/sessionService'
+ import MasterySquares from '../components/MasterySquares.jsx'
+ import StudySelectionModal from '../components/modals/StudySelectionModal.jsx'
+@@ -322,6 +322,10 @@
+   // ONE state (Codex round-3) so status and data can never diverge across renders.
+   const [progressEntries, setProgressEntries] = useState({})
+   const [progressDataLoading, setProgressDataLoading] = useState(false) // F1: init false; true only when there are fetchable pairs
++  // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per cycling list, for
++  // lap-aware display. Loaded lazily (cheap aggregate count) ONLY for effective-cycling lists
++  // and ONLY when CYCLING_ENABLED. Empty ⇒ displays use the legacy path (byte-equivalent off).
++  const [cycleLengths, setCycleLengths] = useState({})
+   // Back-compat view: existing consumers read progressData[key] = the doc (or null).
+   // F02 [Codex round-2] Include ONLY successfully-loaded ('ok') keys, so `key in progressData`
+   // means "loaded successfully" (not "errored"). An error entry is ABSENT → per-list cards
+@@ -641,6 +645,35 @@
+     loadStudentClasses()
+   }, [loadStudentClasses])
+ 
++  // P9 · CYC (Codex P9-3): load the CANONICAL cycleLength (positions.length) for the distinct
++  // lists that are EFFECTIVELY cycling (§3b) for this student — the one modulus for lap math +
++  // display. Cheap aggregate count, ONE per cycling list, gated on CYCLING_ENABLED so flag-off
++  // runs nothing (byte-equivalent — no state, no read).
++  useEffect(() => {
++    if (!CYCLING_ENABLED || isTeacher || !studentClasses.length) return
++    let cancelled = false
++    const listIds = new Set()
++    for (const klass of studentClasses) {
++      for (const list of (klass.assignedListDetails || [])) {
++        if (deriveEffectiveCycling(studentClasses, list.id).enabled) listIds.add(list.id)
++      }
++    }
++    if (listIds.size === 0) return
++    ;(async () => {
++      const entries = await Promise.all(
++        [...listIds].map(async (id) => [id, await getCycleLength(id)])
++      )
++      if (!cancelled) {
++        setCycleLengths((prev) => {
++          const next = { ...prev }
++          for (const [id, cl] of entries) if (cl > 0) next[id] = cl
++          return next
++        })
++      }
++    })()
++    return () => { cancelled = true }
++  }, [isTeacher, studentClasses])
++
+   // Load progress data for each class/list (parallelized for speed)
+   useEffect(() => {
+     // No fetchable pairs (no user / no classes / teacher) -> explicitly release the
+@@ -1066,6 +1099,18 @@
+         stats: list.stats || {},
+         nextListId,
+         nextListTitle,
++        // P9 · CYC (§3b/§3e, Codex P9-2): the EFFECTIVE cross-class cycling capability — cycling
++        // is unlocked for this student+list iff ANY enrolled class assigns it with cyclingEnabled
++        // (not just this focus class). Derived in-memory over `studentClasses` (no query). Powers
++        // the hero's lap-aware progress + "finished" suppression + the "cycling enabled via
++        // {className}" affordance. Added ONLY when the global capability is live ⇒ flag-off object
++        // is today's exactly.
++        ...(CYCLING_ENABLED
++          ? (() => {
++              const eff = deriveEffectiveCycling(studentClasses, list.id)
++              return { cyclingEnabled: eff.enabled, cyclingSourceClassName: eff.sourceClassName }
++            })()
++          : {}),
+       }
+     }
+ 
+@@ -1086,7 +1131,11 @@
+       const maxHops = Object.keys(klass.assignments || {}).length + 1
+       for (let hop = 0; hop < maxHops; hop++) {
+         const assignment = klass.assignments?.[current.id] || {}
+-        if (assignment.cyclingEnabled === true) break // P9 lap-aware gate: never auto-yield a cycling list
++        // P9 · CYC (Codex P9-6): never auto-yield an EFFECTIVELY-cycling finished list — gate on
++        // the cross-class §3b unlock (ANY of the student's classes), not just THIS class's flag,
++        // else a list cycling via another class still yields to nextListId. Inside CYCLING_ENABLED
++        // so flag-off is unchanged (deriveEffectiveCycling never runs; today's no-break behavior).
++        if (CYCLING_ENABLED && deriveEffectiveCycling(studentClasses, current.id).enabled) break
+         const nextId = assignment.nextListId
+         if (!nextId || nextId === current.id || visited.has(nextId)) break
+         const progress = progressData[`${klass.id}_${current.id}`]
+@@ -1660,12 +1709,28 @@
+           const anyLoading = firstPaintLoading || heroLoading
+           const tIntro = totalWordsIntroduced ?? 0 // null-safe (undefined while panelBLoading)
+           const listTotal = getPrimaryFocus?.wordCount || 0
+-          const listPct = listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0
+-          const wordsLeft = Math.max(0, listTotal - tIntro)
++          // P9 · CYC (§3e, Codex P9-2/P9-3): on an EFFECTIVELY-cycling focus list (unlocked by
++          // ANY of the student's classes) twi climbs past listTotal every lap, so raw twi/listTotal
++          // would pin at 100% and read "finished" forever. Show INTRODUCTION progress within the
++          // current lap using the CANONICAL cycleLength (positions.length, loaded into cycleLengths;
++          // wordCount only as a transient fallback while that aggregate count is in flight). Flag-off
++          // ⇒ focusLapView null ⇒ today's exact listPct/wordsLeft/listFinished (byte-equivalent).
++          const focusCycleLength = cycleLengths[getPrimaryFocus?.id] || listTotal
++          const focusLapView = (CYCLING_ENABLED && getPrimaryFocus?.cyclingEnabled === true)
++            ? computeLapView(tIntro, focusCycleLength)
++            : null
++          const listPct = focusLapView
++            ? focusLapView.pct
++            : (listTotal > 0 ? Math.min(100, Math.round((tIntro / listTotal) * 100)) : 0)
++          // P9: words left in the CURRENT lap under cycling (denom − numer), else list-wide.
++          const wordsLeft = focusLapView
++            ? Math.max(0, focusLapView.denom - focusLapView.numer)
++            : Math.max(0, listTotal - tIntro)
+           // §5 persistent finished/terminal state: every word introduced. Derivable from PROGRESS alone
+           // (no Phase-2 allocation prediction needed) — the hero must then stop promising new words and
+           // congratulate + point to review, persistently (not just the day it completes).
+-          const listFinished = listTotal > 0 && wordsLeft === 0
++          // P9: a cycling list is NEVER "finished" — it rolls into the next lap (listFinished false).
++          const listFinished = !focusLapView && listTotal > 0 && wordsLeft === 0
+           const day = (panelCState?.currentStudyDay ?? 0) + 1
+           const newCount = getPrimaryFocus?.pace || null
+           const phase = panelCState?.phase
+@@ -1736,6 +1801,15 @@
+                         <>
+                           <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">🔥 {streakDays}-day streak</span>
+                           <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">{wordsLeft.toLocaleString()} words left</span>
++                          {/* P9 · CYC (§3b affordance): lap chip + the class that unlocked cycling when it isn't this one. */}
++                          {focusLapView && (
++                            <span className="bg-white/15 border border-white/20 rounded-full px-3 py-1.5 text-xs font-semibold">
++                              Lap {focusLapView.lap}
++                              {getPrimaryFocus.cyclingSourceClassName && getPrimaryFocus.cyclingSourceClassName !== getPrimaryFocus.className
++                                ? ` · via ${getPrimaryFocus.cyclingSourceClassName}`
++                                : ''}
++                            </span>
++                          )}
+                         </>
+                       )}
+                     </div>
+@@ -1833,7 +1907,7 @@
+                   {anyLoading
+                     ? <div className="mt-1.5">{tileSk('h-7 w-16')}</div>
+                     : <p className="font-heading text-2xl font-bold text-brand-text mt-1.5">{tIntro.toLocaleString()}</p>}
+-                  <p className="font-body text-xs text-text-secondary mt-1">{anyLoading ? ' ' : `${listPct}% of list`}</p>
++                  <p className="font-body text-xs text-text-secondary mt-1">{anyLoading ? ' ' : (focusLapView ? `${listPct}% of Lap ${focusLapView.lap}` : `${listPct}% of list`)}</p>
+                 </div>
+                 <div className="bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+                   <p className="font-body text-xs font-semibold text-text-muted uppercase tracking-wide">Avg Review Score</p>
+@@ -2021,17 +2095,27 @@
+                                       const progress = progressData[progressKey]
+                                       const wordsIntroduced = progress?.totalWordsIntroduced ?? 0
+                                       const totalWords = list.wordCount ?? 0
+-                                      const percentage = totalWords > 0
+-                                        ? Math.min(100, Math.max(0, Math.round((wordsIntroduced / totalWords) * 100)))
+-                                        : 0
++                                      // P9 · CYC (§3e, Codex P9-2/P9-3): lap-aware introduction progress when
++                                      // cycling is EFFECTIVELY unlocked for this student+list (ANY of their
++                                      // classes), using the CANONICAL cycleLength (positions.length; wordCount
++                                      // only as a transient fallback). Flag-off ⇒ cardLapView null ⇒ today's exact
++                                      // percentage + labels (byte-equivalent).
++                                      const cardLapView = (CYCLING_ENABLED && deriveEffectiveCycling(studentClasses, list.id).enabled)
++                                        ? computeLapView(wordsIntroduced, cycleLengths[list.id] || totalWords)
++                                        : null
++                                      const percentage = cardLapView
++                                        ? cardLapView.pct
++                                        : (totalWords > 0
++                                            ? Math.min(100, Math.max(0, Math.round((wordsIntroduced / totalWords) * 100)))
++                                            : 0)
+                                       const barWidth = `${percentage}%`
+                                       const isWideBar = percentage > 15
+ 
+                                       return (
+                                         <div className="space-y-1.5 text-xs text-text-secondary">
+                                           <div className="flex items-center justify-between">
+-                                            <span>{wordsIntroduced} introduced</span>
+-                                            <span>{totalWords} total</span>
++                                            <span>{cardLapView ? `${cardLapView.numer} introduced · Lap ${cardLapView.lap}` : `${wordsIntroduced} introduced`}</span>
++                                            <span>{cardLapView ? cardLapView.denom : totalWords} total</span>
+                                           </div>
+                                           <div className="relative h-10 w-full rounded-lg bg-inset flex items-center overflow-hidden">
+                                             <div
+--- a/src/pages/ClassDetail.jsx
++++ b/src/pages/ClassDetail.jsx
+@@ -24,7 +24,8 @@
+ } from '../services/db'
+ import { fetchStudentsProgressForClass } from '../services/progressService'
+ import { fetchStudentsSessionStates } from '../services/sessionService'
+-import { CONTINUATION_LINKS } from '../config/featureFlags'
++import { CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
++import { computeLapView, getCycleLength } from '../services/studyService'
+ import AssignListModal from '../components/AssignListModal.jsx'
+ import LoadingSpinner from '../components/LoadingSpinner.jsx'
+ import HeaderBar from '../components/HeaderBar.jsx'
+@@ -65,7 +66,7 @@
+ }
+ 
+ // Component to display student progress for each assigned list
+-const StudentProgressCell = ({ studentId, assignedLists, progressMap }) => {
++const StudentProgressCell = ({ studentId, assignedLists, progressMap, cycleLengths = {} }) => {
+   const studentProgress = progressMap[studentId] || {}
+ 
+   if (!assignedLists || assignedLists.length === 0) {
+@@ -79,9 +80,32 @@
+         const totalWords = list.wordCount || 0
+         const wordsIntroduced = progress?.totalWordsIntroduced || 0
+         const currentDay = progress?.currentStudyDay || 0
+-        const percentage = totalWords > 0
+-          ? Math.min(100, Math.round((wordsIntroduced / totalWords) * 100))
+-          : 0
++        // P9 · CYC (§3e, Codex P9-2/P9-3): lap-aware introduction progress when the student is
++        // cycling this list. A teacher grid can't cheaply resolve a student's OTHER classes
++        // (that would be a per-student cross-class query per row), so the trigger is: THIS class
++        // enabled cycling (list.cyclingEnabled) OR the student's twi has demonstrably passed the
++        // list length (they ARE cycling — only possible when some class enabled it). Modulus is
++        // the CANONICAL cycleLength (positions.length, loaded into cycleLengths; wordCount only a
++        // transient fallback). Flag-off ⇒ cellLapView null ⇒ today's exact percentage + counts.
++        //
++        // KNOWN LIMITATION (Codex P9-7 — DOCUMENTED, accepted): a student who cycles ONLY via
++        // ANOTHER class shows ordinary finished-list progress at the EXACT first boundary
++        // (twi === cycleLength) — the `>` proxy (deliberately strict, to avoid false-positives on
++        // a normal non-cycling finished list where twi === cycleLength) can't yet tell them apart.
++        // Once they begin lap 2 (twi > cycleLength) the row flips to lap-aware. Fixing the exact
++        // boundary would need per-student effective-cycling data this teacher view doesn't carry;
++        // the student's OWN session/dashboard uses the true cross-class predicate.
++        const cycleLength = cycleLengths[list.id] || totalWords
++        const cellCycling = CYCLING_ENABLED && cycleLength > 0 &&
++          (list.cyclingEnabled === true || wordsIntroduced > cycleLength)
++        const cellLapView = cellCycling
++          ? computeLapView(wordsIntroduced, cycleLength)
++          : null
++        const percentage = cellLapView
++          ? cellLapView.pct
++          : (totalWords > 0
++              ? Math.min(100, Math.round((wordsIntroduced / totalWords) * 100))
++              : 0)
+         const hasStarted = progress !== null && progress !== undefined
+ 
+         return (
+@@ -91,7 +115,7 @@
+             </div>
+             <div className="flex items-center gap-2 mt-1">
+               <span className="text-text-muted whitespace-nowrap">
+-                {hasStarted ? `Day ${currentDay}` : 'Not started'}
++                {hasStarted ? `Day ${currentDay}${cellLapView ? ` · Lap ${cellLapView.lap}` : ''}` : 'Not started'}
+               </span>
+               <div className="flex-1 h-2 bg-base rounded-full overflow-hidden">
+                 <div
+@@ -100,7 +124,7 @@
+                 />
+               </div>
+               <span className="text-text-muted whitespace-nowrap text-[10px]">
+-                {wordsIntroduced}/{totalWords}
++                {cellLapView ? `${cellLapView.numer}/${cellLapView.denom}` : `${wordsIntroduced}/${totalWords}`}
+               </span>
+             </div>
+           </div>
+@@ -123,6 +147,10 @@
+   const [savingName, setSavingName] = useState(false)
+   const [nameError, setNameError] = useState('')
+   const [assignedLists, setAssignedLists] = useState([])
++  // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per assigned list, for
++  // lap-aware student rows. Loaded (cheap aggregate count) ONLY when CYCLING_ENABLED ⇒ empty
++  // and no read when off (byte-equivalent).
++  const [cycleLengths, setCycleLengths] = useState({})
+   const [teacherLists, setTeacherLists] = useState([])
+   const [loading, setLoading] = useState(true)
+   const [error, setError] = useState('')
+@@ -135,7 +163,7 @@
+   const [listFilter, setListFilter] = useState('all')
+   const [generatingPDF, setGeneratingPDF] = useState(null)
+ const [settingsModalList, setSettingsModalList] = useState(null)
+-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null })
++  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null, cyclingEnabled: false })
+ const [savingSettings, setSavingSettings] = useState(false)
+ const [unassigningListId, setUnassigningListId] = useState(null)
+   const [removingStudentId, setRemovingStudentId] = useState(null)
+@@ -236,6 +264,7 @@
+           reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
+           reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
+           nextListId: assignment.nextListId ?? null, // P8 · CONT-A list-sequence link
++          cyclingEnabled: assignment.cyclingEnabled === true, // P9 · CYC per-assignment gate
+         }
+       }),
+     )
+@@ -258,6 +287,28 @@
+     }
+   }, [classInfo, loadAssignedLists, loadMembers])
+ 
++  // P9 · CYC (Codex P9-3): load the CANONICAL cycleLength (positions.length) for the assigned
++  // lists so student rows can render lap-aware progress against the one true modulus (also
++  // covers cross-class cyclers via the twi>cycleLength signal). Gated on CYCLING_ENABLED ⇒ no
++  // read / no state change when off (byte-equivalent).
++  useEffect(() => {
++    if (!CYCLING_ENABLED || !assignedLists.length) return
++    let cancelled = false
++    ;(async () => {
++      const entries = await Promise.all(
++        assignedLists.map(async (l) => [l.id, await getCycleLength(l.id)])
++      )
++      if (!cancelled) {
++        setCycleLengths((prev) => {
++          const next = { ...prev }
++          for (const [id, cl] of entries) if (cl > 0) next[id] = cl
++          return next
++        })
++      }
++    })()
++    return () => { cancelled = true }
++  }, [assignedLists])
++
+   useEffect(() => {
+     if (user?.uid) {
+       fetchTeacherLists(user.uid).then(setTeacherLists).catch(() => {})
+@@ -354,6 +405,7 @@
+       reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
+       reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
+       nextListId: list.nextListId ?? null, // P8 · CONT-A
++      cyclingEnabled: list.cyclingEnabled === true, // P9 · CYC
+     })
+   }
+ 
+@@ -380,6 +432,9 @@
+         // the key is omitted entirely (undefined → no-op in updateAssignmentSettings),
+         // keeping the flag-off write byte-identical to today's.
+         ...(CONTINUATION_LINKS ? { nextListId: settingsForm.nextListId || null } : {}),
++        // P9 · CYC: only send cyclingEnabled while the capability is ON (same spread-conditional
++        // pattern — flag off ⇒ key omitted ⇒ undefined ⇒ no-op in db.js ⇒ byte-identical save).
++        ...(CYCLING_ENABLED ? { cyclingEnabled: settingsForm.cyclingEnabled === true } : {}),
+       })
+       setFeedback('List settings updated successfully.')
+       await loadClass()
+@@ -972,6 +1027,7 @@
+                               studentId={member.id}
+                               assignedLists={assignedLists}
+                               progressMap={studentProgressMap}
++                              cycleLengths={cycleLengths}
+                             />
+                           )}
+                         </td>
+@@ -1285,6 +1341,36 @@
+                 </label>
+               </div>
+             )}
++
++            {/* P9 · CYC (CYCLING_ENABLED): per-assignment cycling toggle — when a student finishes
++                this list, keep them studying it on repeating "laps" (monotonic virtual index; the
++                physical words wrap). Owner-teacher-only, same write surface as pace. Section absent
++                (and nothing written) unless the global cycling capability is live. */}
++            {CYCLING_ENABLED && (
++              <div className="border-t border-border-default pt-4 mt-4">
++                <h3 className="text-sm font-semibold text-text-primary mb-3">List Cycling</h3>
++                <label className="flex items-start gap-3 text-sm font-medium text-text-secondary">
++                  <input
++                    type="checkbox"
++                    checked={settingsForm.cyclingEnabled === true}
++                    onChange={(event) =>
++                      setSettingsForm((prev) => ({
++                        ...prev,
++                        cyclingEnabled: event.target.checked,
++                      }))
++                    }
++                    className="mt-0.5 h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-2 focus:ring-border-strong"
++                  />
++                  <span>
++                    Keep students cycling after they finish this list
++                    <span className="mt-1 block text-xs font-normal text-text-muted">
++                      Finished students re-study the list in laps (progress shows &quot;Lap 2&quot;, &quot;Lap 3&quot;, …)
++                      instead of dead-ending. Same pace and tests; their day counter and history are unaffected.
++                    </span>
++                  </span>
++                </label>
++              </div>
++            )}
+ 
+             <div className="mt-6 flex gap-3">
+               <Button variant="outline" size="lg" className="flex-1" onClick={closeSettingsModal} disabled={savingSettings}>
+--- a/src/components/SessionSummaryCard.jsx
++++ b/src/components/SessionSummaryCard.jsx
+@@ -5,6 +5,8 @@
+  * Shows new words studied, test scores, words graduated, and overall progress.
+  */
+ 
++import { computeLapView } from '../services/studyService'
++
+ function SummaryRow({ label, value, highlight = false, icon = null }) {
+   return (
+     <div className="flex justify-between items-center">
+@@ -20,9 +22,18 @@
+ function SessionSummaryCard({ summary, sessionConfig }) {
+   // Use fresh TWI from progress (updated by completeSessionFromTest) with fallback to sessionConfig
+   const totalWordsIntroduced = summary?.progress?.totalWordsIntroduced ?? sessionConfig?.totalWordsIntroduced ?? 0
+-  const progressPercent = sessionConfig?.totalListWords > 0
+-    ? Math.min(100, (totalWordsIntroduced / sessionConfig.totalListWords) * 100)
+-    : 0
++  // P9 · CYC (§3e): under cycling show INTRODUCTION progress WITHIN the current lap
++  // ((twi mod cycleLength)/cycleLength) + "Lap N" — never the raw virtual counter over the
++  // list size (which would read >100% / "1250 / 1200"). Recomputed from the FRESH post-
++  // completion twi. Flag-off → cyclingActive falsy → today's exact percent + "twi / total".
++  const lapView = sessionConfig?.cyclingActive
++    ? computeLapView(totalWordsIntroduced, sessionConfig?.cycleLength)
++    : null
++  const progressPercent = lapView
++    ? lapView.pct
++    : (sessionConfig?.totalListWords > 0
++        ? Math.min(100, (totalWordsIntroduced / sessionConfig.totalListWords) * 100)
++        : 0)
+ 
+   return (
+     <div className="rounded-xl bg-surface border border-border-default p-5 shadow-sm">
+@@ -77,9 +88,11 @@
+       {/* Progress Bar */}
+       <div className="mt-4 pt-4 border-t border-border-default">
+         <div className="flex justify-between text-sm mb-1">
+-          <span className="text-text-muted">Total Progress</span>
++          <span className="text-text-muted">Total Progress{lapView ? ` · Lap ${lapView.lap}` : ''}</span>
+           <span className="font-medium text-text-primary">
+-            {totalWordsIntroduced} / {sessionConfig?.totalListWords ?? 0}
++            {lapView
++              ? `${lapView.numer} / ${lapView.denom}`
++              : `${totalWordsIntroduced} / ${sessionConfig?.totalListWords ?? 0}`}
+           </span>
+         </div>
+         <div className="h-2 bg-muted rounded-full overflow-hidden">

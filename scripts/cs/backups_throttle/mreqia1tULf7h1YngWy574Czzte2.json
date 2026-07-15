@@ -1,0 +1,54 @@
+{
+  "email": "jinseoc2009@gmail.com",
+  "uid": "mreqia1tULf7h1YngWy574Czzte2",
+  "cp": "k0j59bXvvtedgqi98apt_dVliNv0p9jqZYp9rfLpN",
+  "before": {
+    "csd": 13,
+    "twi": 1040,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "newWordScore": 1,
+        "segmentEndIndex": 98,
+        "date": {
+          "_seconds": 1783919443,
+          "_nanoseconds": 714000000
+        },
+        "reviewScore": 0.23333333333333334,
+        "wordsReviewed": 60,
+        "segmentStartIndex": 5,
+        "day": 11,
+        "wordsTested": 30,
+        "wordsIntroduced": 80
+      },
+      {
+        "date": {
+          "_seconds": 1784014061,
+          "_nanoseconds": 979000000
+        },
+        "wordsReviewed": 60,
+        "reviewScore": 0.16666666666666666,
+        "newWordScore": 0.97,
+        "segmentEndIndex": 298,
+        "wordsIntroduced": 80,
+        "segmentStartIndex": 223,
+        "day": 12,
+        "wordsTested": 30
+      },
+      {
+        "day": 13,
+        "date": {
+          "_seconds": 1784092195,
+          "_nanoseconds": 771000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0.16666666666666666,
+        "segmentStartIndex": 474,
+        "segmentEndIndex": 533,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}

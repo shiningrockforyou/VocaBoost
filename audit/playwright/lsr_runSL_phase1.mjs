@@ -24,12 +24,17 @@ const DAYS = parseInt(process.env.SL_DAYS || '16', 10);  // exit gate = 16; <16 
 const CERT_DAYS = 16;
 const SL_MAX_MS = parseInt(process.env.SL_MAX_MS || String(90 * 60 * 1000), 10); // total wall-clock bound (C-7)
 const PACE = 20, THR = 92, TEST_SIZE = 30, MODE = 'typed';
-// Fatal anomaly kinds — presence fails PASS (SLP1-3 / SLP1r2-2). Matches the kinds lsr_ui.mjs actually
-// emits (grep-verified): product/harness failures + severe browser signals. `request-failed` IS fatal
-// unless allowlisted (Firestore listen/write channel aborts are expected long-poll noise → allowlisted).
+// Fatal anomaly kinds — presence fails PASS (SLP1-3 / SLP1r2-2). `request-failed` IS fatal unless allowlisted
+// (Firestore listen/write channel aborts are expected long-poll noise → allowlisted).
+// `flow-gap`/`selector-gap` REMOVED (matches the overlay's Codex-approved change + same fail-closed reasoning):
+// they are DRIVER-REACHABILITY signals — a real one makes a day fail its strict per-day CONFIRMATION (UI
+// words==twi AND day==csd+1, FB exact csd/twi/attempt deltas) → the day is NOT confirmed → INCOMPLETE/halt
+// (fail-closed). The fixture's assignment is authoritatively verified by the exact assignment check → INVALID
+// on a real mismatch. So the spurious teacher-assign selector-gap (fallback worked, assignment verified) no
+// longer fails an otherwise-clean run. FAIL-CLOSED PRESERVED: PASS still requires all DAYS confirmed.
 const FATAL_KINDS = new Set([
   'BUG', 'ui-fb-mismatch', 'unexpected-dialog', 'page-error', 'console-error', 'exception', 'fail',
-  'verify-fail', 'flow-gap', 'selector-gap', 'modal-dead', 'login-failed', 'request-failed',
+  'verify-fail', 'modal-dead', 'login-failed', 'request-failed',
 ]);
 // request-failed allowlist: benign ONLY when ALL THREE hold — Firestore host + Listen/Write channel +
 // ERR_ABORTED (the realtime long-poll teardown noise). Order-independent so a non-Firestore abort or a
@@ -50,7 +55,8 @@ if (!BUILD_ID) { console.error('LSR_BUILD_ID is REQUIRED (deployed build id) —
 
 const { BASE, makeFindings, launch, newAuditPage, login, joinClass, switchClass, goDashboard,
         driveNewWordsToTest, driveReviewToTest, driveTest, readVisibleProgress,
-        dismissModal, armDialog, lastDialog, shot } = await import('./lsr_ui.mjs');
+        dismissModal, armDialog, lastDialog, shot, clearCompletionIfPresent,
+        returnFromResultsAndClearCompletion } = await import('./lsr_ui.mjs');
 const { createClass, assignList, readJoinCode } = await import('./lsr_teacher.mjs');
 
 const LISTS = JSON.parse(readFileSync(`${AUD}/lsr_lists.json`, 'utf8')).lists;
@@ -120,6 +126,9 @@ let precededByAccept = false; // set when dashReady's armed beforeunload actuall
 async function dashReady(page, className) {
   const escRe = (s) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   precededByAccept = false;
+  // Clear a stale COMPLETE session_state FIRST (only "Back to Dashboard" clears it; a reload does not) →
+  // else the next day inherits phase=complete and shows a "Day N Complete" wall (DailySessionFlow.jsx:751/1787).
+  await clearCompletionIfPresent(page).catch(() => {});
   for (let attempt = 0; attempt < 3; attempt++) {
     armDialog(page, 'accept');
     const before = lastDialog(page);
@@ -212,6 +221,10 @@ async function advanceOneDay(page, className, dayNum, prev) {
     if (rvRes.outcome === 'retake-gate') return { ok: false, reason: 'unexpected-retake-gate' };
     if (rvRes.outcome !== 'results') return { ok: false, reason: `review-not-completed:${rvRes.outcome}` };
   }
+  // The day's FINAL test (day-1 new / day-2+ review) just passed → we're on the test-results screen. Return
+  // to CompletePhase and click "Back to Dashboard" to CLEAR session_states, so the NEXT day starts fresh
+  // instead of inheriting phase=complete (Codex D2F-3; the day-guard/re-entry wall root cause).
+  await returnFromResultsAndClearCompletion(page, F, `d${dayNum}-exit`).catch(() => {});
   return { ok: true };
 }
 

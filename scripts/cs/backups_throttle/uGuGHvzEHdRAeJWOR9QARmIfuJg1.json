@@ -1,0 +1,54 @@
+{
+  "email": "yehyun.shim10@gmail.com",
+  "uid": "uGuGHvzEHdRAeJWOR9QARmIfuJg1",
+  "cp": "sO7jN85mL5ZsaBY1BbGm_RmNNkuLPectBlBPiLbAJ",
+  "before": {
+    "csd": 12,
+    "twi": 960,
+    "interventionLevel": 0,
+    "recentSessions": [
+      {
+        "wordsIntroduced": 0,
+        "segmentEndIndex": 747,
+        "segmentStartIndex": 688,
+        "date": {
+          "_seconds": 1783902182,
+          "_nanoseconds": 555000000
+        },
+        "wordsReviewed": 60,
+        "wordsTested": 30,
+        "newWordScore": 0.97,
+        "reviewScore": 0,
+        "day": 10
+      },
+      {
+        "reviewScore": 0.5,
+        "day": 11,
+        "wordsTested": 30,
+        "newWordScore": 1,
+        "segmentEndIndex": 181,
+        "segmentStartIndex": 41,
+        "date": {
+          "_seconds": 1783905059,
+          "_nanoseconds": 719000000
+        },
+        "wordsReviewed": 60,
+        "wordsIntroduced": 80
+      },
+      {
+        "day": 12,
+        "date": {
+          "_seconds": 1784045691,
+          "_nanoseconds": 176000000
+        },
+        "newWordScore": 1,
+        "reviewScore": 0,
+        "segmentStartIndex": 298,
+        "segmentEndIndex": 416,
+        "wordsIntroduced": 0,
+        "wordsReviewed": 60,
+        "wordsTested": 30
+      }
+    ]
+  }
+}
