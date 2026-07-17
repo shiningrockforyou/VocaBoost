@@ -41,17 +41,17 @@ const {FieldValue, Timestamp} = require("firebase-admin/firestore");
 // ============================================================================
 // Gates the completeSession callable. Flipped at P4 together with the client
 // SERVER_PROGRESS_WRITE routing flag (FIX_PLAN P4).
-const SERVER_COMPLETE_SESSION_ENABLED = false;
+const SERVER_COMPLETE_SESSION_ENABLED = true;
 // Gates the resolveListProgress callable. Flipped at P4 together with the
 // client LIST_PROGRESS_PERSIST read-routing flag (FIX_PLAN P4).
-const SERVER_RESOLVE_LIST_PROGRESS_ENABLED = false;
+const SERVER_RESOLVE_LIST_PROGRESS_ENABLED = true;
 // Gates the resetProgress callable. Flipped at P4 together with the client
 // SERVER_RESET_PROGRESS flag (v2 HIGH-3: reset must be fully cut over BEFORE
 // P6 removes the owner attempt-delete rules branch).
-const SERVER_RESET_PROGRESS_ENABLED = false;
+const SERVER_RESET_PROGRESS_ENABLED = true;
 // Gates the advanceForChallenge callable (3rd twi writer, v3 F5-HIGH-2).
 // Flipped at P4 alongside SERVER_CHALLENGE_WRITE routing.
-const SERVER_ADVANCE_FOR_CHALLENGE_ENABLED = false;
+const SERVER_ADVANCE_FOR_CHALLENGE_ENABLED = true;
 // THE P5-ONLY MODE SWITCH (v2 BLOCKER / v3 F4-4 — FIX_PLAN P3 change 2 + P5).
 // false (P3→P5): resolveListProgress is READ-ONLY — it may create NO canonical
 //   users/{uid}/list_progress doc on any load; completeSession/advanceForChallenge
@@ -67,7 +67,7 @@ const LIST_PROGRESS_CANONICAL = false;
 // Dormant at merge per the P3 draft rule; the P3 DEPLOY intends to flip this
 // true so the ≥14-day false-reject measurement can run (FIX_PLAN P3 acceptance:
 // "M4 shadow false-reject rate ≈ 0 over ≥14 days"). Declared in the G1 table.
-const ANCHOR_VALIDATION_SHADOW = false;
+const ANCHOR_VALIDATION_SHADOW = true;
 // M4 enforcement (clamp-or-reject). P6 (FND-4) ONLY, after the shadow soak is
 // clean. Never flip before ANCHOR_VALIDATION_SHADOW has measured live traffic
 // (the G1 lesson: never arm a rejection path without measuring what it would
@@ -107,6 +107,44 @@ const SERVER_OVERRIDE_ENABLED = false;
 // `teacherIds` field is written ⇒ every server attempt doc is byte-identical to today.
 // DORMANT at merge (P3 draft rule).
 const TEACHER_IDS_WRITE_ENABLED = false;
+// CS PR-2 · F3 — the ADDITIVE review-engagement stamp (answeredCount / engagedReview) on the
+// server attempt writer (writeAttemptTxn, index.js). Mirrors computeTeacherIdsForAttempt's
+// strict-dormancy idiom: DISABLED ⇒ computeReviewEngagementStamp() returns null with ZERO added
+// fields ⇒ every attempt doc is byte-identical to today. The evidence downstream (PR-3's
+// completion reader) consumes; NO grandfather here (PR-3 owns the deploy-time grandfather —
+// Codex PR-1 HIGH-1). DORMANT at merge. Flips with the PR-2/PR-3 engagement-reader activation.
+const REVIEW_ENGAGEMENT_STAMP_ENABLED = true;
+// CS PR-2 · WI-4 (I6) — the server recovery/score clamp on writeAttemptTxn (index.js): dedupe
+// scored rows by wordId + clamp correctCount∈[0,totalQuestions] / score∈[0,100], mirroring the
+// client RECOVERY_GUARD intersect. A clamp only removes an IMPOSSIBLE output (the 4 historical
+// >100% docs). DISABLED ⇒ the exact original unclamped correctCount/score expressions ⇒
+// byte-identical to today. DORMANT at merge (kept reversible per the LOCAL-ONLY discipline).
+const RECOVERY_SCORE_CLAMP_ENABLED = true;
+
+// CS PR-3 · WI-1 — the SERVER mirror of the client FORCED_PATHWAY flag (binary throttle + hold-csd).
+// When ON (and the completeSession callable itself is enabled — DOUBLE gate), completeSession: (a)
+// derives a BINARY serverInterv via deriveThrottleModeServer (parity with the client
+// initializeDailySession), (b) is the ONE owner of the persisted class_progress.reviewMode bit, and
+// (c) HOLDS csd (OC-1 `review_recorded`) on a THROTTLE review-only day or a non-engaged (skip)
+// review — recording the review WITHOUT advancing currentStudyDay/twi. DISABLED ⇒ serverInterv is
+// the graduated calculateInterventionLevel, NO reviewMode field is written, and the hold branch is
+// unreachable ⇒ every write is byte-identical to today. DORMANT at merge; flips with the PR-3
+// activation, and is only reachable at all once SERVER_COMPLETE_SESSION_ENABLED (P4) is also true.
+const FORCED_PATHWAY_ENABLED = false;
+// Decision-#3 grandfather epoch (ms) — mirror of forcedPathway.FORCED_PATHWAY_GRANDFATHER_EPOCH_MS.
+// A day's review with submittedAt before this counts as engaged in the completion reader (pre-deploy
+// reviews stay engaged; only post-deploy skips are gated). NULL = no grandfather (set at flip).
+const FORCED_PATHWAY_GRANDFATHER_EPOCH_MS = null;
+
+// CS PR-2 · OC-2 (I4 pairing mirror) — the STRICT V2 tiered pairing predicate is active on the
+// SERVER whenever a path that can REACH getReviewForDayServer is enabled — i.e. the completion
+// (SERVER_COMPLETE_SESSION_ENABLED) OR resolve (SERVER_RESOLVE_LIST_PROGRESS_ENABLED) callable.
+// This reuses the EXISTING dormant flags that govern the completion/resolve path (no new
+// independent switch); the two flip together at the P4 cutover per the G1 flag-assertion table.
+// Both false today ⇒ getReviewForDayServer is unreachable dead code AND this derived gate is
+// false ⇒ the legacy exact-range query + match run verbatim ⇒ byte-equivalent to today.
+const REVIEW_PAIRING_V2_SERVER =
+  SERVER_COMPLETE_SESSION_ENABLED || SERVER_RESOLVE_LIST_PROGRESS_ENABLED;
 
 // Exported for the `version` provenance probe (index.js) so the I-5 G1
 // flag-assertion table can assert these on every deploy.
@@ -122,6 +160,9 @@ const FOUNDATION_FLAGS = {
   SERVER_REVIEW_CHALLENGE_ENABLED,
   SERVER_OVERRIDE_ENABLED,
   TEACHER_IDS_WRITE_ENABLED,
+  REVIEW_ENGAGEMENT_STAMP_ENABLED,
+  RECOVERY_SCORE_CLAMP_ENABLED,
+  FORCED_PATHWAY_ENABLED,
 };
 
 // ============================================================================
@@ -539,14 +580,186 @@ async function getListAnchor(uid, listId) {
   }
 }
 
+// ============================================================================
+// CS PR-2 · OC-2 (I4) — SERVER mirror of the census-LOCKED reader predicate.
+// Byte-faithful port of src/utils/reviewPairing.js (isEngagedReview /
+// reviewPairsWithAnchor): STRICT engagement (NO grandfather — that belongs to
+// PR-3's completion reader, Codex PR-1 HIGH-1), tiered exact∨temporal /
+// sameClass∧engaged legs. Reachable ONLY from getReviewForDayServer, which runs
+// ONLY under the dormant completion/resolve callables ⇒ dead code until the P4
+// flip (byte-equivalent today).
+// ============================================================================
+
+/** F9 engagement bar (src/utils/reviewPairing.js MIN_ENGAGED_ANSWER_RATIO). */
+const MIN_ENGAGED_ANSWER_RATIO = 0.8;
+
+/** Timestamp→epoch-ms with a 0 fallback (byte-faithful port of tsMillis(), reviewPairing.js:52-56). */
+function pairMs(t) {
+  return (t && typeof t.toMillis === "function")
+    ? t.toMillis()
+    : (t?.toDate ? t.toDate().getTime() : 0);
+}
+
 /**
- * Port of getReviewForDay under LIST_SCOPED_RECON (db.js:3400-3465): exact
- * anchor-range pairing + temporal lineage; fail-closed statuses preserved.
+ * OC-4 canonical cycle length (PR-2 verify HIGH fix) — the LIVE word-doc count of
+ * lists/{listId}/words, the server mirror of the client getCycleLength (studyService.js) /
+ * positions.length. NEVER lists.wordCount (§2 one-modulus correctness rule). Aggregate count;
+ * returns 0 on ANY error ⇒ the OC-4 lap-reset guard (cycleLen > 0) then no-ops (fail-safe).
+ */
+async function getCanonicalCycleLengthServer(listId) {
+  try {
+    const agg = await getDb().collection("lists").doc(listId).collection("words").count().get();
+    return agg.data().count || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+/**
+ * isEngagedReviewServer — F9 engagement over a STORED review attempt (STRICT, no grandfather).
+ * Byte-faithful port of isEngagedReview (src/utils/reviewPairing.js:73-81).
+ */
+function isEngagedReviewServer(a) {
+  if (!a || a.sessionType !== "review") return false;
+  if (a.autoCompleted === true) return true;
+  if (!Number.isInteger(a.totalQuestions) || a.totalQuestions === 0) return true;
+  const answered = Array.isArray(a.answers)
+    ? a.answers.filter((x) => String(x?.studentResponse ?? "").trim() !== "").length
+    : (a.totalQuestions - (a.skipped ?? 0));
+  return answered / a.totalQuestions >= MIN_ENGAGED_ANSWER_RATIO;
+}
+
+/**
+ * reviewPairsWithAnchorServer — the census-LOCKED tiered predicate. Byte-faithful port of
+ * reviewPairsWithAnchor (src/utils/reviewPairing.js:111-130). anchor =
+ * {studyDay, classId, submittedAt, newWordStartIndex, newWordEndIndex}.
+ */
+function reviewPairsWithAnchorServer(review, anchor) {
+  if (!review || !anchor) return false;
+  if (review.sessionType !== "review" || review.studyDay !== anchor.studyDay) return false;
+  const exact = review.newWordStartIndex === anchor.newWordStartIndex &&
+    review.newWordEndIndex === anchor.newWordEndIndex;
+  const sameClass = review.classId === anchor.classId;
+  const temporal = pairMs(review.submittedAt) >= pairMs(anchor.submittedAt);
+  const engaged = isEngagedReviewServer(review);
+  // Tier 1 — exact positional proof (strict superset of the legacy exact+temporal predicate).
+  if (exact && (temporal || sameClass)) return true;
+  // Tiers 2/3 both require same-class AND engaged.
+  if (!sameClass || !engaged) return false;
+  // Tier 2 — post-anchor, same class, engaged (range drift).
+  if (temporal) return true;
+  // Tier 3 — pre-anchor inverted stub or null range, same class, engaged.
+  return (review.newWordStartIndex === anchor.newWordStartIndex &&
+      review.newWordEndIndex === anchor.newWordStartIndex - 1) ||
+    (review.newWordStartIndex == null && review.newWordEndIndex == null);
+}
+
+/**
+ * CS PR-2 · F3 — ADDITIVE review-engagement stamp for writeAttemptTxn (index.js). Mirrors the
+ * computeTeacherIdsForAttempt dormancy idiom: returns null (⇒ NO fields written ⇒ byte-identical
+ * attempt doc) when REVIEW_ENGAGEMENT_STAMP_ENABLED is false OR the attempt is not a review.
+ * `answered` follows isEngagedReviewServer: count non-empty studentResponse rows, else fall back
+ * to totalQuestions − skipped. NO grandfather here (PR-3's completion reader owns that).
+ * @returns {{answeredCount:number, engagedReview:boolean}|null}
+ */
+function computeReviewEngagementStamp(ctx, attemptAnswers, totalQuestions, skipped) {
+  if (!REVIEW_ENGAGEMENT_STAMP_ENABLED) return null;
+  if (!ctx || ctx.sessionType !== "review") return null;
+  const tq = Number.isInteger(totalQuestions) ? totalQuestions : 0;
+  const answered = Array.isArray(attemptAnswers)
+    ? attemptAnswers.filter((x) => String(x?.studentResponse ?? "").trim() !== "").length
+    : Math.max(0, tq - (skipped ?? 0));
+  // PR-2 verify MEDIUM: parity with isEngagedReviewServer — autoCompleted short-circuits engaged
+  // (the tq===0 disjunct already captures the non-positive-integer carve-out via the guard above).
+  const engagedReview = ctx.autoCompleted === true || tq === 0 || (answered / tq) >= MIN_ENGAGED_ANSWER_RATIO;
+  return {answeredCount: answered, engagedReview};
+}
+
+// ============================================================================
+// CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED) — SERVER binary-throttle + grandfathered
+// completion-engagement helpers. Byte-faithful mirror of src/utils/forcedPathway.js. They CONSUME
+// (never modify) isEngagedReviewServer / computeReviewEngagementStamp. Reachable ONLY from the
+// hold-csd branch of completeSession, itself DOUBLE-gated (FORCED_PATHWAY_ENABLED && the dormant
+// SERVER_COMPLETE_SESSION_ENABLED callable) ⇒ dead code today (byte-equivalent).
+// ============================================================================
+
+// Hysteresis bounds (David-locked 2026-07-16): enter review mode < 0.30, exit > 0.50, hold between.
+const FORCED_PATHWAY_ENTER_THRESHOLD = 0.30;
+const FORCED_PATHWAY_EXIT_THRESHOLD = 0.50;
+
+/** Last-N non-null review-score average, or null for < N (mirror of reviewAvgLastN). */
+function reviewAvgLastNServer(recentSessions, n = 3) {
+  if (!Array.isArray(recentSessions) || recentSessions.length === 0) return null;
+  const valid = recentSessions
+    .filter((s) => s?.reviewScore !== null && s?.reviewScore !== undefined)
+    .map((s) => s.reviewScore)
+    .slice(-n);
+  if (valid.length < n) return null;
+  return valid.reduce((sum, x) => sum + x, 0) / valid.length;
+}
+
+/** Binary throttle with hysteresis (mirror of deriveThrottleMode). */
+function deriveThrottleModeServer(recentSessions, priorMode = false) {
+  const avg = reviewAvgLastNServer(recentSessions, 3);
+  if (avg == null) return false;
+  if (avg < FORCED_PATHWAY_ENTER_THRESHOLD) return true;
+  if (avg > FORCED_PATHWAY_EXIT_THRESHOLD) return false;
+  return priorMode === true;
+}
+
+/**
+ * Grandfathered completion-engagement (mirror of isCompletionEngaged). GRANDFATHER (submittedAt
+ * before the epoch) → engaged; else prefer the PR-2 stamp (engagedReview); else the STRICT
+ * isEngagedReviewServer census predicate (consumed unmodified).
+ */
+function isCompletionEngagedServer(attempt, epochMs = FORCED_PATHWAY_GRANDFATHER_EPOCH_MS) {
+  if (!attempt) return false;
+  if (epochMs != null) {
+    const ms = pairMs(attempt.submittedAt);
+    if (ms > 0 && ms < epochMs) return true; // decision-#3 grandfather
+  }
+  if (typeof attempt.engagedReview === "boolean") return attempt.engagedReview; // PR-2 stamp
+  return isEngagedReviewServer(attempt); // STRICT census predicate (fallback)
+}
+
+/**
+ * The day's most-recent review attempt (for the F3 completion-engagement gate). Mirrors
+ * dayReviewExists' query but returns the doc data. {error:true} on failure ⇒ the hold gate fails
+ * OPEN (advance) so a query blip never strands a completion.
+ */
+async function getDayReviewForEngagement(uid, listId, studyDay) {
+  try {
+    const snap = await getDb().collection("attempts")
+      .where("studentId", "==", uid)
+      .where("listId", "==", listId)
+      .where("sessionType", "==", "review")
+      .where("studyDay", "==", studyDay)
+      .orderBy("submittedAt", "desc")
+      .limit(1)
+      .get();
+    return snap.empty ? null : {id: snap.docs[0].id, ...snap.docs[0].data()};
+  } catch (err) {
+    logger.warn("getDayReviewForEngagement query failed", {uid, listId, studyDay, error: err.message});
+    return {error: true};
+  }
+}
+
+/**
+ * Port of getReviewForDay under LIST_SCOPED_RECON (db.js:3687-3814). Base lineage: anchor
+ * submittedAt + integer range. OC-2 (REVIEW_PAIRING_V2_SERVER): additionally require
+ * anchorClassId, DROP the `submittedAt >= anchor` query pre-narrow (the tiered predicate judges
+ * temporality itself, incl. the pre-anchor legs), and judge each candidate by
+ * reviewPairsWithAnchorServer — mirroring db.js:3702-3767. Flag-off ⇒ the exact original
+ * lineage gate + `>=` query + exact-range match, verbatim (byte-equivalent).
  */
 async function getReviewForDayServer(uid, listId, studyDay, pairing) {
   if (!(pairing?.anchorSubmittedAt &&
         Number.isInteger(pairing?.anchorNewWordStartIndex) &&
-        Number.isInteger(pairing?.anchorNewWordEndIndex))) {
+        Number.isInteger(pairing?.anchorNewWordEndIndex) &&
+        // PR-2 verify LOW: this flag-off relaxation of anchorClassId is provably unreachable — both
+        // callers are gated by the same flags that make REVIEW_PAIRING_V2_SERVER true, so when this
+        // reader actually runs anchorClassId IS required (matches the client, db.js:3702).
+        (!REVIEW_PAIRING_V2_SERVER || pairing?.anchorClassId))) {
     return {status: "query-error", error: {message: "missing anchor lineage", code: "invalid-pairing"}};
   }
   try {
@@ -557,19 +770,33 @@ async function getReviewForDayServer(uid, listId, studyDay, pairing) {
         .where("studentId", "==", uid)
         .where("listId", "==", listId)
         .where("sessionType", "==", "review")
-        .where("studyDay", "==", studyDay)
-        .where("submittedAt", ">=", pairing.anchorSubmittedAt)
-        .orderBy("submittedAt", "desc")
-        .limit(REVIEW_PAIR_PAGE);
+        .where("studyDay", "==", studyDay);
+      // OC-2: V2 drops the temporal pre-narrow (mirror of db.js:3717-3743). Flag-off keeps it.
+      if (!REVIEW_PAIRING_V2_SERVER) q = q.where("submittedAt", ">=", pairing.anchorSubmittedAt);
+      q = q.orderBy("submittedAt", "desc").limit(REVIEW_PAIR_PAGE);
       if (cursor) q = q.startAfter(cursor);
       const snap = await q.get();
       if (snap.empty) return {status: "none"};
       for (const d of snap.docs) {
         const data = d.data();
-        if (data.newWordStartIndex === pairing.anchorNewWordStartIndex &&
-            data.newWordEndIndex === pairing.anchorNewWordEndIndex) {
-          return {status: "found", attempt: {id: d.id, ...data}};
-        }
+        // OC-2: the census-LOCKED tiered predicate replaces the exact-range match under V2
+        // (mirror of reviewPairsWithAnchor). Flag-off ⇒ the exact-range if, verbatim.
+        const paired = REVIEW_PAIRING_V2_SERVER
+          ? reviewPairsWithAnchorServer(data, {
+              studyDay,
+              classId: pairing.anchorClassId,
+              submittedAt: pairing.anchorSubmittedAt,
+              newWordStartIndex: pairing.anchorNewWordStartIndex,
+              newWordEndIndex: pairing.anchorNewWordEndIndex,
+            })
+          : (data.newWordStartIndex === pairing.anchorNewWordStartIndex &&
+             data.newWordEndIndex === pairing.anchorNewWordEndIndex);
+        // FIX-1 server mirror (PR-3 coupling HIGH): under FORCED_PATHWAY_ENABLED a post-epoch
+        // NON-engaged (skip) review must NOT complete the day even on the exact tier — skip it and
+        // keep scanning for a genuinely-engaged review (tri-symmetry with the client getReviewForDay).
+        // Flag-off ⇒ `pairedComplete === paired` ⇒ `if (paired)` verbatim (byte-equivalent).
+        const pairedComplete = FORCED_PATHWAY_ENABLED ? (paired && isCompletionEngagedServer(data)) : paired;
+        if (pairedComplete) return {status: "found", attempt: {id: d.id, ...data}};
       }
       if (snap.docs.length < REVIEW_PAIR_PAGE) return {status: "none"};
       cursor = snap.docs[snap.docs.length - 1];
@@ -707,6 +934,7 @@ async function computeAnchorPosition(uid, listId) {
       csd = 1;
     } else {
       const reviewResult = await getReviewForDayServer(uid, listId, anchorDay, {
+        anchorClassId: anchorTest.classId, // OC-2: same-class legs of the V2 predicate (additive; ignored flag-off)
         anchorSubmittedAt: anchorTest.submittedAt,
         anchorNewWordStartIndex: anchorTest.newWordStartIndex,
         anchorNewWordEndIndex: anchorTest.newWordEndIndex,
@@ -909,7 +1137,17 @@ async function validateAttemptAnchorShadow(uid, ctx, classData) {
     const serverTwi = progress.totalWordsIntroduced || 0;
     const serverCsd = progress.currentStudyDay || 0;
     const {dailyPace} = deriveDailyPace(assignment);
-    const interv = calculateInterventionLevel(progress.recentSessions || []);
+    // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED, M4 shadow parity): under the binary throttle derive the
+    // M4 allowedIntroduced from the SAME {0,1} intervention the live allocator uses
+    // (deriveThrottleModeServer over the persisted reviewMode), NOT the graduated
+    // calculateInterventionLevel — else a binary review-mode day (allocNew 0) is scored against a
+    // FRACTIONAL graduated allocation and flags a false `introduced_over_allocation`, polluting the M4
+    // shadow soak once SHADOW is turned on concurrently with FORCED_PATHWAY. INERT today
+    // (ANCHOR_VALIDATION_SHADOW/ENFORCE both false). Flag-off: calculateInterventionLevel verbatim
+    // (byte-equivalent).
+    const interv = FORCED_PATHWAY_ENABLED
+      ? (deriveThrottleModeServer(progress.recentSessions || [], progress.reviewMode === true) ? 1 : 0)
+      : calculateInterventionLevel(progress.recentSessions || []);
     const allocNew = Math.round(dailyPace * (1 - interv));
     let wordsRemaining = null;
     try {
@@ -1092,6 +1330,21 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
   // to remove the cap — so the server's derivation agrees with the client instead of checking
   // only the launching class. Flag-off ⇒ short-circuit, no read (byte-equivalent).
   const cycling = (await resolveEffectiveCyclingServer(uid, listId)).enabled;
+  // OC-4 (PR-2 verify HIGH): the lap MODULUS is the live word-doc count (getCycleLength /
+  // positions.length), NEVER lists.wordCount. Fetched pre-transaction, only when cycling.
+  const cycleModulus = cycling ? await getCanonicalCycleLengthServer(listId) : 0;
+
+  // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED): pre-fetch the day's review for the F3 completion-
+  // engagement gate (the server mirror of the client's threaded reviewAnswered — here read from the
+  // STORED attempt's PR-2 engagedReview stamp). Only under the flag + Day-2+ (Day-1 has no review).
+  // null / {error:true} ⇒ fpReviewEngaged=true ⇒ the hold gate fails OPEN (advance) so a query blip
+  // never strands a completion. Flag-off ⇒ no read (byte-equivalent).
+  const fpDayReview = (FORCED_PATHWAY_ENABLED && dayNumber >= 2)
+    ? await getDayReviewForEngagement(uid, listId, dayNumber)
+    : null;
+  const fpReviewEngaged = !(fpDayReview && !fpDayReview.error)
+    ? true
+    : isCompletionEngagedServer(fpDayReview, FORCED_PATHWAY_GRANDFATHER_EPOCH_MS);
 
   const txnResult = await getDb().runTransaction(async (tx) => {
     const snap = await tx.get(progressRef);
@@ -1112,7 +1365,16 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
     }
 
     // ── Server derivation (M5; F4-2 three-reason parity) ──
-    const serverInterv = calculateInterventionLevel(current.recentSessions || []);
+    // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED): BINARY serverInterv (parity with the client
+    // initializeDailySession) — deriveThrottleModeServer with hysteresis over the persisted
+    // reviewMode bit → {0,1}; allocNew is then 0 in review mode (reason-1 allocationZero ⟺ review
+    // mode). Flag-off ⇒ the graduated calculateInterventionLevel value (byte-equivalent).
+    const fpReviewMode = FORCED_PATHWAY_ENABLED
+      ? deriveThrottleModeServer(current.recentSessions || [], current.reviewMode === true)
+      : false;
+    const serverInterv = FORCED_PATHWAY_ENABLED
+      ? (fpReviewMode ? 1 : 0)
+      : calculateInterventionLevel(current.recentSessions || []);
     const allocNew = Math.round(dailyPace * (1 - serverInterv)); // studyAlgorithm.js:107
     const wordsRemaining = totalListWords - currentTwi;          // studyService.js:234
     // P9 · CYC (§3f): under cycling the list NEVER completes (twi climbs past the list size
@@ -1170,14 +1432,71 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
       wordsReviewed: intOr0(sc.wordsReviewed),
       wordsTested: intOr0(sc.wordsTested),
     };
-    const recentSessions = [...(current.recentSessions || []), summary].slice(-MAX_RECENT_SESSIONS);
+    // OC-4 (CS PR-2 · P9·CYC·U5 RESET mirror) — the ABSENT server-side cycling lap-boundary
+    // intervention reset, mirroring progressService.js:585-605. When the virtual twi crosses
+    // k·cycleLength (cycleLength = the canonical word-doc count — PR-2 verify HIGH fix) on a cycling list, DROP the prior lap's
+    // recentSessions carry (clean slate for the next intervention calc) and ZERO the stored
+    // interventionLevel (the finished list restarts at full pace). `cycling` is the EFFECTIVE
+    // cross-class result resolved pre-transaction (Codex P9-5). Gated on it: CYCLING_ENABLED=false
+    // ⇒ resolveEffectiveCyclingServer short-circuits ⇒ cycling=false ⇒ crossedLapBoundary=false ⇒
+    // the carry + serverInterv survive verbatim (byte-equivalent to today).
+    const cycleLen = cycleModulus; // OC-4 fix: canonical word-doc count (getCanonicalCycleLengthServer), NOT lists.wordCount
+    const twiBefore = currentTwi;
+    const twiAfter = currentTwi + wordsIntroduced;
+    const crossedLapBoundary = cycling === true && cycleLen > 0 &&
+      Math.floor(twiBefore / cycleLen) < Math.floor(twiAfter / cycleLen);
+    const recentSessions = [...(crossedLapBoundary ? [] : (current.recentSessions || [])), summary].slice(-MAX_RECENT_SESSIONS);
     const stats = calculateProgressStats(recentSessions);
     const streakDays = calculateUpdatedStreak(current.lastStudyDate, current.streakDays || 0, studyDaysPerWeek);
+
+    // ── CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED) HOLD-CSD (OC-1 `review_recorded`) ──
+    // Record the review WITHOUT advancing csd/twi when: a THROTTLE review-only day (review mode drove
+    // reason-1 allocationZero, and it is NEITHER the list-end NOR the #9-resume review-only case —
+    // those still advance, NEED_TO_FIX #11 preserved), OR a Day-2+ NON-ENGAGED (skip) review (the F3
+    // gate — kills the #16 runaway). Flag-off ⇒ fpHoldCsd false ⇒ the normal advance below runs
+    // verbatim (byte-equivalent). Mirrors progressService.recordReviewOutcome.
+    const fpThrottleReviewOnly = FORCED_PATHWAY_ENABLED &&
+      reviewOnlyReasons.allocationZero &&
+      !reviewOnlyReasons.listComplete &&
+      !reviewOnlyReasons.reviewStudyResume;
+    const fpHoldCsd = FORCED_PATHWAY_ENABLED &&
+      (fpThrottleReviewOnly || (dayNumber >= 2 && !fpReviewEngaged));
+    if (fpHoldCsd) {
+      const heldReviewMode = deriveThrottleModeServer(recentSessions, current.reviewMode === true);
+      const heldUpdates = {
+        // NO currentStudyDay, NO totalWordsIntroduced — HELD (the whole point of hold-csd).
+        reviewMode: heldReviewMode,
+        recentSessions,
+        stats,
+        streakDays,
+        lastStudyDate: now,
+        lastSessionAt: now,
+        updatedAt: now,
+      };
+      if (snap.exists) {
+        tx.update(progressRef, heldUpdates);
+      } else {
+        tx.set(progressRef, {
+          ...defaultProgressShape(classId, listId),
+          ...heldUpdates,
+          programStartDate: mondayOfWeekTimestamp(),
+          createdAt: now,
+        });
+      }
+      return {
+        status: "review_recorded",
+        currentCsd, currentTwi,
+        reviewOnlyDay, reviewOnlyReasons, reviewMode: heldReviewMode,
+        heldEngaged: fpReviewEngaged, throttleReviewOnly: fpThrottleReviewOnly,
+      };
+    }
 
     const updates = {
       currentStudyDay: currentCsd + 1,                       // progressService.js:466
       totalWordsIntroduced: currentTwi + wordsIntroduced,    // progressService.js:467
-      interventionLevel: serverInterv,                       // parity: the session's own level (:468)
+      // OC-4: a crossed lap boundary zeroes the stored intervention (progressService.js:605).
+      // Flag-off ⇒ crossedLapBoundary=false ⇒ serverInterv (byte-equivalent).
+      interventionLevel: crossedLapBoundary ? 0 : serverInterv, // parity: the session's own level (:468)
       recentSessions,
       stats,
       streakDays,
@@ -1185,6 +1504,13 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
       lastSessionAt: now,
       updatedAt: now,
     };
+    // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED): the completion writer is the ONE owner of the
+    // persisted reviewMode bit — recompute on ADVANCE too (a crossed lap boundary's fresh recentSessions
+    // slate → false, restarting full pace, in step with interventionLevel:0 above). Flag-off ⇒ no
+    // reviewMode field written (byte-equivalent advance doc).
+    if (FORCED_PATHWAY_ENABLED) {
+      updates.reviewMode = deriveThrottleModeServer(recentSessions, current.reviewMode === true);
+    }
     if (snap.exists) {
       tx.update(progressRef, updates);
     } else {
@@ -1241,6 +1567,29 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
     };
   }
 
+  // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED) hold-csd: the review was RECORDED but the day did NOT
+  // advance (OC-1). Log it and return a success-shaped, non-advancing result — the student stays on
+  // the review-mode day (throttle hold) or must retake (skip). No users/{uid}/sessions history write
+  // and no W2 marker (csd unchanged ⇒ nothing to pair/mark). Only reachable under the double gate.
+  if (txnResult.status === "review_recorded") {
+    await logSystemEventServer("review_recorded", {
+      userId: uid, classId, listId,
+      sessionDay: dayNumber, progressDay: txnResult.currentCsd,
+      reviewOnlyReasons: txnResult.reviewOnlyReasons,
+      reviewMode: txnResult.reviewMode,
+      throttleReviewOnly: txnResult.throttleReviewOnly,
+      engaged: txnResult.heldEngaged,
+      source: "completeSession",
+    }, "info");
+    return {
+      status: "review_recorded",
+      dayGuardRejected: false,
+      advanced: false,
+      reviewMode: txnResult.reviewMode,
+      progressDay: txnResult.currentCsd,
+    };
+  }
+
   // F-4: evidence-gated non-advance. The day-guard passed (dayNumber === csd+1)
   // but there is no passed `new` anchor and no server-verified review-only reason
   // — refuse to advance (nothing was written in the txn). The session is NOT
@@ -1288,6 +1637,7 @@ const completeSession = onCall({enforceAppCheck: false}, async (request) => {
     let pairing;
     if (dayNewPass && Number.isInteger(dayNewPass.newWordEndIndex)) {
       pairing = await getReviewForDayServer(uid, listId, dayNumber, {
+        anchorClassId: dayNewPass.classId, // OC-2: same-class legs of the V2 predicate (additive; ignored flag-off)
         anchorSubmittedAt: dayNewPass.submittedAt,
         anchorNewWordStartIndex: dayNewPass.newWordStartIndex,
         anchorNewWordEndIndex: dayNewPass.newWordEndIndex,
@@ -1876,9 +2226,21 @@ async function runChallengeDayAdvanceTxn({attempt, assignment, phase, studentId,
         Math.max(0, rawNewWordCount) :
         Math.max(0, Math.min(rawNewWordCount, wordsRemaining)));
     const twiIncrement = phase === "new" ? clamped : 0; // phase gate (F5-HIGH-2)
+    // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED): hold-guard the challenge advance — a review fail→pass
+    // must NOT advance a THROTTLE-HELD day (reviewMode===true; the #16 runaway the hold-csd kills).
+    // When held, SKIP the advance and return non-advancing (the corrected score already lives on the
+    // attempt doc; the day stays put — mirror of the client db.js challenge-accept hold-guard). When it
+    // DOES advance, this becomes a csd writer, so it must ALSO persist the reviewMode bit
+    // (deriveThrottleModeServer over recentSessions — the one-owner invariant, mirror of the
+    // completeSession advance writer). Flag-off: the guard/spread are inert → the unconditional
+    // tx.update below runs with no reviewMode key (byte-equivalent to today).
+    if (FORCED_PATHWAY_ENABLED && progress.reviewMode === true) {
+      return {advanced: false, reason: "review_mode_hold", currentDay};
+    }
     tx.update(progressRef, {
       currentStudyDay: currentDay + 1,
       totalWordsIntroduced: currentTwi + twiIncrement,
+      ...(FORCED_PATHWAY_ENABLED ? {reviewMode: deriveThrottleModeServer(progress.recentSessions || [], progress.reviewMode === true)} : {}),
       lastSessionAt: now,
       updatedAt: now,
     });
@@ -2515,6 +2877,9 @@ module.exports = {
   validateAttemptAnchorShadow,
   writeUpgradedReviewMarker,
   deriveDayAnchorRange,
+  // CS PR-2 · F3 — the additive review-engagement stamp helper (dormant unless
+  // REVIEW_ENGAGEMENT_STAMP_ENABLED); consumed by writeAttemptTxn in index.js.
+  computeReviewEngagementStamp,
   // deepfix P10 · OVR part (c) — the teacherIds denormalization helper (dormant unless
   // TEACHER_IDS_WRITE_ENABLED); consumed by writeAttemptTxn in index.js.
   computeTeacherIdsForAttempt,

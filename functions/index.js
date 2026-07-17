@@ -364,6 +364,27 @@ async function assertCanWriteAttempt(uid, ctx) {
 }
 
 /**
+ * CS PR-2 · WI-4 (I6) — drop duplicate wordId rows (first occurrence wins), the server analog
+ * of the client RECOVERY_GUARD's intersect-with-membership. Rows without a wordId are kept as-is
+ * (they cannot be de-duplicated and are not the >100% signature). Pure; used only under the
+ * RECOVERY_SCORE_CLAMP_ENABLED gate.
+ */
+function dedupeByWordId(rows) {
+  if (!Array.isArray(rows)) return rows;
+  const seen = new Set();
+  const out = [];
+  for (const r of rows) {
+    const id = r?.wordId;
+    if (id != null) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+    }
+    out.push(r);
+  }
+  return out;
+}
+
+/**
  * The single server-side attempt writer. Transactional + idempotent on the
  * client-supplied deterministic `ctx.attemptDocId`. Computes score server-side
  * against ctx.totalQuestions (NOT answered count — skipped count as incorrect),
@@ -395,11 +416,21 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
   await foundation.validateAttemptAnchorShadow(uid, ctx, authRes.classData);
 
   // Score against TOTAL questions presented, not answered (§Codex).
-  const correctCount = attemptAnswers.filter((a) => a.isCorrect ?? a.correct).length;
+  // CS PR-2 · WI-4 (I6 server clamp): stale MCQ/typed crash-recovery answers can carry
+  // DUPLICATE or out-of-range wordId rows (no membership check on the client recovery path)
+  // so correctCount exceeds totalQuestions → score > 100 (the 4 historical >100% gradebook
+  // docs). Under RECOVERY_SCORE_CLAMP_ENABLED, mirror the client RECOVERY_GUARD: dedupe the
+  // SCORED rows by wordId (an impossible duplicate can no longer inflate the numerator) and
+  // clamp correctCount∈[0,totalQuestions] / score∈[0,100]. Flag-off ⇒ the exact original
+  // unclamped expressions (byte-equivalent; a clamp only removes an impossible output).
+  const RECOVERY_SCORE_CLAMP = foundation.FOUNDATION_FLAGS.RECOVERY_SCORE_CLAMP_ENABLED;
+  const scoredRows = RECOVERY_SCORE_CLAMP ? dedupeByWordId(attemptAnswers) : attemptAnswers;
+  const rawCorrect = scoredRows.filter((a) => a.isCorrect ?? a.correct).length;
   const totalQuestions = ctx.totalQuestions ?? attemptAnswers.length;
   const skipped = Math.max(0, totalQuestions - attemptAnswers.length);
+  const correctCount = RECOVERY_SCORE_CLAMP ? Math.max(0, Math.min(rawCorrect, totalQuestions)) : rawCorrect;
   const scoreFraction = totalQuestions > 0 ? correctCount / totalQuestions : 0;
-  const score = Math.round(scoreFraction * 100); // 0-100
+  const score = RECOVERY_SCORE_CLAMP ? Math.min(100, Math.round(scoreFraction * 100)) : Math.round(scoreFraction * 100); // 0-100
   const passed = ctx.sessionType === "review" ? true : score >= passThreshold;
 
   // Refuse to write an invalid new-word anchor (CS-2026-06-21): a passed `new`
@@ -431,6 +462,12 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
   const teacherIds = await foundation.computeTeacherIdsForAttempt(
     {studentId: uid, listId: ctx.listId, stampTeacherId: teacherId});
 
+  // CS PR-2 · F3 — ADDITIVE review-engagement stamp (answeredCount / engagedReview) so PR-3's
+  // completion reader can consume the evidence without re-deriving from answers[]. Null when
+  // REVIEW_ENGAGEMENT_STAMP_ENABLED is off OR the attempt is not a review ⇒ no field added ⇒
+  // the written doc is byte-identical to today. NO grandfather here (PR-3 owns that).
+  const engagementStamp = foundation.computeReviewEngagementStamp(ctx, attemptAnswers, totalQuestions, skipped);
+
   const ref = db.collection("attempts").doc(ctx.attemptDocId);
   return db.runTransaction(async (tx) => {
     const existing = await tx.get(ref);
@@ -459,6 +496,7 @@ async function writeAttemptTxn(uid, ctx, attemptAnswers, auth, opts) {
       listId: ctx.listId,
       teacherId,
       ...(teacherIds ? {teacherIds} : {}), // [P10c] additive; omitted when the flag is off
+      ...(engagementStamp || {}), // [CS PR-2 · F3] additive engagement evidence; omitted when the flag is off / non-review
       // Echoed session context (anchor + display) — same fields db.js submit*Attempt flattens.
       isFirstDay: ctx.isFirstDay ?? null,
       listTitle: ctx.listTitle ?? null,
