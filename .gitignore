@@ -55,6 +55,9 @@ audit/playwright/findings/EVIDENCE_INDEX.md
 # Live-data admin harnesses, per-student backups, and audit reports (own git repo,
 # contains student uids/emails — never commit to the app repo)
 dsg-edits/
+# Full-cohort pre-migration backups (hundreds of MB of student data incl. uids/emails —
+# reinstatement snapshots, kept locally; never commit). Produced by scripts/cs/backup-all-26sm.mjs
+scripts/cs/backups_full_26sm_*/
 
 # Windows shell redirect artifact
 nul
@@ -76,3 +79,6 @@ audit/playwright/lsr_accept_matrix.json
 
 # deepfix program — session transcripts (large, never commit)
 audit/deepfix/context/transcripts/
+
+# CS/data backup dirs — student PII, never commit (added 2026-07-17 pre-full-auto-pipeline)
+scripts/cs/backups_*/

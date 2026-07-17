@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 8,
+  "taskId": "CONSOLIDATED_ROADMAP_SEQ_GATE",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_roadmap_seq_001.md",
+  "writtenLast": true
+}

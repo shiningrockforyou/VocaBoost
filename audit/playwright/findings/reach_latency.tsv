@@ -2894,3 +2894,30 @@
 2026-07-15T12:07:19.983Z	CS-11-mismatch	Start-New-Words/Continue	20013	false
 2026-07-15T12:09:22.678Z	CUT-5	Start-New-Words/Continue	20001	false
 2026-07-15T12:11:25.553Z	CUT-6	Start-New-Words/Continue	20016	false
+2026-07-15T23:21:04.330Z	RA1	Session menu	30000	false
+2026-07-15T23:23:09.356Z	RA2-d0	Session menu	29999	false
+2026-07-15T23:28:54.569Z	RA1	Session menu	29999	false
+2026-07-15T23:31:00.092Z	RA2-d0	Session menu	30000	false
+2026-07-15T23:41:40.094Z	dup_dup1_a@vocaboost.test	Session menu	8	true
+2026-07-15T23:41:42.466Z	dup_dup1_a@vocaboost.test	review test page	8	true
+2026-07-15T23:42:12.791Z	dup_dup1_a@vocaboost.test	results Continue	20000	false
+2026-07-15T23:42:33.290Z	dup_dup1_b@vocaboost.test	Session menu	6	true
+2026-07-15T23:42:35.621Z	dup_dup1_b@vocaboost.test	review test page	5	true
+2026-07-15T23:43:05.944Z	dup_dup1_b@vocaboost.test	results Continue	20001	false
+2026-07-15T23:43:28.176Z	dup_dup1_c@vocaboost.test	Session menu	4	true
+2026-07-15T23:43:30.494Z	dup_dup1_c@vocaboost.test	review test page	6	true
+2026-07-15T23:44:00.820Z	dup_dup1_c@vocaboost.test	results Continue	20001	false
+2026-07-15T23:44:23.179Z	dup_dup1_d@vocaboost.test	Session menu	5	true
+2026-07-15T23:44:25.544Z	dup_dup1_d@vocaboost.test	review test page	6	true
+2026-07-15T23:44:55.871Z	dup_dup1_d@vocaboost.test	results Continue	19999	false
+2026-07-16T00:05:19.302Z	THR-C	Session menu	4	true
+2026-07-16T00:05:21.615Z	THR-C	review test page	5	true
+2026-07-16T00:05:51.114Z	THR-C	results Continue	19998	false
+2026-07-16T00:08:33.070Z	mcq	Session menu	195	true
+2026-07-16T00:11:08.623Z	mcq	Session menu	828	true
+2026-07-16T00:24:48.559Z	diag	Session menu	220	true
+2026-07-16T00:36:03.507Z	mcq	Session menu	9	true
+2026-07-16T00:42:54.486Z	esc	Session menu	7	true
+2026-07-17T16:56:52.012Z	RO-S1	Start-New-Words/Continue	7	true
+2026-07-17T16:56:55.596Z	RO-S1	Session menu	5	true
+2026-07-17T16:57:14.960Z	RO-S1	results Continue	4	true

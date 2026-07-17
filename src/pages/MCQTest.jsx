@@ -5,7 +5,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
-import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD } from '../config/featureFlags'
+import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
@@ -100,6 +101,11 @@ const MCQTest = () => {
   const [savedRecoveryState, setSavedRecoveryState] = useState(null)
   const [recoveryTimeRemaining, setRecoveryTimeRemaining] = useState(null)
   const [showProgressSheet, setShowProgressSheet] = useState(false)
+  // CS PR-1 · F2 (I1, REENTRY_GUARD): under-answered REVIEW submit confirm. The ref (not
+  // state) carries "student confirmed" through the immediate handleSubmit re-entry so the
+  // dialog can't re-fire on the confirmed pass. Dormant while REENTRY_GUARD is false.
+  const [showUnderAnsweredConfirm, setShowUnderAnsweredConfirm] = useState(false)
+  const underAnsweredConfirmedRef = useRef(false)
 
   // Practice mode (after passing, test doesn't save)
   const [isPracticeMode] = useState(practiceMode)
@@ -400,10 +406,33 @@ const MCQTest = () => {
     // Clear any stale intentional exit flag
     clearIntentionalExitFlag(testId)
     if (savedRecoveryState?.answers) {
-      setAnswers(savedRecoveryState.answers)
-      answersRef.current = { ...savedRecoveryState.answers }
-      if (savedRecoveryState.currentIndex !== undefined) {
-        setCurrentIndex(savedRecoveryState.currentIndex)
+      if (RECOVERY_GUARD) {
+        // CS PR-1 · WI-4 (I6): MCQ regenerates its word sample per load, so saved answers can
+        // reference words NOT in the current testWords set; restoring them wholesale inflated
+        // the stored answers[] past totalQuestions (the >100% score class). INTERSECT the
+        // saved answers with the current word-id set; drop an out-of-range saved index; an
+        // EMPTY intersection means the sample fully regenerated → start fresh.
+        const validIds = new Set(testWords.map(w => w.id))
+        const filtered = {}
+        for (const [wordId, option] of Object.entries(savedRecoveryState.answers)) {
+          if (validIds.has(wordId)) filtered[wordId] = option
+        }
+        if (Object.keys(filtered).length === 0) {
+          handleRecoveryStartFresh()
+          return
+        }
+        setAnswers(filtered)
+        answersRef.current = { ...filtered }
+        const savedIdx = savedRecoveryState.currentIndex
+        if (Number.isInteger(savedIdx) && savedIdx >= 0 && savedIdx < testWords.length) {
+          setCurrentIndex(savedIdx)
+        }
+      } else {
+        setAnswers(savedRecoveryState.answers)
+        answersRef.current = { ...savedRecoveryState.answers }
+        if (savedRecoveryState.currentIndex !== undefined) {
+          setCurrentIndex(savedRecoveryState.currentIndex)
+        }
       }
     }
     setShowRecoveryPrompt(false)
@@ -461,6 +490,21 @@ const MCQTest = () => {
 
   const handleSubmit = async () => {
     if (submitting || !user?.uid || !listId) return
+
+    // CS PR-1 · F2 (I1): non-blocking confirm on an under-answered REVIEW submit (answered
+    // below the 80% engagement bar — the same MIN_ENGAGED_ANSWER_RATIO the pairing/engagement
+    // predicate uses). NEVER blocks: Confirm proceeds with the submit unchanged (skips are
+    // real signal, CS-16c — a server reject was explicitly rejected). Gated under
+    // REENTRY_GUARD — documented choice: F2 ships in PR-1 whose flag set is
+    // {REVIEW_PAIRING_V2, REENTRY_GUARD, RECOVERY_GUARD}; F2 is display-additive like the
+    // rest of the REENTRY_GUARD (I3 re-entry/display) surface, and PR-3's FORCED_PATHWAY
+    // escalation supersedes it. Flag-off: no dialog, today's submit path exactly.
+    if (REENTRY_GUARD && currentTestType === 'review' && !underAnsweredConfirmedRef.current
+        && testWords.length > 0
+        && Object.keys(answersRef.current).length < Math.ceil(MIN_ENGAGED_ANSWER_RATIO * testWords.length)) {
+      setShowUnderAnsweredConfirm(true)
+      return
+    }
 
     setSubmitting(true)
     setError('')
@@ -1522,6 +1566,27 @@ const MCQTest = () => {
         onCancel={handleRecoveryStartFresh}
         variant="info"
       />
+
+      {/* CS PR-1 · F2 (I1, REENTRY_GUARD): under-answered REVIEW submit confirm. N% is the
+          score that WILL be recorded (correct/total — unanswered count as wrong); MCQ options
+          already carry isCorrect client-side, so this exposes no new information class.
+          Renders nothing while the flag is off. */}
+      {REENTRY_GUARD && (
+        <ConfirmModal
+          isOpen={showUnderAnsweredConfirm}
+          title="Submit Review Test?"
+          message={`You've answered ${Object.keys(answers).length}/${testWords.length}. This will be recorded as ${testWords.length > 0 ? Math.round((testWords.filter(w => answers[w.id]?.isCorrect).length / testWords.length) * 100) : 0}% — under 80% answered it won't complete your day and low review averages switch you to review-only mode. Submit anyway?`}
+          confirmLabel="Submit Anyway"
+          cancelLabel="Keep Answering"
+          onConfirm={() => {
+            underAnsweredConfirmedRef.current = true
+            setShowUnderAnsweredConfirm(false)
+            handleSubmit()
+          }}
+          onCancel={() => setShowUnderAnsweredConfirm(false)}
+          variant="warning"
+        />
+      )}
 
       {/* Submission Overlay */}
       {submitting && (

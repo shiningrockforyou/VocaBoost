@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 11,
+  "taskId": "PR1_DIFF_REVIEW",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_pr1_diff_001.md",
+  "writtenLast": true
+}

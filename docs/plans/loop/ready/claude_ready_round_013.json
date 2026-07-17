@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 13,
+  "taskId": "SITUATION_CONFIRM",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_situation_confirm_001.md",
+  "writtenLast": true
+}

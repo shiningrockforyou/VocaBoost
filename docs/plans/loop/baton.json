@@ -1,26 +1,25 @@
 ﻿{
     "turnOwner":  "claude",
-    "round":  6,
-    "taskId":  "DEEPFIX_ENDREVIEW_V3",
-    "targetPlan":  "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md",
-    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_deepfix_endreview_v3_001.md",
+    "round":  14,
+    "taskId":  "PR2_DIFF_REVIEW",
+    "targetPlan":  "functions/foundation.js",
+    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_pr2_diff_001.md",
+    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_014.json",
     "changedFiles":  [
-                         "src/pages/Signup.jsx",
-                         "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md"
+                         "functions/foundation.js",
+                         "functions/index.js",
+                         "audit/playwright/lsr_deepfix_static.mjs"
                      ],
     "evidenceFiles":  [
-                          "audit/deepfix/task3/Signup.p6.jsx",
-                          "audit/deepfix/task6/DEPLOY_RIDER_MANIFEST.md",
-                          "docs/plans/loop/codex_reviews/codex_deepfix_endreview_v2_001.md"
+                          "docs/plans/loop/handoffs/claude_to_codex_pr2_diff_001.md"
                       ],
-    "claudeStatus":  "endreview-v3-requested",
+    "claudeStatus":  "pr2-core-built-verified-ready-for-codex",
     "codexStatus":  "review-written",
-    "codexDecision":  "GO",
-    "note":  "END-REVIEW v3 â€” confirm the F1 fix, initial-release gate. Your v2 BLOCKER was correct + verified: F1 (Signup invite-code -\u003e provisionTeacher) shipped ungated while TEACHER_PROVISIONING_ENABLED=false (index.js:1962/1986-1990; flag comment 1960-1961 says it flips in the SAME release train as the P6 rules). FIX APPLIED (your option 2, design-intended): reverted src/pages/Signup.jsx to HEAD (today\u0027s teacher self-registration stays live; git diff --stat on Signup.jsx now EMPTY; F1 was isolated to Signup.jsx = sole client provisionTeacher caller, grep-confirmed); F1 preserved at audit/deepfix/task3/Signup.p6.jsx for the P6 cutover; manifest updated (F1 moved A-\u003eD; E-invariant-4 now lists TEACHER_PROVISIONING_ENABLED among flags staying off). V3 GATE QUESTION (narrow now): (1) confirm F1 gone from release - src/pages/Signup.jsx==HEAD, no invite-code/provisionTeacher client call ships, today\u0027s signup byte-equivalent to prod; (2) ANY OTHER live delta in the tree that ships but is NOT whitelisted in the manifest A/B/C? (the completeness lens that caught F1) - if clean, GO; (3) prior confirmations still hold (GRADE_TOKEN_MINT=false, rules excluded, F2 index-before-hosting). Scope unchanged: initial staged release only (--only indexes-\u003efunctions-\u003ehosting, no rules, no flag flips). Out of scope: dormant flag cutovers, MED-3/4 (P5), rules R1-R3, cycling. DELIVERABLE: findings + EXPLICIT GO|NO-GO for the initial staged release. Review-only (I fix), ground in file:line. Write /out/reviews/codex_deepfix_endreview_v3_001.md, flip baton-\u003eclaude: turnOwner=claude round=6 codexStatus=review-written codexDecision=\u003cGO|NO-GO\u003e codexConverged=\u003cbool\u003e codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix_endreview_v3_001.md updatedBy=codex revision=83.",
-    "codexReview":  "/out/reviews/codex_deepfix_endreview_v3_001.md",
-    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_deepfix_endreview_v3_001.md",
+    "codexDecision":  "NEEDS_FIXES",
+    "note":  "Round 14: review the CS PR-2-CORE code diff (functions/foundation.js + index.js; DORMANT, all gates false; flag-off = byte-equivalent to deployed foundation.js). The server companion to PR-1. Read handoffs/claude_to_codex_pr2_diff_001.md. My verification: Workflow adversarial-verify (Opus/max, 3 lenses) = byte-equiv SOUND + parity/flag-on CONCERNS(4), ALL FOLDED — (HIGH) OC-4 wrong modulus -\u003e getCanonicalCycleLengthServer canonical word-doc count; (MED) stamp autoCompleted parity; (LOW) pairMs byte-faithful to client tsMillis (throw-\u003equery-error fail-closed, catch :715-716); (LOW) lineage-gate documented unreachable. node --check + invariant CLEAN 34/0/1. Scrutinize: the OC-4 aggregate-count pre-txn fix, pairMs throw parity, the PR-2/PR-3 split (hold-csd/grandfather deferred), stamp+clamp dormant-in-tree-\u003eflip-at-D2. GO=correct+byte-equiv+safe for D2 / NEEDS_FIXES=name them. Write codex_reviews/codex_review_pr2_001.md, then flip baton-\u003eclaude: round=14 codexStatus=review-written codexDecision=\u003cverdict\u003e codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_review_pr2_001.md updatedBy=codex revision=99.",
     "updatedBy":  "codex",
-    "updatedAt":  "2026-07-16T00:14:00.0000000+09:00",
-    "revision":  83,
-    "codexConverged":  true
+    "revision":  99,
+    "codexConverged":  false,
+    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_review_pr2_001.md",
+    "updatedAt":  "2026-07-18T04:16:21.1950883+09:00"
 }

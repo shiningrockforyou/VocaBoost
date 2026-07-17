@@ -809,7 +809,14 @@ const Dashboard = () => {
     try {
       const sessionState = await getSessionState(user.uid, classId, listId)
 
-      if (shouldShowReEntryModal(sessionState)) {
+      // REENTRY_GUARD (CS PR-1 · WI-3): pass the last genuinely-completed day (csd from the
+      // already-loaded class_progress map) so the re-entry gate can require
+      // session_state.currentStudyDay === csd. Pure in-memory read, passed unconditionally —
+      // the conjunct itself is applied inside shouldShowReEntryModal only when the flag is ON
+      // (flag-off: the extra argument is ignored; behavior is byte-equivalent).
+      const lastCompletedDay = progressData[`${classId}_${listId}`]?.currentStudyDay ?? null
+
+      if (shouldShowReEntryModal(sessionState, lastCompletedDay)) {
         // User already completed review test - show re-entry modal
         setReEntryContext({
           classId,

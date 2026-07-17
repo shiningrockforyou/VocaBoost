@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import admin from 'firebase-admin';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const AUD = HERE;                       // this file lives in audit/playwright/ — repo-relative, portable (WSL + Windows)
@@ -40,7 +41,7 @@ const SCEN = (process.env.DFX_SCENARIOS || DEFAULT_SCEN).trim().split(/\s+/);
 
 // lsr_ui.mjs import TRIGGERS the fail-closed base guard (throws unless BASE is http://localhost).
 const UI = await import('./lsr_ui.mjs');
-const { BASE, makeFindings, launch, newAuditPage, login, joinClass, selectList, goDashboard,
+const { BASE, PASS, makeFindings, launch, newAuditPage, login, joinClass, selectList, goDashboard,
         enterReviewSession, enterSessionOnly, readTestRows, partialAnswers, carefulAnswersFrom, fillSubmitAndObserve,
         returnFromResultsAndClearCompletion, driveNewWordsToTest,
         readFocusList, readFocusClass, listSelectorOptions, switchClass, armDialog, lastDialog, shot, sleep } = UI;
@@ -307,10 +308,30 @@ async function nextStudent() { const e = STUDENTS[studentIdx % STUDENTS.length];
 
 async function runScenario(browser, id, fn) {
   const email = await nextStudent();
-  const uid = await FB.uidByEmail(email);
+  // Resolve the sandbox uid; auto-provision a FRESH account if missing (clean day-1, no list-scoped study_state
+  // pollution — the reason RA1/#11 landed in the all-mastered dead-end on reused students). admin is initialized
+  // lazily by the first FB.db() call inside FB.uidByEmail's siblings; force it here so createUser has an app.
+  let uid;
+  try {
+    FB.db(); // ensure admin.initializeApp() ran before any admin.auth() use
+    uid = await FB.uidByEmail(email);
+    if (!uid) {
+      uid = (await admin.auth().createUser({ email, password: PASS, emailVerified: true })).uid;
+      // Fresh Auth accounts also need a Firestore user PROFILE (role:'student') or joinClass's classes.studentIds
+      // write is rules-denied → phantom membership (enrolledClasses set, class unaware). Mirror the real-signup shape.
+      const num = (email.match(/s(\d+)@/) || [, ''])[1];
+      await FB.db().collection('users').doc(uid).set({
+        role: 'student', email,
+        profile: { displayName: `LSR Student ${num}`, school: '', gradYear: null, gradMonth: null, calculatedGrade: null, avatarUrl: '' },
+        enrolledClasses: {}, createdAt: FB.now(),
+      }, { merge: true });
+    }
+  } catch (e) {
+    const rec0 = { id, email, uid: null, listId: LIST.id, verdict: 'INVALID', confirmed: false, detail: `uid resolve/create failed for ${email}: ${String(e).slice(0, 140)}` };
+    results.push(rec0); return;
+  }
   const rec = { id, email, uid, listId: LIST.id, verdict: 'PENDING', confirmed: false, detail: '' };
   results.push(rec);
-  if (!uid) { rec.verdict = 'INVALID'; rec.detail = `no uid for ${email}`; return; }
   try {
     const className = `25WT DFX ${id} ${runId}`;
     const prov = await provisionClass(browser, className, PROV[id] || PROV.default);
@@ -349,7 +370,8 @@ const SCENARIOS = {
   // RA1 — full-freeze RECOVERY: interv=1.0 → review-only day completes → csd+1, twi flat, newWordScore null,
   // then a LATER high-review day yields newWordCount>0 (recovery closes).
   RA1: async (c) => {
-    await FB.seedInterventionWindow({ email: c.email, uid: c.uid, classId: c.classId, listId: c.listId, csd: 4, twi: c.pace * 2 });
+    const wordIds = await FB.getListWordIds(c.listId, { limit: c.pace * 2 });
+    await FB.seedReviewableThrottled({ email: c.email, uid: c.uid, classId: c.classId, listId: c.listId, csd: 4, twi: c.pace * 2, wordIds });
     await goDashboard(c.page).catch(() => {});
     const pre = await FB.readProgress(c.uid, c.classId, c.listId);
     const preAtt = await FB.readAttempts(c.uid, c.classId, c.listId);
@@ -369,9 +391,45 @@ const SCENARIOS = {
     setV(c.rec, 'PASS', `csd ${pre.csd}->${post.csd}, twi flat ${post.twi}, newWordScore null, recovery interv=${recov.interventionLevel}`);
   },
 
+  // ── THROTTLE_FIX_VALIDATION.md #11 personas — seed a real at-risk archetype, drive, assert the 6 criteria ──
+  // THR-C — ESCAPE (KEYSTONE): a hard-throttled student (interv 1.0 from 3 zero-reviews) drives MULTIPLE
+  // review-only days at HIGH scores. Each day MUST complete + advance csd + RECORD the review (the #11 fix);
+  // as the last-3 review avg climbs past 0.30, interv drops → newWordCount>0 → NEW WORDS RETURN = escaped.
+  // This is the whole point: students can escape the deadlock by taking several good review tests.
+  'THR-C': async (c) => {
+    const twi = Math.max(60, Math.round(0.4 * LIST.size));
+    const wordIds = await FB.getListWordIds(c.listId, { limit: twi });
+    // >=3 low reviews so calculateInterventionLevel actually returns 1.0 (fewer than 3 → 0.0, not throttled).
+    await FB.seedThrottlePersona({ email: c.email, uid: c.uid, classId: c.classId, listId: c.listId,
+      csd: 8, twi, interventionLevel: 1.0, recentSessions: [{ reviewScore: 0 }, { reviewScore: 0 }, { reviewScore: 0 }], wordIds, masteredFrac: 0.15 });
+    await goDashboard(c.page).catch(() => {});
+    const seed = await FB.readProgress(c.uid, c.classId, c.listId);
+    const trail = [`seed csd=${seed.csd} interv=${seed.interventionLevel}`];
+    let escaped = false;
+    for (let day = 0; day < 5; day++) {
+      // escape check FIRST: if new words are offered, intervention has released → escaped
+      const newWordsCta = await c.page.getByRole('button', { name: /start new words|learn \d+ new/i }).first().isVisible({ timeout: 4000 }).catch(() => false);
+      if (newWordsCta) { escaped = true; trail.push(`day${day}: NEW WORDS RETURNED → ESCAPED`); break; }
+      const preCsd = (await FB.readProgress(c.uid, c.classId, c.listId)).csd;
+      const preRev = (await FB.readAttempts(c.uid, c.classId, c.listId)).reviewAttempts;
+      const d = await driveReviewOnlyDay(c.page, `THR-C-d${day}`, { nCorrect: null }); // all-correct → HIGH review
+      if (d.outcome !== 'results') return setV(c.rec, 'FAIL', `day${day} review-only did NOT complete (walled/empty?): outcome=${d.outcome} · ${trail.join(' | ')}`);
+      const post = await FB.readProgress(c.uid, c.classId, c.listId);
+      const postRev = (await FB.readAttempts(c.uid, c.classId, c.listId)).reviewAttempts;
+      if (post.csd !== preCsd + 1) return setV(c.rec, 'FAIL', `day${day} csd ${preCsd}->${post.csd} (want +1) — review-only NOT advancing · ${trail.join(' | ')}`);
+      if (postRev !== preRev + 1) return setV(c.rec, 'FAIL', `day${day} review NOT recorded (crit3) · ${trail.join(' | ')}`);
+      if (post.twi !== seed.twi) return setV(c.rec, 'FAIL', `day${day} twi drifted ${seed.twi}->${post.twi} (crit5) · ${trail.join(' | ')}`);
+      trail.push(`day${day}: csd->${post.csd}, interv->${(post.interventionLevel ?? '?')}, reviewAtt+1`);
+      await goDashboard(c.page).catch(() => {});
+    }
+    if (!escaped) return setV(c.rec, 'FAIL', `did NOT escape after ${trail.length - 1} high reviews (interv never released) · ${trail.join(' | ')}`);
+    setV(c.rec, 'PASS', `ESCAPED via multiple high reviews · ${trail.join(' | ')}`);
+  },
+
   // RA2 — persistent-low: interv pinned 1.0, each review-only day completes (csd advances), twi flat.
   RA2: async (c) => {
-    await FB.seedInterventionWindow({ email: c.email, uid: c.uid, classId: c.classId, listId: c.listId, csd: 4, twi: c.pace * 2 });
+    const wordIds = await FB.getListWordIds(c.listId, { limit: c.pace * 2 });
+    await FB.seedReviewableThrottled({ email: c.email, uid: c.uid, classId: c.classId, listId: c.listId, csd: 4, twi: c.pace * 2, wordIds });
     await goDashboard(c.page).catch(() => {});
     let pre = await FB.readProgress(c.uid, c.classId, c.listId);
     for (let day = 0; day < 2; day++) {

@@ -25,10 +25,15 @@ export const BASE = process.env.LSR_BASE_URL || 'http://localhost:5173';
 ;(function assertLocalBase() {
   let u;
   try { u = new URL(BASE); } catch { throw new Error(`[BASE GUARD] LSR_BASE_URL is not a valid URL: ${JSON.stringify(BASE)} — refusing to run (INVALID)`); }
-  const hostOk = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
-  const protoOk = u.protocol === 'http:';
-  if (!hostOk || !protoOk) {
-    throw new Error(`[BASE GUARD] REFUSING to run — BASE='${BASE}' is not an http://localhost origin (host=${u.hostname}, proto=${u.protocol}). This is the LOCAL-ONLY audit cycle; the live site must never be a target. Set LSR_BASE_URL=http://localhost:5173.`);
+  const localOk = (u.hostname === 'localhost' || u.hostname === '127.0.0.1') && u.protocol === 'http:';
+  // CONTROLLED PROD-SMOKE opt-in (David-authorized 2026-07-16, post-deploy verification): the ONE known
+  // production host, https only, and ONLY when LSR_ALLOW_PROD_SMOKE is explicitly set to that exact host.
+  // The SANDBOX identity guard (lsr_*@vocaboost.test / 25WT, enforced downstream) STILL fully applies — 26SM is
+  // never touched. Default stays localhost-only; targeting prod is a deliberate, explicit opt-in (kept friction).
+  const PROD_HOST = 'vocaboostone.netlify.app';
+  const prodSmokeOk = u.hostname === PROD_HOST && u.protocol === 'https:' && process.env.LSR_ALLOW_PROD_SMOKE === PROD_HOST;
+  if (!localOk && !prodSmokeOk) {
+    throw new Error(`[BASE GUARD] REFUSING to run — BASE='${BASE}' is not an http://localhost origin (host=${u.hostname}, proto=${u.protocol}) and the prod-smoke opt-in (LSR_ALLOW_PROD_SMOKE=${PROD_HOST}) is not set. The live site is never an accidental target.`);
   }
 })();
 export const AUD = dirname(fileURLToPath(import.meta.url)); // repo-relative (this file lives in audit/playwright/) — portable across WSL 9p + native Windows

@@ -19,7 +19,10 @@ import {
   implausibleStudyDayThreshold
 } from '../types/studyTypes';
 import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
-import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, REVIEW_PAIRING_V2 } from '../config/featureFlags';
+// CS PR-1 · WI-2: reconciliation candidate window 8→12 under REVIEW_PAIRING_V2 (multi-review
+// days must not push the day's passed-new anchor out of the window). Flag-off: literal 8.
+import { RECENT_ATTEMPTS_WINDOW } from '../utils/reviewPairing';
 
 // Observability-only (v5): a clean no-anchor record with CSD above this is worth a
 // `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
@@ -226,7 +229,7 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
 
   // Fetch recent attempts for orphan cleanup and validation
   console.log('[RECONCILIATION] Fetching recent attempts for orphan cleanup...');
-  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+  const attempts = await getRecentAttemptsForClassList(userId, classId, listId, REVIEW_PAIRING_V2 ? RECENT_ATTEMPTS_WINDOW : 8);
 
   // Clean up orphaned reviews (reviews for days beyond anchor).
   // LIST_SCOPED_RECON → LOG-ONLY [C5-2]: with a list-wide, position-selected anchor,
@@ -392,8 +395,8 @@ export async function getOrCreateClassProgress(userId, classId, listId) {
  *   • QUARANTINED (write-capable P5+ backstop): `{mode:'quarantined', reasons}` — study is
  *     deliberately BLOCKED; return null so the caller fails closed (safe; quarantine UX is P5/P6
  *     work, not P4 — see notes).
- * `attempts` are fetched via `getRecentAttemptsForClassList(userId, classId, listId, 8)` exactly
- * as the legacy path does. NOTE: post-P5 the canonical record is list-scoped (one per
+ * `attempts` are fetched via `getRecentAttemptsForClassList(userId, classId, listId, 8)` (12
+ * under REVIEW_PAIRING_V2 — CS PR-1) exactly as the legacy path does. NOTE: post-P5 the canonical record is list-scoped (one per
  * student+list across classes); a list-scoped attempts fetch may be more correct then —
  * documented in P4_impl_notes.md item 12 as a P5 follow-up, not changed here (P4 parity).
  *
@@ -420,7 +423,7 @@ async function getOrCreateClassProgressViaResolver(userId, classId, listId) {
         : (result?.data?.data ?? null); // fallback: the callable's (serialized) canonical payload
       if (canonicalData) {
         const progress = { id: docId, classId, listId, ...canonicalData };
-        const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+        const attempts = await getRecentAttemptsForClassList(userId, classId, listId, REVIEW_PAIRING_V2 ? RECENT_ATTEMPTS_WINDOW : 8);
         return { progress, attempts };
       }
       // 'canonical' but no data locally OR on the wire — treat as unusable → caller fails closed.
@@ -438,7 +441,7 @@ async function getOrCreateClassProgressViaResolver(userId, classId, listId) {
     const snapshot = await getDoc(doc(db, `users/${userId}/class_progress`, docId));
     if (snapshot.exists()) {
       const progress = { id: snapshot.id, ...snapshot.data() };
-      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, REVIEW_PAIRING_V2 ? RECENT_ATTEMPTS_WINDOW : 8);
       return { progress, attempts };
     }
     // Legacy-mode create-on-miss guarantees the launching doc, so a miss is unexpected — but the
@@ -446,7 +449,7 @@ async function getOrCreateClassProgressViaResolver(userId, classId, listId) {
     const launchData = result?.data?.launch?.data ?? null;
     if (launchData) {
       const progress = { id: docId, classId, listId, ...launchData };
-      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, 8);
+      const attempts = await getRecentAttemptsForClassList(userId, classId, listId, REVIEW_PAIRING_V2 ? RECENT_ATTEMPTS_WINDOW : 8);
       return { progress, attempts };
     }
     // Resolve succeeded but produced no usable position (e.g. mode 'none' with no doc) → null.

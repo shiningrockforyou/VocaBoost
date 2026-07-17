@@ -17,7 +17,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '../firebase'
-import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
+import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED, REENTRY_GUARD } from '../config/featureFlags'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
@@ -783,7 +783,13 @@ function DailySessionFlowSession() {
             return
           }
           // Day 2+ with review test - show re-entry modal
-          if (existingState.reviewTestScore !== null) {
+          // REENTRY_GUARD (CS PR-1 · WI-3, I3): fire only when the session_state's completed
+          // day IS the last genuinely-completed day (config.dayNumber - 1 === csd). Stale
+          // (< csd) and re-stamped (=== csd+1) carriers fail the conjunct and fall through to
+          // the attempts-authority routing below (:816-828 doctrine) — no modal, self-heals.
+          // Flag-off: `!REENTRY_GUARD` short-circuits → today's condition exactly.
+          if (existingState.reviewTestScore !== null
+              && (!REENTRY_GUARD || existingState.currentStudyDay === config.dayNumber - 1)) {
             setSavedSessionState(existingState)
             setReviewTestResults({ score: existingState.reviewTestScore })
             setReviewTestAttempts(existingState.reviewTestAttempts || 0)
@@ -1617,8 +1623,32 @@ function DailySessionFlowSession() {
   // Re-entry and Move On Handlers
   // ============================================================
 
-  const handleReEntryRetake = () => {
+  // REENTRY_GUARD (CS PR-1 · WI-3, I3): the legacy retake set REVIEW_STUDY with an UNPOPULATED
+  // queue → "No Test Content" / "All cards reviewed" trap. Under the flag, populate the queue
+  // via the SAME recipe as the normal review-study resume (buildReviewStudySet in the init
+  // path above), including the empty-set → "all mastered" modal branch. Declared async for the
+  // flag-on await; flag-off executes the identical two statements as today (no caller awaits
+  // this onClick handler, so the async wrapper is behavior-neutral).
+  const handleReEntryRetake = async () => {
     setShowReEntryModal(false)
+    if (REENTRY_GUARD) {
+      try {
+        if (sessionConfig?.segment) {
+          const allWords = await buildReviewStudySet(sessionConfig.segment)
+          if (allWords.length === 0) {
+            // Empty review segment (all words MASTERED & resting): designed outcome is the
+            // "all mastered" modal -> completeSession(), not an empty review phase.
+            setShowNoReviewModal(true)
+            return
+          }
+          setReviewQueue(allWords)
+          setReviewQueueCurrent(allWords)
+        }
+      } catch (err) {
+        // Non-fatal: fall through to the review phase; the student can still navigate out.
+        console.error('handleReEntryRetake: failed to build review study set:', err)
+      }
+    }
     setPhase(PHASES.REVIEW_STUDY)
   }
 

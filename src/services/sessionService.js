@@ -19,6 +19,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { REENTRY_GUARD } from '../config/featureFlags';
 
 /**
  * Session phases - matches the flow structure
@@ -334,11 +335,27 @@ export async function transitionToPhase(userId, classId, listId, nextPhase) {
  * Check if session should show re-entry modal
  * (User completed review test but hasn't moved on)
  *
+ * REENTRY_GUARD (CS PR-1 · WI-3, I3): session_state.phase is auto-re-stamped by an open
+ * tab and is NOT reliable for routing (the DailySessionFlow :816-828 doctrine). The modal
+ * must fire only when the session_state's completed day IS the last genuinely-completed day
+ * from class_progress (csd — i.e. config.dayNumber - 1). Stale carriers (< csd) and
+ * re-stamped carriers (=== csd+1) both fail the conjunct and fall through to the
+ * attempts-authority path, which self-heals. Callers pass `lastCompletedDay` unconditionally;
+ * the conjunct applies only when the flag is ON and the value is an integer (a caller that
+ * couldn't load progress passes null → legacy behavior, never a hard block).
+ * Flag-off: the original phase+score check, verbatim.
+ *
  * @param {Object} sessionState - Current session state
+ * @param {number|null} [lastCompletedDay] - currentStudyDay from class_progress (csd)
  * @returns {boolean}
  */
-export function shouldShowReEntryModal(sessionState) {
+export function shouldShowReEntryModal(sessionState, lastCompletedDay = null) {
   if (!sessionState) return false;
+
+  if (REENTRY_GUARD && Number.isInteger(lastCompletedDay)
+      && sessionState.currentStudyDay !== lastCompletedDay) {
+    return false;
+  }
 
   return (
     sessionState.phase === SESSION_PHASE.COMPLETE &&

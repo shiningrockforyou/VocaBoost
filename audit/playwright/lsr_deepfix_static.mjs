@@ -140,8 +140,10 @@ const FND = readFile('functions/foundation.js');
 const FLAG_TABLE = [
   // ── functions/index.js (grade consts, ~:66/:79/:101) ──
   { name: 'GRADE_TOKEN_ENFORCED', file: 'functions/index.js', src: 'FIX_PLAN P0 change 2 — G1 disarm → false (matches live prod F-9); shipped re-arms with nonce fix P4 F1-F3+F5', baseline: false, shipped: true },
-  { name: 'GRADE_TOKEN_MINT', file: 'functions/index.js', src: 'FIX_PLAN P0 change 3 table — pre-existing, ON for validation (index.js:79)', baseline: true, shipped: true },
+  { name: 'GRADE_TOKEN_MINT', file: 'functions/index.js', src: 'deepfix 2026-07-15: DISARMED to match live prod (David disabled MINT, index.js:80); shipped re-arms with the token rollout', baseline: false, shipped: true },
   { name: 'GRADE_JOB_ENABLED', file: 'functions/index.js', src: 'FIX_PLAN P0 change 3 / P3 — stays true (validated, not flipped)', baseline: true, shipped: true },
+  { name: 'TEACHER_PROVISIONING_ENABLED', file: 'functions/index.js', src: 'FIX_PLAN P6 — teacher provisioning; dormant until R1/P6 (index.js:1962)', baseline: false, shipped: true },
+  { name: 'TEACHER_CLAIM_ENABLED', file: 'functions/index.js', src: 'FIX_PLAN P10d — custom-claim role model; dormant until P10d (index.js:1970)', baseline: false, shipped: true },
   // ── src/config/featureFlags.js ──
   { name: 'SERVER_ATTEMPT_WRITE', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P0 change 3 table (:10) — pre-existing live', baseline: true, shipped: true },
   { name: 'SERVER_CHALLENGE_WRITE', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P0 change 3 (:20) — NEW, dormant until P4 cutover', baseline: false, shipped: true },
@@ -150,7 +152,13 @@ const FLAG_TABLE = [
   { name: 'CONTINUATION_LINKS', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P8 CONT-A — dormant in baseline; feature-on at ship', baseline: false, shipped: true },
   { name: 'SERVER_PROGRESS_WRITE', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P4 FND-2 — NEW routing flag (folds plan-name LIST_PROGRESS_PERSIST read-routing per the const doc); dormant', baseline: false, shipped: true },
   { name: 'SERVER_RESET_PROGRESS', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P4 FND-2 v2 HIGH-3 — NEW; dormant', baseline: false, shipped: true },
-  // ── functions/foundation.js FOUNDATION_FLAGS (the 7 dormant server flags, :78-86) ──
+  { name: 'CYCLING_ENABLED', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P9 CYC — NEW two-key cycling (client leg); dormant until P9', baseline: false, shipped: true },
+  { name: 'SERVER_OVERRIDE', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P10 OVR — NEW; dormant until P10', baseline: false, shipped: true },
+  { name: 'TEACHER_IDS_READ', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P10c — NEW teacherIds read-surface; dormant until P10c', baseline: false, shipped: true },
+  { name: 'REVIEW_PAIRING_V2', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-2 (CS_2026-07-17_ROOT_CAUSE_EFFORT) — census-LOCKED I4 pairing predicate + 8→12 window; dormant until the PR-1 flip', baseline: false, shipped: true },
+  { name: 'REENTRY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-3 + F2 (CS_2026-07-17_ROOT_CAUSE_EFFORT) — I3 re-entry day-guard + retake queue + under-answered review confirm; dormant until the PR-1 flip', baseline: false, shipped: true },
+  { name: 'RECOVERY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-4 client (CS_2026-07-17_ROOT_CAUSE_EFFORT) — I6 recovery answer intersection; dormant until the PR-1 flip', baseline: false, shipped: true },
+  // ── functions/foundation.js FOUNDATION_FLAGS (the 11 dormant server flags) ──
   { name: 'SERVER_COMPLETE_SESSION_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — foundation flag, dormant at merge; P4 flips', baseline: false, shipped: true },
   { name: 'SERVER_RESOLVE_LIST_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips', baseline: false, shipped: true },
   { name: 'SERVER_RESET_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips (before P6 owner-delete removal)', baseline: false, shipped: true },
@@ -158,6 +166,12 @@ const FLAG_TABLE = [
   { name: 'LIST_PROGRESS_CANONICAL', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 2 + P5 — the P5-ONLY mode switch; dormant until migration', baseline: false, shipped: true },
   { name: 'ANCHOR_VALIDATION_SHADOW', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 6 (M4) — dormant at merge; P3 DEPLOY flips for the ≥14d soak', baseline: false, shipped: true },
   { name: 'ANCHOR_VALIDATION_ENFORCE', file: 'functions/foundation.js', src: 'FIX_PLAN P3/P6(d) — M4 enforce; P6 only', baseline: false, shipped: true },
+  { name: 'CYCLING_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P9 CYC — server two-key leg; dormant until P9', baseline: false, shipped: true },
+  { name: 'SERVER_REVIEW_CHALLENGE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10 OVR — server reviewChallenge; dormant until P10', baseline: false, shipped: true },
+  { name: 'SERVER_OVERRIDE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10 OVR — overrideAttempt; dormant until P10', baseline: false, shipped: true },
+  { name: 'TEACHER_IDS_WRITE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10c — teacherIds denorm write; dormant until P10c', baseline: false, shipped: true },
+  { name: 'REVIEW_ENGAGEMENT_STAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 F3 — additive review-engagement stamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: false, shipped: true },
+  { name: 'RECOVERY_SCORE_CLAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 WI-4/I6 — server >100% score clamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: false, shipped: true },
 ];
 const flagText = (file) => (file === 'functions/index.js' ? IDX : file === 'src/config/featureFlags.js' ? FF : FND);
 

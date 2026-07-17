@@ -22,7 +22,8 @@ import {
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ } from '../config/featureFlags'
+import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ, REVIEW_PAIRING_V2 } from '../config/featureFlags'
+import { reviewPairsWithAnchor, RECENT_ATTEMPTS_WINDOW } from '../utils/reviewPairing'
 import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
 
 // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
@@ -3360,10 +3361,12 @@ export const getNewWordAttemptForDay = async (userId, classId, listId, studyDay,
  * @param {string} userId - Student user ID
  * @param {string} classId - Class ID
  * @param {string} listId - List ID
- * @param {number} maxResults - Maximum number of attempts to return (default 8)
+ * @param {number} maxResults - Maximum number of attempts to return (default 8; 12 under
+ *   REVIEW_PAIRING_V2 — CS PR-1 · WI-2: multi-review days must not push the day's passed
+ *   `new` anchor out of the window. Flag-off keeps the literal 8.)
  * @returns {Promise<Array>} Array of attempt documents, newest first
  */
-export async function getRecentAttemptsForClassList(userId, classId, listId, maxResults = 8) {
+export async function getRecentAttemptsForClassList(userId, classId, listId, maxResults = (REVIEW_PAIRING_V2 ? RECENT_ATTEMPTS_WINDOW : 8)) {
   console.log('[RECONCILIATION] getRecentAttemptsForClassList called:', { userId, classId, listId, maxResults })
 
   if (!userId || !classId || !listId) {
@@ -3667,6 +3670,13 @@ export async function getMostRecentPassedNewTest(userId, classId, listId) {
  * client-filtered (no positional Firestore filter → no new index); the first range-matching
  * review is `found`, exhaustion is `none` (never a newest-unverified review).
  *
+ * REVIEW_PAIRING_V2 (CS PR-1 · WI-2, dormant): the exact-range discriminator above proved too
+ * strict — ~34.5% of real reviews carry a drifted/inverted/null range and never pair (the I4
+ * stuck loop). Under the flag the temporal query pre-narrow is dropped and the candidate is
+ * judged by the census-LOCKED `reviewPairsWithAnchor` predicate (src/utils/reviewPairing.js),
+ * which preserves the #9 cross-pace protection (cross-class reviews fail every leg).
+ * Flag-off: the pre-narrowed query + exact-range match, verbatim.
+ *
  * @param {string} userId - User document ID
  * @param {string} classId - Class document ID (launching class — legacy/flag-off scope)
  * @param {string} listId - List document ID
@@ -3704,16 +3714,33 @@ export async function getReviewForDay(userId, classId, listId, studyDay, pairing
       const MAX_PAGES = 40 // safety bound; the candidate set (one student/list/day post-anchor) is small
       let cursor = null
       for (let page = 0; page < MAX_PAGES; page++) {
-        let q = query(
-          attemptsRef,
-          where('studentId', '==', userId),
-          where('listId', '==', listId),
-          where('sessionType', '==', 'review'),
-          where('studyDay', '==', studyDay),
-          where('submittedAt', '>=', pairing.anchorSubmittedAt),
-          orderBy('submittedAt', 'desc'),
-          limit(PAGE)
-        )
+        // REVIEW_PAIRING_V2 (CS PR-1 · WI-2): DROP the `submittedAt >= anchor` query
+        // pre-narrow — the V2 predicate judges temporality itself, INCLUDING the pre-anchor
+        // legs (relief-minted [twi,twi-1] stubs / null-range reviews are temporally BEFORE
+        // a retake-refreshed anchor, and the pre-narrow is exactly what excluded the 9
+        // census pre-anchor victims). Same composite index either way (equality filters +
+        // orderBy submittedAt DESC — the range clause never required an extra index).
+        // Flag-off: the exact original query, verbatim.
+        let q = REVIEW_PAIRING_V2
+          ? query(
+              attemptsRef,
+              where('studentId', '==', userId),
+              where('listId', '==', listId),
+              where('sessionType', '==', 'review'),
+              where('studyDay', '==', studyDay),
+              orderBy('submittedAt', 'desc'),
+              limit(PAGE)
+            )
+          : query(
+              attemptsRef,
+              where('studentId', '==', userId),
+              where('listId', '==', listId),
+              where('sessionType', '==', 'review'),
+              where('studyDay', '==', studyDay),
+              where('submittedAt', '>=', pairing.anchorSubmittedAt),
+              orderBy('submittedAt', 'desc'),
+              limit(PAGE)
+            )
         if (cursor) q = query(q, startAfter(cursor))
         const snap = await getDocs(q)
         // Genuine exhaustion (empty page, or a partial last page with no match) → 'none'.
@@ -3723,8 +3750,21 @@ export async function getReviewForDay(userId, classId, listId, studyDay, pairing
         }
         for (const d of snap.docs) {
           const data = { id: d.id, ...d.data() }
-          if (data.newWordStartIndex === pairing.anchorNewWordStartIndex
-              && data.newWordEndIndex === pairing.anchorNewWordEndIndex) {
+          // REVIEW_PAIRING_V2 (CS PR-1 · WI-2): the census-LOCKED tiered predicate
+          // (src/utils/reviewPairing.js) replaces the exact-range match — same studyDay is
+          // already guaranteed by the query filter; the predicate re-checks it via the
+          // anchor object. Flag-off: the exact-range if, verbatim (INV-9 needle preserved).
+          const paired = REVIEW_PAIRING_V2
+            ? reviewPairsWithAnchor(data, {
+                studyDay,
+                classId: pairing.anchorClassId,
+                submittedAt: pairing.anchorSubmittedAt,
+                newWordStartIndex: pairing.anchorNewWordStartIndex,
+                newWordEndIndex: pairing.anchorNewWordEndIndex
+              })
+            : (data.newWordStartIndex === pairing.anchorNewWordStartIndex
+              && data.newWordEndIndex === pairing.anchorNewWordEndIndex)
+          if (paired) {
             console.log('[RECONCILIATION] getReviewForDay: position-matched review for day', studyDay)
             return { status: 'found', attempt: data }
           }

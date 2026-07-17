@@ -15,7 +15,7 @@ import {
   completeSessionFromTest
 } from '../services/studyService'
 import { getOrCreateClassProgress, getClassProgress } from '../services/progressService'
-import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, RECOVERY_GUARD } from '../config/featureFlags'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -534,9 +534,30 @@ const TypedTest = () => {
     // Clear any stale intentional exit flag
     clearIntentionalExitFlag(testId)
     if (savedRecoveryState?.answers) {
-      setResponses(savedRecoveryState.answers)
-      if (savedRecoveryState.currentIndex !== undefined) {
-        setFocusedIndex(savedRecoveryState.currentIndex)
+      if (RECOVERY_GUARD) {
+        // CS PR-1 · WI-4 (I6): INTERSECT the saved responses with the CURRENT word set —
+        // stale keys from a regenerated sample must not survive into the submit (the
+        // rows > totalQuestions / >100% score class). Drop an out-of-range saved index;
+        // an EMPTY intersection → start fresh (re-shuffle, same as declining recovery).
+        const validIds = new Set(words.map(w => w.id))
+        const filtered = {}
+        for (const [wordId, response] of Object.entries(savedRecoveryState.answers)) {
+          if (validIds.has(wordId)) filtered[wordId] = response
+        }
+        if (Object.keys(filtered).length === 0) {
+          handleRecoveryStartFresh()
+          return
+        }
+        setResponses(filtered)
+        const savedIdx = savedRecoveryState.currentIndex
+        if (Number.isInteger(savedIdx) && savedIdx >= 0 && savedIdx < words.length) {
+          setFocusedIndex(savedIdx)
+        }
+      } else {
+        setResponses(savedRecoveryState.answers)
+        if (savedRecoveryState.currentIndex !== undefined) {
+          setFocusedIndex(savedRecoveryState.currentIndex)
+        }
       }
     }
     setShowRecoveryPrompt(false)

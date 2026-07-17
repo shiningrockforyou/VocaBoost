@@ -47,7 +47,8 @@ import {
 } from './progressService';
 import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
 import { logSystemEvent } from './db';
-import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_PAIRING_V2 } from '../config/featureFlags';
+import { reviewPairsWithAnchor } from '../utils/reviewPairing';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // ============================================================================
@@ -237,7 +238,18 @@ export function determineStartingPhase(attempts, dayNumber) {
     (Number(b.passed === true) - Number(a.passed === true)) ||
     ((b.score ?? 0) - (a.score ?? 0))
   )[0] || null;
-  const reviewTest = dayAttempts.find(a => a.sessionType === 'review');
+  // REVIEW_PAIRING_V2 (CS PR-1 · WI-2, I4): the bare `sessionType === 'review'` find is the
+  // predicate-ASYMMETRY half of the I4 loop — this reader declared a day COMPLETE off ANY
+  // same-day review while reconciliation (getReviewForDay) demanded an exact anchor-range
+  // match, pinning csd at anchorDay-1 forever. Under the flag BOTH readers use the one
+  // census-LOCKED predicate, pairing the review against the day's best-new pick (the anchor
+  // this day would reconcile against) — so an unpaired review resolves REVIEW_STUDY (retake)
+  // instead of COMPLETE, and the stuck cohort drains organically. No best-new pick → nothing
+  // to pair against → keep the legacy find (its value is display/logging-only in that case:
+  // every routing branch below also requires newTest?.passed). Flag-off: verbatim legacy.
+  const reviewTest = (REVIEW_PAIRING_V2 && newTest)
+    ? dayAttempts.find(a => reviewPairsWithAnchor(a, newTest))
+    : dayAttempts.find(a => a.sessionType === 'review');
 
   console.log('[PHASE] Attempts for day', dayNumber + ':', {
     totalForDay: dayAttempts.length,
@@ -268,7 +280,10 @@ export function determineStartingPhase(attempts, dayNumber) {
     logSystemEvent('impossible_phase_detected', {
       dayNumber,
       reason: 'day1_with_passed_new_test',
-      newTestId: newTest.id
+      newTestId: newTest.id,
+      // CS PR-1 observability (additive, unconditional): attribute the event to the student
+      // so triage doesn't need an attempt-doc join. Attempts carry studentId.
+      userId: newTest.studentId ?? null
     });
     return {
       phase: SESSION_PHASE.COMPLETE,

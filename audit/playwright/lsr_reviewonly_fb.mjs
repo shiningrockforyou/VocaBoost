@@ -176,6 +176,74 @@ export async function seedAllMasteredTerminal({ email, uid, classId, listId, twi
   return { mastered: wordIds.length, returnAt: '+21d' };
 }
 
+// Reviewable full-freeze fixture (#11 RECOVERY): intervention=1.0 (→ review-only day, newWords=0) WITH genuinely
+// reviewable study_states (NEEDS_CHECK — in the review queue, NOT retired-MASTERED) so the review segment is
+// NON-empty → the day COMPLETES + advances csd. This is the case seedInterventionWindow alone can't make (no
+// study_states → empty review → the deliberate all-mastered no-advance terminal). wordIds = the list words to review.
+export async function seedReviewableThrottled({ email, uid, classId, listId, csd = 4, twi, wordIds }, guardCtx) {
+  await assertSandboxTriple({ email, uid, classId, listId });
+  if (!wordIds || !wordIds.length) throw new Error('[seedReviewableThrottled] no wordIds — cannot seed reviewable study_states (INVALID)');
+  const rs = [1, 2, 3].map((day) => ({
+    day, date: now(), newWordScore: null, reviewScore: 0.25,
+    segmentStartIndex: 0, segmentEndIndex: 0, wordsIntroduced: 0, wordsReviewed: 0, wordsTested: 0,
+  }));
+  await progRef(uid, classId, listId).set({
+    classId, listId, currentStudyDay: csd, ...(twi != null ? { totalWordsIntroduced: twi } : {}),
+    interventionLevel: 1.0, recentSessions: rs,
+    stats: { avgNewWordScore: null, avgReviewScore: 0.25 },
+    programStartDate: now(), updatedAt: now(),
+  }, { merge: true });
+  const batch = db().batch();
+  wordIds.forEach((wid, i) => {
+    const ref = db().collection('users').doc(uid).collection('study_states').doc(wid);
+    batch.set(ref, {
+      status: 'NEEDS_CHECK', listId, wordIndex: i, introducedOnDay: 1,
+      masteredAt: null, returnAt: null,
+      timesTestedTotal: 3, timesCorrectTotal: 2, lastTestResult: 'correct',
+    }, { merge: true });
+  });
+  await batch.commit();
+  return { reviewable: wordIds.length };
+}
+
+// THROTTLE_FIX_VALIDATION personas (#11 archetypes A–F/control). Seeds an archetype's EXACT class_progress
+// (csd, twi, the precise recentSessions review pattern, interventionLevel) + a study_states mix over the
+// introduced range (`masteredFrac` retired-MASTERED, rest NEEDS_CHECK ⇒ genuinely reviewable) + clears
+// session_state so the day rebuilds. `recentSessions` = [{reviewScore, newWordScore}] newest-last. Sandbox-triple-gated.
+export async function seedThrottlePersona({ email, uid, classId, listId, csd, twi, interventionLevel, recentSessions, wordIds, masteredFrac = 0.15 }, guardCtx) {
+  await assertSandboxTriple({ email, uid, classId, listId });
+  if (!wordIds || wordIds.length < twi) throw new Error(`[seedThrottlePersona] need >= twi(${twi}) wordIds, got ${wordIds?.length} (INVALID)`);
+  const rs = recentSessions.map((s, i) => ({
+    day: csd - recentSessions.length + 1 + i, date: now(),
+    newWordScore: s.newWordScore ?? null, reviewScore: s.reviewScore,
+    segmentStartIndex: 0, segmentEndIndex: 0, wordsIntroduced: 0, wordsReviewed: 0, wordsTested: 0,
+  }));
+  const avgReview = recentSessions.reduce((a, s) => a + (s.reviewScore || 0), 0) / recentSessions.length;
+  await progRef(uid, classId, listId).set({
+    classId, listId, currentStudyDay: csd, totalWordsIntroduced: twi,
+    interventionLevel, recentSessions: rs, stats: { avgNewWordScore: null, avgReviewScore: avgReview },
+    programStartDate: now(), updatedAt: now(),
+  }, { merge: true });
+  // study_states over the introduced range: ~masteredFrac retired-MASTERED, the rest NEEDS_CHECK (reviewable).
+  const intro = wordIds.slice(0, twi);
+  const every = Math.max(2, Math.round(1 / Math.max(0.01, masteredFrac)));
+  const rt = tsPlusDays(21);
+  for (let off = 0; off < intro.length; off += 400) {
+    const batch = db().batch();
+    intro.slice(off, off + 400).forEach((wid, j) => {
+      const i = off + j; const mastered = (i % every) === 0;
+      batch.set(db().collection('users').doc(uid).collection('study_states').doc(wid), mastered
+        ? { status: 'MASTERED', listId, wordIndex: i, introducedOnDay: 1, masteredAt: now(), returnAt: rt, timesTestedTotal: 3, timesCorrectTotal: 3, lastTestResult: 'correct' }
+        : { status: 'NEEDS_CHECK', listId, wordIndex: i, introducedOnDay: 1, masteredAt: null, returnAt: null, timesTestedTotal: 3, timesCorrectTotal: 1, lastTestResult: 'incorrect' },
+        { merge: true });
+    });
+    await batch.commit();
+  }
+  // clear any session_state so the day rebuilds from the seeded progress
+  try { await db().collection('users').doc(uid).collection('session_states').doc(getDocId(classId, listId)).delete(); } catch { /* none */ }
+  return { twi, mastered: Math.ceil(intro.length / every), reviewable: intro.length - Math.ceil(intro.length / every), avgReview };
+}
+
 // Fix-#9 review-resume anchor (design RA9): a VALID position-bearing passed 'new' attempt for `studyDay`
 // (mirrors scripts/cs/manual-pass.mjs) so re-entry yields startPhase REVIEW_STUDY with a genuine passing score.
 export async function seedFix9Anchor({ email, uid, classId, listId, studyDay = 2, pace = 40, score = 97, passThreshold = 92 }, guardCtx) {

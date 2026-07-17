@@ -165,3 +165,42 @@ export const SERVER_OVERRIDE = false;
 // the denormalized field is additive and harmless when unread). Default OFF — flag-off
 // behavior is byte-equivalent to today (Run-L discipline). DORMANT at merge (P3 draft rule).
 export const TEACHER_IDS_READ = false;
+
+// REVIEW_PAIRING_V2 (CS PR-1 · WI-2, docs/plans/CS_2026-07-17_ROOT_CAUSE_EFFORT.md): the I4
+// stuck-pairing fix — replace the exact-range review⇄anchor pairing with the census-LOCKED
+// tiered predicate `reviewPairsWithAnchor` (src/utils/reviewPairing.js), applied by BOTH
+// readers (db.js getReviewForDay + studyService.js determineStartingPhase) so they finally
+// agree; drops the temporal query pre-narrow (the predicate judges temporal itself, incl.
+// the pre-anchor relief-stub legs); raises the reconciliation recent-attempts window 8→12.
+// Census gate (scripts/cs/census-i4-pairing.mjs, 2026-07-17): 13/14 stuck drain organically,
+// 1 by-design skip-only retake, 0 cross-class false-pairs. DORMANT until flipped after the
+// PR-1 sandbox E2E + a green re-run of scripts/cs/census-verify-pr1.mjs (fail-closed ship gate).
+// PR-1 pairing is STRICT (NO grandfather — decision-#3 grandfathering is PR-3's completion reader, not
+// this pairing predicate; see reviewPairing.js). Roll back = flip false + rebuild.
+// Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
+export const REVIEW_PAIRING_V2 = true;
+
+// REENTRY_GUARD (CS PR-1 · WI-3 + F2 warn, CS_2026-07-17_ROOT_CAUSE_EFFORT.md): the I3
+// re-entry stale-session fix — the "review test complete" re-entry modal fires ONLY when the
+// session_state's completed day IS the last genuinely-completed day (=== csd, i.e.
+// config.dayNumber − 1), at both trigger sites (sessionService.shouldShowReEntryModal used by
+// Dashboard, + the DailySessionFlow inline gate); stale (< csd) and re-stamped (=== csd+1)
+// carriers fall through to the attempts-authority routing and self-heal. Also: the re-entry
+// "Retake" populates the review queue via buildReviewStudySet (was empty → "No Test Content"
+// trap), and MCQ shows a non-blocking confirm on an under-answered REVIEW submit (I1 warn —
+// never blocks; skips are real signal, CS-16c). DORMANT until flipped after the PR-1 sandbox
+// E2E. Roll back = flip false + rebuild.
+// Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
+export const REENTRY_GUARD = true;
+
+// RECOVERY_GUARD (CS PR-1 · WI-4 client leg, CS_2026-07-17_ROOT_CAUSE_EFFORT.md): the I6
+// >100%-score fix — crash-recovery resume INTERSECTS the saved localStorage answers with the
+// CURRENT test's word-id set (MCQTest/TypedTest handleRecoveryResume) instead of restoring
+// stale answers wholesale (stale extra keys inflated answer rows past totalQuestions →
+// 107/130% scores); an out-of-range saved currentIndex is dropped; an empty intersection
+// starts fresh. Deliberately NOT the all-or-nothing validateTestState reject — word samples
+// legitimately regenerate, so intersection preserves legit recoveries. The unconditional
+// server-side clamp is PR-2 (functions). DORMANT until flipped after the PR-1 sandbox E2E.
+// Roll back = flip false + rebuild.
+// Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
+export const RECOVERY_GUARD = true;
