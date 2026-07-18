@@ -1,0 +1,37 @@
+{
+  "runId": "cert-59df732-r34",
+  "probedAt": "2026-07-17T20:23:55.887Z",
+  "project": "vocaboost-879c2",
+  "email": "dup_repro_a@vocaboost.test",
+  "loggedIn": true,
+  "gotToken": true,
+  "dg2": {
+    "httpStatus": 200,
+    "deployedSha": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+    "deployedShortSha": "a967f54",
+    "deployedDirty": true,
+    "builtAt": "2026-07-15T22:07:53.798Z",
+    "branch": "main",
+    "flags": {
+      "GRADE_TOKEN_ENFORCED": false,
+      "GRADE_TOKEN_MINT": false,
+      "GRADE_JOB_ENABLED": true,
+      "GRADE_JOB_LEASE_MS": 180000,
+      "TEACHER_PROVISIONING_ENABLED": false,
+      "TEACHER_CLAIM_ENABLED": false,
+      "SERVER_COMPLETE_SESSION_ENABLED": false,
+      "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": false,
+      "SERVER_RESET_PROGRESS_ENABLED": false,
+      "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": false,
+      "LIST_PROGRESS_CANONICAL": false,
+      "ANCHOR_VALIDATION_SHADOW": false,
+      "ANCHOR_VALIDATION_ENFORCE": false,
+      "CYCLING_ENABLED": false,
+      "SERVER_REVIEW_CHALLENGE_ENABLED": false,
+      "SERVER_OVERRIDE_ENABLED": false,
+      "TEACHER_IDS_WRITE_ENABLED": false
+    },
+    "raw": "{\"result\":{\"sha\":\"a967f544e0f3d4bce72861ad82a34d8e2ec27206\",\"shortSha\":\"a967f54\",\"branch\":\"main\",\"dirty\":true,\"builtAt\":\"2026-07-15T22:07:53.798Z\",\"flags\":{\"GRADE_TOKEN_ENFORCED\":false,\"GRADE_TOKEN_MINT\":false,\"GRADE_JOB_ENABLED\":true,\"GRADE_JOB_LEASE_MS\":180000,\"TEACHER_PROVISIONING_ENABLED\":false,\"TEACHER_CLAIM_ENABLED\":false,\"SERVER_COMPLETE_SESSION_ENABLED\":false,\"SERVER_RESOLVE_LIST_PROGRESS_"
+  },
+  "summary": "DG-2 deployed functions=a967f54 (client hosting=59df732 via DG-3). functions PRE-PR-2 (P3 deploy pending) — expected divergence"
+}

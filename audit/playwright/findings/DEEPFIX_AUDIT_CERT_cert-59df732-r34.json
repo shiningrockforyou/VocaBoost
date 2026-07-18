@@ -1,0 +1,1164 @@
+{
+  "tool": "lsr_deepfix_cert.mjs",
+  "runId": "cert-59df732-r34",
+  "generatedAt": "2026-07-17T20:33:19.061Z",
+  "verdict": "NOT-CERTIFIED",
+  "reasons": [
+    {
+      "code": "MISSING_MATRIX",
+      "detail": "M-WB (deepfix_wb_cert-59df732-r34.json) is ABSENT — a subset cannot certify (§2.1).",
+      "matrix": "M-WB"
+    },
+    {
+      "code": "MATRIX_NOT_CLEAN",
+      "detail": "M-STATIC NOT-CLEAN — fail=33 invalid=0 fatal=0 unknownVerdict=0 (self verdict: NOT_CLEAN).",
+      "matrix": "M-STATIC"
+    },
+    {
+      "code": "MATRIX_NOT_CLEAN",
+      "detail": "M-UI NOT-CLEAN — fail=2 invalid=0 fatal=1 unknownVerdict=0 (self verdict: NOT-CLEAN).",
+      "matrix": "M-UI"
+    },
+    {
+      "code": "COVERAGE_UNAUDITED",
+      "detail": "38 canonical scenario(s) have NO covering verdict in any matrix (nothing unaudited silently — §5): P1:RA1, P1:RA2, P1:RA3, P1:RA5, P1:RA5b, P1:RA6, P1:RA7, P1:RA8, P1:RA9, P1:RO-S10, P1:W-RA3g, P1:W-RA4, P1:W-RA4b, P2:RS-3, P2:RS-4, P4:CUT-2, P4:CUT-3, P4:CUT-4, P4:CUT-5, P4:CUT-6, P4:CUT-7, P4:CUT-8, P6:CUT-2, P6:CUT-6, P8:CA-1, P8:CA-2, P8:CA-3, P8:CA-4, P8:CA-5, P8:CA-6, P9:CY-1, P9:CY-2, P9:CY-4, P9:CY-5, P9:CY-6, P9:CY-7, P10:OV-4, P10:OV-5."
+    }
+  ],
+  "reasonCodes": [
+    "MISSING_MATRIX",
+    "MATRIX_NOT_CLEAN",
+    "COVERAGE_UNAUDITED"
+  ],
+  "matrices": [
+    {
+      "key": "static",
+      "label": "M-STATIC",
+      "module": "lsr_deepfix_static.mjs",
+      "present": true,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_static_cert-59df732-r34.json",
+      "runId": "cert-59df732-r34",
+      "runIdOk": true,
+      "clean": false,
+      "selfVerdict": "NOT_CLEAN",
+      "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "gitDirty": true,
+      "counts": {
+        "pass": 8,
+        "fail": 33,
+        "invalid": 0,
+        "skip": 2,
+        "deferred": 0,
+        "other": 0
+      },
+      "fatals": 0,
+      "rulesSha": null,
+      "staticTarget": "shipped",
+      "migrationVersion": null,
+      "emulator": null,
+      "parseError": null
+    },
+    {
+      "key": "ui",
+      "label": "M-UI",
+      "module": "lsr_deepfix_ui.mjs",
+      "present": true,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_ui_cert-59df732-r34.json",
+      "runId": "cert-59df732-r34",
+      "runIdOk": true,
+      "clean": false,
+      "selfVerdict": "NOT-CLEAN",
+      "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "gitDirty": true,
+      "counts": {
+        "pass": 2,
+        "fail": 2,
+        "invalid": 0,
+        "skip": 0,
+        "deferred": 0,
+        "other": 0
+      },
+      "fatals": 1,
+      "rulesSha": null,
+      "staticTarget": null,
+      "migrationVersion": null,
+      "emulator": null,
+      "parseError": null
+    },
+    {
+      "key": "wb",
+      "label": "M-WB",
+      "module": "lsr_deepfix_whitebox.mjs",
+      "present": false,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_wb_cert-59df732-r34.json",
+      "runId": null,
+      "runIdOk": false,
+      "clean": false,
+      "selfVerdict": null,
+      "gitHead": null,
+      "gitDirty": null,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "invalid": 0,
+        "skip": 0,
+        "deferred": 0,
+        "other": 0
+      },
+      "fatals": 0,
+      "rulesSha": null,
+      "staticTarget": null,
+      "migrationVersion": null,
+      "emulator": null,
+      "parseError": null
+    },
+    {
+      "key": "mig",
+      "label": "M-MIG",
+      "module": "lsr_deepfix_migrate_audit.mjs",
+      "present": true,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_mig_cert-59df732-r34.json",
+      "runId": "cert-59df732-r34",
+      "runIdOk": true,
+      "clean": true,
+      "selfVerdict": "NOT_CLEAN",
+      "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "gitDirty": true,
+      "counts": {
+        "pass": 10,
+        "fail": 0,
+        "invalid": 0,
+        "skip": 1,
+        "deferred": 8,
+        "other": 0
+      },
+      "fatals": 0,
+      "rulesSha": null,
+      "staticTarget": null,
+      "migrationVersion": "P5-FND-3-v1",
+      "emulator": null,
+      "parseError": null
+    },
+    {
+      "key": "call",
+      "label": "M-CALL",
+      "module": "lsr_deepfix_callable.mjs",
+      "present": true,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_call_cert-59df732-r34.json",
+      "runId": "cert-59df732-r34",
+      "runIdOk": true,
+      "clean": true,
+      "selfVerdict": "CLEAN",
+      "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "gitDirty": true,
+      "counts": {
+        "pass": 21,
+        "fail": 0,
+        "invalid": 0,
+        "skip": 2,
+        "deferred": 0,
+        "other": 0
+      },
+      "fatals": 0,
+      "rulesSha": null,
+      "staticTarget": null,
+      "migrationVersion": null,
+      "emulator": {
+        "project": "demo-vocaboost"
+      },
+      "parseError": null
+    },
+    {
+      "key": "rules",
+      "label": "M-RULES",
+      "module": "lsr_deepfix_rules.mjs",
+      "present": true,
+      "path": "C:\\Users\\dmchw\\vocaboost\\audit\\playwright\\findings\\deepfix_rules_cert-59df732-r34.json",
+      "runId": "cert-59df732-r34",
+      "runIdOk": true,
+      "clean": true,
+      "selfVerdict": "CLEAN",
+      "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "gitDirty": true,
+      "counts": {
+        "pass": 11,
+        "fail": 0,
+        "invalid": 0,
+        "skip": 0,
+        "deferred": 0,
+        "other": 0
+      },
+      "fatals": 0,
+      "rulesSha": "752981b78f532ebd737c521920a034038380c228aa6305844dc4f17fcde1aca9",
+      "staticTarget": null,
+      "migrationVersion": null,
+      "emulator": {
+        "project": "demo-vocaboost"
+      },
+      "parseError": null
+    }
+  ],
+  "binding": {
+    "gitHeads": {
+      "M-STATIC": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "M-UI": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "M-MIG": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "M-CALL": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "M-RULES": "59df732657dfb742d4392a47ae5c1d988377387a"
+    },
+    "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+    "gitHeadCoherent": true,
+    "rulesShas": {
+      "M-RULES": "752981b78f532ebd737c521920a034038380c228aa6305844dc4f17fcde1aca9"
+    },
+    "rulesSha": "752981b78f532ebd737c521920a034038380c228aa6305844dc4f17fcde1aca9",
+    "rulesShaCoherent": true,
+    "flagOn": {
+      "M-CALL": "flag-ON",
+      "M-RULES": "flag-ON"
+    },
+    "flagSetMismatches": [],
+    "flagSetCoherent": true,
+    "staticTarget": "shipped",
+    "staticTargetOk": true
+  },
+  "coverage": [
+    {
+      "phase": "P0",
+      "name": "FND-0 deploy-safety substrate",
+      "verdict": "FAIL",
+      "coveredCount": 4,
+      "total": 4,
+      "uncovered": [],
+      "scenarios": [
+        {
+          "id": "DG-1",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-STATIC:DG-1:GRADE_TOKEN_ENFORCED=FAIL",
+            "M-STATIC:DG-1:GRADE_TOKEN_MINT=FAIL",
+            "M-STATIC:DG-1:GRADE_JOB_ENABLED=PASS",
+            "M-STATIC:DG-1:TEACHER_PROVISIONING_ENABLED=FAIL",
+            "M-STATIC:DG-1:TEACHER_CLAIM_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_ATTEMPT_WRITE=PASS",
+            "M-STATIC:DG-1:SERVER_CHALLENGE_WRITE=FAIL",
+            "M-STATIC:DG-1:SERVER_REVIEW_MARKER=FAIL",
+            "M-STATIC:DG-1:LIST_SCOPED_RECON=PASS",
+            "M-STATIC:DG-1:CONTINUATION_LINKS=FAIL",
+            "M-STATIC:DG-1:SERVER_PROGRESS_WRITE=FAIL",
+            "M-STATIC:DG-1:SERVER_RESET_PROGRESS=FAIL",
+            "M-STATIC:DG-1:CYCLING_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_OVERRIDE=FAIL",
+            "M-STATIC:DG-1:TEACHER_IDS_READ=FAIL",
+            "M-STATIC:DG-1:REVIEW_PAIRING_V2=PASS",
+            "M-STATIC:DG-1:REENTRY_GUARD=PASS",
+            "M-STATIC:DG-1:RECOVERY_GUARD=PASS",
+            "M-STATIC:DG-1:SERVER_COMPLETE_SESSION_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_RESOLVE_LIST_PROGRESS_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_RESET_PROGRESS_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_ADVANCE_FOR_CHALLENGE_ENABLED=FAIL",
+            "M-STATIC:DG-1:LIST_PROGRESS_CANONICAL=FAIL",
+            "M-STATIC:DG-1:ANCHOR_VALIDATION_SHADOW=FAIL",
+            "M-STATIC:DG-1:ANCHOR_VALIDATION_ENFORCE=FAIL",
+            "M-STATIC:DG-1:CYCLING_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_REVIEW_CHALLENGE_ENABLED=FAIL",
+            "M-STATIC:DG-1:SERVER_OVERRIDE_ENABLED=FAIL",
+            "M-STATIC:DG-1:TEACHER_IDS_WRITE_ENABLED=FAIL",
+            "M-STATIC:DG-1:REVIEW_ENGAGEMENT_STAMP_ENABLED=FAIL",
+            "M-STATIC:DG-1:RECOVERY_SCORE_CLAMP_ENABLED=FAIL"
+          ]
+        },
+        {
+          "id": "DG-2",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-STATIC:DG-2=SKIP"
+          ]
+        },
+        {
+          "id": "DG-3",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-STATIC:DG-3=SKIP"
+          ]
+        },
+        {
+          "id": "DG-4",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-STATIC:DG-4=PASS",
+            "M-STATIC:DG-4b=PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P1",
+      "name": "RO review-only completion (S1–S10)",
+      "verdict": "FAIL",
+      "coveredCount": 2,
+      "total": 15,
+      "uncovered": [
+        "RA1",
+        "RA2",
+        "RA3",
+        "RA5",
+        "RA5b",
+        "RA6",
+        "RA7",
+        "RA8",
+        "RA9",
+        "RO-S10",
+        "W-RA3g",
+        "W-RA4",
+        "W-RA4b"
+      ],
+      "scenarios": [
+        {
+          "id": "RA1",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA2",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA3",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA5",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA5b",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA6",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA7",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA8",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RA9",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RO-S1",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-UI:RO-S1=FAIL"
+          ]
+        },
+        {
+          "id": "RO-S9",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-UI:RO-S9=PASS"
+          ]
+        },
+        {
+          "id": "RO-S10",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "W-RA3g",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "W-RA4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "W-RA4b",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        }
+      ]
+    },
+    {
+      "phase": "P2",
+      "name": "RS read/render truth surfaces",
+      "verdict": "FAIL",
+      "coveredCount": 2,
+      "total": 4,
+      "uncovered": [
+        "RS-3",
+        "RS-4"
+      ],
+      "scenarios": [
+        {
+          "id": "RS-1",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-UI:RS-1=PASS"
+          ]
+        },
+        {
+          "id": "RS-2",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-UI:RS-2=FAIL"
+          ]
+        },
+        {
+          "id": "RS-3",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "RS-4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        }
+      ]
+    },
+    {
+      "phase": "P3",
+      "name": "FND-1 server surface",
+      "verdict": "PASS-with-deferrals",
+      "coveredCount": 12,
+      "total": 12,
+      "uncovered": [],
+      "scenarios": [
+        {
+          "id": "CS-1",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-1=PASS",
+            "M-CALL:CS-1e=PASS"
+          ]
+        },
+        {
+          "id": "CS-2",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-2=PASS"
+          ]
+        },
+        {
+          "id": "CS-3",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-3=PASS"
+          ]
+        },
+        {
+          "id": "CS-4",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-4a=PASS",
+            "M-CALL:CS-4b=PASS",
+            "M-CALL:CS-4c=PASS"
+          ]
+        },
+        {
+          "id": "CS-5",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-5=PASS"
+          ]
+        },
+        {
+          "id": "CS-6",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-6f=PASS",
+            "M-CALL:CS-6v=PASS"
+          ]
+        },
+        {
+          "id": "CS-7",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-CALL:CS-7=SKIP"
+          ]
+        },
+        {
+          "id": "CS-8",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-8a=PASS",
+            "M-CALL:CS-8b=PASS",
+            "M-CALL:CS-8c=PASS"
+          ]
+        },
+        {
+          "id": "CS-9",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-9=PASS"
+          ]
+        },
+        {
+          "id": "CS-10",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-CALL:CS-10=SKIP"
+          ]
+        },
+        {
+          "id": "CS-11",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-11m=PASS",
+            "M-CALL:CS-11a=PASS"
+          ]
+        },
+        {
+          "id": "DG-2",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-STATIC:DG-2=SKIP"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P4",
+      "name": "FND-2 client cutover",
+      "verdict": "FAIL",
+      "coveredCount": 2,
+      "total": 9,
+      "uncovered": [
+        "CUT-2",
+        "CUT-3",
+        "CUT-4",
+        "CUT-5",
+        "CUT-6",
+        "CUT-7",
+        "CUT-8"
+      ],
+      "scenarios": [
+        {
+          "id": "CUT-1",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-STATIC:CUT-1=FAIL",
+            "M-STATIC:CUT-1b=FAIL"
+          ]
+        },
+        {
+          "id": "CUT-2",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-3",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-5",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-6",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-7",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-8",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "DG-3",
+          "verdict": "SKIP",
+          "coveredBy": [
+            "M-STATIC:DG-3=SKIP"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P5",
+      "name": "FND-3 data migration",
+      "verdict": "PASS-with-deferrals",
+      "coveredCount": 10,
+      "total": 10,
+      "uncovered": [],
+      "scenarios": [
+        {
+          "id": "MIG-1",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-1=PASS"
+          ]
+        },
+        {
+          "id": "MIG-2",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-2=PASS"
+          ]
+        },
+        {
+          "id": "MIG-3",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-3=PASS"
+          ]
+        },
+        {
+          "id": "MIG-4",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-4=PASS"
+          ]
+        },
+        {
+          "id": "MIG-5",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-5=PASS"
+          ]
+        },
+        {
+          "id": "MIG-6",
+          "verdict": "DEFERRED",
+          "coveredBy": [
+            "M-MIG:MIG-6=DEFERRED"
+          ]
+        },
+        {
+          "id": "MIG-7",
+          "verdict": "DEFERRED",
+          "coveredBy": [
+            "M-MIG:MIG-7=DEFERRED",
+            "M-MIG:MIG-7=DEFERRED"
+          ]
+        },
+        {
+          "id": "MIG-8",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-8=PASS"
+          ]
+        },
+        {
+          "id": "MIG-9",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-9=PASS"
+          ]
+        },
+        {
+          "id": "MIG-10",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-MIG:MIG-10a=PASS",
+            "M-MIG:MIG-10b=DEFERRED"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P6",
+      "name": "FND-4 cutoff rules matrix",
+      "verdict": "INVALID",
+      "coveredCount": 10,
+      "total": 12,
+      "uncovered": [
+        "CUT-2",
+        "CUT-6"
+      ],
+      "scenarios": [
+        {
+          "id": "RUL-1",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-1=PASS"
+          ]
+        },
+        {
+          "id": "RUL-2",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-2=PASS"
+          ]
+        },
+        {
+          "id": "RUL-3",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-3=PASS"
+          ]
+        },
+        {
+          "id": "RUL-4",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-4=PASS"
+          ]
+        },
+        {
+          "id": "RUL-5",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-5=PASS"
+          ]
+        },
+        {
+          "id": "RUL-6",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-6=PASS"
+          ]
+        },
+        {
+          "id": "RUL-7",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-7=PASS"
+          ]
+        },
+        {
+          "id": "RUL-8",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-8=PASS"
+          ]
+        },
+        {
+          "id": "RUL-9",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:RUL-9=PASS"
+          ]
+        },
+        {
+          "id": "CUT-2",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CUT-6",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CS-6",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CS-6f=PASS",
+            "M-CALL:CS-6v=PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P7",
+      "name": "FND-5 retirement",
+      "verdict": "FAIL",
+      "coveredCount": 4,
+      "total": 4,
+      "uncovered": [],
+      "scenarios": [
+        {
+          "id": "RET-1",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-STATIC:RET-1=FAIL"
+          ]
+        },
+        {
+          "id": "RET-2",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-STATIC:RET-2:dup_resume_branch=FAIL",
+            "M-STATIC:RET-2:neg_twi_passthrough=FAIL",
+            "M-STATIC:RET-2:client_automarker=FAIL",
+            "M-STATIC:RET-2:client_challenge_advance=FAIL"
+          ]
+        },
+        {
+          "id": "RET-3",
+          "verdict": "DEFERRED",
+          "coveredBy": [
+            "M-MIG:RET-3=DEFERRED"
+          ]
+        },
+        {
+          "id": "RET-4",
+          "verdict": "FAIL",
+          "coveredBy": [
+            "M-STATIC:RET-4=FAIL"
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "P8",
+      "name": "CONT-A continuation",
+      "verdict": "INVALID",
+      "coveredCount": 0,
+      "total": 6,
+      "uncovered": [
+        "CA-1",
+        "CA-2",
+        "CA-3",
+        "CA-4",
+        "CA-5",
+        "CA-6"
+      ],
+      "scenarios": [
+        {
+          "id": "CA-1",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CA-2",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CA-3",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CA-4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CA-5",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CA-6",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        }
+      ]
+    },
+    {
+      "phase": "P9",
+      "name": "CYC cycling",
+      "verdict": "INVALID",
+      "coveredCount": 1,
+      "total": 7,
+      "uncovered": [
+        "CY-1",
+        "CY-2",
+        "CY-4",
+        "CY-5",
+        "CY-6",
+        "CY-7"
+      ],
+      "scenarios": [
+        {
+          "id": "CY-1",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CY-2",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CY-3",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:CY-3=PASS"
+          ]
+        },
+        {
+          "id": "CY-4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CY-5",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CY-6",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "CY-7",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        }
+      ]
+    },
+    {
+      "phase": "P10",
+      "name": "OVR override + challenge redesign",
+      "verdict": "INVALID",
+      "coveredCount": 4,
+      "total": 6,
+      "uncovered": [
+        "OV-4",
+        "OV-5"
+      ],
+      "scenarios": [
+        {
+          "id": "OV-1",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:OV-1=PASS"
+          ]
+        },
+        {
+          "id": "OV-2",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:OV-2=PASS"
+          ]
+        },
+        {
+          "id": "OV-3",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-CALL:OV-3c=PASS",
+            "M-CALL:OV-3p=PASS"
+          ]
+        },
+        {
+          "id": "OV-4",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "OV-5",
+          "verdict": "UNCOVERED",
+          "coveredBy": []
+        },
+        {
+          "id": "OV-6",
+          "verdict": "PASS",
+          "coveredBy": [
+            "M-RULES:OV-6w=PASS",
+            "M-RULES:OV-6r=PASS"
+          ]
+        }
+      ]
+    }
+  ],
+  "deferredLedger": {
+    "documented": {
+      "M-STATIC": {
+        "ids": [
+          "DG-2",
+          "DG-3",
+          "DG-4b",
+          "CUT-1b"
+        ],
+        "reason": "deployed-probe / built-bundle legs — no live network or local dist/ in M-STATIC (§6.1/§1.A). Codex supplies the deployed exports.version (DG-2) + hosting build-stamp (DG-3) + bundle greps (DG-4b/CUT-1b) at Task-6."
+      },
+      "M-CALL": {
+        "ids": [
+          "CS-7",
+          "CS-10",
+          "CY-3"
+        ],
+        "reason": "CS-7/CS-10 are secret-backed (GRADE_TOKEN_SECRET / ANTHROPIC_API_KEY; the grading-job recovery suite runs against the deployed functions, not the emulator — CS-10 note). CY-3 is gated on CYCLING_ENABLED(server) in the loaded flag-set (§1.J parameterized). NOTE: at the true end-state these should EXECUTE, not defer."
+      },
+      "M-RULES": {
+        "ids": [],
+        "reason": "no design-documented deferrals — every RUL-*/OV-6 arm executes under the emulator."
+      },
+      "M-UI": {
+        "ids": [],
+        "reason": "no design-documented deferrals — every attempted E2E scenario must PASS (an INVALID is a setup failure and blocks)."
+      },
+      "M-WB": {
+        "ids": [],
+        "reason": "no design-documented deferrals — the crafted-precondition white-box scenarios must PASS."
+      },
+      "M-MIG": {
+        "ids": [
+          "MIG-6",
+          "MIG-7",
+          "MIG-9-commit",
+          "MIG-10-commit",
+          "RET-3",
+          "MIG-TID",
+          "MIG-9-backup",
+          "MIG-10b"
+        ],
+        "reason": "write-guarded --commit/--catchup legs (MIG-6/7/9c/10c/RET-3) + the opt-in P10c teacherIds --dry (MIG-TID) + status legs (--dry --backup shared dir MIG-9-backup; F6-3 sweep/census retarget MIG-10b) — Codex Task-6 authorized-commit (§1.F/§1.H/§6). IMPORTANT: the DRY oracles MIG-1..5/MIG-8/MIG-9/MIG-10a are NOT on this ledger — they MUST PASS in the full-dry run. A --dry-only M-MIG leaves MIG-1..5/9 DEFERRED ⇒ P5 unaudited ⇒ NOT-CERTIFIED."
+      }
+    },
+    "observed": [
+      {
+        "matrix": "M-STATIC",
+        "id": "DG-2",
+        "verdict": "SKIP",
+        "expected": true
+      },
+      {
+        "matrix": "M-STATIC",
+        "id": "DG-3",
+        "verdict": "SKIP",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-10b",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-9-backup",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-7",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-TID",
+        "verdict": "SKIP",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-6",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-7",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-9-commit",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "MIG-10-commit",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-MIG",
+        "id": "RET-3",
+        "verdict": "DEFERRED",
+        "expected": true
+      },
+      {
+        "matrix": "M-CALL",
+        "id": "CS-7",
+        "verdict": "SKIP",
+        "expected": true
+      },
+      {
+        "matrix": "M-CALL",
+        "id": "CS-10",
+        "verdict": "SKIP",
+        "expected": true
+      }
+    ],
+    "unexpected": []
+  },
+  "notReExecutedLedger": [
+    {
+      "ref": "§6.1",
+      "klass": "transition-window",
+      "item": "P4 \"resolver wrote ZERO canonical docs before P5\"",
+      "requires": "the P4-era gate manifest; end-state substitute = MIG-9 single-writer trace + CS-8 straggler path"
+    },
+    {
+      "ref": "§6.2",
+      "klass": "transition-window",
+      "item": "P3 resolver READ-ONLY mode behavior",
+      "requires": "end-state corollary (canonical-first + straggler hydrate) certified by CS-8"
+    },
+    {
+      "ref": "§6.3",
+      "klass": "transition-window",
+      "item": "P6 14-day no-legacy-write window + build-version census [C8-1] + 26SM quarantine=0 [C7-2]; P7 7-day zero-denial window",
+      "requires": "dated live-window artifacts"
+    },
+    {
+      "ref": "§6.4",
+      "klass": "procedural",
+      "item": "P0/P5/P6 authorization chain (David scoped commit + CS-event SUPPORT_RUNBOOK entries)",
+      "requires": "procedural sign-off artifacts"
+    },
+    {
+      "ref": "§6.5",
+      "klass": "live-ops",
+      "item": "F-4 H/P/B before/after motion per phase (the program metric)",
+      "requires": "live 26SM census via the MIG-10-audited toolchain — FORBIDDEN to this audit; mechanism certified"
+    },
+    {
+      "ref": "§6.6",
+      "klass": "live-ops",
+      "item": "M4 shadow false-reject ≈ 0 over ≥14 days of live traffic (P3)",
+      "requires": "a soak artifact; the shadow/enforce mechanism is certified by CS-6"
+    },
+    {
+      "ref": "§6.7",
+      "klass": "live-ops",
+      "item": "P1/P3 G5 watch-window signals (permission-denied thresholds, rollback clock)",
+      "requires": "live monitoring dashboards"
+    },
+    {
+      "ref": "§6.8",
+      "klass": "live-ops",
+      "item": "population drains (183-wall P1, 63-pending P8, F-6 permafail→0 P10, 531 impossible_phase→0 P4)",
+      "requires": "live census; the per-student mechanism is certified by the sandbox personas"
+    },
+    {
+      "ref": "§6.9",
+      "klass": "mechanism-dependent",
+      "item": "RUL-8 teacher-provisioning ALLOW arm (David decision 10)",
+      "requires": "concretized at implementation review; the DENY arm is fully audited (RUL-8)"
+    },
+    {
+      "ref": "§6.10",
+      "klass": "procedural",
+      "item": "P0 \"never bare firebase deploy\" standing rule",
+      "requires": "DG-2/DG-3 provenance equality after every recorded deploy"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "runId": "p4-smoke-r37",
+  "at": "2026-07-18T08:56:20.541Z",
+  "build": "6bffe1c",
+  "email": "lsr_p4smk_1784364980541@vocaboost.test",
+  "className": "25WT P4SMK 1784364980541",
+  "list": {
+    "id": "uhKYwNKHDtbFaY2goHQh",
+    "title": "LSR Base Camp (audit clone)",
+    "tier": "base"
+  },
+  "uid": "S2Y44iLLw7dNMihdTJeKf6z5nvu2",
+  "classId": "vTN0klUjolbAs51Inkr6",
+  "joinCode": "A5STTW",
+  "pre": {
+    "exists": false,
+    "csd": 0,
+    "twi": 0,
+    "recentSessions": [],
+    "interventionLevel": 0,
+    "stats": null
+  },
+  "preListProgress": 0,
+  "reachedTest": false,
+  "post": {
+    "exists": false,
+    "csd": 0,
+    "twi": 0,
+    "recentSessions": [],
+    "interventionLevel": 0,
+    "stats": null
+  },
+  "postListProgress": 0,
+  "reviewModePresent": false,
+  "reviewModeValue": null,
+  "assert": {
+    "csd_advanced": false,
+    "twi_advanced": false,
+    "no_list_progress_write": true,
+    "completed": false
+  },
+  "SMOKE_PASS": false
+}

@@ -1,0 +1,107 @@
+{
+  "tool": "lsr_deepfix_p4cert.mjs",
+  "runId": "p4cert-0ddbb34-r42",
+  "certifiedSha": "0ddbb34",
+  "ranAt": "2026-07-18T12:10:45.553Z",
+  "emulator": {
+    "project": "demo-vocaboost",
+    "firestore": "127.0.0.1:8080",
+    "functions": "127.0.0.1:5001"
+  },
+  "pinnedPosture": {
+    "FORCED_PATHWAY_ENABLED": true,
+    "epoch": 1784333239063,
+    "SERVER_COMPLETE_SESSION_ENABLED": true,
+    "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": true,
+    "SERVER_RESET_PROGRESS_ENABLED": true,
+    "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": true,
+    "ANCHOR_VALIDATION_SHADOW": true,
+    "REVIEW_ENGAGEMENT_STAMP_ENABLED": true,
+    "RECOVERY_SCORE_CLAMP_ENABLED": true,
+    "LIST_PROGRESS_CANONICAL": false,
+    "ANCHOR_VALIDATION_ENFORCE": false,
+    "CYCLING_ENABLED": false,
+    "SERVER_OVERRIDE_ENABLED": false,
+    "GRADE_TOKEN_ENFORCED": false
+  },
+  "postureMatchesProd": true,
+  "grandfatherEpochMs": 1784333239063,
+  "assertions": [
+    {
+      "id": "1-normal-advance",
+      "desc": "normal completion advances csd+1/twi to anchor on class_progress",
+      "verdict": "PASS",
+      "want": "status=completed csd=1 twi=20",
+      "got": "status=completed csd=1 twi=20"
+    },
+    {
+      "id": "5a-normal-not-dayguard",
+      "desc": "normal completion is NOT day_guard_rejected + no clear logs",
+      "verdict": "PASS",
+      "want": "dayGuardRejected!=true, clearLogs=0",
+      "got": "dayGuardRejected=false clearLogs=0"
+    },
+    {
+      "id": "2a-postepoch-nonengaged-HOLD",
+      "desc": "post-epoch non-engaged normal-alloc HOLDS (review_recorded, csd/twi flat, log)",
+      "verdict": "PASS",
+      "want": "status=review_recorded advanced=false csd=1 twi=20 log=true",
+      "got": "status=review_recorded advanced=false csd=1 twi=20 log=true"
+    },
+    {
+      "id": "2b-preepoch-grandfathered-ADVANCE",
+      "desc": "pre-epoch grandfathered review => hold does NOT fire, advances exactly once (csd 1->2)",
+      "verdict": "PASS",
+      "want": "status=completed csd=2 (advanced once)",
+      "got": "status=completed csd=2 twi=40"
+    },
+    {
+      "id": "2c-post-throttle-HOLD",
+      "desc": "post-epoch throttle review-only HOLDS (review_recorded, csd/twi flat)",
+      "verdict": "PASS",
+      "want": "status=review_recorded csd=2 twi=40 log=true",
+      "got": "status=review_recorded csd=2 twi=40 log=true"
+    },
+    {
+      "id": "3-reviewMode-persisted",
+      "desc": "reviewMode bit written true on the held throttle day (r/w)",
+      "verdict": "PASS",
+      "want": "class_progress.reviewMode=true + result.reviewMode=true",
+      "got": "cp.reviewMode=true result.reviewMode=true"
+    },
+    {
+      "id": "2c-pre-throttle-HOLD",
+      "desc": "pre-epoch (grandfathered) throttle review-only STILL HOLDS (throttle independent of grandfather)",
+      "verdict": "PASS",
+      "want": "status=review_recorded csd=2 twi=40",
+      "got": "status=review_recorded csd=2 twi=40"
+    },
+    {
+      "id": "4-challenge-cannot-bypass",
+      "desc": "advanceForChallenge on a held (reviewMode) day does NOT advance; persisted csd unchanged",
+      "verdict": "PASS",
+      "want": "advanced=false (review_mode_hold) + csd unchanged=2",
+      "got": "advanced=false reason=review_mode_hold csd=2"
+    },
+    {
+      "id": "5b-stale-dayguard",
+      "desc": "stale day => day_guard_rejected, csd/twi unchanged, session cleared, exactly one clear/FAILED log",
+      "verdict": "PASS",
+      "want": "dayGuardRejected=true csd=2 twi=40 sessionCleared=true clearLogs=1",
+      "got": "dayGuardRejected=true csd=2 twi=40 sessExists=false cleared=1 failed=0"
+    },
+    {
+      "id": "6-no-canonical-writes",
+      "desc": "ZERO users/{uid}/list_progress docs across all test uids (LIST_PROGRESS_CANONICAL=false)",
+      "verdict": "PASS",
+      "want": "canonical list_progress = 0",
+      "got": "count=0 uids=7"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "pass": 10,
+    "fail": 0
+  },
+  "verdict": "CERTIFIED"
+}

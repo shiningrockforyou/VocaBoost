@@ -1,0 +1,30 @@
+{
+  "matrix": "M-NET",
+  "runId": "net-r21",
+  "base": "http://localhost:5173",
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "verdict": "NOT_CLEAN",
+  "cleanCount": 0,
+  "total": 3,
+  "results": [
+    {
+      "id": "NET-1",
+      "verdict": "INVALID",
+      "detail": "no uid for lsr_s51@vocaboost.test",
+      "classId": null
+    },
+    {
+      "id": "NET-2",
+      "verdict": "INVALID",
+      "detail": "no uid for lsr_s52@vocaboost.test",
+      "classId": null
+    },
+    {
+      "id": "NET-3",
+      "verdict": "INVALID",
+      "detail": "no uid for lsr_s53@vocaboost.test",
+      "classId": null
+    }
+  ]
+}

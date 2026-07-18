@@ -1,0 +1,32 @@
+{
+  "runId": "thr-c-escape",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "none",
+  "gitHead": "4b8452aa7581f2758ec53ee4f3a89f2693122094",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-16T00:29:33.050Z",
+  "scenarioSet": [
+    "THR-C"
+  ],
+  "tier": "ascent",
+  "listId": "ssjsJSyeUk6F9yRXBuwN",
+  "listSize": 1600,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 1,
+  "results": [
+    {
+      "id": "THR-C",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "ESCAPED via multiple high reviews · seed csd=8 interv=1 | day0: NEW WORDS RETURNED → ESCAPED",
+      "studentUid": "Qtyk8sBXwobejhPYNSZ2LmQEHIv1",
+      "classId": "ZQtlm1aTNrzBHcSlx2AO",
+      "listId": "ssjsJSyeUk6F9yRXBuwN"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 1,
+  "verdict": "PASS"
+}

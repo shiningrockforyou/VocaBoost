@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 23,
+  "taskId": "P4_CONVERGENCE_REVERIFY",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_p4_convergence_r23.md",
+  "writtenLast": true
+}

@@ -1,0 +1,64 @@
+{
+  "runId": "prod-smoke-r2",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO+RS",
+  "gitHead": "4b8452aa7581f2758ec53ee4f3a89f2693122094",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-17T16:58:50.842Z",
+  "scenarioSet": [
+    "RO-S1",
+    "RO-S9",
+    "RS-1",
+    "RS-2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 4,
+  "results": [
+    {
+      "id": "RO-S1",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "day-1 completed: csd 0->1, twi 0->3, full anchor on the attempt",
+      "studentUid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "classId": "GlcP33bfNejtNZn6astO",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S9",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se8)",
+      "studentUid": "w0qimnATjYNAqnTCouSOwXVm6MN2",
+      "classId": "9lUyqM6SlCHIFo70AGde",
+      "listId": "uhKYwNKHDtbFaY2goHQh",
+      "pre": "csd2|twi1200|rs0|se8",
+      "post": "csd2|twi1200|rs0|se8"
+    },
+    {
+      "id": "RS-1",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "deep student surfaced via server Name filter: Showing=4 (target 3); nameCell rendered account displayName (4 token-cells)",
+      "studentUid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+      "classId": "zgsbCjDIvretRJp1AfrF",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-2",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "testId-less attempt renders with list title \"LSR Base Camp (audit clone)\" (1 row(s))",
+      "studentUid": "l7bIs5RSg0YIbrpZMbpid15Avor1",
+      "classId": "9kJa7mlnJDKGPwPRUM22",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 4,
+  "verdict": "PASS"
+}

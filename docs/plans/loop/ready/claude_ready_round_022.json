@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 22,
+  "taskId": "P4_CUTOVER_EXEC_VERIFY",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_p4_cutover_verify_001.md",
+  "writtenLast": true
+}

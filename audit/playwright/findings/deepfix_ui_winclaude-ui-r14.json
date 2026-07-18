@@ -1,0 +1,32 @@
+{
+  "runId": "winclaude-ui-r14",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-14T21:57:04.109Z",
+  "scenarioSet": [
+    "RO-S1"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RO-S1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RO-S1: csd 0->2 (want 0->1); no passed new attempt recorded",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "ioj2487RR5KKSc2KUiRS",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

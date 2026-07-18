@@ -1,0 +1,45 @@
+{
+  "runId": "prod-11-r1",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO",
+  "gitHead": "4b8452aa7581f2758ec53ee4f3a89f2693122094",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-15T23:15:34.187Z",
+  "scenarioSet": [
+    "RA1",
+    "RA2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RA1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "review-only day did not complete: outcome=not-reached",
+      "studentUid": "NQFeZxbhx0UZFBLLeHLQiuM3EnK2",
+      "classId": "HQg9wmSftiD9yxFMW0DT",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RA2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "day 0 did not complete: not-reached",
+      "studentUid": "7YHUFIyn5jbTZ0ZzMsBPK35GKIo2",
+      "classId": "s3Q5B4JNDlnBnQQtqA15",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [
+    "BUG: [RA1] joined \"25WT DFX RA1 prod-11-r1\" via 6EWUSU but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [RA2] joined \"25WT DFX RA2 prod-11-r1\" via 6NVPYJ but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)"
+  ],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

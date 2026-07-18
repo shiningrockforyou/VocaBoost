@@ -173,7 +173,7 @@ const FLAG_TABLE = [
   { name: 'TEACHER_IDS_WRITE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10c — teacherIds denorm write; dormant until P10c', baseline: false, shipped: true },
   { name: 'REVIEW_ENGAGEMENT_STAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 F3 — additive review-engagement stamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: true, shipped: true },
   { name: 'RECOVERY_SCORE_CLAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 WI-4/I6 — server >100% score clamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: true, shipped: true },
-  { name: 'FORCED_PATHWAY_ENABLED', file: 'functions/foundation.js', src: 'CS PR-3 · WI-1 — SERVER mirror of FORCED_PATHWAY (binary throttle + hold-csd); NOW a FOUNDATION_FLAGS member (the exports.version provenance probe reports it, DG-2); DORMANT, double-gated behind SERVER_COMPLETE_SESSION_ENABLED (P4)', baseline: false, shipped: true },
+  { name: 'FORCED_PATHWAY_ENABLED', file: 'functions/foundation.js', src: 'CS PR-3 · WI-1 — SERVER mirror of FORCED_PATHWAY (binary throttle + hold-csd); NOW a FOUNDATION_FLAGS member (the exports.version provenance probe reports it, DG-2); DORMANT, double-gated behind SERVER_COMPLETE_SESSION_ENABLED (P4)', baseline: true, shipped: true },
 ];
 const flagText = (file) => (file === 'functions/index.js' ? IDX : file === 'src/config/featureFlags.js' ? FF : FND);
 

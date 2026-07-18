@@ -1,0 +1,338 @@
+{
+  "matrix": "M-MIG",
+  "module": "lsr_deepfix_migrate_audit.mjs",
+  "runId": "mig-r19",
+  "mode": "full-dry",
+  "git": {
+    "head": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+    "short": "a967f54",
+    "dirty": true,
+    "dirtyCount": 371
+  },
+  "migrationScript": "scripts/cs/deepfix-migrate-list-progress.mjs",
+  "migrationVersion": "P5-FND-3-v1",
+  "cohortRegex": "25WT",
+  "slack": 7,
+  "cohortUids": [
+    "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+    "w0qimnATjYNAqnTCouSOwXVm6MN2",
+    "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+    "l7bIs5RSg0YIbrpZMbpid15Avor1",
+    "d1LmoxgWttgiPmHQztbzouWG2om1",
+    "PXmLkDFD3oY31EQUTF5Ha77p68T2"
+  ],
+  "sandboxTriples": [
+    {
+      "uid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "email": "lsr_s130@vocaboost.test",
+      "classId": "YiXlJ9AqKBDP1STSDEra",
+      "className": "25WT PX L8 S1 fleet3",
+      "listId": "83wXe3N6wb8CXHiOOwmv",
+      "docId": "YiXlJ9AqKBDP1STSDEra_83wXe3N6wb8CXHiOOwmv"
+    },
+    {
+      "uid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "email": "lsr_s130@vocaboost.test",
+      "classId": "P34K5aSS7SiHEqubEV0m",
+      "className": "25WT MIG DUALB",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "P34K5aSS7SiHEqubEV0m_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "email": "lsr_s130@vocaboost.test",
+      "classId": "ySd9tmRZlSXO6H23nb8g",
+      "className": "25WT MIG DUALA",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "ySd9tmRZlSXO6H23nb8g_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "email": "lsr_s130@vocaboost.test",
+      "classId": "kpOk4CtMkg8N0McxeTOV",
+      "className": "25WT PX L8 S0 fleet3",
+      "listId": "PVLgp1KZALQMxd4gZkPM",
+      "docId": "kpOk4CtMkg8N0McxeTOV_PVLgp1KZALQMxd4gZkPM"
+    },
+    {
+      "uid": "w0qimnATjYNAqnTCouSOwXVm6MN2",
+      "email": "lsr_s131@vocaboost.test",
+      "classId": "8u9gN9jkg6IojyKgRJdN",
+      "className": "25WT MIG DIVS",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "8u9gN9jkg6IojyKgRJdN_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "w0qimnATjYNAqnTCouSOwXVm6MN2",
+      "email": "lsr_s131@vocaboost.test",
+      "classId": "ZMmLqUVdpuc8HtPelkTl",
+      "className": "25WT MIG DIVF",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "ZMmLqUVdpuc8HtPelkTl_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "w0qimnATjYNAqnTCouSOwXVm6MN2",
+      "email": "lsr_s131@vocaboost.test",
+      "classId": "ROMP4BFwlb8BFt9hAqyE",
+      "className": "25WT PX L9 S0 fleet3",
+      "listId": "RWb8nTrwmOnfM67WMsGv",
+      "docId": "ROMP4BFwlb8BFt9hAqyE_RWb8nTrwmOnfM67WMsGv"
+    },
+    {
+      "uid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+      "email": "lsr_s132@vocaboost.test",
+      "classId": "5CUSsT0XXShooufEgd69",
+      "className": "25WT MIG POOL",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "5CUSsT0XXShooufEgd69_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+      "email": "lsr_s132@vocaboost.test",
+      "classId": "8ecJ3wULYcMjK0DfGpZK",
+      "className": "25WT DFX RO-S1 winclaude-ui-r16",
+      "listId": "uhKYwNKHDtbFaY2goHQh",
+      "docId": "8ecJ3wULYcMjK0DfGpZK_uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "uid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+      "email": "lsr_s132@vocaboost.test",
+      "classId": "53xrHQMHa4FJ91DtdKmm",
+      "className": "25WT PX L13 S0 fleet3",
+      "listId": "eYhQWDkK3ys0cBIQnh46",
+      "docId": "53xrHQMHa4FJ91DtdKmm_eYhQWDkK3ys0cBIQnh46"
+    },
+    {
+      "uid": "l7bIs5RSg0YIbrpZMbpid15Avor1",
+      "email": "lsr_s133@vocaboost.test",
+      "classId": "5CUSsT0XXShooufEgd69",
+      "className": "25WT MIG POOL",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "5CUSsT0XXShooufEgd69_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "l7bIs5RSg0YIbrpZMbpid15Avor1",
+      "email": "lsr_s133@vocaboost.test",
+      "classId": "FStY9MujkvJu9N32YguP",
+      "className": "25WT PX L14 S0 fleet3",
+      "listId": "dOGKls986xp2ZqSBybLp",
+      "docId": "FStY9MujkvJu9N32YguP_dOGKls986xp2ZqSBybLp"
+    },
+    {
+      "uid": "d1LmoxgWttgiPmHQztbzouWG2om1",
+      "email": "lsr_s134@vocaboost.test",
+      "classId": "98i05H3rPsjCcMdNYIeA",
+      "className": "25WT PX L16 S1 fleet3",
+      "listId": "83wXe3N6wb8CXHiOOwmv",
+      "docId": "98i05H3rPsjCcMdNYIeA_83wXe3N6wb8CXHiOOwmv"
+    },
+    {
+      "uid": "d1LmoxgWttgiPmHQztbzouWG2om1",
+      "email": "lsr_s134@vocaboost.test",
+      "classId": "qrUOxIBtGt5gip40q4rW",
+      "className": "25WT PX L16 S0 fleet3",
+      "listId": "83wXe3N6wb8CXHiOOwmv",
+      "docId": "qrUOxIBtGt5gip40q4rW_83wXe3N6wb8CXHiOOwmv"
+    },
+    {
+      "uid": "d1LmoxgWttgiPmHQztbzouWG2om1",
+      "email": "lsr_s134@vocaboost.test",
+      "classId": "5CUSsT0XXShooufEgd69",
+      "className": "25WT MIG POOL",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "5CUSsT0XXShooufEgd69_0HrPB6ejvDxQ16arUh7C"
+    },
+    {
+      "uid": "PXmLkDFD3oY31EQUTF5Ha77p68T2",
+      "email": "lsr_s135@vocaboost.test",
+      "classId": "5CUSsT0XXShooufEgd69",
+      "className": "25WT MIG POOL",
+      "listId": "0HrPB6ejvDxQ16arUh7C",
+      "docId": "5CUSsT0XXShooufEgd69_0HrPB6ejvDxQ16arUh7C"
+    }
+  ],
+  "startedAt": "2026-07-15T10:56:09.600Z",
+  "finishedAt": "2026-07-15T10:56:33.694Z",
+  "summary": {
+    "pass": 10,
+    "fail": 0,
+    "invalid": 0,
+    "deferred": 8,
+    "skip": 1
+  },
+  "clean": true,
+  "verdict": "NOT_CLEAN",
+  "assertions": [
+    {
+      "id": "SELF-EVAL",
+      "scenario": "oracle-walk self-test (evaluators + FINAL/JSON parser vs synthetic ± poisoned fixtures)",
+      "expected": "all positive fixtures PASS, poisoned fixtures FAIL, parseFinal round-trips",
+      "actual": "10/10 checks ok",
+      "verdict": "PASS",
+      "evidence": "evaluators + parser proven against synthetic positive/negative fixtures",
+      "kind": "self"
+    },
+    {
+      "id": "MIG-8",
+      "scenario": "errored-anchor abort (code-walk)",
+      "expected": "computePair try/catch → PAIR_ERROR/SKIP_ERROR; pool continues for others",
+      "actual": "try/catch→PAIR_ERROR/SKIP_ERROR=true pool-continues=true",
+      "verdict": "PASS",
+      "evidence": "code-walk: computePair wraps the pair in try/catch → QUAR.PAIR_ERROR + SKIP_ERROR (\"errored lookups move NOTHING\") and the POOL loop processes other pairs regardless. A hard computePair THROW is not deterministically seed-reproducible (the script is defensively coded); the invalid-anchor \"moves nothing\" arm is exercised live by seedForgedTwiHigh (MIG-4).",
+      "kind": "code-walk"
+    },
+    {
+      "id": "MIG-10a",
+      "scenario": "CS toolchain — manual-pass writes a full valid anchor (static)",
+      "expected": "manual-pass.mjs writes newWordStartIndex/EndIndex/wordsIntroduced/testId",
+      "actual": "mpValidAnchor=true",
+      "verdict": "PASS",
+      "evidence": "the manual-pass canonical-anchor half of MIG-10 (CLAUDE.md rule) is shipped at HEAD",
+      "kind": "static"
+    },
+    {
+      "id": "MIG-10b",
+      "scenario": "CS toolchain — sweep/census read list_progress (static retarget status)",
+      "expected": "data-integrity-sweep.mjs + deepfix-census2.mjs read list_progress (F6-3 retarget shipped)",
+      "actual": "sweepReadsLP=false censusReadsLP=false",
+      "verdict": "DEFERRED",
+      "evidence": "RETARGET NOT SHIPPED at HEAD: sweep + census still read class_progress (empirically confirmed 2026-07-14). This is a P7/F6-3 shipped-state oracle — DEFERRED with status, not a migration FAIL.",
+      "kind": "static"
+    },
+    {
+      "id": "SANDBOX-GUARD",
+      "scenario": "independent per-doc sandbox re-verify of the --dry plan",
+      "expected": "every enumerated doc 25WT + lsr_*@vocaboost.test",
+      "actual": "16 docs verified sandbox",
+      "verdict": "PASS",
+      "evidence": "all 16 source docs re-read as 25WT + lsr_*",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-1",
+      "scenario": "LIVE-STRAND collapse",
+      "expected": "merged twi == cross-class anchor 640; LIVE-STRAND; MIGRATE",
+      "actual": "after.twi=640 anchor.twi=640 pop=LIVE-STRAND action=MIGRATE",
+      "verdict": "PASS",
+      "evidence": "want after.twi==anchor==640, LIVE-STRAND, MIGRATE, A1/A3 clean; okTwi=true okAnchor=true okPop=true noResidual=true",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-2",
+      "scenario": "divergent + own-anchor CSD screen",
+      "expected": "twi==640(fast), csd==15(slow), not quarantined",
+      "actual": "after.twi=640 after.csd=15 pop=LIVE-STRAND",
+      "verdict": "PASS",
+      "evidence": "want twi==640(fast) csd==15(slow); no CSD_IMPLAUSIBLE; A7 clean; okTwi=true okCsd=true noCsdQuar=true a7=true (population label 'LIVE-STRAND' is not asserted — the own-anchor merge result is)",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-3",
+      "scenario": "review-only CSD evidence amendment",
+      "expected": "MIGRATE; csd==13 preserved (not demoted to 3); A6 clean",
+      "actual": "action=MIGRATE after.csd=13 (anchorDay=3)",
+      "verdict": "PASS",
+      "evidence": "want MIGRATE + csd==13 (not demoted to 3) + 0 CSD_IMPLAUSIBLE + A6 clean; okAction=true okCsd=true noCsdQuar=true a6=true",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-4",
+      "scenario": "forged/anchorless → QUARANTINE (dry leg)",
+      "expected": "SKIP_QUARANTINE + ANCHORLESS_TWI + never zeroed/promoted; legacy retained",
+      "actual": "action=SKIP_QUARANTINE quarantine=[\"ANCHORLESS_TWI 5CUSsT0XXShooufEgd69_0HrPB6ejvDxQ16arUh7C: twi=2000 (invalid anchors present)\"] invalidAnchors=1",
+      "verdict": "PASS",
+      "evidence": "want SKIP_QUARANTINE + ANCHORLESS/EXCEEDS + never-zeroed + invalid reported; okQuar=true notZeroed=true invalidReported=true. NOTE: the {mode:'quarantined'} canonical + blocked-study UX + list_progress_quarantined log are the resolveListProgress/commit leg (CS-8), NOT this script — deferred.",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-5",
+      "scenario": "single-doc 1:1 re-key",
+      "expected": "verbatim csd==5/twi==200; single-doc; 0 deviations",
+      "actual": "pop=single-doc after={csd:5,twi:200} dropped=0",
+      "verdict": "PASS",
+      "evidence": "want single-doc + verbatim csd==5/twi==200 + 0 deviations; okPop=true okVerbatim=true noDev=true",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-9",
+      "scenario": "cohort hard asserts (dry leg)",
+      "expected": "A1/A2 empty cohort-wide; --dry diff artifact per uid; migrationVersion stamp",
+      "actual": "twiRegressions=0 csdRegressions=0 artifacts=6 migVer_ok=true",
+      "verdict": "PASS",
+      "evidence": "cohort A1/A2 empty + a --dry diff artifact per uid carrying migrationVersion=P5-FND-3-v1. (Backups-per-source verified separately via --dry --backup; post-commit twi/csd-after sweep on WRITTEN docs is DEFERRED to Codex.)",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-9-backup",
+      "scenario": "backups per source doc (--dry --backup)",
+      "expected": "one {uid}_{listId}.json (sources[]) per seeded pair",
+      "actual": "0/6 backup files present",
+      "verdict": "DEFERRED",
+      "evidence": "partial/none — dry --backup writes to the shared hardcoded BK_DIR; definitive per-commit backups are the Codex leg",
+      "kind": "dry"
+    },
+    {
+      "id": "MIG-7",
+      "scenario": "post-flip catch-up (dry note)",
+      "expected": "fixture staged; the fold requires --commit+--catchup",
+      "actual": "seedRacingLegacyWrite present for d1LmoxgW",
+      "verdict": "DEFERRED",
+      "evidence": "nothing is committed (0 list_progress in DB); --catchup finds no stamped canonical — the fold is Codex Task-6. See MIG-7 stub.",
+      "kind": "deferred"
+    },
+    {
+      "id": "MIG-TID",
+      "scenario": "P10c teacherIds backfill --dry",
+      "expected": "run with --with-teacherids",
+      "actual": "skipped (default; heavy 1-query-per-cohort-class scan)",
+      "verdict": "SKIP",
+      "evidence": "Codex/authorized: NODE_PATH=/app/node_modules node scripts/cs/deepfix-migrate-attempts-teacherids.mjs 25WT --dry ; --commit is the Codex leg.",
+      "kind": "deferred"
+    },
+    {
+      "id": "MIG-6",
+      "scenario": "idempotent re-run",
+      "expected": "second --commit run is a no-op (0 additional diffs; no double-merge)",
+      "actual": "NOT RUN (write-guarded; Codex Task-6)",
+      "verdict": "DEFERRED",
+      "evidence": "Codex: (1) NODE_PATH=/app/node_modules node scripts/cs/deepfix-migrate-list-progress.mjs 25WT --commit --confirm-migrate=25WT ; (2) re-run the SAME command → expect actions all SKIP_DONE, written=0, and a byte-identical diff. (idempotency stamp: migratedAt on each collapsed legacy doc; existing canonical overwrite only if anchor-validated twi >= existing.)",
+      "kind": "deferred"
+    },
+    {
+      "id": "MIG-7",
+      "scenario": "post-flip catch-up fold",
+      "expected": "a completion landing on a stamped legacy doc (lastSessionAt > migratedAt) is folded into canonical; no loss",
+      "actual": "NOT RUN (write-guarded; Codex Task-6)",
+      "verdict": "DEFERRED",
+      "evidence": "Codex: --commit; then simulate a flag-off client advancing the seedRacingLegacyWrite doc (bump csd/twi + fresh lastSessionAt on the legacy class_progress); then … --catchup --confirm-migrate=25WT → expect the canonical csd/twi to include the racing completion (non-demoting max) and the late legacy doc re-stamped. Fixture seeded: seedRacingLegacyWrite.",
+      "kind": "deferred"
+    },
+    {
+      "id": "MIG-9-commit",
+      "scenario": "post-commit cohort sweep (written docs)",
+      "expected": "twi_after >= twi_before AND csd_after >= csd_before for every seeded student on the WRITTEN canonical docs; one backup file per source doc; every canonical traces to the runId stamp",
+      "actual": "NOT RUN (write-guarded; Codex Task-6)",
+      "verdict": "DEFERRED",
+      "evidence": "Codex: after --commit, read back users/{uid}/list_progress/{listId} for [hXSKzDlS, w0qimnAT, OYJ5NYWk, l7bIs5RS, d1LmoxgW, PXmLkDFD] and assert non-regression vs the pre-image; assert dsg-edits/srv_validate/list_progress_backups/{uid}_{listId}.json exists per SOURCE doc; assert every written doc carries migrationVersion=P5-FND-3-v1. (The --dry leg already proved A1/A2 empty + the diff artifact + --dry --backup files.)",
+      "kind": "deferred"
+    },
+    {
+      "id": "MIG-10-commit",
+      "scenario": "CS toolchain retarget — live sweep + manual-pass",
+      "expected": "the reworked sweep flags a seeded list_progress corruption (not via class_progress); manual-pass writes a canonical valid anchor CS-6 M4 accepts",
+      "actual": "NOT RUN (write-guarded; Codex Task-6)",
+      "verdict": "DEFERRED",
+      "evidence": "Codex: after the F6-3 retarget ships, run node scripts/cs/data-integrity-sweep.mjs 25WT against a seeded list_progress corruption → expect a flag; run node scripts/cs/manual-pass.mjs <sandbox student> (commit) → expect an attempt with newWordStartIndex/EndIndex/wordsIntroduced/testId that CS-6's M4 accepts.",
+      "kind": "deferred"
+    },
+    {
+      "id": "RET-3",
+      "scenario": "legacy deletion + sweep clean (sandbox)",
+      "expected": "after the P7 deletion script, 0 class_progress docs remain for the 25WT cohort AND the list_progress-shaped sweep exits 0",
+      "actual": "NOT RUN (write-guarded; Codex Task-6)",
+      "verdict": "DEFERRED",
+      "evidence": "Codex: after --commit + the flag cutover, run the P7 deletion (the P7 deletion script — NOT PRESENT at HEAD, author it first) scoped 25WT → expect 0 legacy class_progress for the cohort; then the reworked sweep exit 0. (RET-1 zero-refs grep is M-STATIC's job.)",
+      "kind": "deferred"
+    }
+  ]
+}

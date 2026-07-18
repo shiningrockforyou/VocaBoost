@@ -1,0 +1,94 @@
+{
+  "runId": "winclaude-ui-r11",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO+RS",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-14T21:11:24.577Z",
+  "scenarioSet": [
+    "RS-1",
+    "RS-2",
+    "RS-3",
+    "RS-4",
+    "RO-S1",
+    "RO-S9",
+    "RO-S10"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 3,
+  "results": [
+    {
+      "id": "RS-1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-1: Showing=8 > target attempts 3 — filter not server-side (filler rows leaked)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "0RtHprgRIWZAXNYscV9V",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-2",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "testId-less attempt renders with list title \"LSR Base Camp (audit clone)\" (1 row(s))",
+      "studentUid": "rB87oxUQt2QYDdXlHwJkd4nVnGz2",
+      "classId": "ovAqekNuBAd5d6GpuFuR",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-3",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-3: list NOT shown on the teacher Assigned-Lists surface",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "bTDEMySy3YoKerZaCBDF",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-4",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "score 40% outside [90,95) — grader drift; re-calibrate the answer count (did not exercise the serverPassed-vs-0.95 gap)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "DPejdH3pxIdDDPvVACd6",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RO-S1: csd 0->0 (want 0->1); twi 0->0 (want +pace); no passed new attempt recorded",
+      "studentUid": "rB87oxUQt2QYDdXlHwJkd4nVnGz2",
+      "classId": "VBcgagcaNH2KV1Hz1zvg",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S9",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se0)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "i2IH96G65O4NzBj16RyP",
+      "listId": "uhKYwNKHDtbFaY2goHQh",
+      "pre": "csd2|twi1200|rs0|se0",
+      "post": "csd2|twi1200|rs0|se0"
+    },
+    {
+      "id": "RO-S10",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RO-S10: submit produced a RESULTS screen — a FALSE SUCCESS on a day-guard collision (must rebuild); no day_guard_rejected log NOR day-guard console warn observed (uid signal)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "wL6TrVluY9UXoJaGLQRE",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 2,
+  "verdict": "NOT-CLEAN"
+}

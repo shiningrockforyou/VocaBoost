@@ -1,0 +1,35 @@
+{
+  "runId": "cert-59df732-r34",
+  "probedAt": "2026-07-17T20:21:59.649Z",
+  "project": "vocaboost-879c2",
+  "base": "https://vocaboostone.netlify.app",
+  "expectShortSha": "59df732",
+  "dg2": {
+    "url": "https://us-central1-vocaboost-879c2.cloudfunctions.net/version",
+    "httpStatus": 401,
+    "result": null,
+    "raw": "{\"error\":{\"message\":\"Authentication required\",\"status\":\"UNAUTHENTICATED\"}}",
+    "deployedShortSha": null,
+    "deployedSha": null,
+    "deployedDirty": null,
+    "builtAt": null
+  },
+  "dg3": {
+    "buildStamp": {
+      "sha": "59df732657dfb742d4392a47ae5c1d988377387a",
+      "shortSha": "59df732",
+      "branch": "HEAD",
+      "dirty": false,
+      "builtAt": "2026-07-17T19:20:54.207Z"
+    },
+    "shortSha": "59df732",
+    "dirty": false,
+    "builtAt": "2026-07-17T19:20:54.207Z",
+    "matches59df732": true
+  },
+  "summary": {
+    "DG3_hosting_is_59df732": true,
+    "DG2_deployed_functions_shortSha": "(probe failed/needs-SDK)",
+    "DG2_note": "DG-2 callable probe inconclusive (see dg2.raw)"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "runId": "winclaude-ui-r9",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-14T16:20:30.221Z",
+  "scenarioSet": [
+    "RA1",
+    "RA2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RA1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RA1 complete oracle: csd 4->4 (want +1); reviewAttempts not +1",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "4it7s8xQ0e7prKbOG3Um",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RA2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "day 0 csd 4->4 (want +1)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "ulSy0VsG7L4ygPRPCIUq",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

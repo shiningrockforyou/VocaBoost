@@ -1,0 +1,3 @@
+iter 0: shortSha=d2bb2bc dirty=false consoleErrs=0
+
+[pr3-buildstamp] shortSha=d2bb2bc dirty=false STAMP_OK=true LOADED_CLEAN=true

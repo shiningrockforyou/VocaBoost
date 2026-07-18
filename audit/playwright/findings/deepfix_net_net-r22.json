@@ -1,0 +1,30 @@
+{
+  "matrix": "M-NET",
+  "runId": "net-r22",
+  "base": "http://localhost:5173",
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "verdict": "NOT_CLEAN",
+  "cleanCount": 0,
+  "total": 3,
+  "results": [
+    {
+      "id": "NET-1",
+      "verdict": "INVALID",
+      "detail": "no uid + createUser failed for lsr_s136@vocaboost.test: Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.",
+      "classId": null
+    },
+    {
+      "id": "NET-2",
+      "verdict": "INVALID",
+      "detail": "no uid + createUser failed for lsr_s137@vocaboost.test: Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.",
+      "classId": null
+    },
+    {
+      "id": "NET-3",
+      "verdict": "INVALID",
+      "detail": "no uid + createUser failed for lsr_s138@vocaboost.test: Error: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.",
+      "classId": null
+    }
+  ]
+}

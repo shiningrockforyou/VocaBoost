@@ -1,0 +1,50 @@
+{
+  "at": "2026-07-18T10:18:42.612Z",
+  "cutoff": "2026-07-18T08:46:00.000Z",
+  "roster26": 824,
+  "canonical_list_progress": {
+    "total_global": 0,
+    "count_26SM": 0,
+    "per26User": {},
+    "samplePaths": [],
+    "VERDICT": "PASS — zero canonical 26SM list_progress docs (LIST_PROGRESS_CANONICAL=false honored)"
+  },
+  "csd_twi_reconciled_since_cutoff": {
+    "n": 2,
+    "byWriter": {
+      "cloud-function": 2
+    },
+    "sampleKeys": [
+      "type",
+      "severity",
+      "userId",
+      "classId",
+      "listId",
+      "stored",
+      "calculated",
+      "applied",
+      "source",
+      "writtenBy",
+      "timestamp"
+    ]
+  },
+  "write_path_events_since_cutoff": {
+    "review_recorded": 0,
+    "complete_session_no_evidence": 0,
+    "reset_progress_server": 0,
+    "challenge_day_advance": 0,
+    "list_progress_quarantined": 0,
+    "list_progress_quarantine_candidate": 0,
+    "anchor_rejected": 0,
+    "reviewonly_derivation_mismatch": 0,
+    "review_marker_write_failed": 0,
+    "day_guard_rejected_session_cleared": 0,
+    "day_guard_session_clear_FAILED": 0
+  },
+  "interpretation": {
+    "canonical_empty_26SM": true,
+    "forced_pathway_hold_exercised": false,
+    "any_completeSession_write_evidence": false,
+    "note": "A successful completeSession advance emits NO system_logs event, so absence of write-path events does NOT prove completions are failing — it means the write/hold-csd path is unexercised OR silently succeeding; the 6-assertion behavioral smoke remains the only certification."
+  }
+}

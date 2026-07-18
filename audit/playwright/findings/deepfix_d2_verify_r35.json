@@ -1,0 +1,65 @@
+{
+  "runId": "d2-verify-r35",
+  "probedAt": "2026-07-17T23:59:54.342Z",
+  "project": "vocaboost-879c2",
+  "completeSession": {
+    "httpStatus": 401,
+    "body": "{\"error\":{\"message\":\"Authentication required\",\"status\":\"UNAUTHENTICATED\"}}",
+    "stillDisarmed": false
+  },
+  "deployed": {
+    "sha": "26cd8ee8f7b5554feaa86b1f55b546f1cff8b533",
+    "shortSha": "26cd8ee",
+    "dirty": true,
+    "builtAt": "2026-07-17T23:56:57.321Z",
+    "flags": {
+      "GRADE_TOKEN_ENFORCED": false,
+      "GRADE_TOKEN_MINT": false,
+      "GRADE_JOB_ENABLED": true,
+      "GRADE_JOB_LEASE_MS": 180000,
+      "TEACHER_PROVISIONING_ENABLED": false,
+      "TEACHER_CLAIM_ENABLED": false,
+      "SERVER_COMPLETE_SESSION_ENABLED": true,
+      "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": true,
+      "SERVER_RESET_PROGRESS_ENABLED": true,
+      "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": true,
+      "LIST_PROGRESS_CANONICAL": false,
+      "ANCHOR_VALIDATION_SHADOW": true,
+      "ANCHOR_VALIDATION_ENFORCE": false,
+      "CYCLING_ENABLED": false,
+      "SERVER_REVIEW_CHALLENGE_ENABLED": false,
+      "SERVER_OVERRIDE_ENABLED": false,
+      "TEACHER_IDS_WRITE_ENABLED": false,
+      "REVIEW_ENGAGEMENT_STAMP_ENABLED": true,
+      "RECOVERY_SCORE_CLAMP_ENABLED": true,
+      "FORCED_PATHWAY_ENABLED": false
+    }
+  },
+  "check": {
+    "trueMissing": [],
+    "falseViolations": [],
+    "posture_ok": true,
+    "the7": {
+      "SERVER_COMPLETE_SESSION_ENABLED": true,
+      "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": true,
+      "SERVER_RESET_PROGRESS_ENABLED": true,
+      "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": true,
+      "ANCHOR_VALIDATION_SHADOW": true,
+      "REVIEW_ENGAGEMENT_STAMP_ENABLED": true,
+      "RECOVERY_SCORE_CLAMP_ENABLED": true
+    },
+    "mustStayFalse": {
+      "LIST_PROGRESS_CANONICAL": false,
+      "ANCHOR_VALIDATION_ENFORCE": false,
+      "CYCLING_ENABLED": false,
+      "FORCED_PATHWAY_ENABLED": false,
+      "SERVER_REVIEW_CHALLENGE_ENABLED": false,
+      "SERVER_OVERRIDE_ENABLED": false,
+      "TEACHER_IDS_WRITE_ENABLED": false,
+      "GRADE_TOKEN_ENFORCED": false,
+      "GRADE_TOKEN_MINT": false,
+      "TEACHER_PROVISIONING_ENABLED": false,
+      "TEACHER_CLAIM_ENABLED": false
+    }
+  }
+}

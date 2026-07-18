@@ -1,0 +1,120 @@
+{
+  "runId": "winclaude-ui-r10",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO+RS",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-14T20:48:00.081Z",
+  "scenarioSet": [
+    "RS-1",
+    "RS-2",
+    "RS-3",
+    "RS-4",
+    "RO-S1",
+    "RO-S9",
+    "RO-S10",
+    "RA1",
+    "RA2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RS-1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-1: no gradebook row bearing the deep student's name \"LSRDEEPDEZR\"",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "I8FUKOh223Suh4ehdeZR",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-2: testId-less attempt row NOT visible in the gradebook (dropped for lacking testId)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "YVVFUfv4NBxi1aMDlehO",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-3",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-3: list NOT shown on the teacher Assigned-Lists surface",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "U9RwgApzw3SzhctcovPu",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-4",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "score 37% outside [90,95) — grader drift; re-calibrate the answer count (did not exercise the serverPassed-vs-0.95 gap)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "WuCd4Yu0pl503nDHa4DC",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RO-S1: csd 0->0 (want 0->1); twi 0->0 (want +pace); no passed new attempt recorded",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "ljZZqy3Fd7ZxjYaVB34m",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S9",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se0)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "9qErZsWA9G37VWbYmB8Y",
+      "listId": "uhKYwNKHDtbFaY2goHQh",
+      "pre": "csd2|twi1200|rs0|se0",
+      "post": "csd2|twi1200|rs0|se0"
+    },
+    {
+      "id": "RO-S10",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RO-S10: submit produced a RESULTS screen — a FALSE SUCCESS on a day-guard collision (must rebuild); no day_guard_rejected log NOR day-guard console warn observed (uid signal)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "HAcUwAqlfLjcbmkVbsIf",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RA1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RA1 complete oracle: csd 4->4 (want +1); reviewAttempts not +1",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "gCINfBpfgUgXnfJixlo7",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RA2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "day 0 csd 4->4 (want +1)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "6oNZK7nIekVcheVIdTZT",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [
+    "request-failed: [student-RS-2] GET http://localhost:5173/src/index.css?t=1784061265539 — net::ERR_ABORTED",
+    "request-failed: [student-RS-4] GET http://localhost:5173/src/index.css?t=1784061451106 — net::ERR_ABORTED",
+    "request-failed: [student-RO-S1] GET http://localhost:5173/src/index.css?t=1784061565961 — net::ERR_ABORTED",
+    "request-failed: [student-RO-S9] GET http://localhost:5173/src/index.css?t=1784061678430 — net::ERR_ABORTED",
+    "request-failed: [student-RO-S10] GET http://localhost:5173/src/index.css?t=1784061791061 — net::ERR_ABORTED"
+  ],
+  "cleanCount": 1,
+  "verdict": "NOT-CLEAN"
+}

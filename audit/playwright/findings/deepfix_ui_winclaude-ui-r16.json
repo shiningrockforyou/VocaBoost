@@ -1,0 +1,42 @@
+{
+  "runId": "winclaude-ui-r16",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO+RS",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-15T10:38:21.178Z",
+  "scenarioSet": [
+    "RS-1",
+    "RO-S1"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 3,
+  "results": [
+    {
+      "id": "RS-1",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "deep student surfaced via server Name filter: Showing=3 (target 3); nameCell rendered account displayName (3 token-cells)",
+      "studentUid": "hXSKzDlSNNgVme1Usk6SR28aAAC2",
+      "classId": "iWd5SL145bWvhXSbRpf9",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S1",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "day-1 completed: csd 0->1, twi 0->3, full anchor on the attempt",
+      "studentUid": "OYJ5NYWkktPQlTRSheS2LwHNMcv2",
+      "classId": "8ecJ3wULYcMjK0DfGpZK",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 2,
+  "verdict": "PASS"
+}

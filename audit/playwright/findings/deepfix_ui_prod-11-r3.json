@@ -1,0 +1,42 @@
+{
+  "runId": "prod-11-r3",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO",
+  "gitHead": "4b8452aa7581f2758ec53ee4f3a89f2693122094",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-15T23:31:15.120Z",
+  "scenarioSet": [
+    "RA1",
+    "RA2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RA1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RA1 complete oracle: csd 4->4 (want +1); reviewAttempts not +1",
+      "studentUid": "XDQqg6cjBmQFDBP5Sc38AZn2iYA3",
+      "classId": "k6h6ZOX5Pl3ilgxUMkUu",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RA2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "day 0 csd 4->4 (want +1)",
+      "studentUid": "knjBX7YluyScvJyf2YSinR1u0q33",
+      "classId": "lu1tuNIUG5k8kq48JVBI",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

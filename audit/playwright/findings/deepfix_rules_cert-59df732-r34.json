@@ -1,0 +1,187 @@
+{
+  "matrix": "M-RULES",
+  "runId": "cert-59df732-r34",
+  "emulator": {
+    "ok": true,
+    "reason": "emulator detected",
+    "project": "demo-vocaboost",
+    "firestoreHost": "127.0.0.1:8080",
+    "authHost": "127.0.0.1:9099",
+    "cfHost": "127.0.0.1:5001"
+  },
+  "git": {
+    "head": "59df732657dfb742d4392a47ae5c1d988377387a",
+    "short": "59df732",
+    "dirty": true,
+    "dirtyCount": 45,
+    "dirtyRows": [
+      "M audit/playwright/findings/B_LIST_PROGRESS_PHASE1_undefined.md",
+      " M audit/playwright/lsr_deepfix_emu.mjs",
+      " M audit/playwright/lsr_deepfix_static.mjs",
+      " M change_action_log.md",
+      " M docs/plans/CONSOLIDATED_ROADMAP_2026-07-17.md",
+      " M docs/plans/SESSION_TODO_2026-07-17.md",
+      " M docs/plans/loop/baton.json",
+      " M docs/plans/loop/win/baton.json",
+      " M functions/foundation.js",
+      " M functions/index.js",
+      " M src/config/featureFlags.js",
+      " M src/pages/MCQTest.jsx",
+      " M src/pages/TypedTest.jsx",
+      " M src/services/progressService.js",
+      " M src/services/studyService.js",
+      "?? audit/deepfix/task6/TASK6_REPORT.md",
+      "?? audit/deepfix/task6/m_call_cert_r34_output.txt",
+      "?? audit/deepfix/task6/m_mig_cert_r34_full_output.txt",
+      "?? audit/deepfix/task6/m_mig_cert_r34_output.txt",
+      "?? audit/deepfix/task6/m_rules_cert_r34_output.txt",
+      "?? audit/deepfix/task6/m_rules_cert_r34_rerun_output.txt",
+      "?? audit/deepfix/task6/m_rules_flagon_cert_r34_output.txt",
+      "?? audit/deepfix/task6/pr1_csd_probe_r33.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33v2.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33v3.mjs",
+      "?? audit/playwright/findings/DEEPFIX_AUDIT_CERT_cert-59df732-r34.md",
+      "?? audit/playwright/findings/deepfix_call_cert-59df732-r34.md",
+      "?? audit/playwright/findings/deepfix_mig_cert-59df732-r34.md",
+      "?? audit/playwright/findings/deepfix_pr1_postflip_r33.md",
+      "?? audit/playwright/findings/deepfix_rules_cert-59df732-r34.md",
+      "?? audit/playwright/findings/deepfix_static_59df732-baseline.md",
+      "?? audit/playwright/findings/deepfix_static_cert-59df732-r34.md",
+      "?? audit/playwright/findings/flag_on_backup_cert-59df732-r34/",
+      "?? docs/plans/loop/codex_reviews/codex_review_pr2_002.md",
+      "?? docs/plans/loop/codex_reviews/codex_review_task6_endgate_001.md",
+      "?? docs/plans/loop/handoffs/claude_to_codex_pr2_diff_002.md",
+      "?? docs/plans/loop/handoffs/claude_to_codex_task6_endgate_001.md",
+      "?? docs/plans/loop/ready/claude_ready_round_015.json",
+      "?? docs/plans/loop/ready/claude_ready_round_016.json",
+      "?? docs/plans/loop/win/handoffs/claude_to_winclaude_033.md",
+      "?? docs/plans/loop/win/handoffs/claude_to_winclaude_034.md",
+      "?? docs/plans/loop/win/reviews/winclaude_032.md",
+      "?? docs/plans/loop/win/reviews/winclaude_033.md",
+      "?? src/utils/forcedPathway.js"
+    ]
+  },
+  "rulesSha256": "752981b78f532ebd737c521920a034038380c228aa6305844dc4f17fcde1aca9",
+  "flagSet": {
+    "SERVER_COMPLETE_SESSION_ENABLED": true,
+    "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": true,
+    "SERVER_RESET_PROGRESS_ENABLED": true,
+    "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": true,
+    "LIST_PROGRESS_CANONICAL": true,
+    "ANCHOR_VALIDATION_SHADOW": true,
+    "ANCHOR_VALIDATION_ENFORCE": true,
+    "CYCLING_ENABLED_SERVER": true,
+    "SERVER_REVIEW_CHALLENGE_ENABLED": true,
+    "SERVER_OVERRIDE_ENABLED": true,
+    "TEACHER_IDS_WRITE_ENABLED": true,
+    "SERVER_PROGRESS_WRITE": true,
+    "SERVER_RESET_PROGRESS": true,
+    "SERVER_CHALLENGE_WRITE": true,
+    "SERVER_REVIEW_MARKER": true,
+    "SERVER_OVERRIDE": true,
+    "TEACHER_IDS_READ": true,
+    "CYCLING_ENABLED_CLIENT": true,
+    "CONTINUATION_LINKS": true,
+    "GRADE_TOKEN_ENFORCED": false
+  },
+  "startedAt": "2026-07-17T20:19:17.981Z",
+  "finishedAt": "2026-07-17T20:19:21.049Z",
+  "summary": {
+    "pass": 11,
+    "fail": 0,
+    "invalid": 0,
+    "skip": 0
+  },
+  "verdict": "CLEAN",
+  "results": [
+    {
+      "id": "RUL-1",
+      "scenario": "student direct attempt-create (forged passed:true,score:100) ⇒ PERMISSION_DENIED",
+      "verdict": "PASS",
+      "expected": "HTTP 403",
+      "actual": "HTTP 403",
+      "evidence": "attempts allow create: if false"
+    },
+    {
+      "id": "RUL-2",
+      "scenario": "student answers-update on OWN attempt ⇒ PERMISSION_DENIED (update:false)",
+      "verdict": "PASS",
+      "expected": "HTTP 403",
+      "actual": "HTTP 403",
+      "evidence": "attempts allow update: if false"
+    },
+    {
+      "id": "RUL-3",
+      "scenario": "owner attempt-delete ⇒ PERMISSION_DENIED (delete:false — C-31 anchor-erasure closed)",
+      "verdict": "PASS",
+      "expected": "HTTP 403",
+      "actual": "HTTP 403",
+      "evidence": "attempts allow delete: if false"
+    },
+    {
+      "id": "RUL-4",
+      "scenario": "client progress writes to class_progress + list_progress + progress_meta ⇒ all PERMISSION_DENIED",
+      "verdict": "PASS",
+      "expected": "all three HTTP 403",
+      "actual": "class_progress=403 list_progress=403 progress_meta=403",
+      "evidence": "users subcollection write excludes the 3 progress collections"
+    },
+    {
+      "id": "RUL-5",
+      "scenario": "M8 role split: role-update ⇒ DENIED; displayName-update (no role key) ⇒ ALLOWED",
+      "verdict": "PASS",
+      "expected": "role=403, profile=200",
+      "actual": "role=403 profile=200",
+      "evidence": "update: isOwner && !affectedKeys.hasAny([role,roleProvisioning])"
+    },
+    {
+      "id": "RUL-6",
+      "scenario": "self-create role:teacher ⇒ DENIED; role:student ⇒ ALLOWED (fresh sandbox uids)",
+      "verdict": "PASS",
+      "expected": "teacher-create=403, student-create=200",
+      "actual": "teacher=403 student=200",
+      "evidence": "create: isOwner && (no role || role==student)"
+    },
+    {
+      "id": "RUL-7",
+      "scenario": "happy reads: owner reads own attempt(200), teacher-of-record reads(200), teacher-claim reads list_progress(200)",
+      "verdict": "PASS",
+      "expected": "owner=200, teacher-stamp=200, teacher-claim=200, stranger=403",
+      "actual": "owner=200 teacherStamp=200 teacherClaim=200 stranger=403",
+      "evidence": ""
+    },
+    {
+      "id": "RUL-8",
+      "scenario": "signup: client self-select teacher ⇒ DENIED; provisioning (Admin) yields role:teacher (readable)",
+      "verdict": "PASS",
+      "expected": "self-select=403; provisioned teacher role:teacher + readable(200)",
+      "actual": "selfSelect=403 provRead=200 provRole=teacher",
+      "evidence": ""
+    },
+    {
+      "id": "RUL-9",
+      "scenario": "M4 composite (rules arm): forged-anchor client attempt-create ⇒ DENIED (callable-clamp arm = CS-6)",
+      "verdict": "PASS",
+      "expected": "HTTP 403 (create denied)",
+      "actual": "HTTP 403",
+      "evidence": "RUL-1 create:false starves the forged anchor; CS-6 M4-clamps the callable path — composite closes both."
+    },
+    {
+      "id": "OV-6w",
+      "scenario": "P10d narrowing: outsider-teacher direct write to student study_states ⇒ DENIED (write narrowed isTeacher→isOwner)",
+      "verdict": "PASS",
+      "expected": "HTTP 403",
+      "actual": "HTTP 403",
+      "evidence": "subcollection write: !(progress) && isOwner — teacher breadth dropped (P10d)"
+    },
+    {
+      "id": "OV-6r",
+      "scenario": "P10c additive read: teacher listed in attempt.teacherIds ⇒ READ ALLOWED; unrelated teacher ⇒ DENIED",
+      "verdict": "PASS",
+      "expected": "teacherIds-member read=200, unrelated teacher read=403",
+      "actual": "member=200 unrelated=403",
+      "evidence": "attempts read: studentId== || teacherId== || (teacherIds in data && uid in teacherIds)"
+    }
+  ]
+}

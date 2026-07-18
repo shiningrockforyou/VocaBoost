@@ -1,0 +1,66 @@
+{
+  "runId": "cert-59df732-r34",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "RO+RS",
+  "gitHead": "59df732657dfb742d4392a47ae5c1d988377387a",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-17T20:32:14.127Z",
+  "scenarioSet": [
+    "RO-S1",
+    "RO-S9",
+    "RS-1",
+    "RS-2"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 2,
+  "results": [
+    {
+      "id": "RO-S1",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "exception: TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^submit( test| answers)?$/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button disa",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "bONIZ64sy2G5rui888pd",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RO-S9",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se0)",
+      "studentUid": "LZ9NeANMfIcXr9p9Z52Dl8Y8WtU2",
+      "classId": "3hBiKD5tMvu5AkwHvsu4",
+      "listId": "uhKYwNKHDtbFaY2goHQh",
+      "pre": "csd2|twi1200|rs0|se0",
+      "post": "csd2|twi1200|rs0|se0"
+    },
+    {
+      "id": "RS-1",
+      "verdict": "PASS",
+      "confirmed": true,
+      "detail": "deep student surfaced via server Name filter: Showing=20 (target 3); nameCell rendered account displayName (0 token-cells)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "PTII7xEpV4ubUkjWV8LZ",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "RS-2",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "RS-2: testId-less attempt row NOT visible in the gradebook (dropped for lacking testId)",
+      "studentUid": "3MUIeEHhrbT3fR8V83MZhW0zELe2",
+      "classId": "r3lJjbMm2r71wYjqCvoV",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [
+    "exception: [RO-S1] TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^submit( test| answers)?$/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button disa"
+  ],
+  "cleanCount": 2,
+  "verdict": "NOT-CLEAN"
+}

@@ -1,17 +1,17 @@
 {
   "loop": "win-executor",
   "turnOwner": "winclaude",
-  "round": 36,
-  "taskId": "WINCLAUDE_PR3_FLIP",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_036.md",
+  "round": 43,
+  "taskId": "WINCLAUDE_COMMIT_EVERYTHING",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_043.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
   "execStatus": "pending",
   "execDecision": "",
   "changedFiles": [],
   "evidenceFiles": [
-    "docs/plans/loop/win/handoffs/claude_to_winclaude_036.md"
+    "docs/plans/loop/win/handoffs/claude_to_winclaude_043.md"
   ],
-  "note": "Round 36: FLIP PR-3 LIVE (client forced-pathway binary throttle). David-authorized (autonomous, full-send). Codex-GO'd r18 + closure-verified. PR-3 SERVER already deployed-dormant at D2/26cd8ee; FORCED_PATHWAY_ENABLED stays false until P4. WSL set the tree: FORCED_PATHWAY=true + grandfather epoch 1784333239063; all gates PASS (epoch verifier exit 0, M-STATIC CLEAN, census SHIP-GATE PASS=PR-1 drain preserved). TASK: (1) MANDATORY node audit/deepfix/task6/verify_forced_pathway_epoch.mjs MUST exit 0 (else STOP); (2) git status functions/ clean (already deployed D2); (3) git add -A + commit on main (client PR-3 + flag + epoch + audit/docs; functions/ already committed) + Co-Authored-By + push origin main -> Netlify; (4) verify prod __VOCABOOST_BUILD__ shortSha==new commit dirty:false; (5) best-effort post-flip throttle smoke on a SANDBOX student (0 new words in review mode + hold-csd + escape via good reviews; if seeding impractical, confirm deploy+load, defer full validation to post-cutover audits — do NOT block flip on smoke). Reversible: throttle misbehaves -> FORCED_PATHWAY=false+push+report. SANDBOX only NEVER 26SM. Read docs/plans/loop/win/handoffs/claude_to_winclaude_036.md. Write docs/plans/loop/win/reviews/winclaude_036.md, set win baton turnOwner=claude round=36 execStatus=run-written execDecision=<DEPLOYED|FAILED|BLOCKED> updatedBy=winclaude revision=72.",
+  "note": "Round 43: COMMIT EVERYTHING TOGETHER (David-authorized post-D3-cert) + push. DOCS/AUDIT-TOOLING/EVIDENCE commit only — changes NO deployed client/functions behavior; DO NOT firebase deploy or rebuild app code (featureFlags.js already @6bffe1c, functions @0ddbb34, untouched). CRLF hazard (.gitattributes=* text=auto): use `git add --renormalize .` for hygiene + TARGETED-add the new plan-of-record/evidence/tooling (docs/plans/MASTER_TASK_LIST.md + MASTER_TASK_TRACKER.md + docs/plans/loop/CONVERGENCE_REPORT_v1-v4.md + P4_CERT_INSTRUMENT_approach1.md + handoffs/codex_reviews/ready/win reviews + both baton.json + audit/playwright/findings/deepfix_* incl deepfix_p4_behavioral_cert_0ddbb34.json + audit/playwright/lsr_deepfix_p4cert.mjs + scripts/cs/scan-syslog-since.mjs + scripts/cs/scan-canonical-writepath.mjs + RESUME.md + docs/resume_archive/RESUME_2026-07-18.md + change_action_log.md + SUPPORT_RUNBOOK.md). EXCLUDE junk (.firebase/, agent_logs/, ai_*.json) + secrets (.env*, serviceAccountKey.json, .lsr_secret.json — verify final staged list has ZERO secrets). One commit ok (or split renorm vs content); push together on main (never branch); NO deploy. Report commit sha(s) + summary + zero-secrets confirmation + final git status. Write docs/plans/loop/win/reviews/winclaude_043.md; set win baton turnOwner=claude round=43 execStatus=run-written execDecision=<PUSHED|BLOCKED> updatedBy=winclaude revision=86.",
   "updatedBy": "claude",
-  "revision": 71
+  "revision": 85
 }

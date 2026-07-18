@@ -1,0 +1,101 @@
+{
+  "runId": "wb-r25",
+  "buildId": "local-dev",
+  "matrix": "M-WB",
+  "kind": "white-box",
+  "gitHead": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+  "gitDirty": true,
+  "base": "http://localhost:5173",
+  "ranAt": "2026-07-15T12:11:25.650Z",
+  "scenarioSet": [
+    "W-RA3g",
+    "W-RA4",
+    "W-RA4b",
+    "CS-11",
+    "CUT-5",
+    "CUT-6"
+  ],
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "listSize": 1200,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 6,
+  "results": [
+    {
+      "id": "W-RA3g",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "positive arm: could not reach the review test on a throttle day",
+      "studentUid": "6HvPE1Xw0GWaKFvstTCTGmw0Akl1",
+      "classId": "RhvIl4k8hUgBg2otKc4Q",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "W-RA4",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "no test route to clear config on",
+      "studentUid": "UKUPShCfBfPs0dgOvFdwoQCoyuZ2",
+      "classId": "AWRIcw93eFaoFfJPxWCZ",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "W-RA4b",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "could not reach a test route to inject on",
+      "studentUid": "nr4U6nDvOUMRyBXf2wICg6RFCG52",
+      "classId": "xq65oTeoFKnW5FtkiVye",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "CS-11",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "mismatch arm: no new-word test route",
+      "studentUid": "DfqtrxGwUtZHzPftPhLJQD65VFP2",
+      "classId": "G9CByU58XozYgtQvuG7y",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "CUT-5",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "could not reach a new-word test route to grade→save on",
+      "studentUid": "xS8zB84Of8daFW3F9s6dUv3Fjrm2",
+      "classId": "UoqmS5mt38z3s9ms5CaR",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    },
+    {
+      "id": "CUT-6",
+      "verdict": "INVALID",
+      "confirmed": false,
+      "detail": "could not reach a new-word test route to complete on",
+      "studentUid": "bQVcaMvdbGYEfV2hvkBF81w4qBl2",
+      "classId": "lxwHLj8xpZDRIXU8mC0X",
+      "listId": "uhKYwNKHDtbFaY2goHQh"
+    }
+  ],
+  "fatals": [
+    "BUG: [W-RA3g] joined \"25WT DFWB W-RA3g wb-r25\" via F3WGKN but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [W-RA4] joined \"25WT DFWB W-RA4 wb-r25\" via Y545BE but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [W-RA4b] joined \"25WT DFWB W-RA4b wb-r25\" via VJF6A7 but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [CS-11] joined \"25WT DFWB CS-11 wb-r25\" via L28NVQ but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [CUT-5] joined \"25WT DFWB CUT-5 wb-r25\" via ZZJZBY but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "BUG: [CUT-6] joined \"25WT DFWB CUT-6 wb-r25\" via R9KDVU but the class is NOT present after join — candidate phantom membership (enrolledClasses set, class studentIds not; rules:57-60)",
+    "request-failed: [wb-W-RA3g] GET http://localhost:5173/src/index.css?t=1784116837714 — net::ERR_ABORTED",
+    "request-failed: [wb-W-RA3g] GET http://localhost:5173/src/index.css?t=1784116850813 — net::ERR_ABORTED",
+    "request-failed: [wb-W-RA4] GET http://localhost:5173/src/index.css?t=1784116942901 — net::ERR_ABORTED",
+    "request-failed: [wb-W-RA4] GET http://localhost:5173/src/index.css?t=1784116955924 — net::ERR_ABORTED",
+    "request-failed: [wb-W-RA4b] GET http://localhost:5173/src/index.css?t=1784117064791 — net::ERR_ABORTED",
+    "request-failed: [wb-W-RA4b] GET http://localhost:5173/src/index.css?t=1784117077770 — net::ERR_ABORTED",
+    "request-failed: [wb-CS-11] GET http://localhost:5173/src/index.css?t=1784117187653 — net::ERR_ABORTED",
+    "request-failed: [wb-CS-11] GET http://localhost:5173/src/index.css?t=1784117200844 — net::ERR_ABORTED",
+    "request-failed: [wb-CUT-5] GET http://localhost:5173/src/index.css?t=1784117309948 — net::ERR_ABORTED",
+    "request-failed: [wb-CUT-5] GET http://localhost:5173/src/index.css?t=1784117322989 — net::ERR_ABORTED",
+    "request-failed: [wb-CUT-6] GET http://localhost:5173/src/index.css?t=1784117433603 — net::ERR_ABORTED",
+    "request-failed: [wb-CUT-6] GET http://localhost:5173/src/index.css?t=1784117446583 — net::ERR_ABORTED"
+  ],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

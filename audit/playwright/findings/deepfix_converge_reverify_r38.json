@@ -1,0 +1,32 @@
+{
+  "runId": "p4-converge-reverify-r38",
+  "at": "2026-07-18T09:55:58.375Z",
+  "expect": {
+    "buildSha": "6bffe1c",
+    "funcSha": "0ddbb34",
+    "epoch": 1784333239063
+  },
+  "netlify": {
+    "shortSha": "6bffe1c",
+    "dirty": false,
+    "builtAt": "2026-07-18T08:46:28.700Z"
+  },
+  "functions": {
+    "shortSha": "0ddbb34",
+    "FORCED_PATHWAY_ENABLED": true,
+    "epoch": 1784333239063,
+    "LIST_PROGRESS_CANONICAL": false,
+    "ANCHOR_VALIDATION_ENFORCE": false,
+    "SERVER_COMPLETE_SESSION_ENABLED": true
+  },
+  "checks": {
+    "netlify_sha": true,
+    "netlify_clean": true,
+    "func_sha": true,
+    "forced_pathway_enabled": true,
+    "epoch": true,
+    "canonical_false": true,
+    "enforce_false": true
+  },
+  "ALL_VERIFIED": true
+}

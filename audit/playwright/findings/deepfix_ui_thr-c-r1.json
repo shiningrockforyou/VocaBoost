@@ -1,0 +1,32 @@
+{
+  "runId": "thr-c-r1",
+  "buildId": "local-dev",
+  "matrix": "M-UI",
+  "block": "none",
+  "gitHead": "4b8452aa7581f2758ec53ee4f3a89f2693122094",
+  "gitDirty": true,
+  "base": "https://vocaboostone.netlify.app",
+  "ranAt": "2026-07-16T00:05:53.857Z",
+  "scenarioSet": [
+    "THR-C"
+  ],
+  "tier": "ascent",
+  "listId": "ssjsJSyeUk6F9yRXBuwN",
+  "listSize": 1600,
+  "teacher": "lsr_teacher_02@vocaboost.test",
+  "studentPool": 1,
+  "results": [
+    {
+      "id": "THR-C",
+      "verdict": "FAIL",
+      "confirmed": false,
+      "detail": "[C] crit2 csd 8->8 (want +1); crit3 review NOT recorded (reviewAttempts not +1)",
+      "studentUid": "vcn38xycKhgjrQlghD8C2KCslyA2",
+      "classId": "h1ncg2Y61C5dAkVXCDG8",
+      "listId": "ssjsJSyeUk6F9yRXBuwN"
+    }
+  ],
+  "fatals": [],
+  "cleanCount": 0,
+  "verdict": "NOT-CLEAN"
+}

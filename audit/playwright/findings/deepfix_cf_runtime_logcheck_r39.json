@@ -1,0 +1,25 @@
+{
+  "runId": "cf-runtime-logcheck-r39",
+  "at": "2026-07-18T10:16:13Z",
+  "metadataCorrectedAt": "2026-07-18T10:35Z (r41 hygiene: fixed placeholder 'at' + window understatement; zero-error findings unchanged/re-verified)",
+  "tool": "firebase functions:log (gcloud NOT installed; firebase CLI reads Cloud Logging, authed dmchwang@gmail.com)",
+  "rawCaptureSpan": "2026-06-27T12:57:32Z .. 2026-07-18T10:12:34Z (per-date lines: 07-18=88, 07-17=71, 07-15=45, 06-29=12, 06-28=12, 06-27=29)",
+  "window": "certification analysis window = since 2026-07-18T08:46:00Z (P4 client cutover); the raw capture (rawCaptureSpan) starts well before it and the latest entry is 10:12:34Z, so the post-cutover window is FULLY covered",
+  "functions": ["completeSession", "resolveListProgress", "resetProgress", "advanceForChallenge", "submitChallenge", "markReviewComplete"],
+  "postCutover_severity": { "E_error": 0, "W_warning": 0, "I_info": 31, "D_debug": 10 },
+  "postCutover_errorSignatures": {
+    "failed_precondition": 0,
+    "disarm_SERVER_x_false": 0,
+    "unhandled_throw_exception": 0,
+    "permission_denied": 0,
+    "any_E_or_W": 0
+  },
+  "invocation_activity_in_window": {
+    "completeSession": "invoked 09:37:09Z (cold start, auth=VALID) on sha 0ddbb34 — NO error followed",
+    "resolveListProgress": "invoked ~8x 08:59Z-10:12Z (auth=VALID) on 0ddbb34 — NO errors",
+    "note": "Proves the P4 server write/resolve path IS exercised by real authenticated calls with ZERO runtime errors — not silence. (system_logs cannot see CF-runtime; a successful completeSession emits no Firestore log.)"
+  },
+  "sole_error_line": "2026-07-18T00:38:18.678508Z E completesession: Error: Invalid request, unable to process. — PRE-cutover (~8h before 08:46Z), benign input-validation rejection, NOT a crash/regression",
+  "verdict": "CLEAN — zero CF runtime errors/warnings since the P4 cutover, WITH confirmed live invocation. Closes the C5 GCP-Logging gap. Supports GO-HOLD.",
+  "raw": "audit/deepfix/task6/cf_runtime_logs_r39.txt"
+}

@@ -1,0 +1,268 @@
+{
+  "matrix": "M-CALL",
+  "runId": "cert-59df732-r34",
+  "emulator": {
+    "ok": true,
+    "reason": "emulator detected",
+    "project": "demo-vocaboost",
+    "firestoreHost": "127.0.0.1:8080",
+    "authHost": "127.0.0.1:9099",
+    "cfHost": "127.0.0.1:5001"
+  },
+  "git": {
+    "head": "59df732657dfb742d4392a47ae5c1d988377387a",
+    "short": "59df732",
+    "dirty": true,
+    "dirtyCount": 30,
+    "dirtyRows": [
+      "M audit/playwright/findings/B_LIST_PROGRESS_PHASE1_undefined.md",
+      " M audit/playwright/lsr_deepfix_static.mjs",
+      " M change_action_log.md",
+      " M docs/plans/CONSOLIDATED_ROADMAP_2026-07-17.md",
+      " M docs/plans/SESSION_TODO_2026-07-17.md",
+      " M docs/plans/loop/baton.json",
+      " M docs/plans/loop/win/baton.json",
+      " M functions/foundation.js",
+      " M functions/index.js",
+      " M src/config/featureFlags.js",
+      "?? audit/deepfix/task6/TASK6_REPORT.md",
+      "?? audit/deepfix/task6/m_call_cert_r34_output.txt",
+      "?? audit/deepfix/task6/pr1_csd_probe_r33.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33v2.mjs",
+      "?? audit/deepfix/task6/pr1_e2e_r33v3.mjs",
+      "?? audit/playwright/findings/deepfix_pr1_postflip_r33.md",
+      "?? audit/playwright/findings/deepfix_static_59df732-baseline.md",
+      "?? audit/playwright/findings/deepfix_static_cert-59df732-r34.md",
+      "?? audit/playwright/findings/flag_on_backup_cert-59df732-r34/",
+      "?? docs/plans/loop/codex_reviews/codex_review_pr2_002.md",
+      "?? docs/plans/loop/codex_reviews/codex_review_task6_endgate_001.md",
+      "?? docs/plans/loop/handoffs/claude_to_codex_pr2_diff_002.md",
+      "?? docs/plans/loop/handoffs/claude_to_codex_task6_endgate_001.md",
+      "?? docs/plans/loop/ready/claude_ready_round_015.json",
+      "?? docs/plans/loop/ready/claude_ready_round_016.json",
+      "?? docs/plans/loop/win/handoffs/claude_to_winclaude_033.md",
+      "?? docs/plans/loop/win/handoffs/claude_to_winclaude_034.md",
+      "?? docs/plans/loop/win/reviews/winclaude_032.md",
+      "?? docs/plans/loop/win/reviews/winclaude_033.md"
+    ]
+  },
+  "rulesSha256": null,
+  "flagSet": {
+    "SERVER_COMPLETE_SESSION_ENABLED": true,
+    "SERVER_RESOLVE_LIST_PROGRESS_ENABLED": true,
+    "SERVER_RESET_PROGRESS_ENABLED": true,
+    "SERVER_ADVANCE_FOR_CHALLENGE_ENABLED": true,
+    "LIST_PROGRESS_CANONICAL": true,
+    "ANCHOR_VALIDATION_SHADOW": true,
+    "ANCHOR_VALIDATION_ENFORCE": true,
+    "CYCLING_ENABLED_SERVER": true,
+    "SERVER_REVIEW_CHALLENGE_ENABLED": true,
+    "SERVER_OVERRIDE_ENABLED": true,
+    "TEACHER_IDS_WRITE_ENABLED": true,
+    "SERVER_PROGRESS_WRITE": true,
+    "SERVER_RESET_PROGRESS": true,
+    "SERVER_CHALLENGE_WRITE": true,
+    "SERVER_REVIEW_MARKER": true,
+    "SERVER_OVERRIDE": true,
+    "TEACHER_IDS_READ": true,
+    "CYCLING_ENABLED_CLIENT": true,
+    "CONTINUATION_LINKS": true,
+    "GRADE_TOKEN_ENFORCED": false
+  },
+  "startedAt": "2026-07-17T20:04:32.719Z",
+  "finishedAt": "2026-07-17T20:04:59.894Z",
+  "summary": {
+    "pass": 21,
+    "fail": 0,
+    "invalid": 0,
+    "skip": 2
+  },
+  "verdict": "CLEAN",
+  "results": [
+    {
+      "id": "CS-1",
+      "scenario": "completeSession happy path → canonical csd+1/twi+=alloc/recentSessions",
+      "verdict": "PASS",
+      "expected": "status=completed, csd=1, twi=20, recentSessions=1",
+      "actual": "status=completed csd=1 twi=20 rs=1",
+      "evidence": "wordsIntroduced=20"
+    },
+    {
+      "id": "CS-1e",
+      "scenario": "completeSession no_evidence block (F-4): no anchor, not review-only ⇒ refuse to advance",
+      "verdict": "PASS",
+      "expected": "status=no_evidence, advanced=false, csd unchanged=0, log complete_session_no_evidence",
+      "actual": "status=no_evidence advanced=false csd=0 log=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-2",
+      "scenario": "completeSession day-guard reject: stale day ⇒ no advance + day_guard_rejected_session_cleared(uid)",
+      "verdict": "PASS",
+      "expected": "dayGuardRejected=true, csd stays 2, session cleared, log(uid)",
+      "actual": "rejected=true csd=2 log=true sessionCleared=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-3",
+      "scenario": "completeSession idempotent retry: replay committed completion ⇒ already_completed, exactly one +1",
+      "verdict": "PASS",
+      "expected": "r1=completed, r2=already_completed, csd=1 (not 2), twi=20 (not 40)",
+      "actual": "r1=completed r2=already_completed csd=1 twi=20",
+      "evidence": ""
+    },
+    {
+      "id": "CS-4a",
+      "scenario": "reviewOnlyDay reason1 allocationZero (S3 throttle) ⇒ twi flat, wordsIntroduced=0",
+      "verdict": "PASS",
+      "expected": "reviewOnlyDay=true allocationZero=true wordsIntroduced=0 twi=40(flat)",
+      "actual": "reviewOnly=true reasons={\"allocationZero\":true,\"listComplete\":false,\"reviewStudyResume\":false} wi=0 twi=40",
+      "evidence": ""
+    },
+    {
+      "id": "CS-4b",
+      "scenario": "reviewOnlyDay reason2 listComplete (S4/S5 list-end) ⇒ twi flat, wordsIntroduced=0",
+      "verdict": "PASS",
+      "expected": "listComplete=true wordsIntroduced=0 twi=100(flat)",
+      "actual": "reasons={\"allocationZero\":false,\"listComplete\":true,\"reviewStudyResume\":false} wi=0 twi=100",
+      "evidence": ""
+    },
+    {
+      "id": "CS-4c",
+      "scenario": "reviewOnlyDay reason3 reviewStudyResume (S8/#9 already-absorbed) ⇒ twi flat, wordsIntroduced=0",
+      "verdict": "PASS",
+      "expected": "reviewStudyResume=true wordsIntroduced=0 twi=40(flat)",
+      "actual": "reasons={\"allocationZero\":false,\"listComplete\":false,\"reviewStudyResume\":true} wi=0 twi=40",
+      "evidence": ""
+    },
+    {
+      "id": "CS-5",
+      "scenario": "markReviewComplete W2 upgraded: parseable testId + integer nwsi/nwei == day anchor (pairable)",
+      "verdict": "PASS",
+      "expected": "testId parseable + nwsi/nwei==(20,39) + autoCompleted server marker",
+      "actual": "testId=vocaboost_test_25WTcert59df732r34cs5_lsrlistcert59df732r34cs5_review range=(20,39) writtenBy=cloud-function",
+      "evidence": ""
+    },
+    {
+      "id": "CS-6f",
+      "scenario": "M4 ENFORCE forged anchor (nwsi≠serverTwi) ⇒ failed-precondition reject + anchor_rejected{enforced}(uid)",
+      "verdict": "PASS",
+      "expected": "HTTP 400 FAILED_PRECONDITION + anchor_rejected{enforced:true,uid} + attempt NOT written",
+      "actual": "status=400/FAILED_PRECONDITION log=true notWritten=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-6v",
+      "scenario": "M4 ENFORCE valid anchor (nwsi==serverTwi, in-allocation) ⇒ silent pass (write lands, no anchor_rejected)",
+      "verdict": "PASS",
+      "expected": "HTTP 200 + attempt written + zero anchor_rejected (false-reject 0)",
+      "actual": "ok=true written=true anchor_rejected=0",
+      "evidence": ""
+    },
+    {
+      "id": "CS-7",
+      "scenario": "nonce F2 gradeTypedTest attemptDocId in grade return + cached job",
+      "verdict": "SKIP",
+      "expected": "response.attemptDocId === bindCtx docId",
+      "actual": "skipped",
+      "evidence": "DEFERRED: gradeTypedTest is secret-backed (ANTHROPIC_API_KEY + GRADE_TOKEN_SECRET). Provide the emulator secrets/env to realize CS-7."
+    },
+    {
+      "id": "CS-8a",
+      "scenario": "resolveListProgress canonical-first: existing canonical ⇒ mode=canonical, its csd/twi",
+      "verdict": "PASS",
+      "expected": "mode=canonical, csd=4, twi=60",
+      "actual": "mode=canonical csd=4 twi=60",
+      "evidence": ""
+    },
+    {
+      "id": "CS-8b",
+      "scenario": "resolveListProgress straggler hydrate: legacy-only + valid anchor ⇒ create canonical (mode=canonical, hydrated)",
+      "verdict": "PASS",
+      "expected": "mode=canonical hydrated=true; canonical created (twi=20)",
+      "actual": "mode=canonical hydrated=true canonBefore=false canonAfter=true twi=20",
+      "evidence": ""
+    },
+    {
+      "id": "CS-8c",
+      "scenario": "resolveListProgress quarantine: anchorless forged-high-twi ⇒ mode=quarantined + list_progress_quarantined",
+      "verdict": "PASS",
+      "expected": "mode=quarantined + list_progress_quarantined log + NO canonical created",
+      "actual": "mode=quarantined log=true canonAbsent=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-9",
+      "scenario": "resetProgress: attempts wiped (all classes), session_states cleared, canonical zeroed + resetEpoch/resetAt",
+      "verdict": "PASS",
+      "expected": "attempts=0(both classes), session_states cleared, canonical zeroed + epoch stamped",
+      "actual": "deleted={\"attempts\":2,\"sessionStates\":2,\"studyStates\":0,\"classProgress\":0} attemptsLeft=0 sessLeft=0 zeroed=true stamped=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-10",
+      "scenario": "grading-job recovery suite (dsg-edits/srv_validate/grading_job_tests.mjs)",
+      "verdict": "SKIP",
+      "expected": "7-transition recovery suite green + typed smoke",
+      "actual": "skipped",
+      "evidence": "DEFERRED: grading_job_tests.mjs uses the WEB SDK (Codex: hangs in the Node emulator shell), targets the LIVE prod project, and needs GRADE_TOKEN_SECRET/ANTHROPIC_API_KEY. Run it against the deployed functions per the CS-10 note, not under the emulator."
+    },
+    {
+      "id": "CS-11m",
+      "scenario": "derivation-mismatch: client reviewOnlyDay disagrees with server ⇒ reviewonly_derivation_mismatch(uid)",
+      "verdict": "PASS",
+      "expected": "completed + reviewonly_derivation_mismatch{client:true,server:false}",
+      "actual": "status=completed log=true",
+      "evidence": ""
+    },
+    {
+      "id": "CS-11a",
+      "scenario": "derivation-agree: client reviewOnlyDay matches server ⇒ NO reviewonly_derivation_mismatch",
+      "verdict": "PASS",
+      "expected": "completed + zero mismatch events",
+      "actual": "status=completed mismatchLogs=0",
+      "evidence": ""
+    },
+    {
+      "id": "OV-1",
+      "scenario": "overrideAttempt writes a FULL VALID anchor (nwsi/nwei/wordsIntroduced/testId) + day advances",
+      "verdict": "PASS",
+      "expected": "valid anchor written (manual-pass parity) + teacher_override audit log",
+      "actual": "anchorFields=(80,159) testId=vocaboost_test_25WTcert59df732r34ov1_lsrlistcert59df732r34ov1_new passed=true log=true",
+      "evidence": ""
+    },
+    {
+      "id": "OV-2",
+      "scenario": "override authz union: stamp(A)=allow, enrollment(B)=allow, outsider(C)=permission-denied",
+      "verdict": "PASS",
+      "expected": "A allow / B allow / C denied(403 PERMISSION_DENIED)",
+      "actual": "A=200 B=200 C=403/PERMISSION_DENIED",
+      "evidence": ""
+    },
+    {
+      "id": "OV-3c",
+      "scenario": "reviewChallenge new-phase accept near list-end (Day-1 completion): twi CLAMPED at listTotal (not unclamped)",
+      "verdict": "PASS",
+      "expected": "twiIncrement clamped to 5 ⇒ twi=100 (list end), not 115",
+      "actual": "twiIncrement=5 twi=100",
+      "evidence": ""
+    },
+    {
+      "id": "OV-3p",
+      "scenario": "reviewChallenge review-phase accept: phase gate ⇒ twi UNCHANGED (nwei:null hazard closed)",
+      "verdict": "PASS",
+      "expected": "review-phase twiIncrement=0 ⇒ twi=40 (unchanged)",
+      "actual": "advance={\"advanced\":true,\"action\":\"day_completed\",\"currentDay\":2,\"twiIncrement\":0,\"rawNewWordCount\":20,\"clampedTo\":60,\"phase\":\"review\"} twi=40",
+      "evidence": ""
+    },
+    {
+      "id": "CY-3",
+      "scenario": "lap-aware M4: under cycling, a lap-2 anchor (twi>listTotal) is NOT rejected (anchor_rejected=0)",
+      "verdict": "PASS",
+      "expected": "HTTP 200 + written + anchor_rejected=0 (lap-modular clamp)",
+      "actual": "ok=true written=true anchor_rejected=0",
+      "evidence": ""
+    }
+  ]
+}

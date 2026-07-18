@@ -366,3 +366,13 @@ Read-only diagnosis only. **No data intervention** — his data is pristine; the
 - **REINSTATE (worst case):** dry-run first, then commit:
   `NODE_PATH=/app/node_modules node scripts/cs/restore-from-backup-26sm.mjs --dir=scripts/cs/backups_full_26sm_20260717-165840` (add `--commit` to write back). Overwrites current docs with the snapshot; docs created after the backup are left untouched. Confirm with David before `--commit` against live 26SM.
 - **Re-run the backup anytime:** `NODE_PATH=/app/node_modules node scripts/cs/backup-all-26sm.mjs` (fresh timestamped dir; safe — read-only on Firestore).
+
+## CS-2026-07-18 — Post-P4-cutover read-only 26SM verification (5-way convergence de-risk; NO writes)
+- **Trigger:** a crash interrupted the D3/P4 client→server cutover; verify the LIVE 26SM cohort is safe on the new server write path (part of the 5-way convergence de-risk) before certifying.
+- **READ-ONLY scans (ZERO 26SM writes):**
+  - `scripts/cs/data-integrity-sweep.mjs 26SM` → **CLEAN**: `invalidAnchor:0`, all structural signatures 0; `reviewNoNewPass:68` (benign list-end/review-only days, DOWN from the documented 72 baseline). Persisted: `audit/playwright/findings/deepfix_dataintegrity_sweep_26sm_postcutover.txt`.
+  - `scripts/cs/scan-syslog-since.mjs` (**NEW**, read-only) → **NO-SPIKE** since 08:46Z: 9 `resolve_list_progress` + 2 `csd_twi_reconciled` (26SM, server-written), ZERO `anchor_rejected`/`csd_anchor_invalid`/`reviewonly_derivation_mismatch`/`day_guard_*`. `deepfix_syslog_sweep_postcutover.json`.
+  - `scripts/cs/scan-canonical-writepath.mjs` (**NEW**, read-only) → canonical `users/{uid}/list_progress` **EMPTY (0/0)**; `csd_twi_reconciled` `writtenBy=cloud-function`; all write-path/error signatures 0. `deepfix_canonical_writepath_postcutover.json`.
+  - WinClaude GCP Cloud Logging → **zero CF-runtime errors** post-cutover; `completeSession`/`resolveListProgress` invoked error-free. `deepfix_cf_runtime_logcheck_r39.json`.
+- **Result:** the live cutover is **data-safe** (no corruption, no error spike, canonical empty). The forced-pathway hold-csd branch was separately **behaviorally CERTIFIED** in the emulator (10/10, `deepfix_p4_behavioral_cert_0ddbb34.json`, pinned `0ddbb34`). **No 26SM writes performed.** Full record: `docs/plans/MASTER_TASK_LIST.md` + `docs/plans/loop/CONVERGENCE_REPORT_v4.md`.
+- **Work-queue (data-safety, non-urgent):** the `attempt_day_fallback` emitters (`MCQTest.jsx:612`, `TypedTest.jsx:872`) carry no `userId` → the event is invisible to cohort attribution; add `userId` if this signal is wanted for 26SM monitoring.

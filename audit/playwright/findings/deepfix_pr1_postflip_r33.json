@@ -1,0 +1,74 @@
+{
+  "round": 33,
+  "task": "WINCLAUDE_PR1_POSTFLIP_SMOKE",
+  "build": "LIVE prod main@59df732 (PR-1 flags ON in production)",
+  "base": "https://vocaboostone.netlify.app",
+  "verdict": "PASS",
+  "claim": "A stale-complete stuck student COMPLETES the paired review on the live build and ADVANCES (csd increments); not re-stranded. Reproduced on two independent sandbox accounts.",
+  "keyFinding": "csd advances on review COMPLETION regardless of score (both samples scored 17% / 5-of-30 and still advanced) — matches the handoff spec: the review is a formality that completes the anchor day; completion, not score, unsticks the student.",
+  "reviewTestKind": "mcq (/mcqtest/) — 30 questions, choice cards button[class*='min-h-']; NOT the typed test. (Earlier r33/r33v2 INCONCLUSIVE runs were a driver gap: assumed typed inputs + a reach-loop that clicked 'Take Test' instead of the modal's 'Start Test'.)",
+  "samples": [
+    {
+      "email": "dup_repro_a@vocaboost.test",
+      "uid": "C8P1fmyq7ScSqiy8hMKnsMgb6lU2",
+      "docId": "DUP_repro_Nys1FfB9Pkl1iyO5FYhx_dVliNv0p9jqZYp9rfLpN",
+      "state": "mutated across driver-shakedown runs (still parked pre-submit at MCQ)",
+      "entry": "resumed mid-flow",
+      "studyCardsAdvanced": 63,
+      "reachClicks": ["Start Test"],
+      "testKind": "mcq",
+      "mcqAnswered": "30/30",
+      "score": "17% (5 of 30 correct)",
+      "submitOutcome": "mcq-submitted",
+      "csdBefore": 21,
+      "csdAfter": 22,
+      "twiBefore": 1200,
+      "twiAfter": 1200,
+      "csdAdvanced": true,
+      "reStranded": false,
+      "verdict": "PASS",
+      "screenshots": [
+        "findings/pr1_r33v3_dup_repro_a_1entry.png",
+        "findings/pr1_r33v3_dup_repro_a_2studydone.png",
+        "findings/pr1_r33v3_dup_repro_a_3test.png",
+        "findings/pr1_r33v3_dup_repro_a_4submitted.png",
+        "findings/pr1_r33v3_dup_repro_a_5advance.png"
+      ]
+    },
+    {
+      "email": "dup_repro_b@vocaboost.test",
+      "uid": "erJVsQPW7BQDL3KtEZYACzjm5ih1",
+      "docId": "DUP_repro_k0j59bXvvtedgqi98apt_RmNNkuLPectBlBPiLbAJ",
+      "state": "PRISTINE — clean from-scratch single-pass",
+      "entry": "re-entry modal fired fresh (retryVisible=true)",
+      "studyCardsAdvanced": 60,
+      "reachClicks": ["Start Test"],
+      "testKind": "mcq",
+      "mcqAnswered": "30/30",
+      "score": "17% (5 of 30 correct)",
+      "submitOutcome": "mcq-submitted",
+      "csdBefore": 17,
+      "csdAfter": 18,
+      "twiBefore": 596,
+      "twiAfter": 596,
+      "csdAdvanced": true,
+      "reStranded": false,
+      "verdict": "PASS",
+      "screenshots": [
+        "findings/pr1_r33v3_dup_repro_b_1entry.png",
+        "findings/pr1_r33v3_dup_repro_b_2studydone.png",
+        "findings/pr1_r33v3_dup_repro_b_3test.png",
+        "findings/pr1_r33v3_dup_repro_b_4submitted.png",
+        "findings/pr1_r33v3_dup_repro_b_5advance.png"
+      ]
+    }
+  ],
+  "reserve": "dup_repro_c@vocaboost.test — left UNTOUCHED per handoff",
+  "driver": "audit/deepfix/task6/pr1_e2e_r33v3.mjs",
+  "invocation": "LSR_BASE_URL=https://vocaboostone.netlify.app LSR_ALLOW_PROD_SMOKE=vocaboostone.netlify.app NODE_OPTIONS=--use-system-ca node audit/deepfix/task6/pr1_e2e_r33v3.mjs <email>",
+  "notes": [
+    "twi did NOT change on either account (review path introduces no new words — expected; only the anchor DAY completes and csd increments).",
+    "score is 17% because the harness clicks the first choice card each question (completion probe, not a correctness probe). Advance is independent of score, which is the PR-1 design.",
+    "SANDBOX ONLY — never 26SM. No src/functions/rules/flags touched this round (flags already live in prod)."
+  ]
+}

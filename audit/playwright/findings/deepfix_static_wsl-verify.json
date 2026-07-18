@@ -1,0 +1,293 @@
+{
+  "matrix": "M-STATIC",
+  "module": "lsr_deepfix_static.mjs",
+  "runId": "wsl-verify",
+  "target": "baseline",
+  "git": {
+    "head": "a967f544e0f3d4bce72861ad82a34d8e2ec27206",
+    "short": "a967f54",
+    "dirty": true,
+    "dirtyCount": 334
+  },
+  "flagFilesDirty": [
+    " M functions/index.js",
+    " M src/config/featureFlags.js",
+    "?? functions/foundation.js"
+  ],
+  "dist": {
+    "present": true,
+    "note": "local dist/ built 2026-07-14T09:12:20.509Z (NOT the deployed bundle; freshness unverified)"
+  },
+  "startedAt": "2026-07-14T13:47:45.907Z",
+  "finishedAt": "2026-07-14T13:48:09.759Z",
+  "summary": {
+    "pass": 27,
+    "fail": 0,
+    "invalid": 0,
+    "skip": 2
+  },
+  "verdict": "CLEAN",
+  "assertions": [
+    {
+      "id": "DG-1:GRADE_TOKEN_ENFORCED",
+      "scenario": "DG-1",
+      "description": "flag GRADE_TOKEN_ENFORCED (functions/index.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/index.js declares GRADE_TOKEN_ENFORCED=false. Source: FIX_PLAN P0 change 2 — G1 disarm → false (matches live prod F-9); shipped re-arms with nonce fix P4 F1-F3+F5"
+    },
+    {
+      "id": "DG-1:GRADE_TOKEN_MINT",
+      "scenario": "DG-1",
+      "description": "flag GRADE_TOKEN_MINT (functions/index.js) == baseline expected",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS",
+      "evidence": "functions/index.js declares GRADE_TOKEN_MINT=true. Source: FIX_PLAN P0 change 3 table — pre-existing, ON for validation (index.js:79)"
+    },
+    {
+      "id": "DG-1:GRADE_JOB_ENABLED",
+      "scenario": "DG-1",
+      "description": "flag GRADE_JOB_ENABLED (functions/index.js) == baseline expected",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS",
+      "evidence": "functions/index.js declares GRADE_JOB_ENABLED=true. Source: FIX_PLAN P0 change 3 / P3 — stays true (validated, not flipped)"
+    },
+    {
+      "id": "DG-1:SERVER_ATTEMPT_WRITE",
+      "scenario": "DG-1",
+      "description": "flag SERVER_ATTEMPT_WRITE (src/config/featureFlags.js) == baseline expected",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares SERVER_ATTEMPT_WRITE=true. Source: FIX_PLAN P0 change 3 table (:10) — pre-existing live"
+    },
+    {
+      "id": "DG-1:SERVER_CHALLENGE_WRITE",
+      "scenario": "DG-1",
+      "description": "flag SERVER_CHALLENGE_WRITE (src/config/featureFlags.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares SERVER_CHALLENGE_WRITE=false. Source: FIX_PLAN P0 change 3 (:20) — NEW, dormant until P4 cutover"
+    },
+    {
+      "id": "DG-1:SERVER_REVIEW_MARKER",
+      "scenario": "DG-1",
+      "description": "flag SERVER_REVIEW_MARKER (src/config/featureFlags.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares SERVER_REVIEW_MARKER=false. Source: FIX_PLAN P0 change 3 (:28) — NEW, dormant until P4"
+    },
+    {
+      "id": "DG-1:LIST_SCOPED_RECON",
+      "scenario": "DG-1",
+      "description": "flag LIST_SCOPED_RECON (src/config/featureFlags.js) == baseline expected",
+      "expected": true,
+      "actual": true,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares LIST_SCOPED_RECON=true. Source: FIX_PLAN P0 change 3 table (:41) — pre-existing live (F-9)"
+    },
+    {
+      "id": "DG-1:CONTINUATION_LINKS",
+      "scenario": "DG-1",
+      "description": "flag CONTINUATION_LINKS (src/config/featureFlags.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares CONTINUATION_LINKS=false. Source: FIX_PLAN P8 CONT-A — dormant in baseline; feature-on at ship"
+    },
+    {
+      "id": "DG-1:SERVER_PROGRESS_WRITE",
+      "scenario": "DG-1",
+      "description": "flag SERVER_PROGRESS_WRITE (src/config/featureFlags.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares SERVER_PROGRESS_WRITE=false. Source: FIX_PLAN P4 FND-2 — NEW routing flag (folds plan-name LIST_PROGRESS_PERSIST read-routing per the const doc); dormant"
+    },
+    {
+      "id": "DG-1:SERVER_RESET_PROGRESS",
+      "scenario": "DG-1",
+      "description": "flag SERVER_RESET_PROGRESS (src/config/featureFlags.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "src/config/featureFlags.js declares SERVER_RESET_PROGRESS=false. Source: FIX_PLAN P4 FND-2 v2 HIGH-3 — NEW; dormant"
+    },
+    {
+      "id": "DG-1:SERVER_COMPLETE_SESSION_ENABLED",
+      "scenario": "DG-1",
+      "description": "flag SERVER_COMPLETE_SESSION_ENABLED (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares SERVER_COMPLETE_SESSION_ENABLED=false. Source: FIX_PLAN P3 — foundation flag, dormant at merge; P4 flips"
+    },
+    {
+      "id": "DG-1:SERVER_RESOLVE_LIST_PROGRESS_ENABLED",
+      "scenario": "DG-1",
+      "description": "flag SERVER_RESOLVE_LIST_PROGRESS_ENABLED (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares SERVER_RESOLVE_LIST_PROGRESS_ENABLED=false. Source: FIX_PLAN P3 — dormant; P4 flips"
+    },
+    {
+      "id": "DG-1:SERVER_RESET_PROGRESS_ENABLED",
+      "scenario": "DG-1",
+      "description": "flag SERVER_RESET_PROGRESS_ENABLED (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares SERVER_RESET_PROGRESS_ENABLED=false. Source: FIX_PLAN P3 — dormant; P4 flips (before P6 owner-delete removal)"
+    },
+    {
+      "id": "DG-1:SERVER_ADVANCE_FOR_CHALLENGE_ENABLED",
+      "scenario": "DG-1",
+      "description": "flag SERVER_ADVANCE_FOR_CHALLENGE_ENABLED (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares SERVER_ADVANCE_FOR_CHALLENGE_ENABLED=false. Source: FIX_PLAN P3 change 9 (F5-HIGH-2) — dormant; P4 flips"
+    },
+    {
+      "id": "DG-1:LIST_PROGRESS_CANONICAL",
+      "scenario": "DG-1",
+      "description": "flag LIST_PROGRESS_CANONICAL (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares LIST_PROGRESS_CANONICAL=false. Source: FIX_PLAN P3 change 2 + P5 — the P5-ONLY mode switch; dormant until migration"
+    },
+    {
+      "id": "DG-1:ANCHOR_VALIDATION_SHADOW",
+      "scenario": "DG-1",
+      "description": "flag ANCHOR_VALIDATION_SHADOW (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares ANCHOR_VALIDATION_SHADOW=false. Source: FIX_PLAN P3 change 6 (M4) — dormant at merge; P3 DEPLOY flips for the ≥14d soak"
+    },
+    {
+      "id": "DG-1:ANCHOR_VALIDATION_ENFORCE",
+      "scenario": "DG-1",
+      "description": "flag ANCHOR_VALIDATION_ENFORCE (functions/foundation.js) == baseline expected",
+      "expected": false,
+      "actual": false,
+      "verdict": "PASS",
+      "evidence": "functions/foundation.js declares ANCHOR_VALIDATION_ENFORCE=false. Source: FIX_PLAN P3/P6(d) — M4 enforce; P6 only"
+    },
+    {
+      "id": "DG-2",
+      "scenario": "DG-2",
+      "description": "deployed exports.version {sha,dirty,flags} == recorded deploy triple",
+      "expected": "probe==expected",
+      "actual": "no-live-probe",
+      "verdict": "SKIP",
+      "evidence": "needs Codex: deployed exports.version HTTPS probe (no live network in M-STATIC)."
+    },
+    {
+      "id": "DG-3",
+      "scenario": "DG-3",
+      "description": "served bundle exposes commit sha == recorded hosting sha",
+      "expected": "stamp==hostingSha",
+      "actual": "no-live-probe",
+      "verdict": "SKIP",
+      "evidence": "needs Codex: deployed hosting build-stamp probe."
+    },
+    {
+      "id": "DG-4",
+      "scenario": "DG-4",
+      "description": "#11 files have git-log commits + fix-unique string present + no audit/scripts import from src",
+      "expected": "commits∧fixStr∧hygiene",
+      "actual": "commits=true fixStr=true hygiene=true",
+      "verdict": "PASS",
+      "evidence": "commits: src/services/studyService.js→1c91466 Fix #9: flag-ON cross-class review completion (studentService/db/progress) | src/pages/DailySessionFlow.jsx→e3d97f7 feat(grading): attempt-write lockdown + server-authoritative typed grading (staged, flag-off) | src/pages/Dashboard.jsx→6743b91 fix(dashboard): default-list prefers progress + honest unassign warning (F02/F03). fix-unique \"Please Reload\" ×1 in TypedTest.jsx (full: \"Couldn't Grade — Please Reload\"). audit/scripts imports from src: none."
+    },
+    {
+      "id": "DG-4b",
+      "scenario": "DG-4",
+      "description": "built bundle greps positive for fix string + negative for audit/scripts content",
+      "expected": "fix>0 ∧ audit==0",
+      "actual": "fixInDist=1 auditInDist=0",
+      "verdict": "PASS",
+      "evidence": "local dist/ built 2026-07-14T09:12:20.509Z (NOT the deployed bundle; freshness unverified). \"Please Reload\" in 1 dist asset(s); audit/scripts refs in 0."
+    },
+    {
+      "id": "CUT-1",
+      "scenario": "CUT-1",
+      "description": "baseline: staged client progress-writes/attempt-delete PRESENT and each SERVER_*-flag-guarded (dormant-draft), zero unguarded attempt-delete",
+      "expected": "all sinks present∧guarded; 0 unguarded",
+      "actual": "sinks=challenge_class_progress_write:present=1,guarded=true; client_review_marker_create:present=1,guarded=true; client_reset_attempt_delete:present=1,guarded=true; unguardedDeletes=0",
+      "verdict": "PASS",
+      "evidence": "src/services/db.js — direct class_progress day-advance write, in the SERVER_CHALLENGE_WRITE flag-off fallback (db.js:2923). [present×1, guard 'if (SERVER_CHALLENGE_WRITE)'=true] || src/pages/DailySessionFlow.jsx — client attempt-create automarker, in the SERVER_REVIEW_MARKER flag-off fallback (DailySessionFlow.jsx:1053). [present×1, guard 'if (SERVER_REVIEW_MARKER)'=true] || src/services/db.js — client attempt batch-delete for reset, after the SERVER_RESET_PROGRESS early-return guard (db.js:2989) → flag-off fallback. [present×1, guard 'if (SERVER_RESET_PROGRESS)'=true] || no unguarded attempt-delete"
+    },
+    {
+      "id": "CUT-1b",
+      "scenario": "CUT-1",
+      "description": "baseline: class_progress present in built bundle (dormant legacy paths still shipped) — report-only",
+      "expected": "present (dormant)",
+      "actual": "assetsWithClassProgress=6",
+      "verdict": "PASS",
+      "evidence": "local dist/ built 2026-07-14T09:12:20.509Z (NOT the deployed bundle; freshness unverified). class_progress in 6 dist asset(s) — expected present in baseline (goes 0 only after P4 cutover + P7 retire)."
+    },
+    {
+      "id": "RET-1",
+      "scenario": "RET-1",
+      "description": "baseline: class_progress readers/writers exist tree-wide (report count; expected > 0, not retired yet)",
+      "expected": "> 0",
+      "actual": 91,
+      "verdict": "PASS",
+      "evidence": "class_progress refs: 91 (src=41 functions=13 scripts/cs=37). Nothing retired in baseline."
+    },
+    {
+      "id": "RET-2:dup_resume_branch",
+      "scenario": "RET-2",
+      "description": "baseline: dead-branch signature PRESENT (dup_resume_branch)",
+      "expected": "count==1",
+      "actual": 1,
+      "verdict": "PASS",
+      "evidence": "src/pages/DailySessionFlow.jsx :: \"existingState.phase === SESSION_PHASE.COMPLETE\" ×1. UNREACHABLE duplicate resume branch (I-2 finding 4; FIX_PLAN P7 DailySessionFlow.jsx:800-816). LIVE branch keys on config.startPhase; the dead copy keys on the deliberately-not-consulted session_state.phase."
+    },
+    {
+      "id": "RET-2:neg_twi_passthrough",
+      "scenario": "RET-2",
+      "description": "baseline: dead-branch signature PRESENT (neg_twi_passthrough)",
+      "expected": "count==1",
+      "actual": 1,
+      "verdict": "PASS",
+      "evidence": "src/services/studyService.js :: \"LIST_SCOPED_RECON && Number.isFinite(cfgNewWordCount)\" ×1. flag-OFF negative-TWI passthrough (I-2 finding 5; FIX_PLAN P7 studyService.js:1342). The flag-OFF else passes an unclamped newWordCount that can decrement TWI; retired when LIST_SCOPED_RECON is retired."
+    },
+    {
+      "id": "RET-2:client_automarker",
+      "scenario": "RET-2",
+      "description": "baseline: dead-branch signature PRESENT (client_automarker)",
+      "expected": "count==1",
+      "actual": 1,
+      "verdict": "PASS",
+      "evidence": "src/pages/DailySessionFlow.jsx :: \"all segment words mastered (21-day rest)\" ×1. client automarker leg (FIX_PLAN P7 DailySessionFlow.jsx:964-1008). The SERVER_REVIEW_MARKER=false else-branch client setDoc marker."
+    },
+    {
+      "id": "RET-2:client_challenge_advance",
+      "scenario": "RET-2",
+      "description": "baseline: dead-branch signature PRESENT (client_challenge_advance)",
+      "expected": "count==1",
+      "actual": 1,
+      "verdict": "PASS",
+      "evidence": "src/services/db.js :: \"end SERVER_CHALLENGE_WRITE else — direct class_progress day-advance\" ×1. client reviewChallenge day-advance to class_progress (FIX_PLAN P7 db.js:2790-2833; routed server-side at P4 F5-HIGH-2)."
+    },
+    {
+      "id": "RET-4",
+      "scenario": "RET-4",
+      "description": "baseline: transitional flags PRESENT + CONTINUATION_LINKS present (not orphaned)",
+      "expected": "6 transitional present ∧ CONTINUATION_LINKS present",
+      "actual": "present=6 contLinks=true",
+      "verdict": "PASS",
+      "evidence": "declared transitional: LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, SERVER_RESET_PROGRESS, SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER, LIST_PROGRESS_CANONICAL. folded (plan-name, no separate decl): LIST_PROGRESS_PERSIST→SERVER_PROGRESS_WRITE (read-routing leg). CONTINUATION_LINKS declared=true."
+    }
+  ]
+}

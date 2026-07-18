@@ -1,0 +1,22 @@
+classes matching /26SM/i: 40 | distinct students: 824
+
+scanned 1010 enrollments | 361 started
+=== FINDINGS ===
+dupProgress: 0
+orphanTwi: 0
+docIdMismatch: 0
+csdImplausible: 0
+twiOverList: 0
+invalidAnchor: 0
+noClassAttempt: 0
+reviewNoNewPass: 68
+   qhXlfQfv reviewDay=19
+   pRCz1lD2 reviewDay=16
+   eXjIlWdk reviewDay=14
+   SYIb78ye reviewDay=16
+   OWQRFQ2T reviewDay=21
+   x5dHaQGz reviewDay=19
+ghostProgress: 0
+missingProgramStart: 0
+
+TOTAL findings: 68 

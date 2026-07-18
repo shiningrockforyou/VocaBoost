@@ -1,0 +1,75 @@
+{
+  "cutoffISO": "2026-07-18T08:46:00Z",
+  "at": "2026-07-18T09:44:09.280Z",
+  "post": {
+    "count": 13,
+    "window": {
+      "from": "2026-07-18T08:58:33.000Z",
+      "to": "2026-07-18T09:37:40.000Z"
+    },
+    "byType": {
+      "csd_twi_reconciled": {
+        "total": 2,
+        "byAttr": {
+          "26SM": 2,
+          "sandbox": 0,
+          "other": 0,
+          "no-uid": 0
+        },
+        "newest": 1784365839
+      },
+      "resolve_list_progress": {
+        "total": 9,
+        "byAttr": {
+          "26SM": 9,
+          "sandbox": 0,
+          "other": 0,
+          "no-uid": 0
+        },
+        "newest": 1784367460
+      },
+      "attempt_day_fallback": {
+        "total": 1,
+        "byAttr": {
+          "26SM": 0,
+          "sandbox": 0,
+          "other": 0,
+          "no-uid": 1
+        },
+        "newest": 1784365804
+      },
+      "impossible_phase_detected": {
+        "total": 1,
+        "byAttr": {
+          "26SM": 1,
+          "sandbox": 0,
+          "other": 0,
+          "no-uid": 0
+        },
+        "newest": 1784365842
+      }
+    }
+  },
+  "base": {
+    "count": 1,
+    "window": {
+      "from": "2026-07-18T08:37:15.000Z",
+      "to": "2026-07-18T08:37:15.000Z"
+    },
+    "byType": {
+      "impossible_phase_detected": {
+        "total": 1,
+        "byAttr": {
+          "26SM": 1,
+          "sandbox": 0,
+          "other": 0,
+          "no-uid": 0
+        },
+        "newest": 1784363835
+      }
+    }
+  },
+  "post26concern": 1,
+  "base26concern": 1,
+  "verdict": "NO-SPIKE — 1 26SM concern events but <= baseline 1 (steady-state)"
+}

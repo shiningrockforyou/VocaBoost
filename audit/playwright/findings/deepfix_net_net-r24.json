@@ -1,0 +1,30 @@
+{
+  "matrix": "M-NET",
+  "runId": "net-r24",
+  "base": "http://localhost:5173",
+  "tier": "base",
+  "listId": "uhKYwNKHDtbFaY2goHQh",
+  "verdict": "CLEAN",
+  "cleanCount": 3,
+  "total": 3,
+  "results": [
+    {
+      "id": "NET-1",
+      "verdict": "PASS",
+      "detail": "offline blip on submit → exactly 1 attempt after retry-recovery (no dup, no loss)",
+      "classId": "fzEMqVSP9kyHrVppxdcX"
+    },
+    {
+      "id": "NET-2",
+      "verdict": "PASS",
+      "detail": "slow network on submit → exactly 1 attempt, eventual success (no false-fail/dup)",
+      "classId": "ATbuleeqeBFcPW4NXuwX"
+    },
+    {
+      "id": "NET-3",
+      "verdict": "PASS",
+      "detail": "one-shot write failure on submit → retried to exactly 1 attempt (idempotent)",
+      "classId": "47Yuo4OdgzcKmLoZQtnr"
+    }
+  ]
+}

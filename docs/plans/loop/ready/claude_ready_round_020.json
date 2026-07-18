@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 20,
+  "taskId": "P4_PLAN_REVIEW",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_p4_plan_001.md",
+  "writtenLast": true
+}
