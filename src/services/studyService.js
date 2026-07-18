@@ -43,12 +43,21 @@ import {
 } from '../types/studyTypes';
 import {
   getOrCreateClassProgress,
-  updateClassProgress
+  updateClassProgress,
+  recordReviewOutcome
 } from './progressService';
 import { saveSessionState, clearSessionState, SESSION_PHASE } from './sessionService';
 import { logSystemEvent } from './db';
-import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_PAIRING_V2 } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_PAIRING_V2, FORCED_PATHWAY } from '../config/featureFlags';
 import { reviewPairsWithAnchor } from '../utils/reviewPairing';
+// CS PR-3 · WI-1 (FORCED_PATHWAY): the binary throttle + grandfathered completion-engagement
+// (deriveThrottleMode / deriveBinaryInterventionLevel / isCompletionEngaged). Dead code until the
+// flag flips; every consuming site below is gated so flag-off is byte-equivalent to today.
+import {
+  deriveThrottleMode,
+  deriveBinaryInterventionLevel,
+  isCompletionEngaged
+} from '../utils/forcedPathway';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // ============================================================================
@@ -247,8 +256,17 @@ export function determineStartingPhase(attempts, dayNumber) {
   // instead of COMPLETE, and the stuck cohort drains organically. No best-new pick → nothing
   // to pair against → keep the legacy find (its value is display/logging-only in that case:
   // every routing branch below also requires newTest?.passed). Flag-off: verbatim legacy.
+  // CS PR-3 · WI-1 (FORCED_PATHWAY): the completeness reader must stay SYMMETRIC with the
+  // reconciliation reader (getReviewForDay) — additionally require the paired review be ENGAGED
+  // (grandfathered isCompletionEngaged) so a POST-deploy SKIP that pairs on the exact tier does NOT
+  // declare the day COMPLETE. An unpaired/non-engaged review resolves REVIEW_STUDY (retake), matching
+  // completeSessionFromTest's skip routing; the grandfather keeps pre-epoch skips completing (decision
+  // #3). Do NOT mutate reviewPairsWithAnchor (PR-1 census-locked). Flag-off: the arrow returns
+  // reviewPairsWithAnchor(a, newTest) verbatim (byte-equivalent); the no-newTest legacy find untouched.
   const reviewTest = (REVIEW_PAIRING_V2 && newTest)
-    ? dayAttempts.find(a => reviewPairsWithAnchor(a, newTest))
+    ? dayAttempts.find(a => FORCED_PATHWAY
+        ? (reviewPairsWithAnchor(a, newTest) && isCompletionEngaged(a))
+        : reviewPairsWithAnchor(a, newTest))
     : dayAttempts.find(a => a.sessionType === 'review');
 
   console.log('[PHASE] Attempts for day', dayNumber + ':', {
@@ -336,8 +354,19 @@ export async function initializeDailySession(userId, classId, listId, assignment
   // including the PDF/debug helpers and the standalone test pages — gets a fresh pool.
   await returnMasteredWords(userId, listId);
 
-  // Calculate intervention from recent sessions
-  const interventionLevel = calculateInterventionLevel(progress.recentSessions || []);
+  // Calculate intervention from recent sessions.
+  // CS PR-3 · WI-1 (FORCED_PATHWAY): the BINARY throttle. Derive the review-mode bit from the
+  // recent review average WITH HYSTERESIS (deriveThrottleMode reads the PERSISTED
+  // class_progress.reviewMode bit as priorMode — this is the whack-a-mole kill I5: a durable CS
+  // `reviewMode:false` survives a band-average, and only a genuine <0.30 re-enters), then take a
+  // derived {0,1} interventionLevel so calculateDailyAllocation gives 0 new words in review mode.
+  // Flag-off: the exact graduated calculateInterventionLevel value (byte-equivalent).
+  const reviewMode = FORCED_PATHWAY
+    ? deriveThrottleMode(progress.recentSessions || [], progress.reviewMode === true)
+    : false;
+  const interventionLevel = FORCED_PATHWAY
+    ? deriveBinaryInterventionLevel(reviewMode)
+    : calculateInterventionLevel(progress.recentSessions || []);
 
   // Study days per week — enforce >= 2 so the week-1 sizing divisor (dpw-1) is never 0.
   const studyDaysPerWeek = Math.max(
@@ -481,6 +510,10 @@ export async function initializeDailySession(userId, classId, listId, assignment
 
     // Allocation
     interventionLevel,
+    // CS PR-3 · WI-1 (FORCED_PATHWAY): the review-mode bit for this session — observability + the
+    // completion/snapshot review-mode context. Absent when flag-off (byte-equivalent config object;
+    // the persisted dailySessionState carries it only under the flag).
+    ...(FORCED_PATHWAY ? { reviewMode } : {}),
     dailyPace,
     allocation,
 
@@ -998,6 +1031,20 @@ async function recordSessionCompletionViaServer(userId, sessionData) {
 
   if (data.status === 'already_completed') {
     // Idempotent retry of a committed completion — success-shaped, no duplicate history record.
+    return {
+      sessionId: null,
+      progress: data.progress || null
+    };
+  }
+
+  if (data.status === 'review_recorded') {
+    // CS PR-3 · WI-1 (FORCED_PATHWAY_ENABLED, hold-csd): the SERVER recorded the review WITHOUT
+    // advancing the day (throttle hold or skip). Success-shaped (NOT an error, NOT completionNotApplied)
+    // so the test page shows results + graduation runs; the day simply did not advance. No duplicate
+    // history record (the server wrote none). Only reached under SERVER_PROGRESS_WRITE (post-P4).
+    console.log('[SESSION] review recorded, csd held (server FORCED_PATHWAY hold-csd)', {
+      userId, classId, listId, sessionDay: dayNumber, reviewMode: data.reviewMode ?? null
+    });
     return {
       sessionId: null,
       progress: data.progress || null
@@ -1686,7 +1733,13 @@ export async function completeSessionFromTest({
   dayNumber,
   isFirstDay,
   testType,
-  testResults
+  testResults,
+  // CS PR-3 · WI-1 (FORCED_PATHWAY): review engagement inputs (read ONLY under the flag). Callers
+  // pass these gated, so flag-off the whole hold-csd routing is inert (byte-equivalent). reviewAnswered
+  // = non-empty answered count of the just-submitted review (the F3 >=80% gate); reviewAttemptId = the
+  // review attempt doc id (recordReviewOutcome idempotency — no day-guard on the hold path).
+  reviewAnswered,
+  reviewAttemptId
 }) {
   // Read session data from sessionStorage (same source as original completeSession)
   let sessionState = null;
@@ -1734,6 +1787,33 @@ export async function completeSessionFromTest({
   const reviewOnlyDay = LIST_SCOPED_RECON
     && Number.isFinite(cfgNewWordCount) && cfgNewWordCount <= 0
     && reviewOnlyReasonConfirmed;
+
+  // ── CS PR-3 · WI-1 (FORCED_PATHWAY): hold-csd + F3-engagement routing (Day-2+ review only) ──
+  // Flag-off: every fp* is false → the legacy advance path runs verbatim (byte-equivalent).
+  const fpReview = FORCED_PATHWAY && testType === 'review' && !isFirstDay;
+  // THROTTLE review-only day = review mode drove 0 new words (allocation.newWords <= 0) and it is
+  // NEITHER the list-end (isListComplete) NOR the #9-resume (startPhase REVIEW_STUDY) review-only
+  // case — those still advance (David: "engaged normal/list-end/#9-resume → advance", #11 preserved).
+  const fpThrottleReviewOnly = fpReview
+    && Number.isFinite(allocationNewWords) && allocationNewWords <= 0
+    && sessionCfg.isListComplete !== true
+    && sessionCfg.startPhase !== SESSION_PHASE.REVIEW_STUDY;
+  // F3 engagement of the JUST-SUBMITTED review (>= 80% answered). Grandfather is inert for a fresh
+  // review (submittedAt = now >= epoch); isCompletionEngaged reuses the ONE census predicate over a
+  // synthetic attempt (no answers[] → answered = totalQuestions − skipped = reviewAnswered).
+  const fpTotal = Number.isFinite(testResults?.total) ? testResults.total : 0;
+  const fpAnswered = Number.isFinite(reviewAnswered) ? reviewAnswered : fpTotal;
+  const fpEngaged = !fpReview || isCompletionEngaged({
+    sessionType: 'review',
+    totalQuestions: fpTotal,
+    skipped: Math.max(0, fpTotal - fpAnswered),
+    submittedAt: Timestamp.now()
+  });
+  // HOLD csd when a SKIP (F3 gate — record 0, no advance, kills the #16 runaway) OR a THROTTLE
+  // review-only day (David-locked hold — stay on the day until the review average escapes review
+  // mode). Suppressed under SERVER_PROGRESS_WRITE: the server then owns class_progress and holds via
+  // completeSession `review_recorded` (FORCED_PATHWAY_ENABLED), so the client must not double-write.
+  const fpHoldCsd = fpReview && !SERVER_PROGRESS_WRITE && (!fpEngaged || fpThrottleReviewOnly);
   // Durable words-introduced count: CLAMP to >= 0. cfgNewWordCount feeds updateClassProgress's
   // `totalWordsIntroduced += wordsIntroduced`, so an unclamped negative would DECREMENT TWI. A review-only day
   // introduces 0 → TWI stays flat.
@@ -1854,7 +1934,11 @@ export async function completeSessionFromTest({
       newWordsTestPassed: newAttemptMissing ? null : (newWordScore >= threshold),
       reviewTestScore: reviewScore,
       ...(reviewOnlyDay ? { reviewOnlyDay: true } : {}),
-      phase: SESSION_PHASE.COMPLETE
+      // CS PR-3 · WI-1 (FORCED_PATHWAY, F3): a non-engaged SKIP must NOT mark the day done — it
+      // routes to REVIEW_STUDY so re-entry offers a retake (the day only advances on an engaged
+      // review). An engaged review (advance OR David-locked throttle-hold) keeps COMPLETE. Flag-off:
+      // fpReview false → SESSION_PHASE.COMPLETE verbatim (byte-equivalent).
+      phase: (fpReview && !fpEngaged) ? SESSION_PHASE.REVIEW_STUDY : SESSION_PHASE.COMPLETE
     });
   }
 
@@ -1880,8 +1964,13 @@ export async function completeSessionFromTest({
     ...(SERVER_PROGRESS_WRITE ? { clientReviewOnlyDay: reviewOnlyDay } : {})
   };
 
-  // Record session completion (updates CSD, recentSessions, etc.)
-  const result = await recordSessionCompletion(userId, summary);
+  // Record session completion (advances CSD, recentSessions, etc.) — OR, under FORCED_PATHWAY
+  // hold-csd, record the review outcome WITHOUT advancing the day (recordReviewOutcome: append the
+  // review summary + reviewMode bit + stats/streak; NEVER writes currentStudyDay/twi). Flag-off /
+  // non-hold: recordSessionCompletion exactly as today (byte-equivalent).
+  const result = fpHoldCsd
+    ? await recordReviewOutcome(userId, summary, reviewAttemptId)
+    : await recordSessionCompletion(userId, summary);
 
   // [Codex-P1-3 / P1r4-1] Day-guard rejection: the completion did NOT apply. Skip
   // graduation and return the rebuild sentinel — the test pages must NOT present this

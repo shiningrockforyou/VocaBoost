@@ -1,0 +1,23 @@
+
+=== M-MIG (cert-59df732-r34, self-validate) — git 59df732 dirty=true ===
+  ✅ SELF-EVAL      PASS      oracle-walk self-test (evaluators + FINAL/JSON parser vs synthetic ± poisoned fixtures)
+  ✅ MIG-8          PASS      errored-anchor abort (code-walk)
+  ✅ MIG-10a        PASS      CS toolchain — manual-pass writes a full valid anchor (static)
+  🕓 MIG-10b        DEFERRED  CS toolchain — sweep/census read list_progress (static retarget status)
+  🕓 MIG-1          DEFERRED  LIVE-STRAND collapse
+  🕓 MIG-2          DEFERRED  divergent + own-anchor CSD
+  🕓 MIG-3          DEFERRED  review-only evidence
+  🕓 MIG-4          DEFERRED  forged/anchorless quarantine (dry leg)
+  🕓 MIG-5          DEFERRED  single-doc 1:1
+  🕓 MIG-9          DEFERRED  cohort hard asserts (dry leg)
+  🕓 MIG-6          DEFERRED  idempotent re-run
+  🕓 MIG-7          DEFERRED  post-flip catch-up fold
+  🕓 MIG-9-commit   DEFERRED  post-commit cohort sweep (written docs)
+  🕓 MIG-10-commit  DEFERRED  CS toolchain retarget — live sweep + manual-pass
+  🕓 RET-3          DEFERRED  legacy deletion + sweep clean (sandbox)
+
+artifacts:
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_mig_cert-59df732-r34.json
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_mig_cert-59df732-r34.md
+
+PROGRAM VERDICT: SELF_VALIDATED (no live oracles run; commit legs deferred) — pass=3 fail=0 invalid=0 deferred=12 skip=0

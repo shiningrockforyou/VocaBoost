@@ -1,0 +1,45 @@
+
+===========================================================================================================================================================================================================================================================================================================================================================
+| FLAG-ON APPLIED (matrix=all, run=cert-59df732-r34)                                                                                                                                                                                                                                                                                                      |
+| functions/foundation.js: SERVER_COMPLETE_SESSION_ENABLED, SERVER_RESOLVE_LIST_PROGRESS_ENABLED, SERVER_RESET_PROGRESS_ENABLED, SERVER_ADVANCE_FOR_CHALLENGE_ENABLED, LIST_PROGRESS_CANONICAL, ANCHOR_VALIDATION_SHADOW, ANCHOR_VALIDATION_ENFORCE, CYCLING_ENABLED, SERVER_REVIEW_CHALLENGE_ENABLED, SERVER_OVERRIDE_ENABLED, TEACHER_IDS_WRITE_ENABLED |
+| src/config/featureFlags.js: SERVER_CHALLENGE_WRITE, SERVER_REVIEW_MARKER, CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, SERVER_RESET_PROGRESS, SERVER_OVERRIDE, TEACHER_IDS_READ                                                                                                                                                          |
+| backups: C:\Users\dmchw\vocaboost\audit\playwright\findings\flag_on_backup_cert-59df732-r34                                                                                                                                                                                                                                                             |
+| RESTORE IS MANDATORY: --restore (or use --exec for a guaranteed restore).                                                                                                                                                                                                                                                                               |
+===========================================================================================================================================================================================================================================================================================================================================================
+
+[flag_on] exec: firebase emulators:exec --only firestore,auth --project demo-vocaboost "node audit/playwright/lsr_deepfix_rules.mjs cert-59df732-r34"
+[36m[1mi  emulators:[22m[39m Starting emulators: auth, firestore
+[36m[1mi  emulators:[22m[39m Detected demo project ID "demo-vocaboost", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[32m[1m+  firestore:[22m[39m Firestore Emulator UI websocket is running on 9150.
+[36m[1mi [22m[39m Running script: [1mnode audit/playwright/lsr_deepfix_rules.mjs cert-59df732-r34[22m
+
+=== M-RULES (cert-59df732-r34) — emulator demo-vocaboost firestore=127.0.0.1:8080 auth=127.0.0.1:9099 ===
+
+  [PASS ] RUL-1    student direct attempt-create (forged passed:true,score:100) ⇒ PERMISSION_DENIED
+  [PASS ] RUL-2    student answers-update on OWN attempt ⇒ PERMISSION_DENIED (update:false)
+  [PASS ] RUL-3    owner attempt-delete ⇒ PERMISSION_DENIED (delete:false — C-31 anchor-erasure closed)
+  [PASS ] RUL-4    client progress writes to class_progress + list_progress + progress_meta ⇒ all PERMISSION_DENIED
+  [PASS ] RUL-5    M8 role split: role-update ⇒ DENIED; displayName-update (no role key) ⇒ ALLOWED
+  [PASS ] RUL-6    self-create role:teacher ⇒ DENIED; role:student ⇒ ALLOWED (fresh sandbox uids)
+  [PASS ] RUL-7    happy reads: owner reads own attempt(200), teacher-of-record reads(200), teacher-claim reads list_progress(200)
+  [PASS ] RUL-8    signup: client self-select teacher ⇒ DENIED; provisioning (Admin) yields role:teacher (readable)
+  [PASS ] RUL-9    M4 composite (rules arm): forged-anchor client attempt-create ⇒ DENIED (callable-clamp arm = CS-6)
+  [PASS ] OV-6w    P10d narrowing: outsider-teacher direct write to student study_states ⇒ DENIED (write narrowed isTeacher→isOwner)
+  [PASS ] OV-6r    P10c additive read: teacher listed in attempt.teacherIds ⇒ READ ALLOWED; unrelated teacher ⇒ DENIED
+
+artifacts:
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_rules_cert-59df732-r34.json
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_rules_cert-59df732-r34.md
+
+FINAL: CLEAN pass=11 fail=0 invalid=0 skip=0
+[32m[1m+ [22m[39m Script exited successfully (code 0)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[33m[1m! [22m[39m Firestore Emulator has exited upon receiving signal: SIGINT
+[36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
+[flag_on] restored functions/foundation.js
+[flag_on] restored src/config/featureFlags.js
+[flag_on] restore complete — flags OFF, working tree reverted to pre-apply state.

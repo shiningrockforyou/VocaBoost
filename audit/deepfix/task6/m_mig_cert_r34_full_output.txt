@@ -1,0 +1,27 @@
+
+=== M-MIG (cert-59df732-r34, full-dry) — git 59df732 dirty=true ===
+  ✅ SELF-EVAL      PASS      oracle-walk self-test (evaluators + FINAL/JSON parser vs synthetic ± poisoned fixtures)
+  ✅ MIG-8          PASS      errored-anchor abort (code-walk)
+  ✅ MIG-10a        PASS      CS toolchain — manual-pass writes a full valid anchor (static)
+  🕓 MIG-10b        DEFERRED  CS toolchain — sweep/census read list_progress (static retarget status)
+  ✅ SANDBOX-GUARD  PASS      independent per-doc sandbox re-verify of the --dry plan
+  ✅ MIG-1          PASS      LIVE-STRAND collapse
+  ✅ MIG-2          PASS      divergent + own-anchor CSD screen
+  ✅ MIG-3          PASS      review-only CSD evidence amendment
+  ✅ MIG-4          PASS      forged/anchorless → QUARANTINE (dry leg)
+  ✅ MIG-5          PASS      single-doc 1:1 re-key
+  ✅ MIG-9          PASS      cohort hard asserts (dry leg)
+  🕓 MIG-9-backup   DEFERRED  backups per source doc (--dry --backup)
+  🕓 MIG-7          DEFERRED  post-flip catch-up (dry note)
+  ⏭️ MIG-TID        SKIP      P10c teacherIds backfill --dry
+  🕓 MIG-6          DEFERRED  idempotent re-run
+  🕓 MIG-7          DEFERRED  post-flip catch-up fold
+  🕓 MIG-9-commit   DEFERRED  post-commit cohort sweep (written docs)
+  🕓 MIG-10-commit  DEFERRED  CS toolchain retarget — live sweep + manual-pass
+  🕓 RET-3          DEFERRED  legacy deletion + sweep clean (sandbox)
+
+artifacts:
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_mig_cert-59df732-r34.json
+  C:\Users\dmchw\vocaboost\audit\playwright\findings\deepfix_mig_cert-59df732-r34.md
+
+PROGRAM VERDICT: NOT_CLEAN — pass=10 fail=0 invalid=0 deferred=8 skip=1

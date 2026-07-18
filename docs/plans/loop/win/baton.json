@@ -1,17 +1,17 @@
 {
   "loop": "win-executor",
   "turnOwner": "winclaude",
-  "round": 32,
-  "taskId": "WINCLAUDE_PR1_FLIP",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_032.md",
+  "round": 36,
+  "taskId": "WINCLAUDE_PR3_FLIP",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_036.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
   "execStatus": "pending",
   "execDecision": "",
   "changedFiles": [],
   "evidenceFiles": [
-    "docs/plans/loop/win/handoffs/claude_to_winclaude_032.md"
+    "docs/plans/loop/win/handoffs/claude_to_winclaude_036.md"
   ],
-  "note": "Round 32: FLIP PR-1 LIVE (client hosting deploy; David-cleared; reversible). All gates passed (Codex r12 GO; census 13/14+0FP; dev-E2E r31 PASS re-entry render + 60-card playable review vs flag-OFF empty). TASK: (1) set REVIEW_PAIRING_V2/REENTRY_GUARD/RECOVERY_GUARD=true permanently in src/config/featureFlags.js; (2) git add -A then git reset HEAD functions/ (EXCLUDE PR-2 functions work — still in its own Codex gate; confirm foundation.js+index.js NOT staged); (3) git commit on main (NEVER branch) with the message in the handoff + Co-Authored-By line; (4) git push origin main -> Netlify auto-build; (5) after ~2-4min verify prod __VOCABOOST_BUILD__ shortSha == new commit sha + dirty:false. Read docs/plans/loop/win/handoffs/claude_to_winclaude_032.md. Report commit sha + push + Netlify build + new build-stamp. Write docs/plans/loop/win/reviews/winclaude_032.md, set win baton turnOwner=claude round=32 execStatus=run-written execDecision=<DEPLOYED|FAILED|BLOCKED> updatedBy=winclaude revision=64. Next round 33 = post-flip prod smoke (complete->advance on fresh dup_repro, live build).",
+  "note": "Round 36: FLIP PR-3 LIVE (client forced-pathway binary throttle). David-authorized (autonomous, full-send). Codex-GO'd r18 + closure-verified. PR-3 SERVER already deployed-dormant at D2/26cd8ee; FORCED_PATHWAY_ENABLED stays false until P4. WSL set the tree: FORCED_PATHWAY=true + grandfather epoch 1784333239063; all gates PASS (epoch verifier exit 0, M-STATIC CLEAN, census SHIP-GATE PASS=PR-1 drain preserved). TASK: (1) MANDATORY node audit/deepfix/task6/verify_forced_pathway_epoch.mjs MUST exit 0 (else STOP); (2) git status functions/ clean (already deployed D2); (3) git add -A + commit on main (client PR-3 + flag + epoch + audit/docs; functions/ already committed) + Co-Authored-By + push origin main -> Netlify; (4) verify prod __VOCABOOST_BUILD__ shortSha==new commit dirty:false; (5) best-effort post-flip throttle smoke on a SANDBOX student (0 new words in review mode + hold-csd + escape via good reviews; if seeding impractical, confirm deploy+load, defer full validation to post-cutover audits — do NOT block flip on smoke). Reversible: throttle misbehaves -> FORCED_PATHWAY=false+push+report. SANDBOX only NEVER 26SM. Read docs/plans/loop/win/handoffs/claude_to_winclaude_036.md. Write docs/plans/loop/win/reviews/winclaude_036.md, set win baton turnOwner=claude round=36 execStatus=run-written execDecision=<DEPLOYED|FAILED|BLOCKED> updatedBy=winclaude revision=72.",
   "updatedBy": "claude",
-  "revision": 63
+  "revision": 71
 }

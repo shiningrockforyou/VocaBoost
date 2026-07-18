@@ -1,25 +1,29 @@
 ﻿{
     "turnOwner":  "claude",
-    "round":  14,
-    "taskId":  "PR2_DIFF_REVIEW",
-    "targetPlan":  "functions/foundation.js",
-    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_pr2_diff_001.md",
-    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_014.json",
+    "round":  18,
+    "taskId":  "PR3_DIFF_REVIEW",
+    "targetPlan":  "src/utils/forcedPathway.js",
+    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_pr3_diff_001.md",
+    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_018.json",
     "changedFiles":  [
+                         "src/utils/forcedPathway.js",
+                         "src/services/studyService.js",
+                         "src/services/progressService.js",
+                         "src/services/db.js",
                          "functions/foundation.js",
-                         "functions/index.js",
-                         "audit/playwright/lsr_deepfix_static.mjs"
+                         "src/pages/MCQTest.jsx",
+                         "src/pages/TypedTest.jsx"
                      ],
     "evidenceFiles":  [
-                          "docs/plans/loop/handoffs/claude_to_codex_pr2_diff_001.md"
+                          "docs/plans/loop/handoffs/claude_to_codex_pr3_diff_001.md"
                       ],
-    "claudeStatus":  "pr2-core-built-verified-ready-for-codex",
+    "claudeStatus":  "pr3-built-fixed-verified-ready-for-codex",
     "codexStatus":  "review-written",
-    "codexDecision":  "NEEDS_FIXES",
-    "note":  "Round 14: review the CS PR-2-CORE code diff (functions/foundation.js + index.js; DORMANT, all gates false; flag-off = byte-equivalent to deployed foundation.js). The server companion to PR-1. Read handoffs/claude_to_codex_pr2_diff_001.md. My verification: Workflow adversarial-verify (Opus/max, 3 lenses) = byte-equiv SOUND + parity/flag-on CONCERNS(4), ALL FOLDED — (HIGH) OC-4 wrong modulus -\u003e getCanonicalCycleLengthServer canonical word-doc count; (MED) stamp autoCompleted parity; (LOW) pairMs byte-faithful to client tsMillis (throw-\u003equery-error fail-closed, catch :715-716); (LOW) lineage-gate documented unreachable. node --check + invariant CLEAN 34/0/1. Scrutinize: the OC-4 aggregate-count pre-txn fix, pairMs throw parity, the PR-2/PR-3 split (hold-csd/grandfather deferred), stamp+clamp dormant-in-tree-\u003eflip-at-D2. GO=correct+byte-equiv+safe for D2 / NEEDS_FIXES=name them. Write codex_reviews/codex_review_pr2_001.md, then flip baton-\u003eclaude: round=14 codexStatus=review-written codexDecision=\u003cverdict\u003e codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_review_pr2_001.md updatedBy=codex revision=99.",
+    "codexDecision":  "GO",
+    "note":  "Round 18: review the CS PR-3 CODE DIFF (forced-pathway binary throttle; DORMANT, FORCED_PATHWAY + FORCED_PATHWAY_ENABLED both false, flag-off byte-equivalent, census-verify-pr1 PASSes). The largest behavioral change; flips into a LIVE-PR-1 world. Read handoffs/claude_to_codex_pr3_diff_001.md. Trail: Workflow verify #1 found 3 flip-blockers (+2 hazards debunked) → fixes applied (F1 reader-engagement, F2 challenge hold-guard, F3 idempotency, F4 M4-shadow) → Workflow verify #2 (closure) = flag-on CLOSED + coupling PARTIAL → folded the server-mirror residual (getReviewForDayServer:794). Orchestrator-verified: node --check OK, invariant CLEAN 34/0, M-STATIC 43/0, census SHIP-GATE PASS (FIX-1 live-reader touch byte-equiv flag-off), behavioral 10/10. Scrutinize: F1 reader-engagement (mid-loop reject correctness + flag-off verbatim pairing), F2 hold-guard (reviewMode-keyed given 95% bar), byte-equivalence per fix hunk. Tracked residuals (NOT blockers): grandfather epoch null (flip-checklist), P5 hydration reviewMode-drop (P5 item). GO=correct+byte-equiv+safe-to-flip-w/-checklist / NEEDS_FIXES. Write codex_reviews/codex_review_pr3_001.md, flip baton-\u003eclaude: round=18 codexStatus=review-written codexDecision=\u003cverdict\u003e codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_review_pr3_001.md updatedBy=codex revision=107.",
     "updatedBy":  "codex",
-    "revision":  99,
-    "codexConverged":  false,
-    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_review_pr2_001.md",
-    "updatedAt":  "2026-07-18T04:16:21.1950883+09:00"
+    "revision":  107,
+    "codexConverged":  true,
+    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_review_pr3_001.md",
+    "updatedAt":  "2026-07-17T22:47:05.6899002Z"
 }

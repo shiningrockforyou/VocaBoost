@@ -193,6 +193,30 @@ export const REVIEW_PAIRING_V2 = true;
 // Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
 export const REENTRY_GUARD = true;
 
+// FORCED_PATHWAY (CS PR-3 · WI-1, docs/plans/CS_2026-07-17_ROOT_CAUSE_EFFORT.md +
+// FORCED_PATHWAY_FIX_PLAN_2026-07-16.md — David's LOCKED binary throttle): the I1/I2/I5 runaway
+// package. When ON, three coupled behaviors activate (all byte-equivalent when OFF):
+//   (1) BINARY throttle — initializeDailySession derives review mode via deriveThrottleMode
+//       (hysteresis enter<0.30/exit>0.50, reading the persisted class_progress.reviewMode bit so
+//       CS can durably clear a throttle — kills the whack-a-mole I5) and sets a derived {0,1}
+//       interventionLevel, so review mode ⇒ 0 new words (replaces the graduated ramp).
+//   (2) HOLD-CSD — completeSessionFromTest routes a review completion on the reason split: a SKIP
+//       (non-engaged, any day) or a THROTTLE review-only day records the review outcome via
+//       recordReviewOutcome (progressService) WITHOUT advancing currentStudyDay/twi (decouples
+//       "record review" from "advance day" — kills the #16 runaway I2). An engaged normal /
+//       list-end / #9-resume day advances exactly as today (NEED_TO_FIX #11 preserved). Under
+//       SERVER_PROGRESS_WRITE the hold is SERVER-side (completeSession `review_recorded`, gated by
+//       the mirror flag FORCED_PATHWAY_ENABLED in functions/foundation.js) — the client defers.
+//   (3) F3 ENGAGEMENT + GRANDFATHER — the completion reader consumes the PR-2 answeredCount/
+//       engagedReview stamp via isCompletionEngaged (forcedPathway.js), with the decision-#3
+//       grandfather (FORCED_PATHWAY_GRANDFATHER_EPOCH_MS) so pre-deploy reviews stay engaged.
+// Also: MCQTest/TypedTest add `reviewMode` to the retake-rewind snapshot set so a rewind restores
+// the review-mode context. DIRECTION-DEPENDENT (FREENAV closed → forced mode): ⛔ HARD GATE — flip
+// ONLY after PR-1 (REVIEW_PAIRING_V2) is live+flipped, else re-mints I4. Ship dark → quiet-window
+// flip → soak >= 7d; MUST be soaked before P4/SERVER_PROGRESS_WRITE. Roll back = flip false +
+// rebuild. Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
+export const FORCED_PATHWAY = true;
+
 // RECOVERY_GUARD (CS PR-1 · WI-4 client leg, CS_2026-07-17_ROOT_CAUSE_EFFORT.md): the I6
 // >100%-score fix — crash-recovery resume INTERSECTS the saved localStorage answers with the
 // CURRENT test's word-id set (MCQTest/TypedTest handleRecoveryResume) instead of restoring

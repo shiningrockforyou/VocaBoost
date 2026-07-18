@@ -15,14 +15,18 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   DEFAULT_CLASS_PROGRESS,
   createClassProgress,
+  createSessionSummary,
   MAX_RECENT_SESSIONS,
   implausibleStudyDayThreshold
 } from '../types/studyTypes';
 import { getRecentAttemptsForClassList, getMostRecentPassedNewTest, getReviewForDay, logSystemEvent } from './db';
-import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, REVIEW_PAIRING_V2 } from '../config/featureFlags';
+import { LIST_SCOPED_RECON, SERVER_PROGRESS_WRITE, REVIEW_PAIRING_V2, FORCED_PATHWAY } from '../config/featureFlags';
 // CS PR-1 · WI-2: reconciliation candidate window 8→12 under REVIEW_PAIRING_V2 (multi-review
 // days must not push the day's passed-new anchor out of the window). Flag-off: literal 8.
 import { RECENT_ATTEMPTS_WINDOW } from '../utils/reviewPairing';
+// CS PR-3 · WI-1 (FORCED_PATHWAY): the binary-throttle mode owner (deriveThrottleMode). Consumed
+// only under the flag by updateClassProgress + recordReviewOutcome; flag-off it is never read.
+import { deriveThrottleMode } from '../utils/forcedPathway';
 
 // Observability-only (v5): a clean no-anchor record with CSD above this is worth a
 // `csd_implausible` check (a legit student with no passed new test has CSD ≈ 0). Not a clamp.
@@ -611,6 +615,16 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
     updatedAt: Timestamp.now()
   };
 
+  // CS PR-3 · WI-1 (FORCED_PATHWAY): the completion writer is the ONE owner of the persisted
+  // reviewMode bit. Recompute it from the POST-append recentSessions with hysteresis over the prior
+  // bit (a crossed lap boundary dropped the carry → deriveThrottleMode over the fresh slate returns
+  // false, restarting at full pace, in step with interventionLevel:0 above). Added AFTER the welded
+  // `updates` literal so the day-advance object is unchanged. Flag-off: no reviewMode key written
+  // (byte-equivalent doc — INV-16-welded-today untouched).
+  if (FORCED_PATHWAY) {
+    updates.reviewMode = deriveThrottleMode(recentSessions, current.reviewMode === true);
+  }
+
   if (snapshot.exists()) {
     await updateDoc(progressRef, updates);
   } else {
@@ -623,6 +637,108 @@ export async function updateClassProgress(userId, classId, listId, sessionSummar
   }
 
   return { id: docId, ...current, ...updates };
+}
+
+/**
+ * CS PR-3 · WI-1 (FORCED_PATHWAY hold-csd, OC-1 `review_recorded`) — record a review OUTCOME
+ * WITHOUT advancing the day. This is the decoupling of "record review" from "advance day" that the
+ * welded updateClassProgress appender could not express (PHASE-3 conflict #1): it appends the review
+ * summary, recomputes stats/streak, and persists the reviewMode bit, but NEVER writes
+ * currentStudyDay / totalWordsIntroduced. So a throttle/skip review-only day records its score
+ * (feeding the escape average) WITHOUT the #16 runaway csd advance — killing I1/I2.
+ *
+ * Sole CLIENT caller: completeSessionFromTest under FORCED_PATHWAY hold-csd (studyService.js), only
+ * when !SERVER_PROGRESS_WRITE (the server owns the doc post-P4 and holds via completeSession
+ * `review_recorded`). Dead code until FORCED_PATHWAY flips.
+ *
+ * There is NO day-guard here (a hold never touches csd, so there is no expected-day to guard); the
+ * ONLY thing to protect is a double-append on retry — idempotent on `reviewAttemptId` (the last
+ * recentSessions entry's marker). Return shape mirrors recordSessionCompletion: {sessionId, progress}.
+ *
+ * @param {string} userId
+ * @param {Object} sessionData - same shape recordSessionCompletion consumes
+ * @param {string|null} reviewAttemptId - the review attempt doc id (idempotency)
+ * @returns {Promise<{sessionId: null, progress: Object}>}
+ */
+export async function recordReviewOutcome(userId, sessionData, reviewAttemptId = null) {
+  const {
+    classId,
+    listId,
+    dayNumber,
+    newWordScore,
+    reviewScore,
+    segment,
+    wordsIntroduced,
+    wordsReviewed,
+    wordsTested,
+    studyDaysPerWeek = 5
+  } = sessionData;
+
+  const docId = getProgressDocId(classId, listId);
+  const progressRef = doc(db, `users/${userId}/class_progress`, docId);
+  const snapshot = await getDoc(progressRef);
+  const current = snapshot.exists() ? snapshot.data() : DEFAULT_CLASS_PROGRESS;
+
+  // Idempotency: a retry of the SAME review must not double-append (no day-guard protects us here).
+  // FIX 3: scan the WHOLE recentSessions window (not just the last entry) for a matching
+  // reviewAttemptId — a retry AFTER a newer review already landed, or a stale re-submit, would slip
+  // past a last-entry-only check and double-append, skewing the binary-throttle review average. The
+  // caller threads a STABLE non-null id (result.id ?? attemptDocId) so the key is never absent.
+  const priorRecents = current.recentSessions || [];
+  if (reviewAttemptId && priorRecents.some(s => s?.reviewAttemptId === reviewAttemptId)) {
+    console.log('[HOLD-CSD] recordReviewOutcome idempotent no-op (reviewAttemptId already recorded)');
+    return { sessionId: null, progress: { id: docId, ...current } };
+  }
+
+  const sessionSummary = {
+    ...createSessionSummary({
+      day: dayNumber || 1,
+      newWordScore,
+      reviewScore,
+      segmentStartIndex: segment?.startIndex || 0,
+      segmentEndIndex: segment?.endIndex || 0,
+      wordsIntroduced: wordsIntroduced || 0,
+      wordsReviewed: wordsReviewed || 0,
+      wordsTested: wordsTested || 0
+    }),
+    // Additive hold-shape markers (do NOT change the createSessionSummary field set): a
+    // recorded-not-advanced marker + the idempotency key.
+    reviewRecorded: true,
+    ...(reviewAttemptId ? { reviewAttemptId } : {})
+  };
+
+  const recentSessions = [...priorRecents, sessionSummary].slice(-MAX_RECENT_SESSIONS);
+  const stats = calculateProgressStats(recentSessions);
+  const lastStudyDate = current.lastStudyDate?.toDate?.() || current.lastStudyDate || null;
+  const streakDays = calculateUpdatedStreak(lastStudyDate, current.streakDays || 0, studyDaysPerWeek);
+  // Owner of the persisted reviewMode bit (same recompute as updateClassProgress; hysteresis over
+  // the prior bit). A held review that raises the average above the exit bar flips reviewMode → false
+  // → next init allocates new words (escape); a skip keeps it → stays throttled.
+  const reviewMode = deriveThrottleMode(recentSessions, current.reviewMode === true);
+
+  const updates = {
+    // NO currentStudyDay, NO totalWordsIntroduced — HELD (the whole point of hold-csd).
+    reviewMode,
+    recentSessions,
+    stats,
+    streakDays,
+    lastStudyDate: Timestamp.now(),
+    lastSessionAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  };
+
+  if (snapshot.exists()) {
+    await updateDoc(progressRef, updates);
+  } else {
+    await setDoc(progressRef, {
+      ...createClassProgress(classId, listId),
+      ...updates,
+      programStartDate: Timestamp.now(),
+      createdAt: Timestamp.now()
+    });
+  }
+
+  return { sessionId: null, progress: { id: docId, ...current, ...updates } };
 }
 
 /**

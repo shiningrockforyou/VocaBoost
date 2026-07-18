@@ -5,7 +5,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
-import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD, FORCED_PATHWAY } from '../config/featureFlags'
 import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
@@ -825,6 +825,10 @@ const MCQTest = () => {
                 streakDays: progress.streakDays ?? null,
                 lastStudyDate: progress.lastStudyDate ?? null,
                 interventionLevel: progress.interventionLevel ?? null,
+                // CS PR-3 · WI-1 (FORCED_PATHWAY): capture the review-mode bit so a retake-rewind
+                // restores the review-mode context (the review outcome the retake replaces was
+                // recorded under this bit). Absent when flag-off (byte-equivalent snapshot).
+                ...(FORCED_PATHWAY ? { reviewMode: progress.reviewMode ?? null } : {}),
                 snapshotCreatedAt: Timestamp.now(),
                 snapshotDayNumber: sessionContext.dayNumber
               };
@@ -853,9 +857,20 @@ const MCQTest = () => {
                 correct: summary.correct,
                 total: summary.total,
                 failed: summary.failed
-              }
+              },
               // segment, interventionLevel, wordsIntroduced, wordsReviewed
               // are now read from sessionStorage in completeSessionFromTest
+              // CS PR-3 · WI-1 (FORCED_PATHWAY): F3 engagement inputs for the hold-csd routing — the
+              // answered count of THIS review (non-empty studentResponse rows, the >=80% gate) + the
+              // review attempt id (recordReviewOutcome idempotency). Passed only under the flag on a
+              // review submit → flag-off the call is byte-identical to today.
+              ...(FORCED_PATHWAY && currentTestType === 'review' ? {
+                reviewAnswered: answerArray.filter(a => String(a?.studentResponse ?? '').trim() !== '').length,
+                // FIX 3: thread a STABLE non-null idempotency key — fall back to the deterministic
+                // attemptDocId (the exact id the attempt is written under) when result.id is null, so
+                // recordReviewOutcome's whole-window scan never misses on an absent key.
+                reviewAttemptId: result?.id ?? attemptDocId
+              } : {})
             })
             // Day-2+ gate: if this day's new-word test wasn't passed, the day does NOT
             // complete. Don't present as finished — block and require a retake.
@@ -1009,6 +1024,9 @@ const MCQTest = () => {
         streakDays: restoreData.streakDays,
         lastStudyDate: restoreData.lastStudyDate,
         interventionLevel: restoreData.interventionLevel,
+        // CS PR-3 · WI-1 (FORCED_PATHWAY): rewind the review-mode bit alongside csd/twi/recentSessions
+        // so the retake replays in the same review-mode context. Absent when flag-off (byte-equivalent).
+        ...(FORCED_PATHWAY ? { reviewMode: restoreData.reviewMode ?? null } : {}),
         progressSnapshot: null, // Clear snapshot after restore
         updatedAt: Timestamp.now()
       })

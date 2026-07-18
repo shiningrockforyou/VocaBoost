@@ -155,23 +155,25 @@ const FLAG_TABLE = [
   { name: 'CYCLING_ENABLED', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P9 CYC — NEW two-key cycling (client leg); dormant until P9', baseline: false, shipped: true },
   { name: 'SERVER_OVERRIDE', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P10 OVR — NEW; dormant until P10', baseline: false, shipped: true },
   { name: 'TEACHER_IDS_READ', file: 'src/config/featureFlags.js', src: 'FIX_PLAN P10c — NEW teacherIds read-surface; dormant until P10c', baseline: false, shipped: true },
-  { name: 'REVIEW_PAIRING_V2', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-2 (CS_2026-07-17_ROOT_CAUSE_EFFORT) — census-LOCKED I4 pairing predicate + 8→12 window; dormant until the PR-1 flip', baseline: false, shipped: true },
-  { name: 'REENTRY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-3 + F2 (CS_2026-07-17_ROOT_CAUSE_EFFORT) — I3 re-entry day-guard + retake queue + under-answered review confirm; dormant until the PR-1 flip', baseline: false, shipped: true },
-  { name: 'RECOVERY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-4 client (CS_2026-07-17_ROOT_CAUSE_EFFORT) — I6 recovery answer intersection; dormant until the PR-1 flip', baseline: false, shipped: true },
+  { name: 'REVIEW_PAIRING_V2', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-2 — census-LOCKED I4 pairing predicate + 8→12 window; LIVE since the PR-1 flip 2026-07-17 (main@59df732)', baseline: true, shipped: true },
+  { name: 'REENTRY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-3 + F2 — I3 re-entry day-guard + retake queue + under-answered review confirm; LIVE since the PR-1 flip 2026-07-17 (main@59df732)', baseline: true, shipped: true },
+  { name: 'RECOVERY_GUARD', file: 'src/config/featureFlags.js', src: 'CS PR-1 · WI-4 client — I6 recovery answer intersection; LIVE since the PR-1 flip 2026-07-17 (main@59df732)', baseline: true, shipped: true },
+  { name: 'FORCED_PATHWAY', file: 'src/config/featureFlags.js', src: 'CS PR-3 · WI-1 — binary throttle + hold-csd + F3 grandfathered engagement (client leg); DORMANT at merge, HARD-GATED behind the live PR-1 flip; flips true after the PR-1 soak', baseline: true, shipped: true },
   // ── functions/foundation.js FOUNDATION_FLAGS (the 11 dormant server flags) ──
-  { name: 'SERVER_COMPLETE_SESSION_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — foundation flag, dormant at merge; P4 flips', baseline: false, shipped: true },
-  { name: 'SERVER_RESOLVE_LIST_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips', baseline: false, shipped: true },
-  { name: 'SERVER_RESET_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips (before P6 owner-delete removal)', baseline: false, shipped: true },
-  { name: 'SERVER_ADVANCE_FOR_CHALLENGE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 9 (F5-HIGH-2) — dormant; P4 flips', baseline: false, shipped: true },
+  { name: 'SERVER_COMPLETE_SESSION_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — foundation flag, dormant at merge; P4 flips', baseline: true, shipped: true },
+  { name: 'SERVER_RESOLVE_LIST_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips', baseline: true, shipped: true },
+  { name: 'SERVER_RESET_PROGRESS_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 — dormant; P4 flips (before P6 owner-delete removal)', baseline: true, shipped: true },
+  { name: 'SERVER_ADVANCE_FOR_CHALLENGE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 9 (F5-HIGH-2) — dormant; P4 flips', baseline: true, shipped: true },
   { name: 'LIST_PROGRESS_CANONICAL', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 2 + P5 — the P5-ONLY mode switch; dormant until migration', baseline: false, shipped: true },
-  { name: 'ANCHOR_VALIDATION_SHADOW', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 6 (M4) — dormant at merge; P3 DEPLOY flips for the ≥14d soak', baseline: false, shipped: true },
+  { name: 'ANCHOR_VALIDATION_SHADOW', file: 'functions/foundation.js', src: 'FIX_PLAN P3 change 6 (M4) — dormant at merge; P3 DEPLOY flips for the ≥14d soak', baseline: true, shipped: true },
   { name: 'ANCHOR_VALIDATION_ENFORCE', file: 'functions/foundation.js', src: 'FIX_PLAN P3/P6(d) — M4 enforce; P6 only', baseline: false, shipped: true },
   { name: 'CYCLING_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P9 CYC — server two-key leg; dormant until P9', baseline: false, shipped: true },
   { name: 'SERVER_REVIEW_CHALLENGE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10 OVR — server reviewChallenge; dormant until P10', baseline: false, shipped: true },
   { name: 'SERVER_OVERRIDE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10 OVR — overrideAttempt; dormant until P10', baseline: false, shipped: true },
   { name: 'TEACHER_IDS_WRITE_ENABLED', file: 'functions/foundation.js', src: 'FIX_PLAN P10c — teacherIds denorm write; dormant until P10c', baseline: false, shipped: true },
-  { name: 'REVIEW_ENGAGEMENT_STAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 F3 — additive review-engagement stamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: false, shipped: true },
-  { name: 'RECOVERY_SCORE_CLAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 WI-4/I6 — server >100% score clamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: false, shipped: true },
+  { name: 'REVIEW_ENGAGEMENT_STAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 F3 — additive review-engagement stamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: true, shipped: true },
+  { name: 'RECOVERY_SCORE_CLAMP_ENABLED', file: 'functions/foundation.js', src: 'CS PR-2 WI-4/I6 — server >100% score clamp; dormant in tree, flips TRUE at the D2 functions deploy', baseline: true, shipped: true },
+  { name: 'FORCED_PATHWAY_ENABLED', file: 'functions/foundation.js', src: 'CS PR-3 · WI-1 — SERVER mirror of FORCED_PATHWAY (binary throttle + hold-csd); NOW a FOUNDATION_FLAGS member (the exports.version provenance probe reports it, DG-2); DORMANT, double-gated behind SERVER_COMPLETE_SESSION_ENABLED (P4)', baseline: false, shipped: true },
 ];
 const flagText = (file) => (file === 'functions/index.js' ? IDX : file === 'src/config/featureFlags.js' ? FF : FND);
 
@@ -226,8 +228,10 @@ for (const f of FLAG_TABLE) {
 }
 
 // ── DG-2 · deployed exports.version provenance probe (AUDIT_DESIGN §1.A DG-2) ──
+// NOTE (CS PR-3): FOUNDATION_FLAGS now carries FORCED_PATHWAY_ENABLED (+ the PR-2 stamp/clamp flags),
+// so the exports.version {flags} triple this probe binds now REPORTS FORCED_PATHWAY_ENABLED=false.
 add('DG-2', 'DG-2', 'deployed exports.version {sha,dirty,flags} == recorded deploy triple', 'probe==expected',
-  'no-live-probe', 'SKIP', 'needs Codex: deployed exports.version HTTPS probe (no live network in M-STATIC).');
+  'no-live-probe', 'SKIP', 'needs Codex: deployed exports.version HTTPS probe (no live network in M-STATIC); FOUNDATION_FLAGS reports FORCED_PATHWAY_ENABLED (PR-3).');
 
 // ── DG-3 · hosting build-stamp live (AUDIT_DESIGN §1.A DG-3) ──
 add('DG-3', 'DG-3', 'served bundle exposes commit sha == recorded hosting sha', 'stamp==hostingSha',

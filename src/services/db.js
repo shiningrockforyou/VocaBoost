@@ -22,8 +22,12 @@ import {
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ, REVIEW_PAIRING_V2 } from '../config/featureFlags'
+import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ, REVIEW_PAIRING_V2, FORCED_PATHWAY } from '../config/featureFlags'
 import { reviewPairsWithAnchor, RECENT_ATTEMPTS_WINDOW } from '../utils/reviewPairing'
+// CS PR-3 · WI-1 (FORCED_PATHWAY): grandfathered completion-engagement predicate + binary-throttle
+// owner. Consumed ONLY under the flag — the getReviewForDay reconciliation engagement gate + the
+// challenge-accept hold-guard below. Flag-off they are never read (byte-equivalent to today).
+import { isCompletionEngaged, deriveThrottleMode } from '../utils/forcedPathway'
 import { WORD_STATUS, DEFAULT_STUDY_STATE } from '../types/studyTypes'
 
 // deepfix P2 / C-35 (#7): resolve a class's assigned list ids. FIX: `assignedLists || Object.keys(assignments)`
@@ -3038,12 +3042,25 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
                   const dailyPace = assignment?.pace || 20
                   const newWordCount = Math.round(dailyPace * (1 - interventionLevel))
 
-                  await updateDoc(progressRef, {
-                    currentStudyDay: currentDay + 1,
-                    totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
-                    lastSessionAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                  })
+                  // CS PR-3 · WI-1 (FORCED_PATHWAY): hold-guard the challenge-accept advance. A review
+                  // fail→pass at the boundary must NOT advance a THROTTLE-HELD day (reviewMode===true) —
+                  // that re-mints the #16 runaway the hold-csd exists to kill. When held, SKIP the
+                  // csd/twi advance entirely (the corrected score already lives on the attempt doc; the
+                  // day stays put). When it DOES advance, this writer becomes a csd owner, so it must
+                  // ALSO recompute + persist the reviewMode bit (deriveThrottleMode over the current
+                  // recentSessions — the one-owner invariant, mirror of updateClassProgress/
+                  // recordReviewOutcome; else reviewMode goes stale vs the advance). Flag-off: fpHeld is
+                  // false → the unconditional advance runs with NO reviewMode key (byte-equivalent).
+                  const fpHeld = FORCED_PATHWAY && progress.reviewMode === true
+                  if (!fpHeld) {
+                    await updateDoc(progressRef, {
+                      currentStudyDay: currentDay + 1,
+                      totalWordsIntroduced: (progress.totalWordsIntroduced || 0) + newWordCount,
+                      ...(FORCED_PATHWAY ? { reviewMode: deriveThrottleMode(progress.recentSessions || [], progress.reviewMode === true) } : {}),
+                      lastSessionAt: serverTimestamp(),
+                      updatedAt: serverTimestamp(),
+                    })
+                  }
                 }
               }
             }
@@ -3764,7 +3781,16 @@ export async function getReviewForDay(userId, classId, listId, studyDay, pairing
               })
             : (data.newWordStartIndex === pairing.anchorNewWordStartIndex
               && data.newWordEndIndex === pairing.anchorNewWordEndIndex)
-          if (paired) {
+          // CS PR-3 · WI-1 (FORCED_PATHWAY): reject a paired-but-NON-engaged POST-epoch review even on
+          // the exact-range tier. A post-deploy same-session SKIP carries the exact anchor range → it
+          // tier-1 matches reviewPairsWithAnchor → reconciliation would write csd forward, UNDOING the
+          // F3 hold-csd. The grandfathered isCompletionEngaged keeps PRE-epoch skips pairing (decision
+          // #3) but drops post-deploy skips. This is a READER-SITE gate — reviewPairsWithAnchor (PR-1
+          // census-locked) is UNTOUCHED. A rejected candidate is skipped (loop continues), so a genuine
+          // engaged review for the same day still pairs. Flag-off: pairedComplete === paired verbatim
+          // (byte-equivalent — the exact-range needle + the if are unchanged when FORCED_PATHWAY is off).
+          const pairedComplete = FORCED_PATHWAY ? (paired && isCompletionEngaged(data)) : paired
+          if (pairedComplete) {
             console.log('[RECONCILIATION] getReviewForDay: position-matched review for day', studyDay)
             return { status: 'found', attempt: data }
           }

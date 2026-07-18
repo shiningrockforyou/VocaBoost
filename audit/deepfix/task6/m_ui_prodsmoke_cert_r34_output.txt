@@ -1,0 +1,26 @@
+
+▶ deepfix M-UI (RO+RS) cert-59df732-r34 — BASE=https://vocaboostone.netlify.app build=local-dev tier=base list=LSR Base Camp (audit clone)(1200) students=2
+
+  → RO-S1 …
+    ❌ RO-S1 FAIL — exception: TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: /^submit( test| answers)?$/i }).first()[22m
+[2m    - locator resolved to <button disa
+  → RO-S9 …
+    ✅ RO-S9 PASS — finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se0)
+  → RS-1 …
+    ✅ RS-1 PASS — deep student surfaced via server Name filter: Showing=20 (target 3); nameCell rendered account displayName (0 token-cells)
+  → RS-2 …
+    ❌ RS-2 FAIL — RS-2: testId-less attempt row NOT visible in the gradebook (dropped for lacking testId)
+
+=== deepfix M-UI MANIFEST (cert-59df732-r34) ===
+  ❌ RO-S1  FAIL — exception: TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('button', { name: /^submit( test| answers)?$/i }).first()[22m
+[2m    - locator resolved to <button disa
+  ✅ RO-S9  PASS — finished hero persistent, no misleading copy, re-entry recorded nothing (csd2|twi1200|rs0|se0)
+  ✅ RS-1   PASS — deep student surfaced via server Name filter: Showing=20 (target 3); nameCell rendered account displayName (0 token-cells)
+  ❌ RS-2   FAIL — RS-2: testId-less attempt row NOT visible in the gradebook (dropped for lacking testId)
+  ⛔ 1 fatal app-health signal(s)
+
+❌ NOT CLEAN — 2/4 → findings/deepfix_ui_cert-59df732-r34.json

@@ -27,6 +27,7 @@
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import admin from 'firebase-admin';
@@ -291,11 +292,16 @@ export function gitState() {
   return { head, short, dirty: dirtyRows.length > 0, dirtyCount: dirtyRows.length, dirtyRows };
 }
 
-/** sha256 of a repo file (for the firestore.rules binding — §2.2c). */
+/** sha256 of a repo file (for the firestore.rules binding — §2.2c).
+ *  PORTABLE (WSL + native Windows): hash with Node's crypto instead of shelling to
+ *  `sha256sum`, which is ABSENT under the Windows `emulators:exec` cmd.exe child — the
+ *  r16 null-sha gap (M-CALL/M-RULES recorded rulesSha256=null on David's box). */
 export function sha256File(rel) {
-  const sh = (c) => { try { return execSync(c, { cwd: REPO, encoding: 'utf8' }).trim(); } catch { return ''; } };
-  const out = sh(`sha256sum '${rel}' 2>/dev/null`);
-  return out ? out.split(/\s+/)[0] : null;
+  try {
+    const abs = resolve(REPO, rel);
+    if (!existsSync(abs)) return null;
+    return createHash('sha256').update(readFileSync(abs)).digest('hex');
+  } catch { return null; }
 }
 
 // ── The flag-set the emulator ACTUALLY loaded (binds the manifest; proves flag-ON) ──

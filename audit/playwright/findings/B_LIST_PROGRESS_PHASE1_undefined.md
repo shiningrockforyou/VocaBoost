@@ -5,3 +5,4 @@
 
 ## Raw anomaly log (triage EVERY entry — none dropped without written justification)
 
+- [2026-07-17T19:34:40.207Z] **flow-gap** — [dup_repro_a-review] no Start Session/Continue to enter the session

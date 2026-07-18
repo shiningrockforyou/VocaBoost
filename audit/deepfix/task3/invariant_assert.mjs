@@ -62,18 +62,21 @@ S('INV-11-gate-guard', 'src/services/studyService.js',
   '!reviewOnlyDay && newWordAttemptPassed !== true && newWordScore < threshold',
   '#11: the explicit !reviewOnlyDay guard (not score coercion) lets the review-only day through');
 
-// ── #4 · register #16 — two-facts (complete ≠ advances). FORWARD-SPEC ANCHOR: today the sole
-// recentSessions appender (updateClassProgress) is WELDED to the day advance in one updates
-// object. [PR-3 retargets: recordReviewOutcome decouples this] — when PR-3 lands, the ABSENT
-// check below flips: retarget both rows to assert the decoupled writer, don't delete them.
+// ── #4 · register #16 — two-facts (complete ≠ advances). RETARGETED (PR-3 LANDED 2026-07-17,
+// FORCED_PATHWAY): hold-csd DECOUPLED "record review" from "advance day". updateClassProgress is now
+// the ADVANCE writer (still welds csd+1 in one updates object — the first row still verifies that);
+// recordReviewOutcome is the NEW HOLD writer that appends the review WITHOUT ever writing csd/twi.
+// The pre-PR-3 ABSENT anchor below is FLIPPED to PRESENT (polarity flipped, invariant kept — never
+// deleted). The TRUE post-PR-3 invariant: a THROTTLE review-only / SKIP day records WITHOUT advancing
+// csd (kills the #16 runaway). Gated behind FORCED_PATHWAY; the hold writer is dormant until it flips.
 S('INV-16-welded-today', 'src/services/progressService.js',
   `  const updates = {
     currentStudyDay: (current.currentStudyDay || 0) + 1,`,
-  '#16 current state: completion writer advances currentStudyDay+1 in the same updates object');
-S('INV-16-pr3-not-landed', 'src/services/progressService.js',
+  '#16 post-PR-3: updateClassProgress is the ADVANCE writer — still welds currentStudyDay+1 (the hold path is recordReviewOutcome, which never writes csd)');
+S('INV-16-pr3-landed', 'src/services/progressService.js',
   'recordReviewOutcome',
-  '#16 anchor: recordReviewOutcome not in tree yet [PR-3 retargets: recordReviewOutcome decouples this]',
-  false);
+  '#16 RETARGETED (PR-3 landed): recordReviewOutcome — the hold-csd writer recording a review WITHOUT advancing the day — is now PRESENT (was asserted ABSENT pre-PR-3)',
+  true);
 
 // ── #5 · non-demoting CSD + fail-closed query-error pin (a from-scratch projection loses the
 // ratchet → mass demotion).
@@ -128,14 +131,17 @@ S('INV-day1-monitored', 'src/services/studyService.js',
   '#9-day1: the day-1 passed-new impossible state is logged to system_logs for monitoring');
 
 // ── #10 · recentSessions append-cadence — recentSessions is appended ONLY by the completion
-// writer (one append site, capped .slice(-MAX_RECENT_SESSIONS)); reconciliation never appends.
+// writers (RETARGETED PR-3 2026-07-17: now TWO — updateClassProgress ADVANCE + recordReviewOutcome
+// HOLD-CSD — each capped .slice(-MAX_RECENT_SESSIONS)); reconciliation still appends ZERO. The count
+// row below was retargeted 1→2 (PR-3's decoupled hold writer is a legitimate second appender, NOT an
+// unsanctioned one); the specific-text row still pins the ADVANCE writer's append verbatim.
 S('INV-recents-append-site', 'src/services/progressService.js',
   `  const recentSessions = [...(crossedLapBoundary ? [] : (current.recentSessions || [])), sessionSummary]
     .slice(-MAX_RECENT_SESSIONS);`,
-  '#10-cadence: the completion writer is the appender (sessionSummary + slice cap)');
-C('INV-recents-sole-appender', 'src/services/progressService.js',
-  '.slice(-MAX_RECENT_SESSIONS)', 1,
-  '#10-cadence: exactly ONE capped append site in progressService (sole appender)');
+  '#10-cadence: the ADVANCE completion writer is an appender (sessionSummary + slice cap)');
+C('INV-recents-append-writers', 'src/services/progressService.js',
+  '.slice(-MAX_RECENT_SESSIONS)', 2,
+  '#10-cadence RETARGETED (PR-3 landed): exactly TWO capped append sites — updateClassProgress (advance) + recordReviewOutcome (hold-csd); reconciliation still appends ZERO');
 
 // ── #11 · engagement grandfather — FORWARD-SPEC (PR-2/PR-3): activates with PR-2\'s
 // isEngagedReview predicate + the grandfather timestamp constant (pre-cutover sessions are
