@@ -20,7 +20,7 @@ export const SERVER_ATTEMPT_WRITE = true;
 // [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
 // deploy + soak, together with the server-side flag flips (FOUNDATION_FLAGS in
 // functions/foundation.js). Deliberately NOT flipped in this working tree (dormant-draft pattern).
-export const SERVER_CHALLENGE_WRITE = false;
+export const SERVER_CHALLENGE_WRITE = true;
 
 // SERVER_REVIEW_MARKER: write the empty-review "automarker" attempt via the
 // `markReviewComplete` Cloud Function instead of a client `setDoc` (DailySessionFlow).
@@ -31,7 +31,7 @@ export const SERVER_CHALLENGE_WRITE = false;
 // [deepfix P4 · FND-2] Flips TRUE at the P4 DEPLOY-time cutover (David) — AFTER the P3 functions
 // deploy + soak (the upgraded W2 marker lives in `markReviewComplete`, functions/index.js →
 // foundation.writeUpgradedReviewMarker). Deliberately NOT flipped in this working tree.
-export const SERVER_REVIEW_MARKER = false;
+export const SERVER_REVIEW_MARKER = true;
 
 // LIST_SCOPED_RECON: Phase 1 of PLAN_list_progress_persist.md (v3.7) — make the CSD/TWI
 // reconciliation + anchor readers STUDENT+LIST scoped instead of class-scoped, so a
@@ -74,7 +74,7 @@ export const CONTINUATION_LINKS = false;
 // Flips TRUE only at the P4 DEPLOY-time cutover (David), after the P3 soak. Roll back = flip
 // false + rebuild (callables keep working idle; legacy client path untouched).
 // Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
-export const SERVER_PROGRESS_WRITE = false;
+export const SERVER_PROGRESS_WRITE = true;
 
 // CYCLING_ENABLED (deepfix P9 · CYC — per-student list cycling / "start over"): the GLOBAL
 // build-time hard gate for finished-list lap cycling (x/plan v5). When a list is finished
@@ -109,7 +109,7 @@ export const CYCLING_ENABLED = false;
 // Flips TRUE only at the P4 DEPLOY-time cutover (David). Roll back = flip false + rebuild
 // (the client-delete fallback stays legal until the P6 rules deploy).
 // Default OFF — flag-off behavior is byte-equivalent to today.
-export const SERVER_RESET_PROGRESS = false;
+export const SERVER_RESET_PROGRESS = true;
 
 // SERVER_OVERRIDE (deepfix P10 · OVR — teacher override + challenge redesign, FIX_PLAN
 // P10 (a)+(b) / I-7 / I-10): the CLIENT gate for the P10 override + full server-side
