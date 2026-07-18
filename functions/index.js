@@ -2178,6 +2178,9 @@ exports.version = onCall(async (request) => {
       // deepfix P3: the foundation-surface flags, so the I-5 G1 flag-assertion
       // table can assert the FULL server posture in one probe call.
       ...foundation.FOUNDATION_FLAGS,
+      // Codex P4-plan gate: the DEPLOYED server grandfather epoch — proves the live bundle's epoch matches
+      // the client (verified between the P4 functions redeploy and the client cutover push).
+      FORCED_PATHWAY_GRANDFATHER_EPOCH_MS: foundation.FORCED_PATHWAY_GRANDFATHER_EPOCH_MS,
     },
     serverTime: new Date().toISOString(),
   };

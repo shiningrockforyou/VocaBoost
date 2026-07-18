@@ -130,11 +130,11 @@ const RECOVERY_SCORE_CLAMP_ENABLED = true;
 // the graduated calculateInterventionLevel, NO reviewMode field is written, and the hold branch is
 // unreachable ⇒ every write is byte-identical to today. DORMANT at merge; flips with the PR-3
 // activation, and is only reachable at all once SERVER_COMPLETE_SESSION_ENABLED (P4) is also true.
-const FORCED_PATHWAY_ENABLED = false;
+const FORCED_PATHWAY_ENABLED = true;
 // Decision-#3 grandfather epoch (ms) — mirror of forcedPathway.FORCED_PATHWAY_GRANDFATHER_EPOCH_MS.
 // A day's review with submittedAt before this counts as engaged in the completion reader (pre-deploy
 // reviews stay engaged; only post-deploy skips are gated). NULL = no grandfather (set at flip).
-const FORCED_PATHWAY_GRANDFATHER_EPOCH_MS = null;
+const FORCED_PATHWAY_GRANDFATHER_EPOCH_MS = 1784333239063; // P4 server activation — MUST equal the client (src/utils/forcedPathway.js); fail-closed verifier enforces.
 
 // CS PR-2 · OC-2 (I4 pairing mirror) — the STRICT V2 tiered pairing predicate is active on the
 // SERVER whenever a path that can REACH getReviewForDayServer is enabled — i.e. the completion
@@ -2884,4 +2884,7 @@ module.exports = {
   // TEACHER_IDS_WRITE_ENABLED); consumed by writeAttemptTxn in index.js.
   computeTeacherIdsForAttempt,
   FOUNDATION_FLAGS,
+  // Codex P4-plan gate: expose the server grandfather epoch so the deployed `version` probe proves the
+  // LIVE bundle's epoch (not just the tree) matches the client BEFORE the P4 client cutover push.
+  FORCED_PATHWAY_GRANDFATHER_EPOCH_MS,
 };
