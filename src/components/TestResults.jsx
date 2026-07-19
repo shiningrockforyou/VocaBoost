@@ -211,7 +211,7 @@ const TestResults = ({
             
             <div className="rounded-xl bg-warning border border-border-warning p-3 mb-6">
               <p className="text-sm font-body text-text-warning-strong">
-                ⚠️ If rejected, you lose 1 token for 30 days
+                ⚠️ If rejected, you lose 1 token until the weekly reset (Mon)
               </p>
             </div>
             

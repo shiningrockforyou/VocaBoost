@@ -190,10 +190,28 @@ const normalizePOS = (value) => (value || '').toString().trim().toLowerCase()
  * @param {Array} challengeHistory - Array of challenge history entries
  * @returns {number} Available tokens (0-5)
  */
+// Start of the current token-week (Monday 04:00 KST) in UTC millis — byte-identical twin of the server
+// `startOfKstWeekMs` in functions/index.js (KST = fixed +540min, no DST). Challenge tokens reset weekly at
+// Monday 04:00 KST (David 2026-07-19). Keep these two implementations identical or client/server token counts drift.
+const KST_OFFSET_MS = 540 * 60 * 1000
+const WEEKLY_RESET_HOUR_KST = 4 // Monday 04:00 KST
+export function startOfKstWeekMs(nowMs) {
+  const resetShift = WEEKLY_RESET_HOUR_KST * 60 * 60 * 1000
+  const d = new Date(nowMs + KST_OFFSET_MS - resetShift)
+  const day = d.getUTCDay() // 0=Sun..6=Sat in KST wall-clock
+  const diff = day === 0 ? -6 : 1 - day // days back to Monday
+  d.setUTCDate(d.getUTCDate() + diff)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.getTime() - KST_OFFSET_MS + resetShift // → most recent Monday 04:00 KST at/before nowMs
+}
+
+// A rejection consumes a token only for the CURRENT KST week; at Monday 00:00 KST the week advances and last
+// week's rejections stop counting → every student refills to 5 automatically. Keyed on `challengedAt` (set at
+// submit), not the now-vestigial `replenishAt`. Byte-parity with server `availableChallengeTokens`.
 export const getAvailableChallengeTokens = (challengeHistory = []) => {
-  const now = Date.now()
+  const weekStart = startOfKstWeekMs(Date.now())
   const activeRejections = challengeHistory.filter(
-    (h) => h.status === 'rejected' && h.replenishAt?.toMillis?.() > now,
+    (h) => h.status === 'rejected' && (h.challengedAt?.toMillis?.() ?? 0) >= weekStart,
   ).length
   return Math.max(0, 5 - activeRejections)
 }

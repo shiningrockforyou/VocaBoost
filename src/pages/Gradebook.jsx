@@ -1516,7 +1516,7 @@ const Gradebook = ({
             />
 
             <p className="text-amber-600 text-sm mb-4">
-              ⚠️ If rejected, you lose 1 token for 30 days
+              ⚠️ If rejected, you lose 1 token until the weekly reset (Mon)
             </p>
 
             <div className="flex gap-3">

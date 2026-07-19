@@ -658,10 +658,31 @@ exports.markReviewComplete = onCall({enforceAppCheck: false}, async (request) =>
  * ACTIVE rejections only (status==='rejected' && replenishAt in the future),
  * max 5 tokens. Keep byte-parity with the client or token semantics drift.
  */
+// Start of the current token-week (Monday 04:00 KST) in UTC millis. Challenge tokens reset weekly at this
+// boundary (David 2026-07-19: predictable Monday-04:00-KST refill for all students — 4AM = low traffic).
+// KST is a fixed +540min offset (no DST) — mirror of foundation.js STREAK_TZ_OFFSET_MINUTES. MUST stay
+// byte-identical to the client twin `startOfKstWeekMs` in src/services/db.js or token counts drift.
+const KST_OFFSET_MS = 540 * 60 * 1000;
+const WEEKLY_RESET_HOUR_KST = 4; // Monday 04:00 KST
+function startOfKstWeekMs(nowMs) {
+  const resetShift = WEEKLY_RESET_HOUR_KST * 60 * 60 * 1000;
+  // shift back by the reset hour so a Monday-04:00 boundary aligns to a day boundary, then shift forward
+  const d = new Date(nowMs + KST_OFFSET_MS - resetShift);
+  const day = d.getUTCDay(); // 0=Sun..6=Sat in KST wall-clock
+  const diff = day === 0 ? -6 : 1 - day; // days back to Monday
+  d.setUTCDate(d.getUTCDate() + diff);
+  d.setUTCHours(0, 0, 0, 0);
+  return d.getTime() - KST_OFFSET_MS + resetShift; // → most recent Monday 04:00 KST at/before nowMs
+}
+
+// A rejection consumes a token only for the CURRENT KST week; at Monday 00:00 KST the week advances and
+// last week's rejections stop counting → every student refills to 5 automatically (no cron, no data write).
+// Keyed on `challengedAt` (set at submit) — not `replenishAt`, which is now vestigial for availability.
+// Keep byte-parity with the client `getAvailableChallengeTokens` or token semantics drift.
 function availableChallengeTokens(challengeHistory) {
-  const now = Date.now();
+  const weekStart = startOfKstWeekMs(Date.now());
   const activeRejections = (challengeHistory || []).filter(
-    (h) => h.status === "rejected" && (h.replenishAt?.toMillis?.() ?? 0) > now,
+    (h) => h.status === "rejected" && (h.challengedAt?.toMillis?.() ?? 0) >= weekStart,
   ).length;
   return Math.max(0, 5 - activeRejections);
 }
