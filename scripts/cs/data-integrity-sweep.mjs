@@ -42,18 +42,26 @@ for (const cls of classes) { if(!cls.listId)continue;
     const cpDocs = (await db.collection('users').doc(uid).collection('class_progress').get()).docs.filter(d=>d.data().classId===cls.id);
     const byKey={}; cpDocs.forEach(d=>{const p=d.data();const k=`${p.classId}_${p.listId}`;(byKey[k]=byKey[k]||[]).push(d.id);});
     for(const[k,ids]of Object.entries(byKey)) if(ids.length>1) F.dupProgress.push(`${uid.slice(0,8)} ${cls.name.slice(0,18)} x${ids.length}`);
+    // attempts fetched ONCE up front — needed for the per-list anchor-based csdImplausible below.
+    const at=(await db.collection('attempts').where('studentId','==',uid).get()).docs.map(d=>d.data());
+    // per list: highest studyDay with a PASSED new attempt = the anchor day the csd should track.
+    const maxNewDayByList={}; for(const a of at){ if(a.sessionType==='new'&&a.passed===true){ const L=a.listId; const dNum=a.studyDay??a.day??0; if(dNum>(maxNewDayByList[L]??0)) maxNewDayByList[L]=dNum; } }
     // per-doc checks across ALL lists (not just the class's first-assignment list)
     for (const d of cpDocs) { const p=d.data();
       if(p.classId&&p.listId&&d.id!==`${p.classId}_${p.listId}`) F.docIdMismatch.push(`${uid.slice(0,8)} ${d.id.slice(0,16)}`);
       if(p.totalWordsIntroduced==null&&(p.currentStudyDay||0)>0) F.orphanTwi.push(`${uid.slice(0,8)} csd=${p.currentStudyDay}`);
       const lsz=await sizeOf(p.listId);
-      if(lsz>0&&(p.totalWordsIntroduced||0)>lsz) F.twiOverList.push(`${uid.slice(0,8)} ${(p.listId||'').slice(0,8)} twi=${p.totalWordsIntroduced}>${lsz}`);
+      const dcsd=p.currentStudyDay||0, dtwi=p.totalWordsIntroduced||0, maxNew=maxNewDayByList[p.listId]??0;
+      if(lsz>0&&dtwi>lsz) F.twiOverList.push(`${uid.slice(0,8)} ${(p.listId||'').slice(0,8)} twi=${dtwi}>${lsz}`);
+      // R2 FIX (CS-2026-07-19c): ANCHOR-BASED, PER-LIST. csd should track the highest passed-new day; flag when the day
+      // counter runs >=2 days past it AND the list isn't finished (list-end review days legitimately push csd past the
+      // last new anchor -> exempt via twi>=listWordCount). Replaces the old `csd>twi+7` days-vs-words bug that was blind
+      // to runaway inflation (오윤권 csd=12/twi=320 -> 12>327 = never fired).
+      if(dcsd>maxNew+1 && !(lsz>0 && dtwi>=lsz)) F.csdImplausible.push(`${uid.slice(0,8)} ${(p.listId||'').slice(0,8)} csd=${dcsd} > newAnchorDay=${maxNew} (twi=${dtwi})`);
     }
     const good = cpDocs.find(d=>d.id===`${cls.id}_${cls.listId}`); if(!good)continue;
     const p=good.data(); const csd=p.currentStudyDay||0, twi=p.totalWordsIntroduced||0; if(csd>0)started++;
     if(!p.programStartDate&&csd>0) F.missingProgramStart.push(`${uid.slice(0,8)} csd=${csd}`);
-    if((twi>0&&csd>twi+7)||(twi===0&&csd>7)) F.csdImplausible.push(`${uid.slice(0,8)} csd=${csd} twi=${twi}`);
-    const at=(await db.collection('attempts').where('studentId','==',uid).get()).docs.map(d=>d.data());
     const allPn=at.filter(a=>a.sessionType==='new'&&a.passed===true);
     // PHANTOM ANCHOR: a passed-new anchor whose newWordEndIndex is at/beyond its list's actual content
     // (a manual-pass for a day past the list end fabricates words that don't exist → inflates twi).

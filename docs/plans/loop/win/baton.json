@@ -1,15 +1,24 @@
 {
   "loop": "win-executor",
   "turnOwner": "winclaude",
-  "round": 61,
-  "taskId": "WINCLAUDE_D35_R61_COMMIT_PUSH",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_061.md",
+  "round": 66,
+  "taskId": "COMMIT_SESSION_SAVE",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_066.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "dispatched",
-  "execDecision": "PENDING",
-  "changedFiles": [],
-  "evidenceFiles": [],
-  "note": "COMMIT + PUSH this session's work (David-authorized 'yes'). Docs/audit-tooling/CS-scripts/evidence ONLY — NO app-code (src/ + functions/ verified untouched); same low-risk shape as e20b532. ►►► SAFETY: do NOT `git add -A` (.gitattributes=* text=auto renorm hazard). Stage targeted: `git add docs/ audit/ scripts/audit/ scripts/cs/ change_action_log.md SUPPORT_RUNBOOK.md RESUME.md` then REVIEW `git status` before committing — gitignored dsg-edits/ (real-student-data backup) + scripts/serviceAccountKey.json + .env must NOT be staged; NO src/ or functions/ either. Commit message + full steps in handoff 061. Push origin main (established flow: e20b532/6bffe1c/0ddbb34 on main; branch if you prefer). If anything unexpected is staged, STOP + report before committing. Hand back: report commit SHA + push result; set baton turnOwner=claude round=61 execStatus=committed execDecision=DONE updatedBy=winclaude revision=122.",
+  "execStatus": "requested",
+  "execDecision": "pending",
+  "changedFiles": [
+    "public/help-student-en.html",
+    "public/help-student-ko.html",
+    "public/help-teacher-en.html",
+    "public/help-teacher-ko.html",
+    "docs/TA_SUPPORT_GUIDE.md",
+    "docs/TA_FAQ.md"
+  ],
+  "evidenceFiles": [
+    "docs/plans/loop/win/handoffs/claude_to_winclaude_066.md"
+  ],
+  "note": "R66 = COMMIT + PUSH the session's uncommitted work (David: 'commit / push via winclaude'). 54 files (14 modified + 40 untracked): docs/logs (RESUME rotate, SUPPORT_RUNBOOK, change_action_log, TA_SUPPORT_GUIDE, TA_FAQ NEW, MASTER_TASK_LIST/TRACKER, D3.5 plan docs), the 4 public/help-*.html FAQ pages, CS/grader scripts + scripts/fixtures, loop coordination (baton×2, codex r33-r39, handoffs, ready, win r62-066), .firebase cache. WSL verified: NO uncommitted functions/ or src/ CODE (all deployed @0992f5f/6094cdd) — only the 4 help HTML affect the client; NO secrets/backups in the set. STEP1 TARGETED add (NOT -A; renorm hazard): `git add RESUME.md SUPPORT_RUNBOOK.md change_action_log.md .firebase/hosting.ZGlzdA.cache docs/ scripts/ public/help-student-en.html public/help-student-ko.html public/help-teacher-en.html public/help-teacher-ko.html`; verify `git diff --cached --stat` (~54 files); ABORT if serviceAccountKey/.env/dsg-edits/backups_* staged or mass unrelated renorm. STEP2 commit 'docs+help: session save — TA help/FAQ refresh (weekly tokens, grader/#11/class-carry) + CS scripts, plan docs, loop coordination, RESUME rotate'. STEP3 `git push origin main` — AUTO-triggers Netlify build (no [skip netlify]) -> the 4 help pages go LIVE on vocaboostone.netlify.app (intended). Do NOT deploy functions (nothing functions/ changed). Do NOT firebase --only hosting unless separately told (David deciding hosting parity). STEP4 report SHA + push confirm + Netlify note; write docs/plans/loop/win/reviews/winclaude_066.md; set baton turnOwner=claude round=66 taskId=COMMIT_SESSION_SAVE execStatus=review-written execDecision=<PUSHED|BLOCKED|ERROR> updatedBy=winclaude revision=132. NO 26SM data writes.",
   "updatedBy": "claude",
-  "revision": 121
+  "revision": 131
 }

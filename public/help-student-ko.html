@@ -850,7 +850,7 @@
       <li><strong>Challenge</strong> 버튼을 클릭합니다.</li>
       <li>선생님이 검토합니다.</li>
       <li><strong>승인(Accept)</strong> 시: 해당 답안이 정답으로 인정되고 점수가 재계산됩니다. 승인된 챌린지는 토큰을 소모하지 않습니다.</li>
-      <li><strong>거절(Reject)</strong> 시: 점수는 변동 없으며, 거절된 챌린지는 <strong>30일 동안 토큰 1개를 차지</strong>합니다. 30일이 지나면 다시 사용할 수 있습니다.</li>
+      <li><strong>거절(Reject)</strong> 시: 점수는 변동 없으며, 거절된 챌린지는 <strong>다음 주간 초기화(매주 월요일)까지 토큰 1개를 차지</strong>합니다. 그 후 다시 사용할 수 있습니다.</li>
     </ol>
 
     <div class="info-box tip">
@@ -860,7 +860,7 @@
 
     <div class="info-box warning">
       <div class="info-box-title">챌린지 토큰 안내</div>
-      <p>토큰은 5개입니다. 거절된 챌린지는 30일 동안 토큰 1개를 차지하며, 30일이 지나면 다시 사용할 수 있습니다. 승인된 챌린지는 토큰을 소모하지 않습니다. 거절이 반복되면 사용 가능한 챌린지 횟수가 일시적으로 줄어들 수 있으니 신중하게 사용하세요.</p>
+      <p>토큰은 5개이며 매주 월요일에 초기화됩니다. 거절된 챌린지는 다음 월요일까지 토큰 1개를 차지하며, 그 후 다시 사용할 수 있습니다. 승인된 챌린지는 토큰을 소모하지 않습니다. 거절이 반복되면 사용 가능한 챌린지 횟수가 일시적으로 줄어들 수 있으니 신중하게 사용하세요.</p>
     </div>
   </section>
 
@@ -989,6 +989,36 @@
     </div>
 
     <div class="faq-item">
+      <div class="faq-question">Q. 뜻을 맞게 썼는데 오답 처리됐어요.</div>
+      <div class="faq-answer">자동 채점기가 최근 개선되어 이제 올바른 한국어 뜻과 올바른 영어 정의를 모두 정답으로 인정합니다. 그래서 이런 경우는 드뭅니다. 그래도 발생하고 본인 답이 확실하다면, 결과 화면에서 해당 답 옆의 <strong>챌린지(Challenge)</strong>를 눌러 제출하세요. 선생님이 검토 후 승인하면 <strong>새로고침</strong> 후 점수와 Day에 반영됩니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 새 단어는 안 나오고 복습만 나와요.</div>
+      <div class="faq-answer">오류가 아닙니다. 최근 <strong>복습 점수가 낮으면</strong> vocaBoost가 새 단어를 잠시 멈추고 복습만 제공하여 따라잡도록 돕습니다. 복습을 계속 보고 점수를 올리면(대략 30% 이상) 새 단어가 자동으로 다시 나옵니다. 복습을 건너뛰거나 대충 보면 새 단어가 계속 잠깁니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 통과 기준(예: 92%) 이상 받았는데 불합격으로 떠요.</div>
+      <div class="faq-answer">대부분 실제로는 통과했고 화면만 갱신되지 않은 것입니다. <strong>페이지를 새로고침</strong>하면 합격으로 바뀌고 다음으로 넘어갑니다. 새로고침 후에도 확실한 합격이 불합격으로 뜨면 선생님께 알려주세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 반이 바뀐 뒤 진도가 Day 1로 돌아갔어요.</div>
+      <div class="faq-answer">진도는 사라지지 않았고, 같은 단어장이라면 반을 옮겨도 이제 자동으로 이어집니다. <strong>페이지를 새로고침</strong>하고 대시보드에서 올바른 단어장이 선택되어 있는지 확인하세요. 새로고침 후에도 Day 1이면 본인이 있어야 할 Day를 선생님께 알려주세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 페이지가 로딩에서 멈추거나 버튼이 안 눌려요.</div>
+      <div class="faq-answer">보통 <strong>앱 내부 브라우저</strong>(예: 카카오톡·인스타그램 안에서 링크 열기)에서 발생합니다. <strong>Chrome이나 Safari</strong> 같은 실제 브라우저에서 vocaBoost를 열고 새로고침하세요. 다른 기기로 시도하는 것도 도움이 됩니다. 특정 Day에서 항상 멈춘다면 그 Day와 화면 캡처를 선생님께 보내주세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 다음 단어장(예: Summit)으로 어떻게 넘어가나요?</div>
+      <div class="faq-answer">한 단어장을 끝내면 새 단어가 더 이상 나오지 않습니다(복습만). 그것이 다음 단계로 갈 준비가 됐다는 신호입니다. 대시보드의 <strong>단어장 선택</strong>에서 다음 단어장을 고르면 됩니다. 새 단어장은 자체 Day 1부터 시작하며 이는 정상입니다. 따로 추가할 필요는 없습니다.</div>
+    </div>
+
+    <div class="faq-item">
       <div class="faq-question">Q. 하루에 꼭 모든 단계를 완료해야 하나요?</div>
       <div class="faq-answer">아니요. 언제든 나갔다가 다시 이어서 할 수 있습니다. 하지만 테스트 중에 나가면 테스트는 처음부터 다시 봐야 합니다.</div>
     </div>
@@ -1029,8 +1059,8 @@
     </div>
 
     <div class="faq-item">
-      <div class="faq-question">Q. 챌린지 토큰이 부족해요.</div>
-      <div class="faq-answer">챌린지 토큰은 시간이 지나면 자동으로 충전됩니다. 정말 확실할 때만 챌린지를 사용하세요.</div>
+      <div class="faq-question">Q. 챌린지 토큰은 언제 다시 생기나요?</div>
+      <div class="faq-answer">챌린지 토큰은 <strong>5개</strong>이며 <strong>매주 월요일에 초기화</strong>됩니다. 챌린지가 거절되면 다음 월요일까지 토큰 1개가 사용됩니다. 정말 확실할 때만 챌린지를 사용하세요.</div>
     </div>
 
     <div class="faq-item">

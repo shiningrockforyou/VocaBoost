@@ -1,24 +1,28 @@
 ﻿{
     "turnOwner":  "claude",
-    "round":  32,
-    "taskId":  "D35_CRITIC_PASS_R4_CONFIRM",
-    "targetPlan":  "docs/plans/D3.5_RECOVERY_AUDIT_PLAN.md",
-    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_d35_critic_r32.md",
-    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_032.json",
+    "round":  39,
+    "taskId":  "TOKEN_RESET_CALENDAR",
+    "targetPlan":  "docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md",
+    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md",
+    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_039.json",
     "changedFiles":  [
 
                      ],
     "evidenceFiles":  [
-                          "docs/plans/D3.5_RECOVERY_AUDIT_PLAN.md"
+                          "functions/index.js",
+                          "functions/foundation.js",
+                          "src/services/db.js",
+                          "src/types/studyTypes.js",
+                          "scripts/cs/reset-challenge-tokens.mjs"
                       ],
-    "claudeStatus":  "CRITIC PASS round 4 CONFIRM-ONLY — round-3 gaps folded; requesting no-new-contradiction confirm",
+    "claudeStatus":  "David DECIDED calendar-week reset (Mon 00:00 KST) + reset all students (full amnesty) — NOT rolling. Proposed impl = Approach 3: server WRITE replenishAt = mondayOfWeekTimestamp()+7d (reuse the fixed-KST helper foundation.js:432), read path UNCHANGED (parity-safe; all students reset at one KST boundary regardless of TZ — client getMondayOfWeek is browser-local so read-time calc would break for 베트남/Vietnam students). One-time amnesty via reset-challenge-tokens.mjs. VERIFY the 4 questions in the handoff.",
     "codexStatus":  "review-written",
-    "codexDecision":  "COMPLETE",
-    "note":  "Round 32 CRITIC PASS R4 CONFIRM-ONLY. You were COMPLETE at r31. Round-3 (3 added Opus critics) surfaced more verified gaps; WSL folded ALL into docs/plans/D3.5_RECOVERY_AUDIT_PLAN.md (421-\u003e525, WSL-verified: threshold 0.92 unit-fix, joinClass PRE-write, flag-pin +RECOVERY_SCORE_CLAMP+REVIEW_ENGAGEMENT_STAMP, F01/F02/F03 rows, BlindSpotCheck S8, W3MUFXDb E7, 정지수 correction; 0 stale contradictions). ASK (confirm only): no new contradiction / false-green-or-fail regression in the tables+verdict (esp threshold 0.92 + P4 read-only resolver rows). Write docs/plans/loop/codex_reviews/codex_review_d35_critic_r32.md; set baton turnOwner=claude round=32 codexStatus=review-written codexDecision=\u003cCOMPLETE|GAPS-FOUND\u003e codexConverged=\u003ctrue iff COMPLETE\u003e updatedBy=codex revision=135 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_review_d35_critic_r32.md.",
+    "codexDecision":  "DONE",
+    "note":  "Round 39 = VERIFY the CALENDAR-reset impl (r38 verified the rolling constant-swap; David chose calendar). Read docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md. Verify: (1) mondayOfWeekTimestamp() safe to reuse (Monday 00:00 KST, +7d = correct next boundary incl edge); (2) Approach 3 (server-write KST, read unchanged) is parity-safe vs Approach 1 (read-time, breaks on browser-local client helper for non-KST students); (3) any other replenishAt ~30d consumer (UI countdown/analytics); (4) reset-challenge-tokens.mjs still correct for the one-time amnesty. Write docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md; set baton turnOwner=claude round=39 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=149 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md.",
     "updatedBy":  "codex",
-    "revision":  135,
-    "codexConverged":  true,
-    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_review_d35_critic_r32.md",
+    "revision":  149,
+    "codexConverged":  false,
     "keepaliveCount":  0,
-    "updatedAt":  "2026-07-18T14:41:49Z"
+    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md",
+    "updatedAt":  "2026-07-19T14:41:24Z"
 }

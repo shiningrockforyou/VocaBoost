@@ -630,7 +630,7 @@
       <div class="info-box-title">How the Challenge System Works</div>
       <p>Written tests are auto-graded by AI. Each student has up to <strong>5 challenge tokens</strong> and can dispute any answer marked incorrect.</p>
       <p style="margin-top:8px;">On <strong>Accept</strong>: the answer is counted as correct, the score is recalculated, and that word is marked PASSED. If the score then meets the pass threshold, the student's progress for that day may advance.</p>
-      <p style="margin-top:8px;">On <strong>Reject</strong>: the score does not change, and the challenge keeps the student's token spent for <strong>30 days</strong> (the token becomes available again after 30 days). Accepted challenges do not spend a token.</p>
+      <p style="margin-top:8px;">On <strong>Reject</strong>: the score does not change, and the challenge keeps the student's token spent <strong>until the next weekly reset (every Monday)</strong>, after which it becomes available again. Accepted challenges do not spend a token.</p>
     </div>
 
     <div class="info-box tip">
@@ -854,6 +854,36 @@
     <div class="faq-item">
       <div class="faq-question">Q. Can I assign the same word list to multiple classes?</div>
       <div class="faq-answer">Yes, you can assign one word list to multiple classes. You can apply different settings (learning pace, test type, etc.) for each class.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. A student says a correct answer was marked wrong.</div>
+      <div class="faq-answer">The automatic grader was recently improved and now accepts correct Korean translations and correct English definitions, so this is now rare. For a genuine case, have the student tap <strong>Challenge</strong> on that answer, then open <strong>Gradebook → their test</strong> and click <strong>Accept</strong>. Accepting recalculates the score and, if it brings them to passing, advances their day. The student must <strong>reload</strong> to see the change. (Rejecting a challenge costs the student a token until the next Monday, so only reject genuinely wrong answers.)</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. A student's Grades show "no results," but they're clearly active.</div>
+      <div class="faq-answer">This is a known display issue for students who haven't tested in about a month — their grades still exist. In the Gradebook, filter by <strong>Class</strong> and a <strong>date range</strong> covering when they last tested (or page forward), and their grades will appear.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. A student changed classes and their progress shows Day 1.</div>
+      <div class="faq-answer">Progress now carries over automatically when a student moves between classes on the same list. Have them <strong>reload</strong> and select the correct list on their dashboard. If it's still Day 1 after a reload, contact support with the student's email and the day they should be on.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. A student is only getting review words, no new words.</div>
+      <div class="faq-answer">The system holds new words when a student's recent <strong>review scores are low</strong> — this is by design, not a freeze. Tell the student to bring their review scores up (roughly above 30%) and new words return automatically. If you want to force new words for a specific student, contact support.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. Should I add or remove word lists from a class?</div>
+      <div class="faq-answer">No. Every class is already set up with the right lists (Ascent, Summit, etc.) — students just pick the one they want from the selector on their dashboard. Changing list assignments can knock students off their progress, so if a class's lists ever look wrong, contact support instead of changing them yourself.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. How do challenge tokens work?</div>
+      <div class="faq-answer">Each student has <strong>5 challenge tokens</strong> that <strong>reset every Monday</strong>. A rejected challenge uses one of the student's tokens until the next Monday, so only reject answers that are genuinely wrong.</div>
     </div>
 
     <div class="faq-item">

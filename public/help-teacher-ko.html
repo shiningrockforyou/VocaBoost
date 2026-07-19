@@ -630,7 +630,7 @@
       <div class="info-box-title">챌린지 시스템 작동 방식</div>
       <p>타이핑(Written) 테스트는 AI가 자동 채점합니다. 학생은 최대 <strong>5개의 챌린지 토큰</strong>을 가지며, 틀렸다고 표시된 답에 이의를 제기할 수 있습니다.</p>
       <p style="margin-top:8px;"><strong>승인(Accept)</strong> 시: 해당 답이 정답 처리되고 점수가 다시 계산되며, 그 단어는 통과(PASSED) 상태가 됩니다. 점수가 통과 기준을 넘기면 그날의 진도가 올라갈 수 있습니다.</p>
-      <p style="margin-top:8px;"><strong>거절(Reject)</strong> 시: 점수는 바뀌지 않고, 해당 챌린지는 <strong>30일 동안</strong> 학생의 토큰을 차감한 상태로 유지됩니다(즉, 30일이 지나면 다시 사용할 수 있게 됩니다). 승인된 챌린지는 토큰을 차감하지 않습니다.</p>
+      <p style="margin-top:8px;"><strong>거절(Reject)</strong> 시: 점수는 바뀌지 않고, 해당 챌린지는 <strong>다음 주간 초기화(매주 월요일)까지</strong> 학생의 토큰을 차감한 상태로 유지되며, 그 후 다시 사용할 수 있게 됩니다. 승인된 챌린지는 토큰을 차감하지 않습니다.</p>
     </div>
 
     <div class="info-box tip">
@@ -854,6 +854,36 @@
     <div class="faq-item">
       <div class="faq-question">Q. 단어장을 여러 클래스에 할당할 수 있나요?</div>
       <div class="faq-answer">네, 하나의 단어장을 여러 클래스에 각각 할당할 수 있습니다. 클래스마다 다른 설정(학습 속도, 테스트 유형 등)을 적용할 수 있습니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 학생이 "정답(뜻)을 맞게 썼는데 오답 처리됐다"고 해요.</div>
+      <div class="faq-answer">자동 채점기가 최근 개선되어 이제 올바른 한국어 뜻과 올바른 영어 정의를 모두 정답으로 인정하므로 이런 경우는 드뭅니다. 실제로 발생하면, 학생이 해당 답에 <strong>챌린지(Challenge)</strong>를 누르게 한 뒤 <strong>Gradebook → 해당 학생의 시험</strong>에서 <strong>승인(Accept)</strong>을 누르세요. 승인하면 점수가 다시 계산되고, 통과 기준을 넘으면 Day가 넘어갑니다. 학생은 <strong>새로고침</strong>해야 반영됩니다. (챌린지를 거절하면 다음 월요일까지 학생 토큰 1개가 사용되니, 명백히 틀린 답만 거절하세요.)</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 분명히 활동 중인 학생인데 Grades에 "결과 없음"으로 나와요.</div>
+      <div class="faq-answer">약 한 달 이상 시험을 보지 않은 학생에게 나타나는 알려진 표시 문제이며, 성적 자체는 그대로 있습니다. Gradebook에서 <strong>클래스</strong>와 그 학생이 마지막으로 시험 본 시기를 포함하는 <strong>날짜 범위</strong>로 필터하면(또는 다음 페이지로 넘기면) 성적이 나타납니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 학생이 반을 바꿨는데 진도가 Day 1로 나와요.</div>
+      <div class="faq-answer">같은 단어장이라면 학생이 반을 옮겨도 이제 진도가 자동으로 이어집니다. 학생에게 <strong>새로고침</strong> 후 대시보드에서 올바른 단어장을 선택하게 하세요. 새로고침 후에도 Day 1이면 학생의 이메일과 있어야 할 Day를 지원팀에 알려주세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 학생에게 새 단어는 안 나오고 복습만 나와요.</div>
+      <div class="faq-answer">학생의 최근 <strong>복습 점수가 낮으면</strong> 시스템이 새 단어를 잠시 멈추는 것으로, 오류가 아니라 설계된 동작입니다. 학생에게 복습 점수를 올리라고(대략 30% 이상) 안내하면 새 단어가 자동으로 다시 나옵니다. 특정 학생에게 새 단어를 강제로 주고 싶다면 지원팀에 문의하세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 클래스에서 단어장을 추가하거나 제거해도 되나요?</div>
+      <div class="faq-answer">아니요. 모든 클래스에는 이미 올바른 단어장(Ascent, Summit 등)이 설정되어 있으며, 학생은 대시보드의 선택 메뉴에서 원하는 것을 고르기만 하면 됩니다. 단어장 할당을 바꾸면 학생이 진도에서 이탈할 수 있으니, 클래스의 단어장이 이상해 보이면 직접 바꾸지 말고 지원팀에 문의하세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. 챌린지 토큰은 어떻게 작동하나요?</div>
+      <div class="faq-answer">학생마다 <strong>챌린지 토큰 5개</strong>가 있으며 <strong>매주 월요일에 초기화</strong>됩니다. 챌린지를 거절하면 다음 월요일까지 학생 토큰 1개가 사용되니, 명백히 틀린 답만 거절하세요.</div>
     </div>
 
     <div class="faq-item">

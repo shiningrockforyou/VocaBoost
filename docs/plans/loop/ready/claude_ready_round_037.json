@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 37,
+  "taskId": "REVIEW_PASS_THRESHOLD",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_reviewpass_r37.md",
+  "writtenLast": true
+}

@@ -143,8 +143,89 @@ rehearsal + a fresh Codex-GO'd, David-authorized plan). Nothing past D3 has star
 (6: throttle 4/4 + off-by-one 2/2 graded) + r56 (4 synthetic adversarial configs). **All findings & insights consolidated
 in [`docs/plans/D3.5_FINDINGS.md`](D3.5_FINDINGS.md)** (verified results · behavioral/architectural insights ·
 harness method · seed-fidelity lessons). Key established fact: **`session_states` is inert for rendering** — durable
-`class_progress`+`attempts` are authoritative, so a corrupted session cannot falsely advance progress. Open: choi_a12
-(최도훈 lost-save) re-drive queued (r57, direct-nav to Base Camp).
+`class_progress`+`attempts` are authoritative, so a corrupted session cannot falsely advance progress.
+
+**D3.5 status update (2026-07-19, post-critic-pass):** the audit report was run through an **8-critic pass → UNANIMOUS
+QUALIFIED** (core mechanism validated; "15/0 every-family end-to-end" oversold). **THE NEXT TO-DO LIST is
+[`docs/plans/D3.5_RISK_REMEDIATION.md`](D3.5_RISK_REMEDIATION.md)** — 9 residual risks (R1-R9) triaged into
+audit-determinable (R1 anchor-minting, R3 races, R4 browser-storage, R5 server-authorship, R6 exit-threshold, R9
+grandfather) vs code/tooling-fix (R2 inflation-detector blind spot, R7 carry-forward=D4/P5, R8 verdict-engine M7). Now
+critic-CONVERGED (7/7 SOUND-WITH-GAPS) → **[`D3.5_RISK_REMEDIATION.md`](D3.5_RISK_REMEDIATION.md) v2** is the hardened
+to-do list (R1-R16, precondition-gated recipes, code-vs-audit split). `D3.5_DEEPFIX_AUDIT_REPORT.md` + stale
+`D3.5_FINDINGS.md` await honest reconciliation.
+
+**DONE 2026-07-19 (R2 + reconcile):** fixed the inflation detector (was `csd>twi+7` days-vs-words → now anchor-based
+per-list); re-scanned 26SM → **5 inflated students** (old check: 0), all throttled/dormant; **reconciled all 5** to their
+true day (오윤권 12→4 + 4 hidden), sessions cleared (`scripts/cs/reconcile-inflated-csd.mjs`, SUPPORT_RUNBOOK CS-2026-07-19d).
+
+**ACTIVE work items (David 2026-07-19, WSL+Codex only) — Codex r35 input RECEIVED + verified [`codex_workitems_r35.md`]:**
+- **(A) Review Pass Threshold — REFRAMED by David → PLAN written [`D3.5_WORKITEM_review_pass_threshold.md`](D3.5_WORKITEM_review_pass_threshold.md).**
+  David's ask is NOT size — it's a *score gate*: "force them to retake [the review] until a set percent, like new word test.
+  an optional lever applied by teachers. investigate and plan." Finding: the review quiz is **hardcoded `passed:true`**
+  (`index.js:434`, `foundation.js:2614`) — it literally cannot fail; NO review-pass gate exists anywhere (grep-confirmed).
+  The new-word test's `passThreshold`(+retake) is the pattern to mirror → optional per-class `reviewPassThreshold` (0/unset =
+  OFF = byte-identical to today). Status: **PLAN Codex-r36-VERIFIED + folded** ([`codex_reviewpass_r36.md`]). Codex confirmed
+  server already has the assignment (no client plumbing) + corrected 2 of my design choices: use a **separate
+  `review_retake_required` gate** (NOT `fpHoldCsd` — that pollutes the throttle avg) + **specific exemptions** (list-end +
+  #9-resume only, NOT blanket `reviewOnlyDay`/throttle days) + 5 extra client landing sites (test-page guard, DailySessionFlow×2,
+  teacher-challenge escape valve, units). **r37 (adversarial):** Codex CONCEDED "don't exempt #9-resume days" (David+WSL
+  position — resume isn't a dead-end like list-end) but surfaced a WSL-VERIFIED reader-correctness trap now folded as §11:
+  once a review can be `passed:false`, every "review exists ⇒ day complete" reader (`determineStartingPhase`
+  studyService.js:312 — confirmed no `passed` check; `getReviewForDay`; `getReviewForDayServer` marker-suppression; the
+  retake path) false-greens on reload unless gated on `passed===true` (default-off byte-equivalent).
+  **⏸ BANKED (David 2026-07-19, not active — resume on his go).** SCOPE ESTIMATE: medium, ~8-9 files, flag-gated + default-OFF
+  (dormant/byte-identical until a teacher opts in). Mostly MECHANICAL mirrors of the new-word passThreshold/retake machinery
+  (AssignListModal + db.js + testConfig; index.js:434 + foundation.js:2614 pass-compute) + ONE careful spot (the
+  `review_retake_required` gate in completeSession) + 4 small reader-invariant sites (studyService.js:312, db.js getReviewForDay,
+  foundation.js:1638, challenge path) + retake UX (DailySessionFlow ×3, TypedTest/MCQTest guard). Build in 2 passes: core gate,
+  then reader-correctness + UX. **Awaiting David: 2 decisions (throttle-day gate y/n; retake-surface N) + go-to-build.**
+  (NB: the existing throttle IS already a hardcoded score gate — last-3 review avg <30% freezes the day, David-locked 07-16 —
+  but it's rolling/new-word-allocation, not the per-session retake David wants.)
+- **(B) Grader false-negatives — DECIDED (David: "Prompt fix + regression test").** Root cause = `claude-haiku-4-5`
+  over-applies prompt Rule 1 ("restating the word") to correct Korean translations; the deterministic post-filter is ASCII-only
+  (NOT the cause) and provenance is clean (`index.js` unchanged since deployed `0ddbb34`). Fix = scope Rule 1 to English only +
+  explicit "Korean translation IS the meaning" + positive examples (자전적인/무관심한/불협화음) + typo tolerance, gated by a
+  9-row regression fixture (run ×N, zero false-reject/accept). Keep Haiku; rejection-only Sonnet re-grade only if it stays flaky.
+  Status: **✅ DEPLOYED (2026-07-19, WinClaude r63).** Commit `0992f5f` (grader prompt + `scripts/grader-regression.mjs`),
+  pushed to origin/main, SURGICAL deploy `firebase deploy --only functions:gradeTypedTest` (completeSession/resolveListProgress
+  left pinned at 0ddbb34). Regression GATE passed clean before deploy: 4 Korean translations correct + 5 controls still
+  rejected, falseRej=0 falseAcc=0 unstable=0 (×3 runs). WSL-verified vs git ground truth (commit/files/content/tree). Live
+  gradeTypedTest now = `0992f5f`.
+  **VERIFIED against 윤여진's REAL inputs (David-directed, CS-2026-07-19e):** her actual failures were 67% ENGLISH-definition
+  rejections ("restated the definition, translate to Korean"), NOT the Korean pattern r63 fixed. Reconstructed her 25 unique
+  cases with SERVER-CANONICAL defs (index.js:761-792 resolves from the list) + replayed EXACTLY as index.js sends (WinClaude
+  r64) → deployed `0992f5f` **ACCEPTS all 25 (×3 stable)**, 3 controls stay wrong. Her rejections were all 2026-07-08 under an
+  OLDER prompt → no live defect; the live grader now clears BOTH false-negative families. **Open (optional):** replay vs pre-r63
+  `0ddbb34` to learn if the stuck cohort was unblocked on 07-18 (deploy) or 07-19 (r63) — operationally relevant, not archaeology.
+- **(C) Challenge-token reset: MONTHLY → WEEKLY — ✅ SHIPPED 2026-07-20 (commit `6094cdd`, WinClaude r65).**
+  **FINAL shipped design = Approach 1 (read-time), boundary Monday 04:00 KST, NO amnesty / NO data-write** — full detail at the
+  "✅ DEPLOYED" line at the END of this item. ⚠️ Everything between here and there (the "Monday 00:00 KST", "Approach 3", and
+  "full amnesty" text) is SUPERSEDED planning history — kept for the record, NOT what shipped.
+  _Planning history:_ Model: 5 tokens max; each rejection
+  removes 1 for a replenish window, auto-restored when `replenishAt` passes (`getAvailableChallengeTokens`: `max(0, 5-activeRejections)`,
+  client db.js:193 + server index.js:664, byte-parity). Change sites: **authoritative** `functions/index.js:695` `REPLENISH_MS = 30*24*60*60*1000` → 7d;
+  legacy client fallback `db.js:2796` (dormant, `SERVER_CHALLENGE_WRITE=true`) → 7d; UI copy `TestResults.jsx:214` + `Gradebook.jsx:1519` "30 days"→"1 week".
+  **DAVID DECIDED (2026-07-19): CALENDAR-week reset, Monday 00:00 KST, + reset token count for ALL students (full amnesty).**
+  Codex r38 verified the change-set is complete (4 sites) + rec'd rolling, but sanctioned calendar "if the rule is refresh-every-Monday" (it is).
+  **Impl = Approach 3 (KST math on the server WRITE, read path untouched, parity-safe):** `functions/index.js:695/719` → `replenishAt =
+  mondayOfWeekTimestamp()+7*DAY` (reuse the fixed-KST helper foundation.js:432 = Monday 00:00 KST); READ (`getAvailableChallengeTokens`, client
+  db.js:193 + server index.js:664) UNCHANGED (`replenishAt>now`, stored-timestamp compare) so all students reset at ONE KST boundary regardless of
+  physical TZ — CRITICAL because the client `getMondayOfWeek` is browser-local (would break for 베트남/Vietnam students). `db.js:2796` dormant fallback
+  mirror; UI copy TestResults.jsx:214+Gradebook.jsx:1519 "30 days"→"resets weekly (Mon)". **One-time amnesty:** `scripts/cs/reset-challenge-tokens.mjs`
+  (dry-run→--commit) resets everyone with active rejections to 5 (compatible; David-authorized). Related/out-of-scope: rejected-challenge also consumes a
+  token (triage N2).
+  **Codex r39 (codex_tokencalendar_r39.md): architecture GO, caught 2 required fixes (folded):** (1) `mondayOfWeekTimestamp()` is NOT exported from
+  foundation.js → use a LOCAL fixed-KST helper in index.js (Codex gave the pure fn), based on the same `now` as the entry; (2) the amnesty must ALSO
+  rewrite future-dated PENDING entries — teacher-reject only flips status (foundation.js:2635 / db.js:2939), never recomputes replenishAt, so an
+  old-30d PENDING rejected AFTER deploy would reintroduce a 30-day lockout. No other 30d consumer exists. **Deploy footprint: functions
+  (`--only functions:submitChallenge`) + CLIENT build (db.js fallback + 2 UI strings) + the one-time amnesty script.**
+  **✅ DEPLOYED 2026-07-20 (WinClaude r65, commit `6094cdd`).** FINAL design = Approach 1 read-time (David: "if it resets, no need
+  for amnesty") — NO amnesty/data-write; boundary = **Monday 04:00 KST** (David changed from midnight; `WEEKLY_RESET_HOUR_KST=4`).
+  Both readers count `challengedAt >= startOfKstWeekMs(now)`; 16/16 KST unit tests (scripts/challenge-token-kst-test.mjs); surgical
+  `functions:submitChallenge` deploy + Firebase hosting + Netlify auto-build (TWO client surfaces). WSL-verified vs git ground truth.
+  First reset fired Mon 04:00 KST 07-20 — **✅ CONFIRMED LIVE at 04:05** (scripts/cs/verify-token-reset.mjs): token-week rolled to
+  07-20 04:00 KST, 0 still-penalized, 5 genuinely-stuck released to 5 (incl. 김호형/조형우). Token thread fully closed. Follow-up:
+  CS diag scripts (deepfix-f6-tokens, scan-preemptive-fixes) still read old replenishAt predicate (non-student-facing; update later).
 
 ## 4. Immediate next actions (verify-forward — Codex-mandated, all agents concur; no rollback absent a signal)
 1. ✅ **Read-only de-risk COMPLETE** — 3 clean live scans (Firestore `data-integrity`, `system_logs` NO-SPIKE,

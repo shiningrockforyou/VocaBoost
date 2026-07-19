@@ -6,6 +6,19 @@ you only need to send a few specific cases to me (David), listed at the end.
 
 ---
 
+## 🆕 Updated this week (2026-07-19/20) — these answers changed
+
+1. **The grader now accepts correct Korean translations AND correct English definitions.** The old "I wrote the right
+   meaning but it's marked wrong" complaint should be **rare** now. If it still happens, it's a genuine call → Challenge (#1).
+2. **Challenge tokens now reset every Monday** (not "30 days"). Tell students *"challenges reset weekly."*
+3. **"Day won't advance / review won't submit / 단어시험 먼저 봐야 된다" is fixed.** If a student still gets **no new words**,
+   it's **low review scores** holding them (see the new #7), not a freeze.
+4. **Class changes now carry progress automatically** — reload once; only escalate if it's still Day 1 after a reload.
+
+*(A student-facing + teacher FAQ version of all this now lives in the in-app Help pages.)*
+
+---
+
 ## 4 things to know first
 
 1. **"Grading Failed" usually fixes itself now.** If a student hits a grading error from a network
@@ -36,7 +49,7 @@ you only need to send a few specific cases to me (David), listed at the end.
    advances their day automatically.
 5. Tell the student to **refresh** to see the update.
 
-*Note: rejecting costs the student a challenge token for 30 days, so only reject if it's genuinely wrong.*
+*Note: rejecting costs the student a challenge token **until the next weekly reset (every Monday)**, so only reject if it's genuinely wrong.*
 
 ### 2. "Grading Failed" / the test won't grade
 - Have them **reload the page and submit again.** The app now recovers from network hiccups, so this
@@ -67,6 +80,17 @@ you only need to send a few specific cases to me (David), listed at the end.
   **class/list selector** on their dashboard. Have them select the correct list there.
 - If one specific student needs a different *default* list → **send it to me.**
 
+### 7. "New words stopped showing" / "새 단어가 안 떠요" (only getting reviews)
+- This is the app **holding them on review because their recent review scores are low** (roughly under 30%). It's working as
+  designed, not a freeze.
+- **Tell the student:** *"Keep doing the reviews and get your scores up (above ~30%) — new words come back automatically."*
+  Skipping or rushing reviews keeps new words locked.
+- If a teacher wants to force new words for a specific student anyway → **send me their email.**
+
+### 8. "Grades → 'no results'" for a student who's clearly active
+- Known Gradebook **display** bug for students inactive ~a month — their grades exist, they just don't show on the first page.
+- **Workaround:** in Gradebook, filter by **Class + a Date range** covering when they last tested (or page forward). No fix needed.
+
 ---
 
 ## Switching students to SUMMIT (after they finish ASCENT)
@@ -89,15 +113,15 @@ the signal it's time to have them pick SUMMIT from the selector.
 Two things change for these students — set expectations accordingly:
 
 1. **Daily amount goes from 80 → 100 words/day** (FINAL's pace). Same list, bigger daily chunk.
-2. **Their progress does NOT carry over** — a student moved into the FINAL class **restarts ASCENT at
-   Day 1**, even if they completed several days in ADV. Their old ADV progress still exists.
-   **This is a bug, and I'll fix it right away if you let me know** — just send me the student's email
-   and the day they should be on, and I'll carry their progress across.
+2. **Their progress now carries over automatically** — a student moved into FINAL (or any class change on
+   the same list) keeps their ASCENT day. If the first screen still shows **Day 1**, have them **reload once**
+   — it should correct. Only if it's **still** Day 1 after a reload, send me their email + the day they should
+   be on, and I'll carry it across.
 
 ## When to send it to me
 Message me with the student's **email + class + which day**, and a **screenshot** if possible, for:
-- A student **moved from ADV to FINAL** (or any class change) whose progress restarted at Day 1 — tell me
-  the day they should be on and I'll carry it over right away.
+- A student **moved from ADV to FINAL** (or any class change) whose progress is **still Day 1 after a reload** —
+  tell me the day they should be on and I'll carry it over right away.
 - "Grading Failed" that persists **after a fresh reload**.
 - Stuck on a **passed** test/day that reloading doesn't fix.
 - Stuck on the **loading screen** for a specific day.

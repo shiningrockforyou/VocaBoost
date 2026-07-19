@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 39,
+  "taskId": "TOKEN_RESET_CALENDAR",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md",
+  "writtenLast": true
+}

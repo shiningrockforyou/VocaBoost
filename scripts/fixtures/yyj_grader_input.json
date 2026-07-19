@@ -1,0 +1,232 @@
+{
+  "student": "베트남-윤여진",
+  "uid": "31WgOWbh3tP6bkvxF5m3VA4EpbA2",
+  "generatedFrom": "live 26SM read-only",
+  "words": [
+    {
+      "wordId": "CAcFwiuZdgDbw7iLhbx6",
+      "word": "conjure",
+      "english": "to summon or make appear as if by magic; to call vividly to mind",
+      "korean": "마법을 부리듯 무언가를 불러내거나 생생히 떠올리게 하다",
+      "student": " to call vividly to mind",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated part of the English definition rather than providing the meaning. Express what 'conjure' means in your own words or in Korean, such as '마법처럼 나타나게 하다' or '불러내다'."
+    },
+    {
+      "wordId": "eKAwCwDa8fQvlDeTVCtr",
+      "word": "proletariat",
+      "english": "the class of wage-earning workers who lack ownership of the means of production",
+      "korean": "생산 수단을 소유하지 못하고 임금 노동으로 생계를 잇는 노동자 계급",
+      "student": "the class of wage-earning workers who lack ownership of the means of production",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition itself. Show that you understand the meaning by expressing it in Korean or your own words, such as '노동자 계급' or '임금 노동자들'."
+    },
+    {
+      "wordId": "DzgOxCpTIu9RUixaqvDT",
+      "word": "gimmick",
+      "english": "a trick or device intended to attract attention rather than provide genuine merit",
+      "korean": "이목을 끌기 위한 술책이나 장치; 실질보다 눈속임에 가까운 수단",
+      "student": "a trick or device intended to attract attention rather than provide genuine merit",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Show your understanding by expressing the meaning in Korean or simpler terms, such as '눈속임' or '이목을 끌기 위한 술책'."
+    },
+    {
+      "wordId": "McYGjzN9F9o5M5EUfZKA",
+      "word": "osmosis",
+      "english": "① passage of a solvent through a semipermeable membrane from lower to higher concentration ② the gradual, often unconscious assimilation of ideas, knowledge, or culture",
+      "korean": "① 용매가 반투막을 통과하여 농도가 낮은 쪽에서 높은 쪽으로 이동하는 현상; 삼투 ② 관념·지식·문화가 흔히 무의식적으로 서서히 흡수되는 과정",
+      "student": "passage of a solvent through a semipermeable membrane from lower to higher concentration",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Demonstrate understanding by expressing the meaning in Korean or your own words, such as '삼투' or '용매가 반투막을 통과하는 현상'."
+    },
+    {
+      "wordId": "xzvVbJmbAxJwbZ6lgtRa",
+      "word": "protégé",
+      "english": "a person guided and supported in their career by an older, more influential figure",
+      "korean": "경험 많고 영향력 있는 인사로부터 지도와 후원을 받는 피후견인",
+      "student": "a person guided and supported in their career by an older influential figure",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Show your understanding by expressing it in Korean or simpler terms, such as '피후견인' or '후원을 받는 사람'."
+    },
+    {
+      "wordId": "C4IdiKUq1tsuVkW9BQti",
+      "word": "idiom",
+      "english": "① a phrase whose meaning cannot be inferred from the literal meanings of its words ② a characteristic form of expression in music, art, or literature",
+      "korean": "① 각 단어의 문자적 의미로는 뜻을 알 수 없는 굳어진 표현; 관용구 ② 음악이나 미술, 문학 등에서 고유한 표현 양식",
+      "student": "a phrase whose meaning cannot be inferred from the literal meanings of its words ",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Express the meaning in Korean or your own words, such as '관용구' or '문자적 의미로 뜻을 알 수 없는 표현'."
+    },
+    {
+      "wordId": "JQVmKiPLaDoGeFHRuT0r",
+      "word": "remorse",
+      "english": "deep regret or guilt for a past wrong or harmful action",
+      "korean": "과거의 잘못이나 해로운 행동에 대해 느끼는 깊은 후회와 죄책감",
+      "student": "deep regret or guilt for a past wrong or harmful action",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Demonstrate understanding by providing a Korean translation or explanation, such as '후회와 죄책감' or '깊은 자책감'."
+    },
+    {
+      "wordId": "GEwFhLas1b9Ss6weU6du",
+      "word": "profane",
+      "english": "① not relating to religion; secular; treating sacred things with disrespect ② to treat something sacred with contempt or irreverence",
+      "korean": "① 종교적인 것과 무관한; 세속적인; 또는 신성한 것을 함부로 대하는; 불경한 ② 신성한 것을 모독하거나 함부로 다루다",
+      "student": "not relating to religion; secular; treating sacred things with disrespect",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Demonstrate understanding by translating to Korean or explaining in your own words, such as '세속적인' or '신성한 것을 모독하다'."
+    },
+    {
+      "wordId": "DYZhGEZt4Jwotwoafoo3",
+      "word": "curmudgeon",
+      "english": "a bad-tempered, cantankerous person, typically older and prone to complaint.",
+      "korean": "성격이 까다롭고 심술궂은 사람, 대개 나이가 많고 불평을 자주 하는 인물.",
+      "student": "a bad-tempered, cantankerous person, typically older and prone to complaint",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Demonstrate understanding by translating to Korean or explaining in your own words, such as '심술궂은 사람' or '까다로운 노인'."
+    },
+    {
+      "wordId": "FhVtibwiKzXvp9DRq9sg",
+      "word": "diminutive",
+      "english": "① extremely or remarkably small in size ② (linguistics) a word or suffix expressing smallness, familiarity, or endearment",
+      "korean": "① 크기가 매우 작은; 아주 자그마한 ② (언어학) 작음, 친근함, 애칭의 의미를 나타내는 단어나 접미사; 지소형",
+      "student": "extremely or remarkably small in size ",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "TMtwLGyfNyWk08VERWS3",
+      "word": "methodical",
+      "english": "carried out in a systematic, orderly, and careful manner; according to a defined procedure",
+      "korean": "체계적이고 질서 정연하며 신중한 방식으로 수행되는; 일정한 절차에 따른",
+      "student": "carried out in a systematic, orderly, and careful manner",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "ChQM1vXlL4YMyZzktARJ",
+      "word": "subdue",
+      "english": "① to overcome, bring under control, or suppress, often by force or persuasion. ② to make less intense, vivid, or strong; to tone down.",
+      "korean": "① 주로 힘이나 설득을 통해 제압하거나 통제하에 두거나 억누르다 ② 강도·선명도·세기를 약화시키다; 누그러뜨리다",
+      "student": " to overcome, bring under control, or suppress, often by force or persuasion",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "IkPobFn9wilFTT4XhBX0",
+      "word": "astray",
+      "english": "away from the correct path or expected course; into error or wrongdoing",
+      "korean": "올바른 길이나 본래의 방향에서 벗어나; 잘못된 길로 빠져",
+      "student": "away from the correct path or expected course; into error or wrongdoing",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "lEfNPQAJZJG2Nwq3A6Hx",
+      "word": "buoyancy",
+      "english": "① the tendency of a body to float or rise when submerged in a fluid ② cheerful, optimistic resilience; an ability to recover quickly from setbacks",
+      "korean": "① 유체에 잠긴 물체가 떠오르려는 성질; 부력 ② 역경에서 쉽게 회복하는 명랑하고 낙관적인 기질",
+      "student": " the tendency of a body to float or rise when submerged in a fluid ",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "3xXRWFtNzT2cPju5fEc3",
+      "word": "in tandem with",
+      "english": "alongside and in coordination with; operating jointly with something else",
+      "korean": "~와 나란히, 보조를 맞추어; ~와 협력하여",
+      "student": "alongside and in coordination with",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "rfDOWtDiscrMUuJF7c9I",
+      "word": "spillover",
+      "english": "an effect or consequence that extends beyond its original domain or intended boundary",
+      "korean": "어떤 영향이나 결과가 본래의 영역이나 의도된 범위를 넘어 확산되는 현상; 파급 효과",
+      "student": "an effect or consequence that extends beyond its original domain or intended boundary",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "AcJZg2YcVVBQPDwEcseU",
+      "word": "vanquish",
+      "english": "① to defeat thoroughly in battle or competition ② to overcome or subdue an emotion, doubt, or difficulty",
+      "korean": "① 전투나 경쟁에서 완전히 무찌르다; 정복하다 ② 감정, 의구심, 또는 난관 따위를 완전히 극복하거나 제압하다",
+      "student": " to defeat thoroughly in battle or competition",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "sCeLa4r1nd10vF0Pc0be",
+      "word": "all told",
+      "english": "when everything is counted or taken into account; in total",
+      "korean": "모든 것을 합산하거나 고려했을 때; 총합하여",
+      "student": "when everything is counted or taken into account",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "WC0lIB88C9TM8k2yd3Os",
+      "word": "condense",
+      "english": "① to reduce to a shorter or denser form; to abridge or compress ② to change from a vapor to a liquid state",
+      "korean": "① 더 짧고 압축된 형태로 줄이다; 요약하거나 간추리다 ② 기체에서 액체 상태로 바뀌다, 응결되다",
+      "student": "to reduce to a shorter or denser form",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "TdUmyMT2ebXtgUwXXMDX",
+      "word": "agnostic",
+      "english": "① a person who believes the existence of God is unknown or unknowable ② doubting or noncommittal about a particular claim or belief",
+      "korean": "① 신의 존재가 알려져 있지 않거나 알 수 없다고 보는 사람; 불가지론자 ② 특정한 주장이나 신념에 대해 회의적이거나 단정하지 않는",
+      "student": " a person who believes the existence of God is unknown or unknowable",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "BTouV0nwu5YAPNwCtwDt",
+      "word": "odious",
+      "english": "extremely unpleasant or repugnant; deserving of strong dislike or hatred",
+      "korean": "극도로 불쾌하거나 혐오스러운; 강한 반감을 자아내는",
+      "student": "extremely unpleasant or repugnant",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "6UN2NxJtf7SyKToGWkNw",
+      "word": "chaste",
+      "english": "① abstaining from sexual relations outside marriage or from all sexual activity; sexually pure ② restrained and simple in style, without unnecessary ornamentation",
+      "korean": "① 혼외 또는 일체의 성적 관계를 삼가는; 정결한, 순결한 ② 불필요한 장식 없이 절제되고 단아한 양식의",
+      "student": "abstaining from sexual relations outside marriage or from all sexual activity",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "LID2NaG5lxpkmGII7C0F",
+      "word": "modernist",
+      "english": "characteristic of modernism; a person who practices or advocates modernist ideas",
+      "korean": "모더니즘의, 모더니즘적인; 또는 모더니즘을 추구하거나 옹호하는 사람",
+      "student": "characteristic of modernism",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "g7PQRxg7okhXQpd4xZXf",
+      "word": "raucous",
+      "english": "making a harsh, loud, and disorderly noise; boisterously and disagreeably noisy",
+      "korean": "거칠고 시끄러우며 무질서한 소리를 내는; 떠들썩하게 귀에 거슬리는",
+      "student": "making a harsh, loud, and disorderly noise",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    },
+    {
+      "wordId": "cR62h5APyssc4bYjhdFj",
+      "word": "altruism",
+      "english": "selfless concern for the well-being of others, often at personal cost",
+      "korean": "흔히 개인적 희생을 감수하면서까지 타인의 안녕을 사심 없이 염려하는 태도; 이타심",
+      "student": "selfless concern for the well-being of others, often at personal cost",
+      "recorded_isCorrect": false,
+      "recorded_aiReasoning": "You've restated the English definition. Provide a meaning in Korean or demonstrate understanding in another way."
+    }
+  ]
+}
