@@ -1,0 +1,5 @@
+{"ts":"2026-07-19T07:35:49.078Z","runId":"r59-lostsave_bc_d6","seq":1,"step":"start","data":{"pid":40792,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:35:49.653Z","runId":"r59-lostsave_bc_d6","seq":2,"step":"login","data":{"email":"lsr_a2_lostsavebcd6@vocaboost.test","preCsd":5,"preTwi":400,"preReviewMode":null}}
+{"ts":"2026-07-19T07:36:04.091Z","runId":"r59-lostsave_bc_d6","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:36:04.692Z","runId":"r59-lostsave_bc_d6","seq":4,"step":"reload_readback","data":{"tag":"lostsave_bc_d6","csd":5,"twi":480,"reviewMode":null,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ","containsListId":true,"settled":true,"fresh":3}}
+{"ts":"2026-07-19T07:36:04.698Z","runId":"r59-lostsave_bc_d6","seq":5,"step":"done","data":{"tag":"lostsave_bc_d6","csd":5,"twi":480,"reviewMode":null}}

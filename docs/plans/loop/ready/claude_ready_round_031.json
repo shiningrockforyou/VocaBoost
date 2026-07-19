@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 31,
+  "taskId": "D35_CRITIC_PASS_R3",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_d35_critic_r31.md",
+  "writtenLast": true
+}

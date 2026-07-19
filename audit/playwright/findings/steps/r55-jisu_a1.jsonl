@@ -1,0 +1,31 @@
+{"ts":"2026-07-19T03:51:35.872Z","runId":"r55-jisu_a1","seq":1,"step":"start","data":{"pid":40944,"node":"v24.11.1"}}
+{"ts":"2026-07-19T03:51:36.246Z","runId":"r55-jisu_a1","seq":2,"step":"login","data":{"email":"lsr_a2_jisua1@vocaboost.test","preCsd":5,"bucket":"B1"}}
+{"ts":"2026-07-19T03:51:48.329Z","runId":"r55-jisu_a1","seq":3,"step":"renderCheck","data":{"renderDay":6,"offersNewWords":true,"offersReviewOnly":false,"coherent":true}}
+{"ts":"2026-07-19T03:51:50.874Z","runId":"r55-jisu_a1","seq":4,"step":"heartbeat","data":{"lastStep":"renderCheck","progress":null}}
+{"ts":"2026-07-19T03:51:56.925Z","runId":"r55-jisu_a1","seq":5,"step":"startStudyingGate","data":{"present":false,"kind":"review"}}
+{"ts":"2026-07-19T03:51:58.888Z","runId":"r55-jisu_a1","seq":6,"step":"reachProbe","data":{"kind":"review","startStudyingSeen":false,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r14/dVliNv0p9jqZYp9rfLpN","via":"A"}}
+{"ts":"2026-07-19T03:51:59.380Z","runId":"r55-jisu_a1","seq":7,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T03:52:03.726Z","runId":"r55-jisu_a1","seq":8,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T03:52:05.888Z","runId":"r55-jisu_a1","seq":9,"step":"heartbeat","data":{"lastStep":"answering 13/30","progress":{"step":"answering","i":13,"n":30}}}
+{"ts":"2026-07-19T03:52:08.928Z","runId":"r55-jisu_a1","seq":10,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T03:52:13.539Z","runId":"r55-jisu_a1","seq":11,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T03:52:13.540Z","runId":"r55-jisu_a1","seq":12,"step":"answered","data":{"answered":30,"total":30,"matched":30,"mode":"good","kind":"mcq"}}
+{"ts":"2026-07-19T03:52:14.476Z","runId":"r55-jisu_a1","seq":13,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:52:20.578Z","runId":"r55-jisu_a1","seq":14,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T03:52:20.679Z","runId":"r55-jisu_a1","seq":15,"step":"readback","data":{"i":0,"csd":5,"reviewMode":false,"interv":0,"review_recorded":2}}
+{"ts":"2026-07-19T03:52:20.902Z","runId":"r55-jisu_a1","seq":16,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:52:35.912Z","runId":"r55-jisu_a1","seq":17,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:52:36.568Z","runId":"r55-jisu_a1","seq":18,"step":"startStudyingGate","data":{"present":true,"kind":"review"}}
+{"ts":"2026-07-19T03:52:38.376Z","runId":"r55-jisu_a1","seq":19,"step":"reachProbe","data":{"kind":"review","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r11/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T03:52:38.489Z","runId":"r55-jisu_a1","seq":20,"step":"answering.progress","data":{"i":1,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:52:39.392Z","runId":"r55-jisu_a1","seq":21,"step":"answering.progress","data":{"i":10,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:52:40.176Z","runId":"r55-jisu_a1","seq":22,"step":"answering.progress","data":{"i":20,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:52:41.004Z","runId":"r55-jisu_a1","seq":23,"step":"answering.progress","data":{"i":30,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:52:41.005Z","runId":"r55-jisu_a1","seq":24,"step":"answered","data":{"answered":30,"total":30,"matched":0,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T03:52:46.927Z","runId":"r55-jisu_a1","seq":25,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:52:50.919Z","runId":"r55-jisu_a1","seq":26,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:53:05.920Z","runId":"r55-jisu_a1","seq":27,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:53:14.156Z","runId":"r55-jisu_a1","seq":28,"step":"outcome","data":{"outcome":"timeout","scorePct":null}}
+{"ts":"2026-07-19T03:53:14.268Z","runId":"r55-jisu_a1","seq":29,"step":"readback","data":{"i":1,"csd":5,"reviewMode":false,"interv":0,"review_recorded":2}}
+{"ts":"2026-07-19T03:53:20.926Z","runId":"r55-jisu_a1","seq":30,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:53:24.780Z","runId":"r55-jisu_a1","seq":31,"step":"done","data":{"tag":"jisu_a1","pre":5,"post":5}}

@@ -1,0 +1,16 @@
+{"ts":"2026-07-19T03:55:20.651Z","runId":"r55-obo_JoJ2ch","seq":1,"step":"start","data":{"pid":40944,"node":"v24.11.1"}}
+{"ts":"2026-07-19T03:55:20.715Z","runId":"r55-obo_JoJ2ch","seq":2,"step":"login","data":{"email":"lsr_a2_oboJoJ2ch@vocaboost.test","preCsd":6,"bucket":"B2"}}
+{"ts":"2026-07-19T03:55:32.757Z","runId":"r55-obo_JoJ2ch","seq":3,"step":"renderCheck","data":{"renderDay":8,"offersNewWords":true,"offersReviewOnly":false,"coherent":true}}
+{"ts":"2026-07-19T03:55:35.652Z","runId":"r55-obo_JoJ2ch","seq":4,"step":"heartbeat","data":{"lastStep":"renderCheck","progress":null}}
+{"ts":"2026-07-19T03:55:40.390Z","runId":"r55-obo_JoJ2ch","seq":5,"step":"startStudyingGate","data":{"present":true,"kind":"new"}}
+{"ts":"2026-07-19T03:55:42.086Z","runId":"r55-obo_JoJ2ch","seq":6,"step":"reachProbe","data":{"kind":"new","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r11/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T03:55:42.904Z","runId":"r55-obo_JoJ2ch","seq":7,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"typed"}}
+{"ts":"2026-07-19T03:55:43.000Z","runId":"r55-obo_JoJ2ch","seq":8,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"typed"}}
+{"ts":"2026-07-19T03:55:43.106Z","runId":"r55-obo_JoJ2ch","seq":9,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"typed"}}
+{"ts":"2026-07-19T03:55:43.210Z","runId":"r55-obo_JoJ2ch","seq":10,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"typed"}}
+{"ts":"2026-07-19T03:55:43.211Z","runId":"r55-obo_JoJ2ch","seq":11,"step":"answered","data":{"answered":30,"total":30,"matched":30,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T03:55:44.174Z","runId":"r55-obo_JoJ2ch","seq":12,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:55:50.656Z","runId":"r55-obo_JoJ2ch","seq":13,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:56:02.604Z","runId":"r55-obo_JoJ2ch","seq":14,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T03:56:05.659Z","runId":"r55-obo_JoJ2ch","seq":15,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:56:13.515Z","runId":"r55-obo_JoJ2ch","seq":16,"step":"done","data":{"tag":"obo_JoJ2ch","pre":6,"post":7}}

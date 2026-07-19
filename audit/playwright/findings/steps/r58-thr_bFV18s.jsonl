@@ -1,0 +1,24 @@
+{"ts":"2026-07-19T07:22:43.583Z","runId":"r58-thr_bFV18s","seq":1,"step":"start","data":{"pid":40048,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:22:43.682Z","runId":"r58-thr_bFV18s","seq":2,"step":"login","data":{"email":"lsr_a2_thrbFV18s@vocaboost.test","preCsd":7,"reviewMode":true}}
+{"ts":"2026-07-19T07:22:58.596Z","runId":"r58-thr_bFV18s","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:23:03.236Z","runId":"r58-thr_bFV18s","seq":4,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1thrbFV18s/RmNNkuLPectBlBPiLbAJ","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1thrbFV18s/RmNNkuLPectBlBPiLbAJ","containsListId":true,"renderDay":8,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Step 3 of 5 Review Study — Day 8 Progress 0 of 60 mastered Card 1 of 60 intermediate (adj.) intermediate (adj.) coming between two things in time, place, or deg","via":"A"}}
+{"ts":"2026-07-19T07:23:03.720Z","runId":"r58-thr_bFV18s","seq":5,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:07.859Z","runId":"r58-thr_bFV18s","seq":6,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:12.398Z","runId":"r58-thr_bFV18s","seq":7,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:13.596Z","runId":"r58-thr_bFV18s","seq":8,"step":"heartbeat","data":{"lastStep":"answering 22/30","progress":{"step":"answering","i":22,"n":30}}}
+{"ts":"2026-07-19T07:23:16.967Z","runId":"r58-thr_bFV18s","seq":9,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:16.968Z","runId":"r58-thr_bFV18s","seq":10,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:23:23.816Z","runId":"r58-thr_bFV18s","seq":11,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:23:23.908Z","runId":"r58-thr_bFV18s","seq":12,"step":"readback_after_review_1","data":{"reviewMode":true,"csd":7,"interv":1,"recent":[0.06666666666666667,0.13333333333333333,1],"review_recorded":3}}
+{"ts":"2026-07-19T07:23:28.601Z","runId":"r58-thr_bFV18s","seq":13,"step":"heartbeat","data":{"lastStep":"readback_after_review_1","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:23:38.064Z","runId":"r58-thr_bFV18s","seq":14,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1thrbFV18s/RmNNkuLPectBlBPiLbAJ","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1thrbFV18s/RmNNkuLPectBlBPiLbAJ","containsListId":true,"renderDay":8,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Step 3 of 5 Review Study — Day 8 Progress 0 of 58 mastered Card 1 of 58 adjacent (adj.) adjacent (adj.) next to or adjoining something; nearby or neighboring 🇰","via":"A"}}
+{"ts":"2026-07-19T07:23:38.543Z","runId":"r58-thr_bFV18s","seq":15,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:42.664Z","runId":"r58-thr_bFV18s","seq":16,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:43.611Z","runId":"r58-thr_bFV18s","seq":17,"step":"heartbeat","data":{"lastStep":"answering 12/30","progress":{"step":"answering","i":12,"n":30}}}
+{"ts":"2026-07-19T07:23:47.241Z","runId":"r58-thr_bFV18s","seq":18,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:51.762Z","runId":"r58-thr_bFV18s","seq":19,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:23:51.763Z","runId":"r58-thr_bFV18s","seq":20,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:23:58.587Z","runId":"r58-thr_bFV18s","seq":21,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:23:58.615Z","runId":"r58-thr_bFV18s","seq":22,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:23:58.699Z","runId":"r58-thr_bFV18s","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":7,"interv":1,"recent":[0.13333333333333333,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:24:00.291Z","runId":"r58-thr_bFV18s","seq":24,"step":"done","data":{"tag":"thr_bFV18s","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}

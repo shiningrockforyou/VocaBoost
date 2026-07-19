@@ -1,0 +1,18 @@
+{"ts":"2026-07-19T03:53:24.782Z","runId":"r55-choi_a12","seq":1,"step":"start","data":{"pid":40944,"node":"v24.11.1"}}
+{"ts":"2026-07-19T03:53:24.865Z","runId":"r55-choi_a12","seq":2,"step":"login","data":{"email":"lsr_a2_choia12@vocaboost.test","preCsd":15,"bucket":"B3"}}
+{"ts":"2026-07-19T03:53:37.926Z","runId":"r55-choi_a12","seq":3,"step":"renderCheck","data":{"renderDay":1,"offersNewWords":true,"offersReviewOnly":false,"coherent":true}}
+{"ts":"2026-07-19T03:53:37.927Z","runId":"r55-choi_a12","seq":4,"step":"degradeProbe","data":{"renderDay":1,"offersNewWords":true,"offersReviewOnly":false,"coherent":true,"falseSuccess":false,"excerpt":"Dashboard Gradebook Welcome, ⧉A2 최도훈 Your personalized vocabulary journey starts here. Class: 25WT AUDIT choia12 26SM SAT Inter B4 List: 26SM VZIP 3K (Ascent, 1600) 0% 0 / 1,600 25WT AUDIT CHOIA12 26S"}}
+{"ts":"2026-07-19T03:53:39.796Z","runId":"r55-choi_a12","seq":5,"step":"heartbeat","data":{"lastStep":"degradeProbe","progress":null}}
+{"ts":"2026-07-19T03:53:43.805Z","runId":"r55-choi_a12","seq":6,"step":"startStudyingGate","data":{"present":true,"kind":"new"}}
+{"ts":"2026-07-19T03:53:45.493Z","runId":"r55-choi_a12","seq":7,"step":"reachProbe","data":{"kind":"new","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r15/dVliNv0p9jqZYp9rfLpN","via":"A"}}
+{"ts":"2026-07-19T03:53:46.322Z","runId":"r55-choi_a12","seq":8,"step":"answering.progress","data":{"i":1,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:53:46.459Z","runId":"r55-choi_a12","seq":9,"step":"answering.progress","data":{"i":10,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:53:46.563Z","runId":"r55-choi_a12","seq":10,"step":"answering.progress","data":{"i":20,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:53:46.661Z","runId":"r55-choi_a12","seq":11,"step":"answering.progress","data":{"i":30,"n":30,"matched":0,"kind":"typed"}}
+{"ts":"2026-07-19T03:53:46.661Z","runId":"r55-choi_a12","seq":12,"step":"answered","data":{"answered":30,"total":30,"matched":0,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T03:53:52.575Z","runId":"r55-choi_a12","seq":13,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:53:54.807Z","runId":"r55-choi_a12","seq":14,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:54:09.816Z","runId":"r55-choi_a12","seq":15,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:54:19.791Z","runId":"r55-choi_a12","seq":16,"step":"outcome","data":{"outcome":"timeout","scorePct":null}}
+{"ts":"2026-07-19T03:54:24.830Z","runId":"r55-choi_a12","seq":17,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:54:30.853Z","runId":"r55-choi_a12","seq":18,"step":"done","data":{"tag":"choi_a12","pre":15,"post":15}}

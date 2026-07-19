@@ -1,0 +1,47 @@
+{"ts":"2026-07-19T02:35:30.970Z","runId":"r54-live_lhs","seq":1,"step":"start","data":{"pid":5928,"node":"v24.11.1"}}
+{"ts":"2026-07-19T02:35:31.064Z","runId":"r54-live_lhs","seq":2,"step":"login","data":{"email":"lsr_a2_livelhs@vocaboost.test","preCsd":9}}
+{"ts":"2026-07-19T02:35:43.255Z","runId":"r54-live_lhs","seq":3,"step":"renderCheck","data":{"renderDay":10,"offersNewWords":true,"offersReviewOnly":false}}
+{"ts":"2026-07-19T02:35:45.793Z","runId":"r54-live_lhs","seq":4,"step":"startStudyingGate","data":{"present":false,"kind":"new"}}
+{"ts":"2026-07-19T02:35:45.801Z","runId":"r54-live_lhs","seq":5,"step":"reachPathB","data":{"reason":"pathA-not-routed"}}
+{"ts":"2026-07-19T02:35:45.804Z","runId":"r54-live_lhs","seq":6,"step":"dismissCards.progress","data":{"i":1,"n":90}}
+{"ts":"2026-07-19T02:35:45.974Z","runId":"r54-live_lhs","seq":7,"step":"heartbeat","data":{"lastStep":"dismissCards 2/90","progress":{"step":"dismissCards","i":2,"n":90}}}
+{"ts":"2026-07-19T02:35:47.120Z","runId":"r54-live_lhs","seq":8,"step":"dismissCards.progress","data":{"i":10,"n":90}}
+{"ts":"2026-07-19T02:35:48.584Z","runId":"r54-live_lhs","seq":9,"step":"dismissCards.progress","data":{"i":20,"n":90}}
+{"ts":"2026-07-19T02:35:49.997Z","runId":"r54-live_lhs","seq":10,"step":"dismissCards.progress","data":{"i":30,"n":90}}
+{"ts":"2026-07-19T02:35:51.404Z","runId":"r54-live_lhs","seq":11,"step":"dismissCards.progress","data":{"i":40,"n":90}}
+{"ts":"2026-07-19T02:35:52.810Z","runId":"r54-live_lhs","seq":12,"step":"dismissCards.progress","data":{"i":50,"n":90}}
+{"ts":"2026-07-19T02:35:54.252Z","runId":"r54-live_lhs","seq":13,"step":"dismissCards.progress","data":{"i":60,"n":90}}
+{"ts":"2026-07-19T02:35:55.650Z","runId":"r54-live_lhs","seq":14,"step":"dismissCards.progress","data":{"i":70,"n":90}}
+{"ts":"2026-07-19T02:35:57.050Z","runId":"r54-live_lhs","seq":15,"step":"dismissCards.progress","data":{"i":80,"n":90}}
+{"ts":"2026-07-19T02:35:58.464Z","runId":"r54-live_lhs","seq":16,"step":"dismissCards.progress","data":{"i":90,"n":90}}
+{"ts":"2026-07-19T02:35:58.603Z","runId":"r54-live_lhs","seq":17,"step":"reachProbe","data":{"kind":"new","startStudyingSeen":false,"menuFound":false,"skipItemFound":false,"confirmLabel":null,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r13/RmNNkuLPectBlBPiLbAJ","via":null}}
+{"ts":"2026-07-19T02:35:58.711Z","runId":"r54-live_lhs","seq":18,"step":"done","data":{"tag":"live_lhs","pre":9,"post":9}}
+{"ts":"2026-07-19T02:44:19.700Z","runId":"r54-live_lhs","seq":1,"step":"start","data":{"pid":43212,"node":"v24.11.1"}}
+{"ts":"2026-07-19T02:44:19.805Z","runId":"r54-live_lhs","seq":2,"step":"login","data":{"email":"lsr_a2_livelhs@vocaboost.test","preCsd":9}}
+{"ts":"2026-07-19T02:44:31.946Z","runId":"r54-live_lhs","seq":3,"step":"renderCheck","data":{"renderDay":10,"offersNewWords":true,"offersReviewOnly":false}}
+{"ts":"2026-07-19T02:44:34.705Z","runId":"r54-live_lhs","seq":4,"step":"heartbeat","data":{"lastStep":"renderCheck","progress":null}}
+{"ts":"2026-07-19T02:44:39.590Z","runId":"r54-live_lhs","seq":5,"step":"startStudyingGate","data":{"present":true,"kind":"new"}}
+{"ts":"2026-07-19T02:44:49.713Z","runId":"r54-live_lhs","seq":6,"step":"heartbeat","data":{"lastStep":"startStudyingGate","progress":null}}
+{"ts":"2026-07-19T02:44:56.324Z","runId":"r54-live_lhs","seq":7,"step":"reachProbe","data":{"kind":"new","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r13/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T02:44:56.340Z","runId":"r54-live_lhs","seq":8,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"typed"}}
+{"ts":"2026-07-19T02:44:56.496Z","runId":"r54-live_lhs","seq":9,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"typed"}}
+{"ts":"2026-07-19T02:44:56.679Z","runId":"r54-live_lhs","seq":10,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"typed"}}
+{"ts":"2026-07-19T02:44:56.865Z","runId":"r54-live_lhs","seq":11,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"typed"}}
+{"ts":"2026-07-19T02:44:56.866Z","runId":"r54-live_lhs","seq":12,"step":"answered","data":{"answered":30,"total":30,"matched":30,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T02:44:57.827Z","runId":"r54-live_lhs","seq":13,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T02:45:04.716Z","runId":"r54-live_lhs","seq":14,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T02:45:16.179Z","runId":"r54-live_lhs","seq":15,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T02:45:19.724Z","runId":"r54-live_lhs","seq":16,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T02:45:34.723Z","runId":"r54-live_lhs","seq":17,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T02:45:35.732Z","runId":"r54-live_lhs","seq":18,"step":"startStudyingGate","data":{"present":false,"kind":"review"}}
+{"ts":"2026-07-19T02:45:37.526Z","runId":"r54-live_lhs","seq":19,"step":"reachProbe","data":{"kind":"review","startStudyingSeen":false,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r13/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T02:45:38.026Z","runId":"r54-live_lhs","seq":20,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T02:45:42.333Z","runId":"r54-live_lhs","seq":21,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T02:45:47.018Z","runId":"r54-live_lhs","seq":22,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T02:45:49.739Z","runId":"r54-live_lhs","seq":23,"step":"heartbeat","data":{"lastStep":"answering 25/30","progress":{"step":"answering","i":25,"n":30}}}
+{"ts":"2026-07-19T02:45:51.689Z","runId":"r54-live_lhs","seq":24,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T02:45:51.690Z","runId":"r54-live_lhs","seq":25,"step":"answered","data":{"answered":30,"total":30,"matched":30,"mode":"good","kind":"mcq"}}
+{"ts":"2026-07-19T02:45:52.647Z","runId":"r54-live_lhs","seq":26,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T02:46:01.914Z","runId":"r54-live_lhs","seq":27,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T02:46:04.752Z","runId":"r54-live_lhs","seq":28,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T02:46:12.911Z","runId":"r54-live_lhs","seq":29,"step":"done","data":{"tag":"live_lhs","pre":9,"post":10}}

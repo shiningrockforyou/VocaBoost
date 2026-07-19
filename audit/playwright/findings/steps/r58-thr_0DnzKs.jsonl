@@ -1,0 +1,24 @@
+{"ts":"2026-07-19T07:21:21.189Z","runId":"r58-thr_0DnzKs","seq":1,"step":"start","data":{"pid":40048,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:21:21.983Z","runId":"r58-thr_0DnzKs","seq":2,"step":"login","data":{"email":"lsr_a2_thr0DnzKs@vocaboost.test","preCsd":11,"reviewMode":true}}
+{"ts":"2026-07-19T07:21:36.195Z","runId":"r58-thr_0DnzKs","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:21:42.049Z","runId":"r58-thr_0DnzKs","seq":4,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1thr0DnzKs/RmNNkuLPectBlBPiLbAJ","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1thr0DnzKs/RmNNkuLPectBlBPiLbAJ","containsListId":true,"renderDay":null,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Preparing your session...","via":"A"}}
+{"ts":"2026-07-19T07:21:42.531Z","runId":"r58-thr_0DnzKs","seq":5,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:21:46.653Z","runId":"r58-thr_0DnzKs","seq":6,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:21:51.206Z","runId":"r58-thr_0DnzKs","seq":7,"step":"heartbeat","data":{"lastStep":"answering 19/30","progress":{"step":"answering","i":19,"n":30}}}
+{"ts":"2026-07-19T07:21:51.286Z","runId":"r58-thr_0DnzKs","seq":8,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:21:55.880Z","runId":"r58-thr_0DnzKs","seq":9,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:21:55.880Z","runId":"r58-thr_0DnzKs","seq":10,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:22:06.211Z","runId":"r58-thr_0DnzKs","seq":11,"step":"heartbeat","data":{"lastStep":"answered","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:22:06.834Z","runId":"r58-thr_0DnzKs","seq":12,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:22:06.940Z","runId":"r58-thr_0DnzKs","seq":13,"step":"readback_after_review_1","data":{"reviewMode":true,"csd":11,"interv":1,"recent":[0.16666666666666666,0.3,1],"review_recorded":3}}
+{"ts":"2026-07-19T07:22:21.144Z","runId":"r58-thr_0DnzKs","seq":14,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1thr0DnzKs/RmNNkuLPectBlBPiLbAJ","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1thr0DnzKs/RmNNkuLPectBlBPiLbAJ","containsListId":true,"renderDay":null,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Preparing your session...","via":"A"}}
+{"ts":"2026-07-19T07:22:21.211Z","runId":"r58-thr_0DnzKs","seq":15,"step":"heartbeat","data":{"lastStep":"reachProbe","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:22:21.617Z","runId":"r58-thr_0DnzKs","seq":16,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:22:25.754Z","runId":"r58-thr_0DnzKs","seq":17,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:22:30.373Z","runId":"r58-thr_0DnzKs","seq":18,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:22:35.021Z","runId":"r58-thr_0DnzKs","seq":19,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:22:35.021Z","runId":"r58-thr_0DnzKs","seq":20,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:22:36.216Z","runId":"r58-thr_0DnzKs","seq":21,"step":"heartbeat","data":{"lastStep":"answered","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:22:41.900Z","runId":"r58-thr_0DnzKs","seq":22,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:22:41.984Z","runId":"r58-thr_0DnzKs","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":11,"interv":1,"recent":[0.3,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:22:43.581Z","runId":"r58-thr_0DnzKs","seq":24,"step":"done","data":{"tag":"thr_0DnzKs","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}

@@ -1,0 +1,20 @@
+// Finalize A1 tier-3 drive evidence: verify M4 canonical invariant (no list_progress write at CANONICAL=false) + write finding
+import { readFileSync, writeFileSync } from 'node:fs';
+const FB = await import('../../playwright/lsr_reviewonly_fb.mjs');
+const db = FB.db();
+const uid = 'irZu1zzY3uOdxmcouI6TzWy5YJ83';
+const canon = (await db.collection('users').doc(uid).collection('list_progress').get()).size;
+const P = 'C:/Users/dmchw/vocaboost/audit/playwright/findings/deepfix_d35_tier3_a1_drive.json';
+const out = JSON.parse(readFileSync(P, 'utf8'));
+out.seededCsd_perRoster = 5;
+out.reconciledCsd_onLoad = 10;
+out.reconciledTwi_onLoad = 554;
+out.canonical_list_progress_count = canon;
+out.M4_invariant_held = canon === 0;
+out.execDecision = 'DROVE';
+out.scenarioVerdict = 'INVALID_PRECONDITION';
+out.finding = 'DROVE: tier-3 login+renderCheck ran on the A1 seed. FINDING (F-b INVALID_PRECONDITION + reconciler observation): seed class_progress csd=5/twi=400 (intended Day-6 throttle) was RECONCILED ON LOAD to csd=10/twi=554 by resolveListProgress safeValuesForDoc (M4 read-only-candidate WRITE to the legacy class_progress doc), because the 27 seeded attempts span studyDays 1-10 while csd was seeded at 5. Client renders Day-11 review-study, NOT the documented Day-6. M4 invariant HELD: canonical users/{uid}/list_progress count=' + canon + ' (no canonical write while LIST_PROGRESS_CANONICAL=false). => scenario verdict INVALID_PRECONDITION (seed does not render the intended broken state); NOT a product regression.';
+out.fix = 'Seed construction: the clone must ALIGN csd with the attempts — either trim seeded attempts to studyDay<=5 (so csd=5 sticks as the Day-6 precondition) OR seed csd=10 to match. Re-drive after re-seed. (This is the r44 F-b seed-render risk WinClaude flagged — the 1-student smoke correctly caught it before scaling to 156.)';
+out.loop_mechanics = 'login OK, renderCheck OK (correctly detected the mismatch), Admin read-back OK — the clone->drive->assert loop functions; the finding is a SEED issue, not a driver issue.';
+writeFileSync(P, JSON.stringify(out, null, 2));
+console.log('canonical list_progress=' + canon + '  M4_held=' + (canon === 0) + '  | seededCsd=5 -> reconciled-on-load=10 -> renders Day-11  | verdict=INVALID_PRECONDITION');

@@ -1,0 +1,5 @@
+{"ts":"2026-07-19T07:36:34.706Z","runId":"r59-thr_yiVt86","seq":1,"step":"start","data":{"pid":40792,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:36:34.792Z","runId":"r59-thr_yiVt86","seq":2,"step":"login","data":{"email":"lsr_a2_thryiVt86@vocaboost.test","preCsd":17,"preTwi":1020,"preReviewMode":false}}
+{"ts":"2026-07-19T07:36:49.709Z","runId":"r59-thr_yiVt86","seq":3,"step":"reload_readback","data":{"tag":"thr_yiVt86","csd":17,"twi":1020,"reviewMode":false,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1thryiVt86/RmNNkuLPectBlBPiLbAJ","containsListId":true,"settled":true,"fresh":3}}
+{"ts":"2026-07-19T07:36:49.710Z","runId":"r59-thr_yiVt86","seq":4,"step":"heartbeat","data":{"lastStep":"reload_readback","progress":null}}
+{"ts":"2026-07-19T07:36:49.714Z","runId":"r59-thr_yiVt86","seq":5,"step":"done","data":{"tag":"thr_yiVt86","csd":17,"twi":1020,"reviewMode":false}}

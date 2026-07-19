@@ -1,0 +1,9 @@
+{"ts":"2026-07-19T04:14:44.024Z","runId":"r56-A2_skip_hold","seq":1,"step":"start","data":{"pid":9208,"node":"v24.11.1"}}
+{"ts":"2026-07-19T04:14:44.821Z","runId":"r56-A2_skip_hold","seq":2,"step":"login","data":{"email":"lsr_a2skiphold@vocaboost.test","preCsd":5,"family":"skip-hold"}}
+{"ts":"2026-07-19T04:14:59.026Z","runId":"r56-A2_skip_hold","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T04:15:04.293Z","runId":"r56-A2_skip_hold","seq":4,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTsynth11/dVliNv0p9jqZYp9rfLpN","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTsynth11/dVliNv0p9jqZYp9rfLpN","containsListId":true,"renderDay":null,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Preparing your session...","startStudyingSeen":false,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","via":"A"}}
+{"ts":"2026-07-19T04:15:04.309Z","runId":"r56-A2_skip_hold","seq":5,"step":"answered","data":{"answered":0,"total":30,"mode":"empty","kind":"mcq"}}
+{"ts":"2026-07-19T04:15:05.264Z","runId":"r56-A2_skip_hold","seq":6,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T04:15:07.267Z","runId":"r56-A2_skip_hold","seq":7,"step":"outcome","data":{"outcome":"results"}}
+{"ts":"2026-07-19T04:15:08.851Z","runId":"r56-A2_skip_hold","seq":8,"step":"readback","data":{"csd":5,"twi":400,"canon":0,"resolveLog":2,"quarantineLog":2,"crashed":false}}
+{"ts":"2026-07-19T04:15:08.859Z","runId":"r56-A2_skip_hold","seq":9,"step":"done","data":{"tag":"A2_skip_hold","pre":5,"post":5,"crashed":false}}

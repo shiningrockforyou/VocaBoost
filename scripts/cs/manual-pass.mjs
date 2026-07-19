@@ -41,6 +41,18 @@ const pace = day1 ? day1.newWordEndIndex + 1 : 80;
 const newWordStartIndex = (studyDay - 1) * pace;
 const newWordEndIndex = studyDay * pace - 1;
 
+// GUARD (CS-2026-07-19): refuse a day whose word range exceeds the list's ACTUAL content. A manual-pass past the
+// list end fabricates non-existent words → inflates twi (TWI>list — see 최도훈, CS-2026-07-19: day-16 on a 15-day
+// list wrote nwei=1279 for words that don't exist). A student at list-end needs a list-end/next-list action, NOT a
+// phantom new-word pass.
+const listWordCount = await db.collection('lists').doc(listId).collection('words').count().get()
+  .then(s => s.data().count).catch(() => 0);
+if (listWordCount > 0 && newWordEndIndex >= listWordCount) {
+  console.error(`REFUSED: day ${studyDay} (words ${newWordStartIndex}-${newWordEndIndex}) exceeds list ${listId.slice(0,8)} — it has only ${listWordCount} words (indices 0-${listWordCount-1}).`);
+  console.error(`The student has finished the list; a "new-word pass" here fabricates phantom words and inflates twi. Use a list-end / next-list action instead.`);
+  process.exit(1);
+}
+
 const c = (await db.collection('classes').doc(classId).get()).data() || {};
 const listTitle = c.assignments?.[listId]?.listTitle || 'Vocabulary List';
 const teacherId = c.ownerTeacherId || null;

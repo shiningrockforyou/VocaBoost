@@ -1,0 +1,15 @@
+{"ts":"2026-07-19T04:27:52.202Z","runId":"r57-choi_a12","seq":1,"step":"start","data":{"pid":39336,"node":"v24.11.1"}}
+{"ts":"2026-07-19T04:27:53.188Z","runId":"r57-choi_a12","seq":2,"step":"login","data":{"email":"lsr_a2_choia12@vocaboost.test","preCsd":15,"preTwi":1200}}
+{"ts":"2026-07-19T04:28:05.011Z","runId":"r57-choi_a12","seq":3,"step":"degradeProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r15/RmNNkuLPectBlBPiLbAJ","routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r15/RmNNkuLPectBlBPiLbAJ","containsBaseCamp":true,"loadedAscentInstead":false,"renderDay":null,"offersNewWords":false,"offersReviewOnly":false,"falseSuccess":false,"coherent":true,"excerpt":"Preparing your session..."}}
+{"ts":"2026-07-19T04:28:07.210Z","runId":"r57-choi_a12","seq":4,"step":"heartbeat","data":{"lastStep":"degradeProbe","progress":null}}
+{"ts":"2026-07-19T04:28:12.874Z","runId":"r57-choi_a12","seq":5,"step":"reachProbe","data":{"reached":true,"via":"A","testUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r15/RmNNkuLPectBlBPiLbAJ"}}
+{"ts":"2026-07-19T04:28:13.368Z","runId":"r57-choi_a12","seq":6,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T04:28:17.588Z","runId":"r57-choi_a12","seq":7,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T04:28:22.215Z","runId":"r57-choi_a12","seq":8,"step":"heartbeat","data":{"lastStep":"answering 19/30","progress":{"step":"answering","i":19,"n":30}}}
+{"ts":"2026-07-19T04:28:22.217Z","runId":"r57-choi_a12","seq":9,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T04:28:26.806Z","runId":"r57-choi_a12","seq":10,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T04:28:26.807Z","runId":"r57-choi_a12","seq":11,"step":"answered","data":{"typed":false,"answered":30,"total":30,"matched":30}}
+{"ts":"2026-07-19T04:28:37.216Z","runId":"r57-choi_a12","seq":12,"step":"heartbeat","data":{"lastStep":"answered","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T04:28:39.264Z","runId":"r57-choi_a12","seq":13,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T04:28:41.021Z","runId":"r57-choi_a12","seq":14,"step":"readback","data":{"csd":16,"twi":1200,"canon":0,"anchorsAfter":0,"crashed":false}}
+{"ts":"2026-07-19T04:28:41.091Z","runId":"r57-choi_a12","seq":15,"step":"done","data":{"verdict":"OTHER: pre csd=15 post csd=16 anchors=0 — inspect"}}

@@ -1,0 +1,16 @@
+{"ts":"2026-07-19T03:54:30.856Z","runId":"r55-obo_GL7SXB","seq":1,"step":"start","data":{"pid":40944,"node":"v24.11.1"}}
+{"ts":"2026-07-19T03:54:30.946Z","runId":"r55-obo_GL7SXB","seq":2,"step":"login","data":{"email":"lsr_a2_obogl7sxb@vocaboost.test","preCsd":5,"bucket":"B2"}}
+{"ts":"2026-07-19T03:54:42.939Z","runId":"r55-obo_GL7SXB","seq":3,"step":"renderCheck","data":{"renderDay":7,"offersNewWords":true,"offersReviewOnly":false,"coherent":true}}
+{"ts":"2026-07-19T03:54:45.869Z","runId":"r55-obo_GL7SXB","seq":4,"step":"heartbeat","data":{"lastStep":"renderCheck","progress":null}}
+{"ts":"2026-07-19T03:54:49.542Z","runId":"r55-obo_GL7SXB","seq":5,"step":"startStudyingGate","data":{"present":true,"kind":"new"}}
+{"ts":"2026-07-19T03:54:51.241Z","runId":"r55-obo_GL7SXB","seq":6,"step":"reachProbe","data":{"kind":"new","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r12/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T03:54:52.071Z","runId":"r55-obo_GL7SXB","seq":7,"step":"answering.progress","data":{"i":1,"n":25,"matched":1,"kind":"typed"}}
+{"ts":"2026-07-19T03:54:52.176Z","runId":"r55-obo_GL7SXB","seq":8,"step":"answering.progress","data":{"i":10,"n":25,"matched":10,"kind":"typed"}}
+{"ts":"2026-07-19T03:54:52.300Z","runId":"r55-obo_GL7SXB","seq":9,"step":"answering.progress","data":{"i":20,"n":25,"matched":20,"kind":"typed"}}
+{"ts":"2026-07-19T03:54:52.395Z","runId":"r55-obo_GL7SXB","seq":10,"step":"answering.progress","data":{"i":25,"n":25,"matched":25,"kind":"typed"}}
+{"ts":"2026-07-19T03:54:52.396Z","runId":"r55-obo_GL7SXB","seq":11,"step":"answered","data":{"answered":25,"total":25,"matched":25,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T03:54:53.369Z","runId":"r55-obo_GL7SXB","seq":12,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:55:00.879Z","runId":"r55-obo_GL7SXB","seq":13,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:55:09.723Z","runId":"r55-obo_GL7SXB","seq":14,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T03:55:15.880Z","runId":"r55-obo_GL7SXB","seq":15,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:55:20.650Z","runId":"r55-obo_GL7SXB","seq":16,"step":"done","data":{"tag":"obo_GL7SXB","pre":5,"post":6}}

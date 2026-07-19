@@ -1,0 +1,5 @@
+{"ts":"2026-07-19T07:36:49.715Z","runId":"r59-jisu_a1","seq":1,"step":"start","data":{"pid":40792,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:36:49.811Z","runId":"r59-jisu_a1","seq":2,"step":"login","data":{"email":"lsr_a2_jisua1@vocaboost.test","preCsd":5,"preTwi":400,"preReviewMode":false}}
+{"ts":"2026-07-19T07:37:04.723Z","runId":"r59-jisu_a1","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:37:05.463Z","runId":"r59-jisu_a1","seq":4,"step":"reload_readback","data":{"tag":"jisu_a1","csd":5,"twi":400,"reviewMode":false,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","containsListId":true,"settled":true,"fresh":2}}
+{"ts":"2026-07-19T07:37:05.467Z","runId":"r59-jisu_a1","seq":5,"step":"done","data":{"tag":"jisu_a1","csd":5,"twi":400,"reviewMode":false}}

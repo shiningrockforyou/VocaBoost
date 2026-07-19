@@ -1,0 +1,24 @@
+{"ts":"2026-07-19T07:25:16.909Z","runId":"r58-jisu_a1","seq":1,"step":"start","data":{"pid":40048,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:25:17.219Z","runId":"r58-jisu_a1","seq":2,"step":"login","data":{"email":"lsr_a2_jisua1@vocaboost.test","preCsd":5,"reviewMode":true}}
+{"ts":"2026-07-19T07:25:31.919Z","runId":"r58-jisu_a1","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:25:36.467Z","runId":"r58-jisu_a1","seq":4,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","containsListId":true,"renderDay":6,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Step 3 of 5 Review Study — Day 6 Progress 0 of 60 mastered Card 1 of 60 capitalizing on (phrase) capitalizing on (phrase) taking advantage of an opportunity or ","via":"A"}}
+{"ts":"2026-07-19T07:25:36.962Z","runId":"r58-jisu_a1","seq":5,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:25:41.149Z","runId":"r58-jisu_a1","seq":6,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:25:45.690Z","runId":"r58-jisu_a1","seq":7,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:25:46.923Z","runId":"r58-jisu_a1","seq":8,"step":"heartbeat","data":{"lastStep":"answering 22/30","progress":{"step":"answering","i":22,"n":30}}}
+{"ts":"2026-07-19T07:25:50.314Z","runId":"r58-jisu_a1","seq":9,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:25:50.315Z","runId":"r58-jisu_a1","seq":10,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:25:57.157Z","runId":"r58-jisu_a1","seq":11,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:25:57.253Z","runId":"r58-jisu_a1","seq":12,"step":"readback_after_review_1","data":{"reviewMode":true,"csd":5,"interv":1,"recent":[0.17,0.23,1],"review_recorded":3}}
+{"ts":"2026-07-19T07:26:01.922Z","runId":"r58-jisu_a1","seq":13,"step":"heartbeat","data":{"lastStep":"readback_after_review_1","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:26:11.428Z","runId":"r58-jisu_a1","seq":14,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","containsListId":true,"renderDay":6,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Step 3 of 5 Review Study — Day 6 Progress 0 of 48 mastered Card 1 of 48 stout (adj.) stout (adj.) ① strong and resolute; brave and determined in spirit. ② heavi","via":"A"}}
+{"ts":"2026-07-19T07:26:11.914Z","runId":"r58-jisu_a1","seq":15,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:26:16.046Z","runId":"r58-jisu_a1","seq":16,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:26:16.929Z","runId":"r58-jisu_a1","seq":17,"step":"heartbeat","data":{"lastStep":"answering 11/30","progress":{"step":"answering","i":11,"n":30}}}
+{"ts":"2026-07-19T07:26:20.643Z","runId":"r58-jisu_a1","seq":18,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:26:25.218Z","runId":"r58-jisu_a1","seq":19,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:26:25.218Z","runId":"r58-jisu_a1","seq":20,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:26:31.930Z","runId":"r58-jisu_a1","seq":21,"step":"heartbeat","data":{"lastStep":"answered","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:26:32.057Z","runId":"r58-jisu_a1","seq":22,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:26:32.148Z","runId":"r58-jisu_a1","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":5,"interv":1,"recent":[0.23,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:26:33.736Z","runId":"r58-jisu_a1","seq":24,"step":"done","data":{"tag":"jisu_a1","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}

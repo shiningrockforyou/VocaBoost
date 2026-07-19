@@ -1,0 +1,16 @@
+{"ts":"2026-07-19T07:43:58.465Z","runId":"r60-lostsave_bc_d6","seq":1,"step":"start","data":{"pid":10300,"node":"v24.11.1"}}
+{"ts":"2026-07-19T07:43:59.449Z","runId":"r60-lostsave_bc_d6","seq":2,"step":"login","data":{"email":"lsr_a2_lostsavebcd6@vocaboost.test","preCsd":5,"preTwi":480}}
+{"ts":"2026-07-19T07:44:13.474Z","runId":"r60-lostsave_bc_d6","seq":3,"step":"heartbeat","data":{"lastStep":"login","progress":null}}
+{"ts":"2026-07-19T07:44:20.805Z","runId":"r60-lostsave_bc_d6","seq":4,"step":"degradeProbe","data":{"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ","containsListId":true,"renderDay":6,"offersReview":true,"offersNewWords":false,"settled":true,"excerpt":"Step 3 of 5 Review Study — Day 6 Progress 0 of 60 mastered Card 1 of 60 agenda (n.) agenda (n.) ① a list of items to be discussed at a formal meeting ② an underlying plan or motiva","via":"A","testUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ"}}
+{"ts":"2026-07-19T07:44:21.306Z","runId":"r60-lostsave_bc_d6","seq":5,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T07:44:25.499Z","runId":"r60-lostsave_bc_d6","seq":6,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T07:44:28.482Z","runId":"r60-lostsave_bc_d6","seq":7,"step":"heartbeat","data":{"lastStep":"answering 16/30","progress":{"step":"answering","i":16,"n":30}}}
+{"ts":"2026-07-19T07:44:30.120Z","runId":"r60-lostsave_bc_d6","seq":8,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T07:44:34.770Z","runId":"r60-lostsave_bc_d6","seq":9,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T07:44:34.770Z","runId":"r60-lostsave_bc_d6","seq":10,"step":"answered","data":{"answered":30,"total":30,"matched":30,"typed":false}}
+{"ts":"2026-07-19T07:44:43.496Z","runId":"r60-lostsave_bc_d6","seq":11,"step":"heartbeat","data":{"lastStep":"answered","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:44:48.758Z","runId":"r60-lostsave_bc_d6","seq":12,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:44:48.841Z","runId":"r60-lostsave_bc_d6","seq":13,"step":"after_review_readback","data":{"csd":6,"twi":480,"fresh":2}}
+{"ts":"2026-07-19T07:44:58.496Z","runId":"r60-lostsave_bc_d6","seq":14,"step":"heartbeat","data":{"lastStep":"after_review_readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:45:02.798Z","runId":"r60-lostsave_bc_d6","seq":15,"step":"reload_readback","data":{"csd":6,"twi":480,"canon":0,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ"}}
+{"ts":"2026-07-19T07:45:02.852Z","runId":"r60-lostsave_bc_d6","seq":16,"step":"done","data":{"verdict":"FULLY AUTO-RECOVERED: day-6 review completed -> csd 5->6, twi stays 480, canonical=0"}}

@@ -133,9 +133,18 @@ writes without explicit authorization. 25WT is the sandbox.**
 
 ## 3. Current frontier
 **D3/P4 is now CERTIFIED (2026-07-18).** The client→server cutover is LIVE + behaviorally certified (10/10). Everything
-through D3 (A, B, C, D1, D2, D3) is done. **Next frontier = D4/P5** — the one-way `class_progress → list_progress`
-migration — now UNBLOCKED but gated on its own pre-work (fresh backup + 25WT rehearsal + a fresh Codex-GO'd,
-David-authorized plan). Nothing past D3 has started.
+through D3 (A, B, C, D1, D2, D3) is done. **Next = D3.5 (David-directed): a pre-migration recovery + adversarial audit**
+(`docs/plans/D3.5_RECOVERY_AUDIT_PLAN.md`) — clone every July-ticketed student to sandbox, revert to their exact pre-fix
+state, and prove the fixes recover them; plus adversarial UI (button-spam/races) + WSL-invented broken configs.
+**Then D4/P5** — the one-way `class_progress → list_progress` migration — gated on its own pre-work (fresh backup + 25WT
+rehearsal + a fresh Codex-GO'd, David-authorized plan). Nothing past D3 has started.
+
+**D3.5 progress (2026-07-19): 13 distinct recovery behaviors VALIDATED, 0 FAIL** across r54 (3 real tickets) + r55
+(6: throttle 4/4 + off-by-one 2/2 graded) + r56 (4 synthetic adversarial configs). **All findings & insights consolidated
+in [`docs/plans/D3.5_FINDINGS.md`](D3.5_FINDINGS.md)** (verified results · behavioral/architectural insights ·
+harness method · seed-fidelity lessons). Key established fact: **`session_states` is inert for rendering** — durable
+`class_progress`+`attempts` are authoritative, so a corrupted session cannot falsely advance progress. Open: choi_a12
+(최도훈 lost-save) re-drive queued (r57, direct-nav to Base Camp).
 
 ## 4. Immediate next actions (verify-forward — Codex-mandated, all agents concur; no rollback absent a signal)
 1. ✅ **Read-only de-risk COMPLETE** — 3 clean live scans (Firestore `data-integrity`, `system_logs` NO-SPIKE,
@@ -147,7 +156,16 @@ David-authorized plan). Nothing past D3 has started.
    (b) `git add --renormalize .` commit of the uncommitted evidence pile (NOT `git add -A`; `.gitattributes = * text=auto`
    renorm hazard); (c) `SUPPORT_RUNBOOK` CS-2026-07-18 entry for the read-only 26SM scans; (d) cite sources for the
    B2/B4 closures + PR-1's 2-account efficacy anecdote.
-4. ⛔ Then D4/P5 pre-work (behind fresh backup + 25WT rehearsal + a fresh Codex-GO'd, David-authorized plan).
+4. 🔄 **D3.5 — pre-migration recovery + adversarial audit** (`docs/plans/D3.5_RECOVERY_AUDIT_PLAN.md`, David-directed) —
+   **PLAN CRITIC-CONVERGED (8/8, 5 rounds, 2026-07-18); READY TO BUILD.** Clone the **156** (not 211) real ticketed
+   students → sandbox → pre-fix state (backups are cp-only/pre-fix; carry/list-end families = SYNTHETIC_FROM_TICKET) +
+   adversarial UI (Part B ~35 + B-SCREENS S1–S8) + invented configs (F 26) + observe-only (E 7). **DECIDED: tiers 1/2 =
+   server-only pre-filter; tier 3 [live UI] = THE audit.** Sandbox-only, never 26SM. The critic pass hardened the safety
+   rails (S1–S7 + S-A…S-E: per-doc uid+classId fail-closed guard, join PRE-write, one `lsr_` prefix, teacher pin, flag-
+   posture pin, log uid/classId-scoping) and corrected block-on defects (threshold **0.92** unit-error that would've
+   silently killed a canary; F01/F02/F03 + BlindSpotCheck re-verification; W3MUFXDb observe). **NEXT: build the harness**
+   (`clone-ticketed-prefix.mjs` + hardened guard + Playwright MCQ/Typed driver; fix the r37 joinClass gap) → run tiers.
+5. ⛔ Then D4/P5 pre-work (behind fresh backup + 25WT rehearsal + a fresh Codex-GO'd, David-authorized plan).
 
 ## 5. Standing constraints (binding)
 - **Never a 26SM write without explicit authorization** (25WT = sandbox). Diagnose READ-ONLY; write only a

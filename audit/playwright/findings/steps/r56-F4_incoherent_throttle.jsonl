@@ -1,0 +1,9 @@
+{"ts":"2026-07-19T04:15:33.879Z","runId":"r56-F4_incoherent_throttle","seq":1,"step":"start","data":{"pid":9208,"node":"v24.11.1"}}
+{"ts":"2026-07-19T04:15:33.932Z","runId":"r56-F4_incoherent_throttle","seq":2,"step":"login","data":{"email":"lsr_f4incoherentthrottle@vocaboost.test","preCsd":6,"family":"skip-hold"}}
+{"ts":"2026-07-19T04:15:48.390Z","runId":"r56-F4_incoherent_throttle","seq":3,"step":"reachProbe","data":{"target":"https://vocaboostone.netlify.app/session/25WTsynth11/dVliNv0p9jqZYp9rfLpN","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTsynth11/dVliNv0p9jqZYp9rfLpN","containsListId":true,"renderDay":7,"offersNewWords":false,"offersReviewOnly":false,"coherent":true,"excerpt":"Step 1 of 5 New Words Study — Day 7 Progress 0 of 80 mastered Card 1 of 80 multiplicity (n.) multiplicity (n.) a large number or great variety of something 🇰🇷 Korean 어떤 것의 수가 매우 ","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","via":"A"}}
+{"ts":"2026-07-19T04:15:48.423Z","runId":"r56-F4_incoherent_throttle","seq":4,"step":"answered","data":{"answered":0,"total":50,"mode":"empty","kind":"mcq"}}
+{"ts":"2026-07-19T04:15:48.888Z","runId":"r56-F4_incoherent_throttle","seq":5,"step":"heartbeat","data":{"lastStep":"answered","progress":null}}
+{"ts":"2026-07-19T04:15:49.387Z","runId":"r56-F4_incoherent_throttle","seq":6,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T04:15:51.404Z","runId":"r56-F4_incoherent_throttle","seq":7,"step":"outcome","data":{"outcome":"results"}}
+{"ts":"2026-07-19T04:15:53.005Z","runId":"r56-F4_incoherent_throttle","seq":8,"step":"readback","data":{"csd":6,"twi":480,"canon":0,"resolveLog":2,"quarantineLog":2,"crashed":false}}
+{"ts":"2026-07-19T04:15:53.011Z","runId":"r56-F4_incoherent_throttle","seq":9,"step":"done","data":{"tag":"F4_incoherent_throttle","pre":6,"post":6,"crashed":false}}

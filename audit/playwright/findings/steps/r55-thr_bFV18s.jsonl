@@ -1,0 +1,30 @@
+{"ts":"2026-07-19T03:48:29.902Z","runId":"r55-thr_bFV18s","seq":1,"step":"start","data":{"pid":40944,"node":"v24.11.1"}}
+{"ts":"2026-07-19T03:48:29.990Z","runId":"r55-thr_bFV18s","seq":2,"step":"login","data":{"email":"lsr_a2_thrbfv18s@vocaboost.test","preCsd":7,"bucket":"B1"}}
+{"ts":"2026-07-19T03:48:42.284Z","runId":"r55-thr_bFV18s","seq":3,"step":"renderCheck","data":{"renderDay":8,"offersNewWords":true,"offersReviewOnly":false,"coherent":true}}
+{"ts":"2026-07-19T03:48:44.902Z","runId":"r55-thr_bFV18s","seq":4,"step":"heartbeat","data":{"lastStep":"renderCheck","progress":null}}
+{"ts":"2026-07-19T03:48:50.907Z","runId":"r55-thr_bFV18s","seq":5,"step":"startStudyingGate","data":{"present":false,"kind":"review"}}
+{"ts":"2026-07-19T03:48:52.705Z","runId":"r55-thr_bFV18s","seq":6,"step":"reachProbe","data":{"kind":"review","startStudyingSeen":false,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/mcqtest/25WTa2r12/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T03:48:53.217Z","runId":"r55-thr_bFV18s","seq":7,"step":"answering.progress","data":{"i":1,"n":30,"matched":1,"kind":"mcq"}}
+{"ts":"2026-07-19T03:48:57.486Z","runId":"r55-thr_bFV18s","seq":8,"step":"answering.progress","data":{"i":10,"n":30,"matched":10,"kind":"mcq"}}
+{"ts":"2026-07-19T03:48:59.915Z","runId":"r55-thr_bFV18s","seq":9,"step":"heartbeat","data":{"lastStep":"answering 15/30","progress":{"step":"answering","i":15,"n":30}}}
+{"ts":"2026-07-19T03:49:02.069Z","runId":"r55-thr_bFV18s","seq":10,"step":"answering.progress","data":{"i":20,"n":30,"matched":20,"kind":"mcq"}}
+{"ts":"2026-07-19T03:49:06.725Z","runId":"r55-thr_bFV18s","seq":11,"step":"answering.progress","data":{"i":30,"n":30,"matched":30,"kind":"mcq"}}
+{"ts":"2026-07-19T03:49:06.726Z","runId":"r55-thr_bFV18s","seq":12,"step":"answered","data":{"answered":30,"total":30,"matched":30,"mode":"good","kind":"mcq"}}
+{"ts":"2026-07-19T03:49:07.670Z","runId":"r55-thr_bFV18s","seq":13,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:49:13.782Z","runId":"r55-thr_bFV18s","seq":14,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T03:49:13.858Z","runId":"r55-thr_bFV18s","seq":15,"step":"readback","data":{"i":0,"csd":7,"reviewMode":false,"interv":0,"review_recorded":2}}
+{"ts":"2026-07-19T03:49:14.920Z","runId":"r55-thr_bFV18s","seq":16,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:49:29.921Z","runId":"r55-thr_bFV18s","seq":17,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:49:30.814Z","runId":"r55-thr_bFV18s","seq":18,"step":"startStudyingGate","data":{"present":true,"kind":"review"}}
+{"ts":"2026-07-19T03:49:32.501Z","runId":"r55-thr_bFV18s","seq":19,"step":"reachProbe","data":{"kind":"review","startStudyingSeen":true,"menuFound":true,"skipItemFound":true,"confirmLabel":"Start Test","routedUrl":"https://vocaboostone.netlify.app/typedtest/25WTa2r12/RmNNkuLPectBlBPiLbAJ","via":"A"}}
+{"ts":"2026-07-19T03:49:33.346Z","runId":"r55-thr_bFV18s","seq":20,"step":"answering.progress","data":{"i":1,"n":25,"matched":1,"kind":"typed"}}
+{"ts":"2026-07-19T03:49:33.503Z","runId":"r55-thr_bFV18s","seq":21,"step":"answering.progress","data":{"i":10,"n":25,"matched":10,"kind":"typed"}}
+{"ts":"2026-07-19T03:49:33.668Z","runId":"r55-thr_bFV18s","seq":22,"step":"answering.progress","data":{"i":20,"n":25,"matched":20,"kind":"typed"}}
+{"ts":"2026-07-19T03:49:33.739Z","runId":"r55-thr_bFV18s","seq":23,"step":"answering.progress","data":{"i":25,"n":25,"matched":25,"kind":"typed"}}
+{"ts":"2026-07-19T03:49:33.739Z","runId":"r55-thr_bFV18s","seq":24,"step":"answered","data":{"answered":25,"total":25,"matched":25,"mode":"good","kind":"typed"}}
+{"ts":"2026-07-19T03:49:34.707Z","runId":"r55-thr_bFV18s","seq":25,"step":"dialog","data":{"hadEmptyConfirm":false}}
+{"ts":"2026-07-19T03:49:44.933Z","runId":"r55-thr_bFV18s","seq":26,"step":"heartbeat","data":{"lastStep":"dialog","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:49:51.003Z","runId":"r55-thr_bFV18s","seq":27,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T03:49:51.104Z","runId":"r55-thr_bFV18s","seq":28,"step":"readback","data":{"i":1,"csd":7,"reviewMode":false,"interv":0,"review_recorded":2}}
+{"ts":"2026-07-19T03:49:59.934Z","runId":"r55-thr_bFV18s","seq":29,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:50:01.644Z","runId":"r55-thr_bFV18s","seq":30,"step":"done","data":{"tag":"thr_bFV18s","pre":7,"post":7}}
