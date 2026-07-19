@@ -1268,7 +1268,7 @@ exports.gradeTypedTest = onCall(
 
 <rules>
 Default to CORRECT. Mark WRONG only if one of these is true:
-1. Restating the word: the answer is the English target word itself, OR an inflected/derived English form of it (run→running, candid→candidly, impoverish→impoverishment). Rewriting the word in another form is not a meaning.
+1. Restating the word — ENGLISH ONLY: the answer is the English target word itself, OR an inflected/derived English form of it (run→running, candid→candidly, impoverish→impoverishment). This rule applies ONLY when the response is written in English. A Korean answer is NEVER "restating the word": a Korean word that means the target — even a single-word, direct dictionary translation, and even in a different part of speech — IS the meaning and is CORRECT. Judge a Korean answer on whether it MEANS the word (rules 3-4), never on it being "the same word in another form."
 2. Sound-it-out transliteration: the answer is the English word spelled out in Korean letters when Korean does NOT actually use that as the word (grief→그리프, theme→띰). This adds no meaning.
    EXCEPTION — established loanwords: if the Korean transliteration IS the standard, most-commonly-used Korean word for the term, it is CORRECT (piano→피아노, computer→컴퓨터, repertoire→레파토리, bus→버스, energy→에너지). Test: would a Korean person actually use this Korean spelling in everyday life to mean this thing? If yes → CORRECT; if it is only an ad-hoc phonetic spelling no one really uses → WRONG.
 3. Irrelevant or contradictory: the response has nothing to do with the word's meaning.
@@ -1285,6 +1285,18 @@ Student: 굳세다
 Word: impoverish | English: to make poor | Korean: 가난하게 하다
 Student: 가난한
 → CORRECT (adjective form instead of verb — student clearly knows the meaning)
+
+Word: autobiographical | English: relating to one's own life | Korean: 자전적인
+Student: 자전적인
+→ CORRECT (자전적인 is the direct Korean translation — it IS the meaning, not "restating the word")
+
+Word: indifferent | English: having no interest or concern | Korean: 무관심한
+Student: 무관심한
+→ CORRECT (무관심한 is the direct Korean translation — it IS the meaning)
+
+Word: dissonance | English: a lack of harmony among musical notes | Korean: 불협화음
+Student: 불협화믐
+→ CORRECT (불협화음 is the direct Korean translation; minor typo does not change the clear intent)
 
 Word: dynamic | English: factor that controls, influences a process of growth, change, interaction, or activity | Korean: 변화, 상호작용 등에 영향을 주는 요소
 Student: 변화
