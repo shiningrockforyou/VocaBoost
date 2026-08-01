@@ -1,4 +1,5 @@
-// b1-expected-labels.mjs — READ-ONLY (Track B stage B1, 14_ §2) — v5 (r56 correction fold).
+// b1-expected-labels.mjs — READ-ONLY (Track B stage B1, 14_ §2) — v6 (r57 closure: THE REPLAY LAW LIVES IN
+// b1-replay-lib.mjs, shared verbatim with B3/B4 — one law, zero drift; this file = cohort iteration + artifacts).
 // r55 additions: CHALLENGE-MUTATION law (adjudicated rows replay as stored — the stored-score law absorbs the
 //   flip; per-student mutationRisk {pendingChallenges, adjudicatedAtOrAfterWatermark, challengeTsUnknown}
 //   emitted — B3 re-reads flagged students; B4's delta covers post-watermark adjudications; historical
@@ -6,9 +7,10 @@
 //   `rru` (reviewRestingUntil seed: legacy masteredAt+21d, VALIDATED — inside the live 21-day window AND the
 //   word has eligible history; else not seeded + counted) · graded===false excluded (synthetic manualOverride
 //   anchors = the NAMED eligible exception) · per-signature exclusion COUNTS · atomic RUN MANIFEST (hash-bound
-//   JSONL+summary, written last) · strict integer --limit · --cohort REQUIRED in --full mode.
+//   JSONL+summary, written last) · strict integer --limit · --classAllowlist REQUIRED in --full mode [r56].
 // Computes the EXPECTED post-backfill per-word label state per student under the final law.
-// The artifact IS the B4 comparison baseline: per-word five-field values + per-(student,list) resetEpoch
+// The artifact IS the B4 comparison baseline: per-word values for the FIVE backfill label fields + the rru
+// CENSUS (informational — B3 writes rru only behind --seedRru pending the r59/David ruling) + per-(student,list) resetEpoch
 // snapshot + watermark metadata, emitted as JSONL (one student per line) + a summary JSON + per-student digests.
 //
 // LAW (ledger cites; r53/panel adjudications applied):
@@ -40,14 +42,15 @@
 //    (the REAL tombstones, foundation.js:496-532/2047-2140; absent ⇒ 0); attempts predating resetAt are
 //    excluded + counted (preEpochExcluded); the snapshot is emitted so B3's skip-rule is executable.
 //
-// Usage: NODE_PATH=/app/node_modules node scripts/deepfix2/b1-expected-labels.mjs [--cohort=REGEX] [--limit=N] [--full]
-//   (named flags — the r53 positional-parse bug is closed; defaults: cohort 26SM, limit 50, sample mode)
+// Usage: sample: node b1-expected-labels.mjs [--cohort=REGEX] [--limit=N]
+//        full:   node b1-expected-labels.mjs --full --classAllowlist=FILE   (exact class-doc-id JSON array)
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, writeFileSync, createWriteStream } from "node:fs";
 import { createHash } from "node:crypto";
+import { computeStudentLabels } from "./b1-replay-lib.mjs";
 
-const KNOWN = new Set(["cohort", "limit", "full", "classAllowlist"]);
+const KNOWN = new Set(["cohort", "limit", "full", "classAllowlist", "watermark", "outDir", "uids"]);
 const args = Object.fromEntries(process.argv.slice(2).map(a => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/); if (!m || !KNOWN.has(m[1])) { console.error(`Unrecognized arg: ${a}`); process.exit(2); }
   return [m[1], m[2] ?? true];
@@ -59,6 +62,11 @@ if (FULL && !args.classAllowlist) { console.error("--full requires --classAllowl
 if (FULL && args.limit !== undefined) { console.error("--limit conflicts with --full [r56]"); process.exit(2); }
 if (args.cohort !== undefined && (typeof args.cohort !== "string" || !args.cohort)) { console.error("--cohort requires a non-empty value"); process.exit(2); }
 if (args.limit !== undefined && !/^[1-9]\d*$/.test(String(args.limit))) { console.error("--limit must be a positive integer [r55]"); process.exit(2); }
+// DELTA/REPLAY modes [r59-A2 + the shadow fidelity gate]: --uids=FILE = an exact uid list (delta re-baseline);
+// --watermark=MS pins the boundary (fidelity replays at the ORIGINAL watermark); --outDir overrides the target.
+if (args.watermark !== undefined && !/^[1-9]\d{9,}$/.test(String(args.watermark))) { console.error("--watermark must be epoch ms"); process.exit(2); }
+if (args.uids !== undefined && (typeof args.uids !== "string" || !args.uids)) { console.error("--uids=FILE required"); process.exit(2); }
+if (args.outDir !== undefined && (typeof args.outDir !== "string" || !args.outDir)) { console.error("--outDir=DIR required"); process.exit(2); }
 const LIMIT = FULL ? Infinity : parseInt(args.limit || "50", 10);
 const THRESHOLD = 92;
 
@@ -78,14 +86,24 @@ if (FULL) {
   cs.forEach(d => { const c = d.data(); if (filter.test(c.name || "")) { classesMatched.push({ id: d.id, name: c.name }); (c.studentIds || []).forEach(u => students.add(u)); } });
 }
 let uids = [...students].sort();
-if (uids.length > LIMIT) {
+if (args.uids) {
+  let want;
+  try { want = JSON.parse(readFileSync(args.uids, "utf-8")); if (!Array.isArray(want) || !want.length || !want.every(x => typeof x === "string" && x)) throw new Error("not a non-empty string array"); }
+  catch (e) { console.error(`FATAL: bad --uids file: ${e.message}`); process.exit(2); }
+  const scope = new Set(uids);
+  const missing = want.filter(u => !scope.has(u));
+  if (missing.length) { console.error(`FATAL: ${missing.length} --uids not in the selected cohort scope`); process.exit(2); }
+  uids = want.sort();
+}
+if (!args.uids && uids.length > LIMIT) {
   const step = Math.max(1, Math.floor(uids.length / LIMIT));
   uids = uids.filter((_, i) => i % step === 0).slice(0, LIMIT);
 }
-const mode = FULL ? "full" : "sample";
+const mode2 = args.uids ? "delta" : (FULL ? "full" : "sample");
+const mode = args.uids ? "delta" : (FULL ? "full" : "sample");
 if (students.size === 0) { console.error("FATAL: cohort selection matched zero students"); process.exit(2); }
-const watermark = Date.now(); // READ BOUNDARY [r54/r55]: enforced PER-ATTEMPT in the fence (postWatermark; index-free)
-console.error(`B1 v5: ${uids.length}/${students.size} students (${mode}); watermark ${new Date(watermark).toISOString()}`);
+const watermark = args.watermark ? parseInt(args.watermark, 10) : Date.now(); // pinned via --watermark or fresh [r59]
+console.error(`B1 v6: ${uids.length}/${students.size} students (${mode}); watermark ${new Date(watermark).toISOString()}`);
 
 const EXCL_KEYS = ["missingCoreField","postWatermark","unknownType","ungraded","badScore","badTotal","badRows","dupWordIdInRows","rowsGtTotal","scoreRowsDisagree","dupConflictGroup","preEpoch","editedNoOrganicScore"];
 const excl = Object.fromEntries(EXCL_KEYS.map(k => [k, 0]));
@@ -103,7 +121,7 @@ const bumpExcl = (reason, classId, sigKey) => {
 };
 
 // UID-bearing baseline ⇒ GITIGNORED local dir [r54-1.7]; atomic: write .tmp, rename on completion
-const outDir = new URL("../../audit/deepfix/trackB_baselines/", import.meta.url);
+const outDir = args.outDir ? new URL(args.outDir.endsWith("/") ? args.outDir : args.outDir + "/", "file://" + process.cwd() + "/") : new URL("../../audit/deepfix/trackB_baselines/", import.meta.url);
 const { mkdirSync } = await import("node:fs"); mkdirSync(outDir, { recursive: true });
 const jsonlFinal = new URL(`b1-expected-labels-${mode}.jsonl`, outDir);
 const jsonlTmp = new URL(`b1-expected-labels-${mode}.jsonl.tmp`, outDir);
@@ -111,161 +129,39 @@ const jsonl = createWriteStream(jsonlTmp);
 const digests = {};
 
 for (const uid of uids) {
-  // epoch snapshot from the REAL tombstones
-  const epochByList = {};
-  for (const coll of ["progress_meta", "list_progress"]) {
-    const snap = await db.collection("users").doc(uid).collection(coll).get();
-    for (const d of snap.docs) {
-      const v = d.data();
-      const cur = epochByList[d.id] || { resetEpoch: 0, resetAt: null };
-      epochByList[d.id] = {
-        resetEpoch: Math.max(cur.resetEpoch, v.resetEpoch ?? 0),
-        resetAt: Math.max(cur.resetAt ?? 0, v.resetAt?.toMillis?.() ?? 0) || null,
-      };
-    }
-  }
-  // epoch-0 SERIALIZATION [r54-1.5]: every list the student's attempts touch gets an EXPLICIT entry
-  // single-field query (no composite index exists); the watermark boundary is enforced PER-ATTEMPT in the
-  // fence below (postWatermark exclusion) — same invariant, index-free [r54-1.1]
-  const snap = await db.collection("attempts").where("studentId", "==", uid).get();
-  // ---- pass 1: eligibility fence (fail-closed) + signature grouping
-  const groups = new Map();
-  const mut = { pendingChallenges: 0, adjudicatedTotal: 0, adjudicatedAtOrAfterWatermark: 0, challengeTsUnknown: 0, challengedAttemptIds: [] };
-  for (const d of snap.docs) {
-    const a = d.data(); agg.attemptsSeen++;
-    // challenge-mutation scan FIRST [r56/panel: an excluded attempt's pending challenge must still flag the
-    // student — in-place mutations are invisible to submittedAt]; ids give B3/B4 the re-read identity
-    if (Array.isArray(a.answers)) for (const r of a.answers) {
-      if (!r || !r.challengeStatus) continue;
-      if (r.challengeStatus === "pending") mut.pendingChallenges++;
-      else {
-        mut.adjudicatedTotal++;
-        const rt = r.challengeReviewedAt?.toMillis?.() ?? (typeof r.challengeReviewedAt === "string" ? Date.parse(r.challengeReviewedAt) : typeof r.challengeReviewedAt === "number" ? r.challengeReviewedAt : NaN);
-        if (Number.isFinite(rt)) { if (rt >= watermark) mut.adjudicatedAtOrAfterWatermark++; }
-        else mut.challengeTsUnknown++;
-      }
-      if (!mut.challengedAttemptIds.includes(d.id) && mut.challengedAttemptIds.length < 200) mut.challengedAttemptIds.push(d.id);
-    }
-    const classId = typeof a.classId === "string" ? a.classId : null;
-    if (typeof a.submittedAt?.toMillis !== "function" || typeof a.listId !== "string" || !a.listId || !classId) { bumpExcl("missingCoreField", classId); continue; }
-    const t = a.submittedAt.toMillis();
-    if (typeof t !== "number" || !Number.isFinite(t)) { bumpExcl("missingCoreField", classId); continue; }
-    if (t >= watermark) { bumpExcl("postWatermark", classId, `${classId}|${a.listId}`); continue; }
-    // sessionType WHITELIST [r54-1.2]: only known graded types replay; unknown shapes are excluded, not defaulted
-    const sType = a.sessionType ?? a.type ?? null;
-    if (sType !== "new" && sType !== "review" && sType !== "retest") { bumpExcl("unknownType", classId, `${classId}|${a.listId}|${sType}`); continue; }
-    // graded fence [r56 — EXACT]: eligible iff graded === true OR the NAMED synthetic exception
-    // (manualOverride === true, which carries graded:true and empty rows anyway); everything else — missing,
-    // null, malformed — is EXCLUDED (B2: 3/1,185 sampled attempts lack the field; exercised data)
-    if (a.graded !== true && a.manualOverride !== true) { bumpExcl("ungraded", classId, `${classId}|${a.listId}|${sType}`); continue; }
-    // answers must BE an array [r54-1.2] — absence is not an empty test
-    if (!Array.isArray(a.answers)) { bumpExcl("badRows", classId, `${classId}|${a.listId}|${sType}`); continue; }
-    // teacher-edit adjudication [r54-1.3, forward-compatible]: an edited grade NEVER mints proof; the organic
-    // preOverride score governs when present; row facts (fail/correct) replay unchanged
-    const edited = a.teacherEdited === true;
-    const effScoreRaw = edited ? (a.preOverride && typeof a.preOverride.score === "number" ? a.preOverride.score : null) : (a.score ?? a.scorePercent);
-    if (edited) agg.teacherEditedSeen++;
-    const epoch = epochByList[a.listId];
-    if (epoch?.resetAt && t < epoch.resetAt) { bumpExcl("preEpoch", classId, `${classId}|${a.listId}`); continue; }
-    const s = effScoreRaw;
-    if (edited && s === null) { bumpExcl("editedNoOrganicScore", classId, `${classId}|${a.listId}`); continue; } // edited w/o preOverride: no provable organic score
-    const sigKey = `${classId}|${a.listId}|${sType}`;
-    if (typeof s !== "number" || !Number.isFinite(s) || s < 0 || s > 100) { bumpExcl("badScore", classId, sigKey); continue; }
-    const tq = a.totalQuestions;
-    if (!Number.isInteger(tq) || tq <= 0 || tq > 500) { bumpExcl("badTotal", classId, sigKey); continue; }
-    const rowsRaw = a.answers;
-    const rows = [];
-    let rowsOk = true, dupRow = false; const seenW = new Set();
-    for (const r of rowsRaw) {
-      if (!r || typeof r.wordId !== "string" || !r.wordId || typeof r.isCorrect !== "boolean") { rowsOk = false; break; }
-      if (seenW.has(r.wordId)) { rowsOk = false; dupRow = true; break; }
-      seenW.add(r.wordId); rows.push({ wordId: r.wordId, ok: r.isCorrect });
-    }
-    if (!rowsOk) { bumpExcl(dupRow ? "dupWordIdInRows" : "badRows", classId, sigKey); continue; }
-    if (rows.length > tq) { bumpExcl("rowsGtTotal", classId, sigKey); continue; }
-    const correct = rows.filter(r => r.ok).length;
-    if (rows.length === tq && Math.abs((correct / tq) * 100 - s) > 2) { bumpExcl("scoreRowsDisagree", classId, sigKey); continue; }
-    const sig = `${classId}|${a.listId}|${a.dayNumber ?? a.studyDay}|${sType}|${t}`;
-    // content hash: totalQuestions INCLUDED, rows SORTED by wordId (order-insensitive) [r54-1.4]
-    const content = createHash("sha256").update(s + "|" + tq + "|" + [...rows].sort((x, y) => x.wordId < y.wordId ? -1 : 1).map(r => r.wordId + ":" + r.ok).join(",")).digest("hex");
-    if (!groups.has(sig)) groups.set(sig, []);
-    groups.get(sig).push({ t, classId, listId: a.listId, type: sType, rows, stored: s, tq, content, sig, synthetic: a.manualOverride === true });
-  }
-  for (const g of groups.values()) for (const a of g) if (!epochByList[a.listId]) epochByList[a.listId] = { resetEpoch: 0, resetAt: null };
-  // ---- pass 2: duplicate law — conflicting group excluded WHOLE; identical ⇒ one replayed
-  const atts = [];
-  for (const [sig, g] of groups) {
-    const contents = new Set(g.map(x => x.content));
-    if (contents.size > 1) { g.forEach(x => bumpExcl("dupConflictGroup", x.classId, x.sig)); continue; }
-    if (g.length > 1) agg.identicalDupsDropped += g.length - 1;
-    const a = g[0];
-    agg.attemptsEligible++;
-    // synthetic CS anchors (manualOverride, answers:[]) are eligible but their phantom blanks are NOT
-    // presented-word blanks — counted separately [closure-panel fix]
-    if (a.rows.length < a.tq) { if (a.synthetic) agg.syntheticAnchorBlanks += a.tq - a.rows.length; else agg.blankUndercount += a.tq - a.rows.length; }
-    atts.push(a);
-  }
-  atts.sort((x, y) => x.t - y.t);
-  // ---- pass 3: replay under the law (STORED score >= 92 mints proof)
-  const words = new Map();
-  for (const a of atts) {
-    const passing = a.stored >= THRESHOLD;
-    for (const r of a.rows) {
-      const k = a.listId + "|" + r.wordId;
-      let w = words.get(k);
-      if (!w) { w = { fc: 0, lf: null, lc: null, lp: null, rlt: null }; words.set(k, w); }
-      if (r.ok) { w.lc = a.t; if (passing) w.lp = a.t; }
-      else { w.fc++; w.lf = a.t; }
-      if (a.type === "review") w.rlt = a.t; // reviewLastTestedAt seed (review-type only, B1-Q2)
-    }
-  }
-  // ---- rru seed [r55]: legacy masteredAt within the live 21-day window + eligible history ⇒ reviewRestingUntil
-  const rruByKey = {};
-  {
-    const cutoff = new Date(watermark - 21 * 86400e3);
-    const msnap = await db.collection("users").doc(uid).collection("study_states").where("masteredAt", ">", cutoff).get();
-    // expired-window rows are query-invisible by design — counted via aggregation so the rejection ledger is complete [panel]
-    try { agg.rruExpiredUncounted += (await db.collection("users").doc(uid).collection("study_states").where("masteredAt", "<=", cutoff).count().get()).data().count; } catch {}
-    const byWordId = new Map();
-    for (const k of words.keys()) { const wid = k.split("|")[1]; if (!byWordId.has(wid)) byWordId.set(wid, []); byWordId.get(wid).push(k); }
-    for (const d of msnap.docs) {
-      const mAt = d.data().masteredAt?.toMillis?.();
-      if (!mAt || mAt > watermark) { agg.rruRejectedFuture++; continue; } // future-forged timestamps [r56 threat]
-      const keys = byWordId.get(d.id);
-      // AUTHORITATIVE-EVIDENCE validation [r56]: masteredAt alone is client-writable — require the word to have
-      // been REVIEW-TESTED in the eligible baseline (rlt non-null): graduation without review appearance is not
-      // a shape the legacy system produces organically
-      const reviewTested = (keys || []).filter(k => words.get(k)?.rlt !== null && words.get(k)?.rlt !== undefined);
-      if (!reviewTested.length) { agg.rruRejectedNoHistory++; continue; }
-      for (const k of reviewTested) { rruByKey[k] = mAt + 21 * 86400e3; agg.rruSeeded++; }
-    }
-  }
-  // ---- emit per-word state + digest
-  const wordsOut = {};
-  const mine = { words: words.size, failed: 0, proven: 0, needsPriority: 0, fillEligible: 0 };
-  for (const [k, w] of [...words.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1)) {
-    agg.words++;
+  const counters = {
+    bump: (reason, classId, sigKey) => bumpExcl(reason, classId, sigKey),
+    note: (name) => { if (name === "attemptsSeen") agg.attemptsSeen++; if (name === "teacherEditedSeen") agg.teacherEditedSeen++; },
+  };
+  const r = await computeStudentLabels(db, uid, watermark, counters);
+  agg.attemptsEligible += r.local.eligible;
+  agg.identicalDupsDropped += r.local.identicalDupsDropped;
+  agg.blankUndercount += r.local.blankUndercount;
+  agg.syntheticAnchorBlanks += r.local.syntheticAnchorBlanks;
+  agg.rruSeeded += r.rruCensus.seeded; agg.rruRejectedNoHistory += r.rruCensus.rejectedNoHistory;
+  agg.rruRejectedFuture += r.rruCensus.rejectedFuture; agg.rruExpiredUncounted += r.rruCensus.expiredUncounted;
+  agg.rruExpiredCountFailed = (agg.rruExpiredCountFailed || 0) + r.rruCensus.expiredCountFailed;
+  const mine = { words: 0, failed: 0, proven: 0, needsPriority: 0, fillEligible: 0 };
+  for (const w of Object.values(r.wordsOut)) {
+    agg.words++; mine.words++;
     if (w.fc > 0) { agg.failed++; mine.failed++; }
-    if (w.lc) agg.everCorrect++;
-    if (w.lp) { agg.proven++; mine.proven++; }
-    if (w.rlt) agg.clockSeeded++;
-    const needsPriority = w.fc > 0 && (!w.lc || w.lf > w.lc);
+    if (w.lc !== null) agg.everCorrect++;
+    if (w.lp !== null) { agg.proven++; mine.proven++; }
+    if (w.rlt !== null) agg.clockSeeded++;
+    const needsPriority = w.fc > 0 && (w.lc === null || w.lf > w.lc);
     const fillEligible = w.fc === 0 || (w.lp !== null && w.lp >= w.lf);
     if (needsPriority) { agg.needsPriority++; mine.needsPriority++; }
     if (fillEligible) { agg.fillEligible++; mine.fillEligible++; }
     agg.failCountHist[Math.min(w.fc, 10)] = (agg.failCountHist[Math.min(w.fc, 10)] || 0) + 1;
-    wordsOut[k] = { fc: w.fc, lf: w.lf, lc: w.lc, lp: w.lp, rlt: w.rlt, rru: rruByKey[k] ?? null };
-  }
-  // joint-mix accumulation (H8's launch-seed input: proven × priority cross)
-  for (const w of Object.values(wordsOut)) {
-    const pr = w.lp !== null, np = w.fc > 0 && (w.lc === null || w.lf > w.lc);
+    const pr = w.lp !== null, np = needsPriority;
     const k = (pr ? "proven" : "unproven") + "_" + (np ? "priority" : (w.lc !== null ? "correct" : "untouched"));
     agg.jointMix = agg.jointMix || {}; agg.jointMix[k] = (agg.jointMix[k] || 0) + 1;
   }
-  if (mut.pendingChallenges || mut.adjudicatedAtOrAfterWatermark || mut.challengeTsUnknown) agg.mutationRiskStudents++;
-  const line = { uid, epochByList, mutationRisk: mut, words: wordsOut };
+  if (r.mutationRisk.pendingChallenges || r.mutationRisk.adjudicatedAtOrAfterWatermark || r.mutationRisk.challengeTsUnknown) agg.mutationRiskStudents++;
+  if (r.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} has ${r.wordIdCollisions.length} cross-list wordId collisions w/ divergent expectations`); process.exit(3); }
+  const line = { uid, epochByList: r.epochByList, mutationRisk: r.mutationRisk, challengeDigest: r.challengeDigest, words: r.wordsOut };
   jsonl.write(JSON.stringify(line) + "\n");
-  digests[uid] = { ...mine, digest: createHash("sha256").update(JSON.stringify(wordsOut)).digest("hex") };
+  digests[uid] = { ...mine, digest: r.digest };
   process.stderr.write(".");
 }
 console.error("");
@@ -274,12 +170,12 @@ const { renameSync } = await import("node:fs");
 renameSync(jsonlTmp, jsonlFinal); // atomic completion [r54-1.6]
 
 const pct = (a, b) => b ? ((100 * a) / b).toFixed(1) + "%" : "n/a";
-const summary = { probe: "b1-expected-labels", version: 5, mode, cohortFilter: String(filter),
+const summary = { probe: "b1-expected-labels", version: 6, mode, cohortFilter: String(filter),
   law: "STORED>=92 (R2-35/B1-Q3) · uniform across ALL eligible graded types {new,review,retest} (B1-Q1) · reviewLastTestedAt review-type seed, null⇒not-written (B1-Q2) · rru validated masteredAt seed (r55) · challenge-mutation flagging (r55) · fail-closed fence incl. graded/synthetic law · whole-group dup exclusion · epoch tombstones",
   watermark, students: uids.length, cohortTotal: students.size,
   attempts: { seen: agg.attemptsSeen, eligible: agg.attemptsEligible, excluded: agg.attemptsExcluded, identicalDupsDropped: agg.identicalDupsDropped, teacherEditedSeen: agg.teacherEditedSeen },
   exclusions: excl, exclusionsByClass: exclByClass, exclusionsBySignature: exclBySignature, blankUndercount: agg.blankUndercount, syntheticAnchorBlanks: agg.syntheticAnchorBlanks,
-  rru: { seeded: agg.rruSeeded, rejectedNoHistory: agg.rruRejectedNoHistory, rejectedFuture: agg.rruRejectedFuture, expiredUncountedInWindowQuery: agg.rruExpiredUncounted, law: "seed iff masteredAt ∈ (watermark-21d, watermark] AND the word is REVIEW-TESTED in the eligible baseline (rlt≠null) [r56]" },
+  rru: { seeded: agg.rruSeeded, rejectedNoHistory: agg.rruRejectedNoHistory, rejectedFuture: agg.rruRejectedFuture, expiredUncountedInWindowQuery: agg.rruExpiredUncounted, expiredCountFailed: agg.rruExpiredCountFailed || 0, law: "CENSUS-ONLY at r57 (B3 writes rru only behind --seedRru pending the ruling): masteredAt ∈ window AND review-tested (rlt≠null)" },
   mutationRiskStudents: agg.mutationRiskStudents,
   words: agg.words, clockSeeded: agg.clockSeeded,
   distributions: { failed: pct(agg.failed, agg.words), everCorrect: pct(agg.everCorrect, agg.words), proven: pct(agg.proven, agg.words),
@@ -293,13 +189,13 @@ const sumFinal = new URL(`b1-expected-labels-${mode}.json`, outDir);
 writeFileSync(sumTmp, JSON.stringify(summary, null, 2)); renameSync(sumTmp, sumFinal);
 const jsonlBytes = readFileSync(jsonlFinal); const sumBytes = readFileSync(sumFinal);
 const manTmp = new URL(`b1-manifest-${mode}.json.tmp`, outDir);
-writeFileSync(manTmp, JSON.stringify({ probe: "b1-expected-labels", version: 5, mode, watermark, classesMatched,
+writeFileSync(manTmp, JSON.stringify({ probe: "b1-expected-labels", version: 6, mode, watermark, classesMatched,
   jsonlSha256: createHash("sha256").update(jsonlBytes).digest("hex"),
   summarySha256: createHash("sha256").update(sumBytes).digest("hex") }, null, 2));
 renameSync(manTmp, new URL(`b1-manifest-${mode}.json`, outDir));
 // a REDACTED pointer (no uids) stays in evidence/ for the repo record
 writeFileSync(new URL(`../../docs/plans/deepfix2/evidence/b1-baseline-pointer-${mode}.json`, import.meta.url),
-  JSON.stringify({ probe: "b1-expected-labels", version: 5, mode, watermark, students: uids.length, cohortTotal: students.size,
+  JSON.stringify({ probe: "b1-expected-labels", version: 6, mode, watermark, students: uids.length, cohortTotal: students.size,
     attempts: summary.attempts, exclusions: excl, blankUndercount: agg.blankUndercount, words: agg.words, clockSeeded: agg.clockSeeded,
     distributions: summary.distributions, artifactPath: "audit/deepfix/trackB_baselines/ (LOCAL, gitignored — uid-bearing)",
     jointMix: summary.jointMix }, null, 2));

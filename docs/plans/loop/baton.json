@@ -1,37 +1,35 @@
 {
   "turnOwner": "claude",
-  "round": 57,
+  "round": 59,
   "taskId": "DEEPFIX2_PROGRAM",
   "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
-  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r57.md",
-  "readyMarker": "docs/plans/loop/ready/claude_ready_round_057.json",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r59.md",
+  "readyMarker": "docs/plans/loop/ready/claude_ready_round_059.json",
   "changedFiles": [
-    "docs/plans/deepfix2/11_REDESIGN_VERIFICATION_AND_FOLD_PLAN.md",
+    "scripts/deepfix2/rotation-cyclicity-fixture.mjs",
+    "scripts/deepfix2/b1-replay-lib.mjs",
+    "scripts/deepfix2/b1-expected-labels.mjs",
+    "scripts/deepfix2/b3-backfill-writer.mjs",
+    "scripts/deepfix2/b4-verify.mjs",
     "docs/plans/deepfix2/10_REVIEW_GRADUATION_REDESIGN.md",
-    "docs/plans/deepfix2/02_TASK_LIST.md",
-    "docs/plans/deepfix2/00_ORIENTATION.md",
-    "docs/plans/deepfix2/01_SOURCES.md",
-    "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
     "docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md",
-    "audit/deepfix/task3/firestore.review_v2.rules",
-    "scripts/deepfix2/",
-    "docs/plans/deepfix2/evidence/",
-    "docs/plans/deepfix2/trackA/C2_UI_CALIBRATION.md",
-    "docs/plans/deepfix2/12_R2_DISCUSSION_TRACE.md"
+    "docs/plans/deepfix2/16_SHADOW_COHORT_AUDIT.md",
+    "docs/plans/deepfix2/02_TASK_LIST.md",
+    "audit/deepfix/task3/firestore.review_v2.rules"
   ],
   "evidenceFiles": [
     "change_action_log.md",
-    "docs/plans/deepfix2/evidence/h8-resim-results.json"
+    "docs/plans/loop/win/reviews/winclaude_069.md"
   ],
-  "claudeStatus": "R2-47 RATIFIED (owner retired the exposure-clock promise — the r56 oracle dispute dissolves at the root) + the full r56 gate + freeze2-panel findings executed (~70 edits, batches A-D): B1 v5 (scan-first, exact graded, allowlist, rru evidence law) · H6/rules v4 (visits+counters protected, owned reset lock w/ takeover, evidenceKind complete, stored fingerprint, counter allocator) · H8 v5 (baselines + cyclicity fixture, no oracle). Round 57 = freeze attempt 3. Rule AUTH YES/NO + B1-full GO/NO-GO.",
+  "claudeStatus": "The r58 closure batch executed: cursor law v3 (lap-based property; your falsifier = a permanent regression; explicit uid+list+epoch cursor doc; 2,680/0) · the r57 H6 residue (reset TRANSACTION, frozen counter schema, compose_keys registry, executable quarantine, hash/evidence bindings, NINE rules subcollections) · 16_ v3 (opaque ids, minimization, token auth, partitions, snapshot fences, containment wrapper, batteries M-Q) · B1 v6 on the shared replay lib + B3/B4 scripts EXIST. David answered Q1-Q7+A verbatim (r69 on record); B-E pending in-session. Rule: stage-1 freeze-clean? Shadow execution-ready pending B-E?",
   "codexStatus": "review-written",
   "codexDecision": "DONE",
-  "wslNote": "The contract set is now R2-47-shaped: structural certification + mechanism fixtures + baselines. If YES: stage-1 declared, B1 --full (allowlist) runs, dark build begins.",
-  "note": "Round 57 = STAGE-1 FREEZE (3rd attempt, R2-47 contract set). Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r57.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r57.md; set baton turnOwner=claude round=57 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=187 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r57.md.",
+  "wslNote": "Stage-1 focus: cursor/H6/B-scripts. The shadow plan verifies but gates stage 3.5 only.",
+  "note": "Round 59 = the r58 closure verification. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r59.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r59.md; set baton turnOwner=claude round=59 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=191 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r59.md.",
   "updatedBy": "codex",
-  "revision": 187,
+  "revision": 191,
   "codexConverged": false,
   "keepaliveCount": 0,
-  "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r57.md",
-  "updatedAt": "2026-08-01T23:52:41+09:00"
+  "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r59.md",
+  "updatedAt": "2026-08-02T23:59:00+09:00"
 }

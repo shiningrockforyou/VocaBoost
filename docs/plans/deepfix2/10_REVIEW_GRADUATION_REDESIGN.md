@@ -35,8 +35,17 @@ or the teacher force-pass (error-correction ONLY — R2-27 Q8). Streak = progres
    and a challenge acceptance on a RESTING word applies the grade fix only (the status write is skipped;
    `reviewRestingUntil` stands — R2-43).
 
-1. **Queue** — teacher-set `reviewQueueSize` (launch default 60) selected by the pure day-offset rotation over the
-   ACTIVE pool; **pool < size ⇒ whole pool + UNDERFLOW TOP-UP from graduated (resting) words, earliest-graduated
+1. **Queue** — teacher-set `reviewQueueSize` (launch default 60) selected by **CURSOR-CHAINED rotation
+   [FIXTURE-DRIVEN MECHANISM FIX 2026-08-02, r58-verify: positional day-offset modulo over a MUTATING pool
+   provably SKIPS words — 143 counterexamples; the cursor sweep is skip-proof, proven by
+   `scripts/deepfix2/rotation-cyclicity-fixture.mjs` (2,671 checks)]: day N's queue = the next `queueSize`
+   ACTIVE words in wordIndex order STRICTLY AFTER the persisted ROTATION CURSOR (wrapping; absent ⇒ smallest
+   index). **The cursor is STUDENT+LIST+EPOCH-scoped — SHARED ACROSS CLASSES [r58: a class-scoped chain
+   restarts on dual-enrollment class switches, repeating queues] — an EXPLICIT server-only doc
+   (`review_cursors/{listId}_e{epoch}`, H6 §2b) advanced transactionally at compose; UNDERFLOW top-ups never
+   move it (the cursor tracks the ACTIVE sweep only). The certified property is LAP-based [r58 — the
+   fixed-day-count cycle claim was falsified by burst returns]: every word active across a full cursor lap
+   (variable length under insertion) is served within it; mid-lap returns wait ≤1 lap.** Over the ACTIVE pool; **pool < size ⇒ whole pool + UNDERFLOW TOP-UP from graduated (resting) words, earliest-graduated
    first, up to size [R2-41(e)]**; pinned per day. **Identity is CLASS-SCOPED and immutable
    [r48]: `{uid, classId, listId, logicalDay, resetEpoch, algorithmVersion, configVersion}`** with the day's
    effective values snapshotted (mid-day teacher edits affect the NEXT queue). **Persisted CONTENT — TWO immutable records [r46-H2, FF1-07, r50-B3]: the DAY-QUEUE record `{…identity,

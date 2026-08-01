@@ -33,8 +33,11 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 - Fields: the identity septuple `{uid, classId, listId, logicalDay, resetEpoch, algorithmVersion, configVersion}`
   + `anchorNwei` + `generation` (the cross-class match tuple, r48/r50-B3) + `orderedQueueWordIds[]` + `poolHash`
   + `snapshot{threshold, queueSize, testSize, reviewTestType, reviewGateEnabled}` + `createdAt`.
-- **Creation txn**: composed server-side inside the session-start/test-compose callable — txn reads pool state,
-  applies rotation + the R2-41(e) underflow top-up (earliest-graduated resting words), `create()`s the doc
+- **Creation txn**: composed server-side inside the session-start/test-compose callable — txn reads pool state
+  **+ the ROTATION CURSOR DOC (§2b — NOT the previous queue record: last-element inference breaks under
+  underflow top-ups, and class-scoped chains break dual-enrollment [r58])**, applies the sweep + the R2-41(e)
+  underflow top-up (earliest-graduated resting words), `create()`s the doc **and advances the cursor doc IN
+  THE SAME TXN (cursor := the highest ACTIVE-sweep index served; top-ups never move it)**
   (fails on exists ⇒ read existing — first writer wins, replays converge). The queue doc also carries
   `presentationCount` — the ONE mutable counter field, incremented only inside the presentation-compose txn
   (the sole exception to queue immutability; every other field frozen) [r53-B2].
@@ -43,12 +46,22 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 - `poolHash` = SHA-256 over `JSON.stringify(orderedQueueWordIds)` (hex, full) [r55 — delimiter-safe canonical
   serialization; same rule for `presentationHash` and the introduced-range hash] — drift detection for audits.
 
+## 2b. `users/{uid}/review_cursors/{listId}_e{resetEpoch}` — THE ROTATION CURSOR (NEW, server-only) [r58]
+
+`{uid, listId, resetEpoch, cursorWordIndex|null, lastLogicalDay, lastQueueRef, updatedAt}` — ONE per
+(student, list, epoch), SHARED across classes (the dual-enrollment law: whichever class composes the next
+logical day continues the same sweep). Advanced ONLY inside the queue-compose txn; `cursorWordIndex` = the
+highest active-sweep index served (underflow top-ups excluded); absent/null ⇒ the sweep starts at the smallest
+index (first-ever, post-reset). Epoch-scoped (reset deletes it). Client writes DENIED (rules list).
+
 ## 3. `users/{uid}/review_presentations/{presentationId}` — the PER-ATTEMPT presentation record (NEW, server-only)
 
 - **docId** = `{queueId}_p{seq}` (seq = the queue doc's `presentationCount`+1, assigned in the compose txn).
-- **REPLAY KEY [r53-B2 + r54 fingerprint fix]: `composeKey`** — a client-minted idempotency token sent with
-  every compose request; the compose txn queries `(uid, composeKey)` (indexed). On a hit the txn COMPARES the
-  stored request fingerprint `{classId, listId, logicalDay, resetEpoch, sessionType(new|review),
+- **REPLAY KEY [r53-B2 + r54 + r57 registry fix]: `composeKey`** — a client-minted idempotency token; global
+  uniqueness is serialized by a CLAIM REGISTRY: the compose txn `create()`s
+  `users/{uid}/compose_keys/{composeKey}` `{presentationId, fingerprint, createdAt, resetEpoch}` — the create
+  is the lock (a concurrent duplicate fails the txn and re-reads) [the bare (uid,composeKey) query raced
+  across identities]. On an existing claim the txn COMPARES the stored request fingerprint `{classId, listId, logicalDay, resetEpoch, sessionType(new|review),
   testType(mcq|typed), kind(live|rerun), visitId|null}` [r55 — modality, phase, and kind each frozen
   separately] against the request:
   MATCH ⇒ return the existing presentation (lost-response replay); MISMATCH ⇒ typed refusal
@@ -63,10 +76,13 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 - One per composed test — **EVERY GRADED TEST TYPE [r54]: live review, rerun review, live NEW-WORD, rerun
   new-word** (R2-41 stamps labels from all four, so all four need a server-authoritative presented set +
   server-derived denominator). New-word presentations: `compositionVersion:'new-day'`, `queueRef:null`,
-  `presentedWordIds` = the day's anchor range draw, docId `{classId}_{listId}_d{day}_e{epoch}_n{seq}` — **seq from `users/{uid}/review_counters/{identity}` `{next}` — a server-only COUNTER DOC read+incremented
-  INSIDE the compose txn (count-query allocation raced: two composeKeys could both pick N+1, and ALREADY_EXISTS
-  is not in the txn retry set [r56]); `_p{seq}` keeps the queue's own `presentationCount`; `_r{seq}` uses the
-  same counter-doc mechanism**.
+  `presentedWordIds` = the day's anchor range draw, docId `{classId}_{listId}_d{day}_e{epoch}_n{seq}` — **seq from `users/{uid}/review_counters/{familyId}` — the FROZEN allocator schema [r57]: docId `familyId` =
+  the presentation-family identity string (`{classId}_{listId}_d{day}_e{epoch}_n` for new-day; `..._r` for
+  rerun); fields `{uid, classId, listId, logicalDay, resetEpoch, next:int}`; CREATED with `next:1` on first
+  use INSIDE the compose txn, else read+increment IN the txn (transactional read-modify-write — no
+  ALREADY_EXISTS path, no count query [the count-query instruction is RETIRED everywhere]); the allocated seq
+  = the pre-increment value; txn failure ⇒ standard retry re-reads. `_p{seq}` keeps the queue doc's own
+  `presentationCount`.**
   Every retake composes a NEW presentation under R2-15 rotation (r50-B3).
 - **`compositionVersion` enum [r55 — its own clause]: `'lrt-v1'` (the R2-42/46 deterministic law — live review)
   · `'fallback-random'` (invariant-check fallback; remainder only; seed recorded) · `'rerun-random'` (R2-41h)
@@ -88,8 +104,12 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 - Fields: `{uid, listId, logicalDay, resetEpoch, anchorNwei, generation [r55 — the cross-class validity tuple
   lives on the completion too], winningClassId, evidenceKind, consumedAttemptId|null, consumedAttemptClassId|null,
   sourceConfig{threshold, queueSize, testSize, configVersion, reviewGateEnabled, gateEffectiveEnabled},
-  newTestAttemptId|null, graduationCount, graduatedWordIds[] (bounded ≤ queue size — the SERVER resting-truth
-  input, see §10), graduatedWordIdsHash, completedAt}` — **`evidenceKind` [r55/r56 matrix — decided by (newTest null?, consumed null?, gate posture, day)]:
+  newTestAttemptId|null (null iff a ZERO-new-words day — the R2-39 law), graduationCount, graduatedWordIds[]
+  (bounded ≤ queue size — the SERVER resting-truth input, see §10), graduatedWordIdsHash =
+  **SHA-256(JSON.stringify(graduatedWordIds)) [the frozen formula, r57]**, completedAt}` —
+  **BINDINGS [r57]: `consumedAttemptClassId` is null IFF `consumedAttemptId` is null; every `gate_off_*` kind
+  requires `sourceConfig.gateEffectiveEnabled === false`; `fallbackSeed` is REQUIRED iff
+  `compositionVersion === 'fallback-random'` (else null)** — **`evidenceKind` [r55/r56 matrix — decided by (newTest null?, consumed null?, gate posture, day)]:
   `standard` (neither null) · `gate_off_autopass` (consumed null, newTest present, gate OFF) ·
   `list_end_review_only` (newTest null, consumed present) · `gate_off_list_end` (BOTH null, gate OFF,
   day > 1 — the legitimate OFF×zero-new-words day [r56: previously walled by refusal]) · `first_day_new_only`
@@ -144,11 +164,16 @@ txns against server truth — R2-10 condition (iii)).
 signal write HERE (Admin SDK only; client write DENIED; teacher read) — **never to `system_logs`, which any
 authenticated client may create (firestore.rules:334-337) and which therefore can never be an authority signal.**
 
-## 6d. Grading-job ownership contract [r55]
+## 6d. Grading-job ownership + quarantine contract [r55/r57 — executable]
 
-The claim/pickup path requires **exact `job.uid === caller.uid`** — a job with a MISSING/malformed `uid` is
-REFUSED and quarantined (today's code fail-opens on missing uid: index.js:935-938/:1566-1569 reject only
-truthy-and-different; the build closes this; legacy malformed rows are quarantined at backfill).
+The claim/pickup path requires **exact `job.uid === caller.uid` with `typeof job.uid === 'string' &&
+job.uid.length > 0`** — anything else is MALFORMED. THE QUARANTINE CONTRACT: (predicate) uid
+missing/non-string/empty, or writeContext absent where status requires it; (transition) the claiming txn sets
+`{status:'quarantined', quarantineReason, quarantinedAt}` atomically — never serves the job; (caller response)
+the frozen typed status `job_quarantined` (terminal — retry returns the same; the client offers a fresh test);
+(session-start) pickup queries SKIP `status=='quarantined'`; (legacy scan) a one-time dark-train script counts +
+quarantines existing malformed rows, its count published in the deploy report; (acceptance) post-launch
+monitoring expects ZERO new quarantines — any occurrence is an ops_metrics signal.
 
 ## 7. `system_config/review_v2` (NEW top-level)
 
@@ -180,9 +205,11 @@ Client read allowed (UI posture); client write DENIED.
 ## 9. Retention + reset cleanup
 
 - **RESET = OWNED LOCKED FENCE-FIRST [r54+r55+r56 — closes the races AND the liveness/ownership holes]:**
-  (1) the fence: ONE batched write to **BOTH tombstone docs** (`progress_meta/{listId}` + `list_progress/{listId}`
-  [the two real homes, 14_ §1.5]) setting `{resetEpoch: +1, resetInProgress: {opId, targetEpoch, at}}` —
-  a second reset while the lock holds is REJECTED (`reset_already_running`) unless TAKEOVER applies;
+  (1) the fence: ONE **TRANSACTION** [r57 — a WriteBatch cannot read/reject: two callers could both pass a
+  precheck and overwrite ownership] that READS both tombstone docs (`progress_meta/{listId}` +
+  `list_progress/{listId}`), REJECTS if a live un-expired lock exists (`reset_already_running`), derives ONE
+  absolute `targetEpoch = max(both epochs) + 1`, and WRITES both docs `{resetEpoch: targetEpoch,
+  resetInProgress: {opId, targetEpoch, at}}` atomically;
   (2) while locked, EVERY server op for that (uid,list) — compose, submit, completion, grading claim, label
   write, **challenge-accept [the §6b txn — enumerated, r56]**, rerun compose — rejects `reset_in_progress`;
   (3) stale-epoch-only deletes (all epoch-tagged: queues, presentations, completions, visits, credits,

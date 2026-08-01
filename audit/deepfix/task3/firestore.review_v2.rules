@@ -16,7 +16,7 @@
 // the SIX NEW server label fields (incl. the RENAMED clock `reviewLastTestedAt` and the resting truth
 // `reviewRestingUntil` — legacy `lastTestedAt`/`masteredAt` remain client-writable, are NEVER read by the
 // redesign's composition [15_ §10 server-truth derivation], and retire at DF2-46), and five NEW
-// subcollections (now SEVEN incl. restudy_visits + review_counters [r56]) + three NEW top-level collections
+// subcollections (now NINE incl. restudy_visits/review_counters [r56] + review_cursors/compose_keys [r57/r58]) + three NEW top-level collections
 // (system_config, ai_metering, ops_metrics). Zero live/cached-client write is denied by these clauses
 // before activation. The legacy pool-input fields (`status`/`masteredAt`) are NOT locked here — their
 // narrowing is carded at DF2-46 behind the min-version fence (15_ §10; the P10(d) narrow-after-drain pattern).
@@ -30,7 +30,7 @@
 //   allow create: if isAuthenticated() && isOwner(userId)
 //     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
 //          'review_queues', 'review_presentations', 'day_completions',
-//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters', 'review_cursors', 'compose_keys'])
 //     && !(subcollection == 'study_states'
 //          && request.resource.data.keys().hasAny([
 //               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
@@ -39,7 +39,7 @@
 //   allow update: if isAuthenticated() && isOwner(userId)
 //     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
 //          'review_queues', 'review_presentations', 'day_completions',
-//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters', 'review_cursors', 'compose_keys'])
 //     && !(subcollection == 'study_states'
 //          && request.resource.data.diff(resource.data).affectedKeys().hasAny([
 //               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
@@ -48,7 +48,7 @@
 //   allow delete: if isAuthenticated() && isOwner(userId)
 //     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
 //          'review_queues', 'review_presentations', 'day_completions',
-//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters', 'review_cursors', 'compose_keys'])
 //     && !(subcollection == 'study_states'                                       // label-ERASURE guard [r54]
 //          && resource.data.keys().hasAny([
 //               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
@@ -59,11 +59,11 @@
 // list and (b) the two study_states field guards. If P10(d)'s isOwner narrowing has not shipped, keep the
 // base's `isOwner(userId) || isTeacher()` branch verbatim and add the same field guards to it.
 //
-// ── CLAUSE 2: the SEVEN NEW server-owned subcollections [r56/panel: restudy_visits + review_counters added —
+// ── CLAUSE 2: the NINE NEW server-owned subcollections [r56/panel: restudy_visits + review_counters added —
 // the pip-CAS claim docs and the seq-allocator counters are AUTHORITY and must never be client-writable
 // (client-created visit halves would let one passing rerun farm a pip)] ──────────────────────────
 // review_queues + review_presentations + day_completions (H6 §2/§3/§3b) + streak_credits +
-// restudy_completions + restudy_visits + review_counters (H6 §6/§6e) accept NO client writes — they are
+// restudy_completions + restudy_visits + review_counters + review_cursors + compose_keys (H6 §2b/§3/§6-§6d) accept NO client writes — they are
 // in CLAUSE 1's exclusion list. READ keeps the base's owner+teacher branch (teacher surfaces read student
 // progress records).
 //
@@ -108,7 +108,7 @@
 //  2. Owner create with any of the six label fields → DENY; owner update touching any → DENY.
 //  3. Owner update writing legacy `lastTestedAt` (+`status`/`masteredAt`) → ALLOW (inertness proof —
 //     the cached-bundle case).
-//  4. Owner/teacher write to each of the SEVEN new subcollections (incl. restudy_visits + review_counters) → DENY; owner+teacher read → ALLOW.
+//  4. Owner/teacher write to each of the NINE new subcollections (incl. review_cursors + compose_keys) → DENY; owner+teacher read → ALLOW.
 //  5. system_config/review_v2: authed read → ALLOW; any client write → DENY.
 //  5b. ops_metrics: teacher read → ALLOW; student read → DENY; any client write → DENY.
 //  6. ai_metering: teacher read → ALLOW; student read → DENY; any client write → DENY.

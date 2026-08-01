@@ -1,8 +1,8 @@
 {
   "probe": "b1-expected-labels",
-  "version": 5,
+  "version": 6,
   "mode": "sample",
-  "watermark": 1785595061607,
+  "watermark": 1785597892485,
   "students": 50,
   "cohortTotal": 960,
   "attempts": {
