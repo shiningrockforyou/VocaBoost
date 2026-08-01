@@ -1,0 +1,16 @@
+=== r59 watch tick 18/70  07:40:23Z  baton: rev=118 owner=claude exec=run-written ===
+--- r59-jisu_a1.jsonl  (5 steps) ---
+{"ts":"2026-07-19T07:37:05.463Z","runId":"r59-jisu_a1","seq":4,"step":"reload_readback","data":{"tag":"jisu_a1","csd":5,"twi":400,"reviewMode":false,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1jisua1/dVliNv0p9jqZYp9rfLpN","containsListId":true,"settled":true,"fresh":2}}
+{"ts":"2026-07-19T07:37:05.467Z","runId":"r59-jisu_a1","seq":5,"step":"done","data":{"tag":"jisu_a1","csd":5,"twi":400,"reviewMode":false}}
+--- r59-lostsave_bc_d6.jsonl  (5 steps) ---
+{"ts":"2026-07-19T07:36:04.692Z","runId":"r59-lostsave_bc_d6","seq":4,"step":"reload_readback","data":{"tag":"lostsave_bc_d6","csd":5,"twi":480,"reviewMode":null,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ","containsListId":true,"settled":true,"fresh":3}}
+{"ts":"2026-07-19T07:36:04.698Z","runId":"r59-lostsave_bc_d6","seq":5,"step":"done","data":{"tag":"lostsave_bc_d6","csd":5,"twi":480,"reviewMode":null}}
+--- r59-thr_0DnzKs.jsonl  (5 steps) ---
+{"ts":"2026-07-19T07:36:19.707Z","runId":"r59-thr_0DnzKs","seq":4,"step":"reload_readback","data":{"tag":"thr_0DnzKs","csd":11,"twi":880,"reviewMode":false,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1thr0DnzKs/RmNNkuLPectBlBPiLbAJ","containsListId":true,"settled":true,"fresh":3}}
+{"ts":"2026-07-19T07:36:19.712Z","runId":"r59-thr_0DnzKs","seq":5,"step":"done","data":{"tag":"thr_0DnzKs","csd":11,"twi":880,"reviewMode":false}}
+--- r59-thr_bFV18s.jsonl  (4 steps) ---
+{"ts":"2026-07-19T07:36:34.700Z","runId":"r59-thr_bFV18s","seq":3,"step":"reload_readback","data":{"tag":"thr_bFV18s","csd":7,"twi":420,"reviewMode":false,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1thrbFV18s/RmNNkuLPectBlBPiLbAJ","containsListId":true,"settled":true,"fresh":3}}
+{"ts":"2026-07-19T07:36:34.705Z","runId":"r59-thr_bFV18s","seq":4,"step":"done","data":{"tag":"thr_bFV18s","csd":7,"twi":420,"reviewMode":false}}
+--- r59-thr_yiVt86.jsonl  (5 steps) ---
+{"ts":"2026-07-19T07:36:49.710Z","runId":"r59-thr_yiVt86","seq":4,"step":"heartbeat","data":{"lastStep":"reload_readback","progress":null}}
+{"ts":"2026-07-19T07:36:49.714Z","runId":"r59-thr_yiVt86","seq":5,"step":"done","data":{"tag":"thr_yiVt86","csd":17,"twi":1020,"reviewMode":false}}

@@ -1,0 +1,7 @@
+{
+  "readyFor": "codex",
+  "round": 40,
+  "taskId": "UNIFIED_SESSION_STATE",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_unifiedstate_r40.md",
+  "writtenLast": true
+}

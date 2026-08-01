@@ -265,7 +265,31 @@ codexDecision: GO
 
 Codex should not give `GO` just because the latest diff is smaller or because review fatigue is high.
 
-## Bounded wait behavior
+## Efficient in-session wait behavior (standing method)
+
+Use one long-lived foreground watcher, not repeated baton-read commands:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File docs/plans/loop/watch-for-codex.ps1
+```
+
+It polls internally every 30 seconds, emits nothing while waiting, tolerates partial JSON writes,
+requires a newer Codex-owned revision unless a Codex handoff was already pending at startup, and
+validates any named ready marker. It emits one `READY` line only after the handoff is complete.
+
+Keep waiting on the same yielded process in roughly 60-second tool-wait increments. Those waits are the
+interface bridge; do not start a fresh file-read command each time. The script has no timeout by default;
+`-TimeoutMinutes 300` imposes a five-hour ceiling. The local checks do not invoke the model, although
+tool-wait resumptions may still carry small session/quota overhead.
+
+This cannot wake a closed or interrupted Codex session and cannot override quota, connectivity,
+platform, or tool-runtime limits. Full details are in `SILENT_BATON_WATCHER.md`.
+
+## Legacy bounded-wait example (superseded)
+
+> Superseded by `docs/plans/loop/watch-for-codex.ps1` and
+> `docs/plans/loop/SILENT_BATON_WATCHER.md`. Future sessions must use the silent, single-process,
+> 30-second watcher described there. The example below is retained only as historical context.
 
 Codex can wait for Claude with a foreground polling command.
 
@@ -345,7 +369,10 @@ During this long-turn loop:
 
 ---
 
-## Updated wait contract: 20-minute bounded wait with ready markers
+## Legacy 20-minute marker example (publication order remains current)
+
+> The marker publication order below remains valid, but the bounded 5-second watcher command is
+> superseded by `docs/plans/loop/watch-for-codex.ps1`.
 
 Use a 20-minute bounded foreground wait for Claude handoffs.
 

@@ -1,0 +1,10 @@
+=== r54 watch tick 87/120  02:48:17Z  baton: rev=108 owner=claude exec=run-written ===
+--- r54-live_kjk.jsonl  (153 steps) ---
+{"ts":"2026-07-19T02:44:18.250Z","runId":"r54-live_kjk","seq":39,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T02:44:19.699Z","runId":"r54-live_kjk","seq":40,"step":"done","data":{"tag":"live_kjk","pre":4,"post":5}}
+--- r54-live_lhs.jsonl  (47 steps) ---
+{"ts":"2026-07-19T02:46:04.752Z","runId":"r54-live_lhs","seq":28,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T02:46:12.911Z","runId":"r54-live_lhs","seq":29,"step":"done","data":{"tag":"live_lhs","pre":9,"post":10}}
+--- r54-live_oyk.jsonl  (35 steps) ---
+{"ts":"2026-07-19T02:23:08.571Z","runId":"r54-live_oyk","seq":34,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"dismissCards","i":70,"n":90}}}
+{"ts":"2026-07-19T02:23:17.231Z","runId":"r54-live_oyk","seq":35,"step":"done","data":{"tag":"live_oyk","pre":12,"post":12}}

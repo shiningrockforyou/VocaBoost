@@ -1,0 +1,30 @@
+classes matching /26SM/i: 50 | distinct students: 827
+
+scanned 1013 enrollments | 361 started
+=== FINDINGS ===
+dupProgress: 0
+orphanTwi: 0
+docIdMismatch: 0
+csdImplausible: 5
+   kOWbnPCu dVliNv0p csd=7 > newAnchorDay=4 (twi=240)
+   C8P1fmyq dVliNv0p csd=22 > newAnchorDay=15 (twi=1200)
+   erJVsQPW RmNNkuLP csd=18 > newAnchorDay=8 (twi=596)
+   WwOuwekT RmNNkuLP csd=17 > newAnchorDay=15 (twi=1090)
+   OWyqVHxt RmNNkuLP csd=12 > newAnchorDay=4 (twi=320)
+twiOverList: 0
+phantomAnchor: 0
+invalidAnchor: 0
+noClassAttempt: 0
+reviewNoNewPass: 69
+   qhXlfQfv reviewDay=19
+   pRCz1lD2 reviewDay=16
+   eXjIlWdk reviewDay=14
+   SYIb78ye reviewDay=16
+   OWQRFQ2T reviewDay=21
+   x5dHaQGz reviewDay=19
+   qrqTZng6 reviewDay=15
+   pgajnYzh reviewDay=21
+ghostProgress: 0
+missingProgramStart: 0
+
+TOTAL findings: 74 

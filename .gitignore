@@ -82,3 +82,6 @@ audit/deepfix/context/transcripts/
 
 # CS/data backup dirs — student PII, never commit (added 2026-07-17 pre-full-auto-pipeline)
 scripts/cs/backups_*/
+
+# DEEPFIX2 Track-B baselines (per-student uid-bearing label data — local only, never commit)
+audit/deepfix/trackB_baselines/

@@ -1,0 +1,125 @@
+// firestore.review_v2.rules — THE NAMED ADDITIVE RULES ARTIFACT for DEEPFIX2 THE LAUNCH (DF2-14) [r49-B3].
+// v2 — the r53-B3 correction fold. Lineage: enters the reviewed lineage BEFORE D8g's R3; deploys INSIDE the
+// dark train ahead of activation; the DF2-44 final artifact re-baselines on top. This file holds ADDITIVE
+// CLAUSES, written to be merged into firestore.rules. Schema authority: docs/plans/deepfix2/15_H6_*.md (v2).
+//
+// ── DEPLOY BASE [r53-B3] ────────────────────────────────────────────────────────────────────────
+// The merge base is THE RULESET LIVE IN PRODUCTION AT DARK-TRAIN TIME — not any repo draft. The repo file
+// carries P6/P10(d) narrowings that are deploy-gated on their own preconditions (SERVER_OVERRIDE soak etc.,
+// firestore.rules:150-215 commentary); whichever of those have shipped by then define the base. The merged
+// text below is written against the CURRENT repo draft and marked where it interacts with those narrowings —
+// the dark-train rules deploy MUST re-derive the merged file against the then-live base and diff-review it
+// (WinClaude runs the emulator matrix on the merged artifact, not on this fragment).
+//
+// ── INERTNESS LAW [r53-B3] ──────────────────────────────────────────────────────────────────────
+// Every clause below guards ONLY fields/collections that DO NOT EXIST before the dark train:
+// the SIX NEW server label fields (incl. the RENAMED clock `reviewLastTestedAt` and the resting truth
+// `reviewRestingUntil` — legacy `lastTestedAt`/`masteredAt` remain client-writable, are NEVER read by the
+// redesign's composition [15_ §10 server-truth derivation], and retire at DF2-46), and five NEW
+// subcollections (now SEVEN incl. restudy_visits + review_counters [r56]) + three NEW top-level collections
+// (system_config, ai_metering, ops_metrics). Zero live/cached-client write is denied by these clauses
+// before activation. The legacy pool-input fields (`status`/`masteredAt`) are NOT locked here — their
+// narrowing is carded at DF2-46 behind the min-version fence (15_ §10; the P10(d) narrow-after-drain pattern).
+//
+// ── CLAUSE 1: study_states — field-level immunity for the SIX NEW label fields ──────────────────
+// MERGE INTO: match /users/{userId} → match /{subcollection}/{docId} (the write rule, ~firestore.rules:202).
+// Split by op [r53-B3]: create and update guarded separately (affectedKeys vs a null resource is invalid);
+// delete [r55 — supersedes the earlier acceptable-delete note]: a plain study_state doc stays owner-deletable,
+// but a doc CARRYING any of the six label fields is NOT (the label-ERASURE guard below).
+//
+//   allow create: if isAuthenticated() && isOwner(userId)
+//     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
+//          'review_queues', 'review_presentations', 'day_completions',
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//     && !(subcollection == 'study_states'
+//          && request.resource.data.keys().hasAny([
+//               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
+//               'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+//
+//   allow update: if isAuthenticated() && isOwner(userId)
+//     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
+//          'review_queues', 'review_presentations', 'day_completions',
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//     && !(subcollection == 'study_states'
+//          && request.resource.data.diff(resource.data).affectedKeys().hasAny([
+//               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
+//               'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+//
+//   allow delete: if isAuthenticated() && isOwner(userId)
+//     && !(subcollection in ['list_progress', 'class_progress', 'progress_meta',
+//          'review_queues', 'review_presentations', 'day_completions',
+//          'streak_credits', 'restudy_completions', 'restudy_visits', 'review_counters'])
+//     && !(subcollection == 'study_states'                                       // label-ERASURE guard [r54]
+//          && resource.data.keys().hasAny([
+//               'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
+//               'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+//
+// NOTE: the base's owner/teacher branch shape and the P6 progress-record exclusion list must be PRESERVED
+// as found in the live base — the ONLY deltas are (a) the five new subcollection names in the exclusion
+// list and (b) the two study_states field guards. If P10(d)'s isOwner narrowing has not shipped, keep the
+// base's `isOwner(userId) || isTeacher()` branch verbatim and add the same field guards to it.
+//
+// ── CLAUSE 2: the SEVEN NEW server-owned subcollections [r56/panel: restudy_visits + review_counters added —
+// the pip-CAS claim docs and the seq-allocator counters are AUTHORITY and must never be client-writable
+// (client-created visit halves would let one passing rerun farm a pip)] ──────────────────────────
+// review_queues + review_presentations + day_completions (H6 §2/§3/§3b) + streak_credits +
+// restudy_completions + restudy_visits + review_counters (H6 §6/§6e) accept NO client writes — they are
+// in CLAUSE 1's exclusion list. READ keeps the base's owner+teacher branch (teacher surfaces read student
+// progress records).
+//
+// ── CLAUSE 3: system_config — client-readable, never client-writable ────────────────────────────
+// MERGE AT: top level, alongside match /system_logs (~firestore.rules:335).
+//
+//   match /system_config/review_v2 {      // [r55: the LITERAL doc, not a wildcard — nothing else exists yet]
+//     allow read: if isAuthenticated();     // posture UI reads {enabled, threshold, minClientVersion, ...}
+//     allow write: if false;                // fireadmin (David) + Admin SDK only — the flip surface
+//   }
+//
+// ── CLAUSE 4: ai_metering — server-only, teacher-readable ───────────────────────────────────────
+//   match /ai_metering/{meterId} {
+//     allow read: if isTeacher();           // usage surfaces; students never read raw meters
+//     allow write: if false;                // incremented in the grading-job claim txn (Admin SDK)
+//   }
+//
+// ── CLAUSE 4b: ops_metrics — the server-only operational sink [r55] ─────────────────────────────
+//   match /ops_metrics/{metricId} {
+//     allow read: if isTeacher();
+//     allow write: if false;                // Admin SDK only — composition_fallback/saturation/abort signals
+//   }                                       // (system_logs stays client-creatable and is NEVER an authority signal)
+//
+// ── CLAUSE 5: attempts — NO new clause required [r53-B3 CORRECTION] ─────────────────────────────
+// The repo draft already has attempts FULLY server-owned (create:false / update:false / delete:false,
+// firestore.rules:270-322) — `teacherEdited`/`preOverride` immutability is subsumed. LINEAGE NOTE ONLY:
+// (a) if the live base at dark-train time still carries any client attempt-write branch (pre-P10 rollback
+// state), add the field guard `!request.resource.data.keys().hasAny(['teacherEdited','teacherEditedBy',
+// 'teacherEditedAt','preOverride','gatePosture'])` to that branch in the SAME merge; (b) the emulator
+// matrix asserts client create/update of an attempt carrying any of those keys is DENIED in both bases.
+//
+// ── CLAUSE 6: grading_jobs — POSTURE RESTATED [r53-B3 CORRECTION] ───────────────────────────────
+// Base reality (firestore.rules:340-347): grading_jobs are server-WRITTEN but the OWNER MAY READ
+// (`resource.data.uid == request.auth.uid` — the job docs carry `uid`, functions/index.js:946-962 [r54 oracle fix]). That read now surfaces `rows[]` + writeContext +
+// gatePosture — all the student's OWN submission data (no third-party content): read posture UNCHANGED.
+// Expiry redaction (H6 §5) removes `rows` at logical expiry, so the owner-readable window is bounded.
+// No clause change; the emulator matrix asserts owner-read passes, non-owner read fails, client write fails.
+//
+// ── EMULATOR MATRIX (frozen case list; runs on the MERGED artifact — WinClaude, Java runtime) ───
+//  1. Owner create/update of a plain study_state doc (no label fields) → ALLOW; owner DELETE of a PLAIN
+//     doc → ALLOW; owner DELETE of a doc CARRYING any label field → DENY (erasure guard) [r54 split].
+//  2. Owner create with any of the six label fields → DENY; owner update touching any → DENY.
+//  3. Owner update writing legacy `lastTestedAt` (+`status`/`masteredAt`) → ALLOW (inertness proof —
+//     the cached-bundle case).
+//  4. Owner/teacher write to each of the SEVEN new subcollections (incl. restudy_visits + review_counters) → DENY; owner+teacher read → ALLOW.
+//  5. system_config/review_v2: authed read → ALLOW; any client write → DENY.
+//  5b. ops_metrics: teacher read → ALLOW; student read → DENY; any client write → DENY.
+//  6. ai_metering: teacher read → ALLOW; student read → DENY; any client write → DENY.
+//  7. attempts: client create/update (with and without teacherEdited/gatePosture keys) → DENY.
+//  8. grading_jobs: owner read → ALLOW; other-student read → DENY; client write → DENY.
+//  9. Regression sweep: every pre-existing allow in the base still passes (the base's own test set).
+// 10. Pool-forgery inertness [r54]: owner writes to `status`/`masteredAt` still PASS (legacy display), and the
+//     spec assertion rides the server tests — composition reads only reviewRestingUntil/day_completions, so the
+//     forged values change no behavioral output (proven in the DF2-10 unit matrix, referenced here).
+//
+// ── ROLLBACK COUPLING ───────────────────────────────────────────────────────────────────────────
+// enabled:false (the kill switch) does NOT revert these rules — the label law keeps fail/correct writes
+// flowing server-side while OFF (R2-32), and rules stay valid for both postures. Full rules rollback =
+// redeploy the pre-launch ruleset from the rollback pin (deep fallback only).

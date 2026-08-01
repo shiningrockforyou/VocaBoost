@@ -1,0 +1,13 @@
+=== r56 watch tick 13/150  04:18:02Z  baton: rev=112 owner=claude exec=run-written ===
+--- r56-A2_skip_hold.jsonl  (9 steps) ---
+{"ts":"2026-07-19T04:15:08.851Z","runId":"r56-A2_skip_hold","seq":8,"step":"readback","data":{"csd":5,"twi":400,"canon":0,"resolveLog":2,"quarantineLog":2,"crashed":false}}
+{"ts":"2026-07-19T04:15:08.859Z","runId":"r56-A2_skip_hold","seq":9,"step":"done","data":{"tag":"A2_skip_hold","pre":5,"post":5,"crashed":false}}
+--- r56-F1_extreme_runaway.jsonl  (5 steps) ---
+{"ts":"2026-07-19T04:15:21.391Z","runId":"r56-F1_extreme_runaway","seq":4,"step":"readback","data":{"csd":30,"twi":400,"canon":0,"resolveLog":2,"quarantineLog":2,"crashed":false}}
+{"ts":"2026-07-19T04:15:21.395Z","runId":"r56-F1_extreme_runaway","seq":5,"step":"done","data":{"tag":"F1_extreme_runaway","pre":30,"post":30,"crashed":false}}
+--- r56-F4_incoherent_throttle.jsonl  (9 steps) ---
+{"ts":"2026-07-19T04:15:53.005Z","runId":"r56-F4_incoherent_throttle","seq":8,"step":"readback","data":{"csd":6,"twi":480,"canon":0,"resolveLog":2,"quarantineLog":2,"crashed":false}}
+{"ts":"2026-07-19T04:15:53.011Z","runId":"r56-F4_incoherent_throttle","seq":9,"step":"done","data":{"tag":"F4_incoherent_throttle","pre":6,"post":6,"crashed":false}}
+--- r56-F8_canonical_anomaly.jsonl  (5 steps) ---
+{"ts":"2026-07-19T04:15:33.873Z","runId":"r56-F8_canonical_anomaly","seq":4,"step":"readback","data":{"csd":6,"twi":480,"canon":1,"resolveLog":2,"quarantineLog":0,"crashed":false}}
+{"ts":"2026-07-19T04:15:33.878Z","runId":"r56-F8_canonical_anomaly","seq":5,"step":"done","data":{"tag":"F8_canonical_anomaly","pre":6,"post":6,"crashed":false}}

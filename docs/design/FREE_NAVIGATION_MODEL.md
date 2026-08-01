@@ -1,6 +1,26 @@
+> ⛔ **SUPERSEDED (2026-07-26, R2-24/26/27 — ledger `docs/plans/deepfix2/11_` §1): the per-class two-mode
+> COEXISTENCE architecture this document designs is OBSOLETE. ONE UNIVERSAL MODEL shipped instead: day-structured
+> for every class, free movement within the day, backward re-study/re-test, both tests gating day-advance. The
+> surviving descendants: the past-day browser + phase toggle (DF2-51 rescoped) and pass-to-advance (now the
+> universal both-tests rule). This file is retained as design history only.**
+
 # Free-Navigation Model — remove forced progression, gate only unreached words
 
-**Date:** 2026-07-16 · **Status:** design sketch for a direction decision (vs. continuing to harden the gated model).
+**Date:** 2026-07-16 · **Status:** LAYERED DOC — read the layers in order, the LAST decision governs.
+
+> **⚠ READING ORDER / STATUS (added 2026-07-24).** This doc accreted in layers and the TOP layers are SUPERSEDED:
+> 1. The original sketch below ("What gets DELETED", "Impact on the pending deepfix: RETIRE…", "one hosting release",
+>    "mostly deletion, low risk") describes the abandoned **REPLACEMENT** variant. **Under the governing COEXISTENCE
+>    decision (2026-07-17, bottom of file) NOTHING is deleted or retired** — forced mode keeps the day-guard, binary
+>    throttle, reconciliation, cycling, and override machinery for every forced class; free-nav is a per-class BRANCH.
+>    Read every "DELETE/RETIRE" below as "**absent in free MODE**, retained for forced mode."
+> 2. Three top-layer claims are **factually corrected** by the RIGOR REVIEW mid-file and re-verified by the audited
+>    session map (`docs/design/UNIFIED_SESSION_STATE_MAP.md`, 3× Fable-audited 2026-07-24): the review scheduler is NOT
+>    reusable unchanged (it IS `currentStudyDay` — map G-SCHED; the only per-word engine is the 21-day mastery return —
+>    map G-MASTERY); `twi` is NOT student-scoped/monotonic (per-class, 129 divergent / 27 active — `max(twi)` corrupts);
+>    and "just stop enforcing" is not an option (frontier must be server-owned).
+> 3. Implementation consistency with the unified session container: see **CONSISTENCY WITH THE SESSION MAP** at the end
+>    of this file (added 2026-07-24, when David directed co-implementation with the session-map work).
 
 ## The model in one rule
 A list is an ordered array of words `[0..N)`. A student has a **frontier** = `totalWordsIntroduced` (twi) — the
@@ -115,6 +135,12 @@ rebuild.** Smaller than the full P3→P10 program, but firmly staged-migration t
 blockers that must be adjudicated first.
 
 ### The pivotal product decision (must be answered before any code)
+> **✅ DECIDED — YES, pass-to-advance (David 2026-07-25).** Advancing the frontier requires passing the segment's new-word
+> test at the class `passThreshold` — the teacher pass-contract survives into free mode (mirrors deepfix1 B2, which decided
+> the same for forced mode). Consequences: `SegmentTest` reuses the retake-until-pass machinery via the ONE consolidated
+> G-PASS predicate (incl. the authoritative `passed:true` short-circuit); the retake wall is free mode's only blocking
+> message (plan §12.3 row 15). This closes the last product gate on the free branch.
+
 **Does advancing the frontier still require *passing* the segment's new-word test at the class `passThreshold`?**
 - **Yes** → the teacher accountability contract (retake-until-pass, the compliance loop hagwon teachers pay for)
   survives; free-nav is sound but bigger than sketched.
@@ -191,3 +217,51 @@ coexisting with the default forced-progression + intervention model.
 
 Tracked: `SESSION_TODO_2026-07-17.md` E4 (north-star), `CONSOLIDATED_ROADMAP_2026-07-17.md`, memory `freenav-per-class-option`.
 Baton: round 7 `FREENAV_DESIGN_GATE` resolved → superseded by round 8 (`CONSOLIDATED_ROADMAP_SEQ_GATE`).
+
+---
+## UI VEHICLE — the unified session container is where free-nav MODE lands (David 2026-07-24)
+The redundant-screens refactor `docs/plans/UNIFIED_SESSION_STATE_ARCHITECTURE.md` (§10) is designed to make free-nav an **additive
+branch**, not a second UI: `deriveSessionState(..., navigationMode)` gets a `forced|free` seam and `<SessionStage mode>` renders
+either family (forced reuses `<Study>`/`<Test>`; free adds `<NavigateHub>` + always-on `<Review>`). The seam is threaded as a
+constant `'forced'` in the unification's first increment (byte-identical, no behavior change) so free-nav mode can be wired later
+without a rewrite. The rigor hazards above (server-owned frontier, new scheduler, new rules, pass-to-advance) remain the free-nav
+MODE build prerequisites (E4) — the UI seam does not shortcut them; it just ensures the container won't have to be rebuilt to host
+the mode.
+
+---
+## CONSISTENCY WITH THE SESSION MAP (2026-07-24 — David directed co-implementation)
+
+David's direction: **implement free-nav together with the session-map work** (the unified container,
+`docs/plans/UNIFIED_SESSION_STATE_ARCHITECTURE.md` §10-§11 + `docs/design/UNIFIED_SESSION_STATE_MAP.md`, 3× Fable-audited).
+Consistency audit result: **CONSISTENT at the resolved layer** (COEXISTENCE + §10 seam + map §12 agree on the mode table,
+the exit-set shrink, the prereqs, and the frontier/scheduler facts — same numbers, same lines). The frictions were all in
+this doc's superseded top layer, now bannered. What binds the two plans going forward:
+
+**Alignment (verified):** mode seam signature (`deriveSessionState(..., navigationMode, scheduler, now)`); free exit set
+`recorded / frontier_advanced / already`; csd = `ceil(twi/segment)` display-only; no throttle/hold in free mode (binary
+throttle = forced-mode policy); prereq quartet identical in both docs; the 21-day mastery lifecycle (map **G-MASTERY**,
+audited) is the verified seed of free-mode's **G-DUE** scheduler; `pace` = suggested segment size ↔ `nextSegmentOffer`.
+
+**Binding requirements the audits created (free-nav MUST inherit these or it recreates the disease):**
+1. **One pass predicate.** G-PASS exists at **12 live sites** (map §11.1). If pass-to-advance = yes, `SegmentTest` consumes
+   the ONE consolidated predicate — including the **authoritative `passed:true` short-circuit** (the F1 tripwire: teacher
+   overrides / manual passes / regrades must advance the frontier too). A 13th hand-rolled copy is a design violation.
+2. **One "done/position" authority.** NavigateHub state comes from the single derivation — never from `session_states`
+   (the two-authorities defect, map §11.2, disagrees on every normal completion today).
+3. **Teacher lever surface.** `navigationMode` (+ `reviewPassThreshold`) land in AssignListModal/ClassDetail +
+   `updateAssignmentSettings` validation (map §9 FUTURE rows) — a per-class mode without its setter UI is unshippable.
+4. **Per-mode review-gate semantics stated explicitly:** forced = the banked reviewPassThreshold gate; free = review
+   informs, never gates (no review retake-wall). Open detail to close at design time: does free mode keep the
+   **G-ENGAGED 0.8** predicate for *recording* review outcomes (stats/recentSessions) when nothing is gated on it?
+5. **BlindSpot stays parked but its data model is the G-DUE seed** — the scheduler design starts from
+   `getBlindSpotPool`/`returnAt`, not from scratch (plan §11.1).
+
+**Co-implementation shape (code together ≠ ship together):**
+- **Build together:** increment 1 (forced-only extraction, mode threaded constant — unchanged) → then the free BRANCH of
+  the derivation + `<NavigateHub>`/`<Review>` sub-views + the teacher lever UI, all behind `navigationMode:'free'` which
+  NO live class has set; + the scheduler design artifact (G-DUE).
+- **Still gated for LIVE enablement (unchanged, non-negotiable):** frontier census/adjudication + server-owned frontier
+  (P5-shaped — P5 is currently GO-HOLD), NEW rules artifact (the P10d bare-deploy trap), and the pass-to-advance product
+  decision — **✅ CLOSED YES (David 2026-07-25)**, so the free branch is now product-unblocked; remaining gates are
+  implementation prereqs only.
+- Sequencing per §8-G6 still holds: the review-pass gate ships first (same lines).

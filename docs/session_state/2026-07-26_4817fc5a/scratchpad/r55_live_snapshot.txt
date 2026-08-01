@@ -1,0 +1,22 @@
+=== r55 watch tick 50/150  04:00:13Z  baton: rev=110 owner=claude exec=run-written ===
+--- r55-choi_a12.jsonl  (18 steps) ---
+{"ts":"2026-07-19T03:54:24.830Z","runId":"r55-choi_a12","seq":17,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:54:30.853Z","runId":"r55-choi_a12","seq":18,"step":"done","data":{"tag":"choi_a12","pre":15,"post":15}}
+--- r55-jisu_a1.jsonl  (31 steps) ---
+{"ts":"2026-07-19T03:53:20.926Z","runId":"r55-jisu_a1","seq":30,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:53:24.780Z","runId":"r55-jisu_a1","seq":31,"step":"done","data":{"tag":"jisu_a1","pre":5,"post":5}}
+--- r55-obo_GL7SXB.jsonl  (16 steps) ---
+{"ts":"2026-07-19T03:55:15.880Z","runId":"r55-obo_GL7SXB","seq":15,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:55:20.650Z","runId":"r55-obo_GL7SXB","seq":16,"step":"done","data":{"tag":"obo_GL7SXB","pre":5,"post":6}}
+--- r55-obo_JoJ2ch.jsonl  (16 steps) ---
+{"ts":"2026-07-19T03:56:05.659Z","runId":"r55-obo_JoJ2ch","seq":15,"step":"heartbeat","data":{"lastStep":"outcome","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:56:13.515Z","runId":"r55-obo_JoJ2ch","seq":16,"step":"done","data":{"tag":"obo_JoJ2ch","pre":6,"post":7}}
+--- r55-thr_0DnzKs.jsonl  (31 steps) ---
+{"ts":"2026-07-19T03:48:28.096Z","runId":"r55-thr_0DnzKs","seq":30,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:48:29.900Z","runId":"r55-thr_0DnzKs","seq":31,"step":"done","data":{"tag":"thr_0DnzKs","pre":11,"post":11}}
+--- r55-thr_bFV18s.jsonl  (30 steps) ---
+{"ts":"2026-07-19T03:49:59.934Z","runId":"r55-thr_bFV18s","seq":29,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":25,"n":25}}}
+{"ts":"2026-07-19T03:50:01.644Z","runId":"r55-thr_bFV18s","seq":30,"step":"done","data":{"tag":"thr_bFV18s","pre":7,"post":7}}
+--- r55-thr_yiVt86.jsonl  (30 steps) ---
+{"ts":"2026-07-19T03:51:31.689Z","runId":"r55-thr_yiVt86","seq":29,"step":"heartbeat","data":{"lastStep":"readback","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T03:51:35.870Z","runId":"r55-thr_yiVt86","seq":30,"step":"done","data":{"tag":"thr_yiVt86","pre":17,"post":17}}

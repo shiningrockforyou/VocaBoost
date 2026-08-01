@@ -1,0 +1,4 @@
+=== r60 watch tick 13/70  07:46:52Z  baton: rev=120 owner=claude exec=run-written ===
+--- r60-lostsave_bc_d6.jsonl  (16 steps) ---
+{"ts":"2026-07-19T07:45:02.798Z","runId":"r60-lostsave_bc_d6","seq":15,"step":"reload_readback","data":{"csd":6,"twi":480,"canon":0,"routedUrl":"https://vocaboostone.netlify.app/session/25WTa2r1lostsavebcd6/RmNNkuLPectBlBPiLbAJ"}}
+{"ts":"2026-07-19T07:45:02.852Z","runId":"r60-lostsave_bc_d6","seq":16,"step":"done","data":{"verdict":"FULLY AUTO-RECOVERED: day-6 review completed -> csd 5->6, twi stays 480, canonical=0"}}

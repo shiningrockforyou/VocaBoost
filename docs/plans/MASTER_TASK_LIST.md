@@ -1,5 +1,12 @@
 # MASTER TASK LIST — VocaBoost server-authoritative cutover + CS remediation
 
+> **➡ FORWARD PLANNING MOVED (2026-07-25): [`docs/plans/deepfix2/`](deepfix2/00_ORIENTATION.md).** All REMAINING items here
+> (D4-D9, E1-E4, banked Items A/D, D3.5 remediation, grader round 2) are absorbed into the consolidated **DEEPFIX 2**
+> program (`deepfix2/02_TASK_LIST.md`) **with their original gates intact — deepfix2 v3 ADDS gates and resequencing on top**
+> (census-first, atomic deploy sets, TOCTOU; see its §0/§6/§7; two approved gate-overrides named in its §3). Full
+> dispositions = its §3 reconciliation table (reconstructed in full, 2026-07-26). This file remains the deepfix1 RECORD
+> (ground-truth anchors, done-work evidence, GO-HOLD convergence) — do not plan new work from it.
+>
 > **This is the canonical, verified plan of record.** It was reconstructed 2026-07-18 after a crash, from
 > primary evidence (git history + deploy artifacts + live read-only scans), and independently confirmed by a
 > 5-way convergence (WSL-Claude + 3 Fable assessors + WinClaude + Codex). It SUPERSEDES `RESUME.md` and
@@ -226,6 +233,20 @@ true day (오윤권 12→4 + 4 hidden), sessions cleared (`scripts/cs/reconcile-
   First reset fired Mon 04:00 KST 07-20 — **✅ CONFIRMED LIVE at 04:05** (scripts/cs/verify-token-reset.mjs): token-week rolled to
   07-20 04:00 KST, 0 still-penalized, 5 genuinely-stuck released to 5 (incl. 김호형/조형우). Token thread fully closed. Follow-up:
   CS diag scripts (deepfix-f6-tokens, scan-preemptive-fixes) still read old replenishAt predicate (non-student-facing; update later).
+- **(D) Unified session state — redundant-screens refactor (David 2026-07-20, "one state-aware screen computing state from record").**
+  Plan [`UNIFIED_SESSION_STATE_ARCHITECTURE.md`](UNIFIED_SESSION_STATE_ARCHITECTURE.md). Finding: UI = ~13 screens = ~4 states of ONE machine
+  (study/test/results duplicated new/review, 3 results surfaces, 2 phase enums, vestigial RetakePrompt, unrendered REVIEW_TEST, 2 Dashboard start
+  paths); "what to show" is computed in ~11 SCATTERED sites (client+server hand-synced byte-parity twins) = root of the month's off-by-one/throttle/
+  dual-class/runaway bugs. Target: 1 server-authoritative record → 1 pure `deriveSessionState` → UI as pure render; stuck-notification = derived field.
+  **✅ 5/5 CRITIC CONVERGENCE CLOSED (1 Fable + 2 Opus + Codex + WSL, unanimous SOUND-WITH-GAPS)** — caught 3 factual errors + 1 STRUCTURAL miss in
+  the self-review: (G0) seam is pure(record)=ENTRY only; ~⅓ of states are write-time EXIT outcomes → it's TWO derivations (add `lastWriteOutcome`);
+  (C1) exclude Dashboard from byte-identical step (class-scoped vs cross-class inputs); (G1) heldReason → 3-axis reviewOnlyReason/completionPolicy/
+  holdReason; (G3) determineStartingPhase impure; (G4) ordered-write input-assembly infidelity; +A1-A5 (Codex) +demote-not-delete session_state.phase.
+  **⏸ BANKED — DESIGN ONLY, nothing built.** Ordered prerequisites before ANY code: (1) ship (A) review-pass gate first (edits same lines);
+  (2) write the FULL state enumeration (§8 list + A1-A5); (3) client-only `initializeDailySession` core extraction w/ golden+differential fixtures
+  across the flag matrix — exclude Dashboard/server/canonical/UI-deletion from increment 1. Sequences with/after P5 canonical migration.
+  **WIREFRAME:** `docs/design/unified-session-state-wireframe.html` (state map — when/where each state renders).
+  **§10 MODE-AWARENESS (David 2026-07-24):** the container + deriveSessionState get a `navigationMode: forced|free` seam so the FREE-NAVIGATION model (docs/design/FREE_NAVIGATION_MODEL.md, per-class option E4) is an ADDITIVE branch (reuse Study/Test, add NavigateHub + always-on Review), not a 2nd UI. Threaded as constant `forced` in increment 1 (byte-identical). Free-nav MODE build still gated behind its own prereqs (server-owned frontier/P5, new review scheduler, new rules artifact, pass-to-advance decision).
 
 ## 4. Immediate next actions (verify-forward — Codex-mandated, all agents concur; no rollback absent a signal)
 1. ✅ **Read-only de-risk COMPLETE** — 3 clean live scans (Firestore `data-integrity`, `system_logs` NO-SPIKE,

@@ -1,0 +1,16 @@
+=== r58 watch tick 36/110  07:30:22Z  baton: rev=116 owner=claude exec=run-written ===
+--- r58-jisu_a1.jsonl  (24 steps) ---
+{"ts":"2026-07-19T07:26:32.148Z","runId":"r58-jisu_a1","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":5,"interv":1,"recent":[0.23,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:26:33.736Z","runId":"r58-jisu_a1","seq":24,"step":"done","data":{"tag":"jisu_a1","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}
+--- r58-lostsave_bc_d6.jsonl  (13 steps) ---
+{"ts":"2026-07-19T07:27:14.589Z","runId":"r58-lostsave_bc_d6","seq":12,"step":"outcome","data":{"outcome":"results","scorePct":100}}
+{"ts":"2026-07-19T07:27:16.276Z","runId":"r58-lostsave_bc_d6","seq":13,"step":"done","data":{"tag":"lostsave_bc_d6","csd5to6":false,"twi400to480":false,"anchors":0}}
+--- r58-thr_0DnzKs.jsonl  (24 steps) ---
+{"ts":"2026-07-19T07:22:41.984Z","runId":"r58-thr_0DnzKs","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":11,"interv":1,"recent":[0.3,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:22:43.581Z","runId":"r58-thr_0DnzKs","seq":24,"step":"done","data":{"tag":"thr_0DnzKs","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}
+--- r58-thr_bFV18s.jsonl  (24 steps) ---
+{"ts":"2026-07-19T07:23:58.699Z","runId":"r58-thr_bFV18s","seq":23,"step":"readback_after_review_2","data":{"reviewMode":false,"csd":7,"interv":1,"recent":[0.13333333333333333,1,1],"review_recorded":4}}
+{"ts":"2026-07-19T07:24:00.291Z","runId":"r58-thr_bFV18s","seq":24,"step":"done","data":{"tag":"thr_bFV18s","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}
+--- r58-thr_yiVt86.jsonl  (24 steps) ---
+{"ts":"2026-07-19T07:25:15.319Z","runId":"r58-thr_yiVt86","seq":23,"step":"heartbeat","data":{"lastStep":"readback_after_review_2","progress":{"step":"answering","i":30,"n":30}}}
+{"ts":"2026-07-19T07:25:16.908Z","runId":"r58-thr_yiVt86","seq":24,"step":"done","data":{"tag":"thr_yiVt86","heldAfter1":true,"escapedAfter2":true,"faithful2step":true}}

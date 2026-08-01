@@ -8,6 +8,49 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 17. Unfiltered `study_states` full-collection scans → 207M Firestore QUERY reads/month (~83% of the GCP bill)  ·  client/query  ·  HIGH (measured 2026-07-30)
+
+**What's broken.** Four call sites read a student's ENTIRE `study_states` subcollection with no `where`,
+no `limit` — `getDocs(collection(db,'users',uid,'study_states'))`:
+
+| # | Site | Reads | Actually needs |
+|---|---|---|---|
+| A | `db.js:1183` `fetchStudentAggregateStats` | all (~1,090–2,240 docs) | ONE integer (count of `status !== 'NEVER_TESTED'`) |
+| B | `db.js:1278` + `db.js:1447` (credibility, both submit paths) | all | the ~30 words in THIS test |
+| C | `db.js:1129` `fetchStudentStats` | all, then discards everything not in the list | one list's states |
+
+**Why it happens (root cause).** These predate `study_states` carrying a `listId` field (verified present on
+live docs) and predate `getCountFromServer`. A. is amplified by `ClassDetail.jsx:225`, which calls
+`fetchStudentAggregateStats` **once per class member inside a `Promise.all`** — a 30-student class page is
+~45,000 reads to render 30 integers.
+
+**Impact (measured, Cloud Monitoring, 7 days to 2026-07-30).** ~208.7M document reads/month, of which
+**QUERY = 206.7M (99.0%)**; LOOKUP is only 1.8M. At $0.06/100k that is **~$124/mo of a ~$150 total GCP bill**
+(writes ~$7, storage ~$0.13, Functions effectively free at ~253k invocations/mo vs a 2M free tier).
+Weekday ~10M reads/day vs weekend ~320k — a 25–30× ratio confirming session-driven traffic, not batch jobs.
+Per active student that is **~10,500 reads/weekday** (≈5–10 full scans each). Also O(n·m): `db.js:1129`
+does `wordIds.includes()` inside a `forEach` over every doc (~1,700 × 2,240 comparisons) — should be a `Set`.
+
+**Fix direction.**
+- **A** → `getCountFromServer()` (~2–3 reads instead of ~2,240, a ~750× cut) **or** maintain
+  `users/{uid}.stats.totalWordsLearned` as a counter. ⚠ Prefer the counter: the reader tests
+  `data.status && data.status !== 'NEVER_TESTED'`, and the `normalizeStudyState` fallback to `box` implies
+  legacy docs with NO `status` field — a `!=` count query would silently drop them. Verify field coverage
+  before choosing the query route.
+- **B** → fetch only the answered word IDs (~30 docs) instead of the whole collection. ~50× cut on EVERY
+  test submission. Clearest single win.
+- **C** → add `where('listId','==',listId)`; swap the `includes()` scan for a `Set`.
+
+**Effort/risk.** ~1 day. Low risk, contained to `db.js` + one `ClassDetail.jsx` call site; no schema change
+and no data migration. **Sequencing caveat:** `db.js` is inside deepfix2's blast radius — land these
+deliberately rather than dropping them into a moving tree.
+
+**Strategic note.** This is the whole basis of the "should we leave Firebase?" question (2026-07-30). At 1,452
+users / ~1M docs / 0.73 GiB, the platform is not the problem — these four queries are. Expect ~$150 → ~$25.
+Full measurement + reproduction: `docs/audits/FIRESTORE_COST_AUDIT_2026-07-30.md`.
+
+---
+
 ## 11. Full-freeze intervention is a PERMANENT stuck state — a maxed-out student can never self-recover  ·  backend/intervention  ·  HIGH (confirmed by persona-fleet audit)
 
 **Credit: surfaced by the Run S-Long persona expansion (persona L14); confirmed from fleet3 data; triaged by Codex 2026-07-12.**

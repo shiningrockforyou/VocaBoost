@@ -1,0 +1,1918 @@
+{
+  "sim": "h8-final-values-resim",
+  "version": 5,
+  "values": {
+    "QUEUE0": 60,
+    "TEST": 30,
+    "GATE": 92,
+    "REST": 21,
+    "PACE": 80,
+    "LIST": 1200,
+    "DAYS": 120,
+    "DAILY_ATTEMPTS": 6,
+    "note": "DAILY_ATTEMPTS is a behavioral day-length parameter — POLICY is uncapped retakes"
+  },
+  "accuracyModel": {
+    "table": {
+      "lt50": {
+        "proven": 0.445,
+        "afterWrong": 0.213,
+        "untestedFresh": 0.307,
+        "untestedAged": 0.24
+      },
+      "b50_70": {
+        "proven": 0.642,
+        "afterWrong": 0.503,
+        "untestedFresh": 0.613,
+        "untestedAged": 0.538
+      },
+      "b70_85": {
+        "proven": 0.83,
+        "afterWrong": 0.689,
+        "untestedFresh": 0.785,
+        "untestedAged": 0.747
+      },
+      "b85p": {
+        "proven": 0.965,
+        "afterWrong": 0.882,
+        "untestedFresh": 0.961,
+        "untestedAged": 0.949
+      }
+    },
+    "source": "per-band conditional rates rebuilt from graduation-validity-26SM.json perStudent (all cells n>400)",
+    "caveats": [
+      "probe classes are LAST-ANSWER-based, not pass-gated: sim maps lastAnswerOk→proven/afterWrong rates and intro-age→untested rates; pass-gated lp drives strata/graduation only",
+      "no cross-day learning beyond the within-day retake bonus — walled-band results are a pessimistic BASELINE, not a prediction",
+      "single-student closed world: no teacher edits, challenges, force-pass, or pace changes"
+    ]
+  },
+  "b1Seed": {
+    "mode": "per-word sampling from the JSONL",
+    "words": 30180,
+    "sourceDigest": "fae439d371d89f159a79da580ea0276bd6a8928a9dfa4e3e83e4465801c4ed57",
+    "source": "audit/deepfix/trackB_baselines/ manifest-verified (fail-closed)"
+  },
+  "law": "R2-47: THE EXPOSURE ORACLE IS RETIRED — this artifact is the monitoring-baseline set + the structural cyclicity fixture; the R2-42/46 selector (LRT remainder, effectiveTestSize invariant, prefix-preserving seeded fallback) is mechanism, certified by unit fixtures, not by this sim",
+  "results": [
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 58,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 65,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 57,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 5,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 115,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 5,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 117,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 5,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 116,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 4,
+      "wallDays": 116,
+      "plateauPool": 400,
+      "liveGraduations": 124,
+      "rerunGraduations": 0,
+      "returnSlugMax": 40,
+      "underflowDays": 0,
+      "retakesTotal": 713,
+      "structuralOutOfQueue": {
+        "n": 148,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 63,
+        "unprovenGapP99": 99,
+        "unprovenGapMax": 99
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 2,
+      "wallDays": 118,
+      "plateauPool": 213,
+      "liveGraduations": 56,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 717,
+      "structuralOutOfQueue": {
+        "n": 60,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 24,
+        "unprovenGapP99": 37,
+        "unprovenGapMax": 37
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 1,
+      "wallDays": 119,
+      "plateauPool": 147,
+      "liveGraduations": 28,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 719,
+      "structuralOutOfQueue": {
+        "n": 40,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 31,
+        "unprovenGapMax": 31
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 9,
+      "wallDays": 111,
+      "plateauPool": 705,
+      "liveGraduations": 272,
+      "rerunGraduations": 0,
+      "returnSlugMax": 40,
+      "underflowDays": 0,
+      "retakesTotal": 706,
+      "structuralOutOfQueue": {
+        "n": 330,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 18,
+        "unprovenGapP99": 49,
+        "unprovenGapMax": 62
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 4,
+      "wallDays": 116,
+      "plateauPool": 400,
+      "liveGraduations": 135,
+      "rerunGraduations": 0,
+      "returnSlugMax": 48,
+      "underflowDays": 0,
+      "retakesTotal": 713,
+      "structuralOutOfQueue": {
+        "n": 107,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 14,
+        "unprovenGapP99": 33,
+        "unprovenGapMax": 49
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 1,
+      "wallDays": 119,
+      "plateauPool": 101,
+      "liveGraduations": 28,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 718,
+      "structuralOutOfQueue": {
+        "n": 40,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 8,
+        "unprovenGapMax": 8
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 5,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 4,
+      "wallDays": 116,
+      "plateauPool": 378,
+      "liveGraduations": 112,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 711,
+      "structuralOutOfQueue": {
+        "n": 100,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 1,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 12,
+        "unprovenGapMax": 13
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 5,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 1,
+      "wallDays": 119,
+      "plateauPool": 160,
+      "liveGraduations": 29,
+      "rerunGraduations": 0,
+      "returnSlugMax": 29,
+      "underflowDays": 0,
+      "retakesTotal": 719,
+      "structuralOutOfQueue": {
+        "n": 40,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 1,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 6,
+        "unprovenGapMax": 6
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 5,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 2,
+      "wallDays": 118,
+      "plateauPool": 199,
+      "liveGraduations": 56,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 718,
+      "structuralOutOfQueue": {
+        "n": 60,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 2,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 2,
+        "unprovenGapP99": 7,
+        "unprovenGapMax": 10
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 117,
+      "wallDays": 3,
+      "plateauPool": 236,
+      "liveGraduations": 5683,
+      "rerunGraduations": 0,
+      "returnSlugMax": 58,
+      "underflowDays": 0,
+      "retakesTotal": 357,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 7,
+        "unprovenGapP99": 19,
+        "unprovenGapMax": 27
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 119,
+      "wallDays": 1,
+      "plateauPool": 250,
+      "liveGraduations": 5745,
+      "rerunGraduations": 0,
+      "returnSlugMax": 58,
+      "underflowDays": 0,
+      "retakesTotal": 374,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 19,
+        "unprovenGapMax": 32
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 116,
+      "wallDays": 4,
+      "plateauPool": 229,
+      "liveGraduations": 5616,
+      "rerunGraduations": 0,
+      "returnSlugMax": 58,
+      "underflowDays": 0,
+      "retakesTotal": 387,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 6,
+        "unprovenGapP99": 21,
+        "unprovenGapMax": 32
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 117,
+      "wallDays": 3,
+      "plateauPool": 351,
+      "liveGraduations": 5294,
+      "rerunGraduations": 153,
+      "returnSlugMax": 69,
+      "underflowDays": 0,
+      "retakesTotal": 380,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 7,
+        "unprovenGapP99": 18,
+        "unprovenGapMax": 25
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 116,
+      "wallDays": 4,
+      "plateauPool": 325,
+      "liveGraduations": 5096,
+      "rerunGraduations": 135,
+      "returnSlugMax": 63,
+      "underflowDays": 0,
+      "retakesTotal": 391,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 24,
+        "unprovenGapMax": 33
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 118,
+      "wallDays": 2,
+      "plateauPool": 315,
+      "liveGraduations": 5206,
+      "rerunGraduations": 92,
+      "returnSlugMax": 64,
+      "underflowDays": 0,
+      "retakesTotal": 389,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 23,
+        "unprovenGapMax": 37
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 5,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 119,
+      "wallDays": 1,
+      "plateauPool": 379,
+      "liveGraduations": 4755,
+      "rerunGraduations": 377,
+      "returnSlugMax": 69,
+      "underflowDays": 0,
+      "retakesTotal": 404,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 17,
+        "unprovenGapMax": 33
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 5,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 118,
+      "wallDays": 2,
+      "plateauPool": 389,
+      "liveGraduations": 4734,
+      "rerunGraduations": 422,
+      "returnSlugMax": 69,
+      "underflowDays": 0,
+      "retakesTotal": 412,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 15,
+        "unprovenGapMax": 18
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 5,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 119,
+      "wallDays": 1,
+      "plateauPool": 388,
+      "liveGraduations": 4745,
+      "rerunGraduations": 331,
+      "returnSlugMax": 79,
+      "underflowDays": 0,
+      "retakesTotal": 393,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 18,
+        "unprovenGapMax": 23
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 58,
+      "liveGraduations": 6833,
+      "rerunGraduations": 0,
+      "returnSlugMax": 60,
+      "underflowDays": 31,
+      "retakesTotal": 13,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 3,
+        "unprovenGapP99": 13,
+        "unprovenGapMax": 22
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 67,
+      "liveGraduations": 6798,
+      "rerunGraduations": 0,
+      "returnSlugMax": 60,
+      "underflowDays": 13,
+      "retakesTotal": 18,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 12,
+        "unprovenGapMax": 24
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 59,
+      "liveGraduations": 6816,
+      "rerunGraduations": 0,
+      "returnSlugMax": 60,
+      "underflowDays": 25,
+      "retakesTotal": 15,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 11,
+        "unprovenGapMax": 26
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 60,
+      "liveGraduations": 6587,
+      "rerunGraduations": 253,
+      "returnSlugMax": 76,
+      "underflowDays": 24,
+      "retakesTotal": 14,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 2,
+        "unprovenGapP99": 7,
+        "unprovenGapMax": 8
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 74,
+      "liveGraduations": 6581,
+      "rerunGraduations": 246,
+      "returnSlugMax": 73,
+      "underflowDays": 13,
+      "retakesTotal": 15,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 2,
+        "unprovenGapP99": 8,
+        "unprovenGapMax": 9
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 59,
+      "liveGraduations": 6598,
+      "rerunGraduations": 251,
+      "returnSlugMax": 72,
+      "underflowDays": 27,
+      "retakesTotal": 16,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 2,
+        "unprovenGapP99": 9,
+        "unprovenGapMax": 13
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 5,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 66,
+      "liveGraduations": 6310,
+      "rerunGraduations": 530,
+      "returnSlugMax": 78,
+      "underflowDays": 25,
+      "retakesTotal": 20,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 1,
+        "unprovenGapP99": 6,
+        "unprovenGapMax": 7
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 5,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 67,
+      "liveGraduations": 6308,
+      "rerunGraduations": 542,
+      "returnSlugMax": 79,
+      "underflowDays": 18,
+      "retakesTotal": 20,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 1,
+        "unprovenGapP99": 5,
+        "unprovenGapMax": 7
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 5,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 67,
+      "liveGraduations": 6309,
+      "rerunGraduations": 534,
+      "returnSlugMax": 80,
+      "underflowDays": 17,
+      "retakesTotal": 13,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 1,
+        "unprovenGapP99": 6,
+        "unprovenGapMax": 10
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 1200,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 24,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 151,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 1200,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 18,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 145,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 80,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 0,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 20,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "lt50",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 0,
+      "wallDays": 120,
+      "plateauPool": 1200,
+      "liveGraduations": 0,
+      "rerunGraduations": 0,
+      "returnSlugMax": 20,
+      "underflowDays": 0,
+      "retakesTotal": 720,
+      "structuralOutOfQueue": {
+        "n": 149,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 0,
+        "unprovenGapMax": 0
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 4,
+      "wallDays": 116,
+      "plateauPool": 400,
+      "liveGraduations": 124,
+      "rerunGraduations": 0,
+      "returnSlugMax": 40,
+      "underflowDays": 0,
+      "retakesTotal": 713,
+      "structuralOutOfQueue": {
+        "n": 174,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 63,
+        "unprovenGapP99": 99,
+        "unprovenGapMax": 99
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 4,
+      "wallDays": 116,
+      "plateauPool": 1173,
+      "liveGraduations": 114,
+      "rerunGraduations": 0,
+      "returnSlugMax": 29,
+      "underflowDays": 0,
+      "retakesTotal": 714,
+      "structuralOutOfQueue": {
+        "n": 130,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 31,
+        "unprovenGapP99": 60,
+        "unprovenGapMax": 60
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 2,
+      "wallDays": 118,
+      "plateauPool": 213,
+      "liveGraduations": 56,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 717,
+      "structuralOutOfQueue": {
+        "n": 71,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 13,
+        "unprovenGapP99": 96,
+        "unprovenGapMax": 96
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 5,
+      "wallDays": 115,
+      "plateauPool": 1187,
+      "liveGraduations": 140,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 713,
+      "structuralOutOfQueue": {
+        "n": 114,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 31,
+        "unprovenGapP99": 80,
+        "unprovenGapMax": 80
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 1,
+      "wallDays": 119,
+      "plateauPool": 147,
+      "liveGraduations": 28,
+      "rerunGraduations": 0,
+      "returnSlugMax": 28,
+      "underflowDays": 0,
+      "retakesTotal": 719,
+      "structuralOutOfQueue": {
+        "n": 48,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 0,
+        "unprovenGapP99": 31,
+        "unprovenGapMax": 31
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b50_70",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 5,
+      "wallDays": 115,
+      "plateauPool": 1176,
+      "liveGraduations": 143,
+      "rerunGraduations": 0,
+      "returnSlugMax": 30,
+      "underflowDays": 0,
+      "retakesTotal": 710,
+      "structuralOutOfQueue": {
+        "n": 121,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": false,
+        "unprovenGapP50": 32,
+        "unprovenGapP99": 71,
+        "unprovenGapMax": 71
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": "N/A",
+        "note": "walled run — the rotation is frozen with the day (the wall, not a coverage defect); cyclicity is certified on advancing runs + the arithmetic unit fixture"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 117,
+      "wallDays": 3,
+      "plateauPool": 129,
+      "liveGraduations": 5296,
+      "rerunGraduations": 0,
+      "returnSlugMax": 74,
+      "underflowDays": 6,
+      "retakesTotal": 363,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 8,
+        "unprovenGapP99": 51,
+        "unprovenGapMax": 65
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 116,
+      "wallDays": 4,
+      "plateauPool": 328,
+      "liveGraduations": 5082,
+      "rerunGraduations": 113,
+      "returnSlugMax": 64,
+      "underflowDays": 0,
+      "retakesTotal": 391,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 8,
+        "unprovenGapP99": 33,
+        "unprovenGapMax": 35
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 119,
+      "wallDays": 1,
+      "plateauPool": 98,
+      "liveGraduations": 5375,
+      "rerunGraduations": 0,
+      "returnSlugMax": 77,
+      "underflowDays": 9,
+      "retakesTotal": 370,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 46,
+        "unprovenGapMax": 63
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 117,
+      "wallDays": 3,
+      "plateauPool": 363,
+      "liveGraduations": 5053,
+      "rerunGraduations": 145,
+      "returnSlugMax": 70,
+      "underflowDays": 0,
+      "retakesTotal": 383,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 8,
+        "unprovenGapP99": 26,
+        "unprovenGapMax": 27
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 116,
+      "wallDays": 4,
+      "plateauPool": 92,
+      "liveGraduations": 5183,
+      "rerunGraduations": 0,
+      "returnSlugMax": 76,
+      "underflowDays": 12,
+      "retakesTotal": 383,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 8,
+        "unprovenGapP99": 31,
+        "unprovenGapMax": 53
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b70_85",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 114,
+      "wallDays": 6,
+      "plateauPool": 413,
+      "liveGraduations": 5039,
+      "rerunGraduations": 168,
+      "returnSlugMax": 68,
+      "underflowDays": 0,
+      "retakesTotal": 385,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 8,
+        "unprovenGapP99": 25,
+        "unprovenGapMax": 40
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 1,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 72,
+      "liveGraduations": 5770,
+      "rerunGraduations": 0,
+      "returnSlugMax": 78,
+      "underflowDays": 16,
+      "retakesTotal": 13,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 31,
+        "unprovenGapMax": 33
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 1,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 67,
+      "liveGraduations": 6423,
+      "rerunGraduations": 408,
+      "returnSlugMax": 103,
+      "underflowDays": 18,
+      "retakesTotal": 22,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 6,
+        "unprovenGapP99": 15,
+        "unprovenGapMax": 16
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 2,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 64,
+      "liveGraduations": 5750,
+      "rerunGraduations": 0,
+      "returnSlugMax": 80,
+      "underflowDays": 20,
+      "retakesTotal": 18,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 34,
+        "unprovenGapMax": 63
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 2,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 62,
+      "liveGraduations": 6408,
+      "rerunGraduations": 435,
+      "returnSlugMax": 95,
+      "underflowDays": 29,
+      "retakesTotal": 17,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 5,
+        "unprovenGapP99": 16,
+        "unprovenGapMax": 18
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 0,
+      "seed": 3,
+      "sizeChange": true,
+      "launchSeeded": false,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 64,
+      "liveGraduations": 5764,
+      "rerunGraduations": 0,
+      "returnSlugMax": 80,
+      "underflowDays": 20,
+      "retakesTotal": 16,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 4,
+        "unprovenGapP99": 26,
+        "unprovenGapMax": 38
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    },
+    {
+      "band": "b85p",
+      "rerunsPerDay": 2,
+      "seed": 3,
+      "sizeChange": false,
+      "launchSeeded": true,
+      "daysAdvanced": 120,
+      "wallDays": 0,
+      "plateauPool": 64,
+      "liveGraduations": 6393,
+      "rerunGraduations": 452,
+      "returnSlugMax": 101,
+      "underflowDays": 22,
+      "retakesTotal": 19,
+      "structuralOutOfQueue": {
+        "n": 0,
+        "note": "unproven words never in any composed queue — excluded by the WALL (frozen-queue law), not by the rotation"
+      },
+      "saturationDays": 0,
+      "exposureBaselines": {
+        "note": "DESCRIPTIVE [R2-47 — no pass/fail]",
+        "advancingRun": true,
+        "unprovenGapP50": 6,
+        "unprovenGapP99": 13,
+        "unprovenGapMax": 14
+      },
+      "structuralCyclicity": {
+        "everQueuedAll": true,
+        "note": "every introduced word either entered a queue, is resting, or proved — the rotation-coverage fixture [R2-47]"
+      }
+    }
+  ]
+}

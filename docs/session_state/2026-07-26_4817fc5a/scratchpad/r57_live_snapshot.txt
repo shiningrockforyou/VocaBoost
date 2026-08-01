@@ -1,0 +1,4 @@
+=== r57 watch tick 20/90  04:32:01Z  baton: rev=114 owner=claude exec=run-written ===
+--- r57-choi_a12.jsonl  (15 steps) ---
+{"ts":"2026-07-19T04:28:41.021Z","runId":"r57-choi_a12","seq":14,"step":"readback","data":{"csd":16,"twi":1200,"canon":0,"anchorsAfter":0,"crashed":false}}
+{"ts":"2026-07-19T04:28:41.091Z","runId":"r57-choi_a12","seq":15,"step":"done","data":{"verdict":"OTHER: pre csd=15 post csd=16 anchors=0 — inspect"}}

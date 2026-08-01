@@ -1,0 +1,27 @@
+classes matching /26SM/i: 50 | distinct students: 827
+
+scanned 1013 enrollments | 361 started
+=== FINDINGS ===
+dupProgress: 0
+orphanTwi: 0
+docIdMismatch: 0
+csdImplausible: 0
+twiOverList: 1
+   IRcn5Ksb RmNNkuLP twi=1280>1200
+phantomAnchor: 1
+   IRcn5Ksb day16 RmNNkuLP nwei=1279>=1200 MANUAL
+invalidAnchor: 0
+noClassAttempt: 0
+reviewNoNewPass: 68
+   qhXlfQfv reviewDay=19
+   pRCz1lD2 reviewDay=16
+   eXjIlWdk reviewDay=14
+   SYIb78ye reviewDay=16
+   OWQRFQ2T reviewDay=21
+   x5dHaQGz reviewDay=19
+   qrqTZng6 reviewDay=15
+   pgajnYzh reviewDay=21
+ghostProgress: 0
+missingProgramStart: 0
+
+TOTAL findings: 70 

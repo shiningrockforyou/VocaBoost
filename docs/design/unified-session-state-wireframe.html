@@ -1,0 +1,1037 @@
+<style>
+  :root{
+    --ground:#f6f4f0; --surface:#ffffff; --surface-2:#fbf9f6; --inset:#efece6;
+    --ink:#221b14; --ink-2:#5c5349; --ink-3:#948a7e;
+    --line:#e7e1d8; --line-strong:#d6cdc0;
+    --entry:#e0602a; --entry-soft:#fbe9df; --entry-ink:#a8410f;
+    --exit:#167f6d; --exit-soft:#d9efea; --exit-ink:#0c5849;
+    --free:#6d4fc4; --free-soft:#ece6f9; --free-ink:#4c338f;
+    --advance:#2f8a4e; --hold:#bd7c0c; --refuse:#c1402c; --dead:#948a7e;
+    --shadow:0 1px 2px rgba(40,30,18,.05), 0 8px 24px -12px rgba(40,30,18,.14);
+    --shadow-sm:0 1px 2px rgba(40,30,18,.06);
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
+    --sans:"SF Pro Display","Segoe UI Variable",Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#16120e; --surface:#201a15; --surface-2:#26201a; --inset:#2c251d;
+      --ink:#f1eae0; --ink-2:#bcb2a4; --ink-3:#8a8073;
+      --line:#332b22; --line-strong:#463c30;
+      --entry:#f2763f; --entry-soft:#3a2317; --entry-ink:#f4a074;
+      --exit:#37ab94; --exit-soft:#123029; --exit-ink:#5cc9b3;
+      --free:#a58ae8; --free-soft:#291f42; --free-ink:#c3b1f2;
+      --advance:#4caf6e; --hold:#d59b30; --refuse:#e0664f; --dead:#8a8073;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+      --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#f6f4f0; --surface:#ffffff; --surface-2:#fbf9f6; --inset:#efece6;
+    --ink:#221b14; --ink-2:#5c5349; --ink-3:#948a7e;
+    --line:#e7e1d8; --line-strong:#d6cdc0;
+    --entry:#e0602a; --entry-soft:#fbe9df; --entry-ink:#a8410f;
+    --exit:#167f6d; --exit-soft:#d9efea; --exit-ink:#0c5849;
+    --free:#6d4fc4; --free-soft:#ece6f9; --free-ink:#4c338f;
+    --advance:#2f8a4e; --hold:#bd7c0c; --refuse:#c1402c; --dead:#948a7e;
+    --shadow:0 1px 2px rgba(40,30,18,.05), 0 8px 24px -12px rgba(40,30,18,.14);
+    --shadow-sm:0 1px 2px rgba(40,30,18,.06);
+  }
+  :root[data-theme="dark"]{
+    --ground:#16120e; --surface:#201a15; --surface-2:#26201a; --inset:#2c251d;
+    --ink:#f1eae0; --ink-2:#bcb2a4; --ink-3:#8a8073;
+    --line:#332b22; --line-strong:#463c30;
+    --entry:#f2763f; --entry-soft:#3a2317; --entry-ink:#f4a074;
+    --exit:#37ab94; --exit-soft:#123029; --exit-ink:#5cc9b3;
+    --free:#a58ae8; --free-soft:#291f42; --free-ink:#c3b1f2;
+    --advance:#4caf6e; --hold:#d59b30; --refuse:#e0664f; --dead:#8a8073;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1120px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(18px,4vw,40px) 96px;}
+
+  /* ---- type ---- */
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-3);margin:0 0 14px;}
+  h1{font-size:clamp(30px,4.4vw,46px);line-height:1.04;letter-spacing:-.022em;font-weight:680;
+    margin:0 0 16px;text-wrap:balance;max-width:20ch;}
+  h1 .em{color:var(--entry);} h1 .em2{color:var(--exit);}
+  .lede{font-size:clamp(16px,1.9vw,18.5px);color:var(--ink-2);max-width:66ch;margin:0;}
+  h2{font-size:22px;letter-spacing:-.01em;font-weight:640;margin:0 0 4px;}
+  .sec-note{color:var(--ink-3);font-size:14px;margin:0 0 22px;max-width:70ch;}
+  .sec{margin-top:clamp(48px,7vw,80px);}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+  .sec-num{font-family:var(--mono);font-size:13px;color:var(--ink-3);}
+
+  code,.mono{font-family:var(--mono);}
+  .k{font-family:var(--mono);font-size:.86em;background:var(--inset);color:var(--ink);
+    padding:1.5px 6px;border-radius:5px;border:1px solid var(--line);white-space:nowrap;}
+  .g{font-family:var(--mono);font-size:.82em;color:var(--entry-ink);background:var(--entry-soft);
+    border:1px solid color-mix(in srgb,var(--entry) 40%,var(--line));padding:1px 6px;border-radius:5px;white-space:nowrap;}
+  .g.x{color:var(--exit-ink);background:var(--exit-soft);border-color:color-mix(in srgb,var(--exit) 40%,var(--line));}
+  .g.f{color:var(--free-ink);background:var(--free-soft);border-color:color-mix(in srgb,var(--free) 40%,var(--line));}
+
+  /* ---- channel legend ---- */
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:34px;}
+  @media(max-width:680px){.legend{grid-template-columns:1fr;}}
+  .chan{border:1px solid var(--line);border-radius:14px;background:var(--surface);
+    padding:16px 18px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;}
+  .chan::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .chan.entry::before{background:var(--entry);} .chan.exit::before{background:var(--exit);}
+  .chan.free::before{background:var(--free);} .chan.park::before{background:var(--dead);}
+  .chan h3{margin:0 0 3px;font-size:15px;display:flex;align-items:center;gap:9px;}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .dot.entry{background:var(--entry);} .dot.exit{background:var(--exit);}
+  .dot.free{background:var(--free);} .dot.park{background:var(--dead);}
+  .chan p{margin:0;font-size:13.5px;color:var(--ink-2);}
+  .chan .fn{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:8px;display:block;}
+
+  /* ---- nav graph ---- */
+  .graph-wrap{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);
+    box-shadow:var(--shadow-sm);padding:18px;overflow-x:auto;}
+  .graph-wrap pre.mermaid{margin:0;min-width:640px;background:transparent;font-family:var(--mono);font-size:13px;color:var(--ink-2);}
+
+  /* ---- container frame ---- */
+  .container-frame{margin-top:26px;border:1.5px dashed var(--line-strong);border-radius:18px;
+    background:linear-gradient(180deg,var(--surface-2),var(--surface));padding:20px;position:relative;}
+  .container-tag{position:absolute;top:-11px;left:22px;background:var(--ground);padding:0 10px;
+    font-family:var(--mono);font-size:12px;color:var(--ink-2);letter-spacing:.02em;}
+  .container-tag b{color:var(--ink);}
+  .feed{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin-bottom:16px;}
+  .feed .pill{padding:4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--surface);}
+  .feed .pill.entry{color:var(--entry-ink);border-color:var(--entry);background:var(--entry-soft);}
+  .feed .pill.exit{color:var(--exit-ink);border-color:var(--exit);background:var(--exit-soft);}
+  .feed .pill.free{color:var(--free-ink);border-color:var(--free);background:var(--free-soft);}
+  .feed .arrow{color:var(--ink-3);}
+  .slot{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px 16px;
+    text-align:center;color:var(--ink-2);font-size:13.5px;}
+  .slot b{font-family:var(--mono);color:var(--ink);font-weight:500;}
+
+  /* ---- state grids ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:16px;margin-top:4px;}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--surface);
+    box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;
+    transition:transform .18s ease, box-shadow .18s ease;}
+  @media(hover:hover){.card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}}
+  .card .top{padding:13px 15px 11px;border-bottom:1px solid var(--line);}
+  .card .name{font-family:var(--mono);font-size:13.5px;font-weight:500;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .card.entry .name{color:var(--entry-ink);} .card.exit .name{color:var(--exit-ink);}
+  .card.free .name{color:var(--free-ink);}
+  .card .name .badge{margin-left:auto;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 7px;border-radius:20px;font-family:var(--mono);border:1px solid var(--line);color:var(--ink-3);}
+  .badge.advance{color:var(--advance);border-color:var(--advance);}
+  .badge.hold{color:var(--hold);border-color:var(--hold);}
+  .badge.refuse{color:var(--refuse);border-color:var(--refuse);}
+  .badge.new-ux{color:var(--exit-ink);border-color:var(--exit);background:var(--exit-soft);}
+  .badge.future{color:var(--free-ink);border-color:var(--free);background:var(--free-soft);}
+  .badge.dead{color:var(--dead);border-color:var(--dead);text-decoration:line-through;}
+  .badge.park{color:var(--dead);border-color:var(--line-strong);background:var(--inset);}
+
+  .card.free{border-style:dashed;border-color:color-mix(in srgb,var(--free) 45%,var(--line));}
+  .card.park{border-style:dashed;}
+  .card.park .screen{background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,var(--inset) 8px,var(--inset) 9px);}
+  .card.park .name{color:var(--ink-3);}
+
+  /* mini wireframe screen */
+  .screen{margin:13px 15px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);
+    padding:12px;min-height:96px;display:flex;flex-direction:column;gap:7px;position:relative;}
+  .screen .scr-badge{position:absolute;top:8px;right:9px;font-family:var(--mono);font-size:9px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;background:var(--surface);z-index:1;}
+  .bar{height:9px;border-radius:5px;background:var(--inset);}
+  .bar.w40{width:40%} .bar.w55{width:55%} .bar.w70{width:70%} .bar.w85{width:85%} .bar.w30{width:30%}
+  .bar.tall{height:15px;} .bar.accent{background:color-mix(in srgb,var(--entry) 26%,var(--inset));}
+  .card.exit .bar.accent{background:color-mix(in srgb,var(--exit) 26%,var(--inset));}
+  .card.free .bar.accent{background:color-mix(in srgb,var(--free) 26%,var(--inset));}
+  .wordbox{border:1px dashed var(--line-strong);border-radius:7px;padding:12px 10px;display:flex;
+    flex-direction:column;gap:8px;align-items:center;}
+  .wordbox .bar{width:60%;}
+  .btnrow{display:flex;gap:7px;margin-top:auto;}
+  .btnrow .btn{flex:1;height:16px;border-radius:6px;background:var(--inset);border:1px solid var(--line);}
+  .btnrow .btn.solid{background:color-mix(in srgb,var(--entry) 78%,var(--surface));border-color:transparent;}
+  .card.exit .btnrow .btn.solid{background:color-mix(in srgb,var(--exit) 78%,var(--surface));}
+  .card.free .btnrow .btn.solid{background:color-mix(in srgb,var(--free) 72%,var(--surface));}
+  .bignum{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink);text-align:center;
+    line-height:1;padding:6px 0 2px;}
+  .card.exit .bignum.pass{color:var(--advance);}
+  .stripe{border-radius:7px;padding:9px 11px;font-size:11.5px;line-height:1.45;display:flex;gap:8px;align-items:flex-start;}
+  .stripe.hold{background:color-mix(in srgb,var(--hold) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--hold) 40%,var(--line));color:var(--ink);}
+  .stripe.refuse{background:color-mix(in srgb,var(--refuse) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--refuse) 38%,var(--line));color:var(--ink);}
+  .stripe.info{background:color-mix(in srgb,var(--free) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--free) 35%,var(--line));color:var(--ink);}
+  .stripe .ic{font-family:var(--mono);font-weight:700;flex:none;}
+  .stripe.hold .ic{color:var(--hold);} .stripe.refuse .ic{color:var(--refuse);} .stripe.info .ic{color:var(--free-ink);}
+  .dim{opacity:.45;}
+  .chiprow{display:flex;gap:5px;flex-wrap:wrap;}
+  .chip{font-family:var(--mono);font-size:9.5px;border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;color:var(--ink-2);background:var(--surface);}
+  .chip.on{border-color:var(--entry);color:var(--entry-ink);background:var(--entry-soft);}
+
+  /* meta rows: gate / goes / where */
+  .meta{padding:11px 15px 14px;display:flex;flex-direction:column;gap:8px;margin-top:auto;
+    border-top:1px solid var(--line);background:var(--surface-2);}
+  .meta .row{display:grid;grid-template-columns:52px 1fr;gap:9px;font-size:12px;line-height:1.5;}
+  .meta .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-3);padding-top:1px;}
+  .meta .val{color:var(--ink-2);overflow-wrap:anywhere;}
+  .meta .val .mono{color:var(--ink);font-size:11.5px;}
+
+  /* tables */
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:660px;}
+  .tbl th{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);}
+  .tbl td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl td:first-child{white-space:nowrap;font-family:var(--mono);font-size:12px;color:var(--ink);}
+  .tbl .expr{font-family:var(--mono);font-size:11.5px;color:var(--ink);}
+  .tbl tr.rowdead td{color:var(--ink-3);}
+  .tbl tr.rowdead td:first-child{text-decoration:line-through;}
+  .tbl tr.rowfuture td{background:color-mix(in srgb,var(--free) 6%,transparent);}
+  .tbl tr.rowfuture td:first-child{color:var(--free-ink);}
+
+  /* today->unified collapse */
+  .collapse{margin-top:8px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);}
+  .collapse .row{display:grid;grid-template-columns:1fr 42px 220px;align-items:center;gap:0;
+    border-bottom:1px solid var(--line);}
+  .collapse .row:last-child{border-bottom:none;}
+  @media(max-width:680px){.collapse .row{grid-template-columns:1fr;}
+    .collapse .to{border-top:1px solid var(--line);} .collapse .mid{display:none;}}
+  .collapse .from{padding:12px 16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .collapse .from .s{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);
+    background:var(--inset);border:1px solid var(--line);border-radius:6px;padding:2px 7px;}
+  .collapse .from .s.dead{text-decoration:line-through;color:var(--ink-3);opacity:.7;}
+  .collapse .mid{text-align:center;color:var(--ink-3);font-family:var(--mono);}
+  .collapse .to{padding:12px 16px;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);
+    background:var(--surface-2);height:100%;display:flex;align-items:center;gap:8px;}
+  .collapse .to .sq{width:8px;height:8px;border-radius:2px;background:var(--entry);flex:none;}
+  .collapse .to.exit .sq{background:var(--exit);}
+  .collapse .to.park .sq{background:var(--dead);}
+
+  .callout{margin-top:22px;border:1px solid color-mix(in srgb,var(--exit) 34%,var(--line));
+    background:var(--exit-soft);border-radius:14px;padding:16px 18px;display:flex;gap:13px;align-items:flex-start;}
+  .callout .ic{font-family:var(--mono);font-weight:700;color:var(--exit-ink);flex:none;font-size:15px;padding-top:1px;}
+  .callout p{margin:0;font-size:14px;color:var(--ink);} .callout b{color:var(--exit-ink);}
+  .callout.warn{border-color:color-mix(in srgb,var(--hold) 40%,var(--line));background:color-mix(in srgb,var(--hold) 10%,var(--surface));}
+  .callout.warn .ic,.callout.warn b{color:var(--hold);}
+  .callout.freec{border-color:color-mix(in srgb,var(--free) 36%,var(--line));background:var(--free-soft);}
+  .callout.freec .ic,.callout.freec b{color:var(--free-ink);}
+
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--ink-3);line-height:1.7;}
+  footer .conv{color:var(--ink-2);}
+
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">VocaBoost · session architecture · the full map · 2026-07-24</p>
+    <h1>Every screen, every <span class="em">gate</span>, every <span class="em2">route</span></h1>
+    <p style="margin:10px 0;padding:10px 14px;border:2px solid #b91c1c;border-radius:8px;color:#b91c1c;font-weight:600">⛔ POST-R2 (2026-07-26): free-mode / mode-lever sections below are SUPERSEDED — ONE universal model (no navigationMode; review gate ships ON@92 at DF2-14). Governing: docs/plans/deepfix2/11_ §1 (R2-1..R2-37) + 02_TASK_LIST.md v5. Code anatomy remains accurate.</p>
+    <p class="lede">The complete UI surface of the study system — the Dashboard CTA machine, the one
+      <b>&lt;SessionStage&gt;</b> container with its <span style="color:var(--entry)">entry</span> and
+      <span style="color:var(--exit)">exit</span> channels, results &amp; challenges, the teacher levers that feed the
+      gates, the future <span style="color:var(--free)">free-navigation mode</span>, and what's parked or dead.
+      Every condition below is extracted from code (file:line), not recalled.</p>
+
+    <div class="legend">
+      <div class="chan entry">
+        <h3><span class="dot entry"></span>Entry channel — derived from the record</h3>
+        <p>On open. Reads durable progress + the day's attempts, decides what you land on.</p>
+        <span class="fn">deriveSessionState(record, attempts, assignment, flags, mode, now)</span>
+      </div>
+      <div class="chan exit">
+        <h3><span class="dot exit"></span>Exit channel — derived from the write outcome</h3>
+        <p>On submit. The server's advance / hold / refuse verdict — never a field on the record.</p>
+        <span class="fn">deriveWriteOutcomeView(lastWriteOutcome, entryState)</span>
+      </div>
+      <div class="chan free">
+        <h3><span class="dot free"></span>FREE mode — future, per-class opt-in (E4)</h3>
+        <p>Frontier-based navigation. Same container, additive branch. Gated behind its own prereqs.</p>
+        <span class="fn">navigationMode: 'forced' (default) | 'free'</span>
+      </div>
+      <div class="chan park">
+        <h3><span class="dot park"></span>Parked / dead</h3>
+        <p>BlindSpot: hidden from UI (survival undecided, David 2026-07-24). Plus dead code to delete.</p>
+        <span class="fn">BLINDSPOTS_UI = false</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 01 NAV GRAPH -->
+  <section class="sec" aria-labelledby="s1">
+    <div class="sec-head"><span class="sec-num">01</span><h2 id="s1">Navigation graph — routes and the gates on their edges</h2></div>
+    <p class="sec-note">All routes are flat under one router (App.jsx). <span class="k">PrivateRoute</span> bounces
+      logged-out users to <span class="k">/login</span>; <span class="k">TeacherRoute</span> bounces students to
+      <span class="k">/</span>. The test pages return to the session via <span class="k">returnPath</span> state — the
+      dashboard is not in the happy-path loop.</p>
+
+    <div class="graph-wrap">
+<pre class="mermaid">
+flowchart TB
+  login["/login · /signup"] -->|"G-AUTH"| dash
+  dash["/  Dashboard<br/>hero CTA + per-list Start + focus picker"]
+  dash -->|"Start* — all CTA labels<br/>same target"| dsf
+  dash -.->|"G-REENTRY → modal:<br/>Study Again / Move to Next Day"| dsf
+  dsf["/session/:classId/:listId<br/>DailySessionFlow = SessionStage<br/>study(new) · study(review) · complete"]
+  dsf -->|"Ready for test<br/>G-TESTROUTE: typed?"| typed
+  dsf -->|"G-TESTROUTE: mcq"| mcq
+  mcq["/mcqtest/:c/:l<br/>test + results + challenge"]
+  typed["/typedtest/:c/:l<br/>test + results + challenge"]
+  typed -->|"grade via gradeTypedTest CF"| server
+  mcq -->|"G-FINAL ∧ G-PASS"| server
+  server[("completeSession CF<br/>advance · hold · refuse<br/>G-DAYGUARD · G-HOLD")]
+  server -->|"status → exit channel"| mcq
+  mcq -->|"returnPath + testCompleted"| dsf
+  typed -->|"returnPath + testCompleted"| dsf
+  dsf -->|"Back to Dashboard /<br/>G-CONT advance / G-CYCLE start over"| dash
+  dash -->|"tokens + pending challenges"| gb["/gradebook (student)"]
+  dash -->|"G-RESET (type RESET)"| settings["/settings"]
+  dash -.->|"PARKED: BLINDSPOTS_UI=false"| blind["/blindspots/:c/:l"]
+  teacher["/classes/:classId  ClassDetail<br/>AssignListModal — the levers"] ==>|"assignments · listId · pace,<br/>passThreshold, testMode, sizes …"| server
+  teacher ==> dsf
+  tgb["/teacher/gradebook<br/>challenge review"] -->|"accept → regrade,<br/>may advance day"| server
+</pre>
+    </div>
+  </section>
+
+  <!-- 02 DASHBOARD CTA MACHINE -->
+  <section class="sec" aria-labelledby="s2">
+    <div class="sec-head"><span class="sec-num">02</span><h2 id="s2">Dashboard — the start-affordance machine</h2></div>
+    <p class="sec-note">The hero CTA is one of these states, selected in order. Every label dispatches to the <em>same</em>
+      route — <span class="k">/session/:classId/:listId</span> — the session derives the real phase. The hero currently
+      re-computes the entry derivation with class-scoped inputs (the §8 C1 divergence); under the plan it renders the one
+      derivation's output.</p>
+
+    <div class="grid">
+
+      <div class="card entry">
+        <div class="top"><div class="name">loading<span class="badge">skeleton</span></div></div>
+        <div class="screen"><span class="scr-badge">first paint</span>
+          <div class="bar w55"></div><div class="bar tall w85"></div><div class="bar w40"></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">!settingsLoaded ∨ classesLoading ∨ (!progressReady ∧ !error)</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1753</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">load error<span class="badge refuse">retry</span></div></div>
+        <div class="screen"><span class="scr-badge">error</span>
+          <div class="stripe refuse"><span class="ic">!</span><span>Couldn't load your progress.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">progressHasError</span> (any list failed)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Retry → <span class="mono">reload()</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1760</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">no list yet<span class="badge">empty</span></div></div>
+        <div class="screen"><span class="scr-badge">no focus</span>
+          <div class="bar w70"></div>
+          <div class="wordbox"><div class="bar w55"></div></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">getPrimaryFocus == null</span> — no class, or none with a resolvable assigned list</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">join-class form below</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1902</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">start · Day N<span class="badge">step 1 of 2</span></div></div>
+        <div class="screen"><span class="scr-badge">new day</span>
+          <div class="bignum" style="font-size:16px;">Learn 20 new words</div>
+          <div class="bar w55" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">default: <span class="mono">¬done ∧ ¬review ∧ ¬finished</span>; count from <span class="g">G-ALLOC</span>; Day N = <span class="mono">csd+1</span></span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">→ <span class="mono">/session/:c/:l</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1846-1878</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">resume · review<span class="badge">step 2 of 2</span></div></div>
+        <div class="screen"><span class="scr-badge">mid-day</span>
+          <div class="bignum" style="font-size:16px;">One step left — review</div>
+          <div class="bar w40" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-PHASE</span> = <span class="mono">review-study</span> (passed new, no paired review yet)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Start review →" → <span class="mono">/session/:c/:l</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1744/1858</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">done today<span class="badge advance">complete</span></div></div>
+        <div class="screen"><span class="scr-badge">day done</span>
+          <div class="bignum" style="font-size:16px;color:var(--advance);">Day N done 🎉</div>
+          <div class="bar w55" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-DONE</span>: <span class="mono">phase==='complete'</span> — attempts for day csd+1 exist while csd is HELD. <b>Not a clock.</b></span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Practice again" → <span class="mono">/session</span> (re-entry)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1745/1849-1856</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">list finished<span class="badge">review-only</span></div></div>
+        <div class="screen"><span class="scr-badge">list end</span>
+          <div class="bignum" style="font-size:16px;">Keep your words sharp</div>
+          <div class="bar w70" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">twi ≥ wordCount</span> (list-end ADVANCES, not held — §8 G1)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Start review →"; + <span class="g">G-CONT</span> "Advance to next list →"</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:1740/1861/1889</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">re-entry modal<span class="badge">per-list start</span></div></div>
+        <div class="screen"><span class="scr-badge">modal</span>
+          <div class="stripe hold"><span class="ic">?</span><span>You scored X% — study again, or move to the next day?</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn"></span><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-REENTRY</span>: <span class="mono">phase===COMPLETE ∧ reviewTestScore≠null</span> (+day guard)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Study Again → <span class="mono">/session</span> · Next Day → clear session → <span class="mono">/session</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Dashboard.jsx:2376-2395 · sessionService.js:352</span></span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout warn">
+      <span class="ic">◷</span>
+      <p><b>There is no calendar day-gate.</b> "Done today" is derived from attempts only — after a normal advance the hero
+      immediately offers Day N+1, so a student can complete several "days" in one sitting. The only "come back tomorrow" is
+      the server <b>hold-csd</b> (throttle / non-engaged). KST clocks exist solely in streaks and challenge-token weeks.
+      Any real daily cap would be <em>new</em> behavior.</p>
+    </div>
+  </section>
+
+  <!-- 03 THE CONTAINER + ENTRY STATES -->
+  <section class="sec" aria-labelledby="s3">
+    <div class="sec-head"><span class="sec-num">03</span><h2 id="s3">&lt;SessionStage&gt; — entry states (forced mode)</h2></div>
+    <p class="sec-note">One container; the entry derivation picks the state. Phase authority is <b>attempts</b>
+      (<span class="k">determineStartingPhase(attempts, csd+1)</span>) — the persisted
+      <span class="k">session_state.phase</span> is a display cache, demoted not deleted (§9).</p>
+
+    <div class="container-frame">
+      <span class="container-tag">&lt;<b>SessionStage</b> mode&gt; — the only session surface</span>
+      <div class="feed">
+        <span class="pill entry">entry → phase</span>
+        <span class="arrow">↘</span>
+        <span class="pill">renders one of ↓</span>
+        <span class="arrow">↙</span>
+        <span class="pill exit">exit → outcome</span>
+        <span class="arrow">·</span>
+        <span class="pill free">mode picks the family</span>
+      </div>
+      <div class="slot">forced: <b>&lt;Study&gt;</b> · <b>&lt;Test&gt;</b> · <b>&lt;Outcome&gt;</b> · <b>&lt;Complete&gt;</b>
+        &nbsp;— free adds: <b>&lt;NavigateHub&gt;</b> · <b>&lt;Review&gt;</b> (reuses Study/Test)</div>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+
+      <div class="card entry">
+        <div class="top"><div class="name">deriving<span class="badge">transient</span></div></div>
+        <div class="screen"><span class="scr-badge">loading</span>
+          <div class="bar w55"></div>
+          <div class="wordbox" style="align-items:flex-start;border-style:solid;"><div class="bar w40"></div><div class="bar w70"></div></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">open; record reconciling (anchor → csd/twi), pool reads in ORDERED assembly (§8 G4)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">SessionStage › loading</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">study · new<span class="badge">flashcards</span></div></div>
+        <div class="screen"><span class="scr-badge">new</span>
+          <div class="wordbox"><div class="bar tall w70 accent"></div><div class="bar w40"></div></div>
+          <div class="btnrow"><span class="btn"></span><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-PHASE</span> else-branch; count = <span class="g">G-ALLOC</span> <span class="mono">round(pace×(1−interv))</span>, throttle → 0</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Ready" → <span class="g">G-TESTROUTE</span> → test route</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Study(mode:new)</span> · DSF:1932</span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">test · new<span class="badge">quiz</span></div></div>
+        <div class="screen"><span class="scr-badge">new</span>
+          <div class="bar w70"></div>
+          <div class="bar tall w85" style="background:var(--surface);border:1px solid var(--line);"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">size = <span class="mono">testSizeNew</span> (50); typed grades via <span class="mono">gradeTypedTest</span> CF, MCQ client-side</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">submit → <span class="g x">G-PASS</span> → results (04/05)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Test(mode:new)</span> — review shares it</span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">study · review<span class="badge">flashcards</span></div></div>
+        <div class="screen"><span class="scr-badge">review</span>
+          <div class="wordbox"><div class="bar tall w70 accent"></div><div class="bar w40"></div></div>
+          <div class="btnrow"><span class="btn"></span><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-PHASE</span> br.1, or review-only day (throttle / list-end / #9-resume); pool = <span class="g">G-SCHED</span> csd-slice, cap 60 (+ today's failed new)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Ready" → review test; empty pool → NoReviewModal → completeSession</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Study(mode:review)</span> · DSF:1971</span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">test · review<span class="badge">quiz</span></div></div>
+        <div class="screen"><span class="scr-badge">review</span>
+          <div class="bar w70"></div>
+          <div class="bar tall w85" style="background:var(--surface);border:1px solid var(--line);"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">mode = <span class="mono">reviewTestType ∥ (typed/both ∧ attempts&lt;3 ? typed : mcq)</span>; size = <span class="mono">30+(60−30)×interv</span></span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">submit → <b>always passes</b> today → exit channel</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Test(mode:review)</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">complete<span class="badge advance">terminal</span></div></div>
+        <div class="screen"><span class="scr-badge">day done</span>
+          <div class="bignum" style="font-size:18px;color:var(--advance);">✓ Day N</div>
+          <div class="bar w70"></div><div class="bar w55"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-PHASE</span> br.3 <span class="mono">new.passed ∧ paired review</span> (day-1 variant logs <span class="mono">impossible_phase</span> anomaly — §8 G3)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Back → <span class="mono">/</span> · <span class="g">G-CONT</span> next list · <span class="g">G-CYCLE</span> start over</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">SessionStage › Complete</span> · DSF:1991</span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">crash recovery<span class="badge">local machine</span></div></div>
+        <div class="screen"><span class="scr-badge">restore</span>
+          <div class="stripe hold"><span class="ic">↻</span><span>Mid-test reload detected — returning you to the test.</span></div>
+          <div class="bar w55 dim"></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">wasInTestPhase(lastPhase)</span> in sessionStorage — a SEPARATE state machine (§9 A5)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">re-navigate to test route with saved config</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">DSF:679-743 · sessionRecovery.js</span></span></div>
+        </div>
+      </div>
+
+      <div class="card entry">
+        <div class="top"><div class="name">no review to do<span class="badge">modal</span></div></div>
+        <div class="screen"><span class="scr-badge">empty</span>
+          <div class="stripe hold"><span class="ic">i</span><span>All caught up — nothing due to review today.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">review set empty (all mastered / week-1 day-1)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">close → <span class="mono">completeSession</span> + marker attempt → Complete</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">DSF:617/1039</span> (renders once, not twice, post-unification)</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="sec-head" style="margin-top:34px;"><span class="sec-num">03b</span><h2 style="font-size:18px;">…and the chrome &amp; modal layer</h2></div>
+    <p class="sec-note">Found by the completeness audit — the interactive layer riding on the session states. All live,
+      all student-visible.</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Surface</th><th>Gate / behavior</th><th>Where</th></tr>
+        <tr><td>SessionMenu</td><td class="expr">every study phase: skip-to-test confirm · restore-dismissed confirm · PDF today/full · card toggles</td><td>DSF:1856/2050/2065</td></tr>
+        <tr><td>quit confirm</td><td class="expr">header back → "Leave Study Session?" → /</td><td>DSF:1745/2038</td></tr>
+        <tr><td>card-settings modal</td><td class="expr">first-run "Customize Your Flashcards" — showKoreanDef / showSampleSentence prefs</td><td>DSF:2107-2178</td></tr>
+        <tr><td>dismissed-words UI</td><td class="expr">drawer + restore/restore-all · header count badge · "All cards reviewed!" terminal w/ Take Test / Study Again</td><td>DSF:2181/1843/2262</td></tr>
+        <tr><td>recovery prompt</td><td class="expr">"Resume Previous Test?" Resume / Start Fresh — RECOVERY_GUARD answer-intersection restore</td><td>MCQ:1577 · Typed:1800</td></tr>
+        <tr><td>submit confirms</td><td class="expr">MCQ under-answered review (&lt;80% "won't complete your day") · Typed unanswered-count confirm</td><td>MCQ:1592 · Typed:1656</td></tr>
+        <tr><td>submission overlay</td><td class="expr">"Submitting Your Test…" full-screen; on failure submitError + Retry Submission</td><td>MCQ:1610-1638</td></tr>
+        <tr><td>retake failure</td><td class="expr">review snapshot absent / wrong day / &gt;1hr → "cannot retake", canRetake=false</td><td>MCQ:992-1048</td></tr>
+        <tr><td>Complete variants</td><td class="expr">list-end terminal (continuation vs static) · day-done · ahead/behind chip · Day-1 welcome</td><td>DSF:2442-2504</td></tr>
+        <tr><td>re-entry 3rd action</td><td class="expr">"Retry Review Test" → rebuild set → review-study (empty → NoReviewModal)</td><td>DSF:1632-1653</td></tr>
+        <tr><td>HeaderBar + Help</td><td class="expr">logo / gradebook / classes / lists / profile / settings / sign-out edges · Help modal</td><td>HeaderBar:75-228</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 04 EXIT STATES -->
+  <section class="sec" aria-labelledby="s4">
+    <div class="sec-head"><span class="sec-num">04</span><h2 id="s4">Exit states — the server's verdict on submit</h2></div>
+    <p class="sec-note">Produced from <span class="k">completeSession</span>'s status. Three of these currently render as
+      "success" — that's how a held / refused student strands silently. The exit view must carry explicit
+      <span class="k">advanced:false</span> + reason, not null-progress (§9 A1).</p>
+
+    <div class="grid">
+
+      <div class="card exit">
+        <div class="top"><div class="name">advance<span class="badge advance">completed</span></div></div>
+        <div class="screen"><span class="scr-badge">pass</span>
+          <div class="bignum pass">93%</div>
+          <div class="bar w55" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">status <span class="mono">completed</span> — csd/twi advanced under <span class="g x">G-DAYGUARD</span></span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">→ next entry state (review, or Complete). Next day is immediately startable.</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">studyService.js:1071</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">held · review-only<span class="badge new-ux">new UX</span></div></div>
+        <div class="screen"><span class="scr-badge">held</span>
+          <div class="stripe hold"><span class="ic">i</span><span>Focus on review — new words are paused until your review scores come up.</span></div>
+          <div class="bar w70 dim"></div><div class="bar w55 dim"></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">status <span class="mono">review_recorded</span> — <span class="g x">G-HOLD</span>: throttle day or non-engaged skip; NO csd/twi write</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">stays on Outcome(held) — the banner that doesn't exist today (§8 G2)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">foundation.js:1462-1492 → studyService.js:1040</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">retake required<span class="badge hold">below pass</span></div></div>
+        <div class="screen"><span class="scr-badge">retake</span>
+          <div class="bignum" style="color:var(--hold);">61%</div>
+          <div class="bar w70" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">requiresNewWordRetake</span>: day-2+ new below <span class="g x">G-PASS</span> AND attempt not <span class="mono">passed:true</span> (the flag is authoritative — teacher overrides / regrades complete anyway) — no COMPLETE write</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val"><span class="g x">G-RETAKE</span> in-place resample (new question set, failed attempt recorded)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">studyService.js:1911-1921 · MCQTest.jsx:956</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">refused<span class="badge refuse">no evidence</span></div></div>
+        <div class="screen"><span class="scr-badge">blocked</span>
+          <div class="stripe refuse"><span class="ic">!</span><span>Couldn't record this — the day needs a passing new-word test first. Nothing was lost.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">status <span class="mono">no_evidence</span> (missing anchor) — fail-closed; unknown statuses also block</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Outcome(refused) — <em>today renders "success"</em></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">studyService.js:1054-1069</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">rebuild<span class="badge refuse">day-guard</span></div></div>
+        <div class="screen"><span class="scr-badge">stale</span>
+          <div class="stripe refuse"><span class="ic">↻</span><span>Your session was out of date — rebuilding it. Reload to continue.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">status <span class="mono">day_guard_rejected</span> (<span class="mono">expectedDay ≠ csd+1</span>); server cleared session</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Outcome(rebuild) → re-derive. Known gap: DSF's own path misses this (§11.6-5)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">foundation.js:1355 · studyService.js:1014</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">already done<span class="badge advance">idempotent</span></div></div>
+        <div class="screen"><span class="scr-badge">retry</span>
+          <div class="bignum" style="font-size:18px;color:var(--advance);">✓ Day N</div>
+          <div class="bar w55" style="margin:0 auto;"></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">status <span class="mono">already_completed</span> — duplicate submit of a recorded day</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">folds to Complete (no double count)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">studyService.js:1032</span></span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="sec-head" style="margin-top:34px;"><span class="sec-num">04b</span><h2 style="font-size:18px;">…and the failure &amp; recovery states</h2></div>
+    <p class="sec-note">The paths for when infrastructure fails — not the same as a server "no" verdict. These exist in code
+      today (unevenly); the container gives each a named state.</p>
+
+    <div class="grid">
+
+      <div class="card exit">
+        <div class="top"><div class="name">init failed<span class="badge refuse">fatal</span></div></div>
+        <div class="screen"><span class="scr-badge">error</span>
+          <div class="stripe refuse"><span class="ic">!</span><span>Couldn't build your session.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">initializeDailySession</span> threw (list unreadable / network)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Back to Dashboard → <span class="mono">/</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">DSF:1776-1786</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">test load error<span class="badge refuse">or empty</span></div></div>
+        <div class="screen"><span class="scr-badge">error</span>
+          <div class="stripe refuse"><span class="ic">!</span><span>Unable to load the test / no testable words.</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">word/list fetch failed, or zero words after filtering</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">MCQ → <span class="mono">returnPath ∥ /</span> · Typed → <span class="mono">navigate(−1)</span> (inconsistent today)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">MCQTest:1130 · TypedTest:1353/1368</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">grading · retrying<span class="badge hold">transient</span></div></div>
+        <div class="screen"><span class="scr-badge">typed</span>
+          <div class="stripe hold"><span class="ic">↻</span><span>Grading hit a snag — retrying (attempt 2 of 3)…</span></div>
+          <div class="bar w55 dim"></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">gradeTypedTest</span> transient failure → 3 tries, 10s apart; FIRST asks <span class="mono">getGradingStatus</span> by attemptDocId — a lost <em>response</em> ≠ ungraded (cached grade reused)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">success → results · exhausted → manual retry, answers preserved</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">TypedTest:621-764/1815</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">grading · reload<span class="badge refuse">deterministic</span></div></div>
+        <div class="screen"><span class="scr-badge">typed</span>
+          <div class="stripe refuse"><span class="ic">!</span><span>This one won't fix by retrying — reload to rebuild the request. Your answers are saved.</span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">gradingErrorKind ≠ 'transient'</span> — malformed payload; re-calling just loops</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">reload rebuilds payload; responses kept</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">TypedTest:624/1203-1217</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">blocked · saved<span class="badge hold">answers kept</span></div></div>
+        <div class="screen"><span class="scr-badge">typed</span>
+          <div class="stripe hold"><span class="ic">i</span><span>This day can't be completed yet — your answers are saved. Check the new-word test, then retry.</span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">completion refused mid-typed-flow (<span class="mono">no_evidence</span>-class) — the 조은서 CS pattern, now surfaced bilingually instead of fake success</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">fix prerequisite → retry; reload if it repeats</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">TypedTest:1155-1158</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">quarantined<span class="badge park">dormant · post-P5</span></div></div>
+        <div class="screen"><span class="scr-badge">entry</span>
+          <div class="stripe refuse"><span class="ic">⛔</span><span>Progress record looks corrupt — held for review rather than guessed at.</span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g">G-QUAR</span>: canonical <span class="mono">resolveListProgress</span> refuses corrupt csd/twi signatures. Today LOG-ONLY (<span class="mono">quarantine_candidate</span>); BLOCKS once canonical flips (P5)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">entry refused pending CS fix — needs a real screen before P5</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">foundation.js:1724-1926</span></span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 RESULTS + CHALLENGE -->
+  <section class="sec" aria-labelledby="s5">
+    <div class="sec-head"><span class="sec-num">05</span><h2 id="s5">Results &amp; challenges — the single results surface</h2></div>
+    <p class="sec-note">Rendered inside <span class="k">&lt;Test&gt;</span> after grading (typed grades via the
+      <span class="k">gradeTypedTest</span> CF, MCQ client-side). Per-word verdicts + the challenge flow live here.</p>
+
+    <div class="grid">
+
+      <div class="card exit">
+        <div class="top"><div class="name">new · passed<span class="badge advance">banner</span></div></div>
+        <div class="screen"><span class="scr-badge">pass</span>
+          <div class="bignum pass">96%</div>
+          <div class="bar w55" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g x">G-PASS</span>: <span class="mono">score ≥ passThreshold/100</span> (default .95)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Continue → <span class="mono">returnPath</span> → review study (or Complete on day 1)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">MCQTest.jsx:1174 · TypedTest.jsx:1434</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">new · failed<span class="badge hold">try again</span></div></div>
+        <div class="screen"><span class="scr-badge">fail</span>
+          <div class="bignum" style="color:var(--refuse);">72%</div>
+          <div class="bar w55" style="margin:0 auto;"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">score &lt; threshold</span> → <span class="g x">G-RETAKE</span>; failed attempt IS recorded (<span class="mono">passed:false</span>)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">"Try Again" → new question set in place, no navigation</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">MCQTest.jsx:564/956</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">review · 4-tier<span class="badge">no fail</span></div></div>
+        <div class="screen"><span class="scr-badge">tiered</span>
+          <div class="bignum" style="font-size:18px;">Room for Improvement</div>
+          <div class="chiprow" style="justify-content:center;"><span class="chip on">≥85</span><span class="chip">≥70</span><span class="chip">≥50</span><span class="chip">&lt;50</span></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><b>review always passes today</b> (<span class="mono">passed=true</span>) — the banked <span class="mono">reviewPassThreshold</span> lever lands exactly here</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">Continue → exit channel (score still drives throttle via recentSessions)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">MCQTest.jsx:581/1255 · TypedTest.jsx:853/1515</span></span></div>
+        </div>
+      </div>
+
+      <div class="card exit">
+        <div class="top"><div class="name">challenge<span class="badge">typed only</span></div></div>
+        <div class="screen"><span class="scr-badge">per word</span>
+          <div class="bar w70"></div>
+          <div class="stripe hold"><span class="ic">⚑</span><span>Challenge this grade — costs a token if rejected.</span></div>
+          <div class="chiprow"><span class="chip">tokens 3/5</span><span class="chip">pending</span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">typed ∧ ¬isCorrect ∧ tokens&gt;0 ∧ ¬challenged</span>; <span class="g x">G-TOKEN</span> = 5 − rejections since Mon 04:00 KST</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">submit → <span class="mono">pending</span> only. Teacher accept (gradebook) → regrade; may advance the day iff it crosses <span class="g x">G-PASS</span></span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">TestResults.jsx:85 · db.js:2853-3021</span></span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout">
+      <span class="ic">▲</span>
+      <p><b>Chrome rides along.</b> The live step chrome (<span class="mono">SessionHeader</span> +
+      <span class="mono">getSessionStep</span> + <span class="mono">SessionProgressSheet</span>) hardcodes the 5-step forced
+      sequence and the literal copy "95% required to pass" — it must derive from the unified enum + the class
+      <span class="mono">passThreshold</span>, and render mode-appropriately (steps in forced, hub context in free).</p>
+    </div>
+  </section>
+
+  <!-- 06 FREE MODE -->
+  <section class="sec" aria-labelledby="s6">
+    <div class="sec-head"><span class="sec-num">06</span><h2 id="s6">FREE mode — the additive family <span class="badge future" style="font-size:11px;vertical-align:middle;">future · E4</span></h2></div>
+    <p class="sec-note">Per-class <span class="k">navigationMode:'free'</span> (§10). Everything in
+      <span class="mono">[0, frontier)</span> is the student's, freely; the only gate is the unreached tail. No throttle,
+      no day-gate, no hold/refuse — the exit set shrinks to <span class="k">recorded · frontier_advanced · already</span>.</p>
+
+    <div class="grid">
+
+      <div class="card free">
+        <div class="top"><div class="name">navigate hub<span class="badge future">new sub-view</span></div></div>
+        <div class="screen"><span class="scr-badge">hub</span>
+          <div class="bar tall w85 accent"></div>
+          <div class="chiprow"><span class="chip">frontier 320/600</span><span class="chip">due 41</span><span class="chip">mastery 72%</span></div>
+          <div class="btnrow" style="margin-top:auto;"><span class="btn solid"></span><span class="btn"></span><span class="btn"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g f">G-FRONTIER</span>: all of <span class="mono">[0, twi)</span> open; Day = <span class="mono">ceil(twi/segment)</span>, display-only</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">any segment → Study · review → Review(due) · next segment → SegmentTest</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">SessionStage › NavigateHub</span> (Dashboard evolves toward this)</span></div>
+        </div>
+      </div>
+
+      <div class="card free">
+        <div class="top"><div class="name">study · any segment<span class="badge">reused</span></div></div>
+        <div class="screen"><span class="scr-badge">free</span>
+          <div class="wordbox"><div class="bar tall w70 accent"></div><div class="bar w40"></div></div>
+          <div class="btnrow"><span class="btn"></span><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">segment ⊆ <span class="mono">[0, frontier)</span> — student-chosen, re-study unlimited</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">back to hub, or straight to a test — no forced order</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Study(mode)</span> — same component as forced</span></div>
+        </div>
+      </div>
+
+      <div class="card free">
+        <div class="top"><div class="name">review · due<span class="badge future">always-on</span></div></div>
+        <div class="screen"><span class="scr-badge">due</span>
+          <div class="wordbox"><div class="bar tall w70 accent"></div><div class="bar w40"></div></div>
+          <div class="stripe info"><span class="ic">☆</span><span>41 words due — the scheduler is per-word, not per-day.</span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g f">G-DUE</span>: NEW per-word scheduler — <b>prereq</b>; today's scheduler is csd itself (G-SCHED), which free mode demotes. Seed: the 21-day stale mechanic.</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">review test → <span class="mono">recorded</span> (no hold)</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">SessionStage › Review</span></span></div>
+        </div>
+      </div>
+
+      <div class="card free">
+        <div class="top"><div class="name">segment test<span class="badge future">advances frontier</span></div></div>
+        <div class="screen"><span class="scr-badge">gate</span>
+          <div class="bar w70"></div>
+          <div class="bar tall w85" style="background:var(--surface);border:1px solid var(--line);"></div>
+          <div class="btnrow" style="margin-top:8px;"><span class="btn solid"></span></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="g f">G-OFFER</span> next segment is offered, never forced; <span class="g f">G-ADVANCE-POLICY</span> pass-to-advance = <b>OPEN product decision</b></span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">pass path → <span class="mono">frontier_advanced</span> (twi moves) → hub</span></div>
+          <div class="row"><span class="lbl">where</span><span class="val"><span class="mono">Test(mode)</span> — same component</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout freec">
+      <span class="ic">⛳</span>
+      <p><b>Build prereqs (unchanged by this wireframe):</b> server-owned frontier (P5 census — twi is per-class
+      non-monotonic today), the new per-word scheduler, a new rules artifact, and the pass-to-advance decision. The seam costs
+      one threaded <span class="mono">'forced'</span> constant in increment 1; the mode itself is E4, post-cutover.</p>
+    </div>
+  </section>
+
+  <!-- 07 TEACHER LEVERS -->
+  <section class="sec" aria-labelledby="s7">
+    <div class="sec-head"><span class="sec-num">07</span><h2 id="s7">Teacher levers — what feeds the gates</h2></div>
+    <p class="sec-note">Set in <span class="k">AssignListModal</span> / ClassDetail settings, stored at
+      <span class="k">classes/:id.assignments.:listId.*</span>. This surface is the future home of
+      <span class="k">navigationMode</span> and <span class="k">reviewPassThreshold</span> — a per-class mode is meaningless
+      without the UI that sets it.</p>
+
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Lever</th><th>Default</th><th>Feeds</th><th>Notes</th></tr>
+        <tr><td>pace</td><td>20</td><td><span class="g">G-ALLOC</span> new-word count</td><td>standalone test paths fabricate <span class="expr">pace×7</span> — the §8 G4 input-twin</td></tr>
+        <tr><td>passThreshold</td><td>95</td><td><span class="g x">G-PASS</span> client + server + challenge regrade</td><td>chrome copy hardcodes "95%" — must derive</td></tr>
+        <tr><td>testMode</td><td>mcq</td><td><span class="g">G-TESTROUTE</span></td><td><span class="expr">mcq · typed · both</span> ('both' → new words mcq)</td></tr>
+        <tr><td>testOptionsCount</td><td>4</td><td>MCQ options</td><td>1–10</td></tr>
+        <tr><td>testSizeNew</td><td>50</td><td><span class="g">G-TESTSIZE</span> (new)</td><td>1–500</td></tr>
+        <tr><td>reviewTestType</td><td>mcq</td><td><span class="g">G-TESTROUTE</span> (review)</td><td>overrides the attempts&lt;3 typed heuristic</td></tr>
+        <tr class="rowdead"><td>reviewTestSizeMin / Max</td><td>30 / 60</td><td><b>nothing — DEAD</b></td><td>stored + echoed, never read; real size uses hardcoded 30↔60 × interventionLevel. Fix or remove (§11.6-2)</td></tr>
+        <tr><td>studyDaysPerWeek</td><td>5</td><td><span class="g">G-SCHED</span> divisor · weeklyPace · streak weekend-skip</td><td>absent from AssignListModal (ClassDetail only)</td></tr>
+        <tr><td>nextListId</td><td>—</td><td><span class="g">G-CONT</span></td><td>flag CONTINUATION_LINKS</td></tr>
+        <tr><td>cyclingEnabled</td><td>false</td><td><span class="g">G-CYCLE</span></td><td>flag CYCLING_ENABLED</td></tr>
+        <tr class="rowfuture"><td>navigationMode</td><td>forced</td><td>the §10 mode seam</td><td><b>to add here</b> — forced | free, per class</td></tr>
+        <tr class="rowfuture"><td>reviewPassThreshold</td><td>off</td><td><span class="g x">G-PASS</span> review branch</td><td><b>to add here</b> — the banked retake-until-X% gate</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 08 GATE GLOSSARY -->
+  <section class="sec" aria-labelledby="s8">
+    <div class="sec-head"><span class="sec-num">08</span><h2 id="s8">Gate glossary — exact expressions</h2></div>
+    <p class="sec-note">The complete mechanics, one row per gate (plan §11.4 carries the same list with full file:line).
+      <b>Taxonomy note — three overlaps are deliberate:</b> <span class="g">G-DONE</span> is G-PHASE branch 3 viewed from the
+      Dashboard; <span class="g x">G-RETAKE</span> is ¬G-PASS plus the resample behavior; <span class="g x">G-DAYGUARD</span> /
+      <span class="g x">G-HOLD</span> are <em>producers</em> of two G-EXIT statuses. The glossary is the deduplicated view —
+      the CODE computes several of these at many sites (the §11.7 redundancy audit); collapsing that delta is the refactor.</p>
+
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>Gate</th><th>Expression</th><th>Owner</th></tr>
+        <tr><td><span class="g">G-AUTH</span> / ROLE</td><td class="expr">!user → /login · role≠teacher → /</td><td>PrivateRoute / TeacherRoute</td></tr>
+        <tr><td><span class="g">G-READY</span></td><td class="expr">every classId_listId progress entry ok</td><td>Dashboard:350</td></tr>
+        <tr><td><span class="g">G-FOCUS</span></td><td class="expr">pin → legacy pin → recency(lastSessionAt→csd→assignedAt) → first</td><td>Dashboard:1078</td></tr>
+        <tr><td><span class="g">G-PHASE</span></td><td class="expr">day&gt;1 ∧ new.passed ∧ ¬review → review-study · day=1 ∧ passed → complete (+anomaly) · day&gt;1 ∧ passed ∧ review → complete · else new-words-study</td><td>studyService:228</td></tr>
+        <tr><td><span class="g">G-DONE</span></td><td class="expr">phase==='complete' — attempts-only; NO clock anywhere</td><td>Dashboard:1745</td></tr>
+        <tr><td><span class="g">G-REENTRY</span></td><td class="expr">phase=COMPLETE ∧ reviewTestScore≠null ∧ day matches</td><td>sessionService:352</td></tr>
+        <tr><td><span class="g">G-ALLOC</span></td><td class="expr">newWords = round(pace × (1−interv)); reviewMode → 0</td><td>studyAlgorithm:107</td></tr>
+        <tr><td><span class="g">G-THROTTLE</span></td><td class="expr">enter avg(last3 review) &lt; .30 · exit &gt; .50</td><td>foundation:687</td></tr>
+        <tr><td><span class="g">G-SCHED</span></td><td class="expr">pool slice by csd; divisor = wk1 ? dpw−1 : dpw; cap 60</td><td>studyAlgorithm:188</td></tr>
+        <tr><td><span class="g">G-TESTSIZE</span></td><td class="expr">new: testSizeNew · review: 30+(60−30)×interv (teacher min/max DEAD)</td><td>studyAlgorithm:258</td></tr>
+        <tr><td><span class="g">G-TESTROUTE</span></td><td class="expr">typed → /typedtest else /mcqtest; review: reviewTestType ∥ (typed/both ∧ tries&lt;3 ? typed : mcq)</td><td>DSF:701 · sessionService:374</td></tr>
+        <tr><td><span class="g x">G-PASS</span></td><td class="expr">new: score ≥ passThreshold/100 · review: ALWAYS true (banked lever changes this)</td><td>MCQ:581 · Typed:853 · index.js:434</td></tr>
+        <tr><td><span class="g x">G-RETAKE</span></td><td class="expr">new ∧ score&lt;thr → in-place resample; failed attempt recorded</td><td>MCQ:564/956</td></tr>
+        <tr><td><span class="g x">G-FINAL</span></td><td class="expr">isFirstDay ? type=new : type=review → completeSession</td><td>MCQ:793</td></tr>
+        <tr><td><span class="g x">G-DAYGUARD</span></td><td class="expr">txn expectedDay = csd+1, else day_guard_rejected + clear</td><td>foundation:1355</td></tr>
+        <tr><td><span class="g x">G-HOLD</span></td><td class="expr">THROTTLE-only: (allocZero ∧ ¬listEnd ∧ ¬resume) ∨ (day≥2 ∧ ¬engaged) — list-end / #9-resume ADVANCE · write NO csd/twi → review_recorded</td><td>foundation:1458-1492</td></tr>
+        <tr><td><span class="g">G-ENGAGED</span></td><td class="expr">answered/total ≥ 0.8 (+grandfather epoch) — feeds pairing + the non-engaged hold leg</td><td>reviewPairing:34/80</td></tr>
+        <tr><td><span class="g">G-MASTERY</span></td><td class="expr">graduate floor(size×score) random words → MASTERED +21d · expired → NEEDS_CHECK at init</td><td>studyService:1510/683</td></tr>
+        <tr><td><span class="g">G-RESOLVE</span></td><td class="expr">Dashboard csd ← resolveListProgress callable (SERVER_PROGRESS_WRITE), FAIL-OPEN to stored csd</td><td>Dashboard:1259-1283</td></tr>
+        <tr><td><span class="g x">G-EXIT</span></td><td class="expr">completed·already_completed·review_recorded·no_evidence·day_guard_rejected·else fail-closed</td><td>studyService:1014</td></tr>
+        <tr><td><span class="g">G-QUAR</span></td><td class="expr">canonical resolve refuses corrupt csd/twi signatures — log-only until P5, then BLOCKS entry</td><td>foundation:1724 (dormant)</td></tr>
+        <tr><td><span class="g x">G-TOKEN</span></td><td class="expr">max(0, 5 − rejected since Mon 04:00 KST)</td><td>db:211 ≡ index:657</td></tr>
+        <tr><td><span class="g x">G-CHALLENGE</span></td><td class="expr">submit → pending only · teacher accept → regrade; advance iff old&lt;thr ∧ new≥thr</td><td>db:2853</td></tr>
+        <tr><td><span class="g">G-RESET</span></td><td class="expr">type "RESET" → wipe list-wide (ALL classes) + resetEpoch → Day 1</td><td>foundation:2055</td></tr>
+        <tr><td><span class="g">G-CONT</span> / CYCLE</td><td class="expr">listFinished ∧ nextListId → advance · cyclingSource → start over</td><td>flags</td></tr>
+        <tr><td><span class="g f">G-FRONTIER</span></td><td class="expr">FREE: [0,twi) open; only [twi,N) gated</td><td>future E4</td></tr>
+        <tr><td><span class="g f">G-DUE</span> / OFFER / POLICY</td><td class="expr">FREE: new per-word scheduler · segments offered never forced · pass-to-advance OPEN</td><td>future E4</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- 09 PARKED + DEAD -->
+  <section class="sec" aria-labelledby="s9">
+    <div class="sec-head"><span class="sec-num">09</span><h2 id="s9">Parked &amp; dead</h2></div>
+    <p class="sec-note">Hidden ≠ deleted. BlindSpot's UI goes dark behind a flag; its 21-day stale mechanic stays — it's the
+      seed of free mode's <span class="g f">G-DUE</span> scheduler.</p>
+
+    <div class="grid">
+
+      <div class="card park">
+        <div class="top"><div class="name">blind spots<span class="badge park">parked 07-24</span></div></div>
+        <div class="screen"><span class="scr-badge">hidden</span>
+          <div class="bar w55 dim"></div>
+          <div class="wordbox dim"><div class="bar w40"></div></div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val"><span class="mono">BLINDSPOTS_UI=false</span> — Dashboard link (:2172) + route (App:91) + HelpModal copy (:250); help-site pages on flip</span></div>
+          <div class="row"><span class="lbl">keep</span><span class="val"><span class="mono">BlindSpotCheck.jsx</span> + <span class="mono">getBlindSpotPool</span> + the 21-day stale data model</span></div>
+          <div class="row"><span class="lbl">why</span><span class="val">survival undecided — hide now, keep-or-kill later (plan §11.1)</span></div>
+        </div>
+      </div>
+
+      <div class="card park">
+        <div class="top"><div class="name">dead code<span class="badge dead">delete</span></div></div>
+        <div class="screen"><span class="scr-badge">0 imports</span>
+          <div class="chiprow">
+            <span class="chip">SessionSteps.jsx</span><span class="chip">SessionProgressBanner.jsx</span>
+            <span class="chip">BlindSpotsCard.jsx</span><span class="chip">MasteryBars.jsx</span>
+            <span class="chip">MasterySquares import</span><span class="chip">RetakePrompt (unreachable branch — delete DSF:1952-1969 too)</span>
+            <span class="chip">REVIEW_TEST phase (its localStorage twin is LIVE)</span><span class="chip">StudySelectionModal (setters never true + broken /study /test targets)</span><span class="chip">practiceMode prop (no caller — Practice Mode v2's hook)</span>
+          </div></div>
+        <div class="meta">
+          <div class="row"><span class="lbl">gate</span><span class="val">verified zero imports / never rendered (2 of them carry a 3rd + 4th phase vocabulary)</span></div>
+          <div class="row"><span class="lbl">goes</span><span class="val">delete at unification cleanup — after the enum fold, so nothing resurrects them</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 10 COLLAPSE MAP -->
+  <section class="sec" aria-labelledby="s10">
+    <div class="sec-head"><span class="sec-num">10</span><h2 id="s10">Today → unified</h2></div>
+    <p class="sec-note">What folds into what. Struck-through = dead or duplicated today.</p>
+
+    <div class="collapse">
+      <div class="row">
+        <div class="from"><span class="s">new-word study</span><span class="s">review study</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>Study(mode)</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">new-word test</span><span class="s">review test</span><span class="s dead">REVIEW_TEST phase (unrendered)</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>Test(mode)</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">test-route results</span><span class="s dead">RetakePrompt</span><span class="s dead">SessionSummary score</span><span class="s">re-entry "resume?" modal</span></div>
+        <div class="mid">→</div>
+        <div class="to exit"><span class="sq"></span>Outcome(advance / held / retake / refused)</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">day-complete terminal</span><span class="s dead">empty-review modal ×2</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>Complete</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">SESSION_PHASE (kebab)</span><span class="s">PHASES (snake)</span><span class="s">stepTracker vocab</span><span class="s dead">Banner vocab (dead)</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>one phase enum</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">Dashboard hero "Start"</span><span class="s dead">per-list "Start Session"</span><span class="s">panelCState re-derivation</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>one start affordance</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">SessionProgressSheet steps</span><span class="s">"95%" hardcoded copy</span><span class="s dead">SessionSteps.jsx</span><span class="s dead">SessionProgressBanner.jsx</span></div>
+        <div class="mid">→</div>
+        <div class="to"><span class="sq"></span>mode-aware chrome</div>
+      </div>
+      <div class="row">
+        <div class="from"><span class="s">/blindspots route</span><span class="s">Dashboard link</span><span class="s dead">BlindSpotsCard (orphan)</span></div>
+        <div class="mid">→</div>
+        <div class="to park"><span class="sq"></span>PARKED (flag off)</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="conv">Wireframe of record — gates + navigation routes per screen. Design only; nothing implemented.</div>
+    Sources: 4 read-only code extractions 2026-07-24 · AUDITED by 3 independent Fable agents (F1 accuracy 57✓/1✗/3≈ ·
+    F2 completeness gaps→folded · F3 redundancy/dead-code safe-with-2-adjustments→folded).<br>
+    Canonical detail: docs/design/UNIFIED_SESSION_STATE_MAP.md (§16 audit log) · Plan: docs/plans/UNIFIED_SESSION_STATE_ARCHITECTURE.md
+    — §8/§9 convergence (5/5) · §10 mode seam · §11 full surface map. Build order unchanged: review-pass gate → state enumeration →
+    client-only extraction.
+  </footer>
+
+</div>

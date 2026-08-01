@@ -1,28 +1,37 @@
-﻿{
-    "turnOwner":  "claude",
-    "round":  39,
-    "taskId":  "TOKEN_RESET_CALENDAR",
-    "targetPlan":  "docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md",
-    "handoff":  "docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md",
-    "readyMarker":  "docs/plans/loop/ready/claude_ready_round_039.json",
-    "changedFiles":  [
-
-                     ],
-    "evidenceFiles":  [
-                          "functions/index.js",
-                          "functions/foundation.js",
-                          "src/services/db.js",
-                          "src/types/studyTypes.js",
-                          "scripts/cs/reset-challenge-tokens.mjs"
-                      ],
-    "claudeStatus":  "David DECIDED calendar-week reset (Mon 00:00 KST) + reset all students (full amnesty) — NOT rolling. Proposed impl = Approach 3: server WRITE replenishAt = mondayOfWeekTimestamp()+7d (reuse the fixed-KST helper foundation.js:432), read path UNCHANGED (parity-safe; all students reset at one KST boundary regardless of TZ — client getMondayOfWeek is browser-local so read-time calc would break for 베트남/Vietnam students). One-time amnesty via reset-challenge-tokens.mjs. VERIFY the 4 questions in the handoff.",
-    "codexStatus":  "review-written",
-    "codexDecision":  "DONE",
-    "note":  "Round 39 = VERIFY the CALENDAR-reset impl (r38 verified the rolling constant-swap; David chose calendar). Read docs/plans/loop/handoffs/claude_to_codex_tokencalendar_r39.md. Verify: (1) mondayOfWeekTimestamp() safe to reuse (Monday 00:00 KST, +7d = correct next boundary incl edge); (2) Approach 3 (server-write KST, read unchanged) is parity-safe vs Approach 1 (read-time, breaks on browser-local client helper for non-KST students); (3) any other replenishAt ~30d consumer (UI countdown/analytics); (4) reset-challenge-tokens.mjs still correct for the one-time amnesty. Write docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md; set baton turnOwner=claude round=39 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=149 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md.",
-    "updatedBy":  "codex",
-    "revision":  149,
-    "codexConverged":  false,
-    "keepaliveCount":  0,
-    "codexReviewRepoPath":  "docs/plans/loop/codex_reviews/codex_tokencalendar_r39.md",
-    "updatedAt":  "2026-07-19T14:41:24Z"
+{
+  "turnOwner": "claude",
+  "round": 57,
+  "taskId": "DEEPFIX2_PROGRAM",
+  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r57.md",
+  "readyMarker": "docs/plans/loop/ready/claude_ready_round_057.json",
+  "changedFiles": [
+    "docs/plans/deepfix2/11_REDESIGN_VERIFICATION_AND_FOLD_PLAN.md",
+    "docs/plans/deepfix2/10_REVIEW_GRADUATION_REDESIGN.md",
+    "docs/plans/deepfix2/02_TASK_LIST.md",
+    "docs/plans/deepfix2/00_ORIENTATION.md",
+    "docs/plans/deepfix2/01_SOURCES.md",
+    "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
+    "docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md",
+    "audit/deepfix/task3/firestore.review_v2.rules",
+    "scripts/deepfix2/",
+    "docs/plans/deepfix2/evidence/",
+    "docs/plans/deepfix2/trackA/C2_UI_CALIBRATION.md",
+    "docs/plans/deepfix2/12_R2_DISCUSSION_TRACE.md"
+  ],
+  "evidenceFiles": [
+    "change_action_log.md",
+    "docs/plans/deepfix2/evidence/h8-resim-results.json"
+  ],
+  "claudeStatus": "R2-47 RATIFIED (owner retired the exposure-clock promise — the r56 oracle dispute dissolves at the root) + the full r56 gate + freeze2-panel findings executed (~70 edits, batches A-D): B1 v5 (scan-first, exact graded, allowlist, rru evidence law) · H6/rules v4 (visits+counters protected, owned reset lock w/ takeover, evidenceKind complete, stored fingerprint, counter allocator) · H8 v5 (baselines + cyclicity fixture, no oracle). Round 57 = freeze attempt 3. Rule AUTH YES/NO + B1-full GO/NO-GO.",
+  "codexStatus": "review-written",
+  "codexDecision": "DONE",
+  "wslNote": "The contract set is now R2-47-shaped: structural certification + mechanism fixtures + baselines. If YES: stage-1 declared, B1 --full (allowlist) runs, dark build begins.",
+  "note": "Round 57 = STAGE-1 FREEZE (3rd attempt, R2-47 contract set). Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r57.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r57.md; set baton turnOwner=claude round=57 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=187 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r57.md.",
+  "updatedBy": "codex",
+  "revision": 187,
+  "codexConverged": false,
+  "keepaliveCount": 0,
+  "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r57.md",
+  "updatedAt": "2026-08-01T23:52:41+09:00"
 }
