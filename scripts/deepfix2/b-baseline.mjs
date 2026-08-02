@@ -176,8 +176,9 @@ export function loadDeltaLayer(dir, originalManifestSha256, originalWatermark = 
 // r66 [Codex r65 A3]: THE ONE STRICT LEDGER REDUCER — B4's audit and B3's repair-reality scan consume the
 // SAME law: malformed/unknown/versionless/outcome-less lines THROW; per runId the LATEST attempt must have
 // a clean completion; applied layer shas are collected for coverage checks.
-export function parseLedgerStrict(text, originalManifestSha256) {
+export function parseLedgerStrict(text, originalManifestSha256, opts = {}) {
   const intents = new Map(); const applieds = new Map(); const latestAttempt = new Map();
+  const ordered = []; // r68: record order IS custody order — the overtake law needs positions
   const lines = text.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i]; if (!ln.trim()) continue;
@@ -189,32 +190,60 @@ export function parseLedgerStrict(text, originalManifestSha256) {
     const key = `${e.runId}#${e.attempt}`;
     if (e.probe === "b3-intent") intents.set(key, e);
     else {
-      if (typeof e.outcome !== "object" || e.outcome === null) throw new Error(`completion lacks outcome at line ${i + 1}`);
+      const o = e.outcome;
+      if (typeof o !== "object" || o === null) throw new Error(`completion lacks outcome at line ${i + 1}`);
+      // r68 [Codex r67 A2 — truthiness was fail-open]: EXACT terminal schema. cutoverAborted must be the
+      // literal boolean true; a terminal completion must bind to ITS OWN intent's identity (same key, same
+      // delta sha) — a contradictory or unknown terminal shape is ledger corruption, not leniency.
+      if ("cutoverAborted" in o && o.cutoverAborted !== true) throw new Error(`non-boolean cutoverAborted at line ${i + 1} (exact schema [r68])`);
+      if (o.cutoverAborted === true) {
+        const intent = intents.get(key);
+        if (!intent) throw new Error(`cutover completion without its intent at line ${i + 1}`);
+        if ((intent.deltaManifestSha256 ?? null) !== (e.deltaManifestSha256 ?? null)) throw new Error(`cutover completion delta-sha ≠ its intent's at line ${i + 1}`);
+      }
       applieds.set(key, e);
     }
+    ordered.push({ key, runId: e.runId, attempt: e.attempt, probe: e.probe, deltaManifestSha256: e.deltaManifestSha256 ?? null, cutoverAborted: e.probe === "b3-applied" ? e.outcome?.cutoverAborted === true : false, line: i + 1 });
     latestAttempt.set(e.runId, Math.max(latestAttempt.get(e.runId) ?? -1, e.attempt));
   }
-  const problems = []; const appliedLayerShas = new Set();
+  const problems = []; const orphans = []; const appliedLayerShas = new Set(); const cutoverRuns = [];
   for (const [runId, att] of latestAttempt) {
-    const done = applieds.get(`${runId}#${att}`);
-    if (!done) { problems.push(`${runId} attempt ${att}: intent without completion (crash mid-run? resume it)`); continue; }
+    const key = `${runId}#${att}`;
+    const done = applieds.get(key);
+    if (!done) {
+      // r68 [cutover NEW-2 — crash-then-flip bricked the gate]: under postFlip, a dangling intent is
+      // TERMINAL-BY-FLIP (B3 is forbidden forever) — published as an ORPHAN, settled by the gate's
+      // tail/diffs law, never a fatal problem. Pre-flip it remains a blocking problem (resume it).
+      if (opts.postFlip) orphans.push({ runId, attempt: att, deltaManifestSha256: intents.get(key)?.deltaManifestSha256 ?? null });
+      else problems.push(`${runId} attempt ${att}: intent without completion (crash mid-run? resume it)`);
+      continue;
+    }
     const o = done.outcome;
-    // r67 [Codex r66 A3]: a CUTOVER-ABORTED completion is a LEGITIMATE TERMINAL state — the flip landed
-    // mid-run BY DESIGN of the barrier; unwritten students settle at the post-flip gate (tail/diffs law)
-    if (o.cutoverAborted) continue;
+    if (o.cutoverAborted === true) {
+      // r68 [cutover NEW-3 — fabricated zeros hid pre-abort failures]: terminal, but its REAL counts are
+      // SURFACED (cutoverRuns), never clean-skipped into silence.
+      cutoverRuns.push({ runId, attempt: att, outcome: o, deltaManifestSha256: done.deltaManifestSha256 ?? null });
+      continue;
+    }
     if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
   }
-  for (const [, e] of applieds) if (e.deltaManifestSha256 && !e.outcome?.cutoverAborted) appliedLayerShas.add(e.deltaManifestSha256); // an aborted layer was NOT applied
-  return { problems, appliedLayerShas, intents, applieds, latestAttempt };
+  for (const [, e] of applieds) if (e.deltaManifestSha256 && e.outcome?.cutoverAborted !== true) appliedLayerShas.add(e.deltaManifestSha256);
+  return { problems, orphans, cutoverRuns, appliedLayerShas, intents, applieds, latestAttempt, ordered };
 }
 
 // r67 [Codex r66 A4]: THE LEASE-STATE LAW, pure — EPERM (exists-but-unsignalable) is ALIVE-equivalent and
 // NEVER reaped at any age; only a provably-dead holder (ESRCH), or an aged lease with NO usable identity
 // (missing/malformed pid), is stale. probe(pid) returns "alive" | "dead" | "eperm".
-export function assessLease(holder, probe, nowMs, agedMs = 2 * 3600e3) {
-  if (!holder || typeof holder !== "object") return { stale: true, reason: "unparseable" };
+export function assessLease(holder, probe, nowMs, agedMs = 2 * 3600e3, mtimeMs = null) {
+  // r68 [Codex r67 B1 + cutover NEW-5]: an UNPARSEABLE lease follows the same aged law (age from the file
+  // mtime when content is unreadable) — never instantly stale; pid must be a POSITIVE integer to count as
+  // identity (pid ≤ 0 is kernel-special and unprobeable — no-identity, not permanently-owned).
+  if (!holder || typeof holder !== "object") {
+    const aged = mtimeMs != null ? nowMs - mtimeMs > agedMs : true;
+    return { stale: aged, reason: aged ? "aged-unparseable" : "fresh-unparseable" };
+  }
   const aged = nowMs - (holder.at || 0) > agedMs;
-  if (!Number.isInteger(holder.pid)) return { stale: aged, reason: aged ? "aged-no-identity" : "fresh-no-identity" };
+  if (!Number.isInteger(holder.pid) || holder.pid <= 0) return { stale: aged, reason: aged ? "aged-no-identity" : "fresh-no-identity" };
   const p = probe(holder.pid);
   if (p === "dead") return { stale: true, reason: "dead" };
   return { stale: false, reason: p === "eperm" ? "eperm-owned" : "alive" }; // EPERM owned FOREVER [r67]

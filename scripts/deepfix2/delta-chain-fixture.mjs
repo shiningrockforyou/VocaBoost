@@ -392,7 +392,43 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   ok(assessLease({ pid: 1, at: now - 60e3 }, () => "dead", now).stale === true, "lease: DEAD holder stale immediately");
   ok(assessLease({ at: now - 3 * 3600e3 }, () => "alive", now).stale === true, "lease: aged NO-IDENTITY lease stale");
   ok(assessLease({ at: now - 60e3 }, () => "alive", now).stale === false, "lease: fresh no-identity lease protected");
-  ok(assessLease(null, () => "alive", now).stale === true, "lease: unparseable stale");
+  ok(assessLease(null, () => "alive", now).stale === true, "lease: unparseable with NO mtime info = stale (conservative)");
+}
+
+// ===== STAGE 9f [r68 — Codex r67 A2]: EXACT terminal schema — truthiness dies =====
+{
+  const mk = lines => lines.map(x => JSON.stringify(x)).join("\n") + "\n";
+  const O = "o".repeat(64);
+  const base = { version: 1, runId: "t1", attempt: 0, originalManifestSha256: O };
+  const { parseLedgerStrict } = await import("./b-baseline.mjs");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { cutoverAborted: "yes" } }]), O), "non-boolean", "schema: string cutoverAborted dies");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { cutoverAborted: 1 } }]), O), "non-boolean", "schema: numeric cutoverAborted dies");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent", deltaManifestSha256: "aaa" }, { ...base, probe: "b3-applied", deltaManifestSha256: "bbb", outcome: { cutoverAborted: true } }]), O), "≠ its intent", "schema: cutover delta-sha must bind to its intent");
+  const okRed = parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { txnFailures: 2, skippedResetLocked: 0, skippedEpochDrift: 0, cutoverAborted: true } }]), O);
+  ok(okRed.cutoverRuns.length === 1 && okRed.cutoverRuns[0].outcome.txnFailures === 2 && okRed.problems.length === 0, "schema: REAL pre-abort counts SURFACE via cutoverRuns, terminal not a problem");
+  const orph = parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }]), O, { postFlip: true });
+  ok(orph.problems.length === 0 && orph.orphans.length === 1, "postFlip: a dangling pre-flip intent = published ORPHAN, never a brick");
+}
+// ===== STAGE 9g [r68 — asof NEW-4]: the other two censuses COUNT =====
+{
+  state.attempts.push({ id: "g1", data: { studentId: "uG", classId: "cls1", listId: "L1", sessionType: "review",
+    submittedAt: TS(96 * DAY), graded: true, score: 50, totalQuestions: 2, dayNumber: 1,
+    answers: [
+      { wordId: "w1", isCorrect: true, challengeStatus: "accepted" }, // accepted, NO timestamp
+      { wordId: "w2", isCorrect: false, challengeStatus: "banana" }, // rogue status
+    ] } });
+  const cen = {}; const cc = { note: nm => { cen[nm] = (cen[nm] || 0) + 1; }, bump: () => {} };
+  await computeStudentLabels(fakeDb, "uG", 120 * DAY, cc);
+  ok((cen.acceptedNoTimestamp || 0) === 1, "census: acceptedNoTimestamp counts EXACTLY 1");
+  ok((cen.challengeStatusUnknownEnum || 0) === 1, "census: rogue status counts EXACTLY 1");
+}
+// ===== STAGE 9h [r68]: unparseable-lease aged law =====
+{
+  const now = 10 * 3600e3;
+  ok(assessLease(null, () => "alive", now, 2 * 3600e3, now - 60e3).stale === false, "lease: FRESH unparseable (mtime) protected");
+  ok(assessLease(null, () => "alive", now, 2 * 3600e3, now - 3 * 3600e3).stale === true, "lease: AGED unparseable stale");
+  ok(assessLease({ pid: 0, at: now - 60e3 }, () => "alive", now).stale === false, "lease: pid 0 = fresh no-identity (protected)");
+  ok(assessLease({ pid: -1, at: now - 3 * 3600e3 }, () => "alive", now).stale === true, "lease: aged non-positive pid = no-identity stale");
 }
 
 // ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====

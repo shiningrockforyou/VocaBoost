@@ -264,10 +264,17 @@ if (EXECUTE) {
     let holder = null;
     try { holder = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); } catch {}
     const probe = pid => { try { process.kill(pid, 0); return "alive"; } catch (ke) { return ke.code === "ESRCH" ? "dead" : "eperm"; } };
-    const assessment = assessLease(holder, probe, Date.now()); // r67: the pure law — EPERM owned FOREVER
+    let leaseMtime = null; try { const { statSync } = await import("node:fs"); leaseMtime = statSync(execLeaseUrl).mtimeMs; } catch {}
+    const assessment = assessLease(holder, probe, Date.now(), 2 * 3600e3, leaseMtime); // r67/r68: the pure law
     if (!assessment.stale) { console.error(`FATAL [r65 B2/r67]: another B3 EXECUTE holds the execution lease (${assessment.reason}) — liveness/EPERM wins at ANY age`); process.exit(2); }
     const reaped = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaped-${process.pid}-${Date.now().toString(36)}`, outDir);
     try { renameSync(execLeaseUrl, reaped); } catch { console.error("FATAL: lease takeover raced (another claimant renamed first)"); process.exit(2); }
+    // r68 [cutover NEW-4 — the ABA]: verify we reaped the EXACT lease we assessed; a live successor's
+    // fresh lease renamed by mistake is RESTORED and we stand down.
+    try {
+      const got = JSON.parse(readFileSync(reaped, "utf-8"));
+      if ((got.token ?? null) !== (holder?.token ?? null)) { renameSync(reaped, execLeaseUrl); console.error("FATAL [r68 ABA]: reaped a DIFFERENT (live successor) lease — restored, standing down"); process.exit(2); }
+    } catch (e) { if (e.code !== "ENOENT") { console.error(`FATAL: reap verification: ${e.message}`); process.exit(2); } }
     console.error(`NOTE [r67]: stale execution lease (${assessment.reason}) — claimed by rename`);
     try { takeLease(); } catch { console.error("FATAL: lease takeover raced at re-create"); process.exit(2); }
   }
@@ -276,6 +283,25 @@ if (EXECUTE) {
   // must find ZERO EXECUTE'd layers for this original in the ledger — plain mode resolves against M0 only
   // and would revert every chain-correct label (loud only at the next B4; the harness called it illegal
   // while the CLI accepted it).
+  // r68 [Codex r67 A1 — THE ADMISSION GATE, both halves]: EVERY EXECUTE consumes the strict reducer.
+  //  - Any unresolved latest attempt (dangling intent, failed/skipped completion) that is NOT this run's
+  //    own ⇒ REFUSED (delta and repair included — a later layer can never overtake a crashed run).
+  //  - A RESUME must prove its authority was not OVERTAKEN: any applied completion from ANOTHER run
+  //    positioned AFTER this run's intent ⇒ REFUSED (the r67 blanket exemption authorized an M1→M0 revert).
+  if (EXECUTE && existsSync(LEDGER_URL)) {
+    let red;
+    try { red = parseLedgerStrict(readFileSync(LEDGER_URL, "utf-8"), original.manifestSha256); }
+    catch (e) { console.error(`FATAL [r68 admission]: ${e.message}`); process.exit(2); }
+    const foreignProblems = red.problems.filter(p => !p.startsWith(`${RUNID} `));
+    if (foreignProblems.length) { console.error(`FATAL [r68 admission]: unresolved runs in the ledger — resolve them FIRST (resume or investigate):\n - ${foreignProblems.join("\n - ")}`); process.exit(2); }
+    if (RESUME) {
+      const ownIntentIdx = red.ordered.findIndex(r => r.runId === RUNID && r.probe === "b3-intent");
+      if (ownIntentIdx >= 0) {
+        const overtakenBy = red.ordered.filter((r, i) => i > ownIntentIdx && r.probe === "b3-applied" && r.runId !== RUNID && !r.cutoverAborted);
+        if (overtakenBy.length) { console.error(`FATAL [r68 overtake]: this run's authority was OVERTAKEN by later applied run(s): ${[...new Set(overtakenBy.map(r => r.runId))].join(", ")} — a resume would revert their writes; the crashed run is SUPERSEDED (its unwritten remainder re-converges via the chain)`); process.exit(2); }
+      }
+    }
+  }
   if (!args.deltaDir && !extrasRepair && !RESUME && existsSync(LEDGER_URL)) {
     // r67 [gate NEW-4, PRECISE]: the guard targets M0-REVERT hazards — applied delta layers, or DANGLING
     // DELTA intents (a crashed delta EXECUTE is as dangerous as an applied one). A RESUME is exempt (it IS
@@ -457,11 +483,17 @@ if (EXECUTE) {
           // r67 [Codex r66 A3 — the barrier's own success bricked the ledger]: publish the TERMINAL
           // cutover-aborted completion (the reducer accepts it; the aborted layer counts as NOT applied)
           // and exit 6 — the post-flip gate settles unwritten students via the tail/diffs law.
+          // r68 [cutover NEW-3]: REAL counts, never fabricated zeros — pre-abort failures stay visible
           ledgerAppend({ probe: "b3-applied", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
             deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, deltaDir: args.deltaDir || null,
             students: uids.length, attempt: ATTEMPT, complete: true,
-            outcome: { txnFailures: 0, skippedResetLocked: 0, skippedEpochDrift: 0, cutoverAborted: true },
+            outcome: { txnFailures: stats.txnFailures, skippedResetLocked: stats.skippedResetLocked, skippedEpochDrift: stats.skippedEpochDrift, cutoverAborted: true },
             at: new Date().toISOString() });
+          stats.cutoverAborted = true;
+          const cutFinal = { ...runManifest, finalStats: stats, resetLockedList, epochDriftSkippedList, cutoverAborted: true };
+          const cutName = RESUME ? `${RUNID}.resume-${ATTEMPT}.result.json` : `${RUNID}.result.json`;
+          writeFileSync(new URL(`${cutName}.tmp`, outDir), JSON.stringify(cutFinal, null, 2));
+          renameSync(new URL(`${cutName}.tmp`, outDir), new URL(cutName, outDir));
           if (execLeaseUrl) { try { const cur = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); if (cur.token === LEASE_TOKEN) rmSync(execLeaseUrl, { force: true }); } catch {} }
           console.error("CUTOVER [r67]: firstEnabledAt appeared MID-RUN — terminal cutover-aborted completion published; committed chunks are pre-flip by serialization; the post-flip gate settles the remainder (exit 6)");
           process.exit(6);

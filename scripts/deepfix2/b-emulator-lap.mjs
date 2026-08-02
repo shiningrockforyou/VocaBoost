@@ -400,6 +400,49 @@ await resetCase();
   ok(rTorn.code === 2 && rTorn.out.includes("malformed"), `TORN completion record FATALS (got ${rTorn.code})`, rTorn);
 }
 
+// ================= r68: THE SEVEN-STEP OVERTAKE (Codex r67 A1's exact sequence) =================
+console.error("== r68: overtake law ==");
+await resetCase();
+{
+  b1full(); const r0 = b3exec("ovtM0"); ok(r0.code === 0, `M0 clean (got ${r0.code})`, r0);
+  // Codex's sequence: the layer materializes FIRST (step 2), THEN the plain run crashes (step 3)
+  await attNow("ovtB", "emB", "review", [["w3", true]], 100);
+  const r4 = b4(); const layer = layerDirsOf(r4.stdout)[0];
+  ok(!!layer && (r4.code === 6 || r4.code === 7), `delta layer materialized (b4 ${r4.code})`, r4);
+  const r1 = run("b1-expected-labels.mjs", ["--full", `--classAllowlist=${allowPath}`, `--deltaAuth=${join(layer, "delta-auth.json")}`, `--outDir=${layer}`]);
+  ok(r1.code === 0, `delta B1 (got ${r1.code})`, r1);
+  const rc = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=ovtP", "--execute"], { B3_CRASH_AT: "post-intent" });
+  ok(rc.code === 99, `plain run crashes post-intent (got ${rc.code})`, rc);
+  if (!layer) throw new Error("overtake setup failed — no layer");
+  const rRef = b3exec("ovtM1", [`--deltaDir=${layer}`]);
+  ok(rRef.code === 2 && rRef.out.includes("unresolved runs"), `delta ADMISSION REFUSED while ovtP dangles (got ${rRef.code})`, rRef);
+  const rRes = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=ovtP", "--execute", "--resume"]);
+  ok(rRes.code === 0, `ovtP resumed cleanly BEFORE any layer (got ${rRes.code})`, rRes);
+  const rM1 = b3exec("ovtM1b", [`--deltaDir=${layer}`]);
+  ok(rM1.code === 0, `delta EXECUTES after resolution (got ${rM1.code})`, rM1);
+  const rStale = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=ovtP", "--execute", "--resume"]);
+  ok(rStale.code === 2 && rStale.out.includes("OVERTAKEN"), `a stale resume AFTER the layer is REFUSED (got ${rStale.code})`, rStale);
+  const rFinal = b4([`--appliedDelta=${layer}`]);
+  ok(rFinal.code === 0, `final B4 PASS (got ${rFinal.code})`, rFinal);
+}
+// ================= r68: MIXED-SAME-FIELD (tail event + lost post-flip event ⇒ BLOCKS) =================
+console.error("== r68: mixed-same-field quiet-fail ==");
+await resetCase();
+{
+  b1full(); b3exec("mixf0");
+  await attNow("mixT", "emB", "review", [["w3", false]], 0); // TAIL fail (post-layer, pre-flip): flip fc 1→2
+  const FLIPM = Date.now() + 400;
+  await new Promise(r => setTimeout(r, 500));
+  await db.doc("system_config/review_v2").set({ enabled: true, firstEnabledAt: TS(FLIPM) });
+  await attAbsT("mixL", "emB", Date.now(), "review", [["w3", false]], 0); // POST-flip fail, stamp LOST: cutoff 3
+  const r = b4([`--postFlip=${FLIPM}`]);
+  ok(r.code === 5, `tail event CANNOT excuse the lost post-flip event on the SAME field (got ${r.code})`, r);
+  await db.collection("users").doc("emB").collection("study_states").doc("w3").set(
+    { reviewFailCount: 3, reviewLastFailedAt: TS(Date.now()), reviewLastTestedAt: TS(Date.now()) }, { merge: true });
+  const r2 = b4([`--postFlip=${FLIPM}`]);
+  ok(r2.code === 0, `exact live labels settle it — remaining tail classified, PASS (got ${r2.code})`, r2);
+}
+
 // ================= r67: THE SIBLING-PROOF NEGATIVE (Codex r66 A2's exact reproduction) =================
 console.error("== r67: sibling-proof as-of-boundary negative ==");
 await resetCase();

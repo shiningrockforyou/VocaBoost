@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
 import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder, auditRoot, parseLedgerStrict } from "./b-baseline.mjs";
 
+let LEDGER_ORPHANS = null; let LEDGER_CUTOVERS = null; // r68: stashed pre-stats (the audit runs first)
 const argv = process.argv.slice(2);
 const KNOWN = new Set(["classAllowlist", "manifest", "appliedDelta", "ignoreLedger", "postFlip", "allowSampleVerify"]);
 const args = { appliedDelta: [] };
@@ -63,13 +64,15 @@ try { assertLayerChainOrder(deltaLayers); } catch (e) { console.error(`FATAL: ${
   if (existsSync(ledgerPath) && args.ignoreLedger !== true) {
     // r66: THE ONE STRICT REDUCER (shared with B3's repair scan — b-baseline.parseLedgerStrict)
     let red;
-    try { red = parseLedgerStrict(readFileSync(ledgerPath, "utf-8"), original.manifestSha256); }
+    try { red = parseLedgerStrict(readFileSync(ledgerPath, "utf-8"), original.manifestSha256, { postFlip: !!POSTFLIP }); } // r68: dangling pre-flip runs = published ORPHANS at the gate, never a brick
     catch (e) { console.error(`FATAL [r63 ledger]: ${e.message}`); process.exit(2); }
     const have = new Set(deltaLayers.map(L => L.base.manifestSha256));
     const problems = [...red.problems];
     const missing = [...red.appliedLayerShas].filter(sha => !have.has(sha));
     if (missing.length) problems.push(`EXECUTE'd delta layers not in --appliedDelta: ${missing.length} layer(s)`);
     if (problems.length) { console.error(`FATAL [r63 ledger]:\n - ${problems.join("\n - ")}`); process.exit(2); }
+    if (red.orphans?.length) { LEDGER_ORPHANS = red.orphans; console.error(`NOTE [r68]: ${red.orphans.length} flip-orphaned run(s) — their unwritten remainder settles at this gate (tail/diffs law)`); }
+    if (red.cutoverRuns?.length) LEDGER_CUTOVERS = red.cutoverRuns;
   }
 }
 
@@ -120,8 +123,10 @@ const SIX = [...Object.values(FIELD_MAP), "reviewRestingUntil"];
 const stats = { students: 0, zeroDiff: 0, withDiffs: 0, totalDiffs: 0, extraLabelDocs: 0, recomputedTargets: 0,
   deltaNewAttempts: 0, deltaAdjudication: 0, deltaEpoch: 0, corruptTyped: 0,
   liveAttempts: 0, liveExemptFields: 0, liveNewWordDocs: 0,
-  adjudicationCensus: { legacyAcceptedReconstructed: 0, acceptedNoTimestamp: 0, challengeStatusUnknownEnum: 0 } }; // r67 [R2-49 published here too]
-const censusCounters = { note: n => { if (n in stats.adjudicationCensus) stats.adjudicationCensus[n]++; }, bump: () => {} };
+  adjudicationCensus: { legacyAcceptedReconstructed: 0, acceptedNoTimestamp: 0, challengeStatusUnknownEnum: 0 }, replayExclusions: {} }; // r67/r68
+if (LEDGER_ORPHANS) stats.flipOrphanedRuns = LEDGER_ORPHANS;
+if (LEDGER_CUTOVERS) stats.cutoverRuns = LEDGER_CUTOVERS;
+const censusCounters = { note: n => { if (n in stats.adjudicationCensus) stats.adjudicationCensus[n]++; }, bump: r => { stats.replayExclusions[r] = (stats.replayExclusions[r] || 0) + 1; } }; // r68 [asof NEW-1]: gate-side exclusion growth is VISIBLE
 const diffsOut = []; const extrasList = []; const reportUncovered = []; const reportTail = []; let truncated = false;
 const deltaSet = new Map();
 const addDelta = (uid, reason) => { if (!deltaSet.has(uid)) deltaSet.set(uid, []); const a = deltaSet.get(uid); if (!a.includes(reason)) a.push(reason); };
@@ -169,7 +174,7 @@ for (const uid of uids) {
   let flipRowsRef = null; let cutoffFieldRef = null;
   if (POSTFLIP) {
     if (!src.row) { stats.uncoveredAtGate = (stats.uncoveredAtGate || 0) + 1; reportUncovered.push(uid); }
-    const c = await computeStudentLabels(db, uid, CUTOFF, censusCounters);
+    const c = await computeStudentLabels(db, uid, CUTOFF, {}); // r68 [asof NEW-3]: census counts ONCE (the boundary replay only)
     cutoffFieldRef = c.wordsOut;
     const flipRows = expected; // boundary=flip recompute (forced above)
     flipRowsRef = flipRows;
@@ -217,7 +222,7 @@ for (const uid of uids) {
           const flipVal = flipRowsRef?.[k]?.[short] ?? null;
           const cutVal = short === "fc" ? exp : (cutoffFieldRef?.[k]?.[short] ?? null);
           const moved = (flipVal ?? null) !== (lay ?? null);
-          const quiet = short === "fc" ? (cutVal ?? null) === (flipVal ?? null) : (cutVal ?? null) === (flipVal ?? null);
+          const quiet = (cutVal ?? null) === (flipVal ?? null); // r68: one expression (the ternary had identical branches)
           if (moved && quiet && (lay ?? null) === (act ?? null)) {
             stats.preFlipTail = (stats.preFlipTail || 0) + 1;
             if (reportTail.length < 500) reportTail.push({ uid, wordId, field }); else stats.preFlipTailTruncated = true;

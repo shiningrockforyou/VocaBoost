@@ -116,7 +116,7 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
     // teacherEdited/preOverride on an OLD attempt changes it, not only challenge metadata
     mut._digestRows.push(`R|${d.id}|${sig}|${content}|${a.teacherEdited === true ? "TE:" + (a.preOverride?.score ?? "") : ""}`);
     if (!groups.has(sig)) groups.set(sig, []);
-    groups.get(sig).push({ t, classId, listId: a.listId, type: sType, rows, stored: s, tq, content, sig, synthetic: syntheticAnchor });
+    groups.get(sig).push({ t, classId, listId: a.listId, type: sType, rows, stored: s, tq, content, sig, synthetic: syntheticAnchor, edited }); // r68: rides to the as-of pin
   }
   for (const g of groups.values()) for (const a of g) if (!epochByList[a.listId]) epochByList[a.listId] = { resetEpoch: 0, resetAt: null };
   // ---- pass 2: duplicate law ----
@@ -140,7 +140,10 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
     // When any row's acceptance is post-boundary (adjOk ∧ ¬adjEff), reconstruct: the writers compute
     // round(effectiveCorrect/denominator*100), so the as-of score is deterministic from as-of-effective rows.
     const hasPostBoundaryAccept = a.rows.some(r => r.adjOk === true && r.adjEff !== true);
-    const asOfScore = hasPostBoundaryAccept
+    // r68 [asof NEW-7]: a teacher-edited attempt's comparator is preOverride.score — boundary-INVARIANT by
+    // construction (accepts recompute a.score, never preOverride) — so reconstruction never applies to it
+    // (the B1-Q3 letter forbids row-recompute substitution for edited attempts).
+    const asOfScore = (hasPostBoundaryAccept && !a.edited)
       ? Math.round((a.rows.filter(r => r.ok || r.adjEff === true).length / a.tq) * 100)
       : a.stored;
     const passing = asOfScore >= THRESHOLD;

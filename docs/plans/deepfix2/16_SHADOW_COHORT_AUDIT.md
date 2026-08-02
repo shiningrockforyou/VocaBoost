@@ -70,7 +70,7 @@ substrings (shadow ids may contain original ids by construction).
 8. **Config-doc law [panel]:** every `system_config/review_v2` touch (rehearsalClassIds setup/teardown) goes
    through ONE guarded script that never writes `enabled`, asserts `enabled === false` before AND after, and
    records pre/post images. The GLOBAL kill switch is NEVER exercised by this audit — drill E uses
-   shadow-class-scoped `reviewGateEnabled` + rehearsalClassIds removal only.
+   shadow-class-scoped `reviewGateEnabled` ONLY — the class REMAINS in `rehearsalClassIds` per the DRILL-E LAW below [r68; the old removal wording contradicted the drill's own labels-keep-writing assertion].
 9. **Off-peak + rate law [panel]:** clone/sweeps/probe run in the KST off-peak window; BulkWriter default
    throttling; the concurrency probe capped at 100 parallel; Firestore usage monitored during (the live 26SM
    cohort shares the project — co-tenancy is Q7's consent).
