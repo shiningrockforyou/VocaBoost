@@ -334,36 +334,61 @@ async function completeDay(db, params) {
       if (consumed.studyDay !== logicalDay) {
         return {status: "no_evidence", reason: "consumed attempt day mismatch"};
       }
-      // EPOCH BINDING: present ⇒ exact; absent ⇒ the named legacy leg.
-      if (consumed.resetEpoch !== undefined && consumed.resetEpoch !== null) {
+      // EPOCH BINDING + THE DISCRIMINATOR [r77 A1 — computed HERE so the row
+      // fence below can branch on it]: `resetEpoch` presence is the ONE
+      // engine/legacy discriminator (engine writers always stamp it).
+      consumedIsEngine = consumed.resetEpoch !== undefined && consumed.resetEpoch !== null;
+      if (consumedIsEngine) {
         if (consumed.resetEpoch !== resetEpoch) {
           return {status: "no_evidence", reason: "consumed attempt epoch mismatch"};
         }
       } else {
         legacyEvidence = true;
       }
-      // r48 IMPOSSIBLE-RECORD VALIDITY FENCE (never clamp into privilege):
-      // finite integer score 0..100 · sane totals · rows agreement ·
-      // score↔rows agreement (stored isCorrect — the accept writers
-      // recompute the stored score from flipped rows, like vs like).
+      // THE r48 IMPOSSIBLE-RECORD VALIDITY FENCE — TWO-LEGGED [r77 ROW A,
+      // Codex r76 #1: the r76 premise that legacy writers derive
+      // `totalQuestions` FROM the rows they store is FALSE. VERIFIED live:
+      // src/pages/MCQTest.jsx:685/699 sends totalQuestions = testWords.length
+      // (the FULL test) while the answer array holds ANSWERED entries only,
+      // and functions/index.js:429-434 stores answers=partial,
+      // totalQuestions=full, skipped=the difference. A legitimate legacy
+      // review WITH SKIPS (e.g. 28 rows / tq 30 / score 93) must therefore be
+      // ACCEPTED — rejecting it would strand any student who skipped a
+      // question during the flip window.]
+      //
+      // COMMON (both legs): integer score 0-100 · integer denominator ≥ 1 ·
+      // answers an array · 0 < rows ≤ denominator · the score recomputes
+      // against the FULL denominator (which is exactly how both writers
+      // computed it).
       const tq = consumed.totalQuestions;
       const rowsArr = Array.isArray(consumed.answers) ? consumed.answers : null;
       if (!Number.isInteger(consumed.score) ||
           consumed.score < 0 || consumed.score > 100 ||
           !Number.isInteger(tq) || tq < 1 ||
-          rowsArr === null || rowsArr.length !== tq) {
+          rowsArr === null || rowsArr.length < 1 || rowsArr.length > tq) {
         return {status: "no_evidence", reason: "impossible_record"};
+      }
+      // ENGINE ONLY: the COMPLETE-ROWS law (15_ §1) — the engine writer
+      // records ONE row per presented word, blanks explicit, so a short row
+      // set is an impossible ENGINE record.
+      if (consumedIsEngine && rowsArr.length !== tq) {
+        return {status: "no_evidence", reason: "impossible_record (engine rows incomplete)"};
       }
       const storedCorrect = rowsArr.filter((r) => r?.isCorrect === true).length;
       if (Math.round((storedCorrect / tq) * 100) !== consumed.score) {
         return {status: "no_evidence", reason: "impossible_record (score-rows disagreement)"};
+      }
+      // LEGACY ONLY: when the writer recorded `skipped`, it must agree with
+      // the row shortfall (both live writers store exactly that difference).
+      if (!consumedIsEngine && Number.isInteger(consumed.skipped) &&
+          consumed.skipped !== tq - rowsArr.length) {
+        return {status: "no_evidence", reason: "impossible_record (skipped field inconsistent)"};
       }
       // THE ENGINE/LEGACY DISCRIMINATOR [r74 N-5 — ONE field, BOTH halves]:
       // `resetEpoch` presence. Engine writers always stamp it; legacy
       // attempts never did. An epoch-carrying (engine) consumed attempt
       // REQUIRES its claimed presentation + canonical queue binding [r72
       // C1]; only an epoch-less attempt takes the published legacy leg.
-      consumedIsEngine = consumed.resetEpoch !== undefined && consumed.resetEpoch !== null;
       if (consumedIsEngine &&
           (typeof consumed.presentationId !== "string" || consumed.presentationId.length === 0)) {
         return {status: "no_evidence", reason: "engine review attempt lacks presentation"};
@@ -522,7 +547,12 @@ async function completeDay(db, params) {
       if (consumedIsEngine && !gpComplete) {
         return {status: "no_evidence", reason: "impossible_record (consumed posture missing/malformed)"};
       }
-      if (gpComplete) {
+      // [r77 ROW B — Codex r76 #2] `resetEpoch` presence EXCLUSIVELY selects
+      // posture authority: an epoch-LESS attempt ALWAYS follows the published
+      // legacy rule (completion-time source posture), even when it happens to
+      // carry a structurally complete posture. Otherwise a mixed record would
+      // override the one discriminator (17_ §6).
+      if (consumedIsEngine) {
         postureSource = "attempt";
         governingGateOn = gp.effectiveEnabled === true;
         governingThreshold = gp.threshold;

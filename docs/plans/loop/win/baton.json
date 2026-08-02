@@ -1,24 +1,25 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 88,
+ "round": 89,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_088.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_089.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": "review-written",
- "execDecision": "PUSHED",
- "execReview": "winclaude_087.md",
- "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_087.md",
+ "execDecision": "PUSHED_WITH_ESCALATION",
+ "execReview": "winclaude_088.md",
+ "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_088.md",
+ "reviewTargetSha": "503b3ed3c263ae511af3ce09f456014764fddef7",
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_088.md",
   "docs/plans/loop/win/reviews/winclaude_087.md",
-  "docs/plans/loop/win/reviews/winclaude_086.md",
   "docs/plans/loop/win/reviews/winclaude_083.md",
   "docs/plans/loop/win/reviews/winclaude_069.md"
  ],
- "note": "ORDER 88-1: commit the r76 fold AND BIND THE REVIEW TARGET (protocol change \u2014 the codex marker now publishes only after your SHA). Includes the DELETION of the stray functions/change_action_log.md you caught. Report the SHA prominently. Review to winclaude_088.md, baton back with execDecision + SHA.",
+ "note": "ORDER 89-1: commit the r77 fold + bind the next review target. Codex r76 #1 was a LIVE defect from a false premise of mine (legacy reviews with skipped questions would have been refused at completion) \u2014 fixed + fixtured. Your Netlify escalation: David confirmed the wiring; his deploy list suggests auto-publish is ALREADY stopped (production pinned at ce09792, client delta to HEAD empty) \u2014 recorded in 17_ \u00a78 as UNCONFIRMED pending his ruling; your frontend hold stands. Report the SHA prominently.",
  "updatedBy": "claude",
  "updatedAt": "2026-08-03T00:00:00Z",
- "revision": 167,
+ "revision": 170,
  "status": "order-ready"
 }

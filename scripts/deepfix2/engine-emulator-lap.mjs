@@ -590,6 +590,13 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   check("engine consumed missing source refused",
       [r.status, String(r.reason).includes("consumed posture")], ["no_evidence", true]);
   await db.collection("attempts").doc("attE1").update({gatePosture: GP_OK}); // restore
+  // [r77 ROW A6 — the OTHER LEG]: ENGINE evidence keeps the strict
+  // COMPLETE-ROWS law; a short engine row set is an impossible record.
+  await db.collection("attempts").doc("attE1").update({answers: rows28.slice(0, 20).map(([w, c]) => ({wordId: w, isCorrect: c}))});
+  r = await cd({});
+  checkTrue("engine consumed with SHORT rows refused",
+      r.status === "no_evidence" && String(r.reason).includes("engine rows incomplete"));
+  await db.collection("attempts").doc("attE1").update({answers: rows28.map(([w, c]) => ({wordId: w, isCorrect: c}))}); // restore
 
   // [r73 C1.3] impossible NEW-test evidence refused.
   await seedAttempt("attNewBad", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
@@ -774,11 +781,46 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     answers: pres9.map((w, i) => ({wordId: w, isCorrect: i < 28})),
     submittedAt: Timestamp.now(),
   });
+  // [r77 ROW A5 — Codex r76 #1, THE DISCRIMINATING CASE]: the consumed
+  // review is the REAL legacy shape — 28 stored rows against a FULL
+  // denominator of 30 with score 93 (exactly what MCQTest+index.js write
+  // when a student skips two questions). Under the r76 fence this was
+  // REJECTED, stranding the student; it must COMPLETE.
+  await db.collection("attempts").doc("attLegacyRev").set({
+    studentId: "uE", classId: "cE", listId: "LE", studyDay: 10, sessionType: "review",
+    testType: "mcq", score: 93, passed: true, totalQuestions: 30, skipped: 2,
+    answers: pres9.slice(0, 28).map((w) => ({wordId: w, isCorrect: true})),
+    submittedAt: Timestamp.now(),
+  });
   r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 10,
     resetEpoch: 0, consumedAttemptId: "attLegacyRev", consumedAttemptClassId: "cE",
     newTestAttemptId: "attLegacyNew", canonicalWordCount: 60, nowMs: E0 + 6 * DAY});
-  check("LEGACY DAY completes (both halves exempt as published)",
+  check("LEGACY DAY completes w/ SKIPPED ROWS (28/30, score 93)",
       [r.status, r.completion.postureSource, r.completion.legacyEvidence], ["completed", "completion_legacy", true]);
+  // Day 11 legacy evidence (its own attempt — the day binding runs first).
+  const legacy11 = {
+    studentId: "uE", classId: "cE", listId: "LE", studyDay: 11, sessionType: "review",
+    testType: "mcq", score: 93, passed: true, totalQuestions: 30, skipped: 2,
+    answers: pres9.slice(0, 28).map((w) => ({wordId: w, isCorrect: true})),
+    submittedAt: Timestamp.now(),
+  };
+  // [r77 ROW A4] an inconsistent `skipped` field refuses.
+  await db.collection("attempts").doc("attLegacy11").set({...legacy11, skipped: 9});
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 11,
+    resetEpoch: 0, consumedAttemptId: "attLegacy11", consumedAttemptClassId: "cE",
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 7 * DAY});
+  checkTrue("legacy skipped-field inconsistency refused",
+      r.status === "no_evidence" && String(r.reason).includes("skipped field"));
+  // [r77 ROW B2] an epoch-LESS attempt carrying a COMPLETE but CONFLICTING
+  // posture still demotes — the discriminator selects authority exclusively.
+  await db.collection("attempts").doc("attLegacy11").set({...legacy11,
+    gatePosture: {effectiveEnabled: false, threshold: 50, configVersion: 7, source: "forged"}});
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 11,
+    resetEpoch: 0, consumedAttemptId: "attLegacy11", consumedAttemptClassId: "cE",
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 7 * DAY});
+  check("epoch-less + complete posture ⇒ STILL completion_legacy",
+      [r.status, r.completion.postureSource, r.completion.sourceConfig.gateEffectiveEnabled],
+      ["completed", "completion_legacy", true]);
   await seedProgress("uE", "cE", "LE", {csd: 9, twi: 60}); // restore for the queue_invalid case
   // [r73 C5] a live-review presentation stripped of its queue ⇒ queue_invalid
   // at submit (through the WRAPPED callable).

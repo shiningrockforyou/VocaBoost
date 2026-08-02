@@ -56,11 +56,23 @@ handoff-ephemeral.
      boolean, `configVersion` integer ≥ 1, `threshold` integer 1-100, `source` non-empty — AND the r48
      row/score arithmetic. Anything less is an IMPOSSIBLE engine record ⇒ `no_evidence`; it is never
      demoted into privilege under a completion-time posture.
-   - **LEGACY CONSUMED (review) half (epoch absent)**: the r48 row/score arithmetic IS enforced (safe —
-     the legacy writer persists `totalQuestions` FROM the rows it stores, `src/services/db.js`
-     submitTestAttempt, so `rows.length === totalQuestions` holds for real legacy review attempts);
-     posture and presentation are EXEMPT — the attempt demotes to `postureSource: "completion_legacy"`
-     and the completion-time source-class posture governs.
+   - **LEGACY CONSUMED (review) half (epoch absent)**: the r48 arithmetic is enforced **SKIPPED-AWARE**
+     [premise CORRECTED r77 — the r76 text claimed legacy writers derive `totalQuestions` from the rows
+     they store; that is FALSE and was verified against the live writers: `src/pages/MCQTest.jsx:685/699`
+     sends `totalQuestions = testWords.length` (the FULL test) while the answer array holds ANSWERED
+     entries only, and `functions/index.js:429-434` stores `answers`=partial, `totalQuestions`=full,
+     `skipped`=the difference; review attempts are `passed:true`. The published blank-undercount census
+     (38,825) says the same thing.] THE RULE: integer score 0-100 · integer denominator ≥ 1 ·
+     `0 < rows ≤ totalQuestions` · the score must recompute as `round(correct / totalQuestions × 100)`
+     (exactly the writers' own formula) · a present `skipped` field must equal the row shortfall.
+     A legitimate skipped-question review (e.g. 28 rows / 30 questions / score 93) MUST complete —
+     rejecting it would strand any student who skipped a question during the flip window.
+     Posture and presentation remain EXEMPT: the attempt ALWAYS demotes to
+     `postureSource: "completion_legacy"` and the completion-time source-class posture governs — the
+     `resetEpoch` discriminator selects posture authority EXCLUSIVELY, so a complete-looking posture on
+     an epoch-less record never overrides it.
+     **ENGINE evidence keeps the strict COMPLETE-ROWS law** (`rows === totalQuestions`, blanks
+     explicit) — a short engine row set is an impossible engine record.
    - **LEGACY NEW-TEST half (epoch absent)**: identity/day/pass + range ONLY — NO row/score arithmetic,
      NO posture requirement. REASON (the decision, published): this half mints no privilege — graduation
      derives solely from the consumed review half, and its `wordsIntroduced` contribution is clamped to
@@ -79,3 +91,13 @@ handoff-ephemeral.
    production client deploy; the DF2-51 client legs are built on a BRANCH and merge only at deliberate,
    David-visible release points; WinClaude orders state the client-deploy consequence whenever src/
    stages.
+   **OBSERVED 2026-08-03 (David's Netlify deploy list, pasted in-session — LEVER UNCONFIRMED, pending his
+   word): exactly one deploy is marked `published` — `ce09792` (r72) — while the four newer builds
+   (`58af1f1`, `e9e8ac4`, `e1c20ba`, `503b3ed`) show `completed`. That is the signature of auto-publishing
+   being STOPPED (or that deploy LOCKED) sometime between 22:24 and 23:07 on 2026-08-02: Netlify keeps
+   building every push while production stays pinned. VERIFIED CONSEQUENCE: `git diff ce09792..503b3ed --
+   src/ public/ index.html package.json vite.config.js` is EMPTY, so the pinned bundle is byte-identical
+   to HEAD — the unpublished builds are redundant, not missing. The program's ONE client change (db.js +7,
+   the teacher-path grading preimage) shipped earlier at `c7abf0a` and IS inside the pinned build.
+   ACTION WHEN DAVID NAMES THE LEVER: record it here as a ruling and rewire the WinClaude standing orders
+   (branch-only vs push-safe) accordingly; until then the frontend phase stays held.**
