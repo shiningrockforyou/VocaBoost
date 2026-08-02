@@ -144,8 +144,10 @@ DENIED (rules list).
   completions (contract (6)) lives HERE.
 - Immutable after create. Streak credit (§6) writes in the SAME txn. Client graduation dies (DF2-10(8) moves
   graduation into this txn); a client receiving `already_completed` re-runs NOTHING [A2/r53].
-  **[r72 PROPOSED — David ratification PENDING (candidate ledger row R2-51); implemented + fixtured, both
-  r71 lanes' H-B condition]: THE DUAL-CLASS VIEW CATCH-UP — pre-P5 the durable progress doc is
+  **[RATIFIED — R2-51, David 2026-08-03: "progress should be intrinsic to students only and should not
+  have any class-specific components" — the catch-up is that principle applied to the pre-P5 per-class
+  storage; full unification lands at P5. Also ruled same session: the RESET_V2 flip = the sandbox-
+  rehearsal phase, "whenever is convenient, not a big deal."]: THE DUAL-CLASS VIEW CATCH-UP — pre-P5 the durable progress doc is
   class-scoped, so when the shared day is ALREADY completed and the calling class's view sits exactly one
   day behind (csd === day−1), the loser txn syncs that class's csd/twi view (NO graduation, NO rest, NO
   streak — the shared day advanced ONCE; this is the r48 "a valid cross-class pass satisfies the shared

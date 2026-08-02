@@ -356,11 +356,24 @@ async function composePresentation(db, params) {
       if (mode === "live-review" && f.testType !== pSnap.data().testType) {
         throw new Error(`compose_keys/${registryId}: fingerprint/presentation modality divergence`);
       }
+      // [r72 C2] an UNCLAIMED live-new replay re-binds the frontier — a
+      // pre-advance stale presentation must not re-enter circulation
+      // (claimed replays stay pure reads; their attempts already exist).
+      const pd = pSnap.data();
+      if (pd.requestFingerprint?.sessionType === "new" &&
+          pd.requestFingerprint?.kind === "live" &&
+          (pd.serverClaim?.attemptDocId ?? null) === null) {
+        const {readProgressTruthInTxn} = require("./progress");
+        const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
+        if (pd.logicalDay !== truth.frontierDay) {
+          return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
+        }
+      }
       return {
         status: "replayed",
         presentationId: reg.presentationId,
         path: pSnap.ref.path,
-        presentation: pSnap.data(),
+        presentation: pd,
       };
     }
 

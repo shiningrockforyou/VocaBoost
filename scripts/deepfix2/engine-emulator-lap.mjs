@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ============================================================================
- * DEEPFIX2 — engine-emulator-lap.mjs v2: the DARK-BUILD ENGINE REHEARSAL,
+ * DEEPFIX2 — engine-emulator-lap.mjs v3: the DARK-BUILD ENGINE REHEARSAL,
  * extended over THE CALLABLE/AUTHORITY BOUNDARY (r70 fold, C8)
  * ============================================================================
  * v1 proved the engine transactions and was judged insufficient by BOTH r70
@@ -483,34 +483,46 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     consumedAttemptId: "attE1", consumedAttemptClassId: "cE", newTestAttemptId: "attE2",
     canonicalWordCount: 60, nowMs: E0};
 
-  // Binding negatives FIRST (nothing minted).
-  let r = await DONE.completeDay(db, {...params, logicalDay: 6});
-  check("non-frontier refused", [r.status, r.expectedDay], ["day_guard_rejected", 5]);
+  // Binding negatives FIRST (nothing minted) — via the WRAPPED public
+  // callable [r72 C8]: the boundary the mint actually crosses.
+  const cd = (over) => call(CALL.reviewV2CompleteDay, "uE", {classId: "cE", listId: "LE",
+    logicalDay: 5, consumedAttemptId: "attE1", consumedAttemptClassId: "cE",
+    newTestAttemptId: "attE2", clientContractVersion: 1, ...over});
+  let r = await cd({logicalDay: 6});
+  check("non-frontier refused (wrapped)", [r.status, r.expectedDay], ["day_guard_rejected", 5]);
   await seedAttempt("attWrongDay", {uid: "uE", classId: "cE", listId: "LE", day: 4, sessionType: "review",
     rows: rows28, score: 93, presentationId: "cE_LE_d5_e0_p1"});
-  r = await DONE.completeDay(db, {...params, consumedAttemptId: "attWrongDay"});
+  r = await cd({consumedAttemptId: "attWrongDay"});
   check("wrong-day evidence refused", [r.status, r.reason], ["no_evidence", "consumed attempt day mismatch"]);
   await seedAttempt("attRerun", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
     rows: [["w40", true]], score: 100, range: [40, 49], type: "retest", presentationId: "npE2"});
-  r = await DONE.completeDay(db, {...params, newTestAttemptId: "attRerun"});
+  r = await cd({newTestAttemptId: "attRerun"});
   check("rerun-as-new refused", [r.status, r.reason], ["no_evidence", "new-test attempt not a live new test"]);
   await seedAttempt("attEpoch1", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
     rows: rows28, score: 93, epoch: 1, presentationId: "cE_LE_d5_e0_p1"});
-  r = await DONE.completeDay(db, {...params, consumedAttemptId: "attEpoch1"});
+  r = await cd({consumedAttemptId: "attEpoch1"});
   check("cross-epoch refused", [r.status, r.reason], ["no_evidence", "consumed attempt epoch mismatch"]);
   await seedAttempt("attImpossible", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
     rows: rows28, score: 120, presentationId: "cE_LE_d5_e0_p1"});
-  r = await DONE.completeDay(db, {...params, consumedAttemptId: "attImpossible"});
+  r = await cd({consumedAttemptId: "attImpossible"});
   check("score-120 refused (r48 fence)", [r.status, r.reason], ["no_evidence", "impossible_record"]);
   await seedAttempt("attDisagree", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
     rows: presented.map((w, i) => [w, i < 10]), score: 93, presentationId: "cE_LE_d5_e0_p1"});
-  r = await DONE.completeDay(db, {...params, consumedAttemptId: "attDisagree"});
+  r = await cd({consumedAttemptId: "attDisagree"});
   check("score-rows disagreement refused", r.status, "no_evidence");
   // Presentation claimed by ANOTHER attempt ⇒ refused.
   await seedAttempt("attForeign", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
     rows: rows28, score: 93, presentationId: "cE_LE_d5_e0_p1"});
-  r = await DONE.completeDay(db, {...params, consumedAttemptId: "attForeign"});
+  r = await cd({consumedAttemptId: "attForeign"});
   check("foreign claim refused", [r.status, r.reason], ["no_evidence", "presentation claimed by another attempt"]);
+
+  // [r73 C1.3] impossible NEW-test evidence refused.
+  await seedAttempt("attNewBad", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
+    rows: [["w40", true]], score: 77, range: [40, 49], presentationId: "npBad"});
+  await seedNewPresentation("npBad", {uid: "uE", classId: "cE", listId: "LE", day: 5,
+    claimedBy: "attNewBad", wordIds: ["w40"]});
+  r = await cd({newTestAttemptId: "attNewBad"});
+  checkTrue("impossible new-test refused", r.status === "no_evidence" && String(r.reason).includes("new-test"));
 
   // THE HAPPY STANDARD DAY: graduation 55, rru twins, streak, THE ADVANCE.
   r = await DONE.completeDay(db, params);
@@ -592,6 +604,47 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 3 * DAY});
   checkTrue("ON→OFF: attempt-time governs, graduation > 0", r.status === "completed" && r.graduationCount > 0);
   await db.doc("classes/cE").update({"assignments.LE.reviewGateEnabled": true});
+  // [r73 C1.2] a teacher-edited (force-passed) consumed attempt advances but
+  // graduates ZERO (A1) — seeded below threshold, exempt from the fence.
+  const q9 = await COMP.composeDayQueue(db, {uid: "uE", classId: "cE", listId: "LE",
+    logicalDay: 9, resetEpoch: 0, canonicalWords: canon});
+  checkTrue("day-9 queue composed", q9.status === "created");
+  const pres9 = q9.queue.orderedQueueWordIds.slice(0, 30);
+  await db.doc("users/uE/review_presentations/cE_LE_d9_e0_p1").set({
+    uid: "uE", classId: "cE", listId: "LE", logicalDay: 9, resetEpoch: 0,
+    presentedWordIds: pres9, poolHash: q9.queue.poolHash, compositionVersion: "lrt-v1",
+    requestFingerprint: {sessionType: "review", testType: "mcq", kind: "live", visitId: null},
+    testType: "mcq", visitId: null, queueRef: q9.queuePath,
+    serverClaim: {claimedAt: Timestamp.now(), attemptDocId: "attForced"}, createdAt: Timestamp.now(),
+  });
+  await db.collection("attempts").doc("attForced").set({
+    studentId: "uE", classId: "cE", listId: "LE", studyDay: 9, sessionType: "review",
+    testType: "mcq", score: 60, passed: true, teacherEdited: true,
+    totalQuestions: 30, answers: pres9.map((w, i) => ({wordId: w, isCorrect: i < 18})),
+    resetEpoch: 0, presentationId: "cE_LE_d9_e0_p1",
+    gatePosture: {effectiveEnabled: true, threshold: 92, configVersion: 1, source: "lap-seed"},
+    submittedAt: Timestamp.now(),
+  });
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 9,
+    resetEpoch: 0, consumedAttemptId: "attForced", consumedAttemptClassId: "cE",
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 4 * DAY});
+  check("teacher override: ONE advance + ZERO graduation", [r.status, r.graduationCount], ["completed", 0]);
+  // [r73 H-A] the advance interlock: a legacy-advanced csd makes the engine
+  // completion refuse (and the legacy day-guard's own basis — csd — moved
+  // under the engine's advances above; one line of advance, fixtured).
+  await seedProgress("uE", "cE", "LE", {csd: 11, twi: 60});
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 10,
+    resetEpoch: 0, consumedAttemptId: null, consumedAttemptClassId: null,
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 5 * DAY});
+  check("H-A interlock: legacy-advanced day refused", [r.status, r.expectedDay], ["day_guard_rejected", 12]);
+  await seedProgress("uE", "cE", "LE", {csd: 9, twi: 60});
+  // [r73 C5] a live-review presentation stripped of its queue ⇒ queue_invalid
+  // at submit (through the WRAPPED callable).
+  await db.doc("users/uE/review_presentations/cE_LE_d9_e0_p1").update({queueRef: null,
+    "serverClaim.attemptDocId": null});
+  r = await call(CALL.reviewV2SubmitAttempt, "uE", {presentationId: "cE_LE_d9_e0_p1",
+    answers: [], clientContractVersion: 1});
+  check("queue_invalid: live review without queue", [r.status, r.reason], ["queue_invalid", "live review requires a queue"]);
   // [r72 H-B] dual-class view catch-up: class 2's view syncs on already_completed.
   await seedClass("cE2", {students: ["uE"], listId: "LE"});
   await db.doc("classes/cE2").update({"assignments.LE": {name: "seed", weeklyPace: 50, studyDaysPerWeek: 5}});
@@ -618,14 +671,23 @@ CASE("G — monitoring: stamps, quarantine matrix, window bounds [C7]");
   await db.collection("ops_metrics").add({type: "wall_rate", shadow: false, registryGeneration: 8, createdAt: Timestamp.now()});
   await db.collection("ops_metrics").add({type: "wall_rate", shadow: true, createdAt: Timestamp.now()});
   await db.doc("shadow_registry/window").set({generation: 7, startedAt: TS(Date.now() - 60000), runId: "lapG"});
+  // [r73 C7] rows written DURING the window stamp its runId (fresh cache
+  // view); the pre-window m1/m2 rows carry windowRunId null and are now
+  // RUN-QUARANTINED — only in-window, in-run rows classify.
+  MON._resetRegistryCacheForTests();
+  await MON.recordOpsMetric(db, {type: "wall_rate", uid: "uShadow", payload: {v: 3}});
+  await MON.recordOpsMetric(db, {type: "wall_rate", uid: "uReal", payload: {v: 4}});
+  // Run-isolation negative: right generation, ANOTHER run's stamp.
+  await db.collection("ops_metrics").add({type: "wall_rate", shadow: false, registryGeneration: 7,
+    windowRunId: "other-run", createdAt: Timestamp.now()});
   let ev = await MON.evaluateThresholds(db, {scope: "production", dryRun: true, thresholds: {wall_rate: {max: 0}}});
-  check("prod eval: G−1+G+1+unstamped quarantined", [ev.status, ev.consumedRowCount, ev.quarantinedRowCount, ev.breaches.length], ["ok", 1, 3, 1]);
+  check("prod eval: gen + RUN quarantine", [ev.status, ev.consumedRowCount, ev.quarantinedRowCount, ev.breaches.length], ["ok", 1, 6, 1]);
   ev = await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: true, thresholds: {}});
-  check("audit: window-gen shadow only", [ev.consumedRowCount, ev.quarantinedRowCount], [1, 3]);
+  check("audit: in-window in-run shadow only", [ev.consumedRowCount, ev.quarantinedRowCount], [1, 6]);
   // WINDOW-BOUNDED [C7]: a pre-window same-generation row never feeds it.
   await db.collection("ops_metrics").add({type: "wall_rate", shadow: false, registryGeneration: 7, createdAt: TS(Date.now() - 3600000)});
   ev = await MON.evaluateThresholds(db, {scope: "production", dryRun: true, thresholds: {}});
-  check("pre-window row excluded by cutoff", ev.consumedRowCount, 1);
+  check("pre-window row excluded by cutoff", ev.consumedRowCount, 1); // the in-run fresh real row
   // MALFORMED WINDOW fails CLOSED [C7/M-3].
   await db.doc("shadow_registry/window").set({generation: "seven", startedAt: Timestamp.now(), runId: "bad"});
   ev = await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: true});
@@ -636,7 +698,7 @@ CASE("G — monitoring: stamps, quarantine matrix, window bounds [C7]");
   await db.doc("shadow_registry/window").set({generation: 7, startedAt: TS(Date.now() - 60000), runId: "lapG2"});
   await db.collection("ops_metrics").add({type: "wall_rate", shadow: false, registryGeneration: "seven", createdAt: Timestamp.now()});
   ev = await MON.evaluateThresholds(db, {scope: "production", dryRun: true, thresholds: {}});
-  checkTrue("non-integer ROW generation quarantined", ev.quarantinedRowCount >= 4);
+  checkTrue("non-integer ROW generation quarantined", ev.quarantinedRowCount >= 7);
   // [r72 C7] malformed startedAt fails closed too.
   await db.doc("shadow_registry/window").set({generation: 7, startedAt: "yesterday", runId: "bad2"});
   check("malformed startedAt ⇒ window_malformed", (await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: true})).status, "window_malformed");
@@ -719,6 +781,11 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   check("new submit: anchor stamped", [r.status, r.score], ["attempt_written", 100]);
   const newAtt = (await db.collection("attempts").doc(`rv2_${newPresId}`).get()).data();
   check("new attempt anchor fields", [newAtt.newWordStartIndex, newAtt.newWordEndIndex, newAtt.sessionType], [10, 19, "new"]);
+  // [r72 C8] live-new label stamps, asserted BEFORE any rerun can touch the
+  // word: lc+lp written, the rotation clock NOT (new tests never advance it).
+  const w10Now = (await db.doc("users/uX/study_states/w10").get()).data();
+  check("live-new stamps lc+lp, no clock", [Boolean(w10Now.reviewLastCorrectAt),
+    Boolean(w10Now.reviewLastProvenAt), w10Now.reviewLastTestedAt ?? null], [true, true, null]);
 
   // CompleteDay THROUGH the callable: consumed = the review attempt (day 3
   // passed? score 50 < 92 ⇒ NOT passing — seed a passing retake first).
@@ -777,11 +844,6 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   // [r72 C5] replay returns the STORED engine facts (not hard-coded nulls).
   const replay2 = await submit(presId, goodAnswers);
   check("replay engineResult stored", [replay2.replayed, replay2.stamped, Array.isArray(replay2.rerunGraduated)], [true, 4, true]);
-  // [r72 C8] live-new label stamps: lc+lp written, the rotation clock NOT.
-  const newWordState = (await db.doc("users/uX/study_states/w10").get()).data();
-  check("live-new stamps lc+lp, no clock", [Boolean(newWordState.reviewLastCorrectAt),
-    Boolean(newWordState.reviewLastProvenAt), newWordState.reviewLastTestedAt ?? null], [true, true, null]);
-  // [r72 C7] ops emissions through the callables: rerun_graduation (from the
   // rerun submit above), priority_saturation_day (all-priority compose),
   // cursor_repaired (poisoned cursor through ComposeSession).
   const rg = await db.collection("ops_metrics").where("type", "==", "rerun_graduation").get();
@@ -796,6 +858,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
     cursorWordIndex: 2, lastLogicalDay: 99, lastQueueRef: "x", updatedAt: Timestamp.now()}, {merge: true});
   r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb12"});
   check("saturated compose ok", r.status, "composed");
+  await new Promise((res) => setTimeout(res, 700)); // fire-and-forget emissions settle
   const sat = await db.collection("ops_metrics").where("type", "==", "priority_saturation_day").get();
   checkTrue("priority_saturation_day emitted", sat.size >= 1);
   const cr = await db.collection("ops_metrics").where("type", "==", "cursor_repaired").get();
@@ -813,6 +876,20 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   check("non-admin refused", await callErr(CALL.reviewV2EvaluateThresholds, "uX", {scope: "production"}), "permission-denied");
   r = await call(CALL.reviewV2EvaluateThresholds, "uX", {scope: "production"}, {admin: true});
   check("admin eval ok", r.status, "ok");
+}
+
+// ===========================================================================
+CASE("N1 — canonical position gaps: servable + surfaced");
+{
+  await db.doc("lists/LG/words/g0").set({word: "a", definition: "a", position: 0});
+  await db.doc("lists/LG/words/g1").set({word: "b", definition: "b", position: 1});
+  await db.doc("lists/LG/words/g3").set({word: "c", definition: "c", position: 3});
+  const res = await CALL.loadCanonicalWordsStrict(db, "LG");
+  check("gap list stays servable", [Boolean(res.words), res.words?.length], [true, 3]);
+  check("gap SURFACED", [res.positionGap?.expected, res.positionGap?.got], [2, 3]);
+  const dup = await db.doc("lists/LG/words/g4").set({word: "d", definition: "d", position: 3});
+  const res2 = await CALL.loadCanonicalWordsStrict(db, "LG");
+  checkTrue("duplicate still refuses", Boolean(res2.refusal));
 }
 
 // ===========================================================================
@@ -929,13 +1006,13 @@ for (const f of ["../../functions/reviewV2/config.js", "../../functions/reviewV2
 }
 const receiptPath = process.env.ENGINE_LAP_RECEIPT || "/app/docs/plans/deepfix2/evidence/engine-lap-result.json";
 const summary = {
-  kind: "engine-emulator-lap", version: 2,
+  kind: "engine-emulator-lap", version: 3,
   pass: failed === 0, total, failed, reds,
   sourceShas,
   at: new Date().toISOString(),
 };
 writeFileSync(receiptPath, JSON.stringify(summary, null, 2));
-console.log(`\n==== ENGINE LAP v2: ${total - failed}/${total} green${failed ? ` — ${failed} RED` : ""} (receipt: ${receiptPath})`);
+console.log(`\n==== ENGINE LAP v3: ${total - failed}/${total} green${failed ? ` — ${failed} RED` : ""} (receipt: ${receiptPath})`);
 if (failed) reds.forEach((x) => console.error("RED: " + x));
 await fft.cleanup();
 process.exit(failed ? 1 : 0);

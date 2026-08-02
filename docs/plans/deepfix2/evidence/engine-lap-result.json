@@ -1,27 +1,27 @@
 {
   "kind": "engine-emulator-lap",
-  "version": 2,
+  "version": 3,
   "pass": true,
-  "total": 174,
+  "total": 182,
   "failed": 0,
   "reds": [],
   "sourceShas": {
-    "functions/reviewV2/config.js": "b3831a85fdfa9f3b",
+    "functions/reviewV2/config.js": "ffee2a9254cdffca",
     "functions/reviewV2/composer.js": "4ebd12eacb2f61d7",
-    "functions/reviewV2/presentations.js": "a750422c70466180",
+    "functions/reviewV2/presentations.js": "3e13db9671054004",
     "functions/reviewV2/stamping.js": "6d3a26dae1fe6dda",
-    "functions/reviewV2/completion.js": "f8dd7ebd20fbef48",
-    "functions/reviewV2/monitoring.js": "6387233c1777431e",
+    "functions/reviewV2/completion.js": "7d6f1b4a9e6b20eb",
+    "functions/reviewV2/monitoring.js": "1a21613c0c52f9cb",
     "functions/reviewV2/reset.js": "42052d0f157b2634",
     "functions/reviewV2/visits.js": "7bb0efc31c9ed53e",
-    "functions/reviewV2/callables.js": "ef80142082dd4b57",
+    "functions/reviewV2/callables.js": "e2df55a9a200ab5a",
     "functions/reviewV2/progress.js": "62f524b305f61f8d",
     "functions/foundation.js": "96822cdab02039b9",
     "functions/index.js": "2fc1429a96c58049",
     "src/services/db.js": "eae877340950efa9",
-    "engine-emulator-lap.mjs": "751bc81dc379fc75",
+    "engine-emulator-lap.mjs": "7e7c9d6d4eb90f99",
     "flip-review-v2.mjs": "1c544b849c91885c",
     "b-delta-cycle.mjs": "03a187551ee8019d"
   },
-  "at": "2026-08-02T13:19:59.641Z"
+  "at": "2026-08-02T14:05:17.272Z"
 }

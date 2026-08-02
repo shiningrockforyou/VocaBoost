@@ -126,7 +126,14 @@ async function resolveReviewConfig(db, ctx) {
   let assignmentGate = true; // default true; missing/null ⇒ true (frozen)
   let asg = null;
   if (classSnap.exists) {
-    asg = (classSnap.data().assignments || {})[listId] || null;
+    const rawAsg = (classSnap.data().assignments || {})[listId];
+    // [r72 C3] the assignment CONTAINER itself is authority: present but not
+    // a plain object (true/7/"assigned"/[]) ⇒ HOLD — never default open.
+    if (rawAsg !== undefined && rawAsg !== null &&
+        (typeof rawAsg !== "object" || Array.isArray(rawAsg))) {
+      return holdResult("assignment malformed (non-object container)");
+    }
+    asg = rawAsg || null;
     if (asg && asg.reviewGateEnabled === false) assignmentGate = false;
   }
   const gateEffectiveEnabled = globallyOn && assignmentGate;

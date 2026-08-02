@@ -268,12 +268,17 @@ async function completeDay(db, params) {
         if (resetLockActive(pmData, lpData)) return {status: "reset_in_progress"};
         const currentEpoch0 = effectiveResetEpoch(pmData, lpData);
         if (currentEpoch0 !== resetEpoch) return {status: "reset_epoch_mismatch", currentEpoch: currentEpoch0};
+        // [R2-51 RATIFIED, David 2026-08-03] the catch-up COPIES the winner's
+        // absolute post-advance twi (completedTwi) — never re-derives; a
+        // legacy record without it falls back to the relative derivation.
         const wi = Number.isInteger(done.wordsIntroduced) ? done.wordsIntroduced : 0;
         const cap = Number.isInteger(params.canonicalWordCount) && params.canonicalWordCount > 0
           ? params.canonicalWordCount : Infinity;
         const viewAdvance = {
           currentStudyDay: logicalDay,
-          totalWordsIntroduced: Math.min(truth.twi + wi, cap),
+          totalWordsIntroduced: Number.isInteger(done.completedTwi)
+            ? done.completedTwi
+            : Math.min(truth.twi + wi, cap),
           lastSessionAt: Timestamp.fromMillis(nowMs),
           updatedAt: Timestamp.fromMillis(nowMs),
         };
@@ -445,6 +450,25 @@ async function completeDay(db, params) {
       } else {
         legacyEvidence = true;
       }
+      // [r72 C1.3] the SAME r48 impossible-record fence as the review half:
+      // integer score 0-100 · sane totals · rows agreement · score↔rows ·
+      // passed↔threshold (teacherEdited exempt, per A1's preserved score).
+      const ntq = newTest.totalQuestions;
+      const ntRows = Array.isArray(newTest.answers) ? newTest.answers : null;
+      if (!Number.isInteger(newTest.score) || newTest.score < 0 || newTest.score > 100 ||
+          !Number.isInteger(ntq) || ntq < 1 || ntRows === null || ntRows.length !== ntq) {
+        return {status: "no_evidence", reason: "impossible_record (new test)"};
+      }
+      const ntCorrect = ntRows.filter((r) => r?.isCorrect === true).length;
+      if (Math.round((ntCorrect / ntq) * 100) !== newTest.score) {
+        return {status: "no_evidence", reason: "impossible_record (new-test score-rows disagreement)"};
+      }
+      const ntGp = newTest.gatePosture;
+      if (newTest.teacherEdited !== true &&
+          ntGp && Number.isInteger(ntGp.threshold) && ntGp.threshold >= 1 && ntGp.threshold <= 100 &&
+          newTest.score < ntGp.threshold) {
+        return {status: "no_evidence", reason: "impossible_record (new test passed below threshold)"};
+      }
     }
 
     // ---- GOVERNING POSTURE [r70 C1 — attempt-time governs privilege] -----
@@ -504,7 +528,8 @@ async function completeDay(db, params) {
     // ---- GRADUATION (live formula; the GOVERNING posture must be ON) -----
     let grad = {graduationCount: 0, formulaCount: 0, graduatedWordIds: [],
       correctCount: 0, eligibleFillCount: 0, invalidScore: false};
-    if (consumed !== null && governingGateOn) {
+    // [r72 C1.2 — A1: an override mints ONE advance + ZERO graduation]
+    if (consumed !== null && governingGateOn && consumed.teacherEdited !== true) {
       const rows = consumed.answers
           .filter((r) => r && typeof r.wordId === "string")
           .map((r) => ({wordId: r.wordId, isCorrect: r.isCorrect === true}));
@@ -588,6 +613,7 @@ async function completeDay(db, params) {
       newTestAttemptId,
       wordsIntroduced,
       twiHeld,
+      completedTwi: Math.min(truth.twi + wordsIntroduced, canonicalCap),
       graduationCount: grad.graduationCount,
       graduatedWordIds: grad.graduatedWordIds,
       graduatedWordIdsHash: computeGraduatedHash(grad.graduatedWordIds),

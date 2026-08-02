@@ -79,20 +79,26 @@ const SIGNAL_TYPES = Object.freeze([
 ]);
 
 // Module-level registry cache (per warm instance — the r62 cache law).
-let _cache = {set: new Set(), generation: 0, fetchedAtMs: -Infinity};
+let _cache = {set: new Set(), generation: 0, windowRunId: null, fetchedAtMs: -Infinity};
 
 /** Read the full shadow registry fresh: uid set + generation. */
 async function loadShadowRegistry(db) {
   const snap = await db.collection(REGISTRY_COLLECTION).get();
   const set = new Set();
   let generation = 0;
+  let windowRunId = null;
   for (const doc of snap.docs) {
-    if (doc.id === "window") continue;
     const d = doc.data();
+    if (doc.id === "window") {
+      // [r72 C7] the writer's window view rides the same sweep — rows stamp
+      // the run they were written under (null outside windows).
+      windowRunId = typeof d.runId === "string" && d.runId.length > 0 ? d.runId : null;
+      continue;
+    }
     if (doc.id === "0" && Number.isInteger(d.generation)) generation = d.generation;
     if (Array.isArray(d.ids)) for (const u of d.ids) if (typeof u === "string") set.add(u);
   }
-  return {set, generation};
+  return {set, generation, windowRunId};
 }
 
 /** The cached registry view (≤60s re-read [r62]). Writers stamp rows from
@@ -108,7 +114,7 @@ async function getShadowRegistryView(db, nowMs = Date.now()) {
 
 /** Test hook: drop the warm-instance cache (emulator staleness injection). */
 function _resetRegistryCacheForTests() {
-  _cache = {set: new Set(), generation: 0, fetchedAtMs: -Infinity};
+  _cache = {set: new Set(), generation: 0, windowRunId: null, fetchedAtMs: -Infinity};
 }
 
 /** DIAGNOSTIC ONLY [r63 — no proof burden]: the registry generation by a
@@ -162,6 +168,7 @@ async function recordOpsMetric(db, {type, uid = null, classId = null, listId = n
     uid, classId, listId,
     shadow,
     registryGeneration: view.generation,
+    windowRunId: view.windowRunId ?? null,
     payload,
     createdAt: FieldValue.serverTimestamp(),
   };
@@ -187,6 +194,13 @@ function classifyRows(rows, {scope, window}) {
       continue;
     }
     if (window && isQuarantined(row, window.generation)) {
+      out.quarantined.push(row);
+      continue;
+    }
+    // [r72 C7] RUN BINDING: during a window, a row not stamped with THIS
+    // window's runId (a prior run's row, or a stale writer's null) is
+    // indeterminate — quarantined for every consumer.
+    if (window && (row.windowRunId ?? null) !== window.runId) {
       out.quarantined.push(row);
       continue;
     }

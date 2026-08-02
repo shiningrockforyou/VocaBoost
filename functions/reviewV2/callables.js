@@ -131,12 +131,19 @@ async function loadCanonicalWordsStrict(db, listId) {
     words.push({wordId: d.id, wordIndex: pos});
   }
   words.sort((a, b) => a.wordIndex - b.wordIndex);
+  let positionGap = null;
   for (let i = 1; i < words.length; i++) {
     if (words[i].wordIndex === words[i - 1].wordIndex) {
       return {refusal: {status: "list_words_malformed", wordId: words[i].wordId, duplicatePosition: words[i].wordIndex}};
     }
+    // [r72 N-1] positions with GAPS stay servable (the engine is ordinal),
+    // but the divergence from the positional CS anchor law (twi = nwei+1)
+    // must SURFACE — a warning signal, never a refusal.
+    if (positionGap === null && words[i].wordIndex !== words[i - 1].wordIndex + 1) {
+      positionGap = {afterWordId: words[i - 1].wordId, expected: words[i - 1].wordIndex + 1, got: words[i].wordIndex};
+    }
   }
-  return {words};
+  return {words, positionGap};
 }
 
 // ---------------------------------------------------------------------------
@@ -166,6 +173,10 @@ const reviewV2ComposeSession = onCall({enforceAppCheck: false}, async (request) 
   }
   if (canonical.words.length === 0) {
     throw new HttpsError("failed-precondition", "list has no words");
+  }
+  if (canonical.positionGap) {
+    emitOps(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+      payload: {warning: "positionGap", ...canonical.positionGap}});
   }
 
   const q = await composeDayQueue(db, {
@@ -257,11 +268,10 @@ const reviewV2ComposeNewTest = onCall({enforceAppCheck: false}, async (request) 
     return canonical.refusal;
   }
 
-  // The day's range = [twi, twi + dailyPace) over canonical order — the
-  // anchor the completion advance will re-derive from the attempt. The
-  // frontier bind re-runs inside the claim txn via the queue-less new-day
-  // path? No queue exists for new tests — the frontier bind is HERE plus
-  // the completion's; a stale-day claim dies at completion. Preflight bind:
+  // The day's range = [twi, twi + dailyPace) over canonical order. The
+  // frontier binds THREE times: this preflight (cheap early refusal), the
+  // claim txn (bindFrontier), and the submit txn [r72 C2] — the mint
+  // boundary is never crossable with a stale day.
   const truth = await readProgressTruth(db, {uid, classId: d.classId, listId: d.listId});
   if (d.logicalDay !== truth.frontierDay) {
     return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
@@ -519,6 +529,26 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     // and new tests (not day-pinned).
     let threshold = txnConfig.threshold;
     let queueId = null;
+    // [r73] a presentation without a well-formed fingerprint is CORRUPT —
+    // engine claims always write one; refuse rather than mint a
+    // mis-typed attempt around the queue/frontier guards.
+    if (p.requestFingerprint?.sessionType !== "review" && p.requestFingerprint?.sessionType !== "new") {
+      return {status: "presentation_invalid", reason: "fingerprint missing or malformed"};
+    }
+    // [r72 C5] a LIVE REVIEW without its queue is never servable — the fence
+    // below is REQUIRED for it, optional legs stay only for new/rerun.
+    if (isReviewType && !isRerun && !p.queueRef) {
+      return {status: "queue_invalid", reason: "live review requires a queue"};
+    }
+    // [r72 C2] the live-new MINT re-binds the frontier in ITS txn — a stale
+    // unclaimed presentation (pre-advance) can never cross into an attempt.
+    if (isNewSession && !isRerun) {
+      const {readProgressTruthInTxn} = require("./progress");
+      const truth = await readProgressTruthInTxn(txn, db, {uid, classId: pres.classId, listId: pres.listId});
+      if (p.logicalDay !== truth.frontierDay) {
+        return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
+      }
+    }
     if (p.queueRef) {
       // FULL QUEUE FENCE [r72 C5 — fail-closed on every leg]: canonical
       // path, queue identity, queue↔presentation pool hash, presented
@@ -740,6 +770,7 @@ const reviewV2EvaluateThresholds = onCall({enforceAppCheck: false}, async (reque
 });
 
 module.exports = {
+  loadCanonicalWordsStrict, // test-facing [r73 — the N-1 gap fixture]
   reviewV2ComposeSession,
   reviewV2ComposeNewTest,
   reviewV2ComposeRerun,

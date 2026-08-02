@@ -1,71 +1,90 @@
-# RESUME — DEEPFIX2: THE DARK BUILD (stage 2, opened 2026-08-02)
+# RESUME — DEEPFIX2: STAGE-2 CHECKPOINT CONVERGENCE (r73 fold pending, 2026-08-03)
 
 ## Where we are
-**STAGE-1 IS FROZEN** (r69: Codex YES + 3-Fable panel unanimous — receipts in
-`docs/plans/loop/codex_reviews/codex_deepfix2_r69.md` + `fable_panels/panel_r69.md`; gate (1) marked
-ACHIEVED on 02_). **THE REAL BASELINE IS LANDED**: 947/947 students, 687,679 words,
-`audit/deepfix/trackB_baselines/b1-manifest-full.json` (sha eebcc471…), censuses published
-(legacyAcceptedReconstructed 1,597 [R2-49] · a8MergedWords 2,786 [R2-50] · blankUndercount 38,825).
-Ledger complete R2-1..R2-50, all David-ratified with receipts. Git at `d478e7d` (10 clean pushes).
+Dark build + r70/r71/r72 folds DONE (lap: 174/174 over the callable boundary; receipt binds 16 files).
+Reviews: r70 double-NO → r71 double-NO → r72 Codex NO (C4 ✅ C6 ✅; six surgical remainders below) +
+**Opus r72 verdict PENDING (workflow w16bgrss2 — check its output/panel_r72_opus.md FIRST on resume)**.
+Git: c7abf0a pushed; WinClaude ORDER 84-1 (the r72 fold commit) in flight — check win baton (rev 159+).
+Codex baton: revision 217, turnOwner=claude, review at codex_reviews/codex_deepfix2_r72.md.
 
-## The active work: THE DARK BUILD (frozen opening order, from Codex r69's YES)
-(1) ✅ B1 --full baseline → **(2) ⟵ HERE: build the dark server+client against the FROZEN contracts** →
-(3) emulator chain rehearsal → (4) dark deploy (WinClaude order series; all `enabled:false`) → (5) 25WT
-rehearsal (`rehearsalClassIds`) → (6) shadow audit → then David's two go's (26SM backfill, the flip).
+## r73 CODE ITEMS: ✅ ALL LANDED (2026-08-03, node --check green throughout):
+completedTwi absolute-copy + catch-up ENABLED (R2-51 ratified) · teacherEdited ⇒ zero-grad · new-test
+r48 fence · assignment CONTAINER hold · live-review queue REQUIRED · live-new submit frontier re-bind +
+unclaimed-replay re-bind · C7 windowRunId stamping + run-quarantine · grading_jobs (uid,status) index
+ADDED to firestore.indexes.json · 17_DEPLOY_ORDER_REQUIREMENTS.md CREATED (H-A card/N-1/sizing/flip
+steps) · N-1 positionGap ops WARNING · L-2 comment fixed.
 
-## Build sources (all frozen — build FROM these, never re-derive)
-- `docs/plans/deepfix2/02_TASK_LIST.md` — DF2-10 (nine workpackages) + DF2-14 (the engine + 8 contracts)
-  + DF2-12/13 + DF2-51. Gate (1) receipt inline.
-- `docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md` — every schema: §1 labels/stamping (+ the
-  COMPLETE-ROWS law + §6b grading-preimage/adjudication law) · §2/2b day-queues + THE CURSOR (same-day
-  reuse, differing-size snapshot truth) · §3/3b presentations + completions · §6c ops_metrics · §7
-  system_config/review_v2 (THE STAMPING PREDICATE: firstEnabledAt ∨ rehearsalClassIds; two-field flip,
-  write-iff-absent) · §9 reset/OWNED-lock · §10 server-truth pools.
-- `docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md` §4 — the cutover choreography (micro-lap → flip
-  txn → B4 --postFlip; B3 forbidden from the marker).
-- `docs/plans/deepfix2/10_REVIEW_GRADUATION_REDESIGN.md` — the design (cursor-chained rotation, R2-40
-  restudy, R2-41 stamping).
-- Named build duties on the 02_ card: `evaluateThresholds({scope,dryRun})` + `getShadowRegistryGeneration`
-  + the `rehearsalClassIds` resolver (WinClaude files partial without it) + `gradedIsCorrect` preimage in
-  the accept AND teacher-edit writers + `firstEnabledAt` flip choreography.
-- Existing server: `functions/foundation.js` (the current engine), `functions/index.js`, `scoring.js`.
-  New code lives in new modules; the review_v2 rules artifact is `audit/deepfix/task3/firestore.review_v2.rules`.
+## REMAINING (the continuation executes NEXT — nothing else pending):
+1. LAP fixtures: queue_invalid (strip queueRef) · teacherEdited zero-grad · impossible new-test score ·
+   C7 run isolation (same-gen row, runId "other" ⇒ quarantined; note rows now need windowRunId stamped
+   to be CONSUMED during windows — existing CASE G expectations may shift: rows written by
+   recordOpsMetric DURING the window carry the runId (cache! _resetRegistryCacheForTests + re-read after
+   window creation), manually-planted rows without windowRunId ⇒ quarantined — ADJUST CASE G counts) ·
+   H-A interlock (bump csd ⇒ completeDay day_guard) · position-gap warning fixture (seed 0,1,3) ·
+   completion negatives via WRAPPED reviewV2CompleteDay · v3 relabel (header + version:3).
+2. Run the lap (RUNBOOK in the lap header; expect CASE G count shifts from run-binding).
+3. Close-out: change_action_log row · r73 handoff (Codex judges its r72 remainder; note the C4 packet
+   correction "state-law parity"; David receipts R2-51 + reset timing already in 15_ §3b) · codex baton
+   rev 218/round 73 (marker last, file-read verify, sync) · Opus lane workflow (judge its r72 unmet #2/
+   #9/#10 + N-1/N-3/L-2/v3) · WinClaude ORDER 85-1 (commit: reviewV2 4 files + firestore.indexes.json +
+   17_ NEW + lap + receipt + 15_ + logs).
 
-## Process laws in force (memory has details)
-- Review roster (David): gate-class = 3× Opus xhigh + Codex; stage-2 checkpoints = 1 Opus + Codex; Fable
-  orchestrates. David mediates review contracts round-by-round (closing-condition lists on NO).
-- Emulator lap: FULL runs only on shared-law changes + pre-packet frozen evidence; add `--only` filter.
-- ZERO git while WinClaude holds a win turn; sync + `git --no-optional-locks status --porcelain` before
-  baton flips; marker written last (codex flips need revision++ + full marker schema).
-- No folds while any reviewer measures. Ruling receipts go in ledger rows.
-- Codex loop: baton `docs/plans/loop/baton.json` (revision 210, with me); win loop rev ~152 (WinClaude
-  standby, staged for the deploy series). Watches: round-agnostic background loops.
+## THE r73 FOLD LIST (reference — executed above) (Codex r72 — execute after Opus r72 returns, fold BOTH):
+1. C1.1: gate the H-B view catch-up behind `R2_51_VIEW_CATCHUP=false` const (David-pending ratification;
+   emulator-env override like RESET_V2_FOR_TEST) — loser law pure read-only until ratified. ALSO add
+   `completedTwi` (winner's post-advance twi) to the completion record; catch-up (when enabled) COPIES it
+   absolute, never re-derives.
+2. C1.2: `consumed.teacherEdited === true` ⇒ graduation ZERO (A1: one advance + zero graduation) + fixture.
+3. C1.3: the new-test attempt gets the SAME r48 validity fence (integer score 0-100, totals/rows agreement,
+   score↔rows recompute, passed↔gatePosture-threshold w/ teacherEdited exempt) + fixture.
+4. C2: frontier re-bind at BOTH remaining crossings: (a) submit txn for live-new attempts (isNewSession &&
+   !isRerun ⇒ truth read, day ≠ frontier ⇒ day_guard_rejected); (b) registry replay of an UNCLAIMED
+   live-new presentation ⇒ same re-bind (claimed replays stay pure §8). + race fixture.
+5. C3: assignment CONTAINER shape — asg present but not a plain object (true/7/"assigned"/[]) ⇒ HOLD
+   (config.js derivation; Codex reproduced all four) + fixtures.
+6. C5: live review REQUIRES a queue — submit: `isReviewType && !isRerun && !p.queueRef ⇒ queue_invalid`
+   + missing-queueRef fixture.
+7. C7: window RUN binding — the registry cache view captures the window doc (loadShadowRegistry already
+   sweeps the collection; stop skipping "window", expose {windowRunId}); recordOpsMetric stamps
+   `windowRunId`; classifyRows during a window quarantines rows whose windowRunId ≠ window.runId (null
+   incl.); fixture: same-generation row with runId "other" ⇒ quarantined.
+8. C8: completion negatives (wrong-day/rerun-as-new/cross-epoch/impossible/foreign-claim) via the WRAPPED
+   reviewV2CompleteDay; un-enroll ALSO via wrapped (permission-denied) alongside the txn-typed; new
+   fixtures: teacherEdited-zero-grad, impossible new-test, missing-queueRef, run isolation; relabel lap
+   v3 (header + summary version:3). Rerun lap ⇒ re-bind receipt.
+9. Handoff corrections: C4 "byte-preserved" ⇒ "state-law parity" (response fields differ: resetV2/
+   targetEpoch/rv2Deleted/jobsCancelled).
+10. OPUS r72 ADDS (verdict NO, 9/12 met — panel_r72_opus.md):
+    (a) H-A: durable home + fixture — create docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md
+        (H-A field-freeze card · CC-14 compose sizing · RESET_V2 flip step · the INDEX below); interlock
+        fixture: bump csd directly (simulated legacy advance) ⇒ completeDay day_guard_rejected; after an
+        engine completion assert csd moved (the legacy day-guard's own reject basis).
+    (b) N-3 (MY FALSE CLAIM): firestore.indexes.json has NO grading_jobs index — ADD the (uid ASC,
+        status ASC) composite (deploys with the dark train; the reset job-cancel query needs it).
+    (c) queue_invalid fixture (same as Codex C5 item) — strip queueRef, assert typed refusal.
+    (d) N-1 (HIGH): ordinal twi vs the positional CS anchor law (twi = nwei+1) — record in 15_ that
+        ENGINE twi = ordinal count over canonical order (exact ≡ positional on contiguous lists);
+        loadCanonicalWordsStrict EMITS a position_gap ops WARNING row (no refusal) so gapped lists
+        surface to CS; + a gap fixture (seed positions 0,1,3).
+    (e) L-2: fix the stale callables.js:262-264 comment (claims preflight-only bind; code binds in-txn).
+    (f) Relabel the lap v3 everywhere (header, summary version:3, log label).
+11. (fold together, ONE r73 round: handoff → codex baton rev 218/round 73 →
+    Opus lane workflow → WinClaude ORDER 85-1).
 
-## Build progress
-- ✅ `functions/reviewV2/config.js` — workpackage (1), THE ONE RESOLVER: R2-48 stamping predicate,
-  rehearsalClassIds resolver (WinClaude's named deliverable), r48 cold-start HOLD (outage ≠ OFF), exact
-  r55 client-version fence, activation-barrier txn pattern (config in transactional read sets),
-  global-then-assignment precedence. CommonJS, matches functions/ style, syntax-checked.
+## DAVID RULINGS (2026-08-03, this session — receipts in 15_ §3b):
+- R2-51 RATIFIED by principle ("progress should be intrinsic to students only..."): r73 fold ENABLES the
+  view catch-up (no gating const needed — Codex C1.1's procedural objection is answered by ratification;
+  still add `completedTwi` absolute-copy).
+- RESET_V2 flip timing: the sandbox-rehearsal phase, at convenience (already the 17_ card's plan).
 
-## Next concrete steps (in order)
-1. `functions/reviewV2/composer.js` — H6 §2/§2b: the day-queue creation txn (identity septuple + anchor/
-   generation + orderedQueueWordIds + poolHash + snapshot w/ configQueueSize-on-reuse), THE CURSOR law
-   (§2b exact transitions; same-day cross-class REUSE first-composer-wins; underflow top-up
-   earliest-graduated-first [R2-41(e)]; §10 server-truth pool derivation), presentationCount the one
-   mutable field.
-2. `functions/reviewV2/presentations.js` — §3: per-attempt presentation claim txn (composeKey registry,
-   hashed docIds + fingerprints, replay ⇒ existing records), R2-42/46 composition (LRT remainder,
-   effectiveTestSize invariant, prefix-preserving seeded fallback ⇒ ops_metrics `composition_fallback`).
-3. `functions/reviewV2/stamping.js` — §1: the accepted-attempt label txn (six fields; COMPLETE-ROWS law —
-   blanks explicit; fc/lf grading-time, lc/lp effective, mint at reviewedAt), §6b accept/teacher-edit
-   writers PRESERVE `gradedIsCorrect` (+R2-43 resting guard), stamping gated on config.stampingEligible.
-4. `functions/reviewV2/completion.js` — §3b day_completions CAS (class-agnostic docId, evidenceKind),
-   graduation (R2-29 formula live / tested-correct-only reruns [R2-41]), rru set in the graduation txn
-   (LIVE-ONLY), streak (R2-21 fixtures list on 02_).
-5. `functions/reviewV2/monitoring.js` — evaluateThresholds({scope,dryRun}) + getShadowRegistryGeneration +
-   registryGeneration stamping + quarantine law (16_); ops_metrics writers (§6c).
-6. Reset integration (§9 — reviewV2 writers honor the OWNED lock; stale-epoch cleanup adds review_cursors
-   + compose_keys) + `scripts/flip-review-v2.mjs` (the R2-48 two-field fireadmin txn + pre-flip asserts:
-   rehearsalClassIds empty, no shadow window, the final micro-lap gate).
-7. Wire into functions/index.js (new callables, dormant behind enabled:false) → emulator rehearsal of the
-   engine → checkpoint review (1 Opus + Codex) → WinClaude dark-deploy order series → 25WT → shadow.
+## Standing state (unchanged)
+RESET_V2_ENABLED=false gate (David's const; escalation answered) · R2-51 view catch-up PROPOSED
+(David ratification pending, 15_ §3b) · roster: checkpoints = Codex + 1 Opus xhigh via Workflow ·
+no-folds-while-measuring · zero git during win turns (verify by file reads) · codex flips: revision++ +
+full marker schema, marker last, sync first · lap runbook in engine-emulator-lap.mjs header ·
+RESET_V2_FOR_TEST=1 arms the reset lap case. Process laws + memory pointers: see memory/MEMORY.md.
+
+## After a double-YES at r72/r73
+WinClaude DARK-DEPLOY ORDER SERIES (zero-delta: RESET_V2 false; deploy-order requirements in the r72
+handoff tail) → 25WT rehearsal (client legs DF2-51 build next) → shadow audit (16_) → David's backfill
+go → David's flip (both exclusively David's).
