@@ -14,8 +14,9 @@
  * post-reset replay forever] — plus the R2-40e bookmark map-key delete.
  *
  * BOUNDARIES (wiring duties, not here): the fence txn itself · pending
- * grading_jobs cancellation via the named (uid,status) index (an EXISTING
- * top-level pipeline leg) · the reconciliation sweep · owner-clear/takeover.
+ * grading_jobs cancellation via the (uid,status) composite index — ADDED to
+ * firestore.indexes.json at r73 (it did NOT pre-exist; 17_ orders its deploy
+ * before any RESET_V2 flip) · the reconciliation sweep · owner-clear/takeover.
  *
  * Writers honoring the lock is ALREADY BUILT: every reviewV2 txn module
  * reads both tombstones and rejects `reset_in_progress`/epoch drift.

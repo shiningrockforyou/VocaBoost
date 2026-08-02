@@ -48,7 +48,7 @@ process.env.RESET_V2_FOR_TEST = "1";
 
 const fnRequire = createRequire("/app/functions/index.js");
 const {initializeApp, cert} = fnRequire("firebase-admin/app");
-const {getFirestore, Timestamp} = fnRequire("firebase-admin/firestore");
+const {getFirestore, Timestamp, FieldValue} = fnRequire("firebase-admin/firestore");
 const key = JSON.parse(readFileSync(new URL("../serviceAccountKey.json", import.meta.url)));
 const PROJECT = key.project_id;
 initializeApp({credential: cert(key)});
@@ -191,6 +191,17 @@ CASE("A — config authority matrix (strict schema [C3])");
   await seedClass("cA", {students: ["uA"], asg: {reviewGateEnabled: "yes"}});
   c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1"});
   check("non-boolean gate override ⇒ HOLD", c.readStatus, "hold");
+  // [r74 C3b] CONTAINER shapes: scalars/arrays AND Firestore special values
+  // refuse; a plain map serves.
+  for (const [label, val] of [["true", true], ["number", 7], ["string", "assigned"],
+    ["array", []], ["Timestamp", Timestamp.now()]]) {
+    await db.collection("classes").doc("cA").set({studentIds: ["uA"], assignments: {L1: val}});
+    c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
+    check(`container ${label} ⇒ HOLD`, c.readStatus, "hold");
+  }
+  await seedClass("cA", {students: ["uA"]});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
+  check("plain map serves", [c.readStatus, c.assignmentExists], ["ok", true]);
 }
 
 // ===========================================================================
@@ -301,6 +312,14 @@ CASE("B — composer: frontier + universe from progress truth [C2]");
   r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
     resetEpoch: 0, canonicalWords: canonW});
   check("epoch drift rejects", [r.status, r.currentEpoch], ["reset_epoch_mismatch", 1]);
+  // [r74 N-2] a STALE (>10min) crashed-reset lock does NOT lock the engine
+  // out — the takeover window applies to the read predicate too.
+  await db.doc("users/uW/progress_meta/LW").set({resetEpoch: 0,
+    resetInProgress: {opId: "crashed", at: TS(Date.now() - 11 * 60000)}});
+  r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
+    resetEpoch: 0, canonicalWords: canonW});
+  checkTrue("stale crashed lock: engine SERVES", r.status === "created" || r.status === "exists");
+  await db.doc("users/uW/progress_meta/LW").delete();
 }
 
 // ===========================================================================
@@ -523,6 +542,38 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     claimedBy: "attNewBad", wordIds: ["w40"]});
   r = await cd({newTestAttemptId: "attNewBad"});
   checkTrue("impossible new-test refused", r.status === "no_evidence" && String(r.reason).includes("new-test"));
+  // [r74 C1b] an ENGINE new-test with MISSING or MALFORMED posture refuses.
+  await seedAttempt("attNewNoGp", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
+    rows: [["w40", true]], score: 100, range: [40, 49], presentationId: "npNoGp"});
+  await seedNewPresentation("npNoGp", {uid: "uE", classId: "cE", listId: "LE", day: 5,
+    claimedBy: "attNewNoGp", wordIds: ["w40"]});
+  await db.collection("attempts").doc("attNewNoGp").update({gatePosture: FieldValue.delete()});
+  r = await cd({newTestAttemptId: "attNewNoGp"});
+  check("engine new-test missing posture refused", [r.status, String(r.reason).includes("posture")], ["no_evidence", true]);
+  await db.collection("attempts").doc("attNewNoGp").update({gatePosture: {effectiveEnabled: true, threshold: "92", configVersion: 1}});
+  r = await cd({newTestAttemptId: "attNewNoGp"});
+  check("engine new-test malformed threshold refused", [r.status, String(r.reason).includes("posture")], ["no_evidence", true]);
+  // [r74 N-5] the discriminator on the CONSUMED half: an epoch-carrying
+  // review attempt WITHOUT a presentation is not valid engine evidence.
+  await seedAttempt("attEngineNoP", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
+    rows: presented.map((w, i) => [w, i < 28]), score: 93});
+  r = await cd({consumedAttemptId: "attEngineNoP"});
+  check("engine review without presentation refused", [r.status, r.reason], ["no_evidence", "engine review attempt lacks presentation"]);
+  // [r74 O10] the queue-fence legs at submit: non-canonical path + pool-hash
+  // mismatch, each typed.
+  await db.doc("users/uE/review_presentations/badPathPres").set({
+    uid: "uE", classId: "cE", listId: "LE", logicalDay: 5, resetEpoch: 0,
+    presentedWordIds: presented, poolHash: q.queue.poolHash, compositionVersion: "lrt-v1",
+    requestFingerprint: {sessionType: "review", testType: "mcq", kind: "live", visitId: null},
+    testType: "mcq", visitId: null, queueRef: "users/uE/review_queues/WRONG_PATH",
+    serverClaim: {claimedAt: Timestamp.now(), attemptDocId: null}, createdAt: Timestamp.now(),
+  });
+  r = await call(CALL.reviewV2SubmitAttempt, "uE", {presentationId: "badPathPres", answers: [], clientContractVersion: 1});
+  check("non-canonical queueRef refused", [r.status, r.reason], ["queue_invalid", "non-canonical queueRef"]);
+  await db.doc("users/uE/review_presentations/badPathPres").update({
+    queueRef: q.queuePath, poolHash: "not-the-queue-hash"});
+  r = await call(CALL.reviewV2SubmitAttempt, "uE", {presentationId: "badPathPres", answers: [], clientContractVersion: 1});
+  check("pool-hash mismatch refused", [r.status, r.reason], ["queue_invalid", "pool-hash mismatch"]);
 
   // THE HAPPY STANDARD DAY: graduation 55, rru twins, streak, THE ADVANCE.
   r = await DONE.completeDay(db, params);
@@ -650,6 +701,21 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   await db.doc("classes/cE2").update({"assignments.LE": {name: "seed", weeklyPace: 50, studyDaysPerWeek: 5}});
   await seedConfig({rehearsalClassIds: ["cE", "cE2"]}); // the second class rehearses too
   await seedProgress("uE", "cE2", "LE", {csd: 7, twi: 60});
+  // DISCRIMINATING fixture [r74 C8c/N-8]: the loser view seeds a DIVERGENT
+  // (lower) twi against a day whose wordsIntroduced > 0 — the additive
+  // derive would yield 45+10=55; the absolute copy must yield completedTwi.
+  const done5 = (await db.doc("users/uE/day_completions/LE_d5_e0").get()).data();
+  checkTrue("day-5 record carries completedTwi + wordsIntroduced>0",
+      Number.isInteger(done5.completedTwi) && done5.wordsIntroduced > 0);
+  await seedProgress("uE", "cE2", "LE", {csd: 4, twi: 45}); // divergent view
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE2", listId: "LE", logicalDay: 5,
+    resetEpoch: 0, consumedAttemptId: null, consumedAttemptClassId: null,
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 3 * DAY});
+  check("catch-up copies ABSOLUTE completedTwi (not additive)",
+      [r.status, r.viewAdvanced,
+        (await foundation.durableProgressRef("uE", "cE2", "LE").get()).data().totalWordsIntroduced],
+      ["already_completed", true, done5.completedTwi]);
+  await seedProgress("uE", "cE2", "LE", {csd: 7, twi: 60});
   r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE2", listId: "LE", logicalDay: 8,
     resetEpoch: 0, consumedAttemptId: null, consumedAttemptClassId: null,
     newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 3 * DAY});
@@ -772,7 +838,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
       {presentationId: presId, answers: [{wordId: "w19", studentResponse: "x"}], clientContractVersion: 1}),
   "invalid-argument");
 
-  // ComposeNewTest: range = [twi, twi+pace) (pace = ceil(50/5) = 10).
+  // ComposeNewTest: ordinal range = the next dailyPace words after the first twi.
   r = await call(CALL.reviewV2ComposeNewTest, "uX", {...common, logicalDay: 3, composeKey: "lap-key-cb07"});
   check("new-day range", [r.status, r.presentation.rangeStartIndex, r.presentation.rangeEndIndex, r.presentation.presentedWordIds.length], ["composed", 10, 19, 10]);
   const newPresId = r.presentation.presentationId;
@@ -844,8 +910,9 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   // [r72 C5] replay returns the STORED engine facts (not hard-coded nulls).
   const replay2 = await submit(presId, goodAnswers);
   check("replay engineResult stored", [replay2.replayed, replay2.stamped, Array.isArray(replay2.rerunGraduated)], [true, 4, true]);
-  // rerun submit above), priority_saturation_day (all-priority compose),
-  // cursor_repaired (poisoned cursor through ComposeSession).
+  // [r72 C7/L-9-repaired] ops emissions through the callables:
+  // rerun_graduation (the rerun submit above), priority_saturation_day
+  // (all-priority compose), cursor_repaired (poisoned cursor).
   const rg = await db.collection("ops_metrics").where("type", "==", "rerun_graduation").get();
   checkTrue("rerun_graduation emitted", rg.size >= 1);
   const satBatch = db.batch();
@@ -858,11 +925,48 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
     cursorWordIndex: 2, lastLogicalDay: 99, lastQueueRef: "x", updatedAt: Timestamp.now()}, {merge: true});
   r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb12"});
   check("saturated compose ok", r.status, "composed");
-  await new Promise((res) => setTimeout(res, 700)); // fire-and-forget emissions settle
-  const sat = await db.collection("ops_metrics").where("type", "==", "priority_saturation_day").get();
+  // [r74 L-8] bounded poll instead of a fixed sleep.
+  let sat = null;
+  for (let i = 0; i < 20; i++) {
+    sat = await db.collection("ops_metrics").where("type", "==", "priority_saturation_day").get();
+    if (sat.size >= 1) break;
+    await new Promise((res) => setTimeout(res, 150));
+  }
   checkTrue("priority_saturation_day emitted", sat.size >= 1);
   const cr = await db.collection("ops_metrics").where("type", "==", "cursor_repaired").get();
   checkTrue("cursor_repaired emitted", cr.size >= 1);
+
+  // [r74 C8a] THE AUTHORITY RACE THROUGH THE PUBLIC BOUNDARY: preflight
+  // passes, the emulator-only hook un-enrolls uX MID-CALL, the final txn
+  // refuses typed — the exact preflight→txn race, on the wrapped callable.
+  CALL._testHooks.afterPreflight = async () => {
+    await db.doc("classes/cX").update({studentIds: []});
+  };
+  r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb13"});
+  check("mid-call un-enroll ⇒ txn-typed refusal (public boundary)", r.status, "not_enrolled");
+  await db.doc("classes/cX").update({studentIds: ["uX"]});
+  // [r74 C8b] the stale unclaimed live-new replay + the submit frontier bind:
+  // compose a live-new for the frontier, advance the frontier BEHIND it,
+  // then (a) replay the same composeKey ⇒ day_guard; (b) submit ⇒ day_guard.
+  await seedWords("LX", 30); // headroom — twi is 20 by now; the day-4 range needs next words
+  r = await call(CALL.reviewV2ComposeNewTest, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb14"});
+  check("live-new composed at frontier 4", r.status, "composed");
+  const stalePresId = r.presentation.presentationId;
+  await seedProgress("uX", "cX", "LX", {csd: 4, twi: 20}); // the frontier advances to 5
+  r = await call(CALL.reviewV2ComposeNewTest, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb14"});
+  check("stale unclaimed replay ⇒ day_guard", [r.status, r.expectedDay], ["day_guard_rejected", 5]);
+  r = await submit(stalePresId, []);
+  check("stale live-new submit ⇒ day_guard", [r.status, r.expectedDay], ["day_guard_rejected", 5]);
+  await seedProgress("uX", "cX", "LX", {csd: 3, twi: 20}); // restore
+  // [r74 L-5] a fingerprint-less (corrupt) presentation refuses typed.
+  await db.doc("users/uX/review_presentations/corruptPres").set({
+    uid: "uX", classId: "cX", listId: "LX", logicalDay: 4, resetEpoch: 0,
+    presentedWordIds: ["w0"], poolHash: "x", compositionVersion: "lrt-v1",
+    testType: "mcq", visitId: null, queueRef: null,
+    serverClaim: {claimedAt: Timestamp.now(), attemptDocId: null}, createdAt: Timestamp.now(),
+  });
+  r = await submit("corruptPres", []);
+  check("fingerprint-less presentation refused", r.status, "presentation_invalid");
 
   // Malformed canonical word ⇒ typed + ops signal [C5/M-7].
   await db.doc("lists/LX/words/wBad").set({word: "bad", definition: "bad"});

@@ -49,6 +49,11 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
   edits affect the NEXT day's queue (snapshot law).
 - `poolHash` = SHA-256 over `JSON.stringify(orderedQueueWordIds)` (hex, full) [r55 — delimiter-safe canonical
   serialization; same rule for `presentationHash` and the introduced-range hash] — drift detection for audits.
+- **[SUPERSESSION r74-N-1]: ENGINE `twi` IS AN ORDINAL COUNT over the canonical word order** — the review
+  universe = the FIRST twi canonical words; the live-new range = the NEXT `dailyPace` after them. Identical
+  to the positional reading on gap-free lists; on gapped lists (historical deletions) the engine stays
+  correct and every canonical load emits the `positionGap` ops warning (17_ §5). The legacy anchor
+  reconciliation (`twi = nwei + 1`, CS runbook) remains positional — exact on contiguous lists only.
 
 ## 2b. `users/{uid}/review_cursors/{listId}_e{resetEpoch}` — THE ROTATION CURSOR (NEW, server-only) [r58]
 
@@ -129,7 +134,13 @@ DENIED (rules list).
   // PROVENANCE [r62p]: sourceConfig = the SOURCE class's CONFIGURED values (its posture authority for the
   // R2-38 cross-class evidence record); queue CONTENT truth lives on the queueRef's snapshot — on a same-day
   // reuse these can differ by design (first-composer-wins content, class-scoped posture).
-  newTestAttemptId|null (null iff a ZERO-new-words day — the R2-39 law), graduationCount, graduatedWordIds[]
+  newTestAttemptId|null (null iff a ZERO-new-words day — the R2-39 law),
+  **[r74-N-11 additions]: `wordsIntroduced` (engine: |the new presentation's presented set|; legacy: the
+  attempt's range count; range-less legacy ⇒ 0 + `twiHeld:true`) · `completedTwi` (the winner's
+  post-advance twi — THE absolute value the R2-51 view catch-up copies; legacy records without it fall
+  back to the relative derive, clamped) · `postureSource` (attempt | completion_legacy |
+  completion_autopass) · `legacyEvidence` (the published flip-week boundary flag)**,
+  graduationCount, graduatedWordIds[]
   (bounded ≤ queue size — the SERVER resting-truth input, see §10), graduatedWordIdsHash =
   **SHA-256(JSON.stringify(graduatedWordIds)) [the frozen formula, r57]**, completedAt}` —
   **BINDINGS [r57]: `consumedAttemptClassId` is null IFF `consumedAttemptId` is null; every `gate_off_*` kind

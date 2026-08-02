@@ -279,6 +279,7 @@ async function completeDay(db, params) {
           totalWordsIntroduced: Number.isInteger(done.completedTwi)
             ? done.completedTwi
             : Math.min(truth.twi + wi, cap),
+          lastStudyDate: Timestamp.fromMillis(nowMs), // [r74 L-1] winner parity
           lastSessionAt: Timestamp.fromMillis(nowMs),
           updatedAt: Timestamp.fromMillis(nowMs),
         };
@@ -356,12 +357,16 @@ async function completeDay(db, params) {
       if (Math.round((storedCorrect / tq) * 100) !== consumed.score) {
         return {status: "no_evidence", reason: "impossible_record (score-rows disagreement)"};
       }
-      // PRESENTATION + QUEUE BINDING (engine evidence) — legacy attempts
-      // (no presentationId) take the published boundary leg instead.
-      // [r72 C1]: engine evidence must be CLAIMED (an engine attempt always
-      // claims its presentation in the attempt txn — null is not valid
-      // engine evidence), and a live-review presentation must carry its
-      // queue, canonically bound (path + identity fields + poolHash).
+      // THE ENGINE/LEGACY DISCRIMINATOR [r74 N-5 — ONE field, BOTH halves]:
+      // `resetEpoch` presence. Engine writers always stamp it; legacy
+      // attempts never did. An epoch-carrying (engine) consumed attempt
+      // REQUIRES its claimed presentation + canonical queue binding [r72
+      // C1]; only an epoch-less attempt takes the published legacy leg.
+      const consumedIsEngine = consumed.resetEpoch !== undefined && consumed.resetEpoch !== null;
+      if (consumedIsEngine &&
+          (typeof consumed.presentationId !== "string" || consumed.presentationId.length === 0)) {
+        return {status: "no_evidence", reason: "engine review attempt lacks presentation"};
+      }
       if (typeof consumed.presentationId === "string" && consumed.presentationId.length > 0) {
         const pSnap = await txn.get(db.doc(
             `users/${uid}/review_presentations/${consumed.presentationId}`));
@@ -463,10 +468,18 @@ async function completeDay(db, params) {
       if (Math.round((ntCorrect / ntq) * 100) !== newTest.score) {
         return {status: "no_evidence", reason: "impossible_record (new-test score-rows disagreement)"};
       }
+      // [r74 C1a] the ENGINE leg (epoch-carrying — this branch) REQUIRES a
+      // COMPLETE valid gatePosture; malformed/missing posture is an
+      // impossible engine record, never a silent skip. The legacy (epoch-
+      // less) leg is published-exempt in 17_ [N-10].
       const ntGp = newTest.gatePosture;
-      if (newTest.teacherEdited !== true &&
-          ntGp && Number.isInteger(ntGp.threshold) && ntGp.threshold >= 1 && ntGp.threshold <= 100 &&
-          newTest.score < ntGp.threshold) {
+      const ntPostureValid = ntGp && typeof ntGp.effectiveEnabled === "boolean" &&
+        Number.isInteger(ntGp.configVersion) &&
+        Number.isInteger(ntGp.threshold) && ntGp.threshold >= 1 && ntGp.threshold <= 100;
+      if (!ntPostureValid) {
+        return {status: "no_evidence", reason: "impossible_record (new-test posture missing/malformed)"};
+      }
+      if (newTest.teacherEdited !== true && newTest.score < ntGp.threshold) {
         return {status: "no_evidence", reason: "impossible_record (new test passed below threshold)"};
       }
     }

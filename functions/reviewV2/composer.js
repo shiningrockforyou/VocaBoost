@@ -156,10 +156,17 @@ function effectiveResetEpoch(pmData, lpData) {
   return Math.max(e(pmData), e(lpData));
 }
 
-/** §9 lock predicate: ANY present `resetInProgress` rejects writes — takeover
- *  of a stale lock belongs to the next reset op, never to a composer. */
-function resetLockActive(pmData, lpData) {
-  return Boolean(pmData?.resetInProgress) || Boolean(lpData?.resetInProgress);
+/** §9 lock predicate [r74 N-2 — a crashed reset must not lock the student
+ *  out of the engine PERMANENTLY]: only a LIVE lock (younger than the §9
+ *  takeover window) rejects writes; a stale lock is takeover-eligible state
+ *  that the NEXT reset op repairs — the engine serves through it, exactly as
+ *  §9 r56 prescribes ("the stuck-lock state rejects only WRITE ops ... until
+ *  takeover" — and past the window it is no longer a live lock at all). */
+const RESET_LOCK_TAKEOVER_MS = 10 * 60 * 1000; // the §9 r56 liveness window
+function resetLockActive(pmData, lpData, nowMs = Date.now()) {
+  const live = (l) => Boolean(l) &&
+    (l?.at?.toMillis ? (nowMs - l.at.toMillis()) : 0) < RESET_LOCK_TAKEOVER_MS;
+  return live(pmData?.resetInProgress) || live(lpData?.resetInProgress);
 }
 
 function assertParams(p) {

@@ -129,9 +129,16 @@ async function resolveReviewConfig(db, ctx) {
     const rawAsg = (classSnap.data().assignments || {})[listId];
     // [r72 C3] the assignment CONTAINER itself is authority: present but not
     // a plain object (true/7/"assigned"/[]) ⇒ HOLD — never default open.
-    if (rawAsg !== undefined && rawAsg !== null &&
-        (typeof rawAsg !== "object" || Array.isArray(rawAsg))) {
-      return holdResult("assignment malformed (non-object container)");
+    // [r74 C3a — Codex probed Timestamp/GeoPoint through the r73 check]:
+    // an assignment must be a PLAIN map (prototype Object/null) — Firestore
+    // special values are objects too and must HOLD, never default open.
+    const isPlainMap = (v) => {
+      if (typeof v !== "object" || v === null || Array.isArray(v)) return false;
+      const proto = Object.getPrototypeOf(v);
+      return proto === Object.prototype || proto === null;
+    };
+    if (rawAsg !== undefined && rawAsg !== null && !isPlainMap(rawAsg)) {
+      return holdResult("assignment malformed (non-map container)");
     }
     asg = rawAsg || null;
     if (asg && asg.reviewGateEnabled === false) assignmentGate = false;

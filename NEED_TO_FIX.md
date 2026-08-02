@@ -527,3 +527,11 @@ pedagogy signal the current model hides). See triage N3/N4.
 
 ## 16. #11-fix flaw: csd advances on THROTTLE review-only days → recovery-defeating "review-racing" loop  ·  backend/intervention  ·  MED-HIGH (CS-observed 2026-07-16)
 The deployed review-only completion fix advances csd on ALL review-only days, incl. THROTTLE ones (words remaining). Throttle should HOLD the student on review to recover; instead they sprint through Day N→N+1→N+2 Review, rush, score 0, and the rushed 0s refill the last-3 review window and cancel their good scores → they can't recover despite scoring 77-100% on the days they engage (이아연/김시연/조예서). Recovery DOES work (reviews save; 1-2 genuine good reviews → new words next day) so it's UX-defeating, not a dead-end. Fix: don't advance csd on throttle review-only days (only list-end); and/or exclude rushed/auto-advanced review-only days from the intervention window; and/or soften throttle for the high-new/low-review profile. Full writeup: `audit/deepfix/THROTTLE_REVIEWONLY_ADVANCE_FLAW.md`. Decision 2026-07-16 (David): no manual override — self-heal.
+
+## [2026-08-03, DEEPFIX2 r74/O3] deleteWord/addWord position REINDEX bug
+`src/services/db.js`: `deleteWord` renumbers the remaining words' `position`s, but `addWord` appends at
+`count` — delete-then-add therefore mints a DUPLICATE position, which the review-v2 engine's strict
+canonical loader refuses (`list_words_malformed`) for the WHOLE list (grading-key integrity — ruled
+refuse-over-degrade, 17_ §5). Fix when carded: make addWord allocate max(position)+1, and/or make
+deleteWord not renumber. A read-only position sweep (scripts/deepfix2/list-position-sweep.mjs) runs
+pre-rehearsal; any list it flags needs repair before that list meets the engine.

@@ -52,6 +52,19 @@ function getDb() {
   return admin.firestore();
 }
 
+// [r74 C8a] EMULATOR-ONLY test hook (same gating pattern as B3's crash
+// hooks): lets the lap mutate authority BETWEEN a callable's preflight and
+// its final transaction, proving the txn-level checks fire through the
+// PUBLIC boundary. Inert in production by construction.
+const _testHooks = {afterPreflight: null};
+async function _runAfterPreflightHook() {
+  if (process.env.FIRESTORE_EMULATOR_HOST && typeof _testHooks.afterPreflight === "function") {
+    const fn = _testHooks.afterPreflight;
+    _testHooks.afterPreflight = null; // one-shot
+    await fn();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Shared fences (HttpsError ONLY for auth/args/not-found/permission — every
 // protocol refusal returns as {status} data [r70 C5])
@@ -163,6 +176,7 @@ const reviewV2ComposeSession = onCall({enforceAppCheck: false}, async (request) 
     clientContractVersion: d.clientContractVersion,
   });
   if (gate.refusal) return gate.refusal;
+  await _runAfterPreflightHook(); // [r74 C8a] emulator-only race injection
   const epoch = await deriveEpoch(db, uid, d.listId);
   if (epoch.refusal) return epoch.refusal;
   const canonical = await loadCanonicalWordsStrict(db, d.listId);
@@ -174,8 +188,8 @@ const reviewV2ComposeSession = onCall({enforceAppCheck: false}, async (request) 
   if (canonical.words.length === 0) {
     throw new HttpsError("failed-precondition", "list has no words");
   }
-  if (canonical.positionGap) {
-    emitOps(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+  if (canonical.positionGap) { // [L-7] awaited like every list_words_malformed emission
+    await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
       payload: {warning: "positionGap", ...canonical.positionGap}});
   }
 
@@ -267,6 +281,10 @@ const reviewV2ComposeNewTest = onCall({enforceAppCheck: false}, async (request) 
       payload: canonical.refusal});
     return canonical.refusal;
   }
+  if (canonical.positionGap) { // [r74 O2a/L-7] the warn reaches EVERY load, AWAITED
+    await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+      payload: {warning: "positionGap", ...canonical.positionGap}});
+  }
 
   // The day's range = [twi, twi + dailyPace) over canonical order. The
   // frontier binds THREE times: this preflight (cheap early refusal), the
@@ -344,6 +362,10 @@ const reviewV2ComposeRerun = onCall({enforceAppCheck: false}, async (request) =>
     await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
       payload: canonical.refusal});
     return canonical.refusal;
+  }
+  if (canonical.positionGap) { // [r74 O2a/L-7] the warn reaches EVERY load, AWAITED
+    await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+      payload: {warning: "positionGap", ...canonical.positionGap}});
   }
 
   let p;
@@ -477,9 +499,6 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
   const correctCount = rows.filter((r) => r.isCorrect).length;
   const score = Math.round((correctCount / totalQuestions) * 100);
 
-  const isRerun = pres.requestFingerprint?.kind === "rerun";
-  const isNewSession = pres.requestFingerprint?.sessionType === "new";
-  const isReviewType = pres.requestFingerprint?.sessionType === "review";
   const attemptId = `rv2_${d.presentationId}`;
   const attemptRef = db.collection("attempts").doc(attemptId);
   const pmRef = db.doc(`users/${uid}/progress_meta/${pres.listId}`);
@@ -522,6 +541,11 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     }
     if (!pSnap.exists) throw new Error("presentation vanished");
     const p = pSnap.data();
+    // [r74 L-6] the session-shape booleans derive from the IN-TXN snapshot
+    // (the pre-read `pres` was preflight courtesy only).
+    const isRerunTxn = p.requestFingerprint?.kind === "rerun";
+    const isNewSessionTxn = p.requestFingerprint?.sessionType === "new";
+    const isReviewTypeTxn = p.requestFingerprint?.sessionType === "review";
 
     // Threshold: the day's pinned queue snapshot for live review (FAIL-
     // CLOSED [r70 C5]: a queueRef with a missing/malformed queue refuses —
@@ -537,12 +561,12 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     }
     // [r72 C5] a LIVE REVIEW without its queue is never servable — the fence
     // below is REQUIRED for it, optional legs stay only for new/rerun.
-    if (isReviewType && !isRerun && !p.queueRef) {
+    if (isReviewTypeTxn && !isRerunTxn && !p.queueRef) {
       return {status: "queue_invalid", reason: "live review requires a queue"};
     }
     // [r72 C2] the live-new MINT re-binds the frontier in ITS txn — a stale
     // unclaimed presentation (pre-advance) can never cross into an attempt.
-    if (isNewSession && !isRerun) {
+    if (isNewSessionTxn && !isRerunTxn) {
       const {readProgressTruthInTxn} = require("./progress");
       const truth = await readProgressTruthInTxn(txn, db, {uid, classId: pres.classId, listId: pres.listId});
       if (p.logicalDay !== truth.frontierDay) {
@@ -582,7 +606,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     // Rerun visit binding [r70 C4]: the half binds to ITS visit — read +
     // tuple-verified in-txn; missing/mismatched ⇒ typed, mints nothing.
     let visitSnap = null;
-    if (isRerun) {
+    if (isRerunTxn) {
       if (typeof p.visitId !== "string" || p.visitId.length === 0) {
         return {status: "visit_invalid", reason: "rerun presentation lacks visitId"};
       }
@@ -600,15 +624,15 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
       studentId: uid,
       classId: p.classId,
       listId: p.listId,
-      testId: `vocaboost_test_${p.classId}_${p.listId}_${isNewSession ? "new" : "review"}`,
+      testId: `vocaboost_test_${p.classId}_${p.listId}_${isNewSessionTxn ? "new" : "review"}`,
       studyDay: p.logicalDay,
-      sessionType: isNewSession ? "new" : "review",
+      sessionType: isNewSessionTxn ? "new" : "review",
       testType: p.testType,
-      ...(isRerun ? {type: "retest", visitId: p.visitId ?? null} : {}),
+      ...(isRerunTxn ? {type: "retest", visitId: p.visitId ?? null} : {}),
       // Live new-day attempts carry the day's anchor range (continuity for
       // deriveDayAnchorRange/completion twi advance); rerun halves stay
       // range-less (legacy readers blind to them) [r70 C4/L-8].
-      ...(isNewSession && !isRerun &&
+      ...(isNewSessionTxn && !isRerunTxn &&
           Number.isInteger(p.rangeStartIndex) && Number.isInteger(p.rangeEndIndex)
         ? {newWordStartIndex: p.rangeStartIndex, newWordEndIndex: p.rangeEndIndex}
         : {}),
@@ -631,13 +655,13 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     const stamps = stampLabelsInTxn(txn, db, {
       uid, config: txnConfig, rows,
       presentedWordIds: p.presentedWordIds,
-      isReviewType, isPassing: passed,
+      isReviewType: isReviewTypeTxn, isPassing: passed,
     });
 
     let rerunGraduated = [];
     let visitHalf = null;
-    if (isRerun && passed) {
-      if (isReviewType) {
+    if (isRerunTxn && passed) {
+      if (isReviewTypeTxn) {
         const g = graduateRerunInTxn(txn, db, {
           uid, config: txnConfig,
           rows: rows.map((r) => ({wordId: r.wordId, isCorrect: r.isCorrect})),
@@ -647,7 +671,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
       }
       visitHalf = recordRerunHalfInTxn(txn, db, {
         uid, visitSnap,
-        half: isReviewType ? "review" : "new",
+        half: isReviewTypeTxn ? "review" : "new",
         attemptId,
       });
     }
@@ -714,6 +738,10 @@ const reviewV2CompleteDay = onCall({enforceAppCheck: false}, async (request) => 
       payload: canonical.refusal});
     return canonical.refusal;
   }
+  if (canonical.positionGap) { // [r74 O2a/L-7] the warn reaches EVERY load, AWAITED
+    await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+      payload: {warning: "positionGap", ...canonical.positionGap}});
+  }
 
   return completeDay(db, {
     uid, winningClassId: d.classId, listId: d.listId,
@@ -771,6 +799,7 @@ const reviewV2EvaluateThresholds = onCall({enforceAppCheck: false}, async (reque
 
 module.exports = {
   loadCanonicalWordsStrict, // test-facing [r73 — the N-1 gap fixture]
+  _testHooks, // emulator-only [r74 C8a]
   reviewV2ComposeSession,
   reviewV2ComposeNewTest,
   reviewV2ComposeRerun,

@@ -11,3 +11,5 @@ them): `change_action_log.md`, `change_action_log_ap.md`, `SUPPORT_RUNBOOK.md`, 
 
 Convention (per CLAUDE.md): every code change → a `change_action_log.md` row; each significant phase →
 a `docs/patches/PATCH_*.md`; each plan → `/plan-audit` (3-agent) + Codex before deploy.
+
+- `plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md` — the DEEPFIX2 dark-deploy order's durable requirement cards (indexes, gated flips, interlock/freeze consequences, sizing).

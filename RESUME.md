@@ -71,6 +71,29 @@ steps) · N-1 positionGap ops WARNING · L-2 comment fixed.
 11. (fold together, ONE r73 round: handoff → codex baton rev 218/round 73 →
     Opus lane workflow → WinClaude ORDER 85-1).
 
+## r74 LEDGER IS WRITTEN: /tmp/claude-1000/-app/87eba36e-8e66-4638-bae9-6cd6f923fff6/scratchpad/r74-fold-ledger.md
+(implement row-by-row, mark file:line per row, separate verify pass, explicit deferrals). A PERPETUAL
+round-agnostic baton watcher runs (scratchpad/baton-watcher.sh — relaunch FIRST THING each wake).
+
+## r74 FOLD — THE MANDATORY PROCESS (fold-ledger discipline, David-directed):
+1. READ IN FULL (never notifications): docs/plans/loop/fable_panels/panel_r72_opus.md AND
+   panel_r73_opus.md AND codex_reviews/codex_deepfix2_r73.md. The r72/r73 folds MISSED Opus items
+   hidden below a notification truncation (N-2 composer takeover-window, N-5 evidence discriminator,
+   N-6 list sweep/duplicate ruling, L-1 lastStudyDate, L-4 pace comment, exact fixture names).
+2. BUILD THE FOLD LEDGER first (scratchpad file): one row per atomic clause + one row per demanded
+   fixture, from ALL THREE documents. Codex r73: C1 new-test posture REQUIRED+validated for engine legs
+   (not conditional) · C3 plain-map check (Timestamp/GeoPoint refused — prototype/constructor check) ·
+   C8 (races through the WRAPPED callable via an emulator-only afterPreflight test hook · stale-replay +
+   submit-frontier fixtures · malformed-new-posture fixture · container fixtures in CASE A · H-B fixture
+   must DISCRIMINATE absolute-copy vs derive [distinct twi seed] · reset.js:17 false comment · 15_ §3b
+   schema += wordsIntroduced/completedTwi · baton wslNote refresh). Opus r73: its full closing list from
+   the panel file + N-7 (17_ "vice versa — fixtured" FALSE — fix the claim or build the fixture) ·
+   N-8 (=Codex H-B point) · N-9 (run-binding ≤60s blackout at window open — design note/mitigation:
+   the window writer could pre-warm caches or the evaluator tolerates the TTL edge; adjudicate) ·
+   N-2/N-5/N-6/L-1/L-4 from the panel.
+3. Implement per row (file:line noted) → SEPARATE verification pass (diff + lap assertion per row) →
+   only then claims/handoff. Run the lap. r74 handoff cites the ledger.
+
 ## DAVID RULINGS (2026-08-03, this session — receipts in 15_ §3b):
 - R2-51 RATIFIED by principle ("progress should be intrinsic to students only..."): r73 fold ENABLES the
   view catch-up (no gating const needed — Codex C1.1's procedural objection is answered by ratification;
