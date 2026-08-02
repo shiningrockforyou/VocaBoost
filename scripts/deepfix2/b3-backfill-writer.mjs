@@ -169,7 +169,7 @@ if (extrasRepair) {
     try { red = parseLedgerStrict(readFileSync(ledgerPath, "utf-8"), original.manifestSha256); }
     catch (e) { console.error(`FATAL [r66 ledger]: ${e.message}`); process.exit(2); }
     const reported = new Set(theirs);
-    const problems = [...red.problems];
+    const problems = red.problems.filter(p => !p.startsWith(`${RUNID} `)); // r69 [Codex A1]: a crashed repair run's OWN dangling intent must not brick its own resume — the under-lease admission/overtake law governs the rest
     for (const sha of red.appliedLayerShas) if (!reported.has(sha)) problems.push(`EXECUTE'd layer not in the report's appliedDeltas — the report predates reality; re-run B4 with the full chain`);
     if (problems.length) { console.error(`FATAL [r66 repair-reality]:\n - ${problems.join("\n - ")}`); process.exit(2); }
   };
@@ -267,15 +267,35 @@ if (EXECUTE) {
     let leaseMtime = null; try { const { statSync } = await import("node:fs"); leaseMtime = statSync(execLeaseUrl).mtimeMs; } catch {}
     const assessment = assessLease(holder, probe, Date.now(), 2 * 3600e3, leaseMtime); // r67/r68: the pure law
     if (!assessment.stale) { console.error(`FATAL [r65 B2/r67]: another B3 EXECUTE holds the execution lease (${assessment.reason}) — liveness/EPERM wins at ANY age`); process.exit(2); }
-    const reaped = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaped-${process.pid}-${Date.now().toString(36)}`, outDir);
-    try { renameSync(execLeaseUrl, reaped); } catch { console.error("FATAL: lease takeover raced (another claimant renamed first)"); process.exit(2); }
-    // r68 [cutover NEW-4 — the ABA]: verify we reaped the EXACT lease we assessed; a live successor's
-    // fresh lease renamed by mistake is RESTORED and we stand down.
+    // r69 [Codex B2 — three contenders; panel: the post-rename verify clobbered successors and fatal'd on
+    // unparseable reaps]: STALE REAPING IS SERIALIZED by a per-original REAPER CLAIM (wx). Under the claim:
+    // re-read the lease; if its BYTES changed since assessment (a successor exists) ⇒ release + stand down;
+    // else rename (provably the assessed lease) → take → release the claim. The authoritative pathname is
+    // never removed before identity is proven, and no restore path exists to clobber anyone.
+    const reaperUrl = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaping`, outDir);
+    let reaperFd = null;
+    try { reaperFd = openSync(reaperUrl, "wx"); writeSync(reaperFd, JSON.stringify({ pid: process.pid, at: Date.now() })); }
+    catch (e) {
+      if (e.code === "EEXIST") { console.error("FATAL [r69 reaper]: another claimant is reaping this lease — stand down and retry"); process.exit(2); }
+      console.error(`FATAL: reaper claim: ${e.message}`); process.exit(2);
+    }
     try {
-      const got = JSON.parse(readFileSync(reaped, "utf-8"));
-      if ((got.token ?? null) !== (holder?.token ?? null)) { renameSync(reaped, execLeaseUrl); console.error("FATAL [r68 ABA]: reaped a DIFFERENT (live successor) lease — restored, standing down"); process.exit(2); }
-    } catch (e) { if (e.code !== "ENOENT") { console.error(`FATAL: reap verification: ${e.message}`); process.exit(2); } }
-    console.error(`NOTE [r67]: stale execution lease (${assessment.reason}) — claimed by rename`);
+      let nowRaw = null; try { nowRaw = readFileSync(execLeaseUrl, "utf-8"); } catch (e) { if (e.code !== "ENOENT") throw e; }
+      // unchanged ⇔ the lease is STILL the one we assessed: parsed-equal when we parsed it, or
+      // STILL-unparseable when we could not (a successor's valid lease over an unparseable one = CHANGED)
+      let unchanged = false;
+      if (nowRaw !== null) {
+        let nowParsed = null; let nowParseable = true;
+        try { nowParsed = JSON.parse(nowRaw); } catch { nowParseable = false; }
+        unchanged = holder === null ? !nowParseable : (nowParseable && JSON.stringify(nowParsed) === JSON.stringify(holder));
+      }
+      if (nowRaw !== null && !unchanged) { console.error("FATAL [r69 reaper]: the lease changed since assessment (live successor) — standing down"); process.exit(2); }
+      if (nowRaw !== null) {
+        const reaped = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaped-${process.pid}-${Date.now().toString(36)}`, outDir);
+        renameSync(execLeaseUrl, reaped);
+      }
+    } finally { try { closeSync(reaperFd); } catch {} rmSync(reaperUrl, { force: true }); }
+    console.error(`NOTE [r69]: stale execution lease (${assessment.reason}) — reaped under the reaper claim`);
     try { takeLease(); } catch { console.error("FATAL: lease takeover raced at re-create"); process.exit(2); }
   }
   if (repairRealityScan) repairRealityScan(); // r65 B2: re-check under the lease — no scan-to-lease gap
@@ -299,6 +319,12 @@ if (EXECUTE) {
       if (ownIntentIdx >= 0) {
         const overtakenBy = red.ordered.filter((r, i) => i > ownIntentIdx && r.probe === "b3-applied" && r.runId !== RUNID && !r.cutoverAborted);
         if (overtakenBy.length) { console.error(`FATAL [r68 overtake]: this run's authority was OVERTAKEN by later applied run(s): ${[...new Set(overtakenBy.map(r => r.runId))].join(", ")} — a resume would revert their writes; the crashed run is SUPERSEDED (its unwritten remainder re-converges via the chain)`); process.exit(2); }
+      } else {
+        // r69 [Codex A2]: NO intent = the run crashed pre-intent — absence of position is NOT absence of
+        // history. Compare the manifest's applied-shas snapshot to NOW: any new applied sha ⇒ OVERTAKEN.
+        const rmSnap = new Set(JSON.parse(readFileSync(new URL(`${RUNID}.manifest.json`, outDir), "utf-8")).ledgerAppliedShasAtStart || []);
+        const newApplied = [...red.appliedLayerShas].filter(sha => !rmSnap.has(sha));
+        if (newApplied.length) { console.error(`FATAL [r69 overtake/pre-intent]: ${newApplied.length} layer(s) applied since this run's manifest — a resume would revert them; the crashed run is SUPERSEDED`); process.exit(2); }
       }
     }
   }
@@ -419,7 +445,12 @@ if (preStream) {
   await new Promise(r => preStream.end(r));
   renameSync(preTmp, backupPath);
 }
+// r69 [Codex A2 — the pre-intent crash left no custody order]: the manifest snapshots the applied-layer
+// set at publication; a resume whose intent never reached the ledger compares snapshots instead.
+let appliedShasAtStart = [];
+try { if (existsSync(LEDGER_URL)) appliedShasAtStart = [...parseLedgerStrict(readFileSync(LEDGER_URL, "utf-8"), original.manifestSha256).appliedLayerShas].sort(); } catch {}
 const runManifest = { probe: "b3-run", version: 4, runId: RUNID, mode: EXECUTE ? "EXECUTE" : "DRY",
+  ledgerAppliedShasAtStart: appliedShasAtStart,
   originalManifestSha256: original.manifestSha256, deltaLayer: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null,
   deltaDir: args.deltaDir || null, repairExtrasSha256: args._repairExtrasSha256 ?? null,
   watermarks: { original: original.manifest.watermark, delta: deltaLayers.length ? deltaLayers[0].base.manifest.watermark : null },

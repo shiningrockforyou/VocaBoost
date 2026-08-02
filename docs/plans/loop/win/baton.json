@@ -1,9 +1,9 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 77,
+ "round": 78,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_077.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_078.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": null,
  "execDecision": null,
@@ -11,12 +11,12 @@
  "execReviewRepoPath": null,
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_077.md",
   "docs/plans/loop/win/reviews/winclaude_076.md",
-  "docs/plans/loop/win/reviews/winclaude_075.md",
-  "docs/plans/loop/win/reviews/winclaude_074.md"
+  "docs/plans/loop/win/reviews/winclaude_075.md"
  ],
- "note": "ORDER 77-1: commit+push the r68 batch (admission gate + overtake law, exact terminal schema, orphan settlement, 82/0 frozen lap; one pointer deletion). Sync-verified before this flip.",
+ "note": "ORDER 78-1: commit+push the r69 batch (pre-intent fence, repair resume, reaper claim, orphan dispositions, 98/0 lap, the closing-condition contract). Sync-verified, handoff-first, no-optional-locks.",
  "updatedBy": "winclaude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 149
+ "revision": 150
 }

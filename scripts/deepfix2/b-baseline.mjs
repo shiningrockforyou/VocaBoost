@@ -192,6 +192,9 @@ export function parseLedgerStrict(text, originalManifestSha256, opts = {}) {
     else {
       const o = e.outcome;
       if (typeof o !== "object" || o === null) throw new Error(`completion lacks outcome at line ${i + 1}`);
+      for (const cf of ["txnFailures", "skippedResetLocked", "skippedEpochDrift"]) {
+        if (!Number.isInteger(o[cf]) || o[cf] < 0) throw new Error(`completion counter ${cf} must be a non-negative integer at line ${i + 1} [r69 — strings/NaN/negatives evaded the arithmetic checks]`);
+      }
       // r68 [Codex r67 A2 — truthiness was fail-open]: EXACT terminal schema. cutoverAborted must be the
       // literal boolean true; a terminal completion must bind to ITS OWN intent's identity (same key, same
       // delta sha) — a contradictory or unknown terminal shape is ledger corruption, not leniency.
@@ -225,7 +228,12 @@ export function parseLedgerStrict(text, originalManifestSha256, opts = {}) {
       cutoverRuns.push({ runId, attempt: att, outcome: o, deltaManifestSha256: done.deltaManifestSha256 ?? null });
       continue;
     }
-    if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
+    if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) {
+      // r69 [accuracy NEW-2 — the asymmetric brick]: post-flip NOTHING can resume — a failed/skipped
+      // latest completion becomes a PUBLISHED orphan disposition (counts surfaced), never a fatal.
+      if (opts.postFlip) orphans.push({ runId, attempt: att, deltaManifestSha256: done.deltaManifestSha256 ?? null, outcome: o });
+      else problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
+    }
   }
   for (const [, e] of applieds) if (e.deltaManifestSha256 && e.outcome?.cutoverAborted !== true) appliedLayerShas.add(e.deltaManifestSha256);
   return { problems, orphans, cutoverRuns, appliedLayerShas, intents, applieds, latestAttempt, ordered };

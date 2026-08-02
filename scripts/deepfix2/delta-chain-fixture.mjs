@@ -400,10 +400,18 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   const mk = lines => lines.map(x => JSON.stringify(x)).join("\n") + "\n";
   const O = "o".repeat(64);
   const base = { version: 1, runId: "t1", attempt: 0, originalManifestSha256: O };
+  const Z = { txnFailures: 0, skippedResetLocked: 0, skippedEpochDrift: 0 };
   const { parseLedgerStrict } = await import("./b-baseline.mjs");
-  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { cutoverAborted: "yes" } }]), O), "non-boolean", "schema: string cutoverAborted dies");
-  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { cutoverAborted: 1 } }]), O), "non-boolean", "schema: numeric cutoverAborted dies");
-  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent", deltaManifestSha256: "aaa" }, { ...base, probe: "b3-applied", deltaManifestSha256: "bbb", outcome: { cutoverAborted: true } }]), O), "≠ its intent", "schema: cutover delta-sha must bind to its intent");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { ...Z, cutoverAborted: "yes" } }]), O), "non-boolean", "schema: string cutoverAborted dies");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { ...Z, cutoverAborted: 1 } }]), O), "non-boolean", "schema: numeric cutoverAborted dies");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent", deltaManifestSha256: "aaa" }, { ...base, probe: "b3-applied", deltaManifestSha256: "bbb", outcome: { ...Z, cutoverAborted: true } }]), O), "≠ its intent", "schema: cutover delta-sha must bind to its intent");
+  // r69 [Codex B1]: counter SHAPES — strings/NaN/negatives die on ANY completion
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { ...Z, txnFailures: "many" } }]), O), "non-negative integer", "schema: string counter dies");
+  throws(() => parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { ...Z, skippedResetLocked: -2 } }]), O), "non-negative integer", "schema: negative counter dies");
+  { // r69 [accuracy NEW-2]: postFlip failed-latest = published ORPHAN disposition, never a brick
+    const failed = parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { txnFailures: 3, skippedResetLocked: 0, skippedEpochDrift: 0 } }]), O, { postFlip: true });
+    ok(failed.problems.length === 0 && failed.orphans.length === 1 && failed.orphans[0].outcome.txnFailures === 3, "postFlip: a FAILED latest completion = published orphan with its counts");
+  }
   const okRed = parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }, { ...base, probe: "b3-applied", outcome: { txnFailures: 2, skippedResetLocked: 0, skippedEpochDrift: 0, cutoverAborted: true } }]), O);
   ok(okRed.cutoverRuns.length === 1 && okRed.cutoverRuns[0].outcome.txnFailures === 2 && okRed.problems.length === 0, "schema: REAL pre-abort counts SURFACE via cutoverRuns, terminal not a problem");
   const orph = parseLedgerStrict(mk([{ ...base, probe: "b3-intent" }]), O, { postFlip: true });

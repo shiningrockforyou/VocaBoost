@@ -425,6 +425,71 @@ await resetCase();
   const rFinal = b4([`--appliedDelta=${layer}`]);
   ok(rFinal.code === 0, `final B4 PASS (got ${rFinal.code})`, rFinal);
 }
+// ================= r69: REPAIR-CRASH RESUME (Codex r68 A1) =================
+console.error("== r69: repair crash-resume ==");
+await resetCase();
+{
+  b1full(); b3exec("rcr0");
+  const r4a = b4(); ok(r4a.code === 0, `clean baseline (got ${r4a.code})`, r4a);
+  const repFileA = readdirSync(b4runs).filter(f => f.endsWith(".json")).sort().pop();
+  await db.collection("users").doc("emA").collection("study_states").doc("zzz-rx").set({ reviewFailCount: 4, reviewLastFailedAt: TS(BASE + 4 * DAY) });
+  const r4b = b4(); ok(r4b.code === 5, `extra detected (got ${r4b.code})`, r4b);
+  const repFile = readdirSync(b4runs).filter(f => f.endsWith(".json") && f !== repFileA).sort().pop();
+  const rc = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=rcrep", "--execute", `--repairExtras=${join(b4runs, repFile)}`], { B3_CRASH_AT: "post-intent" });
+  ok(rc.code === 99, `repair run crashes post-intent (got ${rc.code})`, rc);
+  const rRes = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=rcrep", "--execute", `--repairExtras=${join(b4runs, repFile)}`, "--resume"]);
+  ok(rRes.code === 0, `the crashed REPAIR resumes cleanly — its own intent never bricks it (got ${rRes.code})`, rRes);
+  const gone = !(await db.collection("users").doc("emA").collection("study_states").doc("zzz-rx").get()).data()?.reviewFailCount;
+  ok(gone, "the extra is deleted by the resumed repair");
+  const r4c = b4(); ok(r4c.code === 0, `final B4 PASS (got ${r4c.code})`, r4c);
+}
+// ================= r69: PRE-INTENT OVERTAKE (Codex r68 A2's exact sequence) =================
+console.error("== r69: pre-intent overtake fence ==");
+await resetCase();
+{
+  b1full(); b3exec("pioM0");
+  const rc = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=pioP", "--execute"], { B3_CRASH_AT: "pre-intent" });
+  ok(rc.code === 99, `plain run crashes PRE-intent (durable manifest, no ledger position) (got ${rc.code})`, rc);
+  await attNow("pioB", "emB", "review", [["w3", true]], 100);
+  const r4 = b4(); const layer = layerDirsOf(r4.stdout)[0];
+  ok(!!layer, `layer materialized (b4 ${r4.code})`, r4);
+  const r1 = run("b1-expected-labels.mjs", ["--full", `--classAllowlist=${allowPath}`, `--deltaAuth=${join(layer, "delta-auth.json")}`, `--outDir=${layer}`]);
+  const rM1 = b3exec("pioM1", [`--deltaDir=${layer}`]);
+  ok(r1.code === 0 && rM1.code === 0, `M1 executes (no dangling record blocks it) (got ${r1.code}/${rM1.code})`, rM1);
+  const rStale = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=pioP", "--execute", "--resume"]);
+  ok(rStale.code === 2 && rStale.out.includes("pre-intent"), `the anchorless stale resume is REFUSED via the manifest snapshot fence (got ${rStale.code})`, rStale);
+  const rF = b4([`--appliedDelta=${layer}`]);
+  ok(rF.code === 0, `final B4 PASS (got ${rF.code})`, rF);
+}
+// ================= r69: MIXED-(d) — structural diff COEXISTING with an actionable delta =================
+console.error("== r69: mixed structural+delta ==");
+await resetCase();
+{
+  b1full(); b3exec("mixd0");
+  await db.collection("users").doc("emA").collection("study_states").doc("w1").set({ reviewFailCount: 55 }, { merge: true }); // structural corruption
+  await attNow("mixdB", "emB", "review", [["w3", true]], 100); // AND an actionable delta
+  const r4 = b4();
+  ok(r4.code === 7, `mixed presents as DIFFS-WITH-ACTIONABLE-DELTA (got ${r4.code})`, r4);
+  const d = driver("mixdLap");
+  ok(d.code === 5, `the driver processes the delta then STOPS on the surviving structural diff (got ${d.code})`, d);
+  await db.collection("users").doc("emA").collection("study_states").doc("w1").update({ reviewFailCount: 0 });
+  const chain = existsSync(ledgerPath) ? [...readFileSync(ledgerPath, "utf-8").matchAll(/"deltaDir":"([^"]+)"/g)].map(m => m[1]).filter(Boolean) : [];
+  const rF = b4(chain.map(c => `--appliedDelta=${c}`));
+  ok(rF.code === 0, `PASS after correction (got ${rF.code})`, rF);
+}
+// ================= r69: ORPHAN AT THE GATE (crash post-intent → flip → published orphan settlement) =====
+console.error("== r69: flip-orphan gate settlement ==");
+await resetCase();
+{
+  b1full(); b3exec("orph0");
+  const rc = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=orphP", "--execute"], { B3_CRASH_AT: "post-intent" });
+  ok(rc.code === 99, `run crashes post-intent (got ${rc.code})`, rc);
+  const FLIPO = Date.now();
+  await db.doc("system_config/review_v2").set({ enabled: true, firstEnabledAt: TS(FLIPO) });
+  const r = b4([`--postFlip=${FLIPO}`]);
+  ok(r.code === 0 && r.out.includes("flip-orphaned"), `the dangling run is a PUBLISHED orphan; the gate reaches a verdict (got ${r.code})`, r);
+}
+
 // ================= r68: MIXED-SAME-FIELD (tail event + lost post-flip event ⇒ BLOCKS) =================
 console.error("== r68: mixed-same-field quiet-fail ==");
 await resetCase();
