@@ -69,6 +69,11 @@ async function readProgressTruthInTxn(txn, db, {uid, classId, listId}) {
   };
 }
 
+// NOTE [r72]: the tuple's `anchorNwei = twi − 1` is an ENCODING of twi (the
+// match tuple needs stability + class-agnosticism, not positional truth —
+// `generation` carries the same value); real positions come from the
+// canonical words where a range is actually built (ComposeNewTest).
+
 /** Non-transactional variant for callable PRE-flight derivation (display /
  *  cheap early refusals). Binding checks always re-run in the txn. */
 async function readProgressTruth(db, {uid, classId, listId}) {
@@ -80,10 +85,13 @@ async function readProgressTruth(db, {uid, classId, listId}) {
   return {csd, twi, frontierDay: csd + 1, anchorNwei: twi - 1, generation: `t${twi}`, progressRef};
 }
 
-/** Slice the canonical list to the introduced universe (positions < twi).
- *  `canonicalWords` = [{wordId, wordIndex}] ascending canonical order. */
+/** Slice the canonical list to the introduced universe — the FIRST twi words
+ *  in canonical order. [r71 M-A ORDINAL SLICE: twi is a COUNT, so the bound
+ *  is ordinal, not positional — a list whose positions have gaps (historical
+ *  deletions) still yields exactly twi introduced words; `wordIndex` stays
+ *  the canonical position for tie-breaks.] */
 function introducedUniverse(canonicalWords, twi) {
-  return canonicalWords.filter((w) => w.wordIndex < twi);
+  return canonicalWords.slice(0, Math.max(0, Math.min(twi, canonicalWords.length)));
 }
 
 module.exports = {

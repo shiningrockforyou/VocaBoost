@@ -239,7 +239,7 @@ async function composeDayQueue(db, params) {
 
   return db.runTransaction(async (txn) => {
     // ---- READS (all before any write; conditional reads allowed) ----------
-    const config = await resolveReviewConfig(db, {classId, listId, txn});
+    const config = await resolveReviewConfig(db, {classId, listId, uid, txn});
     const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
     const [pmSnap, lpSnap, queueSnap, cursorSnap] =
       await txn.getAll(pmRef, lpRef, queueRef, cursorRef);
@@ -257,6 +257,12 @@ async function composeDayQueue(db, params) {
       return {status: "reset_epoch_mismatch", currentEpoch};
     }
 
+    // ---- FRONTIER AUTHORITY [C2, ordered BEFORE the replay return per
+    // r71-Codex: an EXISTING past-day queue must not bypass the guard — a
+    // completed day's queue is not re-servable] ---------------------------
+    if (logicalDay !== truth.frontierDay) {
+      return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
+    }
     // Replay convergence (§8): the deterministic id already exists ⇒ return
     // it untouched — first writer won; no cursor movement on replay.
     if (queueSnap.exists) {
@@ -267,11 +273,6 @@ async function composeDayQueue(db, params) {
         queue: queueSnap.data(),
         config,
       };
-    }
-
-    // ---- FRONTIER AUTHORITY [C2]: live compose serves ONLY csd+1 ---------
-    if (logicalDay !== truth.frontierDay) {
-      return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
     }
     // The review universe: introduced BEFORE the day (positions < twi).
     // Day 1 (twi 0) has no review by construction [first_day_new_only].

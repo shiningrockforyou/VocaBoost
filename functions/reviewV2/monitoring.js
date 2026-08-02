@@ -178,7 +178,9 @@ async function recordOpsMetric(db, {type, uid = null, classId = null, listId = n
 function classifyRows(rows, {scope, window}) {
   const out = {consumed: [], quarantined: [], excluded: []};
   const windowMalformed = window !== null && window !== undefined &&
-    !Number.isInteger(window.generation);
+    (!Number.isInteger(window.generation) ||
+     !(window.startedAt && typeof window.startedAt.toMillis === "function") ||
+     typeof window.runId !== "string" || window.runId.length === 0);
   for (const row of rows) {
     if (windowMalformed) {
       out.quarantined.push(row);
@@ -232,10 +234,15 @@ async function evaluateThresholds(db, {scope, dryRun, thresholds = {}, windowMs 
   if (scope === "shadowAudit" && window === null) {
     return {status: "no_audit_window"};
   }
-  if (scope === "shadowAudit" && !Number.isInteger(window.generation)) {
-    // FAIL CLOSED [r70 C7]: a present-but-corrupt window artifact refuses the
-    // audit outright (production classification quarantines everything via
-    // classifyRows).
+  // FAIL CLOSED [r70 C7, r72-completed]: a present window must be WHOLLY
+  // well-formed — integer generation AND a real startedAt AND a runId. Any
+  // corrupt leg refuses the audit outright; production classification
+  // quarantines everything via classifyRows.
+  const windowMalformed = window !== null && (
+    !Number.isInteger(window.generation) ||
+    !(window.startedAt && typeof window.startedAt.toMillis === "function") ||
+    typeof window.runId !== "string" || window.runId.length === 0);
+  if (scope === "shadowAudit" && windowMalformed) {
     return {status: "window_malformed"};
   }
 

@@ -144,6 +144,12 @@ DENIED (rules list).
   completions (contract (6)) lives HERE.
 - Immutable after create. Streak credit (§6) writes in the SAME txn. Client graduation dies (DF2-10(8) moves
   graduation into this txn); a client receiving `already_completed` re-runs NOTHING [A2/r53].
+  **[r72 PROPOSED — David ratification PENDING (candidate ledger row R2-51); implemented + fixtured, both
+  r71 lanes' H-B condition]: THE DUAL-CLASS VIEW CATCH-UP — pre-P5 the durable progress doc is
+  class-scoped, so when the shared day is ALREADY completed and the calling class's view sits exactly one
+  day behind (csd === day−1), the loser txn syncs that class's csd/twi view (NO graduation, NO rest, NO
+  streak — the shared day advanced ONCE; this is the r48 "a valid cross-class pass satisfies the shared
+  logical day" made real for the second class). Response carries `viewAdvanced:true`.**
 
 ## 4. Attempt-doc additions (existing `attempts/{attemptId}`)
 
@@ -264,6 +270,16 @@ fence arms (monotonic positive integers) when the DF2-51 client ships its `clien
 
 ## 9. Retention + reset cleanup
 
+- **[r72 SUPERSESSIONS — the §9 build, both r71 lanes]** (1) **PRE-P5 FENCE SCOPE [BL-A — Opus r71
+  BLOCKER]: while `LIST_PROGRESS_CANONICAL` is false the fence/lock lives on `progress_meta/{listId}`
+  ONLY — creating `list_progress` pre-P5 flips both live readers (foundation.js resolveListProgress +
+  progressService fetchStudentsProgressForClass prefer the canonical doc ON EXISTENCE) onto a doc with no
+  csd/twi, freezing the student at day 0. Post-P5 both docs fence per the letter below; every epoch
+  consumer reduces max(both) either way.** (2) **THE RESET-V2 GATE [WinClaude r83 escalation]:
+  `resetProgress` is a LIVE callable, so the rebuilt law ships behind `RESET_V2_ENABLED=false`
+  (emulator-overridable for the lap) — the dark deploy stays zero-delta; flipping the const is DAVID'S
+  deploy decision, exercised in the 25WT/shadow phases first.** (3) **TWO-DOC LOCK REDUCTION [Codex r71
+  C4]: ANY live lock on EITHER tombstone rejects; takeover only when every present lock is stale.**
 - **RESET = OWNED LOCKED FENCE-FIRST [r54+r55+r56 — closes the races AND the liveness/ownership holes]:**
   (1) the fence: ONE **TRANSACTION** [r57 — a WriteBatch cannot read/reject: two callers could both pass a
   precheck and overwrite ownership] that READS both tombstone docs (`progress_meta/{listId}` +

@@ -2052,9 +2052,46 @@ function testIdMatchesList(testId, listId) {
  *      impl notes (I-6 M7 says "stamp on list_progress"; the pre-P5 meta doc
  *      reconciles that with the v2-BLOCKER empty-collection guarantee).
  */
+/**
+ * DEEPFIX2 §6b (1) — THE ONE CHALLENGE-ADJUDICATION TRANSFORM [r72 CC-5].
+ * Preserves THE GRADING PREIMAGE before any adjudication mutates the row:
+ * `gradedIsCorrect` is copied from the current `isCorrect` ONLY where absent
+ * (append-only — a repeat adjudication can never launder it; replay/backfill
+ * prefer the preimage whenever present; every acceptance WITHOUT the copy
+ * grows the R2-49 legacy-reconstruction class against the published
+ * 947-student baseline). Pure — exported so the lap can fixture the exact
+ * live transform even while the callable stays flag-gated. The client path
+ * (src/services/db.js reviewChallenge) mirrors this shape until DF2-46.
+ */
+function applyChallengeAdjudication(answer, accepted, reviewerId, reviewedAt) {
+  const out = {
+    ...answer,
+    ...(typeof answer.gradedIsCorrect === "boolean"
+      ? {} : {gradedIsCorrect: answer.isCorrect === true}),
+    challengeStatus: accepted ? "accepted" : "rejected",
+    challengeReviewedBy: reviewerId,
+    challengeReviewedAt: reviewedAt,
+  };
+  if (accepted) out.isCorrect = true;
+  return out;
+}
+
 /** §9 liveness law [r56]: a lock older than this is TAKEOVER-eligible — a
  *  new reset op re-fences (epoch +1 again, new opId) and re-runs cleanup. */
 const RESET_LOCK_TAKEOVER_MS = 10 * 60 * 1000;
+
+/** DEEPFIX2 r72 — THE RESET-V2 GATE [WinClaude's r83 escalation + WSL's
+ *  recommendation to David, safe-by-default]: `resetProgress` is a LIVE
+ *  callable, so the §9 fence-first rebuild would change live behavior at the
+ *  next functions deploy. FALSE keeps the legacy reset law byte-faithful
+ *  (delete legs + increment-epoch stamp, no lock, no job cancellation) —
+ *  the dark deploy stays zero-delta for real students. Flipping to true is
+ *  DAVID'S deploy decision (with the 25WT/shadow phases exercising it
+ *  first). Emulator override (RESET_V2_FOR_TEST=1) exists ONLY for the
+ *  engine lap — the same emulator-gated pattern as B3's crash hooks. */
+const RESET_V2_ENABLED = process.env.FIRESTORE_EMULATOR_HOST
+  ? process.env.RESET_V2_FOR_TEST === "1"
+  : false;
 
 const resetProgress = onCall({enforceAppCheck: false}, async (request) => {
   if (!SERVER_RESET_PROGRESS_ENABLED) {
@@ -2087,32 +2124,45 @@ const resetProgress = onCall({enforceAppCheck: false}, async (request) => {
   const opId = db.collection("_ids").doc().id;
   const pmRef = db.doc(`users/${uid}/progress_meta/${listId}`);
   const lpRef = db.doc(`users/${uid}/list_progress/${listId}`);
-  const fence = await db.runTransaction(async (tx) => {
-    const [pm, lp] = await Promise.all([tx.get(pmRef), tx.get(lpRef)]);
-    const pmD = pm.exists ? pm.data() : {};
-    const lpD = lp.exists ? lp.data() : {};
-    const lock = pmD.resetInProgress || lpD.resetInProgress;
-    const lockAgeMs = lock?.at?.toMillis ? (Date.now() - lock.at.toMillis()) : Infinity;
-    if (lock && lockAgeMs < RESET_LOCK_TAKEOVER_MS) {
-      return {status: "reset_already_running"};
+  let targetEpoch = null;
+  if (RESET_V2_ENABLED) {
+    const fence = await db.runTransaction(async (tx) => {
+      const [pm, lp] = await Promise.all([tx.get(pmRef), tx.get(lpRef)]);
+      const pmD = pm.exists ? pm.data() : {};
+      const lpD = lp.exists ? lp.data() : {};
+      // TWO-DOC LOCK REDUCTION [r71 Codex C4]: ANY live lock — on EITHER
+      // doc — rejects; takeover only when every present lock is stale (a
+      // stale first operand can never shadow a live second).
+      const locks = [pmD.resetInProgress, lpD.resetInProgress].filter(Boolean);
+      const ageOf = (l) => l?.at?.toMillis ? (Date.now() - l.at.toMillis()) : Infinity;
+      if (locks.some((l) => ageOf(l) < RESET_LOCK_TAKEOVER_MS)) {
+        return {status: "reset_already_running"};
+      }
+      const epochOf = (d) => (Number.isInteger(d.resetEpoch) && d.resetEpoch > 0) ? d.resetEpoch : 0;
+      const nextEpoch = Math.max(epochOf(pmD), epochOf(lpD)) + 1;
+      const stamp = {
+        resetEpoch: nextEpoch,
+        resetInProgress: {opId, targetEpoch: nextEpoch, at: Timestamp.now()},
+        resetAt: Timestamp.now(),
+        resetBy: "resetProgress",
+        listId,
+      };
+      // BL-A [r71 Opus BLOCKER]: pre-P5 the fence lives on progress_meta
+      // ONLY — creating `list_progress` here would flip both live readers
+      // (resolveListProgress:1763, progressService:791 prefer the canonical
+      // doc on EXISTENCE) onto a doc with no csd/twi, freezing the student
+      // at day 0 forever. Post-P5 (LIST_PROGRESS_CANONICAL) both docs fence
+      // per the §9 letter; the engine's epoch reduction maxes both either
+      // way. Supersession recorded in 15_ §9 + SUPPORT_RUNBOOK.
+      tx.set(pmRef, stamp, {merge: true});
+      if (LIST_PROGRESS_CANONICAL) tx.set(lpRef, stamp, {merge: true});
+      return {status: "fenced", targetEpoch: nextEpoch};
+    });
+    if (fence.status === "reset_already_running") {
+      throw new HttpsError("aborted", "reset_already_running");
     }
-    const epochOf = (d) => (Number.isInteger(d.resetEpoch) && d.resetEpoch > 0) ? d.resetEpoch : 0;
-    const targetEpoch = Math.max(epochOf(pmD), epochOf(lpD)) + 1;
-    const stamp = {
-      resetEpoch: targetEpoch,
-      resetInProgress: {opId, targetEpoch, at: Timestamp.now()},
-      resetAt: Timestamp.now(),
-      resetBy: "resetProgress",
-      listId,
-    };
-    tx.set(pmRef, stamp, {merge: true});
-    tx.set(lpRef, stamp, {merge: true});
-    return {status: "fenced", targetEpoch};
-  });
-  if (fence.status === "reset_already_running") {
-    throw new HttpsError("aborted", "reset_already_running");
+    targetEpoch = fence.targetEpoch;
   }
-  const targetEpoch = fence.targetEpoch;
 
   // 1 · attempts FIRST (all classes).
   const byField = await db.collection("attempts")
@@ -2156,73 +2206,99 @@ const resetProgress = onCall({enforceAppCheck: false}, async (request) => {
   }
   deleted.classProgress = await deleteRefsBatched([...progressRefs.values()]);
 
-  // 5 · [r70 §9 leg (3), reviewV2 families] stale-epoch-only deletes across
-  // the nine engine collections (queues, presentations, cursors, compose
-  // keys, counters, completions, credits, visits, restudy counters) + the
-  // R2-40e bookmark map-keys for every class swept in leg 4.
-  const rv2Reset = require("./reviewV2/reset");
-  const rv2 = await rv2Reset.deleteStaleEpochReviewV2Docs(db, {uid, listId, targetEpoch});
-  const classIds = [...new Set([...progressRefs.keys()]
-      .map((id) => id.endsWith(`_${listId}`) ? id.slice(0, -(listId.length + 1)) : null)
-      .filter((c) => typeof c === "string" && c.length > 0))];
-  await rv2Reset.clearRestudyBookmarks(db, {uid, listId, classIds});
-
-  // 6 · [r70 §9] pending grading-job cancellation via the named (uid,status)
-  // index [r47 Q5]: claimed jobs for this list are cancelled + their answer
-  // rows redacted (the same hygiene as the 12h expiry law).
+  let rv2 = {deleted: 0, byCollection: {}};
   let jobsCancelled = 0;
-  const claimedJobs = await db.collection("grading_jobs")
-      .where("uid", "==", uid).where("status", "==", "claimed").get();
-  for (const jd of claimedJobs.docs) {
-    const j = jd.data();
-    if (j.listId === listId || (j.listId == null && testIdMatchesList(j.writeContext?.testId, listId))) {
-      await jd.ref.update({
-        status: "cancelled_reset",
-        cancelledAt: Timestamp.now(),
-        resetEpoch: targetEpoch,
-        rows: FieldValue.delete(),
-      });
-      jobsCancelled++;
-    }
-  }
-
-  // 7 · Reconcile: the canonical-doc zeroing (the epoch was stamped at the
-  // FENCE — absolute, never increment-again).
   const now = Timestamp.now();
-  if (LIST_PROGRESS_CANONICAL) {
-    // F-3: post-P5 the durable position IS the canonical doc — the SAME op
-    // that fences MUST also zero it. Default-shape zeros + fresh
-    // programStartDate, merged onto the canonical doc.
-    await canonicalProgressRef(uid, listId).set({
-      listId,
-      currentStudyDay: 0,
-      totalWordsIntroduced: 0,
-      interventionLevel: 0,
-      recentSessions: [],
-      stats: {avgNewWordScore: null, avgReviewScore: null},
-      streakDays: 0,
-      lastStudyDate: null,
-      lastSessionAt: null,
-      programStartDate: mondayOfWeekTimestamp(),
-      updatedAt: now,
-    }, {merge: true});
-  }
+  if (RESET_V2_ENABLED) {
+    // 5 · [r70 §9 leg (3), reviewV2 families] stale-epoch-only deletes across
+    // the nine engine collections + the R2-40e bookmark map-keys.
+    const rv2Reset = require("./reviewV2/reset");
+    rv2 = await rv2Reset.deleteStaleEpochReviewV2Docs(db, {uid, listId, targetEpoch});
+    const classIds = [...new Set([...progressRefs.keys()]
+        .map((id) => id.endsWith(`_${listId}`) ? id.slice(0, -(listId.length + 1)) : null)
+        .filter((c) => typeof c === "string" && c.length > 0))];
+    await rv2Reset.clearRestudyBookmarks(db, {uid, listId, classIds});
 
-  // 8 · OWNER-CLEAR [§9 (5)]: clear the lock IFF it is still this op's.
-  await db.runTransaction(async (tx) => {
-    const [pm, lp] = await Promise.all([tx.get(pmRef), tx.get(lpRef)]);
-    for (const snap of [pm, lp]) {
-      if (snap.exists && snap.data().resetInProgress?.opId === opId) {
-        tx.update(snap.ref, {resetInProgress: FieldValue.delete()});
+    // 6 · [r70 §9] pending grading-job cancellation via the named (uid,status)
+    // index [r47 Q5]: claimed jobs for this list are cancelled + their answer
+    // rows redacted (the same hygiene as the 12h expiry law).
+    const claimedJobs = await db.collection("grading_jobs")
+        .where("uid", "==", uid).where("status", "==", "claimed").get();
+    for (const jd of claimedJobs.docs) {
+      const j = jd.data();
+      if (j.listId === listId || (j.listId == null && testIdMatchesList(j.writeContext?.testId, listId))) {
+        await jd.ref.update({
+          status: "cancelled_reset",
+          cancelledAt: Timestamp.now(),
+          resetEpoch: targetEpoch,
+          rows: FieldValue.delete(),
+        });
+        jobsCancelled++;
       }
     }
-  });
+
+    // 7 · Reconcile: the canonical-doc zeroing (the epoch was stamped at the
+    // FENCE — absolute, never increment-again).
+    if (LIST_PROGRESS_CANONICAL) {
+      await canonicalProgressRef(uid, listId).set({
+        listId,
+        currentStudyDay: 0,
+        totalWordsIntroduced: 0,
+        interventionLevel: 0,
+        recentSessions: [],
+        stats: {avgNewWordScore: null, avgReviewScore: null},
+        streakDays: 0,
+        lastStudyDate: null,
+        lastSessionAt: null,
+        programStartDate: mondayOfWeekTimestamp(),
+        updatedAt: now,
+      }, {merge: true});
+    }
+
+    // 8 · OWNER-CLEAR [§9 (5)]: clear the lock IFF it is still this op's.
+    await db.runTransaction(async (tx) => {
+      const [pm, lp] = await Promise.all([tx.get(pmRef), tx.get(lpRef)]);
+      for (const snap of [pm, lp]) {
+        if (snap.exists && snap.data().resetInProgress?.opId === opId) {
+          tx.update(snap.ref, {resetInProgress: FieldValue.delete()});
+        }
+      }
+    });
+  } else {
+    // LEGACY LAW (RESET_V2_ENABLED=false — the pre-r70 body, byte-faithful):
+    // epoch tombstone stamped LAST, increment(1), progress_meta only pre-P5
+    // (the list_progress collection provably stays empty until P5).
+    const epochStamp = {
+      resetEpoch: FieldValue.increment(1),
+      resetAt: now,
+      resetBy: "resetProgress",
+    };
+    if (LIST_PROGRESS_CANONICAL) {
+      await canonicalProgressRef(uid, listId).set({
+        ...epochStamp,
+        listId,
+        currentStudyDay: 0,
+        totalWordsIntroduced: 0,
+        interventionLevel: 0,
+        recentSessions: [],
+        stats: {avgNewWordScore: null, avgReviewScore: null},
+        streakDays: 0,
+        lastStudyDate: null,
+        lastSessionAt: null,
+        programStartDate: mondayOfWeekTimestamp(),
+        updatedAt: now,
+      }, {merge: true});
+    } else {
+      await db.doc(`users/${uid}/progress_meta/${listId}`).set(epochStamp, {merge: true});
+    }
+  }
 
   await logSystemEventServer("reset_progress_server", {
     userId: uid, listId, deleted,
-    targetEpoch, rv2Deleted: rv2.deleted, jobsCancelled,
+    resetV2: RESET_V2_ENABLED, targetEpoch, rv2Deleted: rv2.deleted, jobsCancelled,
   });
-  return {success: true, deleted, targetEpoch, rv2Deleted: rv2.byCollection, jobsCancelled};
+  return {success: true, deleted, resetV2: RESET_V2_ENABLED, targetEpoch,
+    rv2Deleted: rv2.byCollection, jobsCancelled};
 });
 
 // ============================================================================
@@ -2668,24 +2744,10 @@ const reviewChallenge = onCall({enforceAppCheck: false}, async (request) => {
     throw new HttpsError("failed-precondition", "This challenge has already been reviewed.");
   }
 
-  // Answer-flip (db.js:2761-2773).
+  // Answer-flip (db.js:2761-2773) — via the ONE adjudication transform
+  // (applyChallengeAdjudication, exported + fixtured [r72 CC-5]).
   const updatedAnswers = [...answers];
-  updatedAnswers[answerIndex] = {
-    ...answer,
-    // DEEPFIX2 §6b (1) — THE GRADING PREIMAGE [r70 fold, H-2/C4]: preserve
-    // grading truth BEFORE any adjudication mutates the row. Append-only:
-    // an existing preimage is never overwritten (first adjudication wins),
-    // so repeated review cannot launder it. Replay/backfill prefer
-    // `gradedIsCorrect` whenever present; every acceptance WITHOUT this
-    // copy grows the R2-49 legacy-reconstruction class against the
-    // published 947-student baseline.
-    ...(typeof answer.gradedIsCorrect === "boolean"
-      ? {} : {gradedIsCorrect: answer.isCorrect === true}),
-    challengeStatus: accepted ? "accepted" : "rejected",
-    challengeReviewedBy: callerId,
-    challengeReviewedAt: Timestamp.now(),
-  };
-  if (accepted) updatedAnswers[answerIndex].isCorrect = true;
+  updatedAnswers[answerIndex] = applyChallengeAdjudication(answer, accepted, callerId, Timestamp.now());
 
   // Score/passed recompute with the PERSISTED totalQuestions denominator (db.js:2775-2801).
   const correctCount = updatedAnswers.filter((a) => a.isCorrect).length;
@@ -2973,6 +3035,7 @@ module.exports = {
   defaultProgressShape,
   mondayOfWeekTimestamp,
   deriveDailyPace,
+  applyChallengeAdjudication,
   // CS PR-2 · F3 — the additive review-engagement stamp helper (dormant unless
   // REVIEW_ENGAGEMENT_STAMP_ENABLED); consumed by writeAttemptTxn in index.js.
   computeReviewEngagementStamp,

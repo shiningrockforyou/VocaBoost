@@ -131,6 +131,21 @@ async function resolveReviewConfig(db, ctx) {
   }
   const gateEffectiveEnabled = globallyOn && assignmentGate;
 
+  // STRICT ASSIGNMENT AUTHORITY [r72 C3 — present-but-malformed override
+  // fields HOLD; absent/null keep their frozen defaults]:
+  if (asg) {
+    const intOk = (v, lo, hi) => v === undefined || v === null ||
+      (Number.isInteger(v) && v >= lo && v <= hi);
+    const gateOk = asg.reviewGateEnabled === undefined || asg.reviewGateEnabled === null ||
+      typeof asg.reviewGateEnabled === "boolean";
+    const typeOk = asg.reviewTestType === undefined || asg.reviewTestType === null ||
+      asg.reviewTestType === "mcq" || asg.reviewTestType === "typed";
+    if (!intOk(asg.reviewPassThreshold, 1, 100) || !intOk(asg.reviewQueueSize, 1, 500) ||
+        !intOk(asg.reviewTestSize, 1, 500) || !gateOk || !typeOk) {
+      return holdResult("assignment override malformed");
+    }
+  }
+
   // Authorization facts (uid-supplied calls only) — same read, zero extra I/O.
   const authFacts = uid === undefined ? {} : {
     classExists: classSnap.exists,
@@ -219,6 +234,14 @@ function assertServableInTxn(config, clientContractVersion) {
   if (config.readStatus !== "ok") {
     return { status: "config_hold", holdReason: config.holdReason };
   }
+  // AUTHORIZATION AT TXN TIME [r72 C3 — Codex reproduced the fail-open]:
+  // when the resolve carried a uid, class existence, enrollment, and
+  // assignment existence are BINDING here — un-enrolling or un-assigning
+  // between preflight and commit mints nothing. (uid-less resolves are
+  // engine-internal and carry no authorization claim.)
+  if (config.classExists === false) return { status: "class_not_found" };
+  if (config.enrolled === false) return { status: "not_enrolled" };
+  if (config.assignmentExists === false) return { status: "list_not_assigned" };
   if (config.stampingEligible !== true) {
     return { status: "review_v2_dark" };
   }

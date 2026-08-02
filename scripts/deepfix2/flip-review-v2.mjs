@@ -34,6 +34,9 @@
  */
 
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
@@ -89,19 +92,43 @@ if (MODE === "activate") {
     if (lap.kind !== "trackB-micro-lap" || lap.version !== 1) {
       fail("lapReceipt is not a trackB-micro-lap v1 receipt (run b-delta-cycle with --receipt)");
     }
-    if (!Array.isArray(lap.stages) || lap.stages.length === 0 ||
-        lap.stages[0] !== "B4" || lap.stages[lap.stages.length - 1] !== "B4") {
-      fail("lapReceipt stages must start and end with a B4 verify");
-    }
+    if (!Array.isArray(lap.stages)) fail("lapReceipt lacks stages");
     if (!Number.isInteger(lap.checks) || lap.checks < 1) fail("lapReceipt checks must be a positive count");
     if (lap.failures !== 0) fail("lapReceipt failures must be exactly 0");
     if (typeof lap.runId !== "string" || lap.runId.length === 0) fail("lapReceipt lacks runId");
     if (lap.projectId !== key.project_id) {
       fail(`lapReceipt projectId ${lap.projectId} ≠ this key's ${key.project_id}`);
     }
-    if (typeof lap.sourceShas !== "object" || lap.sourceShas === null ||
-        Object.keys(lap.sourceShas).length < 5) {
+    // SOURCE BINDING [r72 C6/M-E — presence is not proof]: the SEVEN Track-B
+    // sources are ENUMERATED, their hashes RECOMPUTED from this repo, and
+    // compared BY VALUE — a receipt from edited or foreign bytes refuses.
+    const REQUIRED_SOURCES = ["b1-expected-labels.mjs", "b1-replay-lib.mjs",
+      "b3-backfill-writer.mjs", "b3-txn-core.mjs", "b4-verify.mjs",
+      "b-baseline.mjs", "b-delta-cycle.mjs"];
+    if (typeof lap.sourceShas !== "object" || lap.sourceShas === null) {
       fail("lapReceipt lacks bound source hashes");
+    }
+    const HERE = dirname(fileURLToPath(import.meta.url));
+    for (const f of REQUIRED_SOURCES) {
+      const recorded = lap.sourceShas[f];
+      if (typeof recorded !== "string" || recorded.length < 16) {
+        fail(`lapReceipt missing source hash for ${f}`);
+      }
+      const actual = createHash("sha256").update(readFileSync(join(HERE, f))).digest("hex").slice(0, 16);
+      if (recorded !== actual) {
+        fail(`lapReceipt source-hash mismatch for ${f} (receipt ${recorded} ≠ tree ${actual}) — the chain ran on different bytes`);
+      }
+    }
+    // THE ORDERED CHAIN [r72 C6]: the final micro-lap is B4→(B1→B3→B4)+ —
+    // at least one full delta cycle; a bare single-B4 receipt refuses.
+    const chainOk = lap.stages.length >= 4 && (lap.stages.length - 1) % 3 === 0 &&
+      lap.stages[0] === "B4" &&
+      lap.stages.slice(1).every((st, i) => st === ["B1", "B3", "B4"][i % 3]);
+    if (!chainOk) {
+      fail(`lapReceipt stages must be B4→(B1→B3→B4)+ — got ${lap.stages.join("→")}`);
+    }
+    if (!Number.isInteger(lap.cycles) || lap.cycles !== (lap.stages.length - 1) / 3 + 1) {
+      fail("lapReceipt cycles inconsistent with stages");
     }
     // Freshness from the CONTENT timestamp [C6 — mtime is touch-spoofable].
     const maxAgeMin = Number(val("--lapMaxAgeMin", "30"));

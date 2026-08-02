@@ -325,7 +325,7 @@ async function composePresentation(db, params) {
     // Serving authority joins THIS txn's read set [r70 C3] — the claim is a
     // mint; a rehearsal-removal/fence edit between preflight and commit must
     // abort it, and the resolver read serializes with the R2-48 flip.
-    const config = await resolveReviewConfig(db, {classId, listId, txn});
+    const config = await resolveReviewConfig(db, {classId, listId, uid, txn});
     const [pmSnap, lpSnap, regSnap] = await txn.getAll(pmRef, lpRef, registryRef);
 
     // ---- REPLAY (mints nothing — precedes the write fence, §8) -----------
@@ -377,6 +377,7 @@ async function composePresentation(db, params) {
     let presentationId; let seq;
     let presentedWordIds; let poolHash; let compositionVersion;
     let fallbackSeed = null; let effectiveTestSize = null; let testType;
+    let priorityCount = null;
     let queueRefPath = null;
     let counterWrite = null; let queueCountWrite = null;
 
@@ -424,12 +425,23 @@ async function composePresentation(db, params) {
       compositionVersion = composed.compositionVersion;
       fallbackSeed = composed.fallbackSeed;
       effectiveTestSize = composed.effectiveTestSize;
+      priorityCount = composed.priorityCount; // [r72 C7 — the saturation signal input]
       poolHash = q.poolHash;
       queueRefPath = queueRef.path;
       seq = (Number.isInteger(q.presentationCount) ? q.presentationCount : 0) + 1;
       presentationId = `${qId}_p${seq}`;
       queueCountWrite = () => txn.update(queueRef, {presentationCount: seq});
     } else {
+      // FRONTIER BINDING [r72 C2]: a live new-day claim re-reads progress
+      // INSIDE this txn — a day advance between preflight and commit mints
+      // nothing stale.
+      if (mode === "new-day" && kind === "live" && params.bindFrontier === true) {
+        const {readProgressTruthInTxn} = require("./progress");
+        const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
+        if (logicalDay !== truth.frontierDay) {
+          return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
+        }
+      }
       // VISIT BINDING [r70 C4]: every rerun half binds to an EXISTING visit
       // whose tuple matches exactly — a missing/mismatched visit mints
       // nothing.
@@ -528,6 +540,7 @@ async function composePresentation(db, params) {
       fallbackUsed: compositionVersion === "fallback-random",
       fallbackSeed,
       effectiveTestSize,
+      priorityCount,
     };
   });
 }

@@ -239,10 +239,10 @@ async function completeDay(db, params) {
     // ---- READS -----------------------------------------------------------
     // Serving authority = the WINNING (calling) class; matrix/source posture
     // = the SOURCE class (r62p provenance). One resolve when they coincide.
-    const servingConfig = await resolveReviewConfig(db, {classId: winningClassId, listId, txn});
+    const servingConfig = await resolveReviewConfig(db, {classId: winningClassId, listId, uid, txn});
     const sourceConfig0 = sourceClassId === winningClassId
       ? servingConfig
-      : await resolveReviewConfig(db, {classId: sourceClassId, listId, txn});
+      : await resolveReviewConfig(db, {classId: sourceClassId, listId, txn}); // source posture only — authorization binds on the SERVING class
     const truth = await readProgressTruthInTxn(txn, db, {uid, classId: winningClassId, listId});
     const [pmSnap, lpSnap, doneSnap] = await txn.getAll(pmRef, lpRef, completionRef);
 
@@ -251,13 +251,46 @@ async function completeDay(db, params) {
     if (sourceConfig0.readStatus === "hold") {
       return {status: "config_hold", holdReason: sourceConfig0.holdReason};
     }
-    // The CAS loser path precedes the write fence (read-only, §8) — and
-    // returns the SAME envelope shape as the winner [r70 C5].
-    if (doneSnap.exists) {
-      return {status: "already_completed", completionId, completion: doneSnap.data()};
-    }
     const pmData = pmSnap.exists ? pmSnap.data() : null;
     const lpData = lpSnap.exists ? lpSnap.data() : null;
+    // The CAS loser path: read-only when the caller's view is current (§8).
+    // H-B VIEW CATCH-UP [r72 — PROPOSED law, David ratification pending,
+    // 15_ §3b note]: pre-P5 the durable progress doc is CLASS-scoped, so a
+    // dual-enrolled student's SECOND class would strand forever on
+    // `already_completed` with no advance. When the shared day is already
+    // completed and THIS class's view sits exactly one day behind, the loser
+    // txn syncs the view (csd/twi only — NO graduation, NO rest, NO streak:
+    // the shared day advanced ONCE; this is view reconciliation, r48's
+    // "a valid cross-class pass satisfies the shared logical day").
+    if (doneSnap.exists) {
+      const done = doneSnap.data();
+      if (truth.csd === logicalDay - 1) {
+        if (resetLockActive(pmData, lpData)) return {status: "reset_in_progress"};
+        const currentEpoch0 = effectiveResetEpoch(pmData, lpData);
+        if (currentEpoch0 !== resetEpoch) return {status: "reset_epoch_mismatch", currentEpoch: currentEpoch0};
+        const wi = Number.isInteger(done.wordsIntroduced) ? done.wordsIntroduced : 0;
+        const cap = Number.isInteger(params.canonicalWordCount) && params.canonicalWordCount > 0
+          ? params.canonicalWordCount : Infinity;
+        const viewAdvance = {
+          currentStudyDay: logicalDay,
+          totalWordsIntroduced: Math.min(truth.twi + wi, cap),
+          lastSessionAt: Timestamp.fromMillis(nowMs),
+          updatedAt: Timestamp.fromMillis(nowMs),
+        };
+        if (truth.progressSnap.exists) {
+          txn.update(truth.progressRef, viewAdvance);
+        } else {
+          txn.set(truth.progressRef, {
+            ...foundation.defaultProgressShape(winningClassId, listId),
+            ...viewAdvance,
+            programStartDate: foundation.mondayOfWeekTimestamp(),
+            createdAt: Timestamp.fromMillis(nowMs),
+          });
+        }
+        return {status: "already_completed", completionId, completion: done, viewAdvanced: true};
+      }
+      return {status: "already_completed", completionId, completion: done};
+    }
     if (resetLockActive(pmData, lpData)) return {status: "reset_in_progress"};
     const currentEpoch = effectiveResetEpoch(pmData, lpData);
     if (currentEpoch !== resetEpoch) return {status: "reset_epoch_mismatch", currentEpoch};
@@ -308,18 +341,22 @@ async function completeDay(db, params) {
       // recompute the stored score from flipped rows, like vs like).
       const tq = consumed.totalQuestions;
       const rowsArr = Array.isArray(consumed.answers) ? consumed.answers : null;
-      if (typeof consumed.score !== "number" || !Number.isFinite(consumed.score) ||
+      if (!Number.isInteger(consumed.score) ||
           consumed.score < 0 || consumed.score > 100 ||
           !Number.isInteger(tq) || tq < 1 ||
           rowsArr === null || rowsArr.length !== tq) {
         return {status: "no_evidence", reason: "impossible_record"};
       }
       const storedCorrect = rowsArr.filter((r) => r?.isCorrect === true).length;
-      if (Math.round((storedCorrect / tq) * 100) !== Math.round(consumed.score)) {
+      if (Math.round((storedCorrect / tq) * 100) !== consumed.score) {
         return {status: "no_evidence", reason: "impossible_record (score-rows disagreement)"};
       }
       // PRESENTATION + QUEUE BINDING (engine evidence) — legacy attempts
       // (no presentationId) take the published boundary leg instead.
+      // [r72 C1]: engine evidence must be CLAIMED (an engine attempt always
+      // claims its presentation in the attempt txn — null is not valid
+      // engine evidence), and a live-review presentation must carry its
+      // queue, canonically bound (path + identity fields + poolHash).
       if (typeof consumed.presentationId === "string" && consumed.presentationId.length > 0) {
         const pSnap = await txn.get(db.doc(
             `users/${uid}/review_presentations/${consumed.presentationId}`));
@@ -333,24 +370,39 @@ async function completeDay(db, params) {
           return {status: "no_evidence", reason: "presentation binding mismatch"};
         }
         const claimed = consumedPresentation.serverClaim?.attemptDocId ?? null;
-        if (claimed !== null && claimed !== consumedAttemptId) {
+        if (claimed !== consumedAttemptId) {
           return {status: "no_evidence", reason: "presentation claimed by another attempt"};
         }
-        if (typeof consumedPresentation.queueRef === "string" && consumedPresentation.queueRef.length > 0) {
-          const qSnap = await txn.get(db.doc(consumedPresentation.queueRef));
-          if (!qSnap.exists) return {status: "no_evidence", reason: "queue missing for presentation"};
-          consumedQueue = qSnap.data();
-          // THE r48 CROSS-CLASS TUPLE MATCH: the evidence queue's tuple must
-          // equal THIS day's derived truth tuple.
-          if (consumedQueue.anchorNwei !== anchorNwei || consumedQueue.generation !== generation) {
-            return {status: "no_evidence", reason: "anchor tuple mismatch"};
-          }
+        if (typeof consumedPresentation.queueRef !== "string" || consumedPresentation.queueRef.length === 0) {
+          return {status: "no_evidence", reason: "presentation lacks queue binding"};
+        }
+        const expectedQueuePath =
+          `users/${uid}/review_queues/${consumedAttemptClassId}_${listId}_d${logicalDay}_e${resetEpoch}`;
+        if (consumedPresentation.queueRef !== expectedQueuePath) {
+          return {status: "no_evidence", reason: "queue path non-canonical"};
+        }
+        const qSnap = await txn.get(db.doc(consumedPresentation.queueRef));
+        if (!qSnap.exists) return {status: "no_evidence", reason: "queue missing for presentation"};
+        consumedQueue = qSnap.data();
+        if (consumedQueue.uid !== uid || consumedQueue.classId !== consumedAttemptClassId ||
+            consumedQueue.listId !== listId || consumedQueue.logicalDay !== logicalDay ||
+            consumedQueue.resetEpoch !== resetEpoch) {
+          return {status: "no_evidence", reason: "queue identity mismatch"};
+        }
+        if (consumedQueue.poolHash !== consumedPresentation.poolHash) {
+          return {status: "no_evidence", reason: "queue/presentation pool-hash mismatch"};
+        }
+        // THE r48 CROSS-CLASS TUPLE MATCH: the evidence queue's tuple must
+        // equal THIS day's derived truth tuple.
+        if (consumedQueue.anchorNwei !== anchorNwei || consumedQueue.generation !== generation) {
+          return {status: "no_evidence", reason: "anchor tuple mismatch"};
         }
       } else {
         legacyEvidence = true;
       }
     }
     let newTest = null;
+    let newTestPresentation = null;
     if (newTestAttemptId !== null) {
       const nSnap = await txn.get(db.collection("attempts").doc(newTestAttemptId));
       if (!nSnap.exists) return {status: "no_evidence", reason: "new-test attempt missing"};
@@ -370,6 +422,26 @@ async function completeDay(db, params) {
         if (newTest.resetEpoch !== resetEpoch) {
           return {status: "no_evidence", reason: "new-test attempt epoch mismatch"};
         }
+        // [r72 C1] ENGINE new evidence binds to ITS server presentation —
+        // the twi advance derives from the SERVER-composed presented count,
+        // never a client-shaped range.
+        if (typeof newTest.presentationId !== "string" || newTest.presentationId.length === 0) {
+          return {status: "no_evidence", reason: "engine new-test lacks presentation"};
+        }
+        const npSnap = await txn.get(db.doc(
+            `users/${uid}/review_presentations/${newTest.presentationId}`));
+        if (!npSnap.exists) return {status: "no_evidence", reason: "new-test presentation missing"};
+        newTestPresentation = npSnap.data();
+        if (newTestPresentation.uid !== uid || newTestPresentation.listId !== listId ||
+            newTestPresentation.logicalDay !== logicalDay ||
+            newTestPresentation.resetEpoch !== resetEpoch ||
+            newTestPresentation.requestFingerprint?.sessionType !== "new" ||
+            newTestPresentation.requestFingerprint?.kind !== "live") {
+          return {status: "no_evidence", reason: "new-test presentation binding mismatch"};
+        }
+        if ((newTestPresentation.serverClaim?.attemptDocId ?? null) !== newTestAttemptId) {
+          return {status: "no_evidence", reason: "new-test presentation claimed by another attempt"};
+        }
       } else {
         legacyEvidence = true;
       }
@@ -387,10 +459,15 @@ async function completeDay(db, params) {
     let governingConfigVersion;
     if (consumed !== null) {
       const gp = consumed.gatePosture;
-      if (gp && typeof gp.effectiveEnabled === "boolean" && Number.isInteger(gp.configVersion)) {
+      // [r72 C1] the attempt-time posture governs only when COMPLETE —
+      // effectiveEnabled boolean + integer configVersion + integer threshold
+      // in range; anything less demotes to the PUBLISHED legacy rule (never
+      // a silent per-field substitution).
+      if (gp && typeof gp.effectiveEnabled === "boolean" && Number.isInteger(gp.configVersion) &&
+          Number.isInteger(gp.threshold) && gp.threshold >= 1 && gp.threshold <= 100) {
         postureSource = "attempt";
         governingGateOn = gp.effectiveEnabled === true;
-        governingThreshold = Number.isInteger(gp.threshold) ? gp.threshold : sourceConfig0.threshold;
+        governingThreshold = gp.threshold;
         governingConfigVersion = gp.configVersion;
       } else {
         postureSource = "completion_legacy";
@@ -398,6 +475,13 @@ async function completeDay(db, params) {
         governingGateOn = sourceConfig0.gateEffectiveEnabled === true;
         governingThreshold = sourceConfig0.threshold;
         governingConfigVersion = sourceConfig0.configVersion;
+      }
+      // [r72 C1] passed ↔ score ↔ threshold consistency: a passed=true
+      // record whose stored score misses its governing threshold is
+      // impossible — UNLESS a teacher override minted the pass (A1's
+      // `teacherEdited` label; the stored score is preserved by design).
+      if (consumed.teacherEdited !== true && consumed.score < governingThreshold) {
+        return {status: "no_evidence", reason: "impossible_record (passed below threshold)"};
       }
     } else {
       postureSource = "completion_autopass";
@@ -455,14 +539,19 @@ async function completeDay(db, params) {
       }
     }
 
-    // ---- ADVANCE INPUTS [r70 C1 — the canonical csd/twi law] -------------
-    // wordsIntroduced mirrors completeSession's law exactly: the day's new
-    // attempt's own range count (deriveDayAnchorRange's formula); a range-
-    // less legacy new attempt HOLDS twi (published flag), never guesses.
+    // ---- ADVANCE INPUTS [r70 C1, r72-tightened] --------------------------
+    // ENGINE evidence: wordsIntroduced = the SERVER-composed presentation's
+    // presented count (the presentation was bound above — a client-shaped
+    // range can never inflate twi). LEGACY evidence: the attempt's range
+    // count (completeSession's formula); range-less holds twi (published).
+    // Either way newTwi is clamped to the canonical list size.
     let wordsIntroduced = 0;
     let twiHeld = false;
     if (newTest !== null) {
-      if (Number.isInteger(newTest.newWordStartIndex) && Number.isInteger(newTest.newWordEndIndex) &&
+      if (newTestPresentation !== null) {
+        wordsIntroduced = Array.isArray(newTestPresentation.presentedWordIds)
+          ? newTestPresentation.presentedWordIds.length : 0;
+      } else if (Number.isInteger(newTest.newWordStartIndex) && Number.isInteger(newTest.newWordEndIndex) &&
           newTest.newWordEndIndex >= newTest.newWordStartIndex) {
         wordsIntroduced = newTest.newWordEndIndex - newTest.newWordStartIndex + 1;
       } else {
@@ -470,6 +559,8 @@ async function completeDay(db, params) {
         legacyEvidence = true;
       }
     }
+    const canonicalCap = Number.isInteger(params.canonicalWordCount) && params.canonicalWordCount > 0
+      ? params.canonicalWordCount : Infinity;
 
     // ---- STREAK read (same-txn, before writes) ---------------------------
     const kstDate = kstDateString(nowMs);
@@ -510,7 +601,7 @@ async function completeDay(db, params) {
     // parity on create). The frontier check above proved csd === day − 1.
     const advance = {
       currentStudyDay: logicalDay,
-      totalWordsIntroduced: truth.twi + wordsIntroduced,
+      totalWordsIntroduced: Math.min(truth.twi + wordsIntroduced, canonicalCap),
       lastStudyDate: completedAt,
       lastSessionAt: completedAt,
       updatedAt: completedAt,

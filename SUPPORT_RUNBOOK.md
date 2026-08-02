@@ -559,3 +559,16 @@ Established by evidence, in order:
 - **What:** `scripts/deepfix2/b2-database-investigation.mjs` — count() volume aggregations + 30-student deterministic sample of attempts/study_states shapes (26SM cohort filter).
 - **Result:** cohort 960 students · 41,074 attempts · 1,415,723 study_states · scores 0-100 uniform (over-100 corruption class confirmed present) · blanks: absent answer rows carry no wordId → historical blank-fails per-word unattributable (published as B1 undercount) · resetEpoch not stamped on attempts; 0 pre-epoch orphan attempts in sample · no existing review* label fields.
 - **Writes:** none (read-only).
+
+
+### CS-2026-08-03 — reset law: pre-P5 fence scope (BL-A) + the RESET_V2 gate
+The DEEPFIX2 §9 reset rebuild (fence-first owned lock) is GATED behind `RESET_V2_ENABLED=false` in
+functions/foundation.js — production `resetProgress` keeps the legacy law until David flips the const at
+a deploy. When it flips: (1) the fence/lock lives on `users/{uid}/progress_meta/{listId}` ONLY while
+LIST_PROGRESS_CANONICAL is false — NEVER create `users/{uid}/list_progress/{listId}` pre-P5 by hand
+either: both live progress readers prefer that doc on EXISTENCE, and a csd/twi-less doc freezes the
+student at day 0 (the r71 BL-A defect class). If a stray pre-P5 list_progress doc is ever found, delete
+it (after confirming it carries no currentStudyDay) and the legacy readers recover. (2) Concurrent resets
+now reject `reset_already_running`; a crashed reset's lock is takeover-eligible after 10 minutes —
+re-running resetProgress self-heals it. (3) Claimed grading_jobs for the list are cancelled
+(`cancelled_reset`) with their answer rows redacted.

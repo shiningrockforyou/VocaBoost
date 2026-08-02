@@ -42,6 +42,10 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
   process.exit(2);
 }
 
+// The §9 reset rebuild is gated (RESET_V2_ENABLED, emulator-overridable) —
+// arm it for the lap BEFORE any module loads [r72].
+process.env.RESET_V2_FOR_TEST = "1";
+
 const fnRequire = createRequire("/app/functions/index.js");
 const {initializeApp, cert} = fnRequire("firebase-admin/app");
 const {getFirestore, Timestamp} = fnRequire("firebase-admin/firestore");
@@ -117,6 +121,19 @@ async function seedProgress(uid, classId, listId, {csd, twi}) {
     updatedAt: Timestamp.now(),
   }, {merge: true});
 }
+/** Seed a claimed live NEW-day presentation (engine new-evidence binding). */
+async function seedNewPresentation(presId, {uid, classId, listId, day, claimedBy, wordIds, epoch = 0}) {
+  await db.doc(`users/${uid}/review_presentations/${presId}`).set({
+    uid, classId, listId, logicalDay: day, resetEpoch: epoch,
+    presentedWordIds: wordIds, poolHash: "seed", compositionVersion: "new-day",
+    requestFingerprint: {sessionType: "new", testType: "mcq", kind: "live", visitId: null},
+    testType: "mcq", visitId: null, queueRef: null,
+    rangeStartIndex: 0, rangeEndIndex: wordIds.length - 1,
+    serverClaim: {claimedAt: Timestamp.now(), attemptDocId: claimedBy},
+    createdAt: Timestamp.now(),
+  });
+}
+
 /** Seed an engine-shaped attempt (review or new) with full bindings. */
 async function seedAttempt(id, {uid, classId, listId, day, sessionType, rows, score,
   epoch = 0, presentationId = null, gateOn = true, range = null, type = null}) {
@@ -166,6 +183,14 @@ CASE("A — config authority matrix (strict schema [C3])");
   await seedConfig({configVersion: 0});
   c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1"});
   check("configVersion<1 ⇒ HOLD", c.readStatus, "hold");
+  // [r72 C3] PRESENT-but-malformed ASSIGNMENT overrides HOLD too.
+  await seedConfig();
+  await seedClass("cA", {students: ["uA"], asg: {reviewPassThreshold: "bad"}});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1"});
+  check("malformed assignment override ⇒ HOLD", c.readStatus, "hold");
+  await seedClass("cA", {students: ["uA"], asg: {reviewGateEnabled: "yes"}});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1"});
+  check("non-boolean gate override ⇒ HOLD", c.readStatus, "hold");
 }
 
 // ===========================================================================
@@ -229,7 +254,7 @@ CASE("B — composer: frontier + universe from progress truth [C2]");
   // rest), cursor at 6 ⇒ traversal [7,0,1] ⇒ cursor := 1 (≠ numeric max 7).
   await wipeEmulator();
   await seedConfig({rehearsalClassIds: ["cW"], queueSize: 3});
-  await seedClass("cW", {students: ["uW"]});
+  await seedClass("cW", {students: ["uW"], listId: "LW"});
   await seedWords("LW", 8);
   await seedProgress("uW", "cW", "LW", {csd: 4, twi: 8});
   await db.doc("users/uW/review_cursors/LW_e0").set({uid: "uW", listId: "LW", resetEpoch: 0,
@@ -283,7 +308,7 @@ CASE("C — presentations: claims, visits, LRT order, forced fallback");
 {
   await wipeEmulator();
   await seedConfig({rehearsalClassIds: ["cC"], queueSize: 6, testSize: 4});
-  await seedClass("cC", {students: ["uC"]});
+  await seedClass("cC", {students: ["uC"], listId: "LC"});
   await seedWords("LC", 12);
   await seedProgress("uC", "cC", "LC", {csd: 3, twi: 8});
   const canon = Array.from({length: 12}, (_, i) => ({wordId: `w${i}`, wordIndex: i}));
@@ -387,12 +412,15 @@ CASE("F — the §9 reset callable (fence-first, owned lock, nine families)");
   checkTrue("uC has compose_keys", before.compose_keys >= 3);
   checkTrue("uC has presentations", before.review_presentations >= 2);
   const res = await call(foundation.resetProgress, "uC", {listId: "LC"});
-  check("reset succeeds", res.success, true);
+  check("reset succeeds (v2 armed)", [res.success, res.resetV2], [true, true]);
   checkTrue("targetEpoch ≥ 1", res.targetEpoch >= 1);
   const pm = (await db.doc("users/uC/progress_meta/LC").get()).data();
-  const lp = (await db.doc("users/uC/list_progress/LC").get()).data();
-  check("both tombstones stamped", [pm.resetEpoch, lp.resetEpoch], [res.targetEpoch, res.targetEpoch]);
-  check("owner-cleared", [pm.resetInProgress ?? null, lp.resetInProgress ?? null], [null, null]);
+  check("pm tombstone stamped", pm.resetEpoch, res.targetEpoch);
+  check("owner-cleared", pm.resetInProgress ?? null, null);
+  // BL-A [r71 Opus BLOCKER]: pre-P5 the fence NEVER creates list_progress —
+  // the live readers prefer that doc on EXISTENCE and would freeze the
+  // student at day 0 forever.
+  check("BL-A: list_progress NOT created pre-P5", (await db.doc("users/uC/list_progress/LC").get()).exists, false);
   check("compose_keys swept [M-1]", res.rv2Deleted.compose_keys, before.compose_keys);
   check("presentations swept", res.rv2Deleted.review_presentations, before.review_presentations);
   check("cursors swept", (await db.collection("users/uC/review_cursors").get()).size, 0);
@@ -404,6 +432,21 @@ CASE("F — the §9 reset callable (fence-first, owned lock, nine families)");
   await db.doc("users/uC/progress_meta/LC").set({resetInProgress: {opId: "stale", at: TS(NOW - 11 * 60000)}}, {merge: true});
   const takeover = await call(foundation.resetProgress, "uC", {listId: "LC"});
   check("stale lock takeover", [takeover.success, takeover.targetEpoch > res.targetEpoch], [true, true]);
+  // [r72 C4] DUAL-LOCK RACE: stale pm lock + LIVE lp lock ⇒ the live lock
+  // wins ⇒ reject (a stale first operand can never shadow a live second).
+  await db.doc("users/uC/progress_meta/LC").set({resetInProgress: {opId: "stale2", at: TS(NOW - 11 * 60000)}}, {merge: true});
+  await db.doc("users/uC/list_progress/LC").set({resetInProgress: {opId: "live2", at: Timestamp.now()}}, {merge: true});
+  check("stale-pm + live-lp ⇒ reject", await callErr(foundation.resetProgress, "uC", {listId: "LC"}), "aborted");
+  await db.doc("users/uC/list_progress/LC").delete();
+  // [r72 CC-5] THE adjudication transform (the flag-gated callable's exact
+  // live law, fixtured pure): preimage copied once, never overwritten.
+  const a0 = {wordId: "w1", isCorrect: false, challengeStatus: "pending"};
+  const adj1 = foundation.applyChallengeAdjudication(a0, true, "t1", Timestamp.now());
+  check("preimage copied on accept", [adj1.gradedIsCorrect, adj1.isCorrect, adj1.challengeStatus], [false, true, "accepted"]);
+  const adj2 = foundation.applyChallengeAdjudication(adj1, true, "t2", Timestamp.now());
+  check("second adjudication never overwrites the preimage", adj2.gradedIsCorrect, false);
+  const rej = foundation.applyChallengeAdjudication({wordId: "w2", isCorrect: true, challengeStatus: "pending"}, false, "t1", Timestamp.now());
+  check("reject preserves grade + preimage", [rej.isCorrect, rej.gradedIsCorrect, rej.challengeStatus], [true, true, "rejected"]);
 }
 
 // ===========================================================================
@@ -433,9 +476,12 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   await seedAttempt("attE1", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
     rows: rows28, score: 93, presentationId: "cE_LE_d5_e0_p1"});
   await seedAttempt("attE2", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
-    rows: [["w40", true]], score: 95, range: [40, 49]});
+    rows: [["w40", true]], score: 100, range: [40, 49], presentationId: "npE2"});
+  await seedNewPresentation("npE2", {uid: "uE", classId: "cE", listId: "LE", day: 5,
+    claimedBy: "attE2", wordIds: Array.from({length: 10}, (_, i) => `w${40 + i}`)});
   const params = {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 5, resetEpoch: 0,
-    consumedAttemptId: "attE1", consumedAttemptClassId: "cE", newTestAttemptId: "attE2", nowMs: E0};
+    consumedAttemptId: "attE1", consumedAttemptClassId: "cE", newTestAttemptId: "attE2",
+    canonicalWordCount: 60, nowMs: E0};
 
   // Binding negatives FIRST (nothing minted).
   let r = await DONE.completeDay(db, {...params, logicalDay: 6});
@@ -445,7 +491,7 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   r = await DONE.completeDay(db, {...params, consumedAttemptId: "attWrongDay"});
   check("wrong-day evidence refused", [r.status, r.reason], ["no_evidence", "consumed attempt day mismatch"]);
   await seedAttempt("attRerun", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
-    rows: [["w40", true]], score: 95, range: [40, 49], type: "retest"});
+    rows: [["w40", true]], score: 100, range: [40, 49], type: "retest", presentationId: "npE2"});
   r = await DONE.completeDay(db, {...params, newTestAttemptId: "attRerun"});
   check("rerun-as-new refused", [r.status, r.reason], ["no_evidence", "new-test attempt not a live new test"]);
   await seedAttempt("attEpoch1", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
@@ -496,7 +542,9 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   await seedAttempt("attOff", {uid: "uE", classId: "cE", listId: "LE", day: 6, sessionType: "review",
     rows: pres6.map((w, i) => [w, i < 28]), score: 93, presentationId: "cE_LE_d6_e0_p1", gateOn: false});
   await seedAttempt("attNew6", {uid: "uE", classId: "cE", listId: "LE", day: 6, sessionType: "new",
-    rows: [["w50", true]], score: 95, range: [50, 59]});
+    rows: [["w50", true]], score: 100, range: [50, 59], presentationId: "npNew6"});
+  await seedNewPresentation("npNew6", {uid: "uE", classId: "cE", listId: "LE", day: 6,
+    claimedBy: "attNew6", wordIds: Array.from({length: 10}, (_, i) => `w${50 + i}`)});
   r = await DONE.completeDay(db, {...params, logicalDay: 6, consumedAttemptId: "attOff", newTestAttemptId: "attNew6", nowMs: E0 + 60000}); // same KST date as day 5
   check("OFF-source: advances, graduates ZERO", [r.status, r.graduationCount, r.completion.sourceConfig.gateEffectiveEnabled], ["completed", 0, false]);
   // Same-KST-date streak idempotency [M-1]: day 6 completed 60s after day 5.
@@ -520,6 +568,41 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     newTestAttemptId: null, nowMs: E0 + 2 * DAY});
   check("zero-new day: kind + twi held", [r.status, r.evidenceKind, r.newTwi], ["completed", "list_end_review_only", 60]);
   check("zero-new day: csd advanced", (await foundation.durableProgressRef("uE", "cE", "LE").get()).data().currentStudyDay, 7);
+  // [r72 C2] a COMPLETED day's existing queue no longer bypasses the guard.
+  r = await COMP.composeDayQueue(db, {uid: "uE", classId: "cE", listId: "LE", logicalDay: 5,
+    resetEpoch: 0, canonicalWords: canon});
+  check("completed-day recompose refused", [r.status, r.expectedDay], ["day_guard_rejected", 8]);
+  // [r72 ON→OFF] attempt stamped ON + completion-time gate OFF ⇒ attempt-time
+  // governs ⇒ graduation > 0 (the inverse of the OFF→ON case above).
+  const q8 = await COMP.composeDayQueue(db, {uid: "uE", classId: "cE", listId: "LE",
+    logicalDay: 8, resetEpoch: 0, canonicalWords: canon});
+  checkTrue("day-8 queue composed", q8.status === "created");
+  const pres8 = q8.queue.orderedQueueWordIds.slice(0, 30);
+  await db.doc("users/uE/review_presentations/cE_LE_d8_e0_p1").set({
+    uid: "uE", classId: "cE", listId: "LE", logicalDay: 8, resetEpoch: 0,
+    presentedWordIds: pres8, poolHash: q8.queue.poolHash, compositionVersion: "lrt-v1",
+    testType: "mcq", visitId: null, queueRef: q8.queuePath,
+    serverClaim: {claimedAt: Timestamp.now(), attemptDocId: "attOn8"}, createdAt: Timestamp.now(),
+  });
+  await seedAttempt("attOn8", {uid: "uE", classId: "cE", listId: "LE", day: 8, sessionType: "review",
+    rows: pres8.map((w, i) => [w, i < 28]), score: 93, presentationId: "cE_LE_d8_e0_p1", gateOn: true});
+  await db.doc("classes/cE").update({"assignments.LE.reviewGateEnabled": false});
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 8,
+    resetEpoch: 0, consumedAttemptId: "attOn8", consumedAttemptClassId: "cE",
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 3 * DAY});
+  checkTrue("ON→OFF: attempt-time governs, graduation > 0", r.status === "completed" && r.graduationCount > 0);
+  await db.doc("classes/cE").update({"assignments.LE.reviewGateEnabled": true});
+  // [r72 H-B] dual-class view catch-up: class 2's view syncs on already_completed.
+  await seedClass("cE2", {students: ["uE"], listId: "LE"});
+  await db.doc("classes/cE2").update({"assignments.LE": {name: "seed", weeklyPace: 50, studyDaysPerWeek: 5}});
+  await seedConfig({rehearsalClassIds: ["cE", "cE2"]}); // the second class rehearses too
+  await seedProgress("uE", "cE2", "LE", {csd: 7, twi: 60});
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE2", listId: "LE", logicalDay: 8,
+    resetEpoch: 0, consumedAttemptId: null, consumedAttemptClassId: null,
+    newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 3 * DAY});
+  check("view catch-up on already_completed", [r.status, r.viewAdvanced], ["already_completed", true]);
+  check("class-2 view advanced (no double graduation)",
+      (await foundation.durableProgressRef("uE", "cE2", "LE").get()).data().currentStudyDay, 8);
 }
 
 // ===========================================================================
@@ -549,6 +632,19 @@ CASE("G — monitoring: stamps, quarantine matrix, window bounds [C7]");
   check("audit malformed window ⇒ typed refusal", ev.status, "window_malformed");
   ev = await MON.evaluateThresholds(db, {scope: "production", dryRun: true, thresholds: {}});
   check("prod malformed window ⇒ ALL quarantined", [ev.consumedRowCount === 0, ev.quarantinedRowCount > 0], [true, true]);
+  // [r72 C7] row-level NON-INTEGER generation quarantines under a valid window.
+  await db.doc("shadow_registry/window").set({generation: 7, startedAt: TS(Date.now() - 60000), runId: "lapG2"});
+  await db.collection("ops_metrics").add({type: "wall_rate", shadow: false, registryGeneration: "seven", createdAt: Timestamp.now()});
+  ev = await MON.evaluateThresholds(db, {scope: "production", dryRun: true, thresholds: {}});
+  checkTrue("non-integer ROW generation quarantined", ev.quarantinedRowCount >= 4);
+  // [r72 C7] malformed startedAt fails closed too.
+  await db.doc("shadow_registry/window").set({generation: 7, startedAt: "yesterday", runId: "bad2"});
+  check("malformed startedAt ⇒ window_malformed", (await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: true})).status, "window_malformed");
+  // [r72 C7] the NON-DRY per-window quarantine publish.
+  await db.doc("shadow_registry/window").set({generation: 7, startedAt: TS(Date.now() - 60000), runId: "lapG3"});
+  await MON.evaluateThresholds(db, {scope: "production", dryRun: false, thresholds: {}});
+  const qPub = await db.collection("ops_metrics").where("type", "==", "quarantined_row_count").get();
+  checkTrue("quarantined_row_count published", qPub.size >= 1);
   await db.doc("shadow_registry/window").delete();
   check("audit non-dry refused", (await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: false})).status, "invalid_scope");
   ev = await MON.evaluateThresholds(db, {scope: "shadowAudit", dryRun: true});
@@ -565,6 +661,9 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   await seedWords("LX", 20);
   await seedProgress("uX", "cX", "LX", {csd: 2, twi: 10});
   const common = {classId: "cX", listId: "LX", clientContractVersion: 1};
+  const loadWordsX = async () => (await db.collection("lists").doc("LX").collection("words").get())
+      .docs.map((d) => ({wordId: d.id, wordIndex: d.data().position}))
+      .sort((a, b) => a.wordIndex - b.wordIndex);
 
   checkTrue("unauthenticated throws", String(await callErr(CALL.reviewV2ComposeSession, undefined, {})).includes("unauthenticated"));
   checkTrue("not enrolled ⇒ permission", String(await callErr(CALL.reviewV2ComposeSession, "uGhost", {...common, logicalDay: 3, composeKey: "lap-key-cb01"})).includes("permission"));
@@ -657,6 +756,51 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   check("typed submit ⇒ DATA deferral", r.status, "typed_modality_deferred");
   await db.doc("classes/cX").update({"assignments.LX.reviewTestType": "mcq"});
 
+  // [r72 C3] AUTHORIZATION RACES at the TXN level: removal between preflight
+  // and commit refuses FROM the engine txn (typed, mints nothing).
+  await db.doc("classes/cX").update({studentIds: []});
+  let race = await COMP.composeDayQueue(db, {uid: "uX", classId: "cX", listId: "LX",
+    logicalDay: 4, resetEpoch: 0, canonicalWords: (await loadWordsX())});
+  check("un-enroll race ⇒ typed from the txn", race.status, "not_enrolled");
+  await db.doc("classes/cX").update({studentIds: ["uX"]});
+  const savedAsg = (await db.doc("classes/cX").get()).data().assignments;
+  await db.doc("classes/cX").update({assignments: {}});
+  race = await COMP.composeDayQueue(db, {uid: "uX", classId: "cX", listId: "LX",
+    logicalDay: 4, resetEpoch: 0, canonicalWords: (await loadWordsX())});
+  check("un-assign race ⇒ typed from the txn", race.status, "list_not_assigned");
+  await db.doc("classes/cX").update({assignments: savedAsg});
+  // [r72 C8] duplicate answer row through the WRAPPED callable.
+  checkTrue("duplicate row refused", String(await callErr(CALL.reviewV2SubmitAttempt, "uX",
+      {presentationId: presId, answers: [
+        {wordId: pres.presentedWordIds[0], studentResponse: "a"},
+        {wordId: pres.presentedWordIds[0], studentResponse: "b"}], clientContractVersion: 1})).includes("invalid-argument"));
+  // [r72 C5] replay returns the STORED engine facts (not hard-coded nulls).
+  const replay2 = await submit(presId, goodAnswers);
+  check("replay engineResult stored", [replay2.replayed, replay2.stamped, Array.isArray(replay2.rerunGraduated)], [true, 4, true]);
+  // [r72 C8] live-new label stamps: lc+lp written, the rotation clock NOT.
+  const newWordState = (await db.doc("users/uX/study_states/w10").get()).data();
+  check("live-new stamps lc+lp, no clock", [Boolean(newWordState.reviewLastCorrectAt),
+    Boolean(newWordState.reviewLastProvenAt), newWordState.reviewLastTestedAt ?? null], [true, true, null]);
+  // [r72 C7] ops emissions through the callables: rerun_graduation (from the
+  // rerun submit above), priority_saturation_day (all-priority compose),
+  // cursor_repaired (poisoned cursor through ComposeSession).
+  const rg = await db.collection("ops_metrics").where("type", "==", "rerun_graduation").get();
+  checkTrue("rerun_graduation emitted", rg.size >= 1);
+  const satBatch = db.batch();
+  for (let i = 0; i < 20; i++) {
+    satBatch.set(db.doc(`users/uX/study_states/w${i}`),
+        {reviewFailCount: 1, reviewLastFailedAt: Timestamp.now()}, {merge: true});
+  }
+  await satBatch.commit();
+  await db.doc("users/uX/review_cursors/LX_e0").set({uid: "uX", listId: "LX", resetEpoch: 0,
+    cursorWordIndex: 2, lastLogicalDay: 99, lastQueueRef: "x", updatedAt: Timestamp.now()}, {merge: true});
+  r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb12"});
+  check("saturated compose ok", r.status, "composed");
+  const sat = await db.collection("ops_metrics").where("type", "==", "priority_saturation_day").get();
+  checkTrue("priority_saturation_day emitted", sat.size >= 1);
+  const cr = await db.collection("ops_metrics").where("type", "==", "cursor_repaired").get();
+  checkTrue("cursor_repaired emitted", cr.size >= 1);
+
   // Malformed canonical word ⇒ typed + ops signal [C5/M-7].
   await db.doc("lists/LX/words/wBad").set({word: "bad", definition: "bad"});
   r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb11"});
@@ -672,7 +816,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
 }
 
 // ===========================================================================
-CASE("H — THE FLIP: schema-validated REAL receipt, atomic window [C6]");
+CASE("H — THE FLIP: value-verified REAL cycling receipt, atomic window [C6]");
 {
   await wipeEmulator();
   await seedConfig();
@@ -681,36 +825,20 @@ CASE("H — THE FLIP: schema-validated REAL receipt, atomic window [C6]");
   mkdirSync(scratch, {recursive: true});
   const run = (args, env = {}) => spawnSync("node", ["scripts/deepfix2/flip-review-v2.mjs", ...args],
       {cwd: "/app", env: {...process.env, ...env}, encoding: "utf8"});
+  const w = (name, obj) => { const pth = join(scratch, name); writeFileSync(pth, JSON.stringify(obj)); return pth; };
 
-  // Refusal battery: bare/legacy receipts REFUSE [C6 — the false-green gate].
-  const w = (name, obj) => { const p = join(scratch, name); writeFileSync(p, JSON.stringify(obj)); return p; };
-  let r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("bare-pass.json", {pass: true})]);
-  check("bare pass:true refused", r.status, 2);
-  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("bare-failed0.json", {failed: 0})]);
-  check("bare failed:0 refused", r.status, 2);
-  const goodShape = {kind: "trackB-micro-lap", version: 1, stages: ["B4"], cycles: 1, checks: 3,
-    failures: 0, projectId: PROJECT, runId: "lap-x", contentTimestamp: new Date().toISOString(),
-    sourceShas: {a: "1", b: "2", c: "3", d: "4", e: "5"}};
-  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("stale.json", {...goodShape, contentTimestamp: new Date(Date.now() - 3600000).toISOString()})]);
-  check("stale content refused (mtime is fresh — content governs)", r.status, 2);
-  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("wrong-project.json", {...goodShape, projectId: "someone-else"})]);
-  check("wrong project refused", r.status, 2);
-  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("bad-stages.json", {...goodShape, stages: ["B1", "B3"]})]);
-  check("stages not B4-bounded refused", r.status, 2);
-  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("failures.json", {...goodShape, failures: 1})]);
-  check("failures>0 refused", r.status, 2);
-
-  // A REAL receipt from a REAL chain [C6]: minimal Track-B cohort → B1 →
-  // b-delta-cycle --receipt (B4 PASS on cycle 1 — B3 already applied).
+  // A REAL CYCLING chain [r72 C6 — the ordered B4→B1→B3→B4 receipt]: mini
+  // cohort → B1 → B3 → a POST-WATERMARK attempt (the live delta) → driver
+  // (B4 exit 6 → B1 → B3 → B4 PASS ⇒ stages B4,B1,B3,B4; cycles 2).
   const lapRoot = "/tmp/engine-lap-trackb";
   rmSync(lapRoot, {recursive: true, force: true});
   mkdirSync(lapRoot, {recursive: true});
   const allowPath = join(lapRoot, "allowlist.json");
   writeFileSync(allowPath, JSON.stringify(["cls-flip-1"]));
   await db.collection("classes").doc("cls-flip-1").set({name: "FLIP LAP", studentIds: ["fA", "fB"]});
-  const att = (id, uid, dayOff, type, rows, score) => db.collection("attempts").doc(id).set({
+  const att = (id, uid, dayOff, type, rows, score, tMs) => db.collection("attempts").doc(id).set({
     studentId: uid, classId: "cls-flip-1", listId: "LF", sessionType: type,
-    submittedAt: TS(Date.parse("2026-06-01T00:00:00Z") + dayOff * DAY),
+    submittedAt: TS(tMs ?? (Date.parse("2026-06-01T00:00:00Z") + dayOff * DAY)),
     graded: true, score, totalQuestions: rows.length, dayNumber: 1,
     answers: rows.map(([wd, c]) => ({wordId: wd, isCorrect: c})),
   });
@@ -724,13 +852,39 @@ CASE("H — THE FLIP: schema-validated REAL receipt, atomic window [C6]");
   const manifest = join(lapRoot, "b1-manifest-full.json");
   const b3r = trackB("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${manifest}`, "--runId=flip-seed", "--execute"]);
   check("mini B3 green", b3r.status, 0);
+  await att("fa3", "fA", 0, "review", [["v2", true]], 100, Date.now()); // the live delta
   const receiptPath = join(scratch, "real-receipt.json");
   const drv = trackB("b-delta-cycle.mjs", [`--allow=${allowPath}`, `--manifest=${manifest}`, "--prefix=flipmicro", `--receipt=${receiptPath}`]);
   check("micro-lap driver PASS", drv.status, 0);
   checkTrue("REAL receipt exists", existsSync(receiptPath));
   const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
-  check("receipt schema", [receipt.kind, receipt.failures, receipt.stages[0], receipt.checks >= 2, Object.keys(receipt.sourceShas).length >= 5],
-      ["trackB-micro-lap", 0, "B4", true, true]);
+  check("receipt = the ORDERED CYCLING chain", [receipt.kind, receipt.failures, receipt.stages, receipt.cycles],
+      ["trackB-micro-lap", 0, ["B4", "B1", "B3", "B4"], 2]);
+  check("receipt hashes all seven sources", Object.keys(receipt.sourceShas).length, 7);
+
+  // REFUSAL BATTERY [r72 — value-level, derived from the REAL receipt]:
+  let r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("bare-pass.json", {pass: true})]);
+  check("bare pass:true refused", r.status, 2);
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("bare-failed0.json", {failed: 0})]);
+  check("bare failed:0 refused", r.status, 2);
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt",
+    w("stale.json", {...receipt, contentTimestamp: new Date(Date.now() - 3600000).toISOString()})]);
+  check("stale content refused", r.status, 2);
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt",
+    w("wrong-project.json", {...receipt, projectId: "someone-else"})]);
+  check("wrong project refused", r.status, 2);
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt",
+    w("single-b4.json", {...receipt, stages: ["B4"], cycles: 1})]);
+  check("single-B4 chain refused", r.status, 2);
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt",
+    w("failures.json", {...receipt, failures: 1})]);
+  check("failures>0 refused", r.status, 2);
+  const mutated = JSON.parse(JSON.stringify(receipt));
+  const firstKey = Object.keys(mutated.sourceShas)[0];
+  mutated.sourceShas[firstKey] = mutated.sourceShas[firstKey].slice(0, 15) +
+    (mutated.sourceShas[firstKey].endsWith("0") ? "1" : "0");
+  r = run(["--execute", "--yes-i-am-david", "--lapReceipt", w("hash-mutated.json", mutated)]);
+  check("HASH-MUTATED receipt refused [C6 value check]", r.status, 2);
 
   // Window blocks; then THE ACTIVATION with the REAL receipt.
   await db.doc("shadow_registry/window").set({generation: 1, runId: "x"});
@@ -738,7 +892,7 @@ CASE("H — THE FLIP: schema-validated REAL receipt, atomic window [C6]");
   check("window blocks the flip", r.status, 2);
   await db.doc("shadow_registry/window").delete();
   r = run(["--execute", "--yes-i-am-david", "--lapReceipt", receiptPath]);
-  check("ACTIVATION with the real receipt", r.status, 0);
+  check("ACTIVATION with the real cycling receipt", r.status, 0);
   let cfg = (await db.doc(CONFIG_PATH).get()).data();
   check("two fields TOGETHER", [cfg.enabled, cfg.firstEnabledAt != null], [true, true]);
   const markerMs = cfg.firstEnabledAt.toMillis();
@@ -767,6 +921,7 @@ for (const f of ["../../functions/reviewV2/config.js", "../../functions/reviewV2
   "../../functions/reviewV2/completion.js", "../../functions/reviewV2/monitoring.js",
   "../../functions/reviewV2/reset.js", "../../functions/reviewV2/visits.js",
   "../../functions/reviewV2/callables.js", "../../functions/reviewV2/progress.js",
+  "../../functions/foundation.js", "../../functions/index.js", "../../src/services/db.js",
   "engine-emulator-lap.mjs", "flip-review-v2.mjs", "b-delta-cycle.mjs"]) {
   const p = join(HERE, f);
   sourceShas[f.replace(/^\.\.\/\.\.\//, "")] =

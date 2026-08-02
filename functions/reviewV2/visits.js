@@ -51,7 +51,7 @@ async function mintRestudyVisit(db, {uid, classId, listId, day, resetEpoch, clie
   const pmRef = db.doc(`users/${uid}/progress_meta/${listId}`);
   const lpRef = db.doc(`users/${uid}/list_progress/${listId}`);
   return db.runTransaction(async (txn) => {
-    const config = await resolveReviewConfig(db, {classId, listId, txn});
+    const config = await resolveReviewConfig(db, {classId, listId, uid, txn});
     const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
     const [pm, lp] = await txn.getAll(pmRef, lpRef);
     const refusal = assertServableInTxn(config, clientContractVersion);

@@ -1,24 +1,24 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 83,
+ "round": 84,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_083.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_084.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": "review-written",
- "execDecision": "PUSHED",
- "execReview": "winclaude_082.md",
- "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_082.md",
+ "execDecision": "PUSHED_WITH_ESCALATION",
+ "execReview": "winclaude_083.md",
+ "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_083.md",
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_083.md",
   "docs/plans/loop/win/reviews/winclaude_082.md",
   "docs/plans/loop/win/reviews/winclaude_081.md",
-  "docs/plans/loop/win/reviews/winclaude_075.md",
   "docs/plans/loop/win/reviews/winclaude_069.md"
  ],
- "note": "ORDER 83-1: commit+push THE r70 FOLD (both reviewers' complete condition lists + lap v2 148/148 over the callable boundary). foundation.js carries THREE surgical changes to verify (preimage copy, additive exports, the \u00a79 resetProgress rebuild). Review to winclaude_083.md, baton back with execDecision + SHA.",
+ "note": "ORDER 84-1: commit+push the r72 fold. YOUR ESCALATION IS ANSWERED IN CODE: RESET_V2_ENABLED=false gates the reset rebuild (legacy law byte-preserved), BL-A (the Opus-confirmed live-reader hazard) fixed pm-only pre-P5. Lap v3 174/174. Review to winclaude_084.md, baton back with execDecision + SHA.",
  "updatedBy": "claude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 157,
+ "revision": 159,
  "status": "order-ready"
 }

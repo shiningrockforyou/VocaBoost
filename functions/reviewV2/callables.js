@@ -268,10 +268,9 @@ const reviewV2ComposeNewTest = onCall({enforceAppCheck: false}, async (request) 
   }
   const foundation = require("../foundation");
   const {dailyPace} = foundation.deriveDailyPace(gate.config.assignmentRaw ?? {});
-  const startIdx = truth.twi;
-  const dayWords = canonical.words
-      .filter((w) => w.wordIndex >= startIdx)
-      .slice(0, Math.max(1, dailyPace));
+  // ORDINAL slice [r72 M-A]: twi is a COUNT — the day's words are the next
+  // `dailyPace` words AFTER the first twi, gap-tolerant.
+  const dayWords = canonical.words.slice(truth.twi, truth.twi + Math.max(1, dailyPace));
   if (dayWords.length === 0) {
     return {status: "list_end", twi: truth.twi};
   }
@@ -285,6 +284,7 @@ const reviewV2ComposeNewTest = onCall({enforceAppCheck: false}, async (request) 
     presentedWordIds: dayWords.map((w) => w.wordId),
     poolWordIds: dayWords.map((w) => w.wordId),
     rangeStartIndex, rangeEndIndex,
+    bindFrontier: true, // [r72 C2] the claim txn re-reads progress and re-binds
     testType: gate.config.reviewTestType === "typed" ? "typed" : "mcq",
     clientContractVersion: d.clientContractVersion,
   });
@@ -477,7 +477,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
 
   const result = await db.runTransaction(async (txn) => {
     // ---- READS (the activation barrier: config joins THIS txn) ----------
-    const txnConfig = await resolveReviewConfig(db, {classId: pres.classId, listId: pres.listId, txn});
+    const txnConfig = await resolveReviewConfig(db, {classId: pres.classId, listId: pres.listId, uid, txn});
     const [pm, lp, aSnap, pSnap] = await txn.getAll(pmRef, lpRef, attemptRef, presRef);
     // Serving authority AT TXN TIME [r70 C3] — an eligibility/fence edit
     // between preflight and commit mints NOTHING.
@@ -487,6 +487,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
       // Idempotent retry ⇒ the NORMALIZED envelope, ZERO writes [§8 + C5].
       const stored = aSnap.data();
       const storedRows = Array.isArray(stored.answers) ? stored.answers : [];
+      const er = stored.engineResult ?? {};
       return {
         status: "attempt_written",
         replayed: true,
@@ -495,10 +496,10 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
         passed: stored.passed,
         totalQuestions: stored.totalQuestions,
         correctCount: storedRows.filter((r) => r?.isCorrect === true).length,
-        stamped: null,
-        stampSkipped: null,
-        rerunGraduated: [],
-        visitHalf: null,
+        stamped: er.stamped ?? null,
+        stampSkipped: er.stampSkipped ?? null,
+        rerunGraduated: er.rerunGraduated ?? [],
+        visitHalf: er.visitHalf ?? null,
         gatePosture: stored.gatePosture ?? null,
       };
     }
@@ -519,12 +520,32 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     let threshold = txnConfig.threshold;
     let queueId = null;
     if (p.queueRef) {
-      const qSnap = await txn.get(db.doc(p.queueRef));
-      if (!qSnap.exists || !Number.isInteger(qSnap.data().snapshot?.threshold)) {
-        return {status: "queue_invalid", queueRef: p.queueRef};
-      }
-      threshold = qSnap.data().snapshot.threshold;
+      // FULL QUEUE FENCE [r72 C5 — fail-closed on every leg]: canonical
+      // path, queue identity, queue↔presentation pool hash, presented
+      // membership, threshold bounds.
       queueId = queueDocId(p.classId, p.listId, p.logicalDay, p.resetEpoch);
+      if (p.queueRef !== `users/${uid}/review_queues/${queueId}`) {
+        return {status: "queue_invalid", reason: "non-canonical queueRef"};
+      }
+      const qSnap = await txn.get(db.doc(p.queueRef));
+      if (!qSnap.exists) return {status: "queue_invalid", reason: "queue missing"};
+      const q = qSnap.data();
+      if (q.uid !== uid || q.classId !== p.classId || q.listId !== p.listId ||
+          q.logicalDay !== p.logicalDay || q.resetEpoch !== p.resetEpoch) {
+        return {status: "queue_invalid", reason: "queue identity mismatch"};
+      }
+      if (q.poolHash !== p.poolHash) {
+        return {status: "queue_invalid", reason: "pool-hash mismatch"};
+      }
+      const qSet = new Set(q.orderedQueueWordIds);
+      if (!p.presentedWordIds.every((w) => qSet.has(w))) {
+        return {status: "queue_invalid", reason: "presented not a queue subset"};
+      }
+      const th = q.snapshot?.threshold;
+      if (!Number.isInteger(th) || th < 1 || th > 100) {
+        return {status: "queue_invalid", reason: "snapshot threshold malformed"};
+      }
+      threshold = th;
     }
     const passed = score >= threshold;
 
@@ -576,8 +597,6 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
       },
       submittedAt: FieldValue.serverTimestamp(),
     };
-    txn.create(attemptRef, attempt);
-    txn.update(presRef, {"serverClaim.attemptDocId": attemptId});
 
     const stamps = stampLabelsInTxn(txn, db, {
       uid, config: txnConfig, rows,
@@ -602,6 +621,16 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
         attemptId,
       });
     }
+
+    // [r72 C5] the engine facts persist ON the attempt so a replay returns
+    // the SAME semantic envelope as the first commit — never a hard-coded
+    // null/[] substitute.
+    attempt.engineResult = {
+      stamped: stamps.stamped, stampSkipped: stamps.skipped,
+      rerunGraduated, visitHalf,
+    };
+    txn.create(attemptRef, attempt);
+    txn.update(presRef, {"serverClaim.attemptDocId": attemptId});
 
     return {
       status: "attempt_written",
@@ -649,11 +678,18 @@ const reviewV2CompleteDay = onCall({enforceAppCheck: false}, async (request) => 
   if (gate.refusal) return gate.refusal;
   const epoch = await deriveEpoch(db, uid, d.listId);
   if (epoch.refusal) return epoch.refusal;
+  const canonical = await loadCanonicalWordsStrict(db, d.listId);
+  if (canonical.refusal) {
+    await emitOpsAwait(db, {type: "list_words_malformed", uid, classId: d.classId, listId: d.listId,
+      payload: canonical.refusal});
+    return canonical.refusal;
+  }
 
   return completeDay(db, {
     uid, winningClassId: d.classId, listId: d.listId,
     logicalDay: d.logicalDay, resetEpoch: epoch.resetEpoch,
     consumedAttemptId, consumedAttemptClassId, newTestAttemptId,
+    canonicalWordCount: canonical.words.length,
     clientContractVersion: d.clientContractVersion,
   });
 });
