@@ -217,10 +217,16 @@ function gradingPreimageWrites(answers, flipIndices) {
  *   label stamp (`reviewRestingUntil` stands). Label stamps mint at
  *   `challengeReviewedAt` [§6b (4)] — the caller supplies that instant.
  */
-function challengeAcceptPlan({restingUntilMs, nowMs, r2_10Active = false, effectivePassing = false, gateEffectiveEnabled = false}) {
+function challengeAcceptPlan({restingUntilMs, nowMs, r2_10Active = false, effectivePassing = false, gateEffectiveEnabled = false, stampingEligible = false}) {
   const resting = restingUntilMs != null && restingUntilMs > nowMs;
   if (resting) return {gradeFixOnly: true, stampLc: false, stampLp: false};
-  if (r2_10Active !== true) return {gradeFixOnly: false, stampLc: false, stampLp: false};
+  // R2-48 reaches the adjudication label path BY CONSTRUCTION [r70 M-6]:
+  // an ineligible writer stamps nothing even once R2-10 activates. The
+  // grade/score fix itself is adjudication display truth, never label
+  // privilege — it is not eligibility-gated.
+  if (r2_10Active !== true || stampingEligible !== true) {
+    return {gradeFixOnly: false, stampLc: false, stampLp: false};
+  }
   return {
     gradeFixOnly: false,
     stampLc: true, // acceptance mints correctness [§6b — effective truth]

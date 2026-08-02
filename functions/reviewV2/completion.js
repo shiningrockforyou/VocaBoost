@@ -77,7 +77,7 @@
 const crypto = require("crypto");
 const {Timestamp} = require("firebase-admin/firestore");
 const {resolveReviewConfig} = require("./config");
-const {queueDocId, effectiveResetEpoch, resetLockActive} = require("./composer");
+const {effectiveResetEpoch, resetLockActive} = require("./composer");
 
 /** The 21-day rest (10_ §2.5 — graduated ⇒ 21-day rest ⇒ returns forever). */
 const REST_DAYS = 21;
@@ -157,14 +157,19 @@ function computeGraduation(input) {
     const l = labelsByWordId[id];
     return fillEligible(l ?? {fc: 0, lpMs: null, lfMs: null});
   });
-  const graduationCount = Math.min(
+  const formulaCount = Math.min(
       Math.floor(qe * scoreFraction),
       correctIds.length + fillIds.length);
   // Graduated set: tested-correct in QUEUE order, then fill in QUEUE order.
   const correctInQueueOrder = orderedQueueWordIds.filter((id) => correctSet.has(id));
-  const graduatedWordIds = [...correctInQueueOrder, ...fillIds].slice(0, graduationCount);
+  const graduatedWordIds = [...correctInQueueOrder, ...fillIds].slice(0, formulaCount);
+  // SELF-CONSISTENCY [r70 M-5/C1]: the published count IS the emitted set's
+  // size — the hash can never describe a different set than the count. A
+  // correct row outside the queue (drift-guarded upstream) shrinks the set,
+  // never inflates the count.
   return {
-    graduationCount,
+    graduationCount: graduatedWordIds.length,
+    formulaCount,
     graduatedWordIds,
     correctCount: correctIds.length,
     eligibleFillCount: fillIds.length,
@@ -176,29 +181,39 @@ function computeGraduation(input) {
  * Complete ONE shared logical day — the §3b exactly-once transaction.
  * Owns its own runTransaction.
  *
+ * r70 FOLD (C1 — the double-NO's first blocker): evidence is BOUND
+ * (day/epoch/type + presentation claim + queue tuple vs the txn-derived
+ * truth tuple), the r48 impossible-record fence runs before any privilege,
+ * the GOVERNING posture is the consumed attempt's stored gatePosture
+ * (attempt-time governs through completion — completion-time re-resolution
+ * was the OFF→ON laundering hole; legacy stamps take the named published
+ * boundary rule), and THE CANONICAL ADVANCE (csd/twi on the durable
+ * progress ref, completeSession's exact law) happens IN THIS TXN — one
+ * advance + one graduation per logical day, atomically; the CAS loser runs
+ * none of it. `anchorNwei`/`generation` are txn-derived (progress.js),
+ * never caller-supplied.
+ *
  * @param {FirebaseFirestore.Firestore} db
  * @param {{uid: string, winningClassId: string, listId: string,
- *   logicalDay: number, resetEpoch: number, anchorNwei: number,
- *   generation: *, consumedAttemptId: string|null,
+ *   logicalDay: number, resetEpoch: number, consumedAttemptId: string|null,
  *   consumedAttemptClassId: string|null, newTestAttemptId: string|null,
- *   nowMs?: number}} params — BINDING [r57]: consumedAttemptClassId is null
- *   IFF consumedAttemptId is null (asserted).
+ *   clientContractVersion?: *, nowMs?: number}} params — BINDING [r57]:
+ *   consumedAttemptClassId is null IFF consumedAttemptId is null (asserted).
  * @returns {Promise<object>} typed per the header. `completed` carries
- *   {evidenceKind, graduationCount, graduatedWordIds, correctCount,
- *   eligibleFillCount, streakCredited, completionId, sourceConfig}.
+ *   {completion, evidenceKind, graduationCount, graduatedWordIds,
+ *   correctCount, eligibleFillCount, streakCredited, advancedToDay, newTwi,
+ *   sourceConfig}.
  */
 async function completeDay(db, params) {
   const {uid, winningClassId, listId, logicalDay, resetEpoch,
-    anchorNwei, generation, consumedAttemptId, consumedAttemptClassId,
-    newTestAttemptId} = params;
+    consumedAttemptId, consumedAttemptClassId, newTestAttemptId} = params;
   const s = (v) => typeof v === "string" && v.length > 0;
   if (!s(uid) || !s(winningClassId) || !s(listId)) {
     throw new TypeError("completeDay: uid/winningClassId/listId required");
   }
   if (!Number.isInteger(logicalDay) || logicalDay < 1 ||
-      !Number.isInteger(resetEpoch) || resetEpoch < 0 ||
-      !Number.isInteger(anchorNwei) || generation === undefined) {
-    throw new TypeError("completeDay: logicalDay/resetEpoch/anchorNwei/generation malformed");
+      !Number.isInteger(resetEpoch) || resetEpoch < 0) {
+    throw new TypeError("completeDay: logicalDay/resetEpoch malformed");
   }
   if ((consumedAttemptId === null) !== (consumedAttemptClassId === null)) {
     throw new TypeError("completeDay: consumedAttemptClassId null IFF consumedAttemptId null [r57]");
@@ -210,6 +225,9 @@ async function completeDay(db, params) {
     throw new TypeError("completeDay: newTestAttemptId must be a non-empty string or null");
   }
   const nowMs = Number.isFinite(params.nowMs) ? params.nowMs : Date.now();
+  const {readProgressTruthInTxn} = require("./progress");
+  const {assertServableInTxn} = require("./config");
+  const foundation = require("../foundation");
 
   const completionId = `${listId}_d${logicalDay}_e${resetEpoch}`;
   const completionRef = db.doc(`users/${uid}/day_completions/${completionId}`);
@@ -219,13 +237,22 @@ async function completeDay(db, params) {
 
   return db.runTransaction(async (txn) => {
     // ---- READS -----------------------------------------------------------
-    const config = await resolveReviewConfig(db, {classId: sourceClassId, listId, txn});
+    // Serving authority = the WINNING (calling) class; matrix/source posture
+    // = the SOURCE class (r62p provenance). One resolve when they coincide.
+    const servingConfig = await resolveReviewConfig(db, {classId: winningClassId, listId, txn});
+    const sourceConfig0 = sourceClassId === winningClassId
+      ? servingConfig
+      : await resolveReviewConfig(db, {classId: sourceClassId, listId, txn});
+    const truth = await readProgressTruthInTxn(txn, db, {uid, classId: winningClassId, listId});
     const [pmSnap, lpSnap, doneSnap] = await txn.getAll(pmRef, lpRef, completionRef);
 
-    if (config.readStatus === "hold") {
-      return {status: "config_hold", holdReason: config.holdReason};
+    const refusal = assertServableInTxn(servingConfig, params.clientContractVersion);
+    if (refusal) return refusal;
+    if (sourceConfig0.readStatus === "hold") {
+      return {status: "config_hold", holdReason: sourceConfig0.holdReason};
     }
-    // The CAS loser path precedes the write fence (read-only, §8).
+    // The CAS loser path precedes the write fence (read-only, §8) — and
+    // returns the SAME envelope shape as the winner [r70 C5].
     if (doneSnap.exists) {
       return {status: "already_completed", completionId, completion: doneSnap.data()};
     }
@@ -235,20 +262,17 @@ async function completeDay(db, params) {
     const currentEpoch = effectiveResetEpoch(pmData, lpData);
     if (currentEpoch !== resetEpoch) return {status: "reset_epoch_mismatch", currentEpoch};
 
-    // ---- EVIDENCE KIND (the frozen matrix, SOURCE posture) ---------------
-    const gateOn = config.gateEffectiveEnabled === true;
-    const evidenceKind = evidenceKindFor({
-      hasConsumed: consumedAttemptId !== null,
-      hasNewTest: newTestAttemptId !== null,
-      gateOn,
-      logicalDay,
-    });
-    if (evidenceKind === null) {
-      return {status: "no_evidence", reason: "evidence shape not enumerated (both-tests law)"};
+    // ---- FRONTIER AUTHORITY [r70 C1]: the day IS the server's frontier ---
+    if (logicalDay !== truth.frontierDay) {
+      return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
     }
+    const {anchorNwei, generation} = truth;
 
-    // ---- EVIDENCE VERIFICATION (in-txn server truth) ---------------------
+    // ---- EVIDENCE VERIFICATION (in-txn server truth) [r70 C1] ------------
     let consumed = null;
+    let consumedPresentation = null;
+    let consumedQueue = null;
+    let legacyEvidence = false; // published boundary flag (flip-week legs)
     if (consumedAttemptId !== null) {
       const aSnap = await txn.get(db.collection("attempts").doc(consumedAttemptId));
       if (!aSnap.exists) return {status: "no_evidence", reason: "consumed attempt missing"};
@@ -265,39 +289,143 @@ async function completeDay(db, params) {
       if (consumed.classId !== consumedAttemptClassId) {
         return {status: "no_evidence", reason: "consumed attempt class mismatch"};
       }
-    }
-    if (newTestAttemptId !== null) {
-      const nSnap = await txn.get(db.collection("attempts").doc(newTestAttemptId));
-      if (!nSnap.exists) return {status: "no_evidence", reason: "new-test attempt missing"};
-      const nt = nSnap.data();
-      if (nt.studentId !== uid || nt.listId !== listId || nt.passed !== true) {
-        return {status: "no_evidence", reason: "new-test attempt invalid"};
+      // DAY BINDING [BL-1/C1 — r48: the shared day matches on
+      // {uid,listId,logicalDay,resetEpoch,anchor/generation}].
+      if (consumed.studyDay !== logicalDay) {
+        return {status: "no_evidence", reason: "consumed attempt day mismatch"};
       }
-    }
-
-    // ---- GRADUATION (live formula; SOURCE must be gate-ON) ---------------
-    let grad = {graduationCount: 0, graduatedWordIds: [],
-      correctCount: 0, eligibleFillCount: 0, invalidScore: false};
-    if (consumed !== null && gateOn) {
-      const rows = Array.isArray(consumed.answers)
-        ? consumed.answers
-            .filter((r) => r && typeof r.wordId === "string")
-            .map((r) => ({wordId: r.wordId, isCorrect: r.isCorrect === true}))
-        : [];
-      // The pinned queue of the SOURCE class (boundary: absent pre-flip).
-      const qSnap = await txn.get(db.doc(
-          `users/${uid}/review_queues/${queueDocId(consumedAttemptClassId, listId, logicalDay, resetEpoch)}`));
-      const queueIds = qSnap.exists ? qSnap.data().orderedQueueWordIds : null;
-      // Presented set: the presentation record, else the legacy attempt's
-      // own rows (boundary leg — header).
-      let presentedWordIds = rows.map((r) => r.wordId);
+      // EPOCH BINDING: present ⇒ exact; absent ⇒ the named legacy leg.
+      if (consumed.resetEpoch !== undefined && consumed.resetEpoch !== null) {
+        if (consumed.resetEpoch !== resetEpoch) {
+          return {status: "no_evidence", reason: "consumed attempt epoch mismatch"};
+        }
+      } else {
+        legacyEvidence = true;
+      }
+      // r48 IMPOSSIBLE-RECORD VALIDITY FENCE (never clamp into privilege):
+      // finite integer score 0..100 · sane totals · rows agreement ·
+      // score↔rows agreement (stored isCorrect — the accept writers
+      // recompute the stored score from flipped rows, like vs like).
+      const tq = consumed.totalQuestions;
+      const rowsArr = Array.isArray(consumed.answers) ? consumed.answers : null;
+      if (typeof consumed.score !== "number" || !Number.isFinite(consumed.score) ||
+          consumed.score < 0 || consumed.score > 100 ||
+          !Number.isInteger(tq) || tq < 1 ||
+          rowsArr === null || rowsArr.length !== tq) {
+        return {status: "no_evidence", reason: "impossible_record"};
+      }
+      const storedCorrect = rowsArr.filter((r) => r?.isCorrect === true).length;
+      if (Math.round((storedCorrect / tq) * 100) !== Math.round(consumed.score)) {
+        return {status: "no_evidence", reason: "impossible_record (score-rows disagreement)"};
+      }
+      // PRESENTATION + QUEUE BINDING (engine evidence) — legacy attempts
+      // (no presentationId) take the published boundary leg instead.
       if (typeof consumed.presentationId === "string" && consumed.presentationId.length > 0) {
         const pSnap = await txn.get(db.doc(
             `users/${uid}/review_presentations/${consumed.presentationId}`));
-        if (pSnap.exists && Array.isArray(pSnap.data().presentedWordIds)) {
-          presentedWordIds = pSnap.data().presentedWordIds;
+        if (!pSnap.exists) return {status: "no_evidence", reason: "presentation missing"};
+        consumedPresentation = pSnap.data();
+        if (consumedPresentation.uid !== uid ||
+            consumedPresentation.listId !== listId ||
+            consumedPresentation.classId !== consumedAttemptClassId ||
+            consumedPresentation.logicalDay !== logicalDay ||
+            consumedPresentation.resetEpoch !== resetEpoch) {
+          return {status: "no_evidence", reason: "presentation binding mismatch"};
         }
+        const claimed = consumedPresentation.serverClaim?.attemptDocId ?? null;
+        if (claimed !== null && claimed !== consumedAttemptId) {
+          return {status: "no_evidence", reason: "presentation claimed by another attempt"};
+        }
+        if (typeof consumedPresentation.queueRef === "string" && consumedPresentation.queueRef.length > 0) {
+          const qSnap = await txn.get(db.doc(consumedPresentation.queueRef));
+          if (!qSnap.exists) return {status: "no_evidence", reason: "queue missing for presentation"};
+          consumedQueue = qSnap.data();
+          // THE r48 CROSS-CLASS TUPLE MATCH: the evidence queue's tuple must
+          // equal THIS day's derived truth tuple.
+          if (consumedQueue.anchorNwei !== anchorNwei || consumedQueue.generation !== generation) {
+            return {status: "no_evidence", reason: "anchor tuple mismatch"};
+          }
+        }
+      } else {
+        legacyEvidence = true;
       }
+    }
+    let newTest = null;
+    if (newTestAttemptId !== null) {
+      const nSnap = await txn.get(db.collection("attempts").doc(newTestAttemptId));
+      if (!nSnap.exists) return {status: "no_evidence", reason: "new-test attempt missing"};
+      newTest = nSnap.data();
+      if (newTest.studentId !== uid || newTest.listId !== listId || newTest.passed !== true) {
+        return {status: "no_evidence", reason: "new-test attempt invalid"};
+      }
+      // TYPE + DAY + EPOCH BINDING [BL-1/C1 — a rerun or wrong-day record
+      // never satisfies the new-half].
+      if (newTest.sessionType !== "new" || newTest.type === "retest") {
+        return {status: "no_evidence", reason: "new-test attempt not a live new test"};
+      }
+      if (newTest.studyDay !== logicalDay) {
+        return {status: "no_evidence", reason: "new-test attempt day mismatch"};
+      }
+      if (newTest.resetEpoch !== undefined && newTest.resetEpoch !== null) {
+        if (newTest.resetEpoch !== resetEpoch) {
+          return {status: "no_evidence", reason: "new-test attempt epoch mismatch"};
+        }
+      } else {
+        legacyEvidence = true;
+      }
+    }
+
+    // ---- GOVERNING POSTURE [r70 C1 — attempt-time governs privilege] -----
+    // Consumed evidence: the attempt's stored gatePosture (frozen law:
+    // "attempt-time posture + configVersion stamped and governing through
+    // completion"). Legacy stamps absent ⇒ the named published boundary
+    // rule: completion-time source-class posture. Autopass kinds (no
+    // consumed attempt) are evaluated NOW by construction.
+    let postureSource;
+    let governingGateOn;
+    let governingThreshold;
+    let governingConfigVersion;
+    if (consumed !== null) {
+      const gp = consumed.gatePosture;
+      if (gp && typeof gp.effectiveEnabled === "boolean" && Number.isInteger(gp.configVersion)) {
+        postureSource = "attempt";
+        governingGateOn = gp.effectiveEnabled === true;
+        governingThreshold = Number.isInteger(gp.threshold) ? gp.threshold : sourceConfig0.threshold;
+        governingConfigVersion = gp.configVersion;
+      } else {
+        postureSource = "completion_legacy";
+        legacyEvidence = true;
+        governingGateOn = sourceConfig0.gateEffectiveEnabled === true;
+        governingThreshold = sourceConfig0.threshold;
+        governingConfigVersion = sourceConfig0.configVersion;
+      }
+    } else {
+      postureSource = "completion_autopass";
+      governingGateOn = sourceConfig0.gateEffectiveEnabled === true;
+      governingThreshold = sourceConfig0.threshold;
+      governingConfigVersion = sourceConfig0.configVersion;
+    }
+
+    // ---- EVIDENCE KIND (the frozen matrix, GOVERNING posture) ------------
+    const evidenceKind = evidenceKindFor({
+      hasConsumed: consumedAttemptId !== null,
+      hasNewTest: newTestAttemptId !== null,
+      gateOn: governingGateOn,
+      logicalDay,
+    });
+    if (evidenceKind === null) {
+      return {status: "no_evidence", reason: "evidence shape not enumerated (both-tests law)"};
+    }
+
+    // ---- GRADUATION (live formula; the GOVERNING posture must be ON) -----
+    let grad = {graduationCount: 0, formulaCount: 0, graduatedWordIds: [],
+      correctCount: 0, eligibleFillCount: 0, invalidScore: false};
+    if (consumed !== null && governingGateOn) {
+      const rows = consumed.answers
+          .filter((r) => r && typeof r.wordId === "string")
+          .map((r) => ({wordId: r.wordId, isCorrect: r.isCorrect === true}));
+      const queueIds = consumedQueue ? consumedQueue.orderedQueueWordIds : null;
+      const presentedWordIds = consumedPresentation?.presentedWordIds ?? rows.map((r) => r.wordId);
       const orderedQueueWordIds = queueIds ?? presentedWordIds;
       // Labels for UNPRESENTED queue words only (the fill inputs, §10).
       const presentedSet = new Set(presentedWordIds);
@@ -327,6 +455,22 @@ async function completeDay(db, params) {
       }
     }
 
+    // ---- ADVANCE INPUTS [r70 C1 — the canonical csd/twi law] -------------
+    // wordsIntroduced mirrors completeSession's law exactly: the day's new
+    // attempt's own range count (deriveDayAnchorRange's formula); a range-
+    // less legacy new attempt HOLDS twi (published flag), never guesses.
+    let wordsIntroduced = 0;
+    let twiHeld = false;
+    if (newTest !== null) {
+      if (Number.isInteger(newTest.newWordStartIndex) && Number.isInteger(newTest.newWordEndIndex) &&
+          newTest.newWordEndIndex >= newTest.newWordStartIndex) {
+        wordsIntroduced = newTest.newWordEndIndex - newTest.newWordStartIndex + 1;
+      } else {
+        twiHeld = true;
+        legacyEvidence = true;
+      }
+    }
+
     // ---- STREAK read (same-txn, before writes) ---------------------------
     const kstDate = kstDateString(nowMs);
     const creditRef = db.doc(`users/${uid}/streak_credits/${kstDate}`);
@@ -335,12 +479,12 @@ async function completeDay(db, params) {
     // ---- WRITES ----------------------------------------------------------
     const completedAt = Timestamp.fromMillis(nowMs);
     const sourceConfig = {
-      threshold: config.threshold,
-      queueSize: config.queueSize,
-      testSize: config.testSize,
-      configVersion: config.configVersion,
-      reviewGateEnabled: config.assignmentGateEnabled,
-      gateEffectiveEnabled: config.gateEffectiveEnabled,
+      threshold: governingThreshold,
+      queueSize: consumedQueue?.snapshot?.queueSize ?? sourceConfig0.queueSize,
+      testSize: consumedQueue?.snapshot?.testSize ?? sourceConfig0.testSize,
+      configVersion: governingConfigVersion,
+      reviewGateEnabled: sourceConfig0.assignmentGateEnabled,
+      gateEffectiveEnabled: governingGateOn,
     };
     const completion = {
       uid, listId, logicalDay, resetEpoch, anchorNwei, generation,
@@ -348,7 +492,11 @@ async function completeDay(db, params) {
       evidenceKind,
       consumedAttemptId, consumedAttemptClassId,
       sourceConfig,
+      postureSource, // [r70 C1] attempt | completion_legacy | completion_autopass
+      legacyEvidence, // [r70 C1] the published flip-week boundary flag
       newTestAttemptId,
+      wordsIntroduced,
+      twiHeld,
       graduationCount: grad.graduationCount,
       graduatedWordIds: grad.graduatedWordIds,
       graduatedWordIdsHash: computeGraduatedHash(grad.graduatedWordIds),
@@ -356,9 +504,31 @@ async function completeDay(db, params) {
     };
     txn.create(completionRef, completion);
 
+    // ---- THE CANONICAL ADVANCE [r70 C1 — same txn as the CAS] ------------
+    // Mirrors completeSession's advance law on the SAME durable ref
+    // (currentStudyDay +1, totalWordsIntroduced + wordsIntroduced; shape
+    // parity on create). The frontier check above proved csd === day − 1.
+    const advance = {
+      currentStudyDay: logicalDay,
+      totalWordsIntroduced: truth.twi + wordsIntroduced,
+      lastStudyDate: completedAt,
+      lastSessionAt: completedAt,
+      updatedAt: completedAt,
+    };
+    if (truth.progressSnap.exists) {
+      txn.update(truth.progressRef, advance);
+    } else {
+      txn.set(truth.progressRef, {
+        ...foundation.defaultProgressShape(winningClassId, listId),
+        ...advance,
+        programStartDate: foundation.mondayOfWeekTimestamp(),
+        createdAt: completedAt,
+      });
+    }
+
     // Rest mints ONLY for eligible writers (R2-48) — the audit twin
     // (graduatedWordIds) records the graduation either way.
-    if (config.stampingEligible === true && grad.graduatedWordIds.length > 0) {
+    if (servingConfig.stampingEligible === true && grad.graduatedWordIds.length > 0) {
       const restingUntil = Timestamp.fromMillis(nowMs + REST_DAYS * DAY_MS);
       for (const id of grad.graduatedWordIds) {
         txn.set(db.doc(`users/${uid}/study_states/${id}`),
@@ -378,14 +548,17 @@ async function completeDay(db, params) {
     return {
       status: "completed",
       completionId,
+      completion,
       evidenceKind,
       graduationCount: grad.graduationCount,
       graduatedWordIds: grad.graduatedWordIds,
       correctCount: grad.correctCount,
       eligibleFillCount: grad.eligibleFillCount,
       streakCredited,
+      advancedToDay: logicalDay,
+      newTwi: advance.totalWordsIntroduced,
       sourceConfig,
-      config,
+      config: servingConfig,
     };
   });
 }

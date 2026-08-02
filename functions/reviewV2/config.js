@@ -82,8 +82,33 @@ async function resolveReviewConfig(db, ctx) {
   }
   if (!cfgSnap.exists) return holdResult("config doc absent (cold start)");
   const cfg = cfgSnap.data();
-  if (typeof cfg.enabled !== "boolean" || !Number.isInteger(cfg.configVersion)) {
+  // STRICT AUTHORITY SCHEMA [r70 C3 — Codex reproduced firstEnabledAt:'bad'
+  // ⇒ stampingEligible:true]: a malformed AUTHORITY field resolves HOLD —
+  // coercion must never enable stamping, arm a rehearsal, or disarm the
+  // version fence. Absent optional fields keep their frozen defaults; a
+  // PRESENT-but-wrong-shape field is an outage, not a posture.
+  const isTs = (v) => v != null && typeof v.toMillis === "function";
+  if (typeof cfg.enabled !== "boolean" ||
+      !Number.isInteger(cfg.configVersion) || cfg.configVersion < 1) {
     return holdResult("config doc malformed");
+  }
+  if (cfg.firstEnabledAt != null && !isTs(cfg.firstEnabledAt)) {
+    return holdResult("firstEnabledAt malformed (non-Timestamp)");
+  }
+  if (cfg.rehearsalClassIds !== undefined && cfg.rehearsalClassIds !== null &&
+      !(Array.isArray(cfg.rehearsalClassIds) &&
+        cfg.rehearsalClassIds.every((x) => typeof x === "string" && x.length > 0))) {
+    return holdResult("rehearsalClassIds malformed");
+  }
+  if (cfg.minClientVersion != null &&
+      !(Number.isInteger(cfg.minClientVersion) && cfg.minClientVersion >= 1)) {
+    return holdResult("minClientVersion malformed");
+  }
+  const intOrAbsent = (v, lo, hi) => v === undefined || v === null ||
+    (Number.isInteger(v) && v >= lo && v <= hi);
+  if (!intOrAbsent(cfg.threshold, 1, 100) || !intOrAbsent(cfg.queueSize, 1, 500) ||
+      !intOrAbsent(cfg.testSize, 1, 500)) {
+    return holdResult("global threshold/size malformed");
   }
 
   const rehearsalIds = Array.isArray(cfg.rehearsalClassIds) ? cfg.rehearsalClassIds : [];
@@ -135,6 +160,9 @@ async function resolveReviewConfig(db, ctx) {
     // The assignment-level flag alone (default true) — queue snapshots record
     // it (H6 §2) separately from the global-and-assignment effective gate.
     assignmentGateEnabled: assignmentGate,
+    // The raw assignment object (pace inputs for the live-new range [r70
+    // C4]) — read-only passthrough, never a posture source.
+    assignmentRaw: asg,
     reviewTestType,
     threshold,
     queueSize,
@@ -180,4 +208,23 @@ function checkClientVersion(config, clientContractVersion) {
   return null;
 }
 
-module.exports = { resolveReviewConfig, checkClientVersion, CONFIG_DOC_PATH, DEFAULTS };
+/**
+ * TXN-TIME SERVING AUTHORITY [r70 C3] — every minting transaction calls this
+ * against ITS OWN resolver snapshot (never only the callable preflight): a
+ * config/rehearsal/version edit between preflight and commit must abort the
+ * mint, not slip an unstamped/stale object past the activation barrier.
+ * @returns {null | {status: "config_hold"|"review_v2_dark"|"client_version_stale", ...}}
+ */
+function assertServableInTxn(config, clientContractVersion) {
+  if (config.readStatus !== "ok") {
+    return { status: "config_hold", holdReason: config.holdReason };
+  }
+  if (config.stampingEligible !== true) {
+    return { status: "review_v2_dark" };
+  }
+  const stale = checkClientVersion(config, clientContractVersion);
+  if (stale) return stale;
+  return null;
+}
+
+module.exports = { resolveReviewConfig, checkClientVersion, assertServableInTxn, CONFIG_DOC_PATH, DEFAULTS };

@@ -78,6 +78,7 @@ const {
   resetLockActive,
   queueDocId,
 } = require("./composer");
+const {resolveReviewConfig, assertServableInTxn} = require("./config");
 
 const COMPOSE_KEY_RE = /^[A-Za-z0-9._-]{8,128}$/;
 const STUDY_STATE_READ_CHUNK = 300;
@@ -149,7 +150,7 @@ function compositionInvariantHolds(selectedIds, prefixIds, queueIdSet, effective
  *   "fallback-random", fallbackSeed: number|null, effectiveTestSize: number,
  *   priorityCount: number}}
  */
-function composeLiveReviewTest({members, testSize, rng = Math.random}) {
+function composeLiveReviewTest({members, testSize, rng = Math.random, _forceFallbackForTest = false}) {
   const effectiveTestSize = Math.min(testSize, members.length);
   const queueIdSet = new Set(members.map((m) => m.wordId));
 
@@ -170,7 +171,12 @@ function composeLiveReviewTest({members, testSize, rng = Math.random}) {
   let compositionVersion = "lrt-v1";
   let fallbackSeed = null;
 
-  if (!compositionInvariantHolds(selectedIds, prefixIds, queueIdSet, effectiveTestSize)) {
+  // HONESTY NOTE [r70 L-7]: with valid inputs the primary selection cannot
+  // violate the invariant BY CONSTRUCTION — the check is a regression belt.
+  // `_forceFallbackForTest` (fixtures ONLY) makes the fallback branch
+  // falsifiable so its seed-recording law stays proven.
+  if (_forceFallbackForTest ||
+      !compositionInvariantHolds(selectedIds, prefixIds, queueIdSet, effectiveTestSize)) {
     // SEEDED-RANDOM FALLBACK (R2-42/46): prefix preserved, remainder
     // re-drawn at random from the same presentable set, seed recorded.
     fallbackSeed = Math.floor(rng() * 4294967296);
@@ -285,11 +291,23 @@ async function composePresentation(db, params) {
     if (params.testType !== "mcq" && params.testType !== "typed") {
       throw new TypeError("composePresentation: testType must be 'mcq'|'typed'");
     }
+    // r70 C4: live new-day presentations carry the day's anchor range so the
+    // attempt writer can stamp newWordStartIndex/EndIndex (anchor
+    // continuity); rerun-new halves stay range-less (legacy readers blind).
+    if (kind === "live" &&
+        (!Number.isInteger(params.rangeStartIndex) || !Number.isInteger(params.rangeEndIndex) ||
+         params.rangeEndIndex < params.rangeStartIndex)) {
+      throw new TypeError("composePresentation: live new-day requires rangeStartIndex ≤ rangeEndIndex");
+    }
   } else {
     sessionType = "review"; kind = "rerun";
     visitId = params.visitId;
     if (!s(visitId)) throw new TypeError("composePresentation: rerun-review requires visitId");
-    assertIdArray("poolWordIds", params.poolWordIds);
+    // r70 C2: the rerun pool is sliced from canonicalWords by THE TXN's own
+    // progress read (full CURRENT introduced range) — never caller-supplied.
+    if (!Array.isArray(params.canonicalWords) || params.canonicalWords.length === 0) {
+      throw new TypeError("composePresentation: rerun-review requires canonicalWords");
+    }
     if (!Number.isInteger(params.testSize) || params.testSize < 1) {
       throw new TypeError("composePresentation: rerun-review requires testSize ≥ 1");
     }
@@ -304,6 +322,10 @@ async function composePresentation(db, params) {
   const lpRef = db.doc(`users/${uid}/list_progress/${listId}`);
 
   return db.runTransaction(async (txn) => {
+    // Serving authority joins THIS txn's read set [r70 C3] — the claim is a
+    // mint; a rehearsal-removal/fence edit between preflight and commit must
+    // abort it, and the resolver read serializes with the R2-48 flip.
+    const config = await resolveReviewConfig(db, {classId, listId, txn});
     const [pmSnap, lpSnap, regSnap] = await txn.getAll(pmRef, lpRef, registryRef);
 
     // ---- REPLAY (mints nothing — precedes the write fence, §8) -----------
@@ -313,6 +335,10 @@ async function composePresentation(db, params) {
         throw new Error(`compose_keys/${registryId}: canonical token mismatch`);
       }
       const f = reg.fingerprint || {};
+      // The modality leg is compared for EVERY mode [r70 C5/L-1 — §3 freezes
+      // testType as a separately compared field]: live-review compares the
+      // STORED leg against the queue-snapshot-derived value at claim time,
+      // which the replay path reproduces below from the stored record.
       const match = f.classId === classId && f.listId === listId &&
         f.logicalDay === logicalDay && f.resetEpoch === resetEpoch &&
         f.sessionType === sessionType && f.kind === kind &&
@@ -323,6 +349,13 @@ async function composePresentation(db, params) {
       if (!pSnap.exists) {
         throw new Error(`compose_keys/${registryId}: dangling presentationId ${reg.presentationId}`);
       }
+      // Live-review modality is SERVER-derived (the queue snapshot), so the
+      // request carries no testType leg to compare; the replay integrity
+      // check is stored-vs-stored — registry fingerprint vs presentation —
+      // which detects registry/record divergence [r70 C5 decision recorded].
+      if (mode === "live-review" && f.testType !== pSnap.data().testType) {
+        throw new Error(`compose_keys/${registryId}: fingerprint/presentation modality divergence`);
+      }
       return {
         status: "replayed",
         presentationId: reg.presentationId,
@@ -331,7 +364,9 @@ async function composePresentation(db, params) {
       };
     }
 
-    // ---- WRITE FENCE (§9) ------------------------------------------------
+    // ---- WRITE FENCE (§9) + SERVING AUTHORITY [r70 C3] -------------------
+    const refusal = assertServableInTxn(config, params.clientContractVersion);
+    if (refusal) return refusal;
     const pmData = pmSnap.exists ? pmSnap.data() : null;
     const lpData = lpSnap.exists ? lpSnap.data() : null;
     if (resetLockActive(pmData, lpData)) return {status: "reset_in_progress"};
@@ -395,6 +430,18 @@ async function composePresentation(db, params) {
       presentationId = `${qId}_p${seq}`;
       queueCountWrite = () => txn.update(queueRef, {presentationCount: seq});
     } else {
+      // VISIT BINDING [r70 C4]: every rerun half binds to an EXISTING visit
+      // whose tuple matches exactly — a missing/mismatched visit mints
+      // nothing.
+      if (kind === "rerun") {
+        const vSnap = await txn.get(db.doc(`users/${uid}/restudy_visits/${visitId}`));
+        if (!vSnap.exists) return {status: "visit_invalid", reason: "visit missing"};
+        const v = vSnap.data();
+        if (v.uid !== uid || v.classId !== classId || v.listId !== listId ||
+            v.day !== logicalDay || v.resetEpoch !== resetEpoch) {
+          return {status: "visit_invalid", reason: "visit tuple mismatch"};
+        }
+      }
       // Counter-doc allocation (§3 FROZEN [r57]): family `_n` (new-day) /
       // `_r` (rerun review); create {next:2}+allocate 1 on first use, else
       // transactional read+increment. The allocated seq = the pre-increment.
@@ -419,13 +466,20 @@ async function composePresentation(db, params) {
       if (mode === "new-day") {
         presentedWordIds = params.presentedWordIds.slice();
         compositionVersion = "new-day";
+        poolHash = computePoolHash(params.poolWordIds);
       } else {
+        // r70 C2: the FULL currently-introduced range, sliced by THIS txn's
+        // progress truth (resting included — R2-41(h) as adjudicated).
+        const {readProgressTruthInTxn, introducedUniverse} = require("./progress");
+        const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
+        const pool = introducedUniverse(params.canonicalWords, truth.twi).map((w) => w.wordId);
+        if (pool.length === 0) return {status: "empty_pool", twi: truth.twi};
         presentedWordIds = drawRerunReview({
-          poolWordIds: params.poolWordIds, testSize: params.testSize, rng,
+          poolWordIds: pool, testSize: params.testSize, rng,
         });
         compositionVersion = "rerun-random";
+        poolHash = computePoolHash(pool);
       }
-      poolHash = computePoolHash(params.poolWordIds);
     }
 
     // ---- WRITES ----------------------------------------------------------
@@ -453,6 +507,10 @@ async function composePresentation(db, params) {
       compositionVersion,
       testType,
       visitId,
+      ...(mode === "new-day" ? {
+        rangeStartIndex: Number.isInteger(params.rangeStartIndex) ? params.rangeStartIndex : null,
+        rangeEndIndex: Number.isInteger(params.rangeEndIndex) ? params.rangeEndIndex : null,
+      } : {}),
       serverClaim: {claimedAt: FieldValue.serverTimestamp(), attemptDocId: null},
       createdAt: FieldValue.serverTimestamp(),
     };
@@ -460,7 +518,7 @@ async function composePresentation(db, params) {
     if (queueCountWrite) queueCountWrite();
     if (counterWrite) counterWrite();
 
-    const {serverClaim, createdAt, ...echo} = presentation;
+    const {serverClaim: _serverClaim, createdAt: _createdAt, ...echo} = presentation;
     return {
       status: "created",
       presentationId,

@@ -52,14 +52,14 @@
  *    the RETURNED config snapshot for the rest of the request.
  *
  * TYPED RESULT STATUSES — success: `created` | `exists` (replay). Refusals
- * (mint nothing): `config_hold` (r48 cold-start law) · `reset_in_progress`
- * (§9 frozen) · `reset_epoch_mismatch` (§9 "mismatch ⇒ reject" — name minted
- * HERE, checkpoint-review flagged) · `day_guard_rejected` (§8 frozen — a
- * compose for a day BEHIND the cursor's last composed day) · `empty_pool`
- * (zero introduced words — a day-1/no-review shape the caller should never
- * send; name minted HERE). Impossible-by-construction states (dangling
- * `lastQueueRef`, reuse anchor-tuple mismatch) THROW — the txn aborts, the
- * callable surfaces `internal`, nothing is minted.
+ * (mint nothing): `config_hold` (r48 cold-start law) · `review_v2_dark` /
+ * `client_version_stale` (txn-time serving authority [r70 C3]) ·
+ * `reset_in_progress` (§9 frozen) · `reset_epoch_mismatch` (§9 "mismatch ⇒
+ * reject") · `day_guard_rejected` (§8 frozen — any non-frontier day; carries
+ * `expectedDay` [r70 C2]) · `empty_pool` (twi=0 — day 1 has no review) ·
+ * `reuse_anchor_mismatch` (real universe drift on the reuse path — typed,
+ * fail-closed, cursor untouched [r70 C2]). Truly impossible states (dangling
+ * `lastQueueRef`) still THROW — the txn aborts, nothing is minted.
  */
 
 "use strict";
@@ -173,26 +173,20 @@ function assertParams(p) {
   if (!Number.isInteger(p.resetEpoch) || p.resetEpoch < 0) {
     throw new TypeError("composeDayQueue: resetEpoch must be an integer ≥ 0");
   }
-  if (!Number.isInteger(p.anchorNwei)) {
-    throw new TypeError("composeDayQueue: anchorNwei must be an integer");
-  }
-  if (p.generation === undefined) {
-    throw new TypeError("composeDayQueue: generation is required (opaque, caller-derived)");
-  }
-  if (!Array.isArray(p.introducedWords) || p.introducedWords.length > MAX_INTRODUCED_WORDS) {
-    throw new TypeError("composeDayQueue: introducedWords must be an array ≤ " + MAX_INTRODUCED_WORDS);
+  if (!Array.isArray(p.canonicalWords) || p.canonicalWords.length > MAX_INTRODUCED_WORDS) {
+    throw new TypeError("composeDayQueue: canonicalWords must be an array ≤ " + MAX_INTRODUCED_WORDS);
   }
   let prev = -Infinity;
   const seen = new Set();
-  for (const w of p.introducedWords) {
+  for (const w of p.canonicalWords) {
     if (!s(w?.wordId) || !Number.isInteger(w?.wordIndex) || w.wordIndex < 0) {
-      throw new TypeError("composeDayQueue: each introduced word needs {wordId, wordIndex≥0}");
+      throw new TypeError("composeDayQueue: each canonical word needs {wordId, wordIndex≥0}");
     }
     if (w.wordIndex <= prev) {
-      throw new TypeError("composeDayQueue: introducedWords must be strictly ascending by wordIndex (canonical order)");
+      throw new TypeError("composeDayQueue: canonicalWords must be strictly ascending by wordIndex (canonical order)");
     }
     prev = w.wordIndex;
-    if (seen.has(w.wordId)) throw new TypeError("composeDayQueue: duplicate wordId in introducedWords");
+    if (seen.has(w.wordId)) throw new TypeError("composeDayQueue: duplicate wordId in canonicalWords");
     seen.add(w.wordId);
   }
 }
@@ -201,32 +195,41 @@ function assertParams(p) {
  * Compose (or replay) THE day-queue for one (class, list, logicalDay, epoch)
  * — the H6 §2 creation transaction. Owns its own runTransaction.
  *
+ * r70 FOLD (C2/C3): day authority is TRANSACTIONAL — the txn reads the
+ * durable progress doc (progress.js) and refuses any non-frontier day
+ * (`day_guard_rejected` + expectedDay); the review universe is sliced from
+ * `canonicalWords` by the txn-read `twi` (stable before/after the day's new
+ * test — review-first law); the match tuple (`anchorNwei` = twi−1,
+ * `generation` = "t{twi}") is derived HERE, never caller-supplied; serving
+ * authority (`assertServableInTxn`) is re-enforced in-txn; a reuse tuple
+ * mismatch is the typed refusal `reuse_anchor_mismatch` (fail-closed, cursor
+ * untouched, never `internal`); an overshot cursor (`lastLogicalDay` beyond
+ * the frontier — a poisoned artifact) is REPAIRED: swept as absent,
+ * overwritten by this compose, `cursorRepaired:true` reported for the ops
+ * signal. SUPERSESSION [r70 C2, logged in 15_ §2]: `snapshot.queueSize` =
+ * |orderedQueueWordIds| (content truth) on EVERY compose, and
+ * `snapshot.configQueueSize` (the configured value) is ALWAYS present.
+ *
  * @param {FirebaseFirestore.Firestore} db
  * @param {{
  *   uid: string, classId: string, listId: string,
  *   logicalDay: number, resetEpoch: number,
- *   anchorNwei: number, generation: *,
- *   introducedWords: Array<{wordId: string, wordIndex: number}>,
+ *   canonicalWords: Array<{wordId: string, wordIndex: number}>,
+ *   clientContractVersion?: *,
  *   nowMs?: number,
- * }} params — `introducedWords` = the day's review universe in CANONICAL
- *   `lists/{listId}/words` position order (ascending `position`, r55), sliced
- *   by the caller's anchor derivation; `anchorNwei`/`generation` = the
- *   cross-class match tuple (r48), stamped verbatim + equality-checked on the
- *   reuse path. `nowMs` (test-injectable) drives ONLY resting classification.
- * @returns {Promise<object>} `{status, ...}` per the header's typed statuses.
- *   On `created`/`exists`: `{queueId, queuePath, queue, config}` — `config`
- *   is THE txn-time snapshot the caller must adopt (ONE RESOLVER law); on
- *   `created` additionally `{reused, cursorAdvanced, activeCount, topUpCount}`
- *   and `queue.createdAt` is omitted (server timestamp resolves at commit).
+ * }} params — `canonicalWords` = the FULL canonical list order
+ *   (`lists/{listId}/words` by `position` asc [r55]); the txn slices it.
+ * @returns {Promise<object>} typed statuses per the header; on
+ *   `created`/`exists`: `{queueId, queuePath, queue, config}` (+ on
+ *   `created`: `{reused, cursorAdvanced, activeCount, topUpCount,
+ *   cursorRepaired}`).
  */
 async function composeDayQueue(db, params) {
   assertParams(params);
-  const {uid, classId, listId, logicalDay, resetEpoch, anchorNwei, generation} = params;
+  const {uid, classId, listId, logicalDay, resetEpoch} = params;
   const nowMs = Number.isFinite(params.nowMs) ? params.nowMs : Date.now();
-
-  if (params.introducedWords.length === 0) {
-    return {status: "empty_pool"};
-  }
+  const {readProgressTruthInTxn, introducedUniverse} = require("./progress");
+  const {assertServableInTxn} = require("./config");
 
   const queueId = queueDocId(classId, listId, logicalDay, resetEpoch);
   const queueRef = db.doc(`users/${uid}/review_queues/${queueId}`);
@@ -237,12 +240,13 @@ async function composeDayQueue(db, params) {
   return db.runTransaction(async (txn) => {
     // ---- READS (all before any write; conditional reads allowed) ----------
     const config = await resolveReviewConfig(db, {classId, listId, txn});
+    const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
     const [pmSnap, lpSnap, queueSnap, cursorSnap] =
       await txn.getAll(pmRef, lpRef, queueRef, cursorRef);
 
-    if (config.readStatus === "hold") {
-      return {status: "config_hold", holdReason: config.holdReason};
-    }
+    // Serving authority re-enforced against THIS txn's snapshot [C3].
+    const refusal = assertServableInTxn(config, params.clientContractVersion);
+    if (refusal) return refusal;
     const pmData = pmSnap.exists ? pmSnap.data() : null;
     const lpData = lpSnap.exists ? lpSnap.data() : null;
     if (resetLockActive(pmData, lpData)) {
@@ -265,20 +269,30 @@ async function composeDayQueue(db, params) {
       };
     }
 
+    // ---- FRONTIER AUTHORITY [C2]: live compose serves ONLY csd+1 ---------
+    if (logicalDay !== truth.frontierDay) {
+      return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
+    }
+    // The review universe: introduced BEFORE the day (positions < twi).
+    // Day 1 (twi 0) has no review by construction [first_day_new_only].
+    const universe = introducedUniverse(params.canonicalWords, truth.twi);
+    if (universe.length === 0) {
+      return {status: "empty_pool", twi: truth.twi};
+    }
+    const {anchorNwei, generation} = truth;
+
     const cursor = cursorSnap.exists ? cursorSnap.data() : null;
     const lastDay = Number.isInteger(cursor?.lastLogicalDay) ? cursor.lastLogicalDay : null;
-    if (lastDay != null && logicalDay < lastDay) {
-      // Composing BEHIND the last composed day: the shared day counter never
-      // moves backward (reruns compose presentations, never queues).
-      return {status: "day_guard_rejected", lastLogicalDay: lastDay};
-    }
+    // Cursor repair leg [C2]: an overshot cursor can only be a poisoned
+    // artifact (frontier authority forbids forward composes). Sweep as if
+    // absent; this compose overwrites it; the caller emits the ops signal.
+    const cursorRepaired = lastDay != null && lastDay > truth.frontierDay;
 
     let orderedQueueWordIds;
-    let snapshot;
     let reused = false;
     let sweep = null;
 
-    if (lastDay != null && logicalDay === lastDay) {
+    if (!cursorRepaired && lastDay != null && logicalDay === lastDay) {
       // ---- SAME-DAY CROSS-CLASS REUSE [r59-B2] --------------------------
       // Reachable only from a class WITHOUT its own queue doc (the exists
       // check above returned otherwise) ⇒ a different class composed this
@@ -292,31 +306,26 @@ async function composeDayQueue(db, params) {
       }
       const src = reusedSnap.data();
       if (src.anchorNwei !== anchorNwei || src.generation !== generation) {
-        // The cross-class match tuple (r48) is the definition of a SHARED
-        // day — a mismatch means these composes are not the same day.
-        throw new Error(
-            `compose reuse: anchor tuple mismatch on ${cursor.lastQueueRef} ` +
-            `(${src.anchorNwei}/${String(src.generation)} vs ${anchorNwei}/${String(generation)})`);
+        // The match tuple defines the SHARED day; with the stable t{twi}
+        // sourcing a mismatch is REAL universe drift ⇒ typed, fail-closed,
+        // cursor untouched [C2 — never `internal`].
+        return {
+          status: "reuse_anchor_mismatch",
+          reusedTuple: {anchorNwei: src.anchorNwei, generation: src.generation},
+          requestTuple: {anchorNwei, generation},
+        };
       }
       orderedQueueWordIds = [...src.orderedQueueWordIds];
-      snapshot = {
-        threshold: config.threshold,
-        queueSize: orderedQueueWordIds.length, // CONTENT truth [r62]
-        testSize: config.testSize,
-        reviewTestType: config.reviewTestType,
-        reviewGateEnabled: config.assignmentGateEnabled,
-        configQueueSize: config.queueSize, // the receiver's own value, audit-only
-      };
       reused = true;
       // NO cursor write — one logical day consumes exactly ONE sweep segment.
     } else {
       // ---- THE SWEEP (first compose of this logical day) ----------------
       // Pool STATE joins the txn read set (H6 §2): chunked transactional
-      // getAll over the introduced range's study_states; only
-      // `reviewRestingUntil` is consulted (§10 — server truth only).
+      // getAll over the universe's study_states; only `reviewRestingUntil`
+      // is consulted (§10 — server truth only).
       const restingByWordId = new Map();
-      for (let i = 0; i < params.introducedWords.length; i += STUDY_STATE_READ_CHUNK) {
-        const chunk = params.introducedWords.slice(i, i + STUDY_STATE_READ_CHUNK);
+      for (let i = 0; i < universe.length; i += STUDY_STATE_READ_CHUNK) {
+        const chunk = universe.slice(i, i + STUDY_STATE_READ_CHUNK);
         const snaps = await txn.getAll(
             ...chunk.map((w) => db.doc(`users/${uid}/study_states/${w.wordId}`)));
         snaps.forEach((s, j) => {
@@ -326,23 +335,17 @@ async function composeDayQueue(db, params) {
         });
       }
       sweep = sweepQueue({
-        words: params.introducedWords.map((w) => ({
+        words: universe.map((w) => ({
           wordId: w.wordId,
           wordIndex: w.wordIndex,
           restingUntilMs: restingByWordId.get(w.wordId) ?? null,
         })),
         nowMs,
         queueSize: config.queueSize,
-        cursorWordIndex: Number.isInteger(cursor?.cursorWordIndex) ? cursor.cursorWordIndex : null,
+        cursorWordIndex: (!cursorRepaired && Number.isInteger(cursor?.cursorWordIndex))
+          ? cursor.cursorWordIndex : null,
       });
       orderedQueueWordIds = sweep.orderedQueueWordIds;
-      snapshot = {
-        threshold: config.threshold,
-        queueSize: config.queueSize,
-        testSize: config.testSize,
-        reviewTestType: config.reviewTestType,
-        reviewGateEnabled: config.assignmentGateEnabled,
-      };
       // ---- WRITE: the cursor doc (SAME txn as the create, §2) -----------
       // lastLogicalDay/lastQueueRef record every first-compose; the INDEX
       // moves only per the exact transitions (unchanged when A was empty).
@@ -354,6 +357,17 @@ async function composeDayQueue(db, params) {
         updatedAt: FieldValue.serverTimestamp(),
       });
     }
+
+    // SUPERSESSION [r70 C2]: queueSize = content truth on EVERY compose;
+    // configQueueSize = the configured value, always present (audit).
+    const snapshot = {
+      threshold: config.threshold,
+      queueSize: orderedQueueWordIds.length,
+      testSize: config.testSize,
+      reviewTestType: config.reviewTestType,
+      reviewGateEnabled: config.assignmentGateEnabled,
+      configQueueSize: config.queueSize,
+    };
 
     // ---- WRITE: the immutable queue doc (create = first-writer-wins) ----
     const queueDoc = {
@@ -369,7 +383,7 @@ async function composeDayQueue(db, params) {
     };
     txn.create(queueRef, queueDoc);
 
-    const {createdAt, ...queueEcho} = queueDoc;
+    const {createdAt: _createdAt, ...queueEcho} = queueDoc;
     return {
       status: "created",
       queueId,
@@ -380,6 +394,7 @@ async function composeDayQueue(db, params) {
       cursorAdvanced: reused ? false : sweep.cursorAdvanced,
       activeCount: reused ? null : sweep.activeCount,
       topUpCount: reused ? null : sweep.topUpCount,
+      cursorRepaired,
     };
   });
 }

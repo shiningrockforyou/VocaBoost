@@ -29,11 +29,14 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 
 - **docId** = `{classId}_{listId}_d{logicalDay}_e{resetEpoch}` (one per identity; deterministic ⇒ idempotent create).
 - Fields: the identity septuple `{uid, classId, listId, logicalDay, resetEpoch, algorithmVersion, configVersion}`
-  + `anchorNwei` + `generation` (the cross-class match tuple, r48/r50-B3) + `orderedQueueWordIds[]` + `poolHash`
-  + `snapshot{threshold, queueSize, testSize, reviewTestType, reviewGateEnabled, configQueueSize?}` +
-  `createdAt` — `snapshot.queueSize` is CONTENT truth (= |orderedQueueWordIds| source sizing; on a same-day
-  cross-class REUSE it records |the reused queue|); `configQueueSize` (present on reuse) = this class's own
-  configured value, audit-only [r62].
+  + `anchorNwei` + `generation` (the cross-class match tuple, r48/r50-B3 — **[SUPERSESSION r70-C2]: sourced
+  from PROGRESS TRUTH, stable within a day: `anchorNwei = twi − 1` (−1 IFF twi=0, the day-1/empty-universe
+  encoding) and `generation = "t{twi}"`; a reuse-path mismatch is the typed refusal `reuse_anchor_mismatch`,
+  never an abort**) + `orderedQueueWordIds[]` + `poolHash`
+  + `snapshot{threshold, queueSize, testSize, reviewTestType, reviewGateEnabled, configQueueSize}` +
+  `createdAt` — **[SUPERSESSION r70-C2, replacing the r62 reuse-only wording]: `snapshot.queueSize` =
+  |orderedQueueWordIds| (CONTENT truth) on EVERY compose — first compose AND reuse — and
+  `configQueueSize` (this class's own configured value, audit-only) is ALWAYS present.**
 - **Creation txn**: composed server-side inside the session-start/test-compose callable — txn reads pool state
   **+ the ROTATION CURSOR DOC (§2b — NOT the previous queue record: last-element inference breaks under
   underflow top-ups, and class-scoped chains break dual-enrollment [r58])**, applies the sweep + the R2-41(e)
@@ -102,8 +105,13 @@ DENIED (rules list).
   · `'new-day'` (live new-word).**
 - **RERUN identity [r53-B2/panel]**: restudied days have no live queue — rerun presentations use docId
   `{classId}_{listId}_d{visitedDay}_e{resetEpoch}_r{seq}` with `queueRef:null`, `poolHash` = the
-  INTRODUCED-RANGE hash, `compositionVersion:'rerun-random'` (pure-random, no priority slots), `visitId` set
-  (§6 pairing), **seq from the SAME counter-doc allocator as `_n{seq}` (§3's frozen schema — NO count query
+  INTRODUCED-RANGE hash **[ADJUDICATED r70 — BOTH review lanes, from R2-41(h)/trace row 71: the range is
+  the FULL CURRENTLY-INTRODUCED range (canonical positions < twi, resting included), sliced by the claim
+  txn's own progress read — never day-scoped through the visited day]**, `compositionVersion:'rerun-random'`
+  (pure-random, no priority slots), `visitId` set
+  (§6 pairing — **[r70-C4] the claim txn READS the visit doc and refuses `visit_invalid` on a
+  missing/mismatched tuple; the submit txn re-verifies**), **seq from the SAME counter-doc allocator as
+  `_n{seq}` (§3's frozen schema — NO count query
   anywhere [r59-B4])**. A rerun presentation binds `logicalDay` = the VISITED day (display/pairing) — never
   the frontier.
 - The submission names its `presentationId`; the server validates the submitted set against THIS record
@@ -237,6 +245,11 @@ only — direct-Firestore authority is closed by §10's server-truth derivation,
 `classes/{id}.assignments.{listId}`: `reviewPassThreshold, reviewQueueSize, reviewTestSize,
 reviewGateEnabled` (default true; missing/null ⇒ true; precedence global-then-assignment, R2-38/r50-H4).
 Client read allowed (UI posture); client write DENIED.
+**[r70-C3 STRICT AUTHORITY SCHEMA]: a PRESENT-but-malformed authority field (`firstEnabledAt` non-Timestamp ·
+`rehearsalClassIds` non-string-array · `minClientVersion` non-positive-int · `configVersion` < 1 · malformed
+global threshold/sizes) resolves HOLD — coercion never enables stamping, arms a rehearsal, or disarms the
+fence. [r70 RECORDED DECISION]: `minClientVersion: null` = fence DISARMED — the dark deploy ships null; the
+fence arms (monotonic positive integers) when the DF2-51 client ships its `clientContractVersion`.**
 
 ## 8. Retry responses (frozen shapes)
 

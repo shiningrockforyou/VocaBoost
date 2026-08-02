@@ -1,24 +1,24 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 82,
+ "round": 83,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_082.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_083.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": "review-written",
  "execDecision": "PUSHED",
- "execReview": "winclaude_081.md",
- "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_081.md",
+ "execReview": "winclaude_082.md",
+ "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_082.md",
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_082.md",
   "docs/plans/loop/win/reviews/winclaude_081.md",
-  "docs/plans/loop/win/reviews/winclaude_080.md",
   "docs/plans/loop/win/reviews/winclaude_075.md",
   "docs/plans/loop/win/reviews/winclaude_069.md"
  ],
- "note": "ORDER 82-1: commit+push the dark-build engine (13 files, ONE index.js block). Reviewers are reading the working tree \u2014 commit changes no bytes. Review to winclaude_082.md, baton back with execDecision + SHA.",
+ "note": "ORDER 83-1: commit+push THE r70 FOLD (both reviewers' complete condition lists + lap v2 148/148 over the callable boundary). foundation.js carries THREE surgical changes to verify (preimage copy, additive exports, the \u00a79 resetProgress rebuild). Review to winclaude_083.md, baton back with execDecision + SHA.",
  "updatedBy": "claude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 155,
+ "revision": 157,
  "status": "order-ready"
 }

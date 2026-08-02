@@ -81,7 +81,9 @@ substrings (shadow ids may contain original ids by construction).
    flagged in the report.)
 11. **Metrics tagging [v4]:** the dark build's ops_metrics writers stamp
    `shadow: uid.startsWith('zx') && REHEARSAL_REGISTRY.has(uid)` — **the registry = the ACTUAL uid SET in a NEW
-   server-only TOP-LEVEL collection `shadow_registry/{n}` (≤500 ids/doc) [r61 CONSENT FIX: the earlier
+   server-only TOP-LEVEL collection `shadow_registry/{n}` (≤500 ids/doc; **[r70 PIN — both lanes' #5
+   condition]: the uid array field is named `ids` — doc `0` additionally carries `generation`; the stage-3.5
+   driver MUST write exactly this shape or every shadow row silently classifies as production**) [r61 CONSENT FIX: the earlier
    system_config/* placement EXCEEDED David's narrowed-A grant, Codex-confirmed — a new Admin-written,
    rules-denied collection sits inside the already-granted B/E standing execution authority instead; NO
    system_config surface is touched beyond narrowed-A's two fields]. Written by the audit driver (Admin),

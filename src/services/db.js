@@ -2901,6 +2901,13 @@ export const reviewChallenge = async (teacherId, attemptId, wordId, accepted) =>
   const updatedAnswers = [...answers]
   updatedAnswers[answerIndex] = {
     ...answer,
+    // DEEPFIX2 §6b (1) — THE GRADING PREIMAGE [r70 fold]: preserve grading
+    // truth BEFORE adjudication mutates the row (append-only — an existing
+    // preimage is never overwritten). Replay/backfill prefer gradedIsCorrect;
+    // this client path mirrors the server writer (foundation.js) until
+    // DF2-46 retires it.
+    ...(typeof answer.gradedIsCorrect === 'boolean'
+      ? {} : { gradedIsCorrect: answer.isCorrect === true }),
     challengeStatus: accepted ? 'accepted' : 'rejected',
     challengeReviewedBy: teacherId,
     challengeReviewedAt: Timestamp.now(),

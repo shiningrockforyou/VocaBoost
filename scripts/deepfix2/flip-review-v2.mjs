@@ -33,7 +33,7 @@
  * Exit codes: 0 ok · 2 assert/refusal · 3 post-flip verification failure.
  */
 
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
@@ -84,16 +84,43 @@ if (MODE === "activate") {
     if (!lapPath) fail("--execute activation requires --lapReceipt <path> (the final micro-lap, 14_ §4)");
     let lap;
     try { lap = JSON.parse(readFileSync(lapPath, "utf8")); } catch (e) { fail(`lapReceipt unreadable: ${e.message}`); }
-    const passed = lap.pass === true || lap.failed === 0;
-    if (!passed) fail(`lapReceipt does not show a PASS (${lapPath})`);
+    // THE RECEIPT SCHEMA [r70 C6 — bare {pass:true}/{failed:0} refuse]: the
+    // exact artifact b-delta-cycle --receipt emits from a REAL passing chain.
+    if (lap.kind !== "trackB-micro-lap" || lap.version !== 1) {
+      fail("lapReceipt is not a trackB-micro-lap v1 receipt (run b-delta-cycle with --receipt)");
+    }
+    if (!Array.isArray(lap.stages) || lap.stages.length === 0 ||
+        lap.stages[0] !== "B4" || lap.stages[lap.stages.length - 1] !== "B4") {
+      fail("lapReceipt stages must start and end with a B4 verify");
+    }
+    if (!Number.isInteger(lap.checks) || lap.checks < 1) fail("lapReceipt checks must be a positive count");
+    if (lap.failures !== 0) fail("lapReceipt failures must be exactly 0");
+    if (typeof lap.runId !== "string" || lap.runId.length === 0) fail("lapReceipt lacks runId");
+    if (lap.projectId !== key.project_id) {
+      fail(`lapReceipt projectId ${lap.projectId} ≠ this key's ${key.project_id}`);
+    }
+    if (typeof lap.sourceShas !== "object" || lap.sourceShas === null ||
+        Object.keys(lap.sourceShas).length < 5) {
+      fail("lapReceipt lacks bound source hashes");
+    }
+    // Freshness from the CONTENT timestamp [C6 — mtime is touch-spoofable].
     const maxAgeMin = Number(val("--lapMaxAgeMin", "30"));
-    const ageMin = (Date.now() - statSync(lapPath).mtimeMs) / 60000;
-    if (!(ageMin <= maxAgeMin)) fail(`lapReceipt is ${ageMin.toFixed(1)}min old (max ${maxAgeMin}) — re-run the micro-lap`);
-    console.log(`[flip] micro-lap receipt OK (${lapPath}, ${ageMin.toFixed(1)}min old)`);
+    const contentMs = Date.parse(lap.contentTimestamp ?? "");
+    if (!Number.isFinite(contentMs)) fail("lapReceipt lacks a parseable contentTimestamp");
+    const ageMin = (Date.now() - contentMs) / 60000;
+    if (!(ageMin >= 0 && ageMin <= maxAgeMin)) {
+      fail(`lapReceipt content is ${ageMin.toFixed(1)}min old (max ${maxAgeMin}, future-dated refused) — re-run the micro-lap`);
+    }
+    console.log(`[flip] micro-lap receipt OK (${lapPath}: ${lap.stages.join("→")}, ${lap.checks} checks, ${ageMin.toFixed(1)}min old, run ${lap.runId})`);
   }
 } else if (MODE === "reenable") {
   if (cfg.firstEnabledAt == null) fail("firstEnabledAt absent — a first activation must use the activation mode");
   if (cfg.enabled === true) fail("enabled is already true");
+  // Re-enable is a POSTURE decision like activation [r70 L-4]; only --kill
+  // (the emergency stop) stays friction-free.
+  if (EXECUTE && !has("--yes-i-am-david")) {
+    fail("re-enable is DAVID'S call — --execute requires --yes-i-am-david");
+  }
 } else if (MODE === "kill") {
   if (cfg.enabled !== true) fail("enabled is not true — nothing to kill");
 }
@@ -113,6 +140,11 @@ await db.runTransaction(async (txn) => {
   const c = snap.data();
   if (MODE === "activate") {
     // Re-assert INSIDE the txn (the pre-check was a race-prone courtesy).
+    // The no-window invariant is ATOMIC [r70 C6]: the window doc joins THIS
+    // txn's read set, so a window opened between preflight and commit
+    // aborts the flip instead of racing it.
+    const win = await txn.get(db.doc(WINDOW));
+    if (win.exists) throw new Error("shadow_registry/window appeared — windows never span the flip");
     if (c.enabled === true) throw new Error("enabled flipped concurrently");
     if (c.firstEnabledAt != null) throw new Error("marker appeared concurrently");
     if (!Array.isArray(c.rehearsalClassIds) || c.rehearsalClassIds.length !== 0) {

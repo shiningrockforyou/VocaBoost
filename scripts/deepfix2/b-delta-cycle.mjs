@@ -19,11 +19,16 @@
 // runId collision law [r64]: every invocation stamps a nonce into its runIds — B3's runIds stay
 // single-use without manual prefix bookkeeping.
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { createHash } from "node:crypto";
 
-const KNOWN = new Set(["allow", "manifest", "prefix", "maxCycles", "appliedDelta"]);
+// [r70 C6] --receipt=PATH: on FINAL PASS, write THE micro-lap receipt — the
+// ONE schema the flip script validates (kind/stages/checks/failures/project/
+// runId/contentTimestamp/sourceShas). The flip rehearsal consumes a REAL
+// receipt from a REAL chain run; success JSON is never synthesized.
+const KNOWN = new Set(["allow", "manifest", "prefix", "maxCycles", "appliedDelta", "receipt"]);
 const args = { appliedDelta: [] };
 for (const a of process.argv.slice(2)) {
   const m = a.match(/^--([^=]+)=(.*)$/);
@@ -48,11 +53,38 @@ const run = (script, extra) => {
 const NONCE = Date.now().toString(36);
 const applied = [...args.appliedDelta];
 const printChain = () => { if (applied.length) console.error(`APPLIED CHAIN (pass each on re-invocation): ${applied.map(d => `--appliedDelta=${d}`).join(" ")}`); };
+const stagesRun = [];
+const writeReceipt = (b4stdout, cycle) => {
+  if (!args.receipt) return;
+  const sm = b4stdout.match(/"students":\s*(\d+)/);
+  const checks = sm ? parseInt(sm[1], 10) : 0;
+  const key = JSON.parse(readFileSync(new URL("../serviceAccountKey.json", import.meta.url)));
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const sourceShas = {};
+  for (const f of ["b1-expected-labels.mjs", "b1-replay-lib.mjs", "b3-backfill-writer.mjs",
+    "b3-txn-core.mjs", "b4-verify.mjs", "b-baseline.mjs", "b-delta-cycle.mjs"]) {
+    sourceShas[f] = createHash("sha256").update(readFileSync(join(HERE, f))).digest("hex").slice(0, 16);
+  }
+  writeFileSync(args.receipt, JSON.stringify({
+    kind: "trackB-micro-lap",
+    version: 1,
+    stages: stagesRun.slice(),
+    cycles: cycle,
+    checks,
+    failures: 0, // exit-0 PASS by construction
+    projectId: key.project_id,
+    runId: `${args.prefix}-${NONCE}`,
+    contentTimestamp: new Date().toISOString(),
+    sourceShas,
+  }, null, 2));
+  console.error(`=== receipt written: ${args.receipt} ===`);
+};
 for (let cycle = 1; cycle <= MAX; cycle++) {
   console.error(`=== cycle ${cycle}: B4 verify ===`);
+  stagesRun.push("B4");
   const b4 = run("b4-verify.mjs", [`--classAllowlist=${args.allow}`, `--manifest=${args.manifest}`,
     ...applied.map(d => `--appliedDelta=${d}`)]);
-  if (b4.code === 0) { console.error(`=== FINAL PASS (cycle ${cycle}) ===`); process.exit(0); }
+  if (b4.code === 0) { writeReceipt(b4.stdout, cycle); console.error(`=== FINAL PASS (cycle ${cycle}) ===`); process.exit(0); }
   if (b4.code !== 6 && b4.code !== 7) { printChain(); console.error(`=== B4 exit ${b4.code} (not actionable${b4.code === 8 ? " — A8 STRUCTURAL DATA HAZARD, investigate before ANY rerun" : ""}) — stopping ===`); process.exit(b4.code); }
   const mm = b4.stdout.match(/^MATERIALIZED_DELTA_DIR=(.+)$/m);
   const layer = mm ? mm[1].trim().replace(/[\\/]+$/, "") : null;
@@ -60,10 +92,12 @@ for (let cycle = 1; cycle <= MAX; cycle++) {
     console.error(`FATAL: B4 exited ${b4.code} but printed no usable MATERIALIZED_DELTA_DIR`); process.exit(2);
   }
   console.error(`=== cycle ${cycle}: B1 --deltaAuth over ${layer} ===`);
+  stagesRun.push("B1");
   const b1 = run("b1-expected-labels.mjs", ["--full", `--classAllowlist=${args.allow}`,
     `--deltaAuth=${join(layer, "delta-auth.json")}`, `--outDir=${layer}`]);
   if (b1.code !== 0) { console.error(`=== B1 exit ${b1.code} — stopping ===`); process.exit(b1.code || 2); }
   console.error(`=== cycle ${cycle}: B3 EXECUTE --deltaDir=${layer} ===`);
+  stagesRun.push("B3");
   const b3 = run("b3-backfill-writer.mjs", [`--classAllowlist=${args.allow}`, `--manifest=${args.manifest}`,
     `--runId=${args.prefix}-${NONCE}-c${cycle}`, `--deltaDir=${layer}`, "--execute"]);
   if (b3.code === 4) { printChain(); console.error(`=== B3 write failures — stopping (exit 4); recovery: b3 --resume --runId=${args.prefix}-${NONCE}-c${cycle} --deltaDir=${layer} ... then fresh-prefix driver with the chain above + this layer ===`); process.exit(4); }

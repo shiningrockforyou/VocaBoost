@@ -30,27 +30,50 @@ const {FieldValue} = require("firebase-admin/firestore");
 
 /**
  * Mint ONE restudy visit (server-minted visitId) at restudy-day entry.
- * Plain create — no CAS needed (every entry legitimately opens a new visit;
- * overlapping/out-of-order visits are the design's point).
+ * r70 FOLD (M-4/C3/C2): a TRANSACTION like every other §9 writer — the
+ * tombstones + config + progress truth join its read set; it rejects
+ * `reset_in_progress`/epoch drift, re-enforces serving authority, and binds
+ * the day to a REAL PAST day (1 ≤ day ≤ csd — restudy never targets the
+ * frontier or beyond).
  *
- * @returns {Promise<{visitId: string, path: string}>}
+ * @returns {Promise<{status: string, visitId?: string, path?: string}>}
  */
-async function mintRestudyVisit(db, {uid, classId, listId, day, resetEpoch}) {
+async function mintRestudyVisit(db, {uid, classId, listId, day, resetEpoch, clientContractVersion}) {
   const s = (v) => typeof v === "string" && v.length > 0;
   if (!s(uid) || !s(classId) || !s(listId) ||
       !Number.isInteger(day) || day < 1 ||
       !Number.isInteger(resetEpoch) || resetEpoch < 0) {
     throw new TypeError("mintRestudyVisit: uid/classId/listId/day≥1/resetEpoch≥0 required");
   }
-  const ref = db.collection(`users/${uid}/restudy_visits`).doc();
-  await ref.set({
-    uid, classId, listId, day, resetEpoch,
-    createdAt: FieldValue.serverTimestamp(),
-    newHalfAttemptId: null,
-    reviewHalfAttemptId: null,
-    completed: false,
+  const {resolveReviewConfig, assertServableInTxn} = require("./config");
+  const {readProgressTruthInTxn} = require("./progress");
+  const {effectiveResetEpoch, resetLockActive} = require("./composer");
+  const pmRef = db.doc(`users/${uid}/progress_meta/${listId}`);
+  const lpRef = db.doc(`users/${uid}/list_progress/${listId}`);
+  return db.runTransaction(async (txn) => {
+    const config = await resolveReviewConfig(db, {classId, listId, txn});
+    const truth = await readProgressTruthInTxn(txn, db, {uid, classId, listId});
+    const [pm, lp] = await txn.getAll(pmRef, lpRef);
+    const refusal = assertServableInTxn(config, clientContractVersion);
+    if (refusal) return refusal;
+    const pmData = pm.exists ? pm.data() : null;
+    const lpData = lp.exists ? lp.data() : null;
+    if (resetLockActive(pmData, lpData)) return {status: "reset_in_progress"};
+    const currentEpoch = effectiveResetEpoch(pmData, lpData);
+    if (currentEpoch !== resetEpoch) return {status: "reset_epoch_mismatch", currentEpoch};
+    if (day > truth.csd) {
+      return {status: "day_guard_rejected", expectedMax: truth.csd};
+    }
+    const ref = db.collection(`users/${uid}/restudy_visits`).doc();
+    txn.set(ref, {
+      uid, classId, listId, day, resetEpoch,
+      createdAt: FieldValue.serverTimestamp(),
+      newHalfAttemptId: null,
+      reviewHalfAttemptId: null,
+      completed: false,
+    });
+    return {status: "visit_minted", visitId: ref.id, path: ref.path};
   });
-  return {visitId: ref.id, path: ref.path};
 }
 
 /**

@@ -1,0 +1,24 @@
+{
+  "kind": "engine-emulator-lap",
+  "version": 2,
+  "pass": true,
+  "total": 148,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "functions/reviewV2/config.js": "ffefe090603fe6e4",
+    "functions/reviewV2/composer.js": "6e7cd4a23565dc74",
+    "functions/reviewV2/presentations.js": "18e02622acb5c37b",
+    "functions/reviewV2/stamping.js": "6d3a26dae1fe6dda",
+    "functions/reviewV2/completion.js": "cb6ac7fccac180b1",
+    "functions/reviewV2/monitoring.js": "6dd2fb9853f9ce13",
+    "functions/reviewV2/reset.js": "42052d0f157b2634",
+    "functions/reviewV2/visits.js": "99258a82f0abdaac",
+    "functions/reviewV2/callables.js": "60fcfaeb95c71adf",
+    "functions/reviewV2/progress.js": "74592527319d294c",
+    "engine-emulator-lap.mjs": "624f3c1d398928d1",
+    "flip-review-v2.mjs": "f31f94d56253f0ca",
+    "b-delta-cycle.mjs": "03a187551ee8019d"
+  },
+  "at": "2026-08-02T12:34:36.081Z"
+}

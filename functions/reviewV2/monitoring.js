@@ -74,6 +74,8 @@ const SIGNAL_TYPES = Object.freeze([
   "grading_quarantine",
   "csd_anchor_invalid",
   "quarantined_row_count",
+  "cursor_repaired",
+  "list_words_malformed",
 ]);
 
 // Module-level registry cache (per warm instance — the r62 cache law).
@@ -168,11 +170,21 @@ async function recordOpsMetric(db, {type, uid = null, classId = null, listId = n
 }
 
 /** Pure row-partition law shared by every consumer (fixture-facing).
- *  Returns each row tagged with its disposition for the given scope. */
+ *  Returns each row tagged with its disposition for the given scope.
+ *  FAIL-CLOSED [r70 C7/M-3]: a PRESENT-but-malformed window (non-integer
+ *  generation) quarantines EVERYTHING — the protection that keeps stale
+ *  shadow rows out of production classification must never be silently
+ *  disabled by a corrupt artifact. */
 function classifyRows(rows, {scope, window}) {
   const out = {consumed: [], quarantined: [], excluded: []};
+  const windowMalformed = window !== null && window !== undefined &&
+    !Number.isInteger(window.generation);
   for (const row of rows) {
-    if (window && Number.isInteger(window.generation) && isQuarantined(row, window.generation)) {
+    if (windowMalformed) {
+      out.quarantined.push(row);
+      continue;
+    }
+    if (window && isQuarantined(row, window.generation)) {
       out.quarantined.push(row);
       continue;
     }
@@ -217,11 +229,25 @@ async function evaluateThresholds(db, {scope, dryRun, thresholds = {}, windowMs 
     return {status: "invalid_scope", reason: "shadowAudit requires dryRun:true"};
   }
   const window = await getAuditWindow(db);
-  if (scope === "shadowAudit" && (window === null || !Number.isInteger(window.generation))) {
+  if (scope === "shadowAudit" && window === null) {
     return {status: "no_audit_window"};
   }
+  if (scope === "shadowAudit" && !Number.isInteger(window.generation)) {
+    // FAIL CLOSED [r70 C7]: a present-but-corrupt window artifact refuses the
+    // audit outright (production classification quarantines everything via
+    // classifyRows).
+    return {status: "window_malformed"};
+  }
 
-  const cutoff = Timestamp.fromMillis(nowMs - windowMs);
+  // WINDOW-BOUNDED EVALUATION [r70 C7]: when a valid window is open, rows
+  // are consumed only from its startedAt — prior same-generation rows never
+  // feed the current audit.
+  let cutoffMs = nowMs - windowMs;
+  const startedAtMs = window?.startedAt?.toMillis ? window.startedAt.toMillis() : null;
+  if (window && Number.isInteger(window.generation) && startedAtMs !== null) {
+    cutoffMs = Math.max(cutoffMs, startedAtMs);
+  }
+  const cutoff = Timestamp.fromMillis(cutoffMs);
   const snap = await db.collection(OPS_METRICS_COLLECTION)
       .where("createdAt", ">=", cutoff)
       .get();

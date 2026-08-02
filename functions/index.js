@@ -2199,6 +2199,7 @@ exports.overrideAttempt = foundation.overrideAttempt;
 // ============================================================================
 const reviewV2 = require("./reviewV2/callables");
 exports.reviewV2ComposeSession = reviewV2.reviewV2ComposeSession;
+exports.reviewV2ComposeNewTest = reviewV2.reviewV2ComposeNewTest;
 exports.reviewV2ComposeRerun = reviewV2.reviewV2ComposeRerun;
 exports.reviewV2SubmitAttempt = reviewV2.reviewV2SubmitAttempt;
 exports.reviewV2CompleteDay = reviewV2.reviewV2CompleteDay;
