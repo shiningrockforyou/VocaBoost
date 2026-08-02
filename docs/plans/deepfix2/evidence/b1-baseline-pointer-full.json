@@ -1,0 +1,53 @@
+{
+  "probe": "b1-expected-labels",
+  "version": 6,
+  "mode": "full",
+  "watermark": 1785666357220,
+  "students": 947,
+  "cohortTotal": 947,
+  "attempts": {
+    "seen": 35078,
+    "eligible": 34867,
+    "excluded": 211,
+    "identicalDupsDropped": 0,
+    "teacherEditedSeen": 0
+  },
+  "exclusions": {
+    "missingCoreField": 129,
+    "postWatermark": 0,
+    "unknownType": 0,
+    "ungraded": 77,
+    "badScore": 3,
+    "badTotal": 0,
+    "badRows": 0,
+    "dupWordIdInRows": 0,
+    "rowsGtTotal": 1,
+    "scoreRowsDisagree": 1,
+    "dupConflictGroup": 0,
+    "preEpoch": 0,
+    "editedNoOrganicScore": 0
+  },
+  "blankUndercount": 38825,
+  "words": 687679,
+  "clockSeeded": 351540,
+  "adjudicationCensus": {
+    "legacyAcceptedReconstructed": 1597,
+    "acceptedNoTimestamp": 0,
+    "challengeStatusUnknownEnum": 0,
+    "a8MergedWords": 2786
+  },
+  "distributions": {
+    "failed": "15.6%",
+    "everCorrect": "93.3%",
+    "proven": "84.2%",
+    "needsPriority": "10.5%",
+    "fillEligible": "88.4%"
+  },
+  "artifactPath": "audit/deepfix/trackB_baselines/ (LOCAL, gitignored — uid-bearing)",
+  "jointMix": {
+    "proven_correct": 0.8095,
+    "unproven_correct": 0.0851,
+    "unproven_priority": 0.0728,
+    "proven_priority": 0.0326
+  }
+}

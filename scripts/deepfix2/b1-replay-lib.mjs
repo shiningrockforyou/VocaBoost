@@ -174,9 +174,32 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
     wordsOut[k] = { fc: w.fc, lf: w.lf, lc: w.lc, lp: w.lp, rlt: w.rlt }; // FIVE fields — rru retired [r60]
   const challengeDigest = createHash("sha256").update(mut._digestRows.sort().join("\n")).digest("hex");
   delete mut._digestRows;
+  // r70 THE A8 MERGE LAW [R2-50, David 2026-08-02 — the real cohort's (LAP2) duplicate-list restudy]:
+  // two lists sharing a wordId are the SAME WORD studied twice — the label doc carries the student's TOTAL
+  // history, exactly as the live rerun-stamping law (R2-41) writes it going forward: fc SUMS across lists,
+  // timestamps take the LATEST. Merged values are written back into EVERY colliding key (consumers' byWordId
+  // collapse becomes harmless-identical); each merged word is census-counted (a8MergedWords). The A8 abort
+  // below survives as the belt: any POST-merge divergence still fails closed.
+  {
+    const byWid = new Map();
+    for (const k of Object.keys(wordsOut)) { const wid = k.split("|")[1]; if (!byWid.has(wid)) byWid.set(wid, []); byWid.get(wid).push(k); }
+    for (const [wid, ks] of byWid) {
+      if (ks.length < 2) continue;
+      const vals = ks.map(k => wordsOut[k]);
+      if (new Set(vals.map(v => JSON.stringify(v))).size === 1) continue; // identical — nothing to merge
+      const merged = {
+        fc: vals.reduce((a, v) => a + (v.fc || 0), 0),
+        lf: vals.reduce((a, v) => v.lf !== null && (a === null || v.lf > a) ? v.lf : a, null),
+        lc: vals.reduce((a, v) => v.lc !== null && (a === null || v.lc > a) ? v.lc : a, null),
+        lp: vals.reduce((a, v) => v.lp !== null && (a === null || v.lp > a) ? v.lp : a, null),
+        rlt: vals.reduce((a, v) => v.rlt !== null && (a === null || v.rlt > a) ? v.rlt : a, null),
+      };
+      for (const k of ks) wordsOut[k] = { ...merged };
+      note("a8MergedWords");
+    }
+  }
   const digest = createHash("sha256").update(JSON.stringify(wordsOut)).digest("hex");
-  // A8: cross-list wordId collision census (study_states docId = wordId — two lists sharing a wordId for one
-  // student would collapse onto ONE target doc; consumers must abort on divergent expectations)
+  // A8 (the belt): post-merge divergence census — consumers abort on any DIVERGENT expectations
   const byWordId = new Map();
   for (const k of Object.keys(wordsOut)) { const wid = k.split("|")[1]; if (!byWordId.has(wid)) byWordId.set(wid, []); byWordId.get(wid).push(k); }
   const wordIdCollisions = [...byWordId.entries()].filter(([, ks]) => ks.length > 1)

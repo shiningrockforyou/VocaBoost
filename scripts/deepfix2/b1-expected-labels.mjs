@@ -194,7 +194,7 @@ const summary = { probe: "b1-expected-labels", version: 6, mode, cohortFilter: S
   watermark, students: uids.length, cohortTotal: students.size,
   attempts: { seen: agg.attemptsSeen, eligible: agg.attemptsEligible, excluded: agg.attemptsExcluded, identicalDupsDropped: agg.identicalDupsDropped, teacherEditedSeen: agg.teacherEditedSeen },
   exclusions: excl, exclusionsByClass: exclByClass, exclusionsBySignature: exclBySignature, blankUndercount: agg.blankUndercount, syntheticAnchorBlanks: agg.syntheticAnchorBlanks,
-  adjudicationCensus: { legacyAcceptedReconstructed: agg.notes.legacyAcceptedReconstructed || 0, acceptedNoTimestamp: agg.notes.acceptedNoTimestamp || 0, challengeStatusUnknownEnum: agg.notes.challengeStatusUnknownEnum || 0 }, // r67 [R2-49 PUBLISHED]
+  adjudicationCensus: { legacyAcceptedReconstructed: agg.notes.legacyAcceptedReconstructed || 0, acceptedNoTimestamp: agg.notes.acceptedNoTimestamp || 0, challengeStatusUnknownEnum: agg.notes.challengeStatusUnknownEnum || 0, a8MergedWords: agg.notes.a8MergedWords || 0 }, // r67/r70 [R2-49 + R2-50 PUBLISHED]
   legacyResting: { inWindow: agg.legacyRestingInWindow || 0, expired: agg.legacyRestingExpired || 0, countFailed: agg.legacyRestingCountFailed || 0, law: "INFORMATIONAL ONLY — rru is LIVE-ONLY (r59-A9/r60); this sizes the launch transient" },
   mutationRiskStudents: agg.mutationRiskStudents,
   words: agg.words, clockSeeded: agg.clockSeeded,
@@ -218,7 +218,7 @@ if (!process.env.DEEPFIX_AUDIT_ROOT) // r65p: isolated (lap) runs must not write
 writeFileSync(new URL(`../../docs/plans/deepfix2/evidence/b1-baseline-pointer-${mode}.json`, import.meta.url),
   JSON.stringify({ probe: "b1-expected-labels", version: 6, mode, watermark, students: uids.length, cohortTotal: students.size,
     attempts: summary.attempts, exclusions: excl, blankUndercount: agg.blankUndercount, words: agg.words, clockSeeded: agg.clockSeeded,
-    adjudicationCensus: { legacyAcceptedReconstructed: agg.notes.legacyAcceptedReconstructed || 0, acceptedNoTimestamp: agg.notes.acceptedNoTimestamp || 0, challengeStatusUnknownEnum: agg.notes.challengeStatusUnknownEnum || 0 },
+    adjudicationCensus: { legacyAcceptedReconstructed: agg.notes.legacyAcceptedReconstructed || 0, acceptedNoTimestamp: agg.notes.acceptedNoTimestamp || 0, challengeStatusUnknownEnum: agg.notes.challengeStatusUnknownEnum || 0, a8MergedWords: agg.notes.a8MergedWords || 0 },
     distributions: summary.distributions, artifactPath: "audit/deepfix/trackB_baselines/ (LOCAL, gitignored — uid-bearing)",
     jointMix: summary.jointMix }, null, 2));
 console.log(JSON.stringify({ mode, students: uids.length, attempts: summary.attempts, exclusions: excl, adjudicationCensus: summary.adjudicationCensus,

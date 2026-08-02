@@ -439,6 +439,21 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   ok(assessLease({ pid: -1, at: now - 3 * 3600e3 }, () => "alive", now).stale === true, "lease: aged non-positive pid = no-identity stale");
 }
 
+// ===== STAGE 9i [r70 — THE A8 MERGE LAW, R2-50]: duplicate-list restudy merges per the live rerun law =====
+{
+  state.attempts.push(
+    { id: "h1", data: { studentId: "uH", classId: "cls1", listId: "LA", sessionType: "review", submittedAt: TS(90 * DAY), graded: true, score: 0, totalQuestions: 1, dayNumber: 1, answers: [{ wordId: "wDUP", isCorrect: false }] } },
+    { id: "h2", data: { studentId: "uH", classId: "cls1", listId: "LB", sessionType: "review", submittedAt: TS(95 * DAY), graded: true, score: 100, totalQuestions: 1, dayNumber: 1, answers: [{ wordId: "wDUP", isCorrect: true }] } });
+  const cen = {}; const cc = { note: nm => { cen[nm] = (cen[nm] || 0) + 1; }, bump: () => {} };
+  const h = await computeStudentLabels(fakeDb, "uH", 120 * DAY, cc);
+  const a = h.wordsOut["LA|wDUP"], b = h.wordsOut["LB|wDUP"];
+  ok(JSON.stringify(a) === JSON.stringify(b), "A8 merge: both list keys carry the IDENTICAL merged value");
+  ok(a.fc === 1 && a.lf === 90 * DAY, "A8 merge: fc SUMS across lists (the lap-1 fail is kept)");
+  ok(a.lc === 95 * DAY && a.lp === 95 * DAY && a.rlt === 95 * DAY, "A8 merge: timestamps take the LATEST (the lap-2 pass)");
+  ok(h.wordIdCollisions.length === 0, "A8 merge: the divergence census is EMPTY post-merge (no abort)");
+  ok((cen.a8MergedWords || 0) === 1, "A8 merge: the census counts EXACTLY the merged word");
+}
+
 // ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====
 {
   const FLIP = 200 * DAY;

@@ -528,6 +528,22 @@ await resetCase();
   ok(r.code === 5, `sibling-proof corruption BLOCKS (as-of passing holds) (got ${r.code})`, r);
 }
 
+// ================= r70: THE A8 MERGE LAW (R2-50 — duplicate-list restudy through the full chain) =========
+console.error("== r70: A8 merge law ==");
+await resetCase();
+{
+  await attAbsT("dupA", "emA", BASE + 10 * DAY, "review", [["w1", false]], 0); // the same w1 exists in L1 via seed
+  await db.collection("attempts").doc("dupL2").set({
+    studentId: "emA", classId: "cls-em-1", listId: "L2", sessionType: "review", submittedAt: TS(BASE + 12 * DAY),
+    graded: true, score: 100, totalQuestions: 1, dayNumber: 1, answers: [{ wordId: "w1", isCorrect: true }] }); // L2 shares w1 — the LAP2 shape
+  const r1 = b1full();
+  ok(r1.code === 0 && r1.out.includes('"a8MergedWords"'), `B1 completes WITH the merge census (no A8 abort) (got ${r1.code})`, r1);
+  const r3 = b3exec("a8m0"); ok(r3.code === 0, `B3 writes the merged labels (got ${r3.code})`, r3);
+  const doc = (await db.collection("users").doc("emA").collection("study_states").doc("w1").get()).data();
+  ok(doc.reviewFailCount === 1 && doc.reviewLastCorrectAt.toMillis() === BASE + 12 * DAY, "disk carries the TOTAL history (fc sums: 1+0, latest ts wins)");
+  const r4 = b4(); ok(r4.code === 0, `B4 PASS over the merged expectations (got ${r4.code})`, r4);
+}
+
 // ================= VALID REPAIR [r65p — panel lap-lens: the mode-law resolver swap must EXECUTE] =========
 console.error("== VALID repair: chain-resolved, unrelated extra deleted, U byte-equal ==");
 await resetCase();

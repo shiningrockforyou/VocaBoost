@@ -123,7 +123,7 @@ const SIX = [...Object.values(FIELD_MAP), "reviewRestingUntil"];
 const stats = { students: 0, zeroDiff: 0, withDiffs: 0, totalDiffs: 0, extraLabelDocs: 0, recomputedTargets: 0,
   deltaNewAttempts: 0, deltaAdjudication: 0, deltaEpoch: 0, corruptTyped: 0,
   liveAttempts: 0, liveExemptFields: 0, liveNewWordDocs: 0,
-  adjudicationCensus: { legacyAcceptedReconstructed: 0, acceptedNoTimestamp: 0, challengeStatusUnknownEnum: 0 }, replayExclusions: {} }; // r67/r68
+  adjudicationCensus: { legacyAcceptedReconstructed: 0, acceptedNoTimestamp: 0, challengeStatusUnknownEnum: 0, a8MergedWords: 0 }, replayExclusions: {} }; // r67/r68/r70
 if (LEDGER_ORPHANS) stats.flipOrphanedRuns = LEDGER_ORPHANS;
 if (LEDGER_CUTOVERS) stats.cutoverRuns = LEDGER_CUTOVERS;
 const censusCounters = { note: n => { if (n in stats.adjudicationCensus) stats.adjudicationCensus[n]++; }, bump: r => { stats.replayExclusions[r] = (stats.replayExclusions[r] || 0) + 1; } }; // r68 [asof NEW-1]: gate-side exclusion growth is VISIBLE
