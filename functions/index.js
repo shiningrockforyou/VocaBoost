@@ -2189,6 +2189,22 @@ exports.advanceForChallenge = foundation.advanceForChallenge;
 exports.reviewChallenge = foundation.reviewChallenge;
 exports.overrideAttempt = foundation.overrideAttempt;
 
+// ============================================================================
+// DEEPFIX2 · THE REVIEW-V2 ENGINE (DF2-10/14 dark build — the ONE wiring
+// touch). ALL DORMANT BY CONSTRUCTION: `system_config/review_v2` deploys
+// `{enabled:false, firstEnabledAt:null, rehearsalClassIds:[]}` and every
+// callable refuses `failed-precondition review_v2_dark` until the R2-48 flip
+// (pre-flip, only `rehearsalClassIds` members are served — the 25WT
+// rehearsal). No client routes to any of these until DF2-51.
+// ============================================================================
+const reviewV2 = require("./reviewV2/callables");
+exports.reviewV2ComposeSession = reviewV2.reviewV2ComposeSession;
+exports.reviewV2ComposeRerun = reviewV2.reviewV2ComposeRerun;
+exports.reviewV2SubmitAttempt = reviewV2.reviewV2SubmitAttempt;
+exports.reviewV2CompleteDay = reviewV2.reviewV2CompleteDay;
+exports.reviewV2MintVisit = reviewV2.reviewV2MintVisit;
+exports.reviewV2EvaluateThresholds = reviewV2.reviewV2EvaluateThresholds;
+
 // Deploy-provenance probe. After any deploy, call this and compare `sha` to
 // `git rev-parse HEAD` in the repo you deployed from — they must match. Also reports the
 // LIVE runtime flags so "is enforcement on right now?" is one call, not behavioural detective

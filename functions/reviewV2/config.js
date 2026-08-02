@@ -35,10 +35,14 @@ const DEFAULTS = Object.freeze({
  * Resolve the effective review_v2 posture for one request.
  *
  * @param {FirebaseFirestore.Firestore} db
- * @param {{classId: string, listId: string, txn?: FirebaseFirestore.Transaction}} ctx
+ * @param {{classId: string, listId: string, uid?: string,
+ *   txn?: FirebaseFirestore.Transaction}} ctx
  *   When `txn` is supplied the config doc joins the transaction's READ SET —
  *   this is the ACTIVATION BARRIER pattern (14_ §4): the flip txn and any
  *   in-flight transactional consumer serialize on Firestore itself.
+ *   When `uid` is supplied the result adds `{classExists, assignmentExists,
+ *   enrolled}` from the same class read (no extra I/O) — callable-layer
+ *   authorization facts, never posture inputs.
  * @returns {Promise<{
  *   readStatus: "ok"|"hold",
  *   enabled: boolean,
@@ -46,6 +50,8 @@ const DEFAULTS = Object.freeze({
  *   rehearsalClass: boolean,
  *   stampingEligible: boolean,
  *   gateEffectiveEnabled: boolean,
+ *   assignmentGateEnabled: boolean,
+ *   reviewTestType: "mcq"|"typed",
  *   threshold: number, queueSize: number, testSize: number,
  *   configVersion: number, minClientVersion: number|null,
  * }>}
@@ -55,7 +61,7 @@ const DEFAULTS = Object.freeze({
  * law). Never treat "hold" as gate-OFF: OFF is a POSTURE, hold is an OUTAGE.
  */
 async function resolveReviewConfig(db, ctx) {
-  const { classId, listId, txn } = ctx;
+  const { classId, listId, uid, txn } = ctx;
   let cfgSnap;
   let classSnap;
   try {
@@ -67,6 +73,11 @@ async function resolveReviewConfig(db, ctx) {
       [cfgSnap, classSnap] = await Promise.all([cfgRef.get(), classRef.get()]);
     }
   } catch (err) {
+    // Inside a transaction the error MUST propagate: runTransaction's retry
+    // loop handles ABORTED/contention; swallowing it into "hold" would poison
+    // the txn and misreport a transient as an outage. Hold is for the
+    // non-transactional per-request snapshot path only.
+    if (txn) throw err;
     return holdResult(`config read failed: ${err.message}`);
   }
   if (!cfgSnap.exists) return holdResult("config doc absent (cold start)");
@@ -95,19 +106,36 @@ async function resolveReviewConfig(db, ctx) {
   }
   const gateEffectiveEnabled = globallyOn && assignmentGate;
 
+  // Authorization facts (uid-supplied calls only) — same read, zero extra I/O.
+  const authFacts = uid === undefined ? {} : {
+    classExists: classSnap.exists,
+    assignmentExists: asg !== null,
+    enrolled: classSnap.exists &&
+      Array.isArray(classSnap.data().studentIds) &&
+      classSnap.data().studentIds.includes(uid),
+  };
+
   const num = (v, dflt, lo, hi) =>
     Number.isInteger(v) && v >= lo && v <= hi ? v : dflt;
   const threshold = num(asg?.reviewPassThreshold, num(cfg.threshold, DEFAULTS.threshold, 1, 100), 1, 100);
   const queueSize = num(asg?.reviewQueueSize, num(cfg.queueSize, DEFAULTS.queueSize, 1, 500), 1, 500);
   const testSize = num(asg?.reviewTestSize, num(cfg.testSize, DEFAULTS.testSize, 1, 500), 1, 500);
+  // Modality law (10_ §2.2): `assignment.reviewTestType ∥ 'mcq'` — the closed
+  // enum; any other value falls to the default (never a third modality).
+  const reviewTestType = asg?.reviewTestType === "typed" ? "typed" : "mcq";
 
   return {
+    ...authFacts,
     readStatus: "ok",
     enabled: cfg.enabled === true,
     firstEnabledAt,
     rehearsalClass,
     stampingEligible,
     gateEffectiveEnabled,
+    // The assignment-level flag alone (default true) — queue snapshots record
+    // it (H6 §2) separately from the global-and-assignment effective gate.
+    assignmentGateEnabled: assignmentGate,
+    reviewTestType,
     threshold,
     queueSize,
     testSize,
@@ -125,6 +153,8 @@ function holdResult(reason) {
     rehearsalClass: false,
     stampingEligible: false,
     gateEffectiveEnabled: false,
+    assignmentGateEnabled: true,
+    reviewTestType: "mcq",
     threshold: DEFAULTS.threshold,
     queueSize: DEFAULTS.queueSize,
     testSize: DEFAULTS.testSize,
