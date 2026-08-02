@@ -199,10 +199,25 @@ export function parseLedgerStrict(text, originalManifestSha256) {
     const done = applieds.get(`${runId}#${att}`);
     if (!done) { problems.push(`${runId} attempt ${att}: intent without completion (crash mid-run? resume it)`); continue; }
     const o = done.outcome;
+    // r67 [Codex r66 A3]: a CUTOVER-ABORTED completion is a LEGITIMATE TERMINAL state — the flip landed
+    // mid-run BY DESIGN of the barrier; unwritten students settle at the post-flip gate (tail/diffs law)
+    if (o.cutoverAborted) continue;
     if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
   }
-  for (const [, e] of applieds) if (e.deltaManifestSha256) appliedLayerShas.add(e.deltaManifestSha256);
+  for (const [, e] of applieds) if (e.deltaManifestSha256 && !e.outcome?.cutoverAborted) appliedLayerShas.add(e.deltaManifestSha256); // an aborted layer was NOT applied
   return { problems, appliedLayerShas, intents, applieds, latestAttempt };
+}
+
+// r67 [Codex r66 A4]: THE LEASE-STATE LAW, pure — EPERM (exists-but-unsignalable) is ALIVE-equivalent and
+// NEVER reaped at any age; only a provably-dead holder (ESRCH), or an aged lease with NO usable identity
+// (missing/malformed pid), is stale. probe(pid) returns "alive" | "dead" | "eperm".
+export function assessLease(holder, probe, nowMs, agedMs = 2 * 3600e3) {
+  if (!holder || typeof holder !== "object") return { stale: true, reason: "unparseable" };
+  const aged = nowMs - (holder.at || 0) > agedMs;
+  if (!Number.isInteger(holder.pid)) return { stale: aged, reason: aged ? "aged-no-identity" : "fresh-no-identity" };
+  const p = probe(holder.pid);
+  if (p === "dead") return { stale: true, reason: "dead" };
+  return { stale: false, reason: p === "eperm" ? "eperm-owned" : "alive" }; // EPERM owned FOREVER [r67]
 }
 
 // r63 A6: THE CHAIN ORDER LAW — applied layers must be STRICTLY INCREASING in watermark (equal watermarks

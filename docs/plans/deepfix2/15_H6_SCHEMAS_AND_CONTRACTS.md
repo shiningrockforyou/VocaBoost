@@ -172,8 +172,9 @@ garbage at worst — physically TTL-cleaned via `createdAt` (async), never load-
 
 The challenge-accept txn re-reads `reviewRestingUntil` INSIDE the txn: resting ⇒ grade/score/answers fix ONLY
 (no status write; the R2-10 label stamp, once active, is likewise skipped on resting words); not resting ⇒ the
-full accept path. **THE ADJUDICATION LAW [r65 — Codex r64 A2's reproduced false-green]: adjudication NEVER
-rewrites the row's `isCorrect` in place — grading history is immutable; acceptance sets
+full accept path. **THE ADJUDICATION LAW [r65 — Codex r64 A2's reproduced false-green]: grading history is immutable IN THE PREIMAGE [r67 — reconciled with the (1) duty below: the writer copies
+`gradedIsCorrect` BEFORE flipping `isCorrect`, so the flip is display truth and the preimage is replay
+truth]; acceptance sets
 `challengeStatus:"accepted"` (+`challengeReviewedAt`) and consumers derive effective-correct =
 `isCorrect ∨ accepted`. Label semantics: `reviewFailCount`/`reviewLastFailedAt` replay from GRADING-TIME
 truth (the historical fail stands — fails are history, R2-41 spirit); `reviewLastCorrectAt`/

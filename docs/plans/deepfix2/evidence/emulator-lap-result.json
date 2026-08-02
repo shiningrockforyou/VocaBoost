@@ -1,20 +1,20 @@
 {
   "probe": "b-emulator-lap",
   "version": 2,
-  "at": "2026-08-02T05:06:10.207Z",
-  "checks": 66,
+  "at": "2026-08-02T06:19:13.280Z",
+  "checks": 71,
   "failures": 0,
-  "gitHead": "e9a0f420d89554f3638dd7e9f8b397c6eb58f18f",
+  "gitHead": "ce7b548268ca3402bb4b028a9b4bf7599f0645e6",
   "node": "v24.15.0",
   "scriptSha16": {
-    "b-baseline.mjs": "416abae6610c60ad",
-    "b1-replay-lib.mjs": "8ea31d7c892a5c47",
-    "b1-expected-labels.mjs": "0141d0aac5c72e68",
-    "b3-backfill-writer.mjs": "4dffb7d7b906f5e0",
+    "b-baseline.mjs": "362394ee67ce589f",
+    "b1-replay-lib.mjs": "d87ce98f9661134e",
+    "b1-expected-labels.mjs": "94ea4138006af9f0",
+    "b3-backfill-writer.mjs": "5e626f4b758bdcce",
     "b3-txn-core.mjs": "3a0fd64df62bc436",
-    "b4-verify.mjs": "9fc77a22ed774c59",
+    "b4-verify.mjs": "aafbd84e5ad91ea4",
     "b-delta-cycle.mjs": "4b8a8b97759fe8e9",
-    "b-emulator-lap.mjs": "bd41b58903c243a8"
+    "b-emulator-lap.mjs": "02f8038db89c719a"
   },
   "isolatedRoot": "audit/deepfix/emulator-lap-root (DEEPFIX_AUDIT_ROOT; shared chain untouched)"
 }

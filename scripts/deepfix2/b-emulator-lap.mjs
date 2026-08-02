@@ -50,7 +50,9 @@ try {
     let stale = true;
     try { const L = JSON.parse(readFileSync(lapLock, "utf-8")); try { process.kill(L.pid, 0); stale = false; } catch (ke) { stale = ke.code === "ESRCH"; } } catch {}
     if (!stale) { console.error("FATAL: another emulator lap is RUNNING (concurrent laps contaminate each other — proven r64 panel)"); process.exit(2); }
-    rmSync(lapLock, { force: true });
+    // r67: claim-by-rename (one winner) — the rm+wx TOCTOU dies here too
+    const reaped = lapLock + `.reaped-${process.pid}`;
+    try { const { renameSync: rn } = await import("node:fs"); rn(lapLock, reaped); } catch { console.error("FATAL: lap-lock takeover raced"); process.exit(2); }
     const fd = o(lapLock, "wx"); w(fd, JSON.stringify({ pid: process.pid, at: Date.now() })); c(fd);
   }
 } catch (e) { console.error(`FATAL: lap lock: ${e.message}`); process.exit(2); }
@@ -365,7 +367,7 @@ await resetCase();
   const leasePath = join(leaseDir, `exec-${shaPrefix}.lease`);
   writeFileSync(leasePath, JSON.stringify({ pid: process.pid, token: "live-holder", at: Date.now() - 3 * 3600e3 }));
   const rSteal = b3exec("r66steal");
-  ok(rSteal.code === 2 && rSteal.out.includes("liveness wins"), `LIVE >2h lease REFUSED (got ${rSteal.code})`, rSteal);
+  ok(rSteal.code === 2 && rSteal.out.includes("wins at ANY age"), `LIVE >2h lease REFUSED (got ${rSteal.code})`, rSteal);
   rmSync(leasePath, { force: true });
   const r0 = b3exec("r66base"); ok(r0.code === 0, `baseline B3 after lease cleanup (got ${r0.code})`, r0);
   // plain guard: after a delta lap, a PLAIN execute must FATAL
@@ -383,13 +385,39 @@ await resetCase();
     const r1c = run("b1-expected-labels.mjs", ["--full", `--classAllowlist=${allowPath}`, `--deltaAuth=${join(layer, "delta-auth.json")}`, `--outDir=${layer}`]);
     ok(r1c.code === 0, `cutover setup: delta B1 (got ${r1c.code})`, r1c);
     const rCut = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=r66cut", `--deltaDir=${layer}`, "--execute"], { B3_TEST_SET_MARKER: "pre-phase2" });
-    ok(rCut.code === 2 && rCut.out.includes("barrier"), `CUTOVER: the flip mid-run aborts via the chunk-txn barrier (got ${rCut.code})`, rCut);
+    ok(rCut.code === 6 && rCut.out.includes("CUTOVER"), `CUTOVER: mid-run flip → terminal cutover-aborted completion, exit 6 (got ${rCut.code})`, rCut);
+    // r67 [Codex A3]: the sequence must run THROUGH the final gate — the reducer settles the aborted
+    // intent and the tail law absorbs the unapplied layer's students (nonfatal, publishable verdict)
+    const feMs = (await db.doc("system_config/review_v2").get()).data().firstEnabledAt.toMillis();
+    const rFinal = b4(chain.map(c => `--appliedDelta=${c}`).concat([`--postFlip=${feMs}`]));
+    ok(rFinal.code === 0 || rFinal.code === 5, `post-cutover FINAL gate runs to a verdict, never ledger-FATAL (got ${rFinal.code})`, rFinal);
+    ok(rFinal.code === 0, `post-cutover gate PASSES — the aborted layer's students settle as published tail (got ${rFinal.code})`, rFinal);
     await db.doc("system_config/review_v2").delete(); // clear the injected marker for the torn case
   }
   // torn completion: a half-written ledger line must FATAL B4
   appendFileSync(ledgerPath, '{"probe":"b3-applied","version":1,"runId":"torn","attempt":0,"orig');
   const rTorn = b4(chain.map(c => `--appliedDelta=${c}`));
   ok(rTorn.code === 2 && rTorn.out.includes("malformed"), `TORN completion record FATALS (got ${rTorn.code})`, rTorn);
+}
+
+// ================= r67: THE SIBLING-PROOF NEGATIVE (Codex r66 A2's exact reproduction) =================
+console.error("== r67: sibling-proof as-of-boundary negative ==");
+await resetCase();
+{
+  const rb1 = b1full(); const rb3 = b3exec("sib0");
+  ok(rb1.code === 0 && rb3.code === 0, `sibling setup B1/B3 (got ${rb1.code}/${rb3.code})`, rb3);
+  ok(rb1.out.includes("adjudicationCensus"), "R2-49 census PUBLISHED in B1's output");
+  const FLIP3 = Date.now() - 30e3;
+  await db.doc("system_config/review_v2").set({ enabled: true, firstEnabledAt: TS(FLIP3) });
+  // post-flip accept of a2/w2 + the writer's score recompute to 100
+  const a2ref = db.collection("attempts").doc("a2");
+  const a2cur = (await a2ref.get()).data();
+  const rows = a2cur.answers.map(r => r.wordId === "w2" ? { ...r, isCorrect: true, challengeStatus: "accepted", challengeReviewedAt: TS(Date.now()) } : r);
+  await a2ref.update({ answers: rows, score: 100 });
+  // Codex's corruption: w1.lp day1 → day2 (only valid if the day-2 attempt were passing as-of — it is NOT)
+  await db.collection("users").doc("emA").collection("study_states").doc("w1").update({ reviewLastProvenAt: TS(BASE + 2 * DAY) });
+  const r = b4([`--postFlip=${FLIP3}`]);
+  ok(r.code === 5, `sibling-proof corruption BLOCKS (as-of passing holds) (got ${r.code})`, r);
 }
 
 // ================= VALID REPAIR [r65p — panel lap-lens: the mode-law resolver swap must EXECUTE] =========
@@ -421,7 +449,10 @@ console.error(`\n== EMULATOR LAP: ${checks} checks, ${failures} failures ==`);
 const { execSync } = await import("node:child_process");
 const sha = f => createHash("sha256").update(readFileSync(join(repoRoot, "scripts", "deepfix2", f))).digest("hex").slice(0, 16);
 let gitHead = "unknown"; try { gitHead = execSync("git rev-parse HEAD", { cwd: repoRoot, encoding: "utf-8" }).trim(); } catch {}
-writeFileSync(join(repoRoot, "docs", "plans", "deepfix2", "evidence", "emulator-lap-result.json"),
+const evPath = failures
+  ? join(repoRoot, "audit", "deepfix", "emulator-lap-root", "RED-lap-result.json") // r67: red runs never overwrite the tracked evidence
+  : join(repoRoot, "docs", "plans", "deepfix2", "evidence", "emulator-lap-result.json");
+writeFileSync(evPath,
   JSON.stringify({ probe: "b-emulator-lap", version: 2, at: new Date().toISOString(), checks, failures,
     gitHead, node: process.version,
     scriptSha16: Object.fromEntries(["b-baseline.mjs", "b1-replay-lib.mjs", "b1-expected-labels.mjs", "b3-backfill-writer.mjs", "b3-txn-core.mjs", "b4-verify.mjs", "b-delta-cycle.mjs", "b-emulator-lap.mjs"].map(f => [f, sha(f)])),

@@ -19,7 +19,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaseline, loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder } from "./b-baseline.mjs";
+import { loadVerifiedBaseline, loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder, assessLease } from "./b-baseline.mjs";
 import { applyChunkInTxn } from "./b3-txn-core.mjs";
 
 let checks = 0, failures = 0;
@@ -355,14 +355,44 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   ok(w8.fc === 1 && w8.lc === null, "reality law: a REJECTED challenge changes NOTHING");
   const eAt100 = await compute("uE", 100 * DAY);
   ok(eAt100.wordsOut["L1|w7"].lc === null, "reality law: AS-OF-BOUNDARY — an accept reviewed at 105d is INVISIBLE to a 100d replay");
-  const ePre = await compute("uE", 120 * DAY);
-  ok((ePre.mutationRisk ? 1 : 1) === 1 && true, "census present");
+  { // r67 [Codex A1 + panel NEW-3 — the tautology dies; the census is REAL and counted]
+    const cen = {}; const cc = { note: nm => { cen[nm] = (cen[nm] || 0) + 1; }, bump: () => {} };
+    await computeStudentLabels(fakeDb, "uE", 120 * DAY, cc);
+    ok((cen.legacyAcceptedReconstructed || 0) >= 1, "R2-49 census: legacyAcceptedReconstructed COUNTS the legacy row");
+  }
   state.attempts.push({ id: "e2", data: { studentId: "uE", classId: "cls1", listId: "L1", sessionType: "review",
     submittedAt: TS(97 * DAY), graded: true, score: 100, totalQuestions: 1, dayNumber: 2,
     answers: [{ wordId: "w7", isCorrect: false, gradedIsCorrect: false, challengeStatus: "accepted", challengeReviewedAt: TS(106 * DAY) }] } });
   const e2 = await compute("uE", 120 * DAY);
   ok(e2.wordsOut["L1|w7"].fc === 2, "reality law: the PREIMAGE field (gradedIsCorrect) is grading truth when present — fail kept");
   ok(e2.wordsOut["L1|w7"].lp === 106 * DAY, "reality law: a PASSING accepted test mints proof at review time");
+}
+
+// ===== STAGE 9d [r67 — Codex r66 A2's sibling-proof reproduction]: a POST-boundary accept must not
+// retroactively make the attempt passing at the boundary =====
+{
+  state.attempts.push(
+    { id: "f1", data: { studentId: "uF", classId: "cls1", listId: "L1", sessionType: "new", submittedAt: TS(90 * DAY), graded: true, score: 100, totalQuestions: 1, dayNumber: 1, answers: [{ wordId: "w1", isCorrect: true }] } },
+    { id: "f2", data: { studentId: "uF", classId: "cls1", listId: "L1", sessionType: "review", submittedAt: TS(91 * DAY), graded: true, score: 100, totalQuestions: 2, dayNumber: 2, // stored ALREADY recomputed by the post-boundary accept
+      answers: [
+        { wordId: "w1", isCorrect: true },
+        { wordId: "w2", isCorrect: true, challengeStatus: "accepted", challengeReviewedAt: TS(150 * DAY) }, // accepted AFTER every boundary below
+      ] } });
+  const f = await compute("uF", 100 * DAY); // boundary BEFORE the review instant
+  ok(f.wordsOut["L1|w1"].lp === 90 * DAY, "as-of passing: w1's proof stays at day-1 — the day-2 attempt is NOT passing as-of (reconstructed 50 < 92)");
+  ok(f.wordsOut["L1|w2"].fc === 1, "as-of: the accepted row's historical fail stands");
+  const f2 = await compute("uF", 160 * DAY); // boundary AFTER the review instant
+  ok(f2.wordsOut["L1|w1"].lp === 91 * DAY, "as-of passing: past the review instant the acceptance IS effective — day-2 becomes proof");
+}
+// ===== STAGE 9e [r67 — Codex r66 A4]: the pure lease-state law =====
+{
+  const now = 10 * 3600e3;
+  ok(assessLease({ pid: 1, at: now - 3 * 3600e3 }, () => "alive", now).stale === false, "lease: ALIVE holder owned at ANY age");
+  ok(assessLease({ pid: 1, at: now - 3 * 3600e3 }, () => "eperm", now).stale === false, "lease: EPERM holder owned FOREVER");
+  ok(assessLease({ pid: 1, at: now - 60e3 }, () => "dead", now).stale === true, "lease: DEAD holder stale immediately");
+  ok(assessLease({ at: now - 3 * 3600e3 }, () => "alive", now).stale === true, "lease: aged NO-IDENTITY lease stale");
+  ok(assessLease({ at: now - 60e3 }, () => "alive", now).stale === false, "lease: fresh no-identity lease protected");
+  ok(assessLease(null, () => "alive", now).stale === true, "lease: unparseable stale");
 }
 
 // ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====

@@ -33,12 +33,12 @@
 //   [--deltaDir=DIR] [--repairExtras=B4_REPORT] [--resume]
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream, openSync, writeSync, fsyncSync, closeSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream, openSync, writeSync, fsyncSync, closeSync, rmSync, linkSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder, auditRoot, parseLedgerStrict } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder, auditRoot, parseLedgerStrict, assessLease } from "./b-baseline.mjs";
 import { applyChunkInTxn, CHUNK_SIZE } from "./b3-txn-core.mjs";
 
 const KNOWN = new Set(["classAllowlist", "manifest", "runId", "execute", "allowSampleExecute", "deltaDir", "repairExtras", "appliedDelta", "resume"]);
@@ -248,7 +248,12 @@ let execLeaseUrl = null; let LEASE_TOKEN = null;
 if (EXECUTE) {
   execLeaseUrl = new URL(`exec-${original.manifestSha256.slice(0, 16)}.lease`, outDir);
   LEASE_TOKEN = `${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  const takeLease = () => { const fd = openSync(execLeaseUrl, "wx"); writeSync(fd, JSON.stringify({ pid: process.pid, token: LEASE_TOKEN, runId: RUNID, at: Date.now() })); fsyncSync(fd); closeSync(fd); };
+  const takeLease = () => { // r67: ATOMIC CONTENTFUL creation (tmp+link) — no wx-then-write gap for a
+    // concurrent reader to parse an empty lease as unparseable-stale
+    const tmp = new URL(`${execLeaseUrl.pathname.split("/").pop()}.tmp-${process.pid}`, outDir);
+    const fd = openSync(tmp, "w"); writeSync(fd, JSON.stringify({ pid: process.pid, token: LEASE_TOKEN, runId: RUNID, at: Date.now() })); fsyncSync(fd); closeSync(fd);
+    try { linkSync(tmp, execLeaseUrl); } finally { rmSync(tmp, { force: true }); }
+  };
   try { takeLease(); }
   catch (e) {
     if (e.code !== "EEXIST") { console.error(`FATAL: execution lease: ${e.message}`); process.exit(2); }
@@ -256,16 +261,14 @@ if (EXECUTE) {
     // LIVENESS WINS: an alive (or unverifiable-EPERM) holder is NEVER stolen, at any age.
     // staleness = pid provably dead (ESRCH) ∨ (age>2h ∧ pid unverifiable/absent).
     // takeover = CLAIM-BY-RENAME (exactly one renamer wins; the loser's ENOENT is the race signal).
-    let holder = null; let dead = false; let unverifiable = false;
-    try { holder = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); } catch { unverifiable = true; }
-    if (holder?.pid) { try { process.kill(holder.pid, 0); } catch (ke) { if (ke.code === "ESRCH") dead = true; else unverifiable = true; } }
-    else unverifiable = true;
-    const aged = holder ? Date.now() - (holder.at || 0) > 2 * 3600e3 : true;
-    const stale = dead || (aged && unverifiable);
-    if (!stale) { console.error("FATAL [r65 B2/r66]: another B3 EXECUTE holds the execution lease for this original (holder alive or unverifiable — liveness wins at ANY age)"); process.exit(2); }
+    let holder = null;
+    try { holder = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); } catch {}
+    const probe = pid => { try { process.kill(pid, 0); return "alive"; } catch (ke) { return ke.code === "ESRCH" ? "dead" : "eperm"; } };
+    const assessment = assessLease(holder, probe, Date.now()); // r67: the pure law — EPERM owned FOREVER
+    if (!assessment.stale) { console.error(`FATAL [r65 B2/r67]: another B3 EXECUTE holds the execution lease (${assessment.reason}) — liveness/EPERM wins at ANY age`); process.exit(2); }
     const reaped = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaped-${process.pid}-${Date.now().toString(36)}`, outDir);
     try { renameSync(execLeaseUrl, reaped); } catch { console.error("FATAL: lease takeover raced (another claimant renamed first)"); process.exit(2); }
-    console.error("NOTE [r66]: stale execution lease (dead/unverifiable holder) — claimed by rename");
+    console.error(`NOTE [r67]: stale execution lease (${assessment.reason}) — claimed by rename`);
     try { takeLease(); } catch { console.error("FATAL: lease takeover raced at re-create"); process.exit(2); }
   }
   if (repairRealityScan) repairRealityScan(); // r65 B2: re-check under the lease — no scan-to-lease gap
@@ -273,12 +276,21 @@ if (EXECUTE) {
   // must find ZERO EXECUTE'd layers for this original in the ledger — plain mode resolves against M0 only
   // and would revert every chain-correct label (loud only at the next B4; the harness called it illegal
   // while the CLI accepted it).
-  if (!args.deltaDir && !extrasRepair && existsSync(LEDGER_URL)) {
-    for (const ln of readFileSync(LEDGER_URL, "utf-8").split("\n")) {
-      if (!ln.trim()) continue; let e; try { e = JSON.parse(ln); } catch { console.error("FATAL [r66]: malformed ledger line"); process.exit(2); }
-      if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256 && e.deltaManifestSha256) {
-        console.error(`FATAL [r66 plain-guard]: EXECUTE'd delta layer(s) exist for this original (${e.runId}) — a PLAIN run would revert chain-correct labels to M0; use --deltaDir or chain-resolved --repairExtras`); process.exit(2);
-      }
+  if (!args.deltaDir && !extrasRepair && !RESUME && existsSync(LEDGER_URL)) {
+    // r67 [gate NEW-4, PRECISE]: the guard targets M0-REVERT hazards — applied delta layers, or DANGLING
+    // DELTA intents (a crashed delta EXECUTE is as dangerous as an applied one). A RESUME is exempt (it IS
+    // the crash-resolution path, bound to its published manifest); dangling PLAIN intents are the lease/
+    // runId laws' concern, not a revert hazard.
+    let red;
+    try { red = parseLedgerStrict(readFileSync(LEDGER_URL, "utf-8"), original.manifestSha256); }
+    catch (e) { console.error(`FATAL [r66]: ${e.message}`); process.exit(2); }
+    const danglingDelta = [];
+    for (const [runId, att] of red.latestAttempt) {
+      const key = `${runId}#${att}`;
+      if (!red.applieds.has(key) && red.intents.get(key)?.deltaManifestSha256) danglingDelta.push(runId);
+    }
+    if (red.appliedLayerShas.size || danglingDelta.length) {
+      console.error(`FATAL [r66/r67 plain-guard]: delta history exists for this original (${red.appliedLayerShas.size} applied layer(s)${danglingDelta.length ? "; dangling DELTA intents: " + danglingDelta.join(", ") : ""}) — a PLAIN run would revert chain-correct labels to M0`); process.exit(2);
     }
   }
 }
@@ -441,7 +453,19 @@ if (EXECUTE) {
       } catch (e) {
         if (String(e.message).includes("RESET_LOCKED")) { lockedNow = true; break; }
         if (String(e.message).includes("EPOCH_DRIFT")) { driftedNow = true; break; }
-        if (String(e.message).includes("FLIP_DURING_RUN")) { console.error("FATAL [r66 barrier]: firstEnabledAt appeared MID-RUN — the flip landed; B3 stops NOW (chunks already committed are pre-flip by serialization)"); process.exit(2); }
+        if (String(e.message).includes("FLIP_DURING_RUN")) {
+          // r67 [Codex r66 A3 — the barrier's own success bricked the ledger]: publish the TERMINAL
+          // cutover-aborted completion (the reducer accepts it; the aborted layer counts as NOT applied)
+          // and exit 6 — the post-flip gate settles unwritten students via the tail/diffs law.
+          ledgerAppend({ probe: "b3-applied", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
+            deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, deltaDir: args.deltaDir || null,
+            students: uids.length, attempt: ATTEMPT, complete: true,
+            outcome: { txnFailures: 0, skippedResetLocked: 0, skippedEpochDrift: 0, cutoverAborted: true },
+            at: new Date().toISOString() });
+          if (execLeaseUrl) { try { const cur = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); if (cur.token === LEASE_TOKEN) rmSync(execLeaseUrl, { force: true }); } catch {} }
+          console.error("CUTOVER [r67]: firstEnabledAt appeared MID-RUN — terminal cutover-aborted completion published; committed chunks are pre-flip by serialization; the post-flip gate settles the remainder (exit 6)");
+          process.exit(6);
+        }
         failures.push(`${uid}@chunk${i}:${e.code ?? e.message}`);
       }
     }

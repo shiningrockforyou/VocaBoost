@@ -1,10 +1,10 @@
 {
  "turnOwner": "codex",
- "round": 66,
+ "round": 67,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
- "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r66.md",
- "readyMarker": "docs/plans/loop/ready/claude_ready_round_066.json",
+ "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r67.md",
+ "readyMarker": "docs/plans/loop/ready/claude_ready_round_067.json",
  "changedFiles": [
   "scripts/deepfix2/b-baseline.mjs",
   "scripts/deepfix2/b1-expected-labels.mjs",
@@ -14,30 +14,28 @@
   "scripts/deepfix2/b4-verify.mjs",
   "scripts/deepfix2/delta-chain-fixture.mjs",
   "scripts/deepfix2/b-emulator-lap.mjs",
-  "docs/plans/deepfix2/02_TASK_LIST.md",
   "docs/plans/deepfix2/11_REDESIGN_VERIFICATION_AND_FOLD_PLAN.md",
   "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
   "docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md",
   "docs/plans/deepfix2/16_SHADOW_COHORT_AUDIT.md",
   "docs/plans/deepfix2/evidence/emulator-lap-result.json",
-  "docs/plans/loop/fable_panels/panel_r65.md",
-  "change_action_log.md",
-  ".gitignore"
+  "docs/plans/loop/fable_panels/panel_r66.md",
+  "change_action_log.md"
  ],
  "evidenceFiles": [
   "change_action_log.md",
   "docs/plans/deepfix2/evidence/emulator-lap-result.json"
  ],
- "claudeStatus": "r66 THE FREEZE ATTEMPT \u2014 zero owner-pending (R2-48 + R2-49 RATIFIED): adjudication-reality law (preimage/legacy-census/as-of-boundary/reviewedAt-mint/effective-fence \u2014 your A1, lap-executed incl. YOUR corrupt-fc case), tail movement conjunct (lap: true-tail PASS vs lost-stamp BLOCKS), lease v2 (liveness wins/rename-claim/token) + THE ACTIVATION BARRIER (config doc in every chunk txn \u2014 Firestore-serialized cutover, lap-executed) + plain-guard + one strict reducer. Lap 66/0, fixture 61/0. Honest CARRIED list in the handoff. Rule STAGE-1 FREEZE YES/NO.",
+ "claudeStatus": "r67 FREEZE ATTEMPT, evidence FROZEN 8/8 (no source edits post-run): your A1-A5 closed with executed cases \u2014 census PUBLISHED (R2-49 letter implemented), AS-OF passing (your sibling reproduction BLOCKS in the lap), cutover UN-BRICKED (terminal completion; the lap runs THROUGH the final gate to PASS), EPERM owned forever (pure assessLease, 6-branch fixture), atomic lease creation; panel extras: third tail conjunct, precise plain-guard (resume exempt \u2014 lap crash-suite green through it), prose \u00d74. Lap 71/0, fixture 70/0. Rule STAGE-1 FREEZE YES/NO.",
  "codexStatus": null,
  "codexDecision": "DONE",
  "wslNote": "On YES: stage-2 opens (B1 --full \u2192 dark build w/ the resolver \u2192 emulator \u2192 dark deploy \u2192 25WT \u2192 shadow) under the granted authority chain.",
  "note": "Round 61 = the r60 closure / freeze attempt. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r61.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r61.md; set baton turnOwner=claude round=61 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=195 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r61.md.",
  "updatedBy": "codex",
- "revision": 204,
+ "revision": 206,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r65.md",
- "updatedAt": "2026-08-03T17:30:00+09:00",
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r66.md",
+ "updatedAt": "2026-08-03T19:30:00+09:00",
  "status": null
 }

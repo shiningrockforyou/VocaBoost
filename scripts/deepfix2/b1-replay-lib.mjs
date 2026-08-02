@@ -99,16 +99,16 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
       if (typeof r.gradedIsCorrect === "boolean") gradedOk = r.gradedIsCorrect;
       else if (accepted) { gradedOk = false; note("legacyAcceptedReconstructed"); }
       else gradedOk = r.isCorrect;
-      const rvAt = r.challengeReviewedAt?.toMillis?.() ?? (typeof r.challengeReviewedAt === "number" ? r.challengeReviewedAt : NaN);
+      const rvAt = r.challengeReviewedAt?.toMillis?.() ?? (typeof r.challengeReviewedAt === "string" ? Date.parse(r.challengeReviewedAt) : typeof r.challengeReviewedAt === "number" ? r.challengeReviewedAt : NaN); // r67: one parse chain (was NaN for strings here vs Date.parse in the census scan)
       const acceptedEffective = accepted && Number.isFinite(rvAt) && rvAt < watermark;
       if (accepted && !Number.isFinite(rvAt)) note("acceptedNoTimestamp");
-      rows.push({ wordId: r.wordId, ok: gradedOk, okEff: gradedOk || acceptedEffective, mintT: acceptedEffective && !gradedOk ? rvAt : null, adjState: `${st ?? ""}|${Number.isFinite(rvAt) ? rvAt : ""}` });
+      rows.push({ wordId: r.wordId, ok: gradedOk, okEff: gradedOk || acceptedEffective, adjOk: accepted, adjEff: acceptedEffective, mintT: acceptedEffective && !gradedOk ? rvAt : null, adjState: `${st ?? ""}|${Number.isFinite(rvAt) ? rvAt : ""}` });
     }
     if (!rowsOk) { bump(dupRow ? "dupWordIdInRows" : "badRows", classId, sigKey); continue; }
     if (rows.length > tq) { bump("rowsGtTotal", classId, sigKey); continue; }
     // r66: the stored score was RECOMPUTED by the accept writers from EFFECTIVE rows — the fence must
     // compare like with like or every score-correcting acceptance excludes its whole attempt [Codex A1]
-    const correctEff = rows.filter(r => r.ok || (r.adjState ?? "").startsWith("accepted")).length;
+    const correctEff = rows.filter(r => r.ok || r.adjOk === true).length; // r67: exact boolean, not a prefix match
     if (rows.length === tq && Math.abs((correctEff / tq) * 100 - s) > 2) { bump("scoreRowsDisagree", classId, sigKey); continue; }
     const sig = `${classId}|${a.listId}|${a.dayNumber ?? a.studyDay}|${sType}|${t}`;
     const content = createHash("sha256").update(s + "|" + tq + "|" + [...rows].sort((x, y) => x.wordId < y.wordId ? -1 : 1).map(r => r.wordId + ":" + r.ok + ":" + (r.adjState ?? "")).join(",")).digest("hex"); // r66: adjudication facts bind duplicate identity
@@ -135,7 +135,15 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
   // ---- pass 3: replay ----
   const words = new Map();
   for (const a of atts) {
-    const passing = a.stored >= THRESHOLD;
+    // r67 [Codex r66 A2 — the reproduced sibling-proof false green]: the STORED score is CURRENT truth
+    // (post-adjudication recompute); proof at a historical boundary must use the score AS OF that boundary.
+    // When any row's acceptance is post-boundary (adjOk ∧ ¬adjEff), reconstruct: the writers compute
+    // round(effectiveCorrect/denominator*100), so the as-of score is deterministic from as-of-effective rows.
+    const hasPostBoundaryAccept = a.rows.some(r => r.adjOk === true && r.adjEff !== true);
+    const asOfScore = hasPostBoundaryAccept
+      ? Math.round((a.rows.filter(r => r.ok || r.adjEff === true).length / a.tq) * 100)
+      : a.stored;
+    const passing = asOfScore >= THRESHOLD;
     for (const r of a.rows) {
       const k = a.listId + "|" + r.wordId;
       let w = words.get(k);

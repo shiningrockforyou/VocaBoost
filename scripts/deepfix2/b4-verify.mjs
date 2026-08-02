@@ -119,7 +119,9 @@ const FIELD_MAP = { fc: "reviewFailCount", lf: "reviewLastFailedAt", lc: "review
 const SIX = [...Object.values(FIELD_MAP), "reviewRestingUntil"];
 const stats = { students: 0, zeroDiff: 0, withDiffs: 0, totalDiffs: 0, extraLabelDocs: 0, recomputedTargets: 0,
   deltaNewAttempts: 0, deltaAdjudication: 0, deltaEpoch: 0, corruptTyped: 0,
-  liveAttempts: 0, liveExemptFields: 0, liveNewWordDocs: 0 };
+  liveAttempts: 0, liveExemptFields: 0, liveNewWordDocs: 0,
+  adjudicationCensus: { legacyAcceptedReconstructed: 0, acceptedNoTimestamp: 0, challengeStatusUnknownEnum: 0 } }; // r67 [R2-49 published here too]
+const censusCounters = { note: n => { if (n in stats.adjudicationCensus) stats.adjudicationCensus[n]++; }, bump: () => {} };
 const diffsOut = []; const extrasList = []; const reportUncovered = []; const reportTail = []; let truncated = false;
 const deltaSet = new Map();
 const addDelta = (uid, reason) => { if (!deltaSet.has(uid)) deltaSet.set(uid, []); const a = deltaSet.get(uid); if (!a.includes(reason)) a.push(reason); };
@@ -138,7 +140,7 @@ for (const uid of uids) {
   // the last layer watermark and the flip) is absorbed into expected; attempts AT/after the flip are the
   // live server's era, never a delta.
   const boundary = POSTFLIP ?? src.watermark;
-  const live = await computeStudentLabels(db, uid, boundary, {});
+  const live = await computeStudentLabels(db, uid, boundary, censusCounters);
   if (live.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} cross-list wordId collision`); process.exit(8); } // r64: exit 8 (the old 3 collided with the driver skip semantics)
   const drifted = src.row && JSON.stringify(live.epochByList) !== JSON.stringify(src.row.epochByList);
   const digestChanged = src.row && src.row.challengeDigest !== live.challengeDigest;
@@ -164,10 +166,11 @@ for (const uid of uids) {
   //    their diffs BLOCK);
   //  - the comparison UNIVERSE runs THROUGH THE CUTOFF (a word first presented post-flip is replay-known:
   //    fc exact vs cutoff, timestamp expectations = flip-boundary value or null — never generic extras).
-  let flipRowsRef = null;
+  let flipRowsRef = null; let cutoffFieldRef = null;
   if (POSTFLIP) {
     if (!src.row) { stats.uncoveredAtGate = (stats.uncoveredAtGate || 0) + 1; reportUncovered.push(uid); }
-    const c = await computeStudentLabels(db, uid, CUTOFF, {});
+    const c = await computeStudentLabels(db, uid, CUTOFF, censusCounters);
+    cutoffFieldRef = c.wordsOut;
     const flipRows = expected; // boundary=flip recompute (forced above)
     flipRowsRef = flipRows;
     expected = {};
@@ -206,13 +209,16 @@ for (const uid of uids) {
         // live use re-stamps; mixed tail+post-flip fc cases intentionally still BLOCK).
         if (POSTFLIP && src.row) {
           const lay = src.row.words?.[k]?.[short] ?? null;
-          // r66 [gate NEW-A + Codex A2 — value coincidence is NOT provenance]: tail additionally requires
-          // the FLIP-BOUNDARY expectation to have MOVED off the layer expectation (replay is deterministic,
-          // so movement can ONLY come from events in (layerWatermark, flip) — provenance by construction).
-          // A lost POST-flip stamp leaves flip ≡ layer ⇒ NOT tail ⇒ falls through to the fc fence/diff.
-          const flipVal = (POSTFLIP ? (flipRowsRef?.[k]?.[short] ?? null) : null);
+          // r66/r67 [gate NEW-A + r66-panel NEW-1 — COMPLETE-ERA provenance]: tail requires ALL THREE:
+          //  (1) MOVED: flip-expectation ≠ layer-expectation (only (layerWatermark, flip) events move it);
+          //  (2) QUIET: cutoff-expectation ≡ flip-expectation for THIS field (no post-flip events — a tail
+          //      event must not excuse a LOST post-flip stamp on the same field);
+          //  (3) disk ≡ layer (B3's certified value, untouched).
+          const flipVal = flipRowsRef?.[k]?.[short] ?? null;
+          const cutVal = short === "fc" ? exp : (cutoffFieldRef?.[k]?.[short] ?? null);
           const moved = (flipVal ?? null) !== (lay ?? null);
-          if (moved && (lay ?? null) === (act ?? null)) {
+          const quiet = short === "fc" ? (cutVal ?? null) === (flipVal ?? null) : (cutVal ?? null) === (flipVal ?? null);
+          if (moved && quiet && (lay ?? null) === (act ?? null)) {
             stats.preFlipTail = (stats.preFlipTail || 0) + 1;
             if (reportTail.length < 500) reportTail.push({ uid, wordId, field }); else stats.preFlipTailTruncated = true;
             continue;
