@@ -1,7 +1,7 @@
 // h8-final-values-resim.mjs — THE H8 BASELINE RE-SIM, v5 [R2-47: the exposure-bound ORACLE IS RETIRED — this
 // sim GENERATES MONITORING BASELINES (plateau pools, wall rates, gap percentiles, saturation days, return
-// slugs, underflow, graduation throughput) and proves the STRUCTURAL CYCLICITY property (the rotation reaches
-// every pool word each cycle). Nothing here passes or fails a fairness bound; gap stats are descriptive.]
+// slugs, underflow, graduation throughput) and proves the STRUCTURAL CYCLICITY property (TWO-CONSECUTIVE-LAP
+// coverage under the CURSOR-CHAINED law [r58/r62]; the certified fixture is rotation-cyclicity-fixture.mjs). Nothing here passes or fails a fairness bound; gap stats are descriptive.]
 // LIMITATIONS: the launch seed samples per-word tuples with replacement cohort-wide (within-student
 // correlations lost; one distribution across bands); rru maps only the resting FACT (return day randomized —
 // slug timing is scenario, not prediction). Both are acceptable for a baseline generator, stated honestly.

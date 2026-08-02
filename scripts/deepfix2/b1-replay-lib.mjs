@@ -1,9 +1,10 @@
 // b1-replay-lib.mjs — THE ONE REPLAY LAW (shared by B1/B3/B4 so implementations can never drift) [r57 closure].
 // Faithful extraction of B1 v5's per-student computation: eligibility fence → duplicate law → replay →
-// labels + rru census + mutationRisk + epoch snapshot. Laws: R2-35 stored>=92 · B1-Q1 uniform types ·
-// B1-Q2 review-type clock, null⇒not-written · r48 fail-closed fence · whole-group dup exclusion ·
-// teacher-edit preOverride law · watermark per-attempt boundary · real tombstones · rru masteredAt window +
-// review-tested evidence [contested at r57 — B3 defaults to NOT writing rru; see b3 header].
+// labels + legacyResting census + mutationRisk + epoch snapshot. Laws: R2-35 stored>=92 · B1-Q1 uniform
+// types · B1-Q2 review-type clock, null⇒not-written · r48 fail-closed fence · whole-group dup exclusion ·
+// teacher-edit preOverride law · watermark per-attempt boundary · real tombstones.
+// [r62p] reviewRestingUntil is LIVE-ONLY (r59-A9 FINAL): wordsOut = FIVE fields; the legacyResting census is
+// informational transient-sizing only — it never enters expected state and no consumer writes rru from it.
 import { createHash } from "node:crypto";
 
 export const THRESHOLD = 92;
@@ -85,6 +86,9 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
     if (rows.length === tq && Math.abs((correct / tq) * 100 - s) > 2) { bump("scoreRowsDisagree", classId, sigKey); continue; }
     const sig = `${classId}|${a.listId}|${a.dayNumber ?? a.studyDay}|${sType}|${t}`;
     const content = createHash("sha256").update(s + "|" + tq + "|" + [...rows].sort((x, y) => x.wordId < y.wordId ? -1 : 1).map(r => r.wordId + ":" + r.ok).join(",")).digest("hex");
+    // r60: the mutation digest covers EVERY replay input — an in-place edit to score/rows/type/total/
+    // teacherEdited/preOverride on an OLD attempt changes it, not only challenge metadata
+    mut._digestRows.push(`R|${d.id}|${sig}|${content}|${a.teacherEdited === true ? "TE:" + (a.preOverride?.score ?? "") : ""}`);
     if (!groups.has(sig)) groups.set(sig, []);
     groups.get(sig).push({ t, classId, listId: a.listId, type: sType, rows, stored: s, tq, content, sig, synthetic: syntheticAnchor });
   }
@@ -115,28 +119,20 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
       if (a.type === "review") w.rlt = a.t;
     }
   }
-  // ---- rru census (INFORMATIONAL at r57 — B3 defaults to NOT writing it; contention open) ----
-  const rruByKey = {};
-  const rruCensus = { seeded: 0, rejectedNoHistory: 0, rejectedFuture: 0, expiredUncounted: 0, expiredCountFailed: 0 };
+  // ---- legacy-resting census (INFORMATIONAL ONLY [r59-A9/r60 #5]: rru is LIVE-ONLY and appears NOWHERE in
+  // the expected state; this census merely sizes the launch transient for the report) ----
+  const legacyRestingCensus = { inWindow: 0, expiredUncounted: 0, expiredCountFailed: 0 };
   {
     const cutoff = new Date(watermark - 21 * 86400e3);
     const msnap = await db.collection("users").doc(uid).collection("study_states").where("masteredAt", ">", cutoff).get();
-    try { rruCensus.expiredUncounted += (await db.collection("users").doc(uid).collection("study_states").where("masteredAt", "<=", cutoff).count().get()).data().count; }
-    catch { rruCensus.expiredCountFailed++; }
-    const byWordId = new Map();
-    for (const k of words.keys()) { const wid = k.split("|")[1]; if (!byWordId.has(wid)) byWordId.set(wid, []); byWordId.get(wid).push(k); }
-    for (const d of msnap.docs) {
-      const mAt = d.data().masteredAt?.toMillis?.();
-      if (!mAt || mAt > watermark) { rruCensus.rejectedFuture++; continue; }
-      const reviewTested = (byWordId.get(d.id) || []).filter(k => words.get(k)?.rlt !== null && words.get(k)?.rlt !== undefined);
-      if (!reviewTested.length) { rruCensus.rejectedNoHistory++; continue; }
-      for (const k of reviewTested) { rruByKey[k] = mAt + 21 * 86400e3; rruCensus.seeded++; }
-    }
+    legacyRestingCensus.inWindow = msnap.size;
+    try { legacyRestingCensus.expiredUncounted += (await db.collection("users").doc(uid).collection("study_states").where("masteredAt", "<=", cutoff).count().get()).data().count; }
+    catch { legacyRestingCensus.expiredCountFailed++; }
   }
   // ---- canonical output ----
   const wordsOut = {};
   for (const [k, w] of [...words.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1))
-    wordsOut[k] = { fc: w.fc, lf: w.lf, lc: w.lc, lp: w.lp, rlt: w.rlt, rru: rruByKey[k] ?? null };
+    wordsOut[k] = { fc: w.fc, lf: w.lf, lc: w.lc, lp: w.lp, rlt: w.rlt }; // FIVE fields — rru retired [r60]
   const challengeDigest = createHash("sha256").update(mut._digestRows.sort().join("\n")).digest("hex");
   delete mut._digestRows;
   const digest = createHash("sha256").update(JSON.stringify(wordsOut)).digest("hex");
@@ -147,5 +143,5 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
   const wordIdCollisions = [...byWordId.entries()].filter(([, ks]) => ks.length > 1)
     .filter(([, ks]) => { const vals = ks.map(k => JSON.stringify(wordsOut[k])); return new Set(vals).size > 1; })
     .map(([wid, ks]) => ({ wordId: wid, keys: ks }));
-  return { epochByList, mutationRisk: mut, wordsOut, rruCensus, local, digest, challengeDigest, wordIdCollisions };
+  return { epochByList, mutationRisk: mut, wordsOut, legacyRestingCensus, local, digest, challengeDigest, wordIdCollisions };
 }

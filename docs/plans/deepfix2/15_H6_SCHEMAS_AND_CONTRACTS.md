@@ -18,9 +18,7 @@
 | `reviewLastCorrectAt` | Timestamp | SERVER | any correct answer, any graded test — clears PRIORITY (R2-29/41) |
 | `reviewLastProvenAt` | Timestamp | SERVER | correct on a PASSING test (any type, R2-41b); accepted challenge per R2-10 once A2-activated |
 | `reviewLastTestedAt` | Timestamp | SERVER | THE rotation clock [r53-B3 rename — legacy `lastTestedAt` stays client-written until DF2-46 and is NEVER read by the redesign]: advanced by review-TYPE tests incl. reruns (R2-41d); backfill-seeded from review-type history, null ⇒ NOT WRITTEN (unseeded words tie-break by wordIndex — **from the CANONICAL list word order (`lists/{id}/words`), never the client-written study-state copy [r55]**) per B1-Q2/r53 |
-| `reviewRestingUntil` | Timestamp | SERVER | **THE SERVER RESTING TRUTH [r54 — closes the pool-authority hole]: set = completedAt+21d in the graduation txn (day_completions.graduatedWordIds is the audit twin); cleared/ignored past its instant; BACKFILL-SEEDED one-time from legacy `masteredAt`+21d — **VALIDATED [r55: legacy masteredAt is
-client-forgeable]: seeded ONLY when (a) masteredAt is inside the live 21-day window AND (b) the word has
-eligible attempt history in B1's baseline; anything else ⇒ not seeded + counted (B3; verified vs pre-image)**. The redesign's pool/underflow derivation reads ONLY server fields — NEVER client-writable `status`/`masteredAt`** |
+| `reviewRestingUntil` | Timestamp | SERVER | **THE SERVER RESTING TRUTH — LIVE-ONLY [r59-A9 FINAL LAW: the backfill NEVER writes it; no seed, no operator flag — the masteredAt-laundering surface is DEAD]. Born at the first server graduations (set = completedAt+21d in the graduation txn; day_completions.graduatedWordIds is the audit twin); ignored past its instant. LAUNCH TRANSIENT (accepted, David-veto flagged): words resting under legacy `masteredAt` at the flip simply re-enter rotation — a benign one-time reappearance. The redesign's pool/underflow derivation reads ONLY server fields — NEVER client-writable `status`/`masteredAt`** |
 
 Rules: client writes to these SIX fields DENIED field-level — ALL SIX ARE NEW FIELDS, so the lock is truly
 inert pre-launch [r53-B3] (owner keeps writing the rest of the doc, including legacy `lastTestedAt`);
@@ -32,12 +30,15 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 - **docId** = `{classId}_{listId}_d{logicalDay}_e{resetEpoch}` (one per identity; deterministic ⇒ idempotent create).
 - Fields: the identity septuple `{uid, classId, listId, logicalDay, resetEpoch, algorithmVersion, configVersion}`
   + `anchorNwei` + `generation` (the cross-class match tuple, r48/r50-B3) + `orderedQueueWordIds[]` + `poolHash`
-  + `snapshot{threshold, queueSize, testSize, reviewTestType, reviewGateEnabled}` + `createdAt`.
+  + `snapshot{threshold, queueSize, testSize, reviewTestType, reviewGateEnabled, configQueueSize?}` +
+  `createdAt` — `snapshot.queueSize` is CONTENT truth (= |orderedQueueWordIds| source sizing; on a same-day
+  cross-class REUSE it records |the reused queue|); `configQueueSize` (present on reuse) = this class's own
+  configured value, audit-only [r62].
 - **Creation txn**: composed server-side inside the session-start/test-compose callable — txn reads pool state
   **+ the ROTATION CURSOR DOC (§2b — NOT the previous queue record: last-element inference breaks under
   underflow top-ups, and class-scoped chains break dual-enrollment [r58])**, applies the sweep + the R2-41(e)
   underflow top-up (earliest-graduated resting words), `create()`s the doc **and advances the cursor doc IN
-  THE SAME TXN (cursor := the highest ACTIVE-sweep index served; top-ups never move it)**
+  THE SAME TXN (cursor := per §2b's EXACT TRANSITIONS — the LAST ACTIVE-sweep element in TRAVERSAL order, NOT the numeric max [r62: §2b is THE one cursor law; this paragraph defers to it]; top-ups never move it)**
   (fails on exists ⇒ read existing — first writer wins, replays converge). The queue doc also carries
   `presentationCount` — the ONE mutable counter field, incremented only inside the presentation-compose txn
   (the sole exception to queue immutability; every other field frozen) [r53-B2].
@@ -49,17 +50,28 @@ derived predicates (`needsPriority`, `fillEligible`) are computed, never stored.
 ## 2b. `users/{uid}/review_cursors/{listId}_e{resetEpoch}` — THE ROTATION CURSOR (NEW, server-only) [r58]
 
 `{uid, listId, resetEpoch, cursorWordIndex|null, lastLogicalDay, lastQueueRef, updatedAt}` — ONE per
-(student, list, epoch), SHARED across classes (the dual-enrollment law: whichever class composes the next
-logical day continues the same sweep). Advanced ONLY inside the queue-compose txn; `cursorWordIndex` = the
-highest active-sweep index served (underflow top-ups excluded); absent/null ⇒ the sweep starts at the smallest
-index (first-ever, post-reset). Epoch-scoped (reset deletes it). Client writes DENIED (rules list).
+(student, list, epoch), SHARED across classes. **SAME-DAY CROSS-CLASS LAW [r59-B2 — without it two classes
+composing one shared logical day each advance the sweep]: the compose txn reads the cursor doc; if
+`lastLogicalDay === the composing logicalDay`, the txn REUSES `lastQueueRef`'s `orderedQueueWordIds` VERBATIM for the
+new class's queue doc — **even when the two assignments' queueSize DIFFERS [r60]: the shared day's CONTENT is
+first-composer-wins (day-truth); the receiving class's OWN snapshot governs threshold/testSize, and its test =
+effectiveTestSize = min(its testSize, |the reused queue|); the receiving queue doc's `snapshot.queueSize` records |the REUSED queue| — snapshot describes the CONTENT that actually generated the day [r62 — a 60-first/30-second race must never mint a 30-labeled 60-member queue]; the receiving class's own configured value lands in `snapshot.configQueueSize` (audit-only). CERT: differing-size reuse fixtures, BOTH orders** — and DOES NOT advance the cursor — one logical day consumes exactly ONE sweep segment; content is class-independent, posture is
+class-scoped. Only a compose with `logicalDay > lastLogicalDay` advances.** Advanced ONLY inside the queue-compose txn. **EXACT TRANSITIONS [r59-B3 — code, not prose]: let A = the
+day's ACTIVE-sweep members in traversal order (top-ups excluded). (normal) cursor := index of the LAST element
+of A in TRAVERSAL order (on a wrapped window this is the last traversed, NOT the numeric max); (underflow,
+A non-empty) same rule over A; (no active at all) cursor UNCHANGED; (first-ever / post-reset / absent doc)
+sweep starts at the smallest index and the doc is created; (OFF→ON) the doc persists — the sweep resumes where
+it left; (same logical day) NO advance (the reuse law above).** Epoch-scoped (reset deletes it). Client writes
+DENIED (rules list).
 
 ## 3. `users/{uid}/review_presentations/{presentationId}` — the PER-ATTEMPT presentation record (NEW, server-only)
 
 - **docId** = `{queueId}_p{seq}` (seq = the queue doc's `presentationCount`+1, assigned in the compose txn).
 - **REPLAY KEY [r53-B2 + r54 + r57 registry fix]: `composeKey`** — a client-minted idempotency token; global
   uniqueness is serialized by a CLAIM REGISTRY: the compose txn `create()`s
-  `users/{uid}/compose_keys/{composeKey}` `{presentationId, fingerprint, createdAt, resetEpoch}` — the create
+  `users/{uid}/compose_keys/{SHA-256(composeKey) hex}` `{composeKeyCanonical, presentationId, fingerprint,
+  createdAt, resetEpoch}` — **the docId is the HASH [r59-B6: raw client tokens are path-unsafe/unbounded; the
+  canonical original is stored for comparison; token validation: 8-128 chars, [A-Za-z0-9._-]]** — the create
   is the lock (a concurrent duplicate fails the txn and re-reads) [the bare (uid,composeKey) query raced
   across identities]. On an existing claim the txn COMPARES the stored request fingerprint `{classId, listId, logicalDay, resetEpoch, sessionType(new|review),
   testType(mcq|typed), kind(live|rerun), visitId|null}` [r55 — modality, phase, and kind each frozen
@@ -81,8 +93,9 @@ index (first-ever, post-reset). Epoch-scoped (reset deletes it). Client writes D
   rerun); fields `{uid, classId, listId, logicalDay, resetEpoch, next:int}`; CREATED with `next:1` on first
   use INSIDE the compose txn, else read+increment IN the txn (transactional read-modify-write — no
   ALREADY_EXISTS path, no count query [the count-query instruction is RETIRED everywhere]); the allocated seq
-  = the pre-increment value; txn failure ⇒ standard retry re-reads. `_p{seq}` keeps the queue doc's own
-  `presentationCount`.**
+  = the pre-increment value. **Worked first-use [r59-B4]: request 1 finds no doc ⇒ txn creates `{next:2}` and
+  allocates seq 1; request 2 reads `{next:2}` ⇒ writes `{next:3}`, allocates 2; a txn retry re-reads and
+  cannot double-allocate.** `_p{seq}` keeps the queue doc's own `presentationCount`.**
   Every retake composes a NEW presentation under R2-15 rotation (r50-B3).
 - **`compositionVersion` enum [r55 — its own clause]: `'lrt-v1'` (the R2-42/46 deterministic law — live review)
   · `'fallback-random'` (invariant-check fallback; remainder only; seed recorded) · `'rerun-random'` (R2-41h)
@@ -90,8 +103,9 @@ index (first-ever, post-reset). Epoch-scoped (reset deletes it). Client writes D
 - **RERUN identity [r53-B2/panel]**: restudied days have no live queue — rerun presentations use docId
   `{classId}_{listId}_d{visitedDay}_e{resetEpoch}_r{seq}` with `queueRef:null`, `poolHash` = the
   INTRODUCED-RANGE hash, `compositionVersion:'rerun-random'` (pure-random, no priority slots), `visitId` set
-  (§6 pairing), seq from a per-(identity) count query in the txn. A rerun presentation binds `logicalDay` =
-  the VISITED day (display/pairing) — never the frontier.
+  (§6 pairing), **seq from the SAME counter-doc allocator as `_n{seq}` (§3's frozen schema — NO count query
+  anywhere [r59-B4])**. A rerun presentation binds `logicalDay` = the VISITED day (display/pairing) — never
+  the frontier.
 - The submission names its `presentationId`; the server validates the submitted set against THIS record
   (compose-to-submit drift rule) and derives `totalQuestions` from it. Immutable after create;
   `serverClaim.attemptDocId` is the ONE post-create merge (set once, in the attempt txn).
@@ -104,6 +118,9 @@ index (first-ever, post-reset). Epoch-scoped (reset deletes it). Client writes D
 - Fields: `{uid, listId, logicalDay, resetEpoch, anchorNwei, generation [r55 — the cross-class validity tuple
   lives on the completion too], winningClassId, evidenceKind, consumedAttemptId|null, consumedAttemptClassId|null,
   sourceConfig{threshold, queueSize, testSize, configVersion, reviewGateEnabled, gateEffectiveEnabled},
+  // PROVENANCE [r62p]: sourceConfig = the SOURCE class's CONFIGURED values (its posture authority for the
+  // R2-38 cross-class evidence record); queue CONTENT truth lives on the queueRef's snapshot — on a same-day
+  // reuse these can differ by design (first-composer-wins content, class-scoped posture).
   newTestAttemptId|null (null iff a ZERO-new-words day — the R2-39 law), graduationCount, graduatedWordIds[]
   (bounded ≤ queue size — the SERVER resting-truth input, see §10), graduatedWordIdsHash =
   **SHA-256(JSON.stringify(graduatedWordIds)) [the frozen formula, r57]**, completedAt}` —
@@ -201,6 +218,9 @@ Client read allowed (UI posture); client write DENIED.
 - Completion loser ⇒ `already_completed`; stale-day submit ⇒ `day_guard_rejected` (A1-corrected).
 - Grading pickup on expired job ⇒ `{status:'expired'}` after the transactional mark+redact.
 - Stale client contract ⇒ `client_version_stale` (frozen; carries `minClientVersion`) [contract (5)].
+- Malformed-ownership job (uid missing/non-string/empty, or writeContext absent while status ∈
+  {claimed, grading, graded-unwritten}) ⇒ `job_quarantined` `{jobId, quarantineReason}` — TERMINAL (retry
+  returns the same; the client offers a fresh test) [r59-B7; the §6d contract, now frozen HERE too].
 
 ## 9. Retention + reset cleanup
 
@@ -210,10 +230,21 @@ Client read allowed (UI posture); client write DENIED.
   `list_progress/{listId}`), REJECTS if a live un-expired lock exists (`reset_already_running`), derives ONE
   absolute `targetEpoch = max(both epochs) + 1`, and WRITES both docs `{resetEpoch: targetEpoch,
   resetInProgress: {opId, targetEpoch, at}}` atomically;
-  (2) while locked, EVERY server op for that (uid,list) — compose, submit, completion, grading claim, label
-  write, **challenge-accept [the §6b txn — enumerated, r56]**, rerun compose — rejects `reset_in_progress`;
+  (2) while locked, EVERY server op for that (uid,list) — compose, submit, completion, grading claim,
+  **grading FINALIZE/write-recovery, force-pass/override, the B3 backfill writer [r59-B5]**, label write,
+  challenge-accept [the §6b txn], rerun compose — rejects `reset_in_progress` (each writer's FINAL txn re-reads
+  the epoch + lock). **B3 COMPLIANCE + THE HONEST RESIDUAL [r62/r62p]:** B3's phase-2 writes run in chunked
+  transactions (the law extracted to `b3-txn-core.mjs`, race-fixtured) whose READ SET includes both
+  tombstone collections + the chunk's targets (all reads before writes; serializable isolation) — a LIVE
+  lock aborts the chunk (`skippedResetLocked`) AND a COMPLETED reset that already cleared its lock aborts
+  too via the EPOCH re-check against the phase-1 snapshot (`skippedEpochDrift`) [r62p — the
+  lock-cleared-between-phases counterexample is closed]; both exit 5, no journal line ⇒ resumed later. The residual window is BETWEEN chunks of one
+  large student: chunks committed BEFORE the reset began stay written. That tail is harmless BY CONSTRUCTION —
+  the reset's own stale-epoch cleanup wipes/rebuilds the student's state, and the post-flip reconciliation pass
+  (14_ §4) re-verifies every uid against the final baseline; no silent divergence survives;
   (3) stale-epoch-only deletes (all epoch-tagged: queues, presentations, completions, visits, credits,
-  restudy_completions, counters) + pending-job cancellation; (4) reconciliation sweep; (5) **owner-clear**:
+  restudy_completions, counters, **review_cursors, compose_keys [r59-B5 — a stale claim would otherwise refuse
+  a legitimate post-reset replay forever]**) + pending-job cancellation; (4) reconciliation sweep; (5) **owner-clear**:
   the op clears the lock only if `resetInProgress.opId` is its own. **LIVENESS [r56]: a lock older than 10
   minutes is TAKEOVER-eligible — a new reset op re-fences (epoch +1 again, new opId) and re-runs cleanup;
   crash mid-cleanup therefore self-heals on the next reset attempt, and the stuck-lock state rejects only
@@ -230,7 +261,8 @@ Client read allowed (UI posture); client write DENIED.
 
 **RESOLVED BY SERVER-TRUTH DERIVATION [r54 — supersedes the v2 "interim authority" posture, which r54
 correctly rejected]: the redesign's pool/resting/underflow derivation reads ONLY server-owned truth —
-`reviewRestingUntil` (§1, set in the graduation txn, backfill-seeded from legacy `masteredAt` once) +
+`reviewRestingUntil` (§1, set in the graduation txn — LIVE-ONLY per r59-A9/r62p: NEVER backfilled or seeded;
+at launch every word starts un-resting and rest schedules accrue organically from live graduations) +
 `day_completions.graduatedWordIds` + the labels. Client-writable `status`/`masteredAt` are NEVER inputs to the
 new composition, so a client write between completion and compose alters NOTHING behavioral.** Legacy fields
 stay client-writable for legacy display until DF2-46 retires their writers (rules narrowing carded there,

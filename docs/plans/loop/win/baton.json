@@ -1,20 +1,21 @@
 {
-  "loop": "win-executor",
-  "turnOwner": "winclaude",
-  "round": 70,
-  "taskId": "COMMIT_MILESTONE",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_070.md",
-  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "handoff-ready",
-  "execDecision": null,
-  "execReview": "winclaude_069.md",
-  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_069.md",
-  "changedFiles": [],
-  "evidenceFiles": [
-    "docs/plans/loop/win/reviews/winclaude_069.md"
-  ],
-  "note": "R70 (numbered, E-umbrella): your r69 holds RATIFIED (ON parked; resolver = explicit dark-build deliverable — confirmed). ORDER 70-1: targeted stage+commit+push of the overnight work (exact path list in the handoff; exclusions listed). Then standby for the r60-gated emulator/deploy orders.",
-  "updatedBy": "claude",
-  "updatedAt": "2026-08-02T00:00:00Z",
-  "revision": 142
+ "loop": "win-executor",
+ "turnOwner": "winclaude",
+ "round": 71,
+ "taskId": "COMMIT_MILESTONE",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_071.md",
+ "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
+ "execStatus": null,
+ "execDecision": null,
+ "execReview": null,
+ "execReviewRepoPath": null,
+ "changedFiles": [],
+ "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_070.md",
+  "docs/plans/loop/win/reviews/winclaude_069.md"
+ ],
+ "note": "ORDER 71-1: commit+push the r62 closure batch (delta-chain fixture, B3 v4 txn writer, bounded memory, ledger, doc-law). Push-deferral rule per your 70-1 risk note: never block on the push.",
+ "updatedBy": "winclaude",
+ "updatedAt": "2026-08-02T00:00:00Z",
+ "revision": 143
 }

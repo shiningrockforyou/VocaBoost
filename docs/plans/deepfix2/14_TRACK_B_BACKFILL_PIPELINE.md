@@ -59,7 +59,7 @@ under the final law and emit the predicted four labels + distributions:
   write; B4's delta sweep covers post-watermark adjudications. Historical resting-at-acceptance (R2-43) is NOT
   reconstructable ⇒ NO historical stamping decision depends on it (documented conservative posture).**
 - Output [r53-B1/r55]: **JSONL — one student per line `{uid, epochByList, mutationRisk, words:{listId|wordId →
-  {fc,lf,lc,lp,rlt,rru}}}`** (rru = the validated resting seed)
+  {fc,lf,lc,lp,rlt}}}`** (FIVE fields — the rru seed is RETIRED [r60/r62]: `reviewRestingUntil` is LIVE-ONLY, never baselined, never backfilled)
   (the per-word five-field B4 comparison baseline) + a summary JSON (aggregates, per-class + per-signature
   exclusion counts, identical-dup drops, blank undercount, per-student sha256 digests, computation watermark).
   Fail-closed eligibility fence + whole-group conflicting-duplicate exclusion per the script header.
@@ -79,18 +79,33 @@ under the final law and emit the predicted four labels + distributions:
 
 Resumable (durable cursor per student) · idempotent (recompute-and-overwrite semantics; safe replay) ·
 **pre-image backup** of every touched `study_states` doc (export file, not a Firestore copy) · tamper-proof field
-set (writes ONLY the SIX server fields [r55]: `reviewFailCount`/`reviewLastFailedAt`/`reviewLastCorrectAt`/
-`reviewLastProvenAt` + `reviewLastTestedAt` [renamed, r53-B3] + **`reviewRestingUntil` — seeded ONE-TIME from
-legacy `masteredAt`+21d, VALIDATED (in the 21-day window AND the word has eligible attempt history; anything
-else ⇒ not seeded + counted) [15_ §1/§10]**; **null ⇒ field omitted, never written null**; never touches
-status/mastery/progress fields or legacy `lastTestedAt`/`masteredAt`) · batch-limited with rate control ·
+set (writes the FIVE label fields [r59-A9 — `reviewRestingUntil` is LIVE-ONLY, never backfilled; the seed +
+its flag are DEAD]: `reviewFailCount`/`reviewLastFailedAt`/`reviewLastCorrectAt`/`reviewLastProvenAt`/
+`reviewLastTestedAt`; **expected-null ⇒ `FieldValue.delete()` on owned fields [A4 — convergent, never
+merge-omitted]**; never touches status/mastery/progress fields or legacy `lastTestedAt`/`masteredAt`) · batch-limited with rate control ·
 dry-run default (writes require `--execute`) · per-run manifest (counts written/skipped/excluded, watermark
 timestamp) · epoch-stamped (a student whose resetEpoch changed since B1's snapshot is SKIPPED and listed for
 re-run).
 
 ## 4. B4 — execution choreography (r46-B2, unchanged from DF2-14's card)
 
-Backup → **25WT rehearsal** (run B3, diff actual vs B1 expected — byte-equal or explained) → David's stage-4 go →
-26SM run at the durable high-watermark → bounded delta-sweep for late writes → activation barrier → post-flip
-reconciliation sweep → expected-vs-actual published. Ordering fences: reset/challenge/override events during the
-window per r46-B2's ordering + retry semantics. Every run: SUPPORT_RUNBOOK CS event + change-log row.
+Backup → **25WT rehearsal** (B3 exec → B4 PASS — fail-closed) → David's stage-4 go → 26SM: FULL B1 → B3
+--execute → B4 → **the CONVERGENT ENDGAME [r61, corrected r62p — a live cohort never yields an empty delta,
+and doesn't need to]: iterate (B4 → materialized delta layer → B1 --deltaAuth → B3 --deltaDir --execute →
+B4 --appliedDelta; the driver = `b-delta-cycle.sh`, consuming B4's printed MATERIALIZED_DELTA_DIR line)
+until |delta| is small (students keep submitting — the tail is expected) → THE FLIP (label writers go
+server-side at that instant) → ONE post-flip reconciliation pass = **B4 `--postFlip=FLIP_TS` — READ-ONLY**
+[r62p N2/N3 — the flip is NOT a write-freeze for labels; it's the moment LIVE label writes BEGIN. Therefore:
+**B3 NEVER runs post-flip** (hard guard: B3 FATALs when `system_config/review_v2.enabled` is true — a
+post-flip B3 could overwrite fresher live stamps with phase-1 values) and **`--repairExtras` against a
+post-flip report is REFUSED** (its "extras" include the live server's own writes). The postFlip B4
+recomputes expected at boundary=FLIP_TS (absorbing the pre-flip tail), classifies any doc bearing a label
+timestamp ≥ FLIP_TS as LIVE-PROGRESSED (informational, never a diff — the live server owns it now), and its
+PASS = zero non-live diffs] → the FINAL verdict published.**
+**ROSTER LAW [r62p D2/D6]:** `rosterAdded` = enrolled but covered by NEITHER the original NOR any applied
+layer (a layer-covered joiner is never re-flagged — the chain terminates); departed students' labels are
+frozen artifacts, verify-skipped + listed; a PRE-flip re-enrollment re-enters as rosterAdded and the next
+lap re-baselines them; a POST-flip re-enrollment converges through live use (the labels are advisory
+priority data, self-healing under H6's stamping law — never progression state).
+Ordering fences: reset/challenge/override events during the window per r46-B2's ordering + retry semantics.
+Every run: SUPPORT_RUNBOOK CS event + change-log row.

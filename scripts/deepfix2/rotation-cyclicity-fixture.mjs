@@ -41,7 +41,10 @@ function composeQueue(active, resting, queueSize, cursor /* last wordIndex serve
   }
   const rest = [...resting].sort((a, b) => a.gradAt - b.gradAt || a.i - b.i); // earliest-graduated first
   const q = [...sorted, ...rest.slice(0, queueSize - sorted.length)];
-  return { queue: q, cursor: q.length ? Math.max(...sorted.map(w => w.i), cursor ?? -1) : cursor };
+  // 15_ §2b EXACT LAW [r60/panel — was max(active, prior): diverged from the frozen traversal-order rule]:
+  // (underflow, A non-empty) cursor := the LAST ACTIVE member in traversal order = the last element of
+  // `sorted` (the whole active pool, served in index order); (no active) cursor UNCHANGED.
+  return { queue: q, cursor: sorted.length ? sorted[sorted.length - 1].i : cursor };
 }
 function composeTest(queue, testSize, ranks) {
   // ranks: Map i -> {priority: bool, rlt: number|null}
@@ -138,7 +141,8 @@ for (const poolSize of [61, 137, 600, 1200]) {
 // The guarantee (honest form): a word continuously active across laps k and k+1 is served in AT LEAST one of
 // them — "waits ≤1 lap" (a wrap can land mid-index-space, so single-lap bookkeeping over-assigns misses).
 function runLapCase(tag, setup) {
-  let { active, resting, queueSize, mutate } = setup();
+  const cfg = setup();
+  let { active, resting, mutate } = cfg;
   let cursor = null;
   const laps = []; // {startSet, seen, restedDuring, endSet}
   for (let lap = 0; lap < 4; lap++) {
@@ -146,10 +150,11 @@ function runLapCase(tag, setup) {
     const seen = new Set(); const restedDuring = new Set();
     let day = 0, wrapped = false, guard = 0;
     while (!wrapped && guard++ < 500) {
-      const r = composeQueue(active, resting, queueSize, cursor);
+      const qs = cfg.queueSize; // re-read per day (mid-lap size changes)
+      const r = composeQueue(active, resting, qs, cursor);
       r.queue.forEach(w => seen.add(w.i));
       const prev = cursor; cursor = r.cursor; day++;
-      if (active.length <= queueSize) wrapped = true;
+      if (active.length <= qs) wrapped = true;
       else if (prev !== null && cursor !== null && cursor <= prev) wrapped = true;
       ({ active, resting } = mutate(active, resting, day));
       resting.forEach(w => restedDuring.add(w.i));
@@ -200,6 +205,38 @@ function runLapCase(tag, setup) {
       return { active, resting };
     },
   }));
+}
+
+// Mid-lap queue-size change (r59-B1 — the header's claim, now genuinely exercised): size shifts DURING laps.
+{
+  let sizes = [60, 30, 80, 45];
+  let dayCount = 0;
+  runLapCase("mid-lap-size-change", () => ({
+    active: Array.from({ length: 500 }, (_, i) => ({ i, gradAt: null })),
+    resting: [],
+    get queueSize() { return sizes[Math.floor(dayCount / 3) % sizes.length]; }, // changes every 3 days, mid-lap
+    mutate: (active, resting) => { dayCount++; return { active, resting }; },
+  }));
+}
+
+// ---- P1D: persisted-cursor VALUE assertions (the 15_ §2b five-case law) [r60/panel] ----
+{
+  const A = i => ({ i, gradAt: null });
+  // normal
+  let r = composeQueue([A(1), A(5), A(9), A(12)], [], 2, 5); // serves {9,12}
+  if (r.cursor !== 12) fail("P1D normal", { got: r.cursor }); else ok();
+  // wrap (window wraps past the end: traversal-order last ≠ numeric max)
+  r = composeQueue([A(1), A(5), A(9), A(12)], [], 2, 12);
+  if (r.cursor !== 5) fail("P1D wrap", { got: r.cursor }); else ok();
+  // underflow, A non-empty (prior cursor above all actives)
+  r = composeQueue([A(3), A(7), A(12)], [{ i: 900, gradAt: 1 }], 60, 150);
+  if (r.cursor !== 12) fail("P1D underflow", { got: r.cursor }); else ok();
+  // no active
+  r = composeQueue([], [{ i: 900, gradAt: 1 }], 60, 150);
+  if (r.cursor !== 150) fail("P1D no-active", { got: r.cursor }); else ok();
+  // first-ever
+  r = composeQueue([A(4), A(8)], [], 60, null);
+  if (r.cursor !== 8) fail("P1D first", { got: r.cursor }); else ok();
 }
 
 // ---- P2: FIFO no-overtaking (deterministic path) ----

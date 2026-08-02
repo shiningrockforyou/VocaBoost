@@ -38,17 +38,24 @@ or the teacher force-pass (error-correction ONLY — R2-27 Q8). Streak = progres
 1. **Queue** — teacher-set `reviewQueueSize` (launch default 60) selected by **CURSOR-CHAINED rotation
    [FIXTURE-DRIVEN MECHANISM FIX 2026-08-02, r58-verify: positional day-offset modulo over a MUTATING pool
    provably SKIPS words — 143 counterexamples; the cursor sweep is skip-proof, proven by
-   `scripts/deepfix2/rotation-cyclicity-fixture.mjs` (2,671 checks)]: day N's queue = the next `queueSize`
+   `scripts/deepfix2/rotation-cyclicity-fixture.mjs` (2,688 checks — the current file's measured count [r62p])]: day N's queue = the next `queueSize`
    ACTIVE words in wordIndex order STRICTLY AFTER the persisted ROTATION CURSOR (wrapping; absent ⇒ smallest
    index). **The cursor is STUDENT+LIST+EPOCH-scoped — SHARED ACROSS CLASSES [r58: a class-scoped chain
    restarts on dual-enrollment class switches, repeating queues] — an EXPLICIT server-only doc
    (`review_cursors/{listId}_e{epoch}`, H6 §2b) advanced transactionally at compose; UNDERFLOW top-ups never
-   move it (the cursor tracks the ACTIVE sweep only). The certified property is LAP-based [r58 — the
-   fixed-day-count cycle claim was falsified by burst returns]: every word active across a full cursor lap
-   (variable length under insertion) is served within it; mid-lap returns wait ≤1 lap.** Over the ACTIVE pool; **pool < size ⇒ whole pool + UNDERFLOW TOP-UP from graduated (resting) words, earliest-graduated
+   move it (the cursor tracks the ACTIVE sweep only). The certified property [r58/r59 — ONE exact wording, replacing every cycle/lap variant]: **a word
+   continuously active across two consecutive cursor laps is served in at least one of them** (laps stretch
+   under insertion; single-lap misses at wrap boundaries are bookkeeping, covered by the pair) — proven by the
+   fixture incl. the burst-return regression.** Over the ACTIVE pool; **pool < size ⇒ whole pool + UNDERFLOW TOP-UP from graduated (resting) words, earliest-graduated
    first, up to size [R2-41(e)]**; pinned per day. **Identity is CLASS-SCOPED and immutable
    [r48]: `{uid, classId, listId, logicalDay, resetEpoch, algorithmVersion, configVersion}`** with the day's
-   effective values snapshotted (mid-day teacher edits affect the NEXT queue). **Persisted CONTENT — TWO immutable records [r46-H2, FF1-07, r50-B3]: the DAY-QUEUE record `{…identity,
+   effective values snapshotted (mid-day teacher edits affect the NEXT queue). **SAME-DAY CROSS-CLASS REUSE
+   [r59-B2/r62 — mirrored from H6 §2b, the binding schema]: when two classes compose one shared logical day,
+   the FIRST composer's queue content is day-truth — the receiving class's queue doc REUSES
+   `orderedQueueWordIds` verbatim, does NOT advance the cursor, and its `snapshot.queueSize` records |the
+   REUSED queue| (snapshot = the content that actually generated the day; the receiving class's own
+   configured value lands in `snapshot.configQueueSize`, audit-only). Its test = effectiveTestSize =
+   min(its own testSize, |the reused queue|). CERT: differing-size fixtures BOTH orders [r62].** **Persisted CONTENT — TWO immutable records [r46-H2, FF1-07, r50-B3]: the DAY-QUEUE record `{…identity,
    anchor/generation, orderedQueueWordIds, poolHash, snapshot{threshold,queueSize,testSize,reviewTestType},
    createdAt}` (ONE per logical day) + the PER-ATTEMPT PRESENTATION record `{presentationId, queueRef + poolHash,
    presentedWordIds, compositionVersion, serverClaim, createdAt}` (ONE per composed test — every retake composes a
@@ -65,8 +72,8 @@ or the teacher force-pass (error-correction ONLY — R2-27 Q8). Streak = progres
    as the slots; presentation order still shuffled]; `effectiveTestSize = min(testSize, |pinned queue|)`; the
    priority LRT prefix always included [R2-46]; post-compose INVARIANT CHECK ⇒ SEEDED-RANDOM FALLBACK on the
    REMAINDER ONLY (priority prefix preserved; seed recorded; `compositionVersion:'fallback-random'`; server-only
-   metric — selection is not correctness-critical). **EXPOSURE LAW [R2-47 — the numeric promise is RETIRED]: the certified guarantee is STRUCTURAL — the rotation
-   reaches every pool word each cycle (arithmetic fixture); under priority saturation the test is 100% failed
+   metric — selection is not correctness-critical). **EXPOSURE LAW [R2-47 — the numeric promise is RETIRED]: the certified guarantee is STRUCTURAL — the §2.1
+   two-consecutive-laps law (the fixture's proven property; no stronger per-cycle claim exists); under priority saturation the test is 100% failed
    words BY DESIGN; unproven words keep unconditional STUDY exposure + the rerun proof path; all exposure
    timings are MONITORING BASELINES (H8-generated), never pass/fail criteria.** Modality = `assignment.reviewTestType ∥ 'mcq'` — the hidden
    3-attempt typed→MCQ fallback is DELETED (r47 Q6). The submission carries the PRESENTED word set;

@@ -87,6 +87,12 @@
 //     allow write: if false;                // Admin SDK only — composition_fallback/saturation/abort signals
 //   }                                       // (system_logs stays client-creatable and is NEVER an authority signal)
 //
+// ── CLAUSE 4c: shadow_registry — server-only (the shadow-audit membership set) [r61] ────────────
+//   match /shadow_registry/{chunkId} {
+//     allow read: if false;                 // server (Admin) reads only; clients never see it
+//     allow write: if false;                // the audit driver (Admin SDK) writes; deleted at cleanup
+//   }
+//
 // ── CLAUSE 5: attempts — NO new clause required [r53-B3 CORRECTION] ─────────────────────────────
 // The repo draft already has attempts FULLY server-owned (create:false / update:false / delete:false,
 // firestore.rules:270-322) — `teacherEdited`/`preOverride` immutability is subsumed. LINEAGE NOTE ONLY:
