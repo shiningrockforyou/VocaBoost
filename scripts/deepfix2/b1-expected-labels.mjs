@@ -50,8 +50,9 @@ import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, writeFileSync, createWriteStream } from "node:fs";
 import { createHash } from "node:crypto";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
+import { auditRoot } from "./b-baseline.mjs";
 
-const KNOWN = new Set(["cohort", "limit", "full", "classAllowlist", "watermark", "outDir", "uids", "deltaAuth"]);
+const KNOWN = new Set(["cohort", "limit", "full", "classAllowlist", "watermark", "outDir", "deltaAuth"]); // r64: --uids DELETED (no parent hashes ⇒ chain-dead; shared filenames ⇒ overwrite footgun)
 const args = Object.fromEntries(process.argv.slice(2).map(a => {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/); if (!m || !KNOWN.has(m[1])) { console.error(`Unrecognized arg: ${a}`); process.exit(2); }
   return [m[1], m[2] ?? true];
@@ -63,13 +64,11 @@ if (FULL && !args.classAllowlist) { console.error("--full requires --classAllowl
 if (FULL && args.limit !== undefined) { console.error("--limit conflicts with --full [r56]"); process.exit(2); }
 if (args.cohort !== undefined && (typeof args.cohort !== "string" || !args.cohort)) { console.error("--cohort requires a non-empty value"); process.exit(2); }
 if (args.limit !== undefined && !/^[1-9]\d*$/.test(String(args.limit))) { console.error("--limit must be a positive integer [r55]"); process.exit(2); }
-// DELTA/REPLAY modes [r59-A2 + the shadow fidelity gate]: --uids=FILE = an exact uid list (delta re-baseline);
+// DELTA/REPLAY modes [r59-A2, --uids DELETED r64]: --deltaAuth=FILE = the B4-materialized delta authority;
 // --watermark=MS pins the boundary (fidelity replays at the ORIGINAL watermark); --outDir overrides the target.
 if (args.watermark !== undefined && !/^[1-9]\d{9,}$/.test(String(args.watermark))) { console.error("--watermark must be epoch ms"); process.exit(2); }
 if (args.watermark !== undefined && parseInt(args.watermark, 10) > Date.now() + 300e3) { console.error("--watermark is in the FUTURE — a future boundary makes later attempts invisible to the final B4 (false PASS) [r62p]"); process.exit(2); }
-if (args.uids !== undefined && (typeof args.uids !== "string" || !args.uids)) { console.error("--uids=FILE required"); process.exit(2); }
 if (args.deltaAuth !== undefined && (typeof args.deltaAuth !== "string" || !args.deltaAuth)) { console.error("--deltaAuth=FILE required"); process.exit(2); }
-if (args.deltaAuth && args.uids) { console.error("--deltaAuth and --uids are exclusive (deltaAuth extracts its own uids)"); process.exit(2); }
 if (args.deltaAuth && !(args.full === true || args.full === "true")) { console.error("--deltaAuth requires --full --classAllowlist (enrollment scope must be the REAL cohort boundary, not a sample regex [r62])"); process.exit(2); }
 if (args.outDir !== undefined && (typeof args.outDir !== "string" || !args.outDir)) { console.error("--outDir=DIR required"); process.exit(2); }
 const LIMIT = FULL ? Infinity : parseInt(args.limit || "50", 10);
@@ -96,7 +95,8 @@ if (args.deltaAuth) {
   // r62: direct consumption — no manual surgery; uids extracted; parent hashes stamped into the manifest
   let auth, authRaw;
   try { authRaw = readFileSync(args.deltaAuth); auth = JSON.parse(authRaw.toString());
-    if (auth.probe !== "b4-delta" || !Array.isArray(auth.uids) || !auth.uids.length || !auth.baselineManifestSha256) throw new Error("bad shape"); }
+    if (auth.probe !== "b4-delta" || auth.version !== 2 || !Array.isArray(auth.uids) || !auth.uids.length || !auth.baselineManifestSha256) throw new Error("bad shape/version");
+    if (!auth.uids.every(u => typeof u === "string" && u) || new Set(auth.uids).size !== auth.uids.length) throw new Error("uids must be unique nonempty strings"); }
   catch (e) { console.error(`FATAL: bad --deltaAuth: ${e.message}`); process.exit(2); }
   deltaAuthMeta = { parentOriginalManifestSha256: auth.baselineManifestSha256,
                     parentDeltaAuthSha256: createHash("sha256").update(authRaw).digest("hex") };
@@ -106,21 +106,11 @@ if (args.deltaAuth) {
   if (departed.length) { console.error(`NOTE [roster churn]: ${departed.length} delta uids departed the cohort — listed in the manifest as departedUids`); deltaAuthMeta.departedUids = departed; }
   if (!uids.length) console.error("NOTE [r63 A6]: ALL delta uids departed — emitting an auditable EMPTY delta layer (zero rows, all excused via departedUids); the next B4 counts them departed and the chain converges");
 }
-if (args.uids) {
-  let want;
-  try { want = JSON.parse(readFileSync(args.uids, "utf-8")); if (!Array.isArray(want) || !want.length || !want.every(x => typeof x === "string" && x)) throw new Error("not a non-empty string array"); }
-  catch (e) { console.error(`FATAL: bad --uids file: ${e.message}`); process.exit(2); }
-  const scope = new Set(uids);
-  const missing = want.filter(u => !scope.has(u));
-  if (missing.length) { console.error(`FATAL: ${missing.length} --uids not in the selected cohort scope`); process.exit(2); }
-  uids = want.sort();
-}
-if (!args.uids && uids.length > LIMIT) {
+if (!args.deltaAuth && uids.length > LIMIT) {
   const step = Math.max(1, Math.floor(uids.length / LIMIT));
   uids = uids.filter((_, i) => i % step === 0).slice(0, LIMIT);
 }
-const mode2 = (args.uids || args.deltaAuth) ? "delta" : (FULL ? "full" : "sample");
-const mode = (args.uids || args.deltaAuth) ? "delta" : (FULL ? "full" : "sample");
+const mode = args.deltaAuth ? "delta" : (FULL ? "full" : "sample");
 if (students.size === 0) { console.error("FATAL: cohort selection matched zero students"); process.exit(2); }
 const watermark = args.watermark ? parseInt(args.watermark, 10) : Date.now(); // pinned via --watermark or fresh [r59]
 console.error(`B1 v6: ${uids.length}/${students.size} students (${mode}); watermark ${new Date(watermark).toISOString()}`);
@@ -143,7 +133,7 @@ const bumpExcl = (reason, classId, sigKey) => {
 // UID-bearing baseline ⇒ GITIGNORED local dir [r54-1.7]; atomic: write .tmp, rename on completion
 const { pathToFileURL } = await import("node:url");
 const { resolve: resolvePath } = await import("node:path");
-const outDir = args.outDir ? pathToFileURL(resolvePath(args.outDir) + "/") : new URL("../../audit/deepfix/trackB_baselines/", import.meta.url); // r62p: pathToFileURL — Windows absolute paths (C:\...) resolved correctly
+const outDir = args.outDir ? pathToFileURL(resolvePath(args.outDir) + "/") : auditRoot(); // r62p pathToFileURL + r65 DEEPFIX_AUDIT_ROOT isolation
 const { mkdirSync } = await import("node:fs"); mkdirSync(outDir, { recursive: true });
 const jsonlFinal = new URL(`b1-expected-labels-${mode}.jsonl`, outDir);
 const jsonlTmp = new URL(`b1-expected-labels-${mode}.jsonl.tmp`, outDir);
@@ -183,7 +173,8 @@ for (const uid of uids) {
     agg.jointMix = agg.jointMix || {}; agg.jointMix[k] = (agg.jointMix[k] || 0) + 1;
   }
   if (r.mutationRisk.pendingChallenges || r.mutationRisk.adjudicatedAtOrAfterWatermark || r.mutationRisk.challengeTsUnknown) agg.mutationRiskStudents++;
-  if (r.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} has ${r.wordIdCollisions.length} cross-list wordId collisions w/ divergent expectations`); process.exit(3); }
+  // r65p: A8 collision = exit 8 everywhere (3 collided with driver skip semantics)
+  if (r.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} has ${r.wordIdCollisions.length} cross-list wordId collisions w/ divergent expectations`); process.exit(8); }
   const line = { uid, epochByList: r.epochByList, mutationRisk: r.mutationRisk, challengeDigest: r.challengeDigest, words: r.wordsOut };
   await jwrite(JSON.stringify(line) + "\n");
   digests[uid] = { ...mine, digest: r.digest };
@@ -219,6 +210,7 @@ writeFileSync(manTmp, JSON.stringify({ probe: "b1-expected-labels", version: 6, 
   summarySha256: createHash("sha256").update(sumBytes).digest("hex") }, null, 2));
 renameSync(manTmp, new URL(`b1-manifest-${mode}.json`, outDir));
 // a REDACTED pointer (no uids) stays in evidence/ for the repo record
+if (!process.env.DEEPFIX_AUDIT_ROOT) // r65p: isolated (lap) runs must not write into tracked evidence/
 writeFileSync(new URL(`../../docs/plans/deepfix2/evidence/b1-baseline-pointer-${mode}.json`, import.meta.url),
   JSON.stringify({ probe: "b1-expected-labels", version: 6, mode, watermark, students: uids.length, cohortTotal: students.size,
     attempts: summary.attempts, exclusions: excl, blankUndercount: agg.blankUndercount, words: agg.words, clockSeeded: agg.clockSeeded,

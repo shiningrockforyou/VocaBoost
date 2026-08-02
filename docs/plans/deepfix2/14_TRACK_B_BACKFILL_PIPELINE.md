@@ -89,19 +89,30 @@ re-run).
 
 ## 4. B4 — execution choreography (r46-B2, unchanged from DF2-14's card)
 
-**EMULATOR SMOKE LAP FIRST [r62p, David-ratified]: the full chain (B1 --full → B3 --execute → B4 → one b-delta-cycle.sh lap) runs against the Firestore emulator before 25WT — execution evidence, not review evidence.** Backup → **25WT rehearsal** (B3 exec → B4 PASS — fail-closed) → David's stage-4 go → 26SM: FULL B1 → B3
+**EMULATOR SMOKE LAP FIRST [r62p David-ratified; r64 scope = the expanded 02_ card]: the full chain (B1 --full → B3 --execute → B4 → one `b-delta-cycle.mjs` lap + the (a)–(e)/crash-injection/postFlip/resume/stale-report cases carded on 02_) runs against the Firestore emulator before 25WT — execution evidence, not review evidence.** Backup → **25WT rehearsal** (B3 exec → B4 PASS — fail-closed) → David's stage-4 go → 26SM: FULL B1 → B3
 --execute → B4 → **the CONVERGENT ENDGAME [r61, corrected r62p — a live cohort never yields an empty delta,
 and doesn't need to]: iterate (B4 → materialized delta layer → B1 --deltaAuth → B3 --deltaDir --execute →
-B4 --appliedDelta; the driver = `b-delta-cycle.sh`, consuming B4's printed MATERIALIZED_DELTA_DIR line)
+B4 --appliedDelta; the driver = `b-delta-cycle.mjs` [r64 — cross-platform Node; exits 0 PASS / 5 structural / 3 skips / 4 write-failures / 8 A8-hazard / 9 exhausted], consuming B4's printed MATERIALIZED_DELTA_DIR line)
 until |delta| is small (students keep submitting — the tail is expected) → THE FLIP (label writers go
 server-side at that instant) → ONE post-flip reconciliation pass = **B4 `--postFlip=FLIP_TS` — READ-ONLY**
 [r62p N2/N3 — the flip is NOT a write-freeze for labels; it's the moment LIVE label writes BEGIN. Therefore:
-**B3 NEVER runs post-flip** (hard guard: B3 FATALs when `system_config/review_v2.enabled` is true — a
+**B3 NEVER runs post-flip** (hard guard: B3 FATALs when `enabled` is true OR the durable `firstEnabledAt` marker exists [r65 — one guard, one era authority] — a
 post-flip B3 could overwrite fresher live stamps with phase-1 values) and **`--repairExtras` against a
 post-flip report is REFUSED** (its "extras" include the live server's own writes). The postFlip B4
-recomputes expected at boundary=FLIP_TS (absorbing the pre-flip tail), classifies any doc bearing a label
-timestamp ≥ FLIP_TS as LIVE-PROGRESSED (informational, never a diff — the live server owns it now), and its
-PASS = zero non-live diffs] → the FINAL verdict published.**
+recomputes expected at boundary=FLIP_TS (absorbing the pre-flip tail) and judges PER FIELD [r64 — the
+doc-wide exemption hid stale fields behind one fresh stamp]: a mismatched TIMESTAMP field is exempt only if
+ITS OWN value ≥ FLIP_TS (bounded-future sanity-capped); `reviewFailCount` (cumulative) is NEVER
+timestamp-exempt — it verifies against a SECOND replay through the run's captured cutoff (one re-read retry
+absorbs concurrent attempts); post-flip-ADJUDICATED words (the live challenge txn owns them) and
+post-flip RE-ENROLLED students (the advisory case below) are classified informational, never PASS-blocking;
+corrupt-typed values are never exempt. PASS = zero non-exempt NON-TAIL diffs; **THE TAIL DISPOSITION [r65p]: events between the last layer watermark and the flip have NO writer — the gate CLASSIFIES them (`preFlipTail`: disk ≡ the layer expectation while the flip-boundary expectation moved), publishes the counts + rows, and they heal through live use; the FINAL pre-flip micro-lap bounds the window to minutes; mixed tail+post-flip fc divergence still BLOCKS**] → the FINAL verdict published.**
+**DARK-WINDOW CUSTODY [PROPOSED r64/r65 — ⚠️ PENDING DAVID'S RATIFICATION (Codex r64 A5: this narrows R2-32's OFF-stamping to post-activation and adds a second field to the flip txn — owner authority, not reviewer authority); every consumer of this clause is marked PROPOSED until David rules]: the six label fields have exactly ONE writer per era. The live
+label writers stamp ONLY when `system_config/review_v2.firstEnabledAt` is SET (written in the same audited
+txn as the first `enabled:true`, NEVER cleared — the kill switch clears `enabled` only). Before that marker
+exists (the dark window) there are ZERO live label writers — B3 owns the fields exclusively, and R2-32's
+"fail+correct write while OFF" governs POST-ACTIVATION kill-switch windows only (its ratified context).
+B3's post-flip guard checks the DURABLE marker (`firstEnabledAt` present ⇒ FATAL), so a kill-switch
+`enabled:false` can never re-admit B3 during an incident window.**
 **ROSTER LAW [r62p D2/D6]:** `rosterAdded` = enrolled but covered by NEITHER the original NOR any applied
 layer (a layer-covered joiner is never re-flagged — the chain terminates); departed students' labels are
 frozen artifacts, verify-skipped + listed; a PRE-flip re-enrollment re-enters as rosterAdded and the next

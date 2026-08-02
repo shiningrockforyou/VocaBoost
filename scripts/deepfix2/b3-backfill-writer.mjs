@@ -33,12 +33,12 @@
 //   [--deltaDir=DIR] [--repairExtras=B4_REPORT] [--resume]
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream, openSync, writeSync, fsyncSync, closeSync } from "node:fs";
+import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream, openSync, writeSync, fsyncSync, closeSync, rmSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder, auditRoot } from "./b-baseline.mjs";
 import { applyChunkInTxn, CHUNK_SIZE } from "./b3-txn-core.mjs";
 
 const KNOWN = new Set(["classAllowlist", "manifest", "runId", "execute", "allowSampleExecute", "deltaDir", "repairExtras", "appliedDelta", "resume"]);
@@ -52,6 +52,10 @@ const allowPath = need("classAllowlist"); const manifestPath = need("manifest");
 if (!/^[A-Za-z0-9._-]{4,64}$/.test(RUNID)) { console.error("--runId must be 4-64 [A-Za-z0-9._-]"); process.exit(2); }
 const EXECUTE = args.execute === true;
 const RESUME = args.resume === true;
+// TEST-ONLY crash-injection hooks [r64 — the carded A4 crash-injection lap needs DETERMINISTIC crash
+// points; inert unless the env var is set; never set in any production runbook]
+const CRASH_AT = process.env.B3_CRASH_AT || null;
+const crashPoint = name => { if (CRASH_AT === name) { console.error(`[TEST] B3_CRASH_AT=${name} — simulating crash`); process.exit(99); } };
 
 let allow;
 try { allow = JSON.parse(readFileSync(allowPath, "utf-8")); if (!Array.isArray(allow) || !allow.length || !allow.every(x => typeof x === "string" && x)) throw new Error("not a non-empty string array"); }
@@ -60,12 +64,23 @@ catch (e) { console.error(`FATAL: bad allowlist: ${e.message}`); process.exit(2)
 let original;
 try { original = loadVerifiedBaselineIndexed(manifestPath); } catch (e) { console.error(`FATAL baseline: ${e.message}`); process.exit(2); }
 if (EXECUTE && original.manifest.mode !== "full" && args.allowSampleExecute !== true) { console.error("FATAL: --execute requires a FULL original baseline (or --allowSampleExecute for the shadow rehearsal)"); process.exit(2); }
+// r64 A2 THE MODE LAW [Codex r63 — the loaded chain was validated then DISCARDED; repair planning resolved
+// against M0 and could overwrite M1/M2-correct labels before deleting extras]:
+//   repair mode  = --repairExtras + ordered --appliedDelta (NO --deltaDir): the chain IS the resolver —
+//                  every uid resolves against M0 + the full chain; extras deletion plans ride on TOP of
+//                  chain-correct expected state (an unrelated repair can no longer move a chain-correct
+//                  student).
+//   delta mode   = --deltaDir (NO --repairExtras, NO --appliedDelta): scope + resolution = the one new
+//                  layer (newest watermark wins for its uids; nobody else is written).
+//   plain mode   = neither: M0 only.
+if (args.repairExtras && args.deltaDir) { console.error("FATAL [r64 A2]: --repairExtras and --deltaDir are EXCLUSIVE — repair is its own invocation"); process.exit(2); }
+if (!args.repairExtras && args.appliedDelta.length) { console.error("FATAL [r64 A2]: --appliedDelta is repair-mode resolution context only (delta mode's layer already wins per-uid resolution)"); process.exit(2); }
 let deltaLayers = [];
 if (args.deltaDir) {
   try { deltaLayers = [loadDeltaLayer(args.deltaDir, original.manifestSha256, original.manifest.watermark)]; }
   catch (e) { console.error(`FATAL delta: ${e.message}`); process.exit(2); }
 }
-let extrasRepair = null; let extrasRepairBinding = null; let extrasRepairReport = null;
+let extrasRepair = null; let extrasRepairBinding = null; let extrasRepairReport = null; let repairRealityScan = null;
 if (args.repairExtras) {
   try {
     const rep = JSON.parse(readFileSync(args.repairExtras, "utf-8"));
@@ -73,6 +88,7 @@ if (args.repairExtras) {
     if (rep.diffsTruncated === true) throw new Error("the b4-report is TRUNCATED — a capped extrasList is not repair authority [r62p]");
     if (rep.postFlip) throw new Error("the b4-report is POST-FLIP — extras there include the live server's own writes; repairExtras is FORBIDDEN [r62p N2]");
     if (rep.extrasDeletionLaw !== "all-six-present") throw new Error("report lacks extrasDeletionLaw:'all-six-present' — deletion semantics must be report-encoded [r63 A3]");
+    if (rep.ignoreLedger === true) throw new Error("the b4-report was produced with --ignoreLedger — forensic reports are NOT deletion authority [r64 panel-N4]");
     // r63 A3: exact tuples — unique nonempty (uid, wordId); fields ⊆ the six owned names
     const SIXSET = new Set(["reviewFailCount", "reviewLastFailedAt", "reviewLastCorrectAt", "reviewLastProvenAt", "reviewLastTestedAt", "reviewRestingUntil"]);
     const seenT = new Set();
@@ -105,7 +121,9 @@ const db = getFirestore();
 // could overwrite fresher live stamps with phase-1 values. Hard config check, no override flag.
 {
   const cfg = await db.doc("system_config/review_v2").get();
-  if (cfg.exists && cfg.data().enabled === true) { console.error("FATAL [r62p N3]: system_config/review_v2.enabled is TRUE — B3 is FORBIDDEN post-flip (the one post-flip pass is B4 --postFlip, read-only)"); process.exit(2); }
+  // r64 [panel N3]: the guard is the DURABLE flipped-once marker, not the kill-switch-resettable flag — a
+  // post-flip enabled:false window must never re-admit B3 while the live server still owns the fields
+  if (cfg.exists && (cfg.data().enabled === true || cfg.data().firstEnabledAt)) { console.error("FATAL [r62p N3/r64]: review_v2 has been ENABLED (enabled:true or firstEnabledAt set) — B3 is FORBIDDEN from the first flip onward (the one post-flip pass is B4 --postFlip, read-only)"); process.exit(2); }
 }
 const cs = await db.collection("classes").get();
 const students = new Set(); const matched = [];
@@ -118,15 +136,13 @@ if (!Array.isArray(original.manifest.classesMatched)) { console.error("FATAL [A6
 }
 let uids = [...students].sort();
 const baseUids = new Set(original.rows.keys());
-const missing = uids.filter(u => !baseUids.has(u));
-const extra = [...baseUids].filter(u => !students.has(u));
-if ((missing.length || extra.length) && !deltaLayers.length) {
-  console.error(`FATAL [A6 scope drift]: ${missing.length} live uids missing from baseline; ${extra.length} baseline uids out of scope`); process.exit(2);
-}
 if (extrasRepairBinding && extrasRepairBinding !== original.manifestSha256) { console.error("FATAL [r61]: the extras report is bound to a DIFFERENT baseline"); process.exit(2); }
-// r63 A3: the report's "extra" judgment is only true relative to the EXACT applied-delta chain it verified
-// against — a stale-M0 report could order deletion of a word a later layer made expected. B3 must be given
-// the SAME chain (--appliedDelta, ordered) and it must equal report.appliedDeltas exactly.
+// r63 A3 + r64 A2 [ORDER MATTERS — the chain must load BEFORE the scope checks, and it becomes THE
+// resolver]: the report's "extra" judgment is only true relative to the EXACT applied-delta chain it
+// verified against — a stale-M0 report could order deletion of a word a later layer made expected, and a
+// validated-then-discarded chain let phase 1 resolve repair plans against M0 (overwriting chain-correct
+// labels). The chain must equal report.appliedDeltas exactly, and it resolves EVERY plan this invocation
+// makes.
 if (extrasRepair) {
   const chainLayers = [];
   for (const dir of args.appliedDelta) {
@@ -139,10 +155,45 @@ if (extrasRepair) {
   if (mine.length !== theirs.length || !mine.every((s, i) => s === theirs[i])) {
     console.error(`FATAL [r63 A3]: --appliedDelta chain (${mine.length} layers) ≠ the report's appliedDeltas (${theirs.length}) — pass the exact chain the report verified against`); process.exit(2);
   }
+  deltaLayers = chainLayers; // r64 A2: the chain IS the resolver for every plan this invocation makes
+  // r64 [shadowlaw] + r65 [B2]: report ↔ REALITY — the report's chain must cover every EXECUTE'd layer per
+  // the ledger, and no intent may dangle (an in-flight/crashed EXECUTE). Runs TWICE: here (fast fail) and
+  // again AFTER the execution lease is held (the scan-to-lease gap would otherwise re-admit the race).
+  repairRealityScan = () => {
+    const ledgerPath = new URL("applied-layers.jsonl", auditRoot());
+    const reported = new Set(theirs);
+    const intentSeen = new Map();
+    if (!existsSync(ledgerPath) && args.appliedDelta.length) { console.error("FATAL [r65p]: repair claims applied layers but no ledger exists — same absence law as B4"); process.exit(2); }
+    if (existsSync(ledgerPath)) {
+      for (const ln of readFileSync(ledgerPath, "utf-8").split("\n")) {
+        if (!ln.trim()) continue; let e; try { e = JSON.parse(ln); } catch { console.error("FATAL [r64]: malformed ledger line"); process.exit(2); }
+        if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256 && e.deltaManifestSha256 && !reported.has(e.deltaManifestSha256)) {
+          console.error(`FATAL [r64 A3-reality]: EXECUTE'd layer ${e.runId} is not in the report's appliedDeltas — the report predates reality; re-run B4 with the full chain`); process.exit(2);
+        }
+        if (e.probe === "b3-intent" && e.originalManifestSha256 === original.manifestSha256) intentSeen.set(`${e.runId}#${e.attempt}`, true);
+        if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256) intentSeen.delete(`${e.runId}#${e.attempt}`);
+      }
+    }
+    if (intentSeen.size) { console.error(`FATAL [r65 B2]: dangling intent(s) in the ledger (${[...intentSeen.keys()].join(", ")}) — an EXECUTE is in flight or crashed; resolve before repair`); process.exit(2); }
+  };
+  repairRealityScan();
+}
+// scope drift: fatal ONLY in plain mode — delta mode scopes to its layer; repair mode covers churn via
+// the chain (uncovered enrollees resolve by live recompute; departures are B4's counted category) [r64]
+{
+  const covered = new Set(baseUids);
+  for (const L of deltaLayers) for (const u of L.base.rows.keys()) covered.add(u);
+  const missing = uids.filter(u => !covered.has(u));
+  const extra = [...covered].filter(u => !students.has(u));
+  if ((missing.length || extra.length) && !deltaLayers.length) {
+    console.error(`FATAL [A6 scope drift]: ${missing.length} live uids missing from baseline; ${extra.length} baseline uids out of scope`); process.exit(2);
+  }
+  if (missing.length || extra.length) console.error(`NOTE [roster churn]: ${missing.length} uncovered enrollees (live-recompute resolution) / ${extra.length} departed-from-coverage`);
 }
 if (extrasRepair) { const off = extrasRepair.filter(e => !students.has(e.uid)); if (off.length) { console.error(`FATAL [r61]: ${off.length} extras rows outside the cohort scope`); process.exit(2); } }
-if (deltaLayers.length) {
-  // delta run scope = the delta uids still enrolled; departed ones are COUNTED + LISTED [r62 roster-churn law]
+if (args.deltaDir && deltaLayers.length) {
+  // DELTA MODE ONLY [r64 — the repair chain must NOT collapse scope to its first layer]: run scope = the
+  // NEW layer's uids still enrolled; departed ones are COUNTED + LISTED [r62 roster-churn law]
   const writable = new Set(uids);
   uids = deltaLayers[0].auth.uids.filter(u => writable.has(u) && deltaLayers[0].base.rows.has(u)).sort();
   for (const u of deltaLayers[0].auth.uids) if (!uids.includes(u)) deltaDroppedList.push(u);
@@ -151,7 +202,7 @@ if (deltaLayers.length) {
 }
 console.error(`B3 v4 [${RUNID}]: ${matched.length} classes → ${uids.length} students; EXECUTE=${EXECUTE}; delta=${deltaLayers.length}; repairExtras=${extrasRepair ? extrasRepair.length : 0}`);
 
-const outDir = new URL("../../audit/deepfix/trackB_baselines/b3-runs/", import.meta.url);
+const outDir = new URL("b3-runs/", auditRoot()); // r65: DEEPFIX_AUDIT_ROOT isolation
 mkdirSync(outDir, { recursive: true });
 const backupPath = new URL(`${RUNID}.preimage.jsonl`, outDir);
 const journalPath = new URL(`${RUNID}.phase2.journal`, outDir);
@@ -181,6 +232,30 @@ if (RESUME) {
   }
 }
 
+// r65 [Codex r64 B2]: ONE EXCLUSIVE EXECUTION LEASE per original baseline — concurrent delta/repair runs
+// would transact against different expected chains with last-write-wins docs. wx-created; stale (>2h)
+// leases are taken over once; released after the completion record publishes.
+let execLeaseUrl = null;
+if (EXECUTE) {
+  execLeaseUrl = new URL(`exec-${original.manifestSha256.slice(0, 16)}.lease`, outDir);
+  const takeLease = () => { const fd = openSync(execLeaseUrl, "wx"); writeSync(fd, JSON.stringify({ pid: process.pid, runId: RUNID, at: Date.now() })); fsyncSync(fd); closeSync(fd); };
+  try { takeLease(); }
+  catch (e) {
+    if (e.code !== "EEXIST") { console.error(`FATAL: execution lease: ${e.message}`); process.exit(2); }
+    let stale = false;
+    try {
+      const L = JSON.parse(readFileSync(execLeaseUrl, "utf-8"));
+      stale = Date.now() - (L.at || 0) > 2 * 3600e3;
+      if (!stale && L.pid) { try { process.kill(L.pid, 0); } catch (ke) { if (ke.code === "ESRCH") stale = true; } } // dead holder = stale now [r65p]
+    } catch { stale = true; }
+    if (!stale) { console.error("FATAL [r65 B2]: another B3 EXECUTE holds the execution lease for this original — strict serialization"); process.exit(2); }
+    console.error("NOTE [r65 B2]: stale execution lease (>2h) — taking over");
+    rmSync(execLeaseUrl, { force: true });
+    try { takeLease(); } catch { console.error("FATAL: lease takeover raced"); process.exit(2); }
+  }
+  if (repairRealityScan) repairRealityScan(); // r65 B2: re-check under the lease — no scan-to-lease gap
+}
+
 // ---- PHASE 0+1 (combined per student, FULLY STREAMED): resolve expected → read targets → stream
 // pre-images → stream the write plan (one JSONL line per student; extras as their own lines).
 const preTmp = new URL(`${RUNID}.preimage.jsonl.tmp`, outDir);
@@ -192,13 +267,20 @@ const preHash = createHash("sha256");
 // r63 A5: each resume ATTEMPT gets its own immutable pre-image + result files — the recorded hash verifies
 // exactly one file; nothing is appended to or overwritten across attempts
 let ATTEMPT = 0;
-if (RESUME) { while (existsSync(new URL(`${RUNID}.resume-${ATTEMPT + 1}.result.json`, outDir)) || existsSync(new URL(`${RUNID}.resume-${ATTEMPT + 1}.preimage.jsonl`, outDir))) ATTEMPT++; ATTEMPT++; }
+if (RESUME) {
+  // r64 [Codex A4 + panel N5]: EXCLUSIVE attempt reservation — a wx-created lease can never be won twice,
+  // so two concurrent resumes cannot share files; lease files persist forever (attempts never renumber)
+  for (let cand = 1; ; cand++) {
+    try { const fd = openSync(new URL(`${RUNID}.resume-${cand}.lease`, outDir), "wx"); writeSync(fd, JSON.stringify({ pid: process.pid, at: new Date().toISOString() })); fsyncSync(fd); closeSync(fd); ATTEMPT = cand; break; }
+    catch (e) { if (e.code !== "EEXIST") { console.error(`FATAL: lease acquisition: ${e.message}`); process.exit(2); } }
+  }
+}
 const preResumePath = new URL(`${RUNID}.resume-${ATTEMPT}.preimage.jsonl`, outDir);
-const preResume = RESUME ? createWriteStream(preResumePath) : null;
+const preResume = RESUME ? createWriteStream(preResumePath, { flags: "wx" }) : null;
 const preResumeHash = createHash("sha256");
 if (preResume) preResume.on("error", e => { console.error(`FATAL: resume-preimage stream error: ${e.message}`); process.exit(2); });
-const plansPath = new URL(RESUME ? `${RUNID}.plans.resume.jsonl` : `${RUNID}.plans.jsonl`, outDir);
-const plansTmp = new URL(`${RUNID}.plans.jsonl.tmp`, outDir);
+const plansPath = new URL(RESUME ? `${RUNID}.resume-${ATTEMPT}.plans.jsonl` : `${RUNID}.plans.jsonl`, outDir); // r64: per-attempt immutable plan evidence
+const plansTmp = new URL(RESUME ? `${RUNID}.resume-${ATTEMPT}.plans.jsonl.tmp` : `${RUNID}.plans.jsonl.tmp`, outDir);
 const planStream = createWriteStream(plansTmp);
 const streamFatal = which => e => { console.error(`FATAL: ${which} stream error: ${e.message}`); process.exit(2); };
 planStream.on("error", streamFatal("plan"));
@@ -207,8 +289,12 @@ const planHash = createHash("sha256");
 const swrite = (stream, line) => new Promise(r => { stream.write(line) ? r() : stream.once("drain", r); }); // backpressure [r62]
 const emitPlan = obj => { const line = JSON.stringify(obj) + "\n"; planHash.update(line); return swrite(planStream, line); };
 // r63 A4: DURABLE ledger appends — write + fsync + close per record, so a host crash cannot leave applied
-// writes without ledger evidence past the intent record
-const LEDGER_URL = new URL("../../audit/deepfix/trackB_baselines/applied-layers.jsonl", import.meta.url);
+// writes without ledger evidence past the intent record. HONEST BOUNDARY [r65p]: the parent DIRECTORY is
+// not fsynced — the very first append's file CREATION can be lost in a host crash (writes then exist with
+// no ledger and a plain B4 runs no ledger audit); the stage-2 crash-injection matrix covers this window,
+// and the mitigation is the intent record being the FIRST append of any run (loss ⇒ loss of the whole file
+// ⇒ the next EXECUTE recreates it; the value diff remains the backstop)
+const LEDGER_URL = new URL("applied-layers.jsonl", auditRoot());
 const ledgerAppend = obj => {
   const fd = openSync(LEDGER_URL, "a");
   writeSync(fd, JSON.stringify(obj) + "\n");
@@ -225,7 +311,7 @@ for (const uid of uids) {
   if (committed.has(uid)) { stats.resumedCommitted++; continue; }
   const src = resolveExpectedSource(uid, original, deltaLayers);
   const live = await computeStudentLabels(db, uid, src.watermark, {});
-  if (live.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} cross-list wordId collision`); process.exit(3); }
+  if (live.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} cross-list wordId collision`); process.exit(8); } // r64: exit 8 (3 collided with driver skip semantics)
   let expected;
   if (!src.row) { expected = live.wordsOut; stats.notInBaseline++; }
   else if (JSON.stringify(live.epochByList) !== JSON.stringify(src.row.epochByList)) { expected = live.wordsOut; stats.recomputedEpochDrift++; epochDriftList.push(uid); }
@@ -299,8 +385,10 @@ console.error(`phase 1 durable: ${stats.docsExamined} docs examined, ${stats.pla
 if (EXECUTE) {
   // r63 A4: INTENT before the first write — a crash mid-phase-2 leaves intent-without-completion, which the
   // strict B4 ledger audit FATALs on (resume to a clean completion)
+  crashPoint("pre-intent");
   ledgerAppend({ probe: "b3-intent", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
     deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, attempt: ATTEMPT, at: new Date().toISOString() });
+  crashPoint("post-intent");
   const rl = createInterface({ input: createReadStream(plansPath), crlfDelay: Infinity });
   for await (const ln of rl) {
     if (!ln) continue;
@@ -324,6 +412,7 @@ if (EXECUTE) {
         const out = await db.runTransaction(txn => applyChunkInTxn(txn, { ...ctxBase, chunk }));
         stats.docsWritten += out.written; stats.fieldSets += out.fieldSets;
         stats.fieldDeletes += out.fieldDeletes; stats.docsVerifiedEqual += out.verifiedEqual;
+        crashPoint("after-first-chunk"); // fires on the FIRST committed chunk (then exits — deterministic)
       } catch (e) {
         if (String(e.message).includes("RESET_LOCKED")) { lockedNow = true; break; }
         if (String(e.message).includes("EPOCH_DRIFT")) { driftedNow = true; break; }
@@ -351,11 +440,13 @@ writeFileSync(new URL(`${resultName}.tmp`, outDir), JSON.stringify(final, null, 
 renameSync(new URL(`${resultName}.tmp`, outDir), new URL(resultName, outDir));
 // r62: the applied-layers LEDGER — every EXECUTE appends; the FINAL B4 audits that its --appliedDelta
 // chain covers every EXECUTE'd delta layer for this original baseline (14_ §4).
+if (EXECUTE) crashPoint("pre-complete");
 if (EXECUTE) ledgerAppend({ probe: "b3-applied", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
   deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, deltaDir: args.deltaDir || null,
   students: uids.length, attempt: ATTEMPT, complete: true,
   outcome: { txnFailures: stats.txnFailures, skippedResetLocked: stats.skippedResetLocked, skippedEpochDrift: stats.skippedEpochDrift },
   at: new Date().toISOString() });
+if (execLeaseUrl) rmSync(execLeaseUrl, { force: true }); // release AFTER the completion record published
 console.log(JSON.stringify({ runId: RUNID, execute: EXECUTE, ...stats }, null, 2));
 if (stats.txnFailures > 0) process.exit(4);
 if (stats.skippedResetLocked + stats.skippedEpochDrift > 0) process.exit(5); // r61/r62p: skipped students are VISIBLE failure, never silent green

@@ -1,9 +1,9 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 72,
+ "round": 73,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_072.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_073.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": null,
  "execDecision": null,
@@ -11,12 +11,12 @@
  "execReviewRepoPath": null,
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_072.md",
   "docs/plans/loop/win/reviews/winclaude_071.md",
-  "docs/plans/loop/win/reviews/winclaude_070.md",
-  "docs/plans/loop/win/reviews/winclaude_069.md"
+  "docs/plans/loop/win/reviews/winclaude_070.md"
  ],
- "note": "ORDER 72-1: commit+push the r63 fold (Codex r62 closure: exit-7 driver, per-field post-flip law, durable ledger, chain custody, shadow one-law; b-delta-cycle.sh DELETED). Standing exclusions + push-deferral rule apply.",
+ "note": "ORDER 73-1: commit+push the r64 fold (fc through-cutoff, dark-window custody, repair-chain resolver, ledger pairing, quarantine spec). Then standby \u2014 the emulator lap builds on WSL next.",
  "updatedBy": "winclaude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 144
+ "revision": 145
 }

@@ -41,6 +41,9 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
         const rt = r.challengeReviewedAt?.toMillis?.() ?? (typeof r.challengeReviewedAt === "string" ? Date.parse(r.challengeReviewedAt) : typeof r.challengeReviewedAt === "number" ? r.challengeReviewedAt : NaN);
         if (Number.isFinite(rt)) { if (rt >= watermark) mut.adjudicatedAtOrAfterWatermark++; }
         else mut.challengeTsUnknown++;
+        // r65 [Codex A2]: the r64 word-level exemption census is DELETED — under the adjudication law
+        // (fc/lf grading-time, lc/lp effective) an accept changes only fields the live txn stamps ≥ flip
+        // (timestamp-exempt on their own) or fc via the through-cutoff replay; no word skip exists.
       }
       if (!mut.challengedAttemptIds.includes(d.id)) {
         if (mut.challengedAttemptIds.length < 200) mut.challengedAttemptIds.push(d.id);
@@ -78,7 +81,12 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
     for (const r of a.answers) {
       if (!r || typeof r.wordId !== "string" || !r.wordId || typeof r.isCorrect !== "boolean") { rowsOk = false; break; }
       if (seenW.has(r.wordId)) { rowsOk = false; dupRow = true; break; }
-      seenW.add(r.wordId); rows.push({ wordId: r.wordId, ok: r.isCorrect });
+      seenW.add(r.wordId);
+      // r65 ADJUDICATION LAW [Codex r64 A2 — a whole-word census re-created the doc-wide exemption]:
+      // adjudication NEVER rewrites grading history. fc/lf replay from isCorrect (the grading-time truth,
+      // in-place-immutable per H6 §6b); an ACCEPTED challenge mints correctness/proof (lc/lp) via okEff.
+      // rejected/unknown statuses change NOTHING.
+      rows.push({ wordId: r.wordId, ok: r.isCorrect, okEff: r.isCorrect || r.challengeStatus === "accepted" });
     }
     if (!rowsOk) { bump(dupRow ? "dupWordIdInRows" : "badRows", classId, sigKey); continue; }
     if (rows.length > tq) { bump("rowsGtTotal", classId, sigKey); continue; }
@@ -114,8 +122,10 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
       const k = a.listId + "|" + r.wordId;
       let w = words.get(k);
       if (!w) { w = { fc: 0, lf: null, lc: null, lp: null, rlt: null }; words.set(k, w); }
-      if (r.ok) { w.lc = a.t; if (passing) w.lp = a.t; }
-      else { w.fc++; w.lf = a.t; }
+      // r65: fc/lf from GRADING-TIME truth (ok); lc/lp from EFFECTIVE truth (okEff — accept mints both);
+      // a graded-wrong-later-accepted row therefore counts the historical fail AND the minted correctness
+      if (!r.ok) { w.fc++; w.lf = a.t; }
+      if (r.okEff ?? r.ok) { w.lc = a.t; if (passing) w.lp = a.t; }
       if (a.type === "review") w.rlt = a.t;
     }
   }

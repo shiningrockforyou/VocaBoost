@@ -4,6 +4,15 @@
 // B3/B4 consume M1 bound to DA bound to M0. Every hop hash-verified; nothing optional.
 import { readFileSync, existsSync, openSync, readSync, closeSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { pathToFileURL } from "node:url";
+
+// r65 [Codex r64 A6]: ONE artifact root — DEEPFIX_AUDIT_ROOT redirects every baseline/ledger/run path
+// (the emulator lap runs in an ISOLATED root and can never touch the shared forensic chain).
+export function auditRoot() {
+  const env = process.env.DEEPFIX_AUDIT_ROOT;
+  if (env) return pathToFileURL(env.replace(/\\/g, "/").replace(/\/?$/, "/"));
+  return new URL("../../audit/deepfix/trackB_baselines/", import.meta.url);
+}
 
 export function sha256File(path) { return createHash("sha256").update(readFileSync(path)).digest("hex"); }
 
@@ -18,19 +27,23 @@ function validateManifestCommon(manifest) {
   if (w > Date.now() + CLOCK_SKEW_MS) throw new Error(`manifest watermark ${new Date(w).toISOString()} is in the FUTURE — false-PASS hazard [r62p]`);
 }
 
-// r63 A2: THE PER-FIELD POST-FLIP EXEMPTION — a doc-wide skip let one fresh stamp hide a stale/corrupt
-// UNTOUCHED field (final-gate false green). A mismatched field is exempt ONLY if that field itself proves
-// live ownership: its actual value is a timestamp ≥ flipTs — except reviewFailCount (a counter), which
-// moves only inside a fail-stamp txn, so its exemption rides on reviewLastFailedAt ≥ flipTs. Corrupt-typed
-// values are NEVER exempt.
+// r63/r64 A2+A1: THE PER-FIELD POST-FLIP EXEMPTION — a doc-wide skip let one fresh stamp hide a stale/
+// corrupt UNTOUCHED field. A mismatched TIMESTAMP field is exempt ONLY if that field itself proves live
+// ownership (its actual value ≥ flipTs — last-write semantics make the flip-boundary expectation
+// legitimately superseded). **reviewFailCount is NEVER exempt here [r64 — Codex A1]: a counter INCREMENTS;
+// a fresh reviewLastFailedAt proves fc was TOUCHED post-flip, not that its pre-increment base was correct
+// (an omitted pre-flip tail survives every post-flip increment). fc is verified by the THROUGH-CUTOFF law
+// instead: expected = a SECOND replay at a captured cutoff (which includes post-flip attempts), compared
+// exactly — see B4 --postFlip.** Corrupt-typed values are NEVER exempt.
 export function isFieldLiveExempt(field, cur, flipTs) {
   if (!cur || !flipTs) return false;
-  if (field === "reviewFailCount") {
-    const lf = cur.reviewLastFailedAt?.toMillis?.();
-    return typeof lf === "number" && lf >= flipTs;
-  }
+  if (field === "reviewFailCount") return false; // cumulative — through-cutoff law only [r64]
   const ms = cur[field]?.toMillis?.();
-  return typeof ms === "number" && ms >= flipTs;
+  if (typeof ms !== "number" || ms < flipTs) return false;
+  // r64 sanity bound: a rogue FUTURE-dated stamp must not self-exempt — event fields ≤ now+5min;
+  // reviewRestingUntil is legitimately future (graduation+21d) so its bound is flip+35d
+  const cap = field === "reviewRestingUntil" ? flipTs + 35 * 86400e3 : Date.now() + 300e3;
+  return ms <= cap;
 }
 
 // r62p [panel D2]: THE rosterAdded LAW — a live uid is rosterAdded ONLY while covered by NEITHER the
@@ -72,11 +85,12 @@ export function loadVerifiedBaselineIndexed(manifestPath, { requireMode = null }
     let nl = buf.indexOf(0x0a, pos);
     if (nl === -1) nl = buf.length;
     if (nl > pos) {
-      const head = buf.toString("utf-8", pos, Math.min(pos + 256, nl));
-      const m = head.match(/^\{"uid":"([^"]+)"/);
-      const uid = m ? m[1] : JSON.parse(buf.toString("utf-8", pos, nl)).uid;
-      if (index.has(uid)) throw new Error(`duplicate uid row in baseline: ${uid}`);
-      index.set(uid, [pos, nl - pos]);
+      // r64 [Codex B2]: EAGER envelope validation — a malformed row must die at load, not lurk behind a
+      // departed uid that keys() enumerates but get() never fetches (transient parse; nothing retained)
+      const r = JSON.parse(buf.toString("utf-8", pos, nl));
+      validateRowShape(r);
+      if (index.has(r.uid)) throw new Error(`duplicate uid row in baseline: ${r.uid}`);
+      index.set(r.uid, [pos, nl - pos]);
     }
     pos = nl + 1;
   }
@@ -124,7 +138,8 @@ export function loadVerifiedBaseline(manifestPath, { requireMode = null } = {}) 
 }
 
 // A delta LAYER = {dir} containing: delta-auth.json (B4-emitted, binds to the ORIGINAL manifest) +
-// b1-manifest-delta.json (the fresh-watermark B1 --uids artifacts).
+// b1-manifest-delta.json (the fresh-watermark B1 --deltaAuth artifacts — parent-hash-stamped [r64: the
+// --uids path is deleted]).
 export function loadDeltaLayer(dir, originalManifestSha256, originalWatermark = 0) {
   const d = dir.replace(/\\/g, "/").replace(/\/?$/, "/"); // Windows path coverage [r62]
   const authPath = `${d}delta-auth.json`;

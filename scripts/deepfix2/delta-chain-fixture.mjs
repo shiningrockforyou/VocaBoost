@@ -321,15 +321,50 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   ok(out.written === 0 && writes.length === 0 && out.verifiedEqual === 1, "txn-core: fully-converged doc writes NOTHING");
 }
 
+// ===== STAGE 9b [r64 — Codex A1's cumulative counterexample]: the pre-flip tail survives every post-flip
+// increment; only the THROUGH-CUTOFF replay catches it =====
+{
+  const FLIP2 = 100 * DAY, CUT = 110 * DAY;
+  state.attempts.push(
+    mkAttempt("d1", "uD", 90 * DAY, "review", [["w9", false]], 0),
+    mkAttempt("d2", "uD", 95 * DAY, "review", [["w9", false]], 0),   // the pre-flip TAIL B3 never applied
+    mkAttempt("d3", "uD", 105 * DAY, "review", [["w9", false]], 0)); // the post-flip live fail (+1 on disk)
+  const atFlip = await compute("uD", FLIP2);
+  const atCut = await compute("uD", CUT);
+  const diskFc = 2; // B3 wrote 1 (missing d2's tail), the live writer incremented to 2, lf stamped ≥ flip
+  ok(atFlip.wordsOut["L1|w9"].fc === 2, "cumulative: flip-boundary expected fc = 2");
+  ok(atCut.wordsOut["L1|w9"].fc === 3, "cumulative: through-cutoff expected fc = 3");
+  ok(diskFc === atFlip.wordsOut["L1|w9"].fc, "cumulative: the OLD flip-boundary comparison sees a COINCIDENTAL match (the false green Codex named)");
+  ok(diskFc !== atCut.wordsOut["L1|w9"].fc, "cumulative: the r64 through-cutoff law CATCHES the deficit (2 ≠ 3)");
+}
+// ===== STAGE 9c [r65 — THE ADJUDICATION LAW, Codex r64 A2]: fails are grading-time HISTORY; acceptance
+// mints correctness/proof; rejected/unknown statuses change NOTHING =====
+{
+  state.attempts.push({ id: "e1", data: { studentId: "uE", classId: "cls1", listId: "L1", sessionType: "review",
+    submittedAt: TS(96 * DAY), graded: true, score: 0, totalQuestions: 2, dayNumber: 1,
+    answers: [
+      { wordId: "w7", isCorrect: false, challengeStatus: "accepted", challengeReviewedAt: TS(105 * DAY) },
+      { wordId: "w8", isCorrect: false, challengeStatus: "rejected", challengeReviewedAt: TS(105 * DAY) },
+    ] } });
+  const e = await compute("uE", 120 * DAY);
+  const w7 = e.wordsOut["L1|w7"], w8 = e.wordsOut["L1|w8"];
+  ok(w7.fc === 1 && w7.lf === 96 * DAY, "adjudication law: the ACCEPTED row's historical fail is KEPT (fc/lf grading-time)");
+  ok(w7.lc === 96 * DAY, "adjudication law: acceptance mints correctness (lc via okEff)");
+  ok(w7.lp === null, "adjudication law: no proof mint on a failing test (pass-gated unchanged)");
+  ok(w8.fc === 1 && w8.lc === null, "adjudication law: a REJECTED challenge changes NOTHING");
+}
+
 // ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====
 {
   const FLIP = 200 * DAY;
   ok(isFieldLiveExempt("reviewLastCorrectAt", { reviewLastCorrectAt: TS(FLIP + 1) }, FLIP) === true, "A2: field with its OWN fresh stamp is exempt");
   ok(isFieldLiveExempt("reviewLastCorrectAt", { reviewLastCorrectAt: TS(FLIP - 1) }, FLIP) === false, "A2: stale field is NOT exempt");
-  ok(isFieldLiveExempt("reviewFailCount", { reviewLastCorrectAt: TS(FLIP + 1) }, FLIP) === false, "A2 COUNTEREXAMPLE: a fresh UNRELATED stamp does NOT exempt fc (the doc-wide false green is dead)");
-  ok(isFieldLiveExempt("reviewFailCount", { reviewLastFailedAt: TS(FLIP + 1) }, FLIP) === true, "A2: fc exempt only via its own txn partner lf");
+  ok(isFieldLiveExempt("reviewFailCount", { reviewLastCorrectAt: TS(FLIP + 1) }, FLIP) === false, "A2 COUNTEREXAMPLE: a fresh UNRELATED stamp does NOT exempt fc");
+  ok(isFieldLiveExempt("reviewFailCount", { reviewLastFailedAt: TS(FLIP + 1) }, FLIP) === false, "r64 A1: fc is NEVER timestamp-exempt — an increment preserves a pre-flip deficit (through-cutoff law only)");
   ok(isFieldLiveExempt("reviewRestingUntil", { reviewRestingUntil: TS(FLIP + 21 * DAY) }, FLIP) === true, "A2: live graduation rru exempt");
   ok(isFieldLiveExempt("reviewRestingUntil", { reviewRestingUntil: TS(FLIP - 1) }, FLIP) === false, "A2: stale rru is a diff");
+  ok(isFieldLiveExempt("reviewRestingUntil", { reviewRestingUntil: TS(FLIP + 40 * DAY) }, FLIP) === false, "r64: rogue far-future rru NOT exempt (35d cap)");
+  ok(isFieldLiveExempt("reviewLastCorrectAt", { reviewLastCorrectAt: TS(Date.now() + 3600e3) }, FLIP) === false, "r64: rogue future-dated event stamp NOT self-exempting");
 }
 {
   const fakeL = w => ({ base: { manifest: { watermark: w } } });

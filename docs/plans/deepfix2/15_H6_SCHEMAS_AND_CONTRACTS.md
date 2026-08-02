@@ -13,7 +13,7 @@
 
 | field | type | writer | law |
 |---|---|---|---|
-| `reviewFailCount` | int ≥0 | SERVER (attempt txn + backfill) | +1 per wrong-or-blank presented word, ANY graded test (R2-17/41); reset-epoch-scoped |
+| `reviewFailCount` | int ≥0 | SERVER (attempt txn + backfill) | +1 per wrong-or-blank presented word, ANY graded test (R2-17/41); reset-epoch-scoped. **COMPLETE-ROWS LAW [r64]: the post-flip attempt writer records ONE answers row per PRESENTED word — a blank is an explicit `{wordId, isCorrect:false, blank:true}` row, never an absent row — so replay-through-cutoff (the final B4's fc verification) is exact without consulting presentation records; pre-flip attempts keep the published blank-undercount posture** |
 | `reviewLastFailedAt` | Timestamp | SERVER | any graded test (R2-41) |
 | `reviewLastCorrectAt` | Timestamp | SERVER | any correct answer, any graded test — clears PRIORITY (R2-29/41) |
 | `reviewLastProvenAt` | Timestamp | SERVER | correct on a PASSING test (any type, R2-41b); accepted challenge per R2-10 once A2-activated |
@@ -172,7 +172,15 @@ garbage at worst — physically TTL-cleaned via `createdAt` (async), never load-
 
 The challenge-accept txn re-reads `reviewRestingUntil` INSIDE the txn: resting ⇒ grade/score/answers fix ONLY
 (no status write; the R2-10 label stamp, once active, is likewise skipped on resting words); not resting ⇒ the
-full accept path. Ordering with graduation is transactional by construction (both read/write inside their own
+full accept path. **THE ADJUDICATION LAW [r65 — Codex r64 A2's reproduced false-green]: adjudication NEVER
+rewrites the row's `isCorrect` in place — grading history is immutable; acceptance sets
+`challengeStatus:"accepted"` (+`challengeReviewedAt`) and consumers derive effective-correct =
+`isCorrect ∨ accepted`. Label semantics: `reviewFailCount`/`reviewLastFailedAt` replay from GRADING-TIME
+truth (the historical fail stands — fails are history, R2-41 spirit); `reviewLastCorrectAt`/
+`reviewLastProvenAt` follow EFFECTIVE truth (acceptance mints correctness, and proof on a passing test).
+The challenge-status enum is CLOSED: pending | accepted | rejected — rejected/unknown values change
+NOTHING anywhere (the B1 replay lib implements this verbatim; B4's final gate has NO whole-word
+adjudication exemption).** Ordering with graduation is transactional by construction (both read/write inside their own
 txns against server truth — R2-10 condition (iii)).
 
 ## 6c. `ops_metrics/{metricId}` — the server-only operational sink [r55]
@@ -195,7 +203,12 @@ monitoring expects ZERO new quarantines — any occurrence is an ops_metrics sig
 ## 7. `system_config/review_v2` (NEW top-level)
 
 `{enabled:false, threshold:92, queueSize:60, testSize:30, configVersion:1, minClientVersion,
-rehearsalClassIds:[]}` — dark-deployed `enabled:false` (R2-31); David's fireadmin write flips `enabled` ONLY.
+rehearsalClassIds:[], firstEnabledAt:null}` — dark-deployed `enabled:false` (R2-31). **[PROPOSED r65 — pending David, with the 14_ §4 custody clause]: the FIRST activation is ONE audited txn writing `{enabled:true, firstEnabledAt:serverTimestamp}` TOGETHER — `firstEnabledAt` is written IFF ABSENT (a re-enable can never move the era boundary) and never cleared; every later write touches `enabled` only. **THE STAMPING PREDICATE [r65p — the marker law must coexist with the 25WT/shadow rehearsal]: live label writers stamp iff `firstEnabledAt` is set ∨ the class ∈ `rehearsalClassIds` — rehearsal classes stamp while globally dark BY DESIGN (that is what the rehearsal certifies); the 14_ §4 'zero live writers' dark-window law therefore reads 'zero live writers OUTSIDE rehearsalClassIds', and the shadow audit's battery-A (B3-on-shadow) runs BEFORE shadow ids enter `rehearsalClassIds` (ordering pinned in 16_).** **`firstEnabledAt` [r64 — THE DURABLE FLIPPED-ONCE MARKER, panel N2/N3]: written
+(server timestamp) in the SAME audited txn as the first `enabled:true`, NEVER cleared afterward — the kill
+switch clears `enabled` only. It is the ERA BOUNDARY for the six label fields: live label writers stamp ONLY
+when it is set (the dark window has ZERO live label writers — B3 owns the fields exclusively); B3 FATALs
+whenever it exists (a kill-switch OFF window can never re-admit the backfill writer); R2-32's OFF-stamping
+law governs post-activation windows only (its ratified context).**
 **`rehearsalClassIds` [stage-3 mechanism, David-granted 2026-08-02 — Codex-verify next round]: the server
 resolver treats a class in this list as gate-ON even while globally dark — the ONLY way 25WT rehearses
 ON-behavior with zero 26SM exposure; 26SM class ids are NEVER placed here; the list is emptied before the
