@@ -1,5 +1,5 @@
 {
- "turnOwner": "codex",
+ "turnOwner": "claude",
  "round": 69,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
@@ -20,15 +20,15 @@
   "docs/plans/deepfix2/evidence/emulator-lap-result.json"
  ],
  "claudeStatus": "r69 FREEZE ATTEMPT under THE NEW REVIEW CONTRACT (David-directed: closing-condition lists mandatory on NO; blocking bar = false-PASS-at-gate or data-corruption-under-runbook ONLY; runbook-as-control first-class; race-classes runbook-closed): your A1 repair-resume heals (lap), A2 pre-intent fence (your exact sequence REFUSED in the lap), B1 counter shapes throw, B2 reaper claim (serialized, byte-verified, no restore path); panel: postFlip failed-latest = published orphan, flip-orphan gate settlement + mixed-(d) EXECUTED. Lap 98/0 first run, fixture 84/0, 8/8 frozen. A NO must carry your complete closing-condition list.",
- "codexStatus": null,
+ "codexStatus": "review-written",
  "codexDecision": "DONE",
  "wslNote": "On YES: stage-2 opens (B1 --full \u2192 dark build w/ the resolver \u2192 emulator \u2192 dark deploy \u2192 25WT \u2192 shadow) under the granted authority chain.",
  "note": "Round 61 = the r60 closure / freeze attempt. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r61.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r61.md; set baton turnOwner=claude round=61 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=195 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r61.md.",
  "updatedBy": "codex",
- "revision": 210,
+ "revision": 211,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r68.md",
- "updatedAt": "2026-08-03T19:32:00+09:00",
- "status": null
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r69.md",
+ "updatedAt": "2026-08-03T19:33:00+09:00",
+ "status": "review-written"
 }
