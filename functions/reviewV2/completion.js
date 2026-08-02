@@ -309,6 +309,7 @@ async function completeDay(db, params) {
 
     // ---- EVIDENCE VERIFICATION (in-txn server truth) [r70 C1] ------------
     let consumed = null;
+    let consumedIsEngine = false; // [r76 ROW 1a] THE discriminator, outer-scoped
     let consumedPresentation = null;
     let consumedQueue = null;
     let legacyEvidence = false; // published boundary flag (flip-week legs)
@@ -362,7 +363,7 @@ async function completeDay(db, params) {
       // attempts never did. An epoch-carrying (engine) consumed attempt
       // REQUIRES its claimed presentation + canonical queue binding [r72
       // C1]; only an epoch-less attempt takes the published legacy leg.
-      const consumedIsEngine = consumed.resetEpoch !== undefined && consumed.resetEpoch !== null;
+      consumedIsEngine = consumed.resetEpoch !== undefined && consumed.resetEpoch !== null;
       if (consumedIsEngine &&
           (typeof consumed.presentationId !== "string" || consumed.presentationId.length === 0)) {
         return {status: "no_evidence", reason: "engine review attempt lacks presentation"};
@@ -483,6 +484,12 @@ async function completeDay(db, params) {
           return {status: "no_evidence", reason: "impossible_record (new test passed below threshold)"};
         }
       } else {
+        // [r76 ROW 2b] THE LEGACY NEW-TEST LEG (epoch-less), published in
+        // 17_ §6: identity/day/pass + range ONLY — no row/score arithmetic,
+        // no posture requirement. It mints NO privilege (graduation derives
+        // solely from the consumed REVIEW half; the twi delta is clamped to
+        // the canonical list size), so arithmetic here would add refusal
+        // risk with zero authority benefit.
         legacyEvidence = true;
       }
     }
@@ -499,12 +506,23 @@ async function completeDay(db, params) {
     let governingConfigVersion;
     if (consumed !== null) {
       const gp = consumed.gatePosture;
-      // [r72 C1] the attempt-time posture governs only when COMPLETE —
-      // effectiveEnabled boolean + integer configVersion + integer threshold
-      // in range; anything less demotes to the PUBLISHED legacy rule (never
-      // a silent per-field substitution).
-      if (gp && typeof gp.effectiveEnabled === "boolean" && Number.isInteger(gp.configVersion) &&
-          Number.isInteger(gp.threshold) && gp.threshold >= 1 && gp.threshold <= 100) {
+      // THE COMPLETE FROZEN POSTURE SHAPE (15_ §4): boolean effectiveEnabled +
+      // integer configVersion ≥ 1 + integer threshold 1-100 + non-empty source.
+      const gpComplete = Boolean(gp) && typeof gp.effectiveEnabled === "boolean" &&
+        Number.isInteger(gp.configVersion) && gp.configVersion >= 1 &&
+        Number.isInteger(gp.threshold) && gp.threshold >= 1 && gp.threshold <= 100 &&
+        typeof gp.source === "string" && gp.source.length > 0;
+      // [r76 ROW 1b — Codex r75 #1: this fence FAILS CLOSED for engine
+      // evidence, using the SAME `resetEpoch` discriminator as the
+      // presentation requirement. An epoch-carrying attempt whose posture is
+      // missing/malformed is an IMPOSSIBLE engine record — refuse it; never
+      // launder it into privilege under a different (completion-time)
+      // posture. Only epoch-LESS (legacy) evidence may take the published
+      // completion_legacy demotion (17_ §6).]
+      if (consumedIsEngine && !gpComplete) {
+        return {status: "no_evidence", reason: "impossible_record (consumed posture missing/malformed)"};
+      }
+      if (gpComplete) {
         postureSource = "attempt";
         governingGateOn = gp.effectiveEnabled === true;
         governingThreshold = gp.threshold;

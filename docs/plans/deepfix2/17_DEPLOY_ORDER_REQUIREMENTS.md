@@ -14,8 +14,13 @@ handoff-ephemeral.
 2b. **[r75 — Codex r74 #1] ENGINE WRITERS ARE FAIL-CLOSED UNDER ANY RESET LOCK**: a crashed reset
    leaves a partially-deleted graph, so `resetLockActive` refuses on ANY `resetInProgress` (no age
    window — reverted from r74's reader-side window); liveness comes ONLY from the next reset op's
-   stale-owner TAKEOVER (re-fence → cleanup → owner-clear), after which the engine serves. Fixtured as
-   the full sequence; the CS repair stays published in SUPPORT_RUNBOOK.
+   stale-owner TAKEOVER (re-fence → cleanup → owner-clear), after which the engine serves. FIXTURED AS
+   [r76, corrected per Codex r75 #3 — the prior "full sequence" claim overstated the assertions]: dirty
+   epoch-old artifacts are PLANTED in the simulated crash state, then the takeover is asserted to
+   (i) refuse service while the stale lock stands, (ii) re-fence to a HIGHER epoch, (iii) actually
+   DELETE the planted stale-epoch artifacts (a takeover that clears the lock but skips cleanup goes
+   RED), (iv) owner-clear, and only then (v) serve. The exhaustive nine-family cleanup count stays
+   carried by the ordinary-reset case. The CS repair stays published in SUPPORT_RUNBOOK.
 3. **H-A advance interlock + frozen-field consequences [r71 Opus; wording corrected r74 N-7]**: csd/twi
    single-line-of-advance is enforced by the mutual day-guards. The ENGINE side is fixtured (a
    legacy-advanced csd makes completeDay refuse — lap). The completeSession side is the SAME transactional
@@ -43,14 +48,34 @@ handoff-ephemeral.
    any positionGap emission during 25WT = stop-and-fixture trigger for the deferred end-to-end case). **SWEEP RESULT
    (2026-08-03, scripts/deepfix2/list-position-sweep.mjs): 46 lists — 42 clean, 4 empty, ZERO duplicated,
    ZERO gapped. The hazard class is empirically absent from production today.**
-6. **N-10 [r74]**: the completion evidence fence is TWO-legged by the ONE discriminator (`resetEpoch`
-   presence): engine legs REQUIRE claimed presentations + complete valid gatePosture; legacy (epoch-less)
-   legs keep the published boundary rules (rows/score validity still enforced; posture/presentation
-   requirements exempt — they predate the engine).
+6. **THE COMPLETION EVIDENCE FENCE — THE EXACT THREE-WAY RULE [N-10 r74; corrected + completed r76 per
+   Codex r75 #2, which caught this artifact contradicting the code].** ONE discriminator governs both
+   halves: **`resetEpoch` presence** (engine writers always stamp it; legacy attempts never did).
+   - **ENGINE legs (epoch present), BOTH halves**: REQUIRE the claimed server presentation (+ canonical
+     queue binding on the consumed half) AND the COMPLETE frozen gatePosture — `effectiveEnabled`
+     boolean, `configVersion` integer ≥ 1, `threshold` integer 1-100, `source` non-empty — AND the r48
+     row/score arithmetic. Anything less is an IMPOSSIBLE engine record ⇒ `no_evidence`; it is never
+     demoted into privilege under a completion-time posture.
+   - **LEGACY CONSUMED (review) half (epoch absent)**: the r48 row/score arithmetic IS enforced (safe —
+     the legacy writer persists `totalQuestions` FROM the rows it stores, `src/services/db.js`
+     submitTestAttempt, so `rows.length === totalQuestions` holds for real legacy review attempts);
+     posture and presentation are EXEMPT — the attempt demotes to `postureSource: "completion_legacy"`
+     and the completion-time source-class posture governs.
+   - **LEGACY NEW-TEST half (epoch absent)**: identity/day/pass + range ONLY — NO row/score arithmetic,
+     NO posture requirement. REASON (the decision, published): this half mints no privilege — graduation
+     derives solely from the consumed review half, and its `wordsIntroduced` contribution is clamped to
+     the canonical list size — so arithmetic here would add flip-week refusal risk with zero authority
+     benefit. Fixtured by the deliberately degenerate LEGACY DAY case (8 rows against
+     `totalQuestions: 10`), which exists to prove the leniency is intended.
 7. **N-9 [r74]**: `windowRunId` stamping rides the ≤60s registry cache, so a window open/roll has a
    bounded skew where in-flight writers still stamp the prior run (their rows quarantine — fail-closed,
    never misclassified). PROCEDURE (extends the existing generation law's schedule): after writing
    `shadow_registry/window`, WAIT > the 60s TTL before starting batteries; same on teardown.
 8. Standard set: functions + `audit/deepfix/task3/firestore.review_v2.rules` + indexes, all
    `enabled:false`, `rehearsalClassIds:[]`; the R2-48 flip choreography (14_ §4) governs activation;
-   hosting does NOT deploy in this train.
+   Firebase hosting is NOT used for the client — **NETLIFY AUTO-DEPLOYS the front-end on EVERY push to
+   main** (David 2026-08-03; verified — the program's 17 pushes each shipped the client, whose only src/
+   change was db.js's 7-line preimage copy, student-invisible). CONSEQUENCE: every push to main IS a
+   production client deploy; the DF2-51 client legs are built on a BRANCH and merge only at deliberate,
+   David-visible release points; WinClaude orders state the client-deploy consequence whenever src/
+   stages.

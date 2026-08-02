@@ -328,6 +328,16 @@ CASE("B — composer: frontier + universe from progress truth [C2]");
   // [r75 — Codex r74 #1] THE TAKEOVER SEQUENCE: a stale crashed lock keeps
   // the engine FAIL-CLOSED; the next reset op takes over (re-fence →
   // cleanup → owner-clear); only THEN does the engine serve.
+  // [r76 ROW 3a — Codex r75 #3] PLANT dirty epoch-0 artifacts in the crash
+  // state so the takeover's CLEANUP is discriminating: a regression that
+  // re-fences and clears the lock but skips cleanup must go RED here.
+  await db.doc("users/uW/compose_keys/staleclaimhash").set({
+    composeKeyCanonical: "stale-key-0001", presentationId: "gone",
+    fingerprint: {classId: "cW", listId: "LW", logicalDay: 1, resetEpoch: 0,
+      sessionType: "review", testType: "mcq", kind: "live", visitId: null},
+    createdAt: Timestamp.now(), resetEpoch: 0});
+  await db.doc("users/uW/day_completions/LW_d1_e0").set({
+    uid: "uW", listId: "LW", logicalDay: 1, resetEpoch: 0, completedAt: Timestamp.now()});
   await db.doc("users/uW/progress_meta/LW").set({resetEpoch: 0,
     resetInProgress: {opId: "crashed", at: TS(Date.now() - 11 * 60000)}});
   r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
@@ -336,6 +346,13 @@ CASE("B — composer: frontier + universe from progress truth [C2]");
   const tko = await call(foundation.resetProgress, "uW", {listId: "LW"});
   checkTrue("stale-owner takeover completes", tko.success === true && tko.resetV2 === true);
   const pmAfter = (await db.doc("users/uW/progress_meta/LW").get()).data();
+  checkTrue("takeover RE-FENCED to a higher epoch", pmAfter.resetEpoch > 0);
+  // [r76 ROW 3b] the cleanup actually ran on the takeover path:
+  checkTrue("takeover CLEANED the stale graph (counts)",
+      (tko.rv2Deleted?.compose_keys ?? 0) >= 1 && (tko.rv2Deleted?.day_completions ?? 0) >= 1);
+  check("planted stale artifacts are GONE",
+      [(await db.doc("users/uW/compose_keys/staleclaimhash").get()).exists,
+        (await db.doc("users/uW/day_completions/LW_d1_e0").get()).exists], [false, false]);
   check("takeover owner-cleared", pmAfter.resetInProgress ?? null, null);
   await seedProgress("uW", "cW", "LW", {csd: 7, twi: 8});
   r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
@@ -556,6 +573,23 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     rows: rows28, score: 93, presentationId: "cE_LE_d5_e0_p1"});
   r = await cd({consumedAttemptId: "attForeign"});
   check("foreign claim refused", [r.status, r.reason], ["no_evidence", "presentation claimed by another attempt"]);
+  // [r76 ROW 1c — Codex r75 #1] the CONSUMED engine leg's posture fence FAILS
+  // CLOSED (it used to demote silently to completion_legacy). Mutated on
+  // attE1 itself: any other attempt id would refuse earlier on the claim.
+  const GP_OK = {effectiveEnabled: true, threshold: 92, configVersion: 1, source: "lap-seed"};
+  await db.collection("attempts").doc("attE1").update({gatePosture: FieldValue.delete()});
+  r = await cd({});
+  check("engine consumed missing posture refused",
+      [r.status, String(r.reason).includes("consumed posture")], ["no_evidence", true]);
+  await db.collection("attempts").doc("attE1").update({gatePosture: {...GP_OK, configVersion: 0}});
+  r = await cd({});
+  check("engine consumed configVersion 0 refused",
+      [r.status, String(r.reason).includes("consumed posture")], ["no_evidence", true]);
+  await db.collection("attempts").doc("attE1").update({gatePosture: {effectiveEnabled: true, threshold: 92, configVersion: 1}});
+  r = await cd({});
+  check("engine consumed missing source refused",
+      [r.status, String(r.reason).includes("consumed posture")], ["no_evidence", true]);
+  await db.collection("attempts").doc("attE1").update({gatePosture: GP_OK}); // restore
 
   // [r73 C1.3] impossible NEW-test evidence refused.
   await seedAttempt("attNewBad", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "new",
@@ -730,7 +764,10 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     testType: "mcq", score: 95, passed: true, totalQuestions: 10,
     answers: Array.from({length: 8}, (_, i) => ({wordId: `w${50 + i}`, isCorrect: true})),
     newWordStartIndex: 50, newWordEndIndex: 59, submittedAt: Timestamp.now(),
-  }); // answered-rows(8) < totalQuestions(10), no epoch, no posture — legacy
+  }); // DELIBERATELY DEGENERATE [r76 ROW 2c]: answered-rows(8) < totalQuestions(10),
+  // no epoch, no posture. This is the RULE-PROVING case for 17_ §6's legacy
+  // NEW-test leg (identity/day/pass + range only) — it exists to prove the
+  // leniency is intended, not accidental.
   await db.collection("attempts").doc("attLegacyRev").set({
     studentId: "uE", classId: "cE", listId: "LE", studyDay: 10, sessionType: "review",
     testType: "mcq", score: 93, passed: true, totalQuestions: 30,

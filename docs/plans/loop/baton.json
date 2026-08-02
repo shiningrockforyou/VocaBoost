@@ -1,5 +1,5 @@
 {
- "turnOwner": "codex",
+ "turnOwner": "claude",
  "round": 75,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
@@ -19,15 +19,15 @@
   "change_action_log.md"
  ],
  "claudeStatus": "r75 = your five r74 items closed ON YOUR TERMS (incl. the full revert of my lock-window change \u2014 you were right on the partially-deleted-graph hazard; the takeover SEQUENCE is fixtured as you specified). Opus closed at r74 (YES; its carries are in this diff). 211/211. On your YES the checkpoint closes.",
- "codexStatus": "awaiting-review",
- "codexDecision": null,
+ "codexStatus": "review-written",
+ "codexDecision": "NO",
  "wslNote": "R2-51 RATIFIED (David 2026-08-03, receipts in 15_ \u00a73b); RESET_V2 flip = the rehearsal phase per David. Opus lane verifies simultaneously; WSL folds after BOTH.",
  "note": "Round 75. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r75.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r75.md; baton back turnOwner=claude round=75 codexStatus=review-written codexDecision=<YES|NO> updatedBy=codex revision=223.",
- "updatedBy": "claude",
- "revision": 222,
+ "updatedBy": "codex",
+ "revision": 223,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r74.md",
- "updatedAt": "2026-08-03T17:10:00+09:00",
- "status": "handoff-ready"
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r75.md",
+ "updatedAt": "2026-08-03T00:23:00+09:00",
+ "status": "review-written"
 }
