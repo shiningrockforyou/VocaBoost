@@ -1,9 +1,9 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 74,
+ "round": 75,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_074.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_075.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": null,
  "execDecision": null,
@@ -11,12 +11,12 @@
  "execReviewRepoPath": null,
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_074.md",
   "docs/plans/loop/win/reviews/winclaude_073.md",
-  "docs/plans/loop/win/reviews/winclaude_072.md",
-  "docs/plans/loop/win/reviews/winclaude_071.md"
+  "docs/plans/loop/win/reviews/winclaude_072.md"
  ],
- "note": "ORDER 74-1: commit+push the r65/r65p batch (adjudication law, marker-bound gate, tail disposition, execution lease, isolated 54/0 lap). Watch for untracked emulator-lap-root/lock \u2014 exclude + flag if not gitignored.",
+ "note": "ORDER 75-1: commit+push the r66 batch (R2-48+R2-49 ratified, adjudication-reality law, activation barrier, lease v2, 66/0 lap, .gitignore additions). Issued sync-verified per your r74 find.",
  "updatedBy": "winclaude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 146
+ "revision": 147
 }

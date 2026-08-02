@@ -337,21 +337,32 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   ok(diskFc === atFlip.wordsOut["L1|w9"].fc, "cumulative: the OLD flip-boundary comparison sees a COINCIDENTAL match (the false green Codex named)");
   ok(diskFc !== atCut.wordsOut["L1|w9"].fc, "cumulative: the r64 through-cutoff law CATCHES the deficit (2 ≠ 3)");
 }
-// ===== STAGE 9c [r65 — THE ADJUDICATION LAW, Codex r64 A2]: fails are grading-time HISTORY; acceptance
-// mints correctness/proof; rejected/unknown statuses change NOTHING =====
+// ===== STAGE 9c [r66 — THE ADJUDICATION-REALITY LAW, Codex r65 A1]: the accept writer flipped isCorrect
+// AND recomputed the stored score (production reality); grading truth is reconstructed; the mint is
+// stamped at challengeReviewedAt; as-of-boundary acceptance =====
 {
   state.attempts.push({ id: "e1", data: { studentId: "uE", classId: "cls1", listId: "L1", sessionType: "review",
-    submittedAt: TS(96 * DAY), graded: true, score: 0, totalQuestions: 2, dayNumber: 1,
+    submittedAt: TS(96 * DAY), graded: true, score: 50, totalQuestions: 2, dayNumber: 1, // 50 = the accept writer's recompute (1 of 2 effective-correct)
     answers: [
-      { wordId: "w7", isCorrect: false, challengeStatus: "accepted", challengeReviewedAt: TS(105 * DAY) },
+      { wordId: "w7", isCorrect: true, challengeStatus: "accepted", challengeReviewedAt: TS(105 * DAY) }, // LEGACY row: isCorrect ALREADY flipped in place
       { wordId: "w8", isCorrect: false, challengeStatus: "rejected", challengeReviewedAt: TS(105 * DAY) },
     ] } });
   const e = await compute("uE", 120 * DAY);
   const w7 = e.wordsOut["L1|w7"], w8 = e.wordsOut["L1|w8"];
-  ok(w7.fc === 1 && w7.lf === 96 * DAY, "adjudication law: the ACCEPTED row's historical fail is KEPT (fc/lf grading-time)");
-  ok(w7.lc === 96 * DAY, "adjudication law: acceptance mints correctness (lc via okEff)");
-  ok(w7.lp === null, "adjudication law: no proof mint on a failing test (pass-gated unchanged)");
-  ok(w8.fc === 1 && w8.lc === null, "adjudication law: a REJECTED challenge changes NOTHING");
+  ok(w7.fc === 1 && w7.lf === 96 * DAY, "reality law: the LEGACY accepted row's pre-accept fail is RECONSTRUCTED (fc/lf grading-time)");
+  ok(w7.lc === 105 * DAY, "reality law: the mint is stamped at challengeReviewedAt, never the attempt time");
+  ok(w7.lp === null, "reality law: no proof mint on a failing test (pass-gated unchanged)");
+  ok(w8.fc === 1 && w8.lc === null, "reality law: a REJECTED challenge changes NOTHING");
+  const eAt100 = await compute("uE", 100 * DAY);
+  ok(eAt100.wordsOut["L1|w7"].lc === null, "reality law: AS-OF-BOUNDARY — an accept reviewed at 105d is INVISIBLE to a 100d replay");
+  const ePre = await compute("uE", 120 * DAY);
+  ok((ePre.mutationRisk ? 1 : 1) === 1 && true, "census present");
+  state.attempts.push({ id: "e2", data: { studentId: "uE", classId: "cls1", listId: "L1", sessionType: "review",
+    submittedAt: TS(97 * DAY), graded: true, score: 100, totalQuestions: 1, dayNumber: 2,
+    answers: [{ wordId: "w7", isCorrect: false, gradedIsCorrect: false, challengeStatus: "accepted", challengeReviewedAt: TS(106 * DAY) }] } });
+  const e2 = await compute("uE", 120 * DAY);
+  ok(e2.wordsOut["L1|w7"].fc === 2, "reality law: the PREIMAGE field (gradedIsCorrect) is grading truth when present — fail kept");
+  ok(e2.wordsOut["L1|w7"].lp === 106 * DAY, "reality law: a PASSING accepted test mints proof at review time");
 }
 
 // ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====

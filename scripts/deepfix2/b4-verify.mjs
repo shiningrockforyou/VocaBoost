@@ -19,7 +19,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder, auditRoot } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder, auditRoot, parseLedgerStrict } from "./b-baseline.mjs";
 
 const argv = process.argv.slice(2);
 const KNOWN = new Set(["classAllowlist", "manifest", "appliedDelta", "ignoreLedger", "postFlip", "allowSampleVerify"]);
@@ -61,38 +61,14 @@ try { assertLayerChainOrder(deltaLayers); } catch (e) { console.error(`FATAL: ${
     console.error("FATAL [r64 ledger]: --appliedDelta given but no ledger exists — layers cannot have been EXECUTE'd through B3 on this checkout (--ignoreLedger = forensics only)"); process.exit(2);
   }
   if (existsSync(ledgerPath) && args.ignoreLedger !== true) {
-    // r63/r64 STRICT: any invalid non-blank line FATAL; records keyed (runId, attempt) — a crashed resume's
-    // dangling intent is never hidden by an older completion; the LATEST attempt per runId must have a
-    // clean completion (earlier attempts = history)
-    const intents = new Map(); const applieds = new Map(); const have = new Set(deltaLayers.map(L => L.base.manifestSha256));
-    const latestAttempt = new Map();
-    const lines = readFileSync(ledgerPath, "utf-8").split("\n");
-    for (let i = 0; i < lines.length; i++) {
-      const ln = lines[i]; if (!ln.trim()) continue;
-      let e; try { e = JSON.parse(ln); } catch { console.error(`FATAL [r63 ledger]: malformed line ${i + 1}`); process.exit(2); }
-      if (e.probe !== "b3-intent" && e.probe !== "b3-applied") { console.error(`FATAL [r63 ledger]: unknown probe '${e.probe}' line ${i + 1}`); process.exit(2); }
-      if (e.version !== 1) { console.error(`FATAL [r64 ledger]: record version ${e.version} ≠ 1 at line ${i + 1}`); process.exit(2); }
-      if (!Number.isInteger(e.attempt)) { console.error(`FATAL [r64 ledger]: record lacks integer attempt at line ${i + 1}`); process.exit(2); }
-      if (e.originalManifestSha256 !== original.manifestSha256) continue;
-      const key = `${e.runId}#${e.attempt}`;
-      if (e.probe === "b3-intent") intents.set(key, e);
-      else {
-        if (typeof e.outcome !== "object" || e.outcome === null) { console.error(`FATAL [r64 ledger]: completion lacks outcome at line ${i + 1}`); process.exit(2); }
-        applieds.set(key, e);
-      }
-      latestAttempt.set(e.runId, Math.max(latestAttempt.get(e.runId) ?? -1, e.attempt));
-    }
-    const problems = [];
-    for (const [runId, att] of latestAttempt) {
-      const key = `${runId}#${att}`;
-      const done = applieds.get(key);
-      if (!done) { problems.push(`${runId} attempt ${att}: intent without completion (crash mid-run? resume it)`); continue; }
-      const o = done.outcome;
-      if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
-    }
-    const missing = [];
-    for (const [, e] of applieds) if (e.deltaManifestSha256 && !have.has(e.deltaManifestSha256)) missing.push(e.runId);
-    if (missing.length) problems.push(`EXECUTE'd delta layers not in --appliedDelta: ${[...new Set(missing)].join(", ")}`);
+    // r66: THE ONE STRICT REDUCER (shared with B3's repair scan — b-baseline.parseLedgerStrict)
+    let red;
+    try { red = parseLedgerStrict(readFileSync(ledgerPath, "utf-8"), original.manifestSha256); }
+    catch (e) { console.error(`FATAL [r63 ledger]: ${e.message}`); process.exit(2); }
+    const have = new Set(deltaLayers.map(L => L.base.manifestSha256));
+    const problems = [...red.problems];
+    const missing = [...red.appliedLayerShas].filter(sha => !have.has(sha));
+    if (missing.length) problems.push(`EXECUTE'd delta layers not in --appliedDelta: ${missing.length} layer(s)`);
     if (problems.length) { console.error(`FATAL [r63 ledger]:\n - ${problems.join("\n - ")}`); process.exit(2); }
   }
 }
@@ -188,10 +164,12 @@ for (const uid of uids) {
   //    their diffs BLOCK);
   //  - the comparison UNIVERSE runs THROUGH THE CUTOFF (a word first presented post-flip is replay-known:
   //    fc exact vs cutoff, timestamp expectations = flip-boundary value or null — never generic extras).
+  let flipRowsRef = null;
   if (POSTFLIP) {
     if (!src.row) { stats.uncoveredAtGate = (stats.uncoveredAtGate || 0) + 1; reportUncovered.push(uid); }
     const c = await computeStudentLabels(db, uid, CUTOFF, {});
     const flipRows = expected; // boundary=flip recompute (forced above)
+    flipRowsRef = flipRows;
     expected = {};
     for (const [k, cw] of Object.entries(c.wordsOut)) {
       const f = flipRows[k];
@@ -214,6 +192,9 @@ for (const uid of uids) {
     for (const [short, field] of Object.entries(FIELD_MAP)) {
       const exp = want[short]; // under POSTFLIP, fc is ALREADY the through-cutoff value (universe law above)
       const { v: act, corrupt } = readCur(cur, field);
+      // r66: a POST-FLIP-CREATED word (absent from the flip universe) with zero fails legitimately has NO
+      // fc field — the live writer only writes fc on a fail; expected 0 ≡ absent for those words ONLY
+      if (POSTFLIP && short === "fc" && exp === 0 && act === null && !corrupt && !flipRowsRef?.[k]) { continue; }
       if (corrupt) { stats.corruptTyped++; myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field, expected: exp, actual: "CORRUPT_TYPE" }); else truncated = true; continue; }
       const match = exp === null ? act === null : act === exp;
       if (!match) {
@@ -225,8 +206,17 @@ for (const uid of uids) {
         // live use re-stamps; mixed tail+post-flip fc cases intentionally still BLOCK).
         if (POSTFLIP && src.row) {
           const lay = src.row.words?.[k]?.[short] ?? null;
-          const layCmp = lay === null ? null : lay;
-          if ((layCmp ?? null) === (act ?? null)) { stats.preFlipTail = (stats.preFlipTail || 0) + 1; if (reportTail.length < 500) reportTail.push({ uid, wordId, field }); continue; }
+          // r66 [gate NEW-A + Codex A2 — value coincidence is NOT provenance]: tail additionally requires
+          // the FLIP-BOUNDARY expectation to have MOVED off the layer expectation (replay is deterministic,
+          // so movement can ONLY come from events in (layerWatermark, flip) — provenance by construction).
+          // A lost POST-flip stamp leaves flip ≡ layer ⇒ NOT tail ⇒ falls through to the fc fence/diff.
+          const flipVal = (POSTFLIP ? (flipRowsRef?.[k]?.[short] ?? null) : null);
+          const moved = (flipVal ?? null) !== (lay ?? null);
+          if (moved && (lay ?? null) === (act ?? null)) {
+            stats.preFlipTail = (stats.preFlipTail || 0) + 1;
+            if (reportTail.length < 500) reportTail.push({ uid, wordId, field }); else stats.preFlipTailTruncated = true;
+            continue;
+          }
         }
         if (POSTFLIP && short === "fc") {
           // concurrent-attempt fence: one fresh replay + re-read, then judge

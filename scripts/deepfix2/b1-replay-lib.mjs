@@ -82,18 +82,36 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
       if (!r || typeof r.wordId !== "string" || !r.wordId || typeof r.isCorrect !== "boolean") { rowsOk = false; break; }
       if (seenW.has(r.wordId)) { rowsOk = false; dupRow = true; break; }
       seenW.add(r.wordId);
-      // r65 ADJUDICATION LAW [Codex r64 A2 — a whole-word census re-created the doc-wide exemption]:
-      // adjudication NEVER rewrites grading history. fc/lf replay from isCorrect (the grading-time truth,
-      // in-place-immutable per H6 §6b); an ACCEPTED challenge mints correctness/proof (lc/lp) via okEff.
-      // rejected/unknown statuses change NOTHING.
-      rows.push({ wordId: r.wordId, ok: r.isCorrect, okEff: r.isCorrect || r.challengeStatus === "accepted" });
+      // r66 THE ADJUDICATION-REALITY LAW [Codex r65 A1 — the PRODUCTION accept writers mutate isCorrect in
+      // place (foundation.js:2600, db.js:2912), so grading-time truth must be RECOVERED, not assumed]:
+      //  - gradedIsCorrect (the dark-build preimage field, H6 §6b) is the grading truth when present;
+      //  - LEGACY accepted rows (no preimage): reconstructed as GRADED-WRONG [RATIFIED R2-49, David
+      //    2026-08-02 — an accept flipped it, so pre-accept was wrong in ~all cases; counted census];
+      //  - closed status enum: pending|accepted|rejected; anything else = counted + treated as rejected;
+      //  - okEff (acceptance minting) applies AS-OF the replay boundary: only when challengeReviewedAt is
+      //    KNOWN and < watermark (a post-boundary accept must not be visible in a boundary replay);
+      //  - accepted mint TIME = challengeReviewedAt (the live txn's stamp time), not the attempt time.
+      const st = r.challengeStatus;
+      const statusKnown = st === undefined || st === null || st === "pending" || st === "accepted" || st === "rejected";
+      if (!statusKnown) note("challengeStatusUnknownEnum");
+      const accepted = st === "accepted";
+      let gradedOk;
+      if (typeof r.gradedIsCorrect === "boolean") gradedOk = r.gradedIsCorrect;
+      else if (accepted) { gradedOk = false; note("legacyAcceptedReconstructed"); }
+      else gradedOk = r.isCorrect;
+      const rvAt = r.challengeReviewedAt?.toMillis?.() ?? (typeof r.challengeReviewedAt === "number" ? r.challengeReviewedAt : NaN);
+      const acceptedEffective = accepted && Number.isFinite(rvAt) && rvAt < watermark;
+      if (accepted && !Number.isFinite(rvAt)) note("acceptedNoTimestamp");
+      rows.push({ wordId: r.wordId, ok: gradedOk, okEff: gradedOk || acceptedEffective, mintT: acceptedEffective && !gradedOk ? rvAt : null, adjState: `${st ?? ""}|${Number.isFinite(rvAt) ? rvAt : ""}` });
     }
     if (!rowsOk) { bump(dupRow ? "dupWordIdInRows" : "badRows", classId, sigKey); continue; }
     if (rows.length > tq) { bump("rowsGtTotal", classId, sigKey); continue; }
-    const correct = rows.filter(r => r.ok).length;
-    if (rows.length === tq && Math.abs((correct / tq) * 100 - s) > 2) { bump("scoreRowsDisagree", classId, sigKey); continue; }
+    // r66: the stored score was RECOMPUTED by the accept writers from EFFECTIVE rows — the fence must
+    // compare like with like or every score-correcting acceptance excludes its whole attempt [Codex A1]
+    const correctEff = rows.filter(r => r.ok || (r.adjState ?? "").startsWith("accepted")).length;
+    if (rows.length === tq && Math.abs((correctEff / tq) * 100 - s) > 2) { bump("scoreRowsDisagree", classId, sigKey); continue; }
     const sig = `${classId}|${a.listId}|${a.dayNumber ?? a.studyDay}|${sType}|${t}`;
-    const content = createHash("sha256").update(s + "|" + tq + "|" + [...rows].sort((x, y) => x.wordId < y.wordId ? -1 : 1).map(r => r.wordId + ":" + r.ok).join(",")).digest("hex");
+    const content = createHash("sha256").update(s + "|" + tq + "|" + [...rows].sort((x, y) => x.wordId < y.wordId ? -1 : 1).map(r => r.wordId + ":" + r.ok + ":" + (r.adjState ?? "")).join(",")).digest("hex"); // r66: adjudication facts bind duplicate identity
     // r60: the mutation digest covers EVERY replay input — an in-place edit to score/rows/type/total/
     // teacherEdited/preOverride on an OLD attempt changes it, not only challenge metadata
     mut._digestRows.push(`R|${d.id}|${sig}|${content}|${a.teacherEdited === true ? "TE:" + (a.preOverride?.score ?? "") : ""}`);
@@ -122,10 +140,10 @@ export async function computeStudentLabels(db, uid, watermark, counters) {
       const k = a.listId + "|" + r.wordId;
       let w = words.get(k);
       if (!w) { w = { fc: 0, lf: null, lc: null, lp: null, rlt: null }; words.set(k, w); }
-      // r65: fc/lf from GRADING-TIME truth (ok); lc/lp from EFFECTIVE truth (okEff — accept mints both);
-      // a graded-wrong-later-accepted row therefore counts the historical fail AND the minted correctness
+      // r66: fc/lf from GRADING-TIME truth (ok); lc/lp from EFFECTIVE truth; an acceptance's mint is
+      // stamped at challengeReviewedAt (mintT), matching the live accept txn — never at the attempt time
       if (!r.ok) { w.fc++; w.lf = a.t; }
-      if (r.okEff ?? r.ok) { w.lc = a.t; if (passing) w.lp = a.t; }
+      if (r.okEff ?? r.ok) { const mt = r.mintT ?? a.t; if (w.lc === null || mt > w.lc) w.lc = mt; if (passing && (w.lp === null || mt > w.lp)) w.lp = mt; }
       if (a.type === "review") w.rlt = a.t;
     }
   }

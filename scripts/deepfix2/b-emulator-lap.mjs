@@ -20,7 +20,7 @@
 //           "NODE_PATH=/app/node_modules node scripts/deepfix2/b-emulator-lap.mjs"
 // Exit 0 = every case green; nonzero = the first red case.
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, readdirSync, appendFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -140,7 +140,7 @@ console.error("== CASE c: in-place adjudication lap ==");
   await a2.update({ answers: rows, score: 100 }); // digest changes; submittedAt stays pre-watermark
   const chain = existsSync(ledgerPath) ? [...readFileSync(ledgerPath, "utf-8").matchAll(/"deltaDir":"([^"]+)"/g)].map(m => m[1]).filter(Boolean) : [];
   const r4 = b4(chain.map(c => `--appliedDelta=${c}`));
-  ok(r4.code === 7 || r4.code === 6, `B4 actionable (6/7) on adjudication (got ${r4.code})`, r4);
+  ok(r4.code === 7, `B4 exit 7 (diffs+delta) on adjudication (got ${r4.code})`, r4); // r66: pinned (was 6||7)
   const d = driver("lapC", chain.map(c => `--appliedDelta=${c}`));
   ok(d.code === 0, `driver converges adjudication to PASS (got ${d.code})`);
 }
@@ -271,15 +271,21 @@ await resetCase();
     ok(r.code === 5, `A2: rejected challenge cannot hide corrupt fc (got ${r.code})`, r);
     await db.collection("users").doc("emA").collection("study_states").doc("w2").update({ reviewFailCount: 1 }); // heal
   }
-  // [A2/card] ACCEPTED adjudication post-flip: history kept, live mint exempt ⇒ PASS
+  // [A2/card, r66 REALITY SHAPE] legacy accepted: isCorrect FLIPPED in place + score RECOMPUTED (the
+  // production writers' actual behavior) — reconstruction keeps the fail; the mint is exempt ⇒ PASS
   {
     const a2ref = db.collection("attempts").doc("a2");
     const a2cur = (await a2ref.get()).data();
-    const rows = a2cur.answers.map(r => r.wordId === "w2" ? { ...r, challengeStatus: "accepted", challengeReviewedAt: TS(FLIP + 2000) } : r);
-    await a2ref.update({ answers: rows }); // isCorrect NOT flipped — grading history immutable [H6 §6b r65]
+    const rows = a2cur.answers.map(r => r.wordId === "w2" ? { ...r, isCorrect: true, challengeStatus: "accepted", challengeReviewedAt: TS(FLIP + 2000) } : r);
+    await a2ref.update({ answers: rows, score: 100 }); // the accept writer's recompute (2/2 effective)
     await db.collection("users").doc("emA").collection("study_states").doc("w2").set({ reviewLastCorrectAt: TS(FLIP + 2000) }, { merge: true }); // the live accept txn's mint
     const r = b4([`--postFlip=${FLIP}`]);
-    ok(r.code === 0, `A2: accepted adjudication — fail history kept, mint exempt, PASS (got ${r.code})`, r);
+    ok(r.code === 0, `A2-reality: legacy accepted (flipped+recomputed) — fail reconstructed, mint exempt, PASS (got ${r.code})`, r);
+    // Codex r65's exact corruption: fc 1→0 behind the acceptance ⇒ must BLOCK (movement conjunct: flip ≡ layer)
+    await db.collection("users").doc("emA").collection("study_states").doc("w2").update({ reviewFailCount: 0 });
+    const rC = b4([`--postFlip=${FLIP}`]);
+    ok(rC.code === 5, `A2-reality: corrupt fc behind the acceptance BLOCKS (got ${rC.code})`, rC);
+    await db.collection("users").doc("emA").collection("study_states").doc("w2").update({ reviewFailCount: 1 }); // heal
   }
   // [A4] a VALID post-flip new-word failure with exact live labels ⇒ PASS (through-cutoff universe)
   {
@@ -316,7 +322,74 @@ await resetCase();
   // the OLD report (appliedDeltas:[]) must be REFUSED as repair authority
   const rep = join(b4runs, reportFile);
   const rr = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=srRepair", "--execute", `--repairExtras=${rep}`]);
-  ok(rr.code === 2 && rr.out.includes("A3-reality"), `stale report REFUSED pre-write (got ${rr.code})`);
+  ok(rr.code === 2 && rr.out.includes("predates reality"), `stale report REFUSED pre-write (got ${rr.code})`, rr);
+}
+
+// ================= r66 CASES: tail provenance · lease liveness · plain guard · cutover · torn ledger =====
+console.error("== r66: TRUE TAIL vs LOST POST-FLIP STAMP ==");
+await resetCase();
+{
+  b1full(); b3exec("r66tail");
+  await attNow("tailA", "emB", "review", [["w3", true]], 100); // lands AFTER W0, BEFORE the flip = TRUE TAIL
+  const FLIP2 = Date.now() + 500;
+  await new Promise(r => setTimeout(r, 600));
+  await db.doc("system_config/review_v2").set({ enabled: true, firstEnabledAt: TS(FLIP2) });
+  const rT = b4([`--postFlip=${FLIP2}`]);
+  ok(rT.code === 0 && rT.out.includes('"preFlipTail"'), `true tail: classified + PASS (got ${rT.code})`, rT);
+  await attAbsT("lostB", "emB", Date.now(), "review", [["w1", false]], 0); // AFTER the flip, stamp LOST (no disk write)
+  const rL = b4([`--postFlip=${FLIP2}`]);
+  ok(rL.code === 5, `LOST post-flip stamp BLOCKS (movement conjunct: flip ≡ layer) (got ${rL.code})`, rL);
+}
+console.error("== r66: NEW-WORD matrix (correct / mixed+blank) ==");
+{
+  const FLIP2 = (await db.doc("system_config/review_v2").get()).data().firstEnabledAt.toMillis();
+  await db.collection("attempts").doc("lostB").delete(); // clear the blocker
+  await attAbsT("nwC", "emC", Date.now(), "review", [["w6", true]], 100); // post-flip correct-only new word
+  await db.collection("users").doc("emC").collection("study_states").doc("w6").set(
+    { reviewLastCorrectAt: TS(Date.now()), reviewLastProvenAt: TS(Date.now()), reviewLastTestedAt: TS(Date.now()) });
+  await attAbsT("nwM", "emC", Date.now(), "review", [["w7", true], ["w8", false], ["w9", false]], 33); // mixed + blank-style fail
+  await db.collection("users").doc("emC").collection("study_states").doc("w7").set({ reviewLastCorrectAt: TS(Date.now()), reviewLastTestedAt: TS(Date.now()) });
+  await db.collection("users").doc("emC").collection("study_states").doc("w8").set({ reviewFailCount: 1, reviewLastFailedAt: TS(Date.now()), reviewLastTestedAt: TS(Date.now()) });
+  await db.collection("users").doc("emC").collection("study_states").doc("w9").set({ reviewFailCount: 1, reviewLastFailedAt: TS(Date.now()), reviewLastTestedAt: TS(Date.now()) });
+  const r = b4([`--postFlip=${FLIP2}`]);
+  ok(r.code === 0, `new-word correct/mixed matrix PASSES with exact live labels (got ${r.code})`, r);
+}
+console.error("== r66: LIVE lease refusal + plain guard + cutover + torn ledger ==");
+await resetCase();
+{
+  b1full();
+  // LIVE-holder lease at 3h age: liveness must WIN (the r65 steal is dead)
+  const shaPrefix = createHash("sha256").update(readFileSync(freshManifest())).digest("hex").slice(0, 16);
+  const leaseDir = join(lapRoot, "b3-runs");
+  mkdirSync(leaseDir, { recursive: true });
+  const leasePath = join(leaseDir, `exec-${shaPrefix}.lease`);
+  writeFileSync(leasePath, JSON.stringify({ pid: process.pid, token: "live-holder", at: Date.now() - 3 * 3600e3 }));
+  const rSteal = b3exec("r66steal");
+  ok(rSteal.code === 2 && rSteal.out.includes("liveness wins"), `LIVE >2h lease REFUSED (got ${rSteal.code})`, rSteal);
+  rmSync(leasePath, { force: true });
+  const r0 = b3exec("r66base"); ok(r0.code === 0, `baseline B3 after lease cleanup (got ${r0.code})`, r0);
+  // plain guard: after a delta lap, a PLAIN execute must FATAL
+  await attNow("pgB", "emB", "review", [["w3", true]], 100);
+  const d = driver("r66pg"); ok(d.code === 0, `delta lap for the plain-guard setup (got ${d.code})`, d);
+  const rPlain = b3exec("r66plain");
+  ok(rPlain.code === 2 && rPlain.out.includes("plain-guard"), `PLAIN execute after EXECUTE'd layers FATALS (got ${rPlain.code})`, rPlain);
+  // cutover: marker lands between admission and phase 2 ⇒ the chunk txn barrier fires
+  const chain = existsSync(ledgerPath) ? [...readFileSync(ledgerPath, "utf-8").matchAll(/"deltaDir":"([^"]+)"/g)].map(m => m[1]).filter(Boolean) : [];
+  await attNow("cvB", "emB", "review", [["w1", true]], 100);
+  const r4c = b4(chain.map(c => `--appliedDelta=${c}`));
+  const layer = layerDirsOf(r4c.stdout)[0];
+  ok(!!layer, `cutover setup: layer materialized (b4 ${r4c.code})`, r4c);
+  if (layer) {
+    const r1c = run("b1-expected-labels.mjs", ["--full", `--classAllowlist=${allowPath}`, `--deltaAuth=${join(layer, "delta-auth.json")}`, `--outDir=${layer}`]);
+    ok(r1c.code === 0, `cutover setup: delta B1 (got ${r1c.code})`, r1c);
+    const rCut = run("b3-backfill-writer.mjs", [`--classAllowlist=${allowPath}`, `--manifest=${freshManifest()}`, "--runId=r66cut", `--deltaDir=${layer}`, "--execute"], { B3_TEST_SET_MARKER: "pre-phase2" });
+    ok(rCut.code === 2 && rCut.out.includes("barrier"), `CUTOVER: the flip mid-run aborts via the chunk-txn barrier (got ${rCut.code})`, rCut);
+    await db.doc("system_config/review_v2").delete(); // clear the injected marker for the torn case
+  }
+  // torn completion: a half-written ledger line must FATAL B4
+  appendFileSync(ledgerPath, '{"probe":"b3-applied","version":1,"runId":"torn","attempt":0,"orig');
+  const rTorn = b4(chain.map(c => `--appliedDelta=${c}`));
+  ok(rTorn.code === 2 && rTorn.out.includes("malformed"), `TORN completion record FATALS (got ${rTorn.code})`, rTorn);
 }
 
 // ================= VALID REPAIR [r65p — panel lap-lens: the mode-law resolver swap must EXECUTE] =========

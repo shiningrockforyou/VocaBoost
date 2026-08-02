@@ -38,7 +38,7 @@ import { createInterface } from "node:readline";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder, auditRoot } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder, auditRoot, parseLedgerStrict } from "./b-baseline.mjs";
 import { applyChunkInTxn, CHUNK_SIZE } from "./b3-txn-core.mjs";
 
 const KNOWN = new Set(["classAllowlist", "manifest", "runId", "execute", "allowSampleExecute", "deltaDir", "repairExtras", "appliedDelta", "resume"]);
@@ -54,7 +54,7 @@ const EXECUTE = args.execute === true;
 const RESUME = args.resume === true;
 // TEST-ONLY crash-injection hooks [r64 — the carded A4 crash-injection lap needs DETERMINISTIC crash
 // points; inert unless the env var is set; never set in any production runbook]
-const CRASH_AT = process.env.B3_CRASH_AT || null;
+const CRASH_AT = process.env.FIRESTORE_EMULATOR_HOST ? (process.env.B3_CRASH_AT || null) : null; // r66: hooks are emulator-only
 const crashPoint = name => { if (CRASH_AT === name) { console.error(`[TEST] B3_CRASH_AT=${name} — simulating crash`); process.exit(99); } };
 
 let allow;
@@ -160,21 +160,18 @@ if (extrasRepair) {
   // the ledger, and no intent may dangle (an in-flight/crashed EXECUTE). Runs TWICE: here (fast fail) and
   // again AFTER the execution lease is held (the scan-to-lease gap would otherwise re-admit the race).
   repairRealityScan = () => {
+    // r66 [Codex A3]: repair consumes B4's OWN strict reducer — version/probe/outcome strictness, the
+    // latest-attempt-clean law, dangling intents, unreported layers — one law, two consumers.
     const ledgerPath = new URL("applied-layers.jsonl", auditRoot());
-    const reported = new Set(theirs);
-    const intentSeen = new Map();
     if (!existsSync(ledgerPath) && args.appliedDelta.length) { console.error("FATAL [r65p]: repair claims applied layers but no ledger exists — same absence law as B4"); process.exit(2); }
-    if (existsSync(ledgerPath)) {
-      for (const ln of readFileSync(ledgerPath, "utf-8").split("\n")) {
-        if (!ln.trim()) continue; let e; try { e = JSON.parse(ln); } catch { console.error("FATAL [r64]: malformed ledger line"); process.exit(2); }
-        if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256 && e.deltaManifestSha256 && !reported.has(e.deltaManifestSha256)) {
-          console.error(`FATAL [r64 A3-reality]: EXECUTE'd layer ${e.runId} is not in the report's appliedDeltas — the report predates reality; re-run B4 with the full chain`); process.exit(2);
-        }
-        if (e.probe === "b3-intent" && e.originalManifestSha256 === original.manifestSha256) intentSeen.set(`${e.runId}#${e.attempt}`, true);
-        if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256) intentSeen.delete(`${e.runId}#${e.attempt}`);
-      }
-    }
-    if (intentSeen.size) { console.error(`FATAL [r65 B2]: dangling intent(s) in the ledger (${[...intentSeen.keys()].join(", ")}) — an EXECUTE is in flight or crashed; resolve before repair`); process.exit(2); }
+    if (!existsSync(ledgerPath)) return;
+    let red;
+    try { red = parseLedgerStrict(readFileSync(ledgerPath, "utf-8"), original.manifestSha256); }
+    catch (e) { console.error(`FATAL [r66 ledger]: ${e.message}`); process.exit(2); }
+    const reported = new Set(theirs);
+    const problems = [...red.problems];
+    for (const sha of red.appliedLayerShas) if (!reported.has(sha)) problems.push(`EXECUTE'd layer not in the report's appliedDeltas — the report predates reality; re-run B4 with the full chain`);
+    if (problems.length) { console.error(`FATAL [r66 repair-reality]:\n - ${problems.join("\n - ")}`); process.exit(2); }
   };
   repairRealityScan();
 }
@@ -203,6 +200,18 @@ if (args.deltaDir && deltaLayers.length) {
 console.error(`B3 v4 [${RUNID}]: ${matched.length} classes → ${uids.length} students; EXECUTE=${EXECUTE}; delta=${deltaLayers.length}; repairExtras=${extrasRepair ? extrasRepair.length : 0}`);
 
 const outDir = new URL("b3-runs/", auditRoot()); // r65: DEEPFIX_AUDIT_ROOT isolation
+// r63 A4: DURABLE ledger appends — write + fsync + close per record, so a host crash cannot leave applied
+// writes without ledger evidence past the intent record. HONEST BOUNDARY [r65p]: the parent DIRECTORY is
+// not fsynced — the very first append's file CREATION can be lost in a host crash (writes then exist with
+// no ledger and a plain B4 runs no ledger audit); the stage-2 crash-injection matrix covers this window,
+// and the mitigation is the intent record being the FIRST append of any run (loss ⇒ loss of the whole file
+// ⇒ the next EXECUTE recreates it; the value diff remains the backstop)
+const LEDGER_URL = new URL("applied-layers.jsonl", auditRoot());
+const ledgerAppend = obj => {
+  const fd = openSync(LEDGER_URL, "a");
+  writeSync(fd, JSON.stringify(obj) + "\n");
+  fsyncSync(fd); closeSync(fd);
+};
 mkdirSync(outDir, { recursive: true });
 const backupPath = new URL(`${RUNID}.preimage.jsonl`, outDir);
 const journalPath = new URL(`${RUNID}.phase2.journal`, outDir);
@@ -235,25 +244,43 @@ if (RESUME) {
 // r65 [Codex r64 B2]: ONE EXCLUSIVE EXECUTION LEASE per original baseline — concurrent delta/repair runs
 // would transact against different expected chains with last-write-wins docs. wx-created; stale (>2h)
 // leases are taken over once; released after the completion record publishes.
-let execLeaseUrl = null;
+let execLeaseUrl = null; let LEASE_TOKEN = null;
 if (EXECUTE) {
   execLeaseUrl = new URL(`exec-${original.manifestSha256.slice(0, 16)}.lease`, outDir);
-  const takeLease = () => { const fd = openSync(execLeaseUrl, "wx"); writeSync(fd, JSON.stringify({ pid: process.pid, runId: RUNID, at: Date.now() })); fsyncSync(fd); closeSync(fd); };
+  LEASE_TOKEN = `${process.pid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  const takeLease = () => { const fd = openSync(execLeaseUrl, "wx"); writeSync(fd, JSON.stringify({ pid: process.pid, token: LEASE_TOKEN, runId: RUNID, at: Date.now() })); fsyncSync(fd); closeSync(fd); };
   try { takeLease(); }
   catch (e) {
     if (e.code !== "EEXIST") { console.error(`FATAL: execution lease: ${e.message}`); process.exit(2); }
-    let stale = false;
-    try {
-      const L = JSON.parse(readFileSync(execLeaseUrl, "utf-8"));
-      stale = Date.now() - (L.at || 0) > 2 * 3600e3;
-      if (!stale && L.pid) { try { process.kill(L.pid, 0); } catch (ke) { if (ke.code === "ESRCH") stale = true; } } // dead holder = stale now [r65p]
-    } catch { stale = true; }
-    if (!stale) { console.error("FATAL [r65 B2]: another B3 EXECUTE holds the execution lease for this original — strict serialization"); process.exit(2); }
-    console.error("NOTE [r65 B2]: stale execution lease (>2h) — taking over");
-    rmSync(execLeaseUrl, { force: true });
-    try { takeLease(); } catch { console.error("FATAL: lease takeover raced"); process.exit(2); }
+    // r66 [panel D1/D2 — a LIVE holder was stealable at >2h, and rm+wx takeover was a TOCTOU]:
+    // LIVENESS WINS: an alive (or unverifiable-EPERM) holder is NEVER stolen, at any age.
+    // staleness = pid provably dead (ESRCH) ∨ (age>2h ∧ pid unverifiable/absent).
+    // takeover = CLAIM-BY-RENAME (exactly one renamer wins; the loser's ENOENT is the race signal).
+    let holder = null; let dead = false; let unverifiable = false;
+    try { holder = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); } catch { unverifiable = true; }
+    if (holder?.pid) { try { process.kill(holder.pid, 0); } catch (ke) { if (ke.code === "ESRCH") dead = true; else unverifiable = true; } }
+    else unverifiable = true;
+    const aged = holder ? Date.now() - (holder.at || 0) > 2 * 3600e3 : true;
+    const stale = dead || (aged && unverifiable);
+    if (!stale) { console.error("FATAL [r65 B2/r66]: another B3 EXECUTE holds the execution lease for this original (holder alive or unverifiable — liveness wins at ANY age)"); process.exit(2); }
+    const reaped = new URL(`exec-${original.manifestSha256.slice(0, 16)}.reaped-${process.pid}-${Date.now().toString(36)}`, outDir);
+    try { renameSync(execLeaseUrl, reaped); } catch { console.error("FATAL: lease takeover raced (another claimant renamed first)"); process.exit(2); }
+    console.error("NOTE [r66]: stale execution lease (dead/unverifiable holder) — claimed by rename");
+    try { takeLease(); } catch { console.error("FATAL: lease takeover raced at re-create"); process.exit(2); }
   }
   if (repairRealityScan) repairRealityScan(); // r65 B2: re-check under the lease — no scan-to-lease gap
+  // r66 [panel D3 — the M0-revert plain run]: an EXECUTE that is NEITHER delta NOR chain-resolved repair
+  // must find ZERO EXECUTE'd layers for this original in the ledger — plain mode resolves against M0 only
+  // and would revert every chain-correct label (loud only at the next B4; the harness called it illegal
+  // while the CLI accepted it).
+  if (!args.deltaDir && !extrasRepair && existsSync(LEDGER_URL)) {
+    for (const ln of readFileSync(LEDGER_URL, "utf-8").split("\n")) {
+      if (!ln.trim()) continue; let e; try { e = JSON.parse(ln); } catch { console.error("FATAL [r66]: malformed ledger line"); process.exit(2); }
+      if (e.probe === "b3-applied" && e.originalManifestSha256 === original.manifestSha256 && e.deltaManifestSha256) {
+        console.error(`FATAL [r66 plain-guard]: EXECUTE'd delta layer(s) exist for this original (${e.runId}) — a PLAIN run would revert chain-correct labels to M0; use --deltaDir or chain-resolved --repairExtras`); process.exit(2);
+      }
+    }
+  }
 }
 
 // ---- PHASE 0+1 (combined per student, FULLY STREAMED): resolve expected → read targets → stream
@@ -288,18 +315,6 @@ if (preStream) preStream.on("error", streamFatal("preimage"));
 const planHash = createHash("sha256");
 const swrite = (stream, line) => new Promise(r => { stream.write(line) ? r() : stream.once("drain", r); }); // backpressure [r62]
 const emitPlan = obj => { const line = JSON.stringify(obj) + "\n"; planHash.update(line); return swrite(planStream, line); };
-// r63 A4: DURABLE ledger appends — write + fsync + close per record, so a host crash cannot leave applied
-// writes without ledger evidence past the intent record. HONEST BOUNDARY [r65p]: the parent DIRECTORY is
-// not fsynced — the very first append's file CREATION can be lost in a host crash (writes then exist with
-// no ledger and a plain B4 runs no ledger audit); the stage-2 crash-injection matrix covers this window,
-// and the mitigation is the intent record being the FIRST append of any run (loss ⇒ loss of the whole file
-// ⇒ the next EXECUTE recreates it; the value diff remains the backstop)
-const LEDGER_URL = new URL("applied-layers.jsonl", auditRoot());
-const ledgerAppend = obj => {
-  const fd = openSync(LEDGER_URL, "a");
-  writeSync(fd, JSON.stringify(obj) + "\n");
-  fsyncSync(fd); closeSync(fd);
-};
 const readCurrent = (cur, field) => {
   if (!cur || !(field in cur)) return { v: null, corrupt: false };
   const raw = cur[field];
@@ -383,6 +398,12 @@ console.error(`phase 1 durable: ${stats.docsExamined} docs examined, ${stats.pla
 // ---- PHASE 2: chunked TRANSACTIONS per student (tombstone reads + target reads FIRST, then re-diffed
 // writes), streamed off the plan file, journaled ----
 if (EXECUTE) {
+  // TEST-ONLY [r66, emulator-gated like the crash hooks]: inject the FLIP between admission and phase 2 —
+  // the activation-barrier case needs the marker to appear after B3's guard read
+  if (process.env.FIRESTORE_EMULATOR_HOST && process.env.B3_TEST_SET_MARKER === "pre-phase2") {
+    await db.doc("system_config/review_v2").set({ enabled: true, firstEnabledAt: Timestamp.fromMillis(Date.now()) }, { merge: true });
+    console.error("[TEST] marker injected pre-phase2");
+  }
   // r63 A4: INTENT before the first write — a crash mid-phase-2 leaves intent-without-completion, which the
   // strict B4 ledger audit FATALs on (resume to a clean completion)
   crashPoint("pre-intent");
@@ -400,6 +421,10 @@ if (EXECUTE) {
     const ctxBase = {
       tombstoneQueries: [db.collection("users").doc(uid).collection("progress_meta"), db.collection("users").doc(uid).collection("list_progress")],
       targetRef: w => db.collection("users").doc(uid).collection("study_states").doc(w),
+      // r66 [Codex A3 — THE ACTIVATION BARRIER]: the config doc joins EVERY chunk txn's read set — the
+      // flip txn (writing firstEnabledAt) and in-flight B3 chunks serialize on FIRESTORE itself; a B3
+      // admitted pre-marker aborts at its next chunk, not after the flip.
+      configRef: db.doc("system_config/review_v2"),
       expectedEpochByList: entry.epochByList || {},
       Timestamp, FieldValue, readCurrent,
     };
@@ -416,6 +441,7 @@ if (EXECUTE) {
       } catch (e) {
         if (String(e.message).includes("RESET_LOCKED")) { lockedNow = true; break; }
         if (String(e.message).includes("EPOCH_DRIFT")) { driftedNow = true; break; }
+        if (String(e.message).includes("FLIP_DURING_RUN")) { console.error("FATAL [r66 barrier]: firstEnabledAt appeared MID-RUN — the flip landed; B3 stops NOW (chunks already committed are pre-flip by serialization)"); process.exit(2); }
         failures.push(`${uid}@chunk${i}:${e.code ?? e.message}`);
       }
     }
@@ -446,7 +472,10 @@ if (EXECUTE) ledgerAppend({ probe: "b3-applied", version: 1, runId: RUNID, origi
   students: uids.length, attempt: ATTEMPT, complete: true,
   outcome: { txnFailures: stats.txnFailures, skippedResetLocked: stats.skippedResetLocked, skippedEpochDrift: stats.skippedEpochDrift },
   at: new Date().toISOString() });
-if (execLeaseUrl) rmSync(execLeaseUrl, { force: true }); // release AFTER the completion record published
+if (execLeaseUrl) { // r66: CONDITIONAL release — never delete a replacement holder's lease
+  try { const cur = JSON.parse(readFileSync(execLeaseUrl, "utf-8")); if (cur.token === LEASE_TOKEN) rmSync(execLeaseUrl, { force: true }); }
+  catch {}
+}
 console.log(JSON.stringify({ runId: RUNID, execute: EXECUTE, ...stats }, null, 2));
 if (stats.txnFailures > 0) process.exit(4);
 if (stats.skippedResetLocked + stats.skippedEpochDrift > 0) process.exit(5); // r61/r62p: skipped students are VISIBLE failure, never silent green

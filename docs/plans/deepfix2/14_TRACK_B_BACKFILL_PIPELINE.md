@@ -103,13 +103,16 @@ recomputes expected at boundary=FLIP_TS (absorbing the pre-flip tail) and judges
 doc-wide exemption hid stale fields behind one fresh stamp]: a mismatched TIMESTAMP field is exempt only if
 ITS OWN value ≥ FLIP_TS (bounded-future sanity-capped); `reviewFailCount` (cumulative) is NEVER
 timestamp-exempt — it verifies against a SECOND replay through the run's captured cutoff (one re-read retry
-absorbs concurrent attempts); post-flip-ADJUDICATED words (the live challenge txn owns them) and
-post-flip RE-ENROLLED students (the advisory case below) are classified informational, never PASS-blocking;
-corrupt-typed values are never exempt. PASS = zero non-exempt NON-TAIL diffs; **THE TAIL DISPOSITION [r65p]: events between the last layer watermark and the flip have NO writer — the gate CLASSIFIES them (`preFlipTail`: disk ≡ the layer expectation while the flip-boundary expectation moved), publishes the counts + rows, and they heal through live use; the FINAL pre-flip micro-lap bounds the window to minutes; mixed tail+post-flip fc divergence still BLOCKS**] → the FINAL verdict published.**
+absorbs concurrent attempts); adjudication is handled by the ADJUDICATION-REALITY LAW (H6 §6b — grading truth recovered/reconstructed;
+as-of-boundary minting; NO word-level exemption exists: a rejected challenge cannot hide corruption, lap-
+proven); UNCOVERED students (any uid outside original ∪ chain) are LISTED (`uncoveredAtGate`) and their
+diffs BLOCK — there is no auto-advisory re-enrollment path [r66 — the r64 skip was a reproduced false
+green];
+corrupt-typed values are never exempt. PASS = zero non-exempt NON-TAIL diffs; **THE TAIL DISPOSITION [r65p]: events between the last layer watermark and the flip have NO writer — the gate CLASSIFIES them (`preFlipTail` REQUIRES BOTH [r66 — value coincidence is not provenance]: the flip-boundary expectation MOVED off the layer expectation (movement can only arise from events in the tail window — provenance by construction) AND disk ≡ the layer expectation; a lost POST-flip stamp leaves flip ≡ layer ⇒ NOT tail ⇒ BLOCKS. Honesty: lf/lc/rlt re-stamp through live use, but a pure-tail fc deficit persists as a PUBLISHED permanent undercount — advisory-priority impact only), publishes the counts + rows, and they heal through live use; the FINAL pre-flip micro-lap bounds the window to minutes; mixed tail+post-flip fc divergence still BLOCKS**] → the FINAL verdict published.**
 **DARK-WINDOW CUSTODY [RATIFIED — R2-48, David 2026-08-02]: the six label fields have exactly ONE writer per era. The live
 label writers stamp ONLY when `system_config/review_v2.firstEnabledAt` is SET (written in the same audited
 txn as the first `enabled:true`, NEVER cleared — the kill switch clears `enabled` only). Before that marker
-exists (the dark window) there are ZERO live label writers — B3 owns the fields exclusively, and R2-32's
+exists (the dark window) there are ZERO live label writers OUTSIDE `rehearsalClassIds` [the R2-48 carve-out] — B3 owns the real cohort's fields exclusively, and R2-32's
 "fail+correct write while OFF" governs POST-ACTIVATION kill-switch windows only (its ratified context).
 B3's post-flip guard checks the DURABLE marker (`firstEnabledAt` present ⇒ FATAL), so a kill-switch
 `enabled:false` can never re-admit B3 during an incident window.**

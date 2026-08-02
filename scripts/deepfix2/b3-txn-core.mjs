@@ -12,8 +12,13 @@
 export const CHUNK_SIZE = 300; // writes/txn — headroom under Firestore's 500-op limit
 
 export async function applyChunkInTxn(txn, ctx) {
-  const { tombstoneQueries, chunk, targetRef, expectedEpochByList, Timestamp, FieldValue, readCurrent } = ctx;
+  const { tombstoneQueries, chunk, targetRef, expectedEpochByList, Timestamp, FieldValue, readCurrent, configRef } = ctx;
   const out = { written: 0, fieldSets: 0, fieldDeletes: 0, verifiedEqual: 0 };
+  // ---- reads: THE ACTIVATION BARRIER [r66 — the flip txn and this chunk serialize on the config doc] ----
+  if (configRef) {
+    const cfg = await txn.get(configRef);
+    if (cfg.exists && (cfg.data().firstEnabledAt || cfg.data().enabled === true)) throw new Error("FLIP_DURING_RUN");
+  }
   // ---- reads: tombstones (lock + epoch) ----
   const epochNow = {};
   for (const q of tombstoneQueries) {

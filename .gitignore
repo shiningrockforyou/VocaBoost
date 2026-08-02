@@ -85,3 +85,5 @@ scripts/cs/backups_*/
 
 # DEEPFIX2 Track-B baselines (per-student uid-bearing label data — local only, never commit)
 audit/deepfix/trackB_baselines/
+audit/deepfix/emulator-lap-root/
+audit/deepfix/emulator-lap.lock

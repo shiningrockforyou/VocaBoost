@@ -179,8 +179,20 @@ rewrites the row's `isCorrect` in place — grading history is immutable; accept
 truth (the historical fail stands — fails are history, R2-41 spirit); `reviewLastCorrectAt`/
 `reviewLastProvenAt` follow EFFECTIVE truth (acceptance mints correctness, and proof on a passing test).
 The challenge-status enum is CLOSED: pending | accepted | rejected — rejected/unknown values change
-NOTHING anywhere (the B1 replay lib implements this verbatim; B4's final gate has NO whole-word
-adjudication exemption).** Ordering with graduation is transactional by construction (both read/write inside their own
+NOTHING anywhere (unknown strings are counted `challengeStatusUnknownEnum` and treated as rejected; B4's
+final gate has NO whole-word adjudication exemption). **THE GRADING-PREIMAGE SCHEMA [r66 — Codex r65 A1:
+today's PRODUCTION accept writers mutate `isCorrect` in place (foundation.js:2600 / db.js:2912), so
+grading truth must be PRESERVED going forward and RECONSTRUCTED backward]: (1) the dark-build accept
+writer copies the pre-accept value into `gradedIsCorrect` BEFORE flipping `isCorrect` (append-only
+adjudication truth; the replay lib prefers it whenever present); (2) LEGACY accepted rows (no preimage) —
+[RATIFIED — R2-49, David 2026-08-02]: reconstructed as GRADED-WRONG (an accept flipped it, so the pre-accept
+grade was wrong in ~all cases; the rare already-correct-challenged row over-counts fc by 1) with a
+PUBLISHED census (`legacyAcceptedReconstructed`); (3) acceptance applies AS-OF the replay boundary
+(`challengeReviewedAt < watermark`; missing timestamps counted + not effective); (4) the MINT time for
+lc/lp on an accepted row = `challengeReviewedAt` (matching the live txn), never the attempt time; (5)
+duplicate-attempt identity binds the adjudication facts (status + reviewedAt in the content hash); (6) the
+eligibility fence compares the stored score against EFFECTIVE-correct rows (the accept writers recompute
+the stored score from flipped rows — like must compare with like).** Ordering with graduation is transactional by construction (both read/write inside their own
 txns against server truth — R2-10 condition (iii)).
 
 ## 6c. `ops_metrics/{metricId}` — the server-only operational sink [r55]
@@ -205,8 +217,9 @@ monitoring expects ZERO new quarantines — any occurrence is an ops_metrics sig
 `{enabled:false, threshold:92, queueSize:60, testSize:30, configVersion:1, minClientVersion,
 rehearsalClassIds:[], firstEnabledAt:null}` — dark-deployed `enabled:false` (R2-31). **[RATIFIED — R2-48, David 2026-08-02]: the FIRST activation is ONE audited txn writing `{enabled:true, firstEnabledAt:serverTimestamp}` TOGETHER — `firstEnabledAt` is written IFF ABSENT (a re-enable can never move the era boundary) and never cleared; every later write touches `enabled` only. **THE STAMPING PREDICATE [r65p — the marker law must coexist with the 25WT/shadow rehearsal]: live label writers stamp iff `firstEnabledAt` is set ∨ the class ∈ `rehearsalClassIds` — rehearsal classes stamp while globally dark BY DESIGN (that is what the rehearsal certifies); the 14_ §4 'zero live writers' dark-window law therefore reads 'zero live writers OUTSIDE rehearsalClassIds', and the shadow audit's battery-A (B3-on-shadow) runs BEFORE shadow ids enter `rehearsalClassIds` (ordering pinned in 16_).** **`firstEnabledAt` [r64 — THE DURABLE FLIPPED-ONCE MARKER, panel N2/N3]: written
 (server timestamp) in the SAME audited txn as the first `enabled:true`, NEVER cleared afterward — the kill
-switch clears `enabled` only. It is the ERA BOUNDARY for the six label fields: live label writers stamp ONLY
-when it is set (the dark window has ZERO live label writers — B3 owns the fields exclusively); B3 FATALs
+switch clears `enabled` only. It is the ERA BOUNDARY for the six label fields per THE STAMPING PREDICATE below (marker ∨ rehearsal —
+the dark window has zero live writers OUTSIDE `rehearsalClassIds`; B3 owns the real cohort's fields
+exclusively); B3 FATALs
 whenever it exists (a kill-switch OFF window can never re-admit the backfill writer); R2-32's OFF-stamping
 law governs post-activation windows only (its ratified context).**
 **`rehearsalClassIds` [stage-3 mechanism, David-granted 2026-08-02 — Codex-verify next round]: the server

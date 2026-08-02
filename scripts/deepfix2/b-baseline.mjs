@@ -173,6 +173,38 @@ export function loadDeltaLayer(dir, originalManifestSha256, originalWatermark = 
   return { auth, base, authSha };
 }
 
+// r66 [Codex r65 A3]: THE ONE STRICT LEDGER REDUCER — B4's audit and B3's repair-reality scan consume the
+// SAME law: malformed/unknown/versionless/outcome-less lines THROW; per runId the LATEST attempt must have
+// a clean completion; applied layer shas are collected for coverage checks.
+export function parseLedgerStrict(text, originalManifestSha256) {
+  const intents = new Map(); const applieds = new Map(); const latestAttempt = new Map();
+  const lines = text.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const ln = lines[i]; if (!ln.trim()) continue;
+    let e; try { e = JSON.parse(ln); } catch { throw new Error(`malformed line ${i + 1}`); }
+    if (e.probe !== "b3-intent" && e.probe !== "b3-applied") throw new Error(`unknown probe '${e.probe}' line ${i + 1}`);
+    if (e.version !== 1) throw new Error(`record version ${e.version} ≠ 1 at line ${i + 1}`);
+    if (!Number.isInteger(e.attempt)) throw new Error(`record lacks integer attempt at line ${i + 1}`);
+    if (e.originalManifestSha256 !== originalManifestSha256) continue;
+    const key = `${e.runId}#${e.attempt}`;
+    if (e.probe === "b3-intent") intents.set(key, e);
+    else {
+      if (typeof e.outcome !== "object" || e.outcome === null) throw new Error(`completion lacks outcome at line ${i + 1}`);
+      applieds.set(key, e);
+    }
+    latestAttempt.set(e.runId, Math.max(latestAttempt.get(e.runId) ?? -1, e.attempt));
+  }
+  const problems = []; const appliedLayerShas = new Set();
+  for (const [runId, att] of latestAttempt) {
+    const done = applieds.get(`${runId}#${att}`);
+    if (!done) { problems.push(`${runId} attempt ${att}: intent without completion (crash mid-run? resume it)`); continue; }
+    const o = done.outcome;
+    if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId} attempt ${att}: latest completion has failures/skips — resume to a clean completion`);
+  }
+  for (const [, e] of applieds) if (e.deltaManifestSha256) appliedLayerShas.add(e.deltaManifestSha256);
+  return { problems, appliedLayerShas, intents, applieds, latestAttempt };
+}
+
 // r63 A6: THE CHAIN ORDER LAW — applied layers must be STRICTLY INCREASING in watermark (equal watermarks
 // would make per-uid resolution depend on CLI argument order via the resolver's >=).
 export function assertLayerChainOrder(deltaLayers) {
