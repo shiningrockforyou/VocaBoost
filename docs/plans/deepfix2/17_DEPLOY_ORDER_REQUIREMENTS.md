@@ -11,6 +11,11 @@ handoff-ephemeral.
 2. **THE grading_jobs (uid ASC, status ASC) composite index** — ADDED to firestore.indexes.json at r73
    (it did NOT previously exist; the §9 job-cancellation query and DF2-12's session-start pickup both
    need it). The index deploy precedes any RESET_V2 flip.
+2b. **[r75 — Codex r74 #1] ENGINE WRITERS ARE FAIL-CLOSED UNDER ANY RESET LOCK**: a crashed reset
+   leaves a partially-deleted graph, so `resetLockActive` refuses on ANY `resetInProgress` (no age
+   window — reverted from r74's reader-side window); liveness comes ONLY from the next reset op's
+   stale-owner TAKEOVER (re-fence → cleanup → owner-clear), after which the engine serves. Fixtured as
+   the full sequence; the CS repair stays published in SUPPORT_RUNBOOK.
 3. **H-A advance interlock + frozen-field consequences [r71 Opus; wording corrected r74 N-7]**: csd/twi
    single-line-of-advance is enforced by the mutual day-guards. The ENGINE side is fixtured (a
    legacy-advanced csd makes completeDay refuse — lap). The completeSession side is the SAME transactional
@@ -29,9 +34,13 @@ handoff-ephemeral.
    (gap-tolerant; 15_ §2 supersession recorded). The CS anchor law `twi = nwei + 1` is positional and
    exact only on gap-free lists. EVERY canonical load (session/new/rerun/completion) emits the
    `positionGap` ops WARNING on a gapped list — surfaced to CS, no refusal. DUPLICATE positions KEEP
-   refusing (`list_words_malformed`) — a duplicate breaks grading-key identity and is the real signature
-   of the deleteWord/addWord REINDEX BUG (db.js deleteWord renumbers, addWord appends at count — carded
-   in NEED_TO_FIX.md; the read-only position sweep runs pre-rehearsal, results filed with the deploy). **SWEEP RESULT
+   refusing (`list_words_malformed`) — a duplicate breaks grading-key identity and is the signature of
+   the addWord-after-delete COLLISION (mechanism corrected r75: deleteWord deletes WITHOUT reindexing and
+   decrements wordCount; addWord/addWordsBatch allocate from the decremented count ⇒ collision; a batch
+   add mints a RUN of duplicates; a delete with no add leaves a permanent GAP under warn-and-serve —
+   carded in NEED_TO_FIX.md; the read-only sweep's committed receipt lives in
+   docs/plans/deepfix2/evidence/list-position-sweep-receipt.json, re-run before 26SM meets the engine;
+   any positionGap emission during 25WT = stop-and-fixture trigger for the deferred end-to-end case). **SWEEP RESULT
    (2026-08-03, scripts/deepfix2/list-position-sweep.mjs): 46 lists — 42 clean, 4 empty, ZERO duplicated,
    ZERO gapped. The hazard class is empirically absent from production today.**
 6. **N-10 [r74]**: the completion evidence fence is TWO-legged by the ONE discriminator (`resetEpoch`

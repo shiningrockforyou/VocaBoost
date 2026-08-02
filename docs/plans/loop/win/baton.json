@@ -1,24 +1,24 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 86,
+ "round": 87,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_086.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_087.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": "review-written",
  "execDecision": "PUSHED",
- "execReview": "winclaude_085.md",
- "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_085.md",
+ "execReview": "winclaude_086.md",
+ "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_086.md",
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_086.md",
   "docs/plans/loop/win/reviews/winclaude_085.md",
-  "docs/plans/loop/win/reviews/winclaude_084.md",
   "docs/plans/loop/win/reviews/winclaude_083.md",
   "docs/plans/loop/win/reviews/winclaude_069.md"
  ],
- "note": "ORDER 86-1: commit+push the r74 ledger fold (lap 201/201; prod position sweep clean; stale-lock permanent-lockout closed). Review to winclaude_086.md, baton back with execDecision + SHA.",
+ "note": "ORDER 87-1: commit+push the r75 fold (lock fail-closed RESTORED per Codex \u2014 verify the composer revert diff; lap 211/211; sweep receipt committed). On Codex r75 YES the checkpoint closes and your dark-deploy series begins. Review to winclaude_087.md, baton back with execDecision + SHA.",
  "updatedBy": "claude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 163,
+ "revision": 165,
  "status": "order-ready"
 }

@@ -19,4 +19,13 @@ for (const l of lists.docs) {
   else if (gaps) { gap++; console.log(`GAP  ${l.id} (${words.size} words)`); }
   else clean++;
 }
-console.log(JSON.stringify({lists: lists.size, clean, gapped: gap, duplicated: dup, empty}));
+const summary = {lists: lists.size, clean, gapped: gap, duplicated: dup, empty};
+console.log(JSON.stringify(summary));
+// [r75 Codex-5] committed, reviewable receipt: project/time/counts/script-hash.
+const {writeFileSync} = await import("node:fs");
+const {createHash} = await import("node:crypto");
+const self = readFileSync(new URL(import.meta.url));
+writeFileSync(new URL("../../docs/plans/deepfix2/evidence/list-position-sweep-receipt.json", import.meta.url),
+    JSON.stringify({kind: "list-position-sweep", projectId: key.project_id,
+      at: new Date().toISOString(), ...summary,
+      scriptSha16: createHash("sha256").update(self).digest("hex").slice(0, 16)}, null, 2));

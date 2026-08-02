@@ -452,35 +452,38 @@ async function completeDay(db, params) {
         if ((newTestPresentation.serverClaim?.attemptDocId ?? null) !== newTestAttemptId) {
           return {status: "no_evidence", reason: "new-test presentation claimed by another attempt"};
         }
+        // [r75 — N-12/Codex-2 HOISTED: the fences below govern the ENGINE
+        // (epoch-carrying) leg ONLY. Legacy epoch-less new attempts keep
+        // identity/day/pass checks alone, per 17_ §6 — the legacy MCQ writer
+        // stored answered-rows-only against a totalQuestions that could
+        // include skips, so rows/score arithmetic is engine-only BY
+        // DECISION (published).]
+        const ntq = newTest.totalQuestions;
+        const ntRows = Array.isArray(newTest.answers) ? newTest.answers : null;
+        if (!Number.isInteger(newTest.score) || newTest.score < 0 || newTest.score > 100 ||
+            !Number.isInteger(ntq) || ntq < 1 || ntRows === null || ntRows.length !== ntq) {
+          return {status: "no_evidence", reason: "impossible_record (new test)"};
+        }
+        const ntCorrect = ntRows.filter((r) => r?.isCorrect === true).length;
+        if (Math.round((ntCorrect / ntq) * 100) !== newTest.score) {
+          return {status: "no_evidence", reason: "impossible_record (new-test score-rows disagreement)"};
+        }
+        // [r74 C1a, r75-completed] the ENGINE leg REQUIRES the COMPLETE
+        // frozen posture shape (15_ §4): boolean effectiveEnabled + integer
+        // configVersion ≥ 1 + integer threshold 1-100 + non-empty source.
+        const ntGp = newTest.gatePosture;
+        const ntPostureValid = ntGp && typeof ntGp.effectiveEnabled === "boolean" &&
+          Number.isInteger(ntGp.configVersion) && ntGp.configVersion >= 1 &&
+          Number.isInteger(ntGp.threshold) && ntGp.threshold >= 1 && ntGp.threshold <= 100 &&
+          typeof ntGp.source === "string" && ntGp.source.length > 0;
+        if (!ntPostureValid) {
+          return {status: "no_evidence", reason: "impossible_record (new-test posture missing/malformed)"};
+        }
+        if (newTest.teacherEdited !== true && newTest.score < ntGp.threshold) {
+          return {status: "no_evidence", reason: "impossible_record (new test passed below threshold)"};
+        }
       } else {
         legacyEvidence = true;
-      }
-      // [r72 C1.3] the SAME r48 impossible-record fence as the review half:
-      // integer score 0-100 · sane totals · rows agreement · score↔rows ·
-      // passed↔threshold (teacherEdited exempt, per A1's preserved score).
-      const ntq = newTest.totalQuestions;
-      const ntRows = Array.isArray(newTest.answers) ? newTest.answers : null;
-      if (!Number.isInteger(newTest.score) || newTest.score < 0 || newTest.score > 100 ||
-          !Number.isInteger(ntq) || ntq < 1 || ntRows === null || ntRows.length !== ntq) {
-        return {status: "no_evidence", reason: "impossible_record (new test)"};
-      }
-      const ntCorrect = ntRows.filter((r) => r?.isCorrect === true).length;
-      if (Math.round((ntCorrect / ntq) * 100) !== newTest.score) {
-        return {status: "no_evidence", reason: "impossible_record (new-test score-rows disagreement)"};
-      }
-      // [r74 C1a] the ENGINE leg (epoch-carrying — this branch) REQUIRES a
-      // COMPLETE valid gatePosture; malformed/missing posture is an
-      // impossible engine record, never a silent skip. The legacy (epoch-
-      // less) leg is published-exempt in 17_ [N-10].
-      const ntGp = newTest.gatePosture;
-      const ntPostureValid = ntGp && typeof ntGp.effectiveEnabled === "boolean" &&
-        Number.isInteger(ntGp.configVersion) &&
-        Number.isInteger(ntGp.threshold) && ntGp.threshold >= 1 && ntGp.threshold <= 100;
-      if (!ntPostureValid) {
-        return {status: "no_evidence", reason: "impossible_record (new-test posture missing/malformed)"};
-      }
-      if (newTest.teacherEdited !== true && newTest.score < ntGp.threshold) {
-        return {status: "no_evidence", reason: "impossible_record (new test passed below threshold)"};
       }
     }
 

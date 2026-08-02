@@ -568,7 +568,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     // unclaimed presentation (pre-advance) can never cross into an attempt.
     if (isNewSessionTxn && !isRerunTxn) {
       const {readProgressTruthInTxn} = require("./progress");
-      const truth = await readProgressTruthInTxn(txn, db, {uid, classId: pres.classId, listId: pres.listId});
+      const truth = await readProgressTruthInTxn(txn, db, {uid, classId: p.classId, listId: p.listId});
       if (p.logicalDay !== truth.frontierDay) {
         return {status: "day_guard_rejected", expectedDay: truth.frontierDay};
       }

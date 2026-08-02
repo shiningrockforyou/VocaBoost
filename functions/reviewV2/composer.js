@@ -156,17 +156,15 @@ function effectiveResetEpoch(pmData, lpData) {
   return Math.max(e(pmData), e(lpData));
 }
 
-/** §9 lock predicate [r74 N-2 — a crashed reset must not lock the student
- *  out of the engine PERMANENTLY]: only a LIVE lock (younger than the §9
- *  takeover window) rejects writes; a stale lock is takeover-eligible state
- *  that the NEXT reset op repairs — the engine serves through it, exactly as
- *  §9 r56 prescribes ("the stuck-lock state rejects only WRITE ops ... until
- *  takeover" — and past the window it is no longer a live lock at all). */
-const RESET_LOCK_TAKEOVER_MS = 10 * 60 * 1000; // the §9 r56 liveness window
-function resetLockActive(pmData, lpData, nowMs = Date.now()) {
-  const live = (l) => Boolean(l) &&
-    (l?.at?.toMillis ? (nowMs - l.at.toMillis()) : 0) < RESET_LOCK_TAKEOVER_MS;
-  return live(pmData?.resetInProgress) || live(lpData?.resetInProgress);
+/** §9 lock predicate [r75 — REVERTED to fail-closed per Codex r74 #1: a
+ *  crashed reset leaves a PARTIALLY-DELETED graph, so ordinary writers must
+ *  stay rejected while ANY lock exists; liveness comes ONLY from the next
+ *  reset op's stale-owner TAKEOVER (foundation.js — re-fence, complete
+ *  cleanup, owner-clear), after which the engine serves. The CS-recoverable
+ *  repair is published in SUPPORT_RUNBOOK (the r72-Opus "publish" branch).
+ *  b3-txn-core refuses any lock identically — writer semantics agree. */
+function resetLockActive(pmData, lpData) {
+  return Boolean(pmData?.resetInProgress) || Boolean(lpData?.resetInProgress);
 }
 
 function assertParams(p) {

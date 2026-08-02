@@ -126,7 +126,20 @@ async function resolveReviewConfig(db, ctx) {
   let assignmentGate = true; // default true; missing/null ⇒ true (frozen)
   let asg = null;
   if (classSnap.exists) {
-    const rawAsg = (classSnap.data().assignments || {})[listId];
+    // [r75 Codex-3] the PARENT `assignments` container is authority too —
+    // present but not a plain map (array/Timestamp/scalar) ⇒ HOLD before any
+    // lookup (an array indexed by a numeric-string listId masqueraded as a
+    // map).
+    const rawAssignments = classSnap.data().assignments;
+    const isPlainMapC = (v) => {
+      if (typeof v !== "object" || v === null || Array.isArray(v)) return false;
+      const proto = Object.getPrototypeOf(v);
+      return proto === Object.prototype || proto === null;
+    };
+    if (rawAssignments !== undefined && rawAssignments !== null && !isPlainMapC(rawAssignments)) {
+      return holdResult("assignments container malformed (non-map)");
+    }
+    const rawAsg = (rawAssignments || {})[listId];
     // [r72 C3] the assignment CONTAINER itself is authority: present but not
     // a plain object (true/7/"assigned"/[]) ⇒ HOLD — never default open.
     // [r74 C3a — Codex probed Timestamp/GeoPoint through the r73 check]:

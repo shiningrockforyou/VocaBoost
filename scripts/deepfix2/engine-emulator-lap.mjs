@@ -199,6 +199,19 @@ CASE("A — config authority matrix (strict schema [C3])");
     c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
     check(`container ${label} ⇒ HOLD`, c.readStatus, "hold");
   }
+  // [r75 Codex-3] the PARENT container: array/Timestamp refuse before any
+  // lookup (an array indexed by listId "0" masqueraded as the map).
+  await db.collection("classes").doc("cA").set({studentIds: ["uA"], assignments: [{reviewPassThreshold: 92}]});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "0", uid: "uA"});
+  check("parent array ⇒ HOLD", c.readStatus, "hold");
+  await db.collection("classes").doc("cA").set({studentIds: ["uA"], assignments: Timestamp.now()});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
+  check("parent Timestamp ⇒ HOLD", c.readStatus, "hold");
+  // Entry GeoPoint (the r74 loop had Timestamp but not GeoPoint):
+  const {GeoPoint} = fnRequire("firebase-admin/firestore");
+  await db.collection("classes").doc("cA").set({studentIds: ["uA"], assignments: {L1: new GeoPoint(0, 0)}});
+  c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
+  check("entry GeoPoint ⇒ HOLD", c.readStatus, "hold");
   await seedClass("cA", {students: ["uA"]});
   c = await CFG.resolveReviewConfig(db, {classId: "cA", listId: "L1", uid: "uA"});
   check("plain map serves", [c.readStatus, c.assignmentExists], ["ok", true]);
@@ -312,13 +325,22 @@ CASE("B — composer: frontier + universe from progress truth [C2]");
   r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
     resetEpoch: 0, canonicalWords: canonW});
   check("epoch drift rejects", [r.status, r.currentEpoch], ["reset_epoch_mismatch", 1]);
-  // [r74 N-2] a STALE (>10min) crashed-reset lock does NOT lock the engine
-  // out — the takeover window applies to the read predicate too.
+  // [r75 — Codex r74 #1] THE TAKEOVER SEQUENCE: a stale crashed lock keeps
+  // the engine FAIL-CLOSED; the next reset op takes over (re-fence →
+  // cleanup → owner-clear); only THEN does the engine serve.
   await db.doc("users/uW/progress_meta/LW").set({resetEpoch: 0,
     resetInProgress: {opId: "crashed", at: TS(Date.now() - 11 * 60000)}});
   r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
     resetEpoch: 0, canonicalWords: canonW});
-  checkTrue("stale crashed lock: engine SERVES", r.status === "created" || r.status === "exists");
+  check("stale crashed lock: engine still REFUSES", r.status, "reset_in_progress");
+  const tko = await call(foundation.resetProgress, "uW", {listId: "LW"});
+  checkTrue("stale-owner takeover completes", tko.success === true && tko.resetV2 === true);
+  const pmAfter = (await db.doc("users/uW/progress_meta/LW").get()).data();
+  check("takeover owner-cleared", pmAfter.resetInProgress ?? null, null);
+  await seedProgress("uW", "cW", "LW", {csd: 7, twi: 8});
+  r = await COMP.composeDayQueue(db, {uid: "uW", classId: "cW", listId: "LW", logicalDay: 8,
+    resetEpoch: pmAfter.resetEpoch, canonicalWords: canonW});
+  checkTrue("post-takeover: engine SERVES at the new epoch", r.status === "created" || r.status === "exists");
   await db.doc("users/uW/progress_meta/LW").delete();
 }
 
@@ -553,6 +575,16 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
   await db.collection("attempts").doc("attNewNoGp").update({gatePosture: {effectiveEnabled: true, threshold: "92", configVersion: 1}});
   r = await cd({newTestAttemptId: "attNewNoGp"});
   check("engine new-test malformed threshold refused", [r.status, String(r.reason).includes("posture")], ["no_evidence", true]);
+  // [r75] the COMPLETE frozen posture shape: configVersion ≥ 1 + source.
+  await db.collection("attempts").doc("attNewNoGp").update({gatePosture: {effectiveEnabled: true, threshold: 92, configVersion: 0, source: "x"}});
+  r = await cd({newTestAttemptId: "attNewNoGp"});
+  check("configVersion 0 refused", [r.status, String(r.reason).includes("posture")], ["no_evidence", true]);
+  await db.collection("attempts").doc("attNewNoGp").update({gatePosture: {effectiveEnabled: true, threshold: 92, configVersion: 1}});
+  r = await cd({newTestAttemptId: "attNewNoGp"});
+  check("missing source refused", [r.status, String(r.reason).includes("posture")], ["no_evidence", true]);
+  // ([r75 N-12/N-14] the legacy-leg acceptance fixtures moved to day 10 at
+  // the end of this case — the OTHER-LEG rule with valid evidence would
+  // otherwise complete day 5 out from under the happy-path assertions.)
   // [r74 N-5] the discriminator on the CONSUMED half: an epoch-carrying
   // review attempt WITHOUT a presentation is not valid engine evidence.
   await seedAttempt("attEngineNoP", {uid: "uE", classId: "cE", listId: "LE", day: 5, sessionType: "review",
@@ -689,6 +721,28 @@ CASE("E — completion authority: bindings, posture, THE ADVANCE [C1]");
     newTestAttemptId: null, canonicalWordCount: 60, nowMs: E0 + 5 * DAY});
   check("H-A interlock: legacy-advanced day refused", [r.status, r.expectedDay], ["day_guard_rejected", 12]);
   await seedProgress("uE", "cE", "LE", {csd: 9, twi: 60});
+  // [r75 N-12/N-14 — THE LEGACY DAY, end to end]: an epoch-less posture-free
+  // new-test + an epoch-less presentation-less consumed review complete a
+  // day TOGETHER — 17_ §6's exemption true in code (identity/day/pass only;
+  // consumed demotes to completion_legacy; NO posture refusal anywhere).
+  await db.collection("attempts").doc("attLegacyNew").set({
+    studentId: "uE", classId: "cE", listId: "LE", studyDay: 10, sessionType: "new",
+    testType: "mcq", score: 95, passed: true, totalQuestions: 10,
+    answers: Array.from({length: 8}, (_, i) => ({wordId: `w${50 + i}`, isCorrect: true})),
+    newWordStartIndex: 50, newWordEndIndex: 59, submittedAt: Timestamp.now(),
+  }); // answered-rows(8) < totalQuestions(10), no epoch, no posture — legacy
+  await db.collection("attempts").doc("attLegacyRev").set({
+    studentId: "uE", classId: "cE", listId: "LE", studyDay: 10, sessionType: "review",
+    testType: "mcq", score: 93, passed: true, totalQuestions: 30,
+    answers: pres9.map((w, i) => ({wordId: w, isCorrect: i < 28})),
+    submittedAt: Timestamp.now(),
+  });
+  r = await DONE.completeDay(db, {uid: "uE", winningClassId: "cE", listId: "LE", logicalDay: 10,
+    resetEpoch: 0, consumedAttemptId: "attLegacyRev", consumedAttemptClassId: "cE",
+    newTestAttemptId: "attLegacyNew", canonicalWordCount: 60, nowMs: E0 + 6 * DAY});
+  check("LEGACY DAY completes (both halves exempt as published)",
+      [r.status, r.completion.postureSource, r.completion.legacyEvidence], ["completed", "completion_legacy", true]);
+  await seedProgress("uE", "cE", "LE", {csd: 9, twi: 60}); // restore for the queue_invalid case
   // [r73 C5] a live-review presentation stripped of its queue ⇒ queue_invalid
   // at submit (through the WRAPPED callable).
   await db.doc("users/uE/review_presentations/cE_LE_d9_e0_p1").update({queueRef: null,
@@ -945,6 +999,14 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb13"});
   check("mid-call un-enroll ⇒ txn-typed refusal (public boundary)", r.status, "not_enrolled");
   await db.doc("classes/cX").update({studentIds: ["uX"]});
+  // [r75 Codex-4] the un-ASSIGNMENT race through the WRAPPED callable.
+  const savedAsg2 = (await db.doc("classes/cX").get()).data().assignments;
+  CALL._testHooks.afterPreflight = async () => {
+    await db.doc("classes/cX").update({assignments: {}});
+  };
+  r = await call(CALL.reviewV2ComposeSession, "uX", {...common, logicalDay: 4, composeKey: "lap-key-cb15"});
+  check("mid-call un-assign ⇒ txn-typed refusal (public boundary)", r.status, "list_not_assigned");
+  await db.doc("classes/cX").update({assignments: savedAsg2});
   // [r74 C8b] the stale unclaimed live-new replay + the submit frontier bind:
   // compose a live-new for the frontier, advance the frontier BEHIND it,
   // then (a) replay the same composeKey ⇒ day_guard; (b) submit ⇒ day_guard.

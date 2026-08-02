@@ -71,7 +71,28 @@ steps) · N-1 positionGap ops WARNING · L-2 comment fixed.
 11. (fold together, ONE r73 round: handoff → codex baton rev 218/round 73 →
     Opus lane workflow → WinClaude ORDER 85-1).
 
-## r74 LEDGER IS WRITTEN: /tmp/claude-1000/-app/87eba36e-8e66-4638-bae9-6cd6f923fff6/scratchpad/r74-fold-ledger.md
+## r75 SEED (Codex r74 NO — 5 items; build the FULL ledger when Opus r74 lands, from BOTH files):
+1. REVERT composer resetLockActive to fail-closed on ANY lock (my N-2 fix was the wrong branch — a
+   crashed reset leaves a partially-deleted graph; §9's law: writes rejected until TAKEOVER completes
+   cleanup). Publish-side already exists (SUPPORT_RUNBOOK CS repair). Replace the 11-min SERVES fixture
+   with THE SEQUENCE: stale lock ⇒ engine REFUSES ⇒ resetProgress takeover (RESET_V2_FOR_TEST) re-fences
+   + cleans + owner-clears ⇒ engine SERVES.
+2. Scope the new-test rows/posture fences INSIDE the engine (epoch-present) branch — legacy epoch-less
+   new attempts keep identity/day/pass only (published; legacy MCQ stored answered-rows-only vs
+   totalQuestions-with-skips ⇒ the row-count rule is engine-only, publish the decision). Engine posture:
+   configVersion ≥ 1 + non-empty source. Fixtures: epoch-less posture-free ACCEPTED; configVersion 0
+   refused; missing source refused.
+3. Validate the PARENT assignments container (plain map) before lookup (array-indexed-by-"0" repro).
+   Fixtures: parent array/Timestamp + entry GeoPoint (the loop lacked GeoPoint despite the claim).
+4. The unassignment race through the WRAPPED callable via the afterPreflight hook (mirror un-enroll).
+5. Sweep evidence: list-position-sweep emits a committed receipt (projectId/time/counts/script sha16;
+   re-run); CORRECT the inverted reindex card (deleteWord does NOT renumber — it just deletes;
+   addWordToList appends at decremented count ⇒ position REUSE after middle deletion; fix NEED_TO_FIX +
+   17_ §5 text; repair choice: allocate max(position)+1).
++ Opus r74 items when they land. Calibration: #1 = real design catch on NEW code (bucket 1); #2-#4
+  incomplete-fold (bucket 2); #5 evidence-quality. NOT over-audit yet.
+
+## r74 LEDGER (executed): /tmp/claude-1000/-app/87eba36e-8e66-4638-bae9-6cd6f923fff6/scratchpad/r74-fold-ledger.md
 (implement row-by-row, mark file:line per row, separate verify pass, explicit deferrals). A PERPETUAL
 round-agnostic baton watcher runs (scratchpad/baton-watcher.sh — relaunch FIRST THING each wake).
 
