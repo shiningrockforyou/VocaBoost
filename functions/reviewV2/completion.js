@@ -380,8 +380,12 @@ async function completeDay(db, params) {
       }
       // LEGACY ONLY: when the writer recorded `skipped`, it must agree with
       // the row shortfall (both live writers store exactly that difference).
-      if (!consumedIsEngine && Number.isInteger(consumed.skipped) &&
-          consumed.skipped !== tq - rowsArr.length) {
+      // [r77 precision note, closed opportunistically]: a PRESENT `skipped`
+      // must be an integer AND equal the row shortfall — present-but-malformed
+      // refuses, matching this program's posture everywhere else. Absent
+      // (undefined/null) stays legitimate legacy metadata.
+      if (!consumedIsEngine && consumed.skipped !== undefined && consumed.skipped !== null &&
+          (!Number.isInteger(consumed.skipped) || consumed.skipped !== tq - rowsArr.length)) {
         return {status: "no_evidence", reason: "impossible_record (skipped field inconsistent)"};
       }
       // THE ENGINE/LEGACY DISCRIMINATOR [r74 N-5 — ONE field, BOTH halves]:

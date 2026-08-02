@@ -91,8 +91,15 @@ handoff-ephemeral.
    production client deploy; the DF2-51 client legs are built on a BRANCH and merge only at deliberate,
    David-visible release points; WinClaude orders state the client-deploy consequence whenever src/
    stages.
-   **OBSERVED 2026-08-03 (David's Netlify deploy list, pasted in-session — LEVER UNCONFIRMED, pending his
-   word): exactly one deploy is marked `published` — `ce09792` (r72) — while the four newer builds
+   **RULED — David, 2026-08-03, verbatim (via the WinClaude channel, receipt at win-baton rev 169):
+   "I turned off auto publishing so it is a non-issue. Continue".** CONSEQUENCES, all in force:
+   (a) a push to `main` BUILDS but does NOT publish — production stays pinned until David publishes
+   deliberately; (b) **Q6 is now properly satisfiable and better than its original wording**: the
+   OFF-parity + old-bundle checks are evaluated against a BUILT-BUT-UNPUBLISHED deploy, then David
+   publishes; (c) **the frontend hold is LIFTED and NO branch strategy is to be built** — client work
+   commits to `main` normally (WinClaude's explicit request; the r76-era branch rule is RETIRED);
+   (d) the already-live `db.js` +7 preimage change stays — teacher-path, additive, no rollback indicated.
+   THE SUPPORTING FORENSICS (independent, pre-ruling): exactly one deploy is marked `published` — `ce09792` (r72) — while the four newer builds
    (`58af1f1`, `e9e8ac4`, `e1c20ba`, `503b3ed`) show `completed`. That is the signature of auto-publishing
    being STOPPED (or that deploy LOCKED) sometime between 22:24 and 23:07 on 2026-08-02: Netlify keeps
    building every push while production stays pinned. VERIFIED CONSEQUENCE: `git diff ce09792..503b3ed --

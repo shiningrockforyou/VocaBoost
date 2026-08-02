@@ -1,38 +1,36 @@
 {
  "turnOwner": "claude",
- "round": 76,
+ "round": 77,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
- "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r76.md",
- "readyMarker": "docs/plans/loop/ready/claude_ready_round_076.json",
+ "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r77.md",
+ "readyMarker": "docs/plans/loop/ready/claude_ready_round_077.json",
  "changedFiles": [
   "functions/reviewV2/completion.js",
   "scripts/deepfix2/engine-emulator-lap.mjs",
   "docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md",
   "docs/plans/deepfix2/evidence/engine-lap-result.json",
   "change_action_log.md",
-  "RESUME.md",
-  "docs/resume_archive/RESUME_2026-08-03b.md",
-  "docs/resume_archive/RESUME_2026-08-03c.md",
-  "docs/plans/loop/codex_reviews/codex_deepfix2_r75.md",
-  "docs/plans/loop/win/**",
-  "DELETED: functions/change_action_log.md"
+  "docs/plans/loop/codex_reviews/codex_deepfix2_r76.md",
+  "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r76.md",
+  "docs/plans/loop/ready/claude_ready_round_076.json",
+  "docs/plans/loop/win/**"
  ],
  "evidenceFiles": [
   "docs/plans/deepfix2/evidence/engine-lap-result.json",
   "change_action_log.md"
  ],
- "claudeStatus": "r76 = your four r75 items, bound to COMMITTED target 503b3ed (your #4 adopted as protocol: commit first, marker last, worktree frozen during review). #1 consumed-engine posture FAILS CLOSED via the same resetEpoch discriminator + the complete frozen shape (3 fixtures + the other-leg countercase). #2 17_ \u00a76 rewritten to the exact three-way rule with the REASON published; the db.js totalQuestions safety claim was verified in code before publishing. #3 the takeover fixture now plants dirty epoch-0 artifacts and asserts deletion \u2014 a cleanup-skipping regression goes RED. LAP 217/217.",
+ "claudeStatus": "r77 = your two r76 items, bound to COMMITTED target 3cb6e40. #1: you were RIGHT and the false premise was mine \u2014 verified against the live writers before folding (MCQTest sends the full testWords.length as totalQuestions while storing answered rows only; index.js records the difference as `skipped`). The fence is now two-legged: engine keeps COMPLETE-ROWS, legacy accepts 0<rows<=tq with the score recomputed against the full denominator and a `skipped` consistency check. THE DISCRIMINATING 28/30/93 legacy case now COMPLETES (it would have stranded skippers at the flip). #2: resetEpoch presence now exclusively selects posture authority \u2014 an epoch-less record with a complete-but-forged posture still demotes. LAP 220/220.",
  "codexStatus": "review-written",
- "codexDecision": "NO",
- "wslNote": "R2-51 RATIFIED (David); RESET_V2 flip = rehearsal phase (David). Opus closed YES at r74. On your YES the checkpoint closes.",
- "note": "Round 76. Review target = commit 503b3ed. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r76.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r76.md; set baton turnOwner=claude round=76 codexStatus=review-written codexDecision=<YES|NO> updatedBy=codex revision=225 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r76.md.",
+ "codexDecision": "YES",
+ "wslNote": "R2-51 RATIFIED (David); RESET_V2 flip = rehearsal phase (David); Netlify auto-publish OFF (David 2026-08-03 \u2014 recorded in 17_ \u00a78 after this verdict so the target stays frozen). Opus closed YES at r74.",
+ "note": "Round 77. Review target = commit 3cb6e40. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r77.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r77.md; set baton turnOwner=claude round=77 codexStatus=review-written codexDecision=<YES|NO> updatedBy=codex revision=227 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r77.md.",
  "updatedBy": "codex",
- "revision": 225,
+ "revision": 227,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r76.md",
- "updatedAt": "2026-08-03T00:48:00+09:00",
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r77.md",
+ "updatedAt": "2026-08-03T01:05:00+09:00",
  "status": "review-written",
- "reviewTargetSha": "503b3ed3c263ae511af3ce09f456014764fddef7"
+ "reviewTargetSha": "3cb6e40"
 }

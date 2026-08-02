@@ -1,0 +1,8 @@
+{
+  "readyFor": "codex",
+  "round": 77,
+  "taskId": "DEEPFIX2_PROGRAM",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r77.md",
+  "reviewTargetSha": "3cb6e40",
+  "writtenLast": true
+}

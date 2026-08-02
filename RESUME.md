@@ -1,25 +1,33 @@
-# RESUME — DEEPFIX2: CHECKPOINT ENDGAME (r76 folded; awaiting the SHA-bound r76 review)
+# RESUME — DEEPFIX2: ✅ STAGE-2 CHECKPOINT CLOSED (2026-08-03) → THE DARK DEPLOY
 
-## IMMEDIATE STATE
-- Codex r75 = NO (4 items, ALL inside its committed five). **THE r76 FOLD IS DONE — lap 217/217, lint
-  clean, ledger verified row-by-row** (scratchpad/r76-fold-ledger.md). Opus closed at r74 (YES).
-- **PROTOCOL FIX IN FORCE (Codex r75 #4)**: the review target must be COMMITTED before the marker.
-  Sequence now: fold → lap → logs → WinClaude ORDER 88-1 (commit+push) → **WAIT for the SHA** → write
-  the r76 handoff naming that SHA → flip the codex baton (rev 224, round 76) → marker LAST → NO edits
-  afterwards while turnOwner=codex.
-- WinClaude: ORDER 88-1 issued (win baton rev 167). Codex baton: rev 223, turnOwner=claude (mine).
+## THE CHECKPOINT IS CONVERGED
+**Codex r77 YES** ("PRESENTABLE: YES. The Stage-2 checkpoint is converged", target `3cb6e40`) +
+**Opus r74 YES**. Receipts: `docs/plans/loop/codex_reviews/codex_deepfix2_r77.md` ·
+`docs/plans/loop/fable_panels/panel_r74_opus.md`. Engine lap **220/220**, sha-bound, lint clean unmasked.
+Rounds r70→r77 all folded; every closing condition closed or explicitly deferred with reasons.
 
-## ON THE r76 VERDICT
-- **YES** ⇒ the checkpoint CLOSES (Opus already YES). Next: the WinClaude DARK-DEPLOY ORDER SERIES per
-  docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md (CLI: functions+rules+indexes, all enabled:false;
-  RESET_V2_ENABLED false ⇒ genuinely zero-delta) → 25WT rehearsal (DF2-51 client legs ON A BRANCH —
-  Netlify auto-deploys main) → shadow audit (16_) → David's backfill go → David's flip.
-- **NO** ⇒ David's calibration order: items INSIDE Codex's five/four = fold narrowly; ANY item OUTSIDE =
-  THE OVER-AUDIT ALERT — tell David, recommend closing on the evidence rather than iterating.
-  (r75's four were all inside; severity is descending each round.)
+## NEXT: THE DARK-DEPLOY ORDER SERIES (per docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md)
+**AWAITING DAVID'S GO** (asked 2026-08-03 — it is the program's first PRODUCTION backend deploy).
+The four legs, in order:
+1. **indexes** — `firebase deploy --only firestore:indexes` (adds the NEW grading_jobs (uid,status)
+   composite; 17_ §2 requires it before any RESET_V2 flip). Additive, no behavior change.
+2. **rules** — merge `audit/deepfix/task3/firestore.review_v2.rules` (131 lines, ADDITIVE: denies client
+   writes to the SIX new label fields + nine new subcollections + three new top-level collections; all
+   are NEW surfaces, so the lock is inert for every live/cached client) into `firestore.rules` (419
+   lines) and deploy. THE ONE OUTWARD-FACING LEG — verify additivity leg-by-leg before deploying.
+3. **functions** — the 7 dormant callables + the ONE index.js wiring block. `RESET_V2_ENABLED=false`
+   keeps `resetProgress` on the legacy law (David: flip it at the rehearsal phase).
+4. **the config doc** — create `system_config/review_v2` = `{enabled:false, firstEnabledAt:null,
+   rehearsalClassIds:[], configVersion:1, threshold:92, queueSize:60, testSize:30,
+   minClientVersion:null}`. Until it exists the resolver returns HOLD (cold-start law) — safe, but the
+   doc must exist before the rehearsal.
+POST-DEPLOY: verify dark (every callable refuses `review_v2_dark`), then 25WT rehearsal
+(`rehearsalClassIds` = sandbox class ids) → shadow audit (16_) → **David's backfill go** → **David's
+flip** (flip-review-v2.mjs refuses without his flag).
 
-## STANDING (memories carry the detail)
-Perpetual watcher (relaunch FIRST THING each wake, exactly one) · fold-ledger discipline + OTHER-LEG rule
-· absolute paths for living-log writes, verified in-call · claims need diff+fixture refs · zero git while
-WinClaude holds a turn · David rulings: R2-51 ratified, RESET_V2 flip at rehearsal, calibration alerts,
-Netlify = every main push ships the client · THE FLIP IS DAVID'S ALONE.
+## STANDING
+Netlify auto-publish OFF (David 08-03, receipted 17_ §8) — pushes BUILD but never ship; **branch rule
+RETIRED**, client work commits to main normally · R2-51 ratified · RESET_V2 flip = rehearsal phase ·
+perpetual watcher (relaunch first thing each wake) · fold-ledger + OTHER-LEG discipline · absolute paths,
+verified in-call · commit-then-marker protocol (worktree frozen during any review) · calibration alerts
+to David each round.
