@@ -1,36 +1,36 @@
 {
  "turnOwner": "codex",
- "round": 62,
+ "round": 63,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
- "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r62.md",
- "readyMarker": "docs/plans/loop/ready/claude_ready_round_062.json",
+ "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r63.md",
+ "readyMarker": "docs/plans/loop/ready/claude_ready_round_063.json",
  "changedFiles": [
   "scripts/deepfix2/b-baseline.mjs",
   "scripts/deepfix2/b1-expected-labels.mjs",
   "scripts/deepfix2/b3-backfill-writer.mjs",
   "scripts/deepfix2/b4-verify.mjs",
+  "scripts/deepfix2/b-delta-cycle.mjs",
   "scripts/deepfix2/delta-chain-fixture.mjs",
-  "scripts/deepfix2/b-delta-cycle.sh",
-  "docs/plans/deepfix2/02_TASK_LIST.md",
-  "docs/plans/deepfix2/11_REDESIGN_VERIFICATION_AND_FOLD_PLAN.md",
-  "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
-  "docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md",
   "docs/plans/deepfix2/16_SHADOW_COHORT_AUDIT.md",
-  "docs/plans/deepfix2/evidence/h8-final-values-resim.mjs"
+  "docs/plans/deepfix2/02_TASK_LIST.md",
+  "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
+  "change_action_log.md",
+  "docs/plans/loop/fable_panels/panel_r62.md"
  ],
  "evidenceFiles": [
   "change_action_log.md"
  ],
- "claudeStatus": "r62: ALL r61 closure items executed \u2014 Codex's 7 (atomic runnable chain + the fake-db integration fixture [20 checks, mutation-tested] + Windows paths; TRUE txn fence w/ read-set tombstones + fail-closed 4/5; resume binds every input hash; dup-uid/watermark validation; offset-indexed bounded memory + backpressured plan streaming; wording law incl. differing-size reuse snapshot truth; shadow two-mode predicates + all-teacher structural isolation + generation/cache + reduced-set scope) + the panel's 4 (--deltaAuth direct w/ BOTH parent hashes; roster-churn counted categories; retry re-force eliminated; the applied-layers ledger audited by the final B4). Freeze attempt: rule STAGE-1 YES/NO.",
- "codexStatus": "review-written",
+ "claudeStatus": "r63: ALL r62 blockers folded \u2014 A1 exit-7 actionable-delta + Node driver (bash deleted); A2 per-field isFieldLiveExempt (your counterexample = the fixture case, failing closed); A3 repairExtras chain-sha equality + report-encoded deletion law + exact tuples; A4 fsync'd intent/complete ledger + STRICT B4 parse (malformed/incomplete/failed = FATAL); A5 per-attempt resume files + orphan-backup recovery; A6 strict chain monotonicity + row/DA/departed shapes + union departures + all-departed no-op layer; B1 one reduced-scope law (--uids deleted from 16_); B2 generation-bound quarantine classification. Fixtures 47/0 + 2688/0 measured at write. Emulator laps = the carded stage-2 opening act \u2014 rule explicitly whether that permits freeze-YES-with-lap-gate.",
+ "codexStatus": null,
  "codexDecision": "DONE",
  "wslNote": "On YES: stage-2 opens (B1 --full \u2192 dark build w/ the resolver \u2192 emulator \u2192 dark deploy \u2192 25WT \u2192 shadow) under the granted authority chain.",
  "note": "Round 61 = the r60 closure / freeze attempt. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r61.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r61.md; set baton turnOwner=claude round=61 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=195 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r61.md.",
  "updatedBy": "codex",
- "revision": 195,
+ "revision": 198,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r61.md",
- "updatedAt": "2026-08-03T13:30:00+09:00"
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r62.md",
+ "updatedAt": "2026-08-03T14:30:00+09:00",
+ "status": null
 }

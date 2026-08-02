@@ -2,7 +2,7 @@
 // One loader, one chain law: FULL(M0) → B4 delta-auth(DA) → B1 --deltaAuth fresh-watermark delta(M1)
 // [r62p — the --uids path is DEAD: it stamps no parent hashes and loadDeltaLayer rejects its output] →
 // B3/B4 consume M1 bound to DA bound to M0. Every hop hash-verified; nothing optional.
-import { readFileSync, existsSync, openSync, readSync } from "node:fs";
+import { readFileSync, existsSync, openSync, readSync, closeSync } from "node:fs";
 import { createHash } from "node:crypto";
 
 export function sha256File(path) { return createHash("sha256").update(readFileSync(path)).digest("hex"); }
@@ -18,8 +18,31 @@ function validateManifestCommon(manifest) {
   if (w > Date.now() + CLOCK_SKEW_MS) throw new Error(`manifest watermark ${new Date(w).toISOString()} is in the FUTURE — false-PASS hazard [r62p]`);
 }
 
+// r63 A2: THE PER-FIELD POST-FLIP EXEMPTION — a doc-wide skip let one fresh stamp hide a stale/corrupt
+// UNTOUCHED field (final-gate false green). A mismatched field is exempt ONLY if that field itself proves
+// live ownership: its actual value is a timestamp ≥ flipTs — except reviewFailCount (a counter), which
+// moves only inside a fail-stamp txn, so its exemption rides on reviewLastFailedAt ≥ flipTs. Corrupt-typed
+// values are NEVER exempt.
+export function isFieldLiveExempt(field, cur, flipTs) {
+  if (!cur || !flipTs) return false;
+  if (field === "reviewFailCount") {
+    const lf = cur.reviewLastFailedAt?.toMillis?.();
+    return typeof lf === "number" && lf >= flipTs;
+  }
+  const ms = cur[field]?.toMillis?.();
+  return typeof ms === "number" && ms >= flipTs;
+}
+
 // r62p [panel D2]: THE rosterAdded LAW — a live uid is rosterAdded ONLY while covered by NEITHER the
 // original NOR any applied layer. (Original-only made every post-baseline joiner a permanent non-PASS loop.)
+// r63 A6: EXACT row shape — a malformed row is baseline corruption, never a silent undefined downstream
+export function validateRowShape(r) {
+  if (typeof r.uid !== "string" || !r.uid) throw new Error("baseline row lacks a nonempty string uid");
+  if (typeof r.epochByList !== "object" || r.epochByList === null || Array.isArray(r.epochByList)) throw new Error(`row ${r.uid}: epochByList not an object`);
+  if (typeof r.challengeDigest !== "string" || !r.challengeDigest) throw new Error(`row ${r.uid}: challengeDigest missing`);
+  if (typeof r.words !== "object" || r.words === null || Array.isArray(r.words)) throw new Error(`row ${r.uid}: words not an object`);
+}
+
 export function isRosterAdded(uid, original, deltaLayers) {
   if (original.rows.has(uid)) return false;
   for (const L of deltaLayers) if (L.base.rows.has(uid)) return false;
@@ -65,11 +88,14 @@ export function loadVerifiedBaselineIndexed(manifestPath, { requireMode = null }
       if (!e) return undefined;
       const b = Buffer.allocUnsafe(e[1]);
       readSync(fd, b, 0, e[1], e[0]);
-      return JSON.parse(b.toString("utf-8"));
+      const r = JSON.parse(b.toString("utf-8"));
+      validateRowShape(r); // r63 A6
+      return r;
     },
     has(uid) { return index.has(uid); },
     keys() { return index.keys(); },
     get size() { return index.size; },
+    close() { try { closeSync(fd); } catch {} }, // r63: releases the byte-range fd (long-lived callers)
   };
   return { manifest, rows, manifestSha256: sha256File(manifestPath), dir, indexed: true };
 }
@@ -88,7 +114,12 @@ export function loadVerifiedBaseline(manifestPath, { requireMode = null } = {}) 
   if (!manifest.summarySha256) throw new Error("manifest lacks summarySha256");
   if (createHash("sha256").update(readFileSync(sumPath)).digest("hex") !== manifest.summarySha256) throw new Error("summary hash mismatch");
   const rows = new Map();
-  for (const ln of jsonlRaw.toString().split("\n")) { if (!ln) continue; const r = JSON.parse(ln); if (rows.has(r.uid)) throw new Error(`duplicate uid row in baseline: ${r.uid}`); rows.set(r.uid, r); }
+  for (const ln of jsonlRaw.toString().split("\n")) {
+    if (!ln) continue; const r = JSON.parse(ln);
+    validateRowShape(r);
+    if (rows.has(r.uid)) throw new Error(`duplicate uid row in baseline: ${r.uid}`);
+    rows.set(r.uid, r);
+  }
   return { manifest, rows, manifestSha256: sha256File(manifestPath), dir };
 }
 
@@ -102,19 +133,37 @@ export function loadDeltaLayer(dir, originalManifestSha256, originalWatermark = 
   const auth = JSON.parse(authRaw.toString());
   if (auth.probe !== "b4-delta") throw new Error("delta-auth probe mismatch");
   if (auth.version !== 2) throw new Error("delta-auth version ≠ 2 (one understood schema [r62p])");
+  // r63 A6: exact DA shape — unique nonempty string uids
+  if (!Array.isArray(auth.uids) || !auth.uids.length) throw new Error("delta-auth uids missing/empty");
+  if (!auth.uids.every(u => typeof u === "string" && u)) throw new Error("delta-auth uids must be nonempty strings");
+  if (new Set(auth.uids).size !== auth.uids.length) throw new Error("delta-auth uids contain duplicates");
   if (auth.baselineManifestSha256 !== originalManifestSha256) throw new Error("delta-auth is bound to a DIFFERENT original baseline");
   const base = loadVerifiedBaseline(`${d}b1-manifest-delta.json`, { requireMode: "delta" });
   // r62: BOTH parent hashes stamped by B1 --deltaAuth and verified here — mispaired stale artifacts die
   if (base.manifest.parentOriginalManifestSha256 !== originalManifestSha256) throw new Error("delta baseline's parentOriginalManifestSha256 ≠ the original");
   const authSha = createHash("sha256").update(authRaw).digest("hex");
   if (base.manifest.parentDeltaAuthSha256 !== authSha) throw new Error("delta baseline's parentDeltaAuthSha256 ≠ this delta-auth.json");
-  const departed = new Set(base.manifest.departedUids || []);
+  const departedRaw = base.manifest.departedUids || [];
+  // r63 A6: departed law shape — strings, unique, and a SUBSET of the auth uids
+  if (!Array.isArray(departedRaw) || !departedRaw.every(u => typeof u === "string" && u)) throw new Error("departedUids must be an array of nonempty strings");
+  if (new Set(departedRaw).size !== departedRaw.length) throw new Error("departedUids contain duplicates");
+  const authSet = new Set(auth.uids);
+  for (const u of departedRaw) if (!authSet.has(u)) throw new Error(`departed uid ${u} is not in delta-auth (not an excusal authority)`);
+  const departed = new Set(departedRaw);
   const expectUids = new Set(auth.uids.filter(u => !departed.has(u)));
   const baseUids = new Set(base.rows.keys());
   if (expectUids.size !== baseUids.size || ![...expectUids].every(u => baseUids.has(u)))
     throw new Error("delta baseline uid-set ≠ (delta-auth uids − departed) [roster-churn law, r62]");
   if (!(base.manifest.watermark > originalWatermark)) throw new Error(`delta watermark ${base.manifest.watermark} must EXCEED the original ${originalWatermark} [r62 — ≤ silently no-ops]`);
   return { auth, base, authSha };
+}
+
+// r63 A6: THE CHAIN ORDER LAW — applied layers must be STRICTLY INCREASING in watermark (equal watermarks
+// would make per-uid resolution depend on CLI argument order via the resolver's >=).
+export function assertLayerChainOrder(deltaLayers) {
+  for (let i = 1; i < deltaLayers.length; i++)
+    if (!(deltaLayers[i].base.manifest.watermark > deltaLayers[i - 1].base.manifest.watermark))
+      throw new Error(`applied-delta chain not strictly increasing at position ${i} (${deltaLayers[i - 1].base.manifest.watermark} → ${deltaLayers[i].base.manifest.watermark}) — pass layers in application order [r63 A6]`);
 }
 
 // Per-uid resolution across the chain: the LATEST delta layer containing the uid wins; else the original.

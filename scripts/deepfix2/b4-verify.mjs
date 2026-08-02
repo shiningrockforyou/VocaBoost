@@ -19,7 +19,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder } from "./b-baseline.mjs";
 
 const argv = process.argv.slice(2);
 const KNOWN = new Set(["classAllowlist", "manifest", "appliedDelta", "ignoreLedger", "postFlip", "allowSampleVerify"]);
@@ -48,20 +48,34 @@ for (const dir of args.appliedDelta) {
   try { deltaLayers.push(loadDeltaLayer(dir, original.manifestSha256, original.manifest.watermark)); }
   catch (e) { console.error(`FATAL delta layer ${dir}: ${e.message}`); process.exit(2); }
 }
+try { assertLayerChainOrder(deltaLayers); } catch (e) { console.error(`FATAL: ${e.message}`); process.exit(2); }
 // r62 LEDGER AUDIT: every B3 EXECUTE appended its layer to applied-layers.jsonl. The FINAL B4 must be
 // invoked with the FULL chain — a ledgered EXECUTE'd delta layer missing from --appliedDelta means this
 // verdict would ignore state the writer applied ⇒ FATAL (override only with --ignoreLedger for forensics).
 {
   const ledgerPath = new URL("../../audit/deepfix/trackB_baselines/applied-layers.jsonl", import.meta.url);
   if (existsSync(ledgerPath) && args.ignoreLedger !== true) {
-    const have = new Set(deltaLayers.map(L => L.base.manifestSha256));
-    const missing = [];
-    for (const ln of readFileSync(ledgerPath, "utf-8").split("\n")) {
-      if (!ln) continue; let e; try { e = JSON.parse(ln); } catch { continue; }
-      if (e.probe !== "b3-applied" || e.originalManifestSha256 !== original.manifestSha256) continue;
-      if (e.deltaManifestSha256 && !have.has(e.deltaManifestSha256)) missing.push(e.runId);
+    // r63 A4: STRICT — the ledger is mandatory audit authority; any invalid non-blank line, any intent
+    // without its applied record, and any latest-applied with failures/skips is FATAL (not skipped)
+    const intents = new Map(); const applieds = new Map(); const have = new Set(deltaLayers.map(L => L.base.manifestSha256));
+    const lines = readFileSync(ledgerPath, "utf-8").split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i]; if (!ln.trim()) continue;
+      let e; try { e = JSON.parse(ln); } catch { console.error(`FATAL [r63 ledger]: malformed line ${i + 1}`); process.exit(2); }
+      if (e.probe === "b3-intent") { if (e.originalManifestSha256 === original.manifestSha256) intents.set(e.runId, e); }
+      else if (e.probe === "b3-applied") { if (e.originalManifestSha256 === original.manifestSha256) applieds.set(e.runId, e); } // latest wins per runId
+      else { console.error(`FATAL [r63 ledger]: unknown probe '${e.probe}' line ${i + 1}`); process.exit(2); }
     }
-    if (missing.length) { console.error(`FATAL [r62 ledger]: EXECUTE'd delta layers not in --appliedDelta: ${missing.join(", ")}`); process.exit(2); }
+    const problems = [];
+    for (const [runId] of intents) if (!applieds.has(runId)) problems.push(`${runId}: intent without completion (crash mid-run? resume it)`);
+    const missing = [];
+    for (const [runId, e] of applieds) {
+      const o = e.outcome || {};
+      if ((o.txnFailures || 0) + (o.skippedResetLocked || 0) + (o.skippedEpochDrift || 0) > 0) problems.push(`${runId}: latest completion has failures/skips — resume to a clean completion`);
+      if (e.deltaManifestSha256 && !have.has(e.deltaManifestSha256)) missing.push(runId);
+    }
+    if (missing.length) problems.push(`EXECUTE'd delta layers not in --appliedDelta: ${missing.join(", ")}`);
+    if (problems.length) { console.error(`FATAL [r63 ledger]:\n - ${problems.join("\n - ")}`); process.exit(2); }
   }
 }
 
@@ -85,14 +99,18 @@ const baseUids = new Set(original.rows.keys());
 //  - departed (baseline, no longer enrolled): verify-SKIPPED, counted + listed (their docs are unreachable
 //    behavior-wise; cleanup/retention is the reset/退-flow's concern, not the backfill's).
 const rosterAdded = new Set(uids.filter(u => isRosterAdded(u, original, deltaLayers))); // r62p D2: layer-covered joiners are NOT re-flagged
-const departedUids = [...baseUids].filter(u => !students.has(u));
+// r63 A6: departures from the UNION of the original + every applied layer — a layer-only joiner who later
+// departs must be counted, not vanish
+const knownUids = new Set(baseUids);
+for (const L of deltaLayers) for (const u of L.base.rows.keys()) knownUids.add(u);
+const departedUids = [...knownUids].filter(u => !students.has(u));
 console.error(`B4 v3: ${matchedN} classes -> ${uids.length} students; deltas=${deltaLayers.length}; original watermark=${original.manifest.watermark}`);
 
 const FIELD_MAP = { fc: "reviewFailCount", lf: "reviewLastFailedAt", lc: "reviewLastCorrectAt", lp: "reviewLastProvenAt", rlt: "reviewLastTestedAt" };
 const SIX = [...Object.values(FIELD_MAP), "reviewRestingUntil"];
 const stats = { students: 0, zeroDiff: 0, withDiffs: 0, totalDiffs: 0, extraLabelDocs: 0, recomputedTargets: 0,
   deltaNewAttempts: 0, deltaAdjudication: 0, deltaEpoch: 0, corruptTyped: 0,
-  liveAttempts: 0, liveProgressedDocs: 0, liveNewWordDocs: 0 };
+  liveAttempts: 0, liveExemptFields: 0, liveNewWordDocs: 0 };
 const diffsOut = []; const extrasList = []; let truncated = false;
 const deltaSet = new Map();
 const addDelta = (uid, reason) => { if (!deltaSet.has(uid)) deltaSet.set(uid, []); const a = deltaSet.get(uid); if (!a.includes(reason)) a.push(reason); };
@@ -135,32 +153,29 @@ for (const uid of uids) {
     const chunk = await db.getAll(...refs.slice(i, i + 300));
     for (const doc of chunk) actualByWordId.set(doc.id, doc.exists ? doc.data() : null);
   }
-  // r62p N2: a doc with ANY label timestamp at/after the flip is LIVE-PROGRESSED — the live server owns it;
-  // its mismatches are informational (fc travels with lf in the same stamp txn, so the per-DOC rule covers
-  // counter drift too). Without --postFlip this predicate is constant-false.
-  const isLiveDoc = cur => {
-    if (!POSTFLIP || !cur) return false;
-    for (const f of ["reviewLastFailedAt", "reviewLastCorrectAt", "reviewLastProvenAt", "reviewLastTestedAt", "reviewRestingUntil"]) {
-      const ms = cur[f]?.toMillis?.();
-      if (typeof ms === "number" && ms >= POSTFLIP) return true;
-    }
-    return false;
-  };
+  // r63 A2: PER-FIELD live exemption [replaces the doc-wide isLiveDoc skip — one fresh stamp must never
+  // hide a stale/corrupt UNTOUCHED field]. A mismatched field is exempt ONLY if that field itself proves
+  // post-flip ownership (isFieldLiveExempt, shared law in b-baseline.mjs); corrupt-typed NEVER exempt.
   let myDiffs = 0, myExtra = 0;
   for (const [k, w] of Object.entries(expected)) {
     const wordId = k.split("|")[1];
     const cur = actualByWordId.get(wordId);
-    if (isLiveDoc(cur)) { stats.liveProgressedDocs++; continue; }
     const want = { fc: w.fc, lf: w.lf, lc: w.lc, lp: w.lp, rlt: w.rlt };
     for (const [short, field] of Object.entries(FIELD_MAP)) {
       const exp = want[short];
       const { v: act, corrupt } = readCur(cur, field);
       if (corrupt) { stats.corruptTyped++; myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field, expected: exp, actual: "CORRUPT_TYPE" }); else truncated = true; continue; }
       const match = exp === null ? act === null : act === exp;
-      if (!match) { myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field, expected: exp, actual: act }); else truncated = true; }
+      if (!match) {
+        if (POSTFLIP && isFieldLiveExempt(field, cur, POSTFLIP)) { stats.liveExemptFields++; continue; }
+        myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field, expected: exp, actual: act }); else truncated = true;
+      }
     }
-    const { v: rruAct } = readCur(cur, "reviewRestingUntil");
-    if (rruAct !== null) { myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field: "reviewRestingUntil", expected: null, actual: rruAct }); else truncated = true; }
+    const { v: rruAct, corrupt: rruCorrupt } = readCur(cur, "reviewRestingUntil");
+    if (rruAct !== null) {
+      if (!rruCorrupt && POSTFLIP && isFieldLiveExempt("reviewRestingUntil", cur, POSTFLIP)) { stats.liveExemptFields++; }
+      else { myDiffs++; if (diffsOut.length < 2000) diffsOut.push({ uid, wordId, field: "reviewRestingUntil", expected: null, actual: rruCorrupt ? "CORRUPT_TYPE" : rruAct }); else truncated = true; }
+    }
   }
   const extraDocs = new Map();
   for (const f of SIX) {
@@ -168,11 +183,18 @@ for (const uid of uids) {
     for (const d of es.docs) if (!expectedWids.has(d.id)) { if (!extraDocs.has(d.id)) extraDocs.set(d.id, []); extraDocs.get(d.id).push(f); }
   }
   if (POSTFLIP && extraDocs.size) {
-    // live-era extras (post-flip intake/graduation on words outside expected) are the server's own writes
+    // live-era extras (post-flip intake/graduation on words outside expected) are the server's own writes —
+    // but ONLY when EVERY present owned field on the doc proves live ownership [r63 A2: one fresh field
+    // must not excuse a doc that also carries stale label residue]
     const exRefs = [...extraDocs.keys()].map(w => db.collection("users").doc(uid).collection("study_states").doc(w));
     for (let i = 0; i < exRefs.length; i += 300) {
       const chunk = await db.getAll(...exRefs.slice(i, i + 300));
-      for (const doc of chunk) if (doc.exists && isLiveDoc(doc.data())) { extraDocs.delete(doc.id); stats.liveNewWordDocs++; }
+      for (const doc of chunk) {
+        if (!doc.exists) continue;
+        const d = doc.data();
+        const present = SIX.filter(f => f in d);
+        if (present.length && present.every(f => isFieldLiveExempt(f, d, POSTFLIP))) { extraDocs.delete(doc.id); stats.liveNewWordDocs++; }
+      }
     }
   }
   for (const [wid, fields] of extraDocs) {
@@ -195,9 +217,11 @@ const runId = `b4-${original.manifest.watermark}-${Date.now()}`;
 const verdict = POSTFLIP
   ? ((stats.totalDiffs === 0 && !truncated) ? "PASS" : "DIFFS")
   : ((stats.totalDiffs === 0 && deltaList.length === 0 && !truncated) ? "PASS"
-    : (stats.totalDiffs === 0 && deltaList.length ? "ZERO-DIFF-BUT-DELTA-OUTSTANDING" : "DIFFS"));
+    : (stats.totalDiffs === 0 && deltaList.length ? "ZERO-DIFF-BUT-DELTA-OUTSTANDING"
+      : (deltaList.length ? "DIFFS-WITH-ACTIONABLE-DELTA" : "DIFFS")));
 const report = { probe: "b4-report", version: 4, runId, originalManifestSha256: original.manifestSha256,
   appliedDeltas: deltaLayers.map(L => L.base.manifestSha256),
+  extrasDeletionLaw: "all-six-present", // r63 A3: the deletion semantics are IN the report schema B3 validates
   postFlip: POSTFLIP, verdict,
   diffsTruncated: truncated, stats, deltaList, departedUids, diffs: diffsOut, extrasList };
 writeFileSync(new URL(`${runId}.json.tmp`, outDir), JSON.stringify(report, null, 2));
@@ -218,7 +242,14 @@ if (deltaList.length && !POSTFLIP) {
   console.log(`MATERIALIZED_DELTA_DIR=${layerPath}`);
   console.error(`delta layer materialized: ${layerPath} (next: b1 --full --classAllowlist=<ALLOW> --deltaAuth=<dir>/delta-auth.json --outDir=<dir>, then b3 --deltaDir=<dir> --execute, then b4 --appliedDelta=<dir>)`);
 }
-// r61: FAIL-CLOSED exits — a shell pipeline can never stay green on a non-PASS
+// r61/r63: FAIL-CLOSED exits — a pipeline can never stay green on a non-PASS.
+// 5 = DIFFS with NO actionable delta (structural — STOP and investigate)
+// 6 = zero-diff, delta outstanding (actionable — the driver runs the next lap)
+// 7 = DIFFS *AND* an actionable materialized delta [r63 A1 — roster-added and in-place-adjudication
+//     students NORMALLY present as diffs+delta; the lap re-baselines them and the next B4 re-verifies;
+//     stopping here made the driver reject the exact cases the chain exists to converge]
+console.log(JSON.stringify({ runId, verdict: report.verdict, stats, deltaStudents: deltaSet.size, extras: extrasList.length, truncated }, null, 2));
+if (report.verdict === "DIFFS-WITH-ACTIONABLE-DELTA") process.exit(7);
 if (report.verdict === "DIFFS") process.exit(5);
 if (report.verdict === "ZERO-DIFF-BUT-DELTA-OUTSTANDING") process.exit(6);
-console.log(JSON.stringify({ runId, verdict: report.verdict, stats, deltaStudents: deltaSet.size, extras: extrasList.length, truncated }, null, 2));
+if (report.verdict !== "PASS") { console.error(`FATAL: unmapped verdict ${report.verdict}`); process.exit(2); } // belt-and-suspenders: only PASS exits 0

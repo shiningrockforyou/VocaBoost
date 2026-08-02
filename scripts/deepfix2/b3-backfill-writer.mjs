@@ -33,19 +33,20 @@
 //   [--deltaDir=DIR] [--repairExtras=B4_REPORT] [--resume]
 import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream } from "node:fs";
+import { readFileSync, writeFileSync, createWriteStream, existsSync, renameSync, mkdirSync, appendFileSync, createReadStream, openSync, writeSync, fsyncSync, closeSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource } from "./b-baseline.mjs";
+import { loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, assertLayerChainOrder } from "./b-baseline.mjs";
 import { applyChunkInTxn, CHUNK_SIZE } from "./b3-txn-core.mjs";
 
-const KNOWN = new Set(["classAllowlist", "manifest", "runId", "execute", "allowSampleExecute", "deltaDir", "repairExtras", "resume"]);
-const args = Object.fromEntries(process.argv.slice(2).map(a => {
+const KNOWN = new Set(["classAllowlist", "manifest", "runId", "execute", "allowSampleExecute", "deltaDir", "repairExtras", "appliedDelta", "resume"]);
+const args = { appliedDelta: [] };
+for (const a of process.argv.slice(2)) {
   const m = a.match(/^--([^=]+)(?:=(.*))?$/); if (!m || !KNOWN.has(m[1])) { console.error(`Unrecognized arg: ${a}`); process.exit(2); }
-  return [m[1], m[2] ?? true];
-}));
+  if (m[1] === "appliedDelta") args.appliedDelta.push(m[2]); else args[m[1]] = m[2] ?? true;
+}
 const need = k => { if (typeof args[k] !== "string" || !args[k]) { console.error(`--${k}=VALUE required`); process.exit(2); } return args[k]; };
 const allowPath = need("classAllowlist"); const manifestPath = need("manifest"); const RUNID = need("runId");
 if (!/^[A-Za-z0-9._-]{4,64}$/.test(RUNID)) { console.error("--runId must be 4-64 [A-Za-z0-9._-]"); process.exit(2); }
@@ -64,14 +65,26 @@ if (args.deltaDir) {
   try { deltaLayers = [loadDeltaLayer(args.deltaDir, original.manifestSha256, original.manifest.watermark)]; }
   catch (e) { console.error(`FATAL delta: ${e.message}`); process.exit(2); }
 }
-let extrasRepair = null; let extrasRepairBinding = null;
+let extrasRepair = null; let extrasRepairBinding = null; let extrasRepairReport = null;
 if (args.repairExtras) {
   try {
     const rep = JSON.parse(readFileSync(args.repairExtras, "utf-8"));
     if (rep.probe !== "b4-report" || !Array.isArray(rep.extrasList)) throw new Error("not a b4-report with extrasList");
     if (rep.diffsTruncated === true) throw new Error("the b4-report is TRUNCATED — a capped extrasList is not repair authority [r62p]");
     if (rep.postFlip) throw new Error("the b4-report is POST-FLIP — extras there include the live server's own writes; repairExtras is FORBIDDEN [r62p N2]");
+    if (rep.extrasDeletionLaw !== "all-six-present") throw new Error("report lacks extrasDeletionLaw:'all-six-present' — deletion semantics must be report-encoded [r63 A3]");
+    // r63 A3: exact tuples — unique nonempty (uid, wordId); fields ⊆ the six owned names
+    const SIXSET = new Set(["reviewFailCount", "reviewLastFailedAt", "reviewLastCorrectAt", "reviewLastProvenAt", "reviewLastTestedAt", "reviewRestingUntil"]);
+    const seenT = new Set();
+    for (const ex of rep.extrasList) {
+      if (typeof ex.uid !== "string" || !ex.uid || typeof ex.wordId !== "string" || !ex.wordId) throw new Error("extras tuple lacks nonempty uid/wordId");
+      const k = `${ex.uid}|${ex.wordId}`;
+      if (seenT.has(k)) throw new Error(`duplicate extras tuple ${k}`);
+      seenT.add(k);
+      if (!Array.isArray(ex.fields) || !ex.fields.every(f => SIXSET.has(f))) throw new Error(`extras tuple ${k}: fields not a subset of the six owned names`);
+    }
     if (rep.originalManifestSha256) extrasRepairBinding = rep.originalManifestSha256; else throw new Error("report lacks originalManifestSha256");
+    extrasRepairReport = rep;
     args._repairExtrasSha256 = createHash("sha256").update(readFileSync(args.repairExtras)).digest("hex");
     extrasRepair = rep.extrasList; // [{uid, wordId, fields:[...]}] — scope-checked after the cohort loads [r61]
   } catch (e) { console.error(`FATAL repairExtras: ${e.message}`); process.exit(2); }
@@ -111,6 +124,22 @@ if ((missing.length || extra.length) && !deltaLayers.length) {
   console.error(`FATAL [A6 scope drift]: ${missing.length} live uids missing from baseline; ${extra.length} baseline uids out of scope`); process.exit(2);
 }
 if (extrasRepairBinding && extrasRepairBinding !== original.manifestSha256) { console.error("FATAL [r61]: the extras report is bound to a DIFFERENT baseline"); process.exit(2); }
+// r63 A3: the report's "extra" judgment is only true relative to the EXACT applied-delta chain it verified
+// against — a stale-M0 report could order deletion of a word a later layer made expected. B3 must be given
+// the SAME chain (--appliedDelta, ordered) and it must equal report.appliedDeltas exactly.
+if (extrasRepair) {
+  const chainLayers = [];
+  for (const dir of args.appliedDelta) {
+    try { chainLayers.push(loadDeltaLayer(dir, original.manifestSha256, original.manifest.watermark)); }
+    catch (e) { console.error(`FATAL [r63 A3] chain layer ${dir}: ${e.message}`); process.exit(2); }
+  }
+  try { assertLayerChainOrder(chainLayers); } catch (e) { console.error(`FATAL: ${e.message}`); process.exit(2); }
+  const mine = chainLayers.map(L => L.base.manifestSha256);
+  const theirs = Array.isArray(extrasRepairReport.appliedDeltas) ? extrasRepairReport.appliedDeltas : [];
+  if (mine.length !== theirs.length || !mine.every((s, i) => s === theirs[i])) {
+    console.error(`FATAL [r63 A3]: --appliedDelta chain (${mine.length} layers) ≠ the report's appliedDeltas (${theirs.length}) — pass the exact chain the report verified against`); process.exit(2);
+  }
+}
 if (extrasRepair) { const off = extrasRepair.filter(e => !students.has(e.uid)); if (off.length) { console.error(`FATAL [r61]: ${off.length} extras rows outside the cohort scope`); process.exit(2); } }
 if (deltaLayers.length) {
   // delta run scope = the delta uids still enrolled; departed ones are COUNTED + LISTED [r62 roster-churn law]
@@ -126,7 +155,16 @@ const outDir = new URL("../../audit/deepfix/trackB_baselines/b3-runs/", import.m
 mkdirSync(outDir, { recursive: true });
 const backupPath = new URL(`${RUNID}.preimage.jsonl`, outDir);
 const journalPath = new URL(`${RUNID}.phase2.journal`, outDir);
-if (existsSync(backupPath) && !RESUME) { console.error(`FATAL [A5]: run ${RUNID} exists — runIds are single-use (use --resume to continue an interrupted EXECUTE)`); process.exit(2); }
+if (existsSync(backupPath) && !RESUME) {
+  // r63 A5: a backup WITHOUT a published manifest = phase 1 crashed pre-publication ⇒ NO writes ever ran
+  // (EXECUTE requires the manifest first). The orphan is set aside and a fresh start is legal — the old
+  // "fresh rejects AND resume rejects" dead end is gone.
+  if (!existsSync(new URL(`${RUNID}.manifest.json`, outDir))) {
+    const orphan = new URL(`${RUNID}.preimage.orphan-${Date.now()}.jsonl`, outDir);
+    renameSync(backupPath, orphan);
+    console.error(`NOTE [r63 A5]: orphan pre-image (no manifest — phase 1 never completed) set aside as ${orphan.pathname.split("/").pop()}; starting fresh`);
+  } else { console.error(`FATAL [A5]: run ${RUNID} exists — runIds are single-use (use --resume to continue an interrupted EXECUTE)`); process.exit(2); }
+}
 const committed = new Set();
 if (RESUME) {
   // r61: resume BINDS to the published run manifest — same mode, same baseline, same plan authority
@@ -151,8 +189,12 @@ const preHash = createHash("sha256");
 // r62p: a RESUME regenerates plans from live state — docs that entered expected since the first run would
 // otherwise be written with no pre-image. Every resume examination is captured to a SIDE pre-image file
 // (append-mode; sha recorded in the RESULT — the run manifest stays immutable).
-const preResumePath = new URL(`${RUNID}.preimage.resume.jsonl`, outDir);
-const preResume = RESUME ? createWriteStream(preResumePath, { flags: "a" }) : null;
+// r63 A5: each resume ATTEMPT gets its own immutable pre-image + result files — the recorded hash verifies
+// exactly one file; nothing is appended to or overwritten across attempts
+let ATTEMPT = 0;
+if (RESUME) { while (existsSync(new URL(`${RUNID}.resume-${ATTEMPT + 1}.result.json`, outDir)) || existsSync(new URL(`${RUNID}.resume-${ATTEMPT + 1}.preimage.jsonl`, outDir))) ATTEMPT++; ATTEMPT++; }
+const preResumePath = new URL(`${RUNID}.resume-${ATTEMPT}.preimage.jsonl`, outDir);
+const preResume = RESUME ? createWriteStream(preResumePath) : null;
 const preResumeHash = createHash("sha256");
 if (preResume) preResume.on("error", e => { console.error(`FATAL: resume-preimage stream error: ${e.message}`); process.exit(2); });
 const plansPath = new URL(RESUME ? `${RUNID}.plans.resume.jsonl` : `${RUNID}.plans.jsonl`, outDir);
@@ -164,6 +206,14 @@ if (preStream) preStream.on("error", streamFatal("preimage"));
 const planHash = createHash("sha256");
 const swrite = (stream, line) => new Promise(r => { stream.write(line) ? r() : stream.once("drain", r); }); // backpressure [r62]
 const emitPlan = obj => { const line = JSON.stringify(obj) + "\n"; planHash.update(line); return swrite(planStream, line); };
+// r63 A4: DURABLE ledger appends — write + fsync + close per record, so a host crash cannot leave applied
+// writes without ledger evidence past the intent record
+const LEDGER_URL = new URL("../../audit/deepfix/trackB_baselines/applied-layers.jsonl", import.meta.url);
+const ledgerAppend = obj => {
+  const fd = openSync(LEDGER_URL, "a");
+  writeSync(fd, JSON.stringify(obj) + "\n");
+  fsyncSync(fd); closeSync(fd);
+};
 const readCurrent = (cur, field) => {
   if (!cur || !(field in cur)) return { v: null, corrupt: false };
   const raw = cur[field];
@@ -247,6 +297,10 @@ console.error(`phase 1 durable: ${stats.docsExamined} docs examined, ${stats.pla
 // ---- PHASE 2: chunked TRANSACTIONS per student (tombstone reads + target reads FIRST, then re-diffed
 // writes), streamed off the plan file, journaled ----
 if (EXECUTE) {
+  // r63 A4: INTENT before the first write — a crash mid-phase-2 leaves intent-without-completion, which the
+  // strict B4 ledger audit FATALs on (resume to a clean completion)
+  ledgerAppend({ probe: "b3-intent", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
+    deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, attempt: ATTEMPT, at: new Date().toISOString() });
   const rl = createInterface({ input: createReadStream(plansPath), crlfDelay: Infinity });
   for await (const ln of rl) {
     if (!ln) continue;
@@ -292,15 +346,16 @@ if (preResume) await new Promise(r => preResume.end(r));
 const final = { ...runManifest, finalStats: stats, resetLockedList, epochDriftSkippedList,
   resumePreimageSha256: RESUME ? preResumeHash.digest("hex") : null };
 // r62p: a resume writes its OWN result file — the original run's audit record is never clobbered
-const resultName = RESUME ? `${RUNID}.result.resume.json` : `${RUNID}.result.json`;
+const resultName = RESUME ? `${RUNID}.resume-${ATTEMPT}.result.json` : `${RUNID}.result.json`;
 writeFileSync(new URL(`${resultName}.tmp`, outDir), JSON.stringify(final, null, 2));
 renameSync(new URL(`${resultName}.tmp`, outDir), new URL(resultName, outDir));
 // r62: the applied-layers LEDGER — every EXECUTE appends; the FINAL B4 audits that its --appliedDelta
 // chain covers every EXECUTE'd delta layer for this original baseline (14_ §4).
-if (EXECUTE) appendFileSync(new URL("../../audit/deepfix/trackB_baselines/applied-layers.jsonl", import.meta.url),
-  JSON.stringify({ probe: "b3-applied", runId: RUNID, originalManifestSha256: original.manifestSha256,
-    deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, deltaDir: args.deltaDir || null,
-    students: uids.length, txnFailures: stats.txnFailures, skippedResetLocked: stats.skippedResetLocked, at: new Date().toISOString() }) + "\n");
+if (EXECUTE) ledgerAppend({ probe: "b3-applied", version: 1, runId: RUNID, originalManifestSha256: original.manifestSha256,
+  deltaManifestSha256: deltaLayers.length ? deltaLayers[0].base.manifestSha256 : null, deltaDir: args.deltaDir || null,
+  students: uids.length, attempt: ATTEMPT, complete: true,
+  outcome: { txnFailures: stats.txnFailures, skippedResetLocked: stats.skippedResetLocked, skippedEpochDrift: stats.skippedEpochDrift },
+  at: new Date().toISOString() });
 console.log(JSON.stringify({ runId: RUNID, execute: EXECUTE, ...stats }, null, 2));
 if (stats.txnFailures > 0) process.exit(4);
 if (stats.skippedResetLocked + stats.skippedEpochDrift > 0) process.exit(5); // r61/r62p: skipped students are VISIBLE failure, never silent green

@@ -86,7 +86,7 @@ substrings (shadow ids may contain original ids by construction).
    system_config/* placement EXCEEDED David's narrowed-A grant, Codex-confirmed — a new Admin-written,
    rules-denied collection sits inside the already-granted B/E standing execution authority instead; NO
    system_config surface is touched beyond narrowed-A's two fields]. Written by the audit driver (Admin),
-   deleted at cleanup. **GENERATION/CACHE LAW [r62]:** `shadow_registry/0` carries a `generation` counter bumped by every registry write; server instances cache the uid-set keyed by generation with a ≤60s re-read; staleness ≤TTL is safe BY SCHEDULE — membership changes only OUTSIDE run windows (the driver writes the registry, waits >TTL, asserts generation visibility — THE PROBE SURFACE [r62p]: the Admin driver re-reads `shadow_registry/0.generation` directly AND calls the diagnostic callable `getShadowRegistryGeneration` (dark-build deliverable, Admin/audit-teacher-only, returns the generation each serving instance currently holds) until both equal the written value; THEN starts the batteries; teardown reverses). **REDUCED-SET SCOPE INPUT [r62]:** any battery running on a subset consumes a GENERATED shadow-subset class allowlist `audit/deepfix/shadow/scope-<runId>.json` through the EXISTING `--classAllowlist` surface of B1/B3/B4 — no new flags, same A6 binding. **UID GRANULARITY RULE [r62p — class allowlists reach uids through `studentIds`]: the clone driver BUILDS each shadow class's `studentIds` as exactly the reduced uid set for that partition (flagged-skip uids pruned AT CLONE TIME) — so the class-granular surface expresses every student-granular partition, and B3/B4's uid-set ≡ scope binding holds without new flags. A partition = its own shadow class(es); partitions never share a shadow class.** The rules artifact gains the
+   deleted at cleanup. **GENERATION/CACHE LAW [r62]:** `shadow_registry/0` carries a `generation` counter bumped by every registry write; server instances cache the uid-set keyed by generation with a ≤60s re-read; staleness ≤TTL is safe BY SCHEDULE — membership changes only OUTSIDE run windows (the driver writes the registry, waits >TTL, THEN starts the batteries; teardown reverses. **GENERATION-BOUND CLASSIFICATION [r63 — supersedes the r62p probe: a load-balanced callable reaches ONE instance per request and can NEVER prove what every warm instance holds]: safety does not depend on fleet-wide cache proof. Every ops_metrics writer stamps `registryGeneration` (the generation its cached set came from) on every row; during an audit window the PRODUCTION evaluator QUARANTINES rows whose generation < the window's registered generation (indeterminate — never production-classified, never alert-feeding), and the audit evaluator consumes only current-generation `shadow === true` rows. A stale instance therefore cannot emit a production-classified shadow metric BY CONSTRUCTION. `getShadowRegistryGeneration` survives as a diagnostic only (no proof burden). STALE-CACHE INJECTION TEST: plant a row stamped generation G−1 during a G window ⇒ must land in quarantine, both evaluators**). **REDUCED-SET SCOPE INPUT [r62]:** any battery running on a subset consumes a GENERATED shadow-subset class allowlist `audit/deepfix/shadow/scope-<runId>.json` through the EXISTING `--classAllowlist` surface of B1/B3/B4 — no new flags, same A6 binding. **UID GRANULARITY RULE [r62p — class allowlists reach uids through `studentIds`]: the clone driver BUILDS each shadow class's `studentIds` as exactly the reduced uid set for that partition (flagged-skip uids pruned AT CLONE TIME) — so the class-granular surface expresses every student-granular partition, and B3/B4's uid-set ≡ scope binding holds without new flags. A partition = its own shadow class(es); partitions never share a shadow class.** The rules artifact gains the
    matching server-only clause.** **TWO MODES [r59-C7]:
    production consumers EXCLUDE shadow rows (proven in audit Q); the audit-I evaluator is a SEPARATE
    side-effect-free run over ONLY shadow rows — it writes no real alert/abort state.**
@@ -111,8 +111,13 @@ disjoint partition — no battery consumes another's mutations [r59-C5].
 digest-fence — read → digest → re-read → digest-equal or RETRY (×3, then flag+skip); ONE run watermark stamps
 every copied doc; the clone-fidelity gate runs B1-on-shadow at THE ORIGINAL BASELINE'S watermark (B1
 `--watermark`); a flagged-student count above 2% ABORTS the clone; **below it, the run's IMMUTABLE reduced uid-set (947−k, manifest-recorded) governs EVERY downstream claim —
-**executable [r60 #7]: the reduced set IS the shadow allowlist/uid files every script consumes (B1 --uids,
-B3/B4 scope, the batteries' partition manifests all derive from it; nothing reads '947' as a constant).** **CONTAINMENT TRIAD [v4 — honest scoping, r59-C6]: (1) the in-process guard covers CLONE/DRIVER writes
+**executable [r60 #7, ONE LAW r63 — the --uids interface is DELETED from this plan: B1's bare --uids mode
+emits a delta-mode artifact without parent hashes (the shared loader rejects it) and B3/B4 have no uid
+input]: the reduced set materializes EXACTLY ONCE, at CLONE TIME, as shadow-class membership — each shadow
+class's `studentIds` = its partition of the reduced set (§2.11 UID GRANULARITY RULE) — and every script
+(B1/B3/B4, every battery) consumes it through generated CLASS allowlists (`scope-<runId>.json`); nothing
+reads '947' as a constant. PRE-RUN GATE: the generated-manifest test asserts every selected shadow class's
+`studentIds` equals its partition BEFORE any backfill/battery runs.** **CONTAINMENT TRIAD [v4 — honest scoping, r59-C6]: (1) the in-process guard covers CLONE/DRIVER writes
 (target ∈ registry AND collection allowed, checked BEFORE each write; violation = hard stop); (2) DEPLOYED
 CALLABLE writes are contained by auth scoping — student callables write only for the authed uid (always a
 shadow uid here), and **TEACHER flows (force-pass/override — which write OTHER students' state [r60 #7])
@@ -127,8 +132,9 @@ independent evidence layer: audit-log review of the service principals + pre/pos
 the real-doc spot-hash set + the two-sided post-run sweeps.
 The wrapper is never claimed to intercept server-side writes.** **Pre-clone sizing** (per-student count() aggregations — B2's capped medians are NOT usable for sizing
 [panel]) → `shadow-clone.mjs` (dry-run manifest → --execute; off-peak) → `shadow-integrity-sweep.mjs` (§2) →
-**clone-fidelity gate**: B1 run against the shadow cohort with `--watermark=<the original baseline's
-watermark>` + `--outDir` + `--uids` **(ALL IMPLEMENTED — b1-expected-labels v6b [r59])** must equal the real baseline modulo the
+**clone-fidelity gate**: B1 run against the shadow cohort with `--full --classAllowlist=<the generated
+shadow scope allowlist>` + `--watermark=<the original baseline's watermark>` + `--outDir` **(ALL
+IMPLEMENTED — b1-expected-labels v6b [r59]; scope via classes, ONE law [r63])** must equal the real baseline modulo the
 id map (mapped-digest byte-diff) → **audit A (needs ONLY Admin SDK — runs BEFORE/parallel with the dark
 deploy [panel])** → dark deploy → audits B-I (need the deployed backend; B/D/E/F/H drive callables via
 **Admin-minted CUSTOM TOKENS exchanged through signInWithCustomToken [panel — callables hard-require

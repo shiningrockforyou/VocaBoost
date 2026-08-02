@@ -89,7 +89,7 @@ re-run).
 
 ## 4. B4 — execution choreography (r46-B2, unchanged from DF2-14's card)
 
-Backup → **25WT rehearsal** (B3 exec → B4 PASS — fail-closed) → David's stage-4 go → 26SM: FULL B1 → B3
+**EMULATOR SMOKE LAP FIRST [r62p, David-ratified]: the full chain (B1 --full → B3 --execute → B4 → one b-delta-cycle.sh lap) runs against the Firestore emulator before 25WT — execution evidence, not review evidence.** Backup → **25WT rehearsal** (B3 exec → B4 PASS — fail-closed) → David's stage-4 go → 26SM: FULL B1 → B3
 --execute → B4 → **the CONVERGENT ENDGAME [r61, corrected r62p — a live cohort never yields an empty delta,
 and doesn't need to]: iterate (B4 → materialized delta layer → B1 --deltaAuth → B3 --deltaDir --execute →
 B4 --appliedDelta; the driver = `b-delta-cycle.sh`, consuming B4's printed MATERIALIZED_DELTA_DIR line)

@@ -104,7 +104,7 @@ if (args.deltaAuth) {
   const departed = auth.uids.filter(u => !scope.has(u));
   uids = auth.uids.filter(u => scope.has(u)).sort();
   if (departed.length) { console.error(`NOTE [roster churn]: ${departed.length} delta uids departed the cohort — listed in the manifest as departedUids`); deltaAuthMeta.departedUids = departed; }
-  if (!uids.length) { console.error("FATAL: zero delta uids remain in scope"); process.exit(2); }
+  if (!uids.length) console.error("NOTE [r63 A6]: ALL delta uids departed — emitting an auditable EMPTY delta layer (zero rows, all excused via departedUids); the next B4 counts them departed and the chain converges");
 }
 if (args.uids) {
   let want;
@@ -148,6 +148,8 @@ const { mkdirSync } = await import("node:fs"); mkdirSync(outDir, { recursive: tr
 const jsonlFinal = new URL(`b1-expected-labels-${mode}.jsonl`, outDir);
 const jsonlTmp = new URL(`b1-expected-labels-${mode}.jsonl.tmp`, outDir);
 const jsonl = createWriteStream(jsonlTmp);
+jsonl.on("error", e => { console.error(`FATAL: jsonl stream error: ${e.message}`); process.exit(2); });
+const jwrite = line => new Promise(r => { jsonl.write(line) ? r() : jsonl.once("drain", r); }); // r63: backpressure
 const digests = {};
 
 for (const uid of uids) {
@@ -183,7 +185,7 @@ for (const uid of uids) {
   if (r.mutationRisk.pendingChallenges || r.mutationRisk.adjudicatedAtOrAfterWatermark || r.mutationRisk.challengeTsUnknown) agg.mutationRiskStudents++;
   if (r.wordIdCollisions.length) { console.error(`FATAL [A8]: uid ${uid} has ${r.wordIdCollisions.length} cross-list wordId collisions w/ divergent expectations`); process.exit(3); }
   const line = { uid, epochByList: r.epochByList, mutationRisk: r.mutationRisk, challengeDigest: r.challengeDigest, words: r.wordsOut };
-  jsonl.write(JSON.stringify(line) + "\n");
+  await jwrite(JSON.stringify(line) + "\n");
   digests[uid] = { ...mine, digest: r.digest };
   process.stderr.write(".");
 }

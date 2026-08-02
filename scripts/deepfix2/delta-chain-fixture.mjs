@@ -19,7 +19,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { computeStudentLabels } from "./b1-replay-lib.mjs";
-import { loadVerifiedBaseline, loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded } from "./b-baseline.mjs";
+import { loadVerifiedBaseline, loadVerifiedBaselineIndexed, loadDeltaLayer, resolveExpectedSource, isRosterAdded, isFieldLiveExempt, assertLayerChainOrder } from "./b-baseline.mjs";
 import { applyChunkInTxn } from "./b3-txn-core.mjs";
 
 let checks = 0, failures = 0;
@@ -319,6 +319,74 @@ const SNAP = { L1: { resetEpoch: 1, resetAt: 50 * DAY } };
   const { out, writes } = await runCore({ tomb: [tombDoc("L1", { resetEpoch: 1, resetAt: TS(50 * DAY) })],
     targets: { w1: { reviewLastProvenAt: TS(105 * DAY), reviewFailCount: 2 } }, chunk: CH, snapshotEpoch: SNAP });
   ok(out.written === 0 && writes.length === 0 && out.verifiedEqual === 1, "txn-core: fully-converged doc writes NOTHING");
+}
+
+// ===== STAGE 10 [r63]: per-field post-flip exemption (A2), chain order (A6), shapes, all-departed no-op =====
+{
+  const FLIP = 200 * DAY;
+  ok(isFieldLiveExempt("reviewLastCorrectAt", { reviewLastCorrectAt: TS(FLIP + 1) }, FLIP) === true, "A2: field with its OWN fresh stamp is exempt");
+  ok(isFieldLiveExempt("reviewLastCorrectAt", { reviewLastCorrectAt: TS(FLIP - 1) }, FLIP) === false, "A2: stale field is NOT exempt");
+  ok(isFieldLiveExempt("reviewFailCount", { reviewLastCorrectAt: TS(FLIP + 1) }, FLIP) === false, "A2 COUNTEREXAMPLE: a fresh UNRELATED stamp does NOT exempt fc (the doc-wide false green is dead)");
+  ok(isFieldLiveExempt("reviewFailCount", { reviewLastFailedAt: TS(FLIP + 1) }, FLIP) === true, "A2: fc exempt only via its own txn partner lf");
+  ok(isFieldLiveExempt("reviewRestingUntil", { reviewRestingUntil: TS(FLIP + 21 * DAY) }, FLIP) === true, "A2: live graduation rru exempt");
+  ok(isFieldLiveExempt("reviewRestingUntil", { reviewRestingUntil: TS(FLIP - 1) }, FLIP) === false, "A2: stale rru is a diff");
+}
+{
+  const fakeL = w => ({ base: { manifest: { watermark: w } } });
+  throws(() => assertLayerChainOrder([fakeL(W1), fakeL(W1)]), "strictly increasing", "A6: equal layer watermarks die (resolver tie impossible)");
+  throws(() => assertLayerChainOrder([fakeL(W2), fakeL(W1)]), "strictly increasing", "A6: descending chain dies");
+  let okOrder = true; try { assertLayerChainOrder([fakeL(W1), fakeL(W2)]); } catch { okOrder = false; }
+  ok(okOrder, "A6: strictly increasing chain passes");
+}
+{ // A6: row shape — a row missing challengeDigest is baseline corruption
+  const dir = join(root, "n7");
+  mkdirSync(dir, { recursive: true });
+  const line = JSON.stringify({ uid: "uA", epochByList: {}, words: {} });
+  const jsonl = line + "\n";
+  const summary = JSON.stringify({ probe: "b1-summary" });
+  writeFileSync(join(dir, "b1-expected-labels-full.jsonl"), jsonl);
+  writeFileSync(join(dir, "b1-expected-labels-full.json"), summary);
+  writeFileSync(join(dir, "b1-manifest.json"), JSON.stringify({ probe: "b1-expected-labels", version: 6, mode: "full", watermark: W0,
+    jsonlSha256: createHash("sha256").update(jsonl).digest("hex"), summarySha256: createHash("sha256").update(summary).digest("hex") }));
+  throws(() => loadVerifiedBaseline(join(dir, "b1-manifest.json")), "challengeDigest", "A6: malformed row shape dies");
+}
+{ // A6: departed must be a SUBSET of the auth uids
+  const dir = join(root, "n8");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "delta-auth.json"), authBytes);
+  writeBaselineDir(dir, "delta", W1, rows1, {
+    parentOriginalManifestSha256: original.manifestSha256,
+    parentDeltaAuthSha256: createHash("sha256").update(authBytes).digest("hex"),
+    departedUids: [...departed, "uZ"],
+  });
+  throws(() => loadDeltaLayer(dir, original.manifestSha256, W0), "not in delta-auth", "A6: non-auth departed uid dies");
+}
+{ // A6: the ALL-DEPARTED layer is an auditable NO-OP, not a brick — zero rows, all excused
+  const dir = join(root, "n9");
+  mkdirSync(dir, { recursive: true });
+  const authAll = { probe: "b4-delta", version: 2, baselineManifestSha256: original.manifestSha256, uids: ["uB", "uC"] };
+  const authAllBytes = JSON.stringify(authAll, null, 2);
+  writeFileSync(join(dir, "delta-auth.json"), authAllBytes);
+  writeBaselineDir(dir, "delta", W1, {}, {
+    parentOriginalManifestSha256: original.manifestSha256,
+    parentDeltaAuthSha256: createHash("sha256").update(authAllBytes).digest("hex"),
+    departedUids: ["uB", "uC"],
+  });
+  const L = loadDeltaLayer(dir, original.manifestSha256, W0);
+  ok(L.base.rows.size === 0, "A6: all-departed empty layer loads (chain converges via departure, not a fatal)");
+}
+{ // A6: duplicate uids inside delta-auth die
+  const dir = join(root, "n10");
+  mkdirSync(dir, { recursive: true });
+  const authDup = { probe: "b4-delta", version: 2, baselineManifestSha256: original.manifestSha256, uids: ["uB", "uB"] };
+  const authDupBytes = JSON.stringify(authDup, null, 2);
+  writeFileSync(join(dir, "delta-auth.json"), authDupBytes);
+  writeBaselineDir(dir, "delta", W1, rows1, {
+    parentOriginalManifestSha256: original.manifestSha256,
+    parentDeltaAuthSha256: createHash("sha256").update(authDupBytes).digest("hex"),
+    departedUids: [],
+  });
+  throws(() => loadDeltaLayer(dir, original.manifestSha256, W0), "duplicates", "A6: duplicate delta-auth uids die");
 }
 
 console.log(JSON.stringify({ probe: "delta-chain-fixture", checks, failures, root }, null, 2));
