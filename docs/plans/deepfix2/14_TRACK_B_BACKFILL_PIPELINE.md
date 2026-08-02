@@ -106,7 +106,7 @@ timestamp-exempt — it verifies against a SECOND replay through the run's captu
 absorbs concurrent attempts); post-flip-ADJUDICATED words (the live challenge txn owns them) and
 post-flip RE-ENROLLED students (the advisory case below) are classified informational, never PASS-blocking;
 corrupt-typed values are never exempt. PASS = zero non-exempt NON-TAIL diffs; **THE TAIL DISPOSITION [r65p]: events between the last layer watermark and the flip have NO writer — the gate CLASSIFIES them (`preFlipTail`: disk ≡ the layer expectation while the flip-boundary expectation moved), publishes the counts + rows, and they heal through live use; the FINAL pre-flip micro-lap bounds the window to minutes; mixed tail+post-flip fc divergence still BLOCKS**] → the FINAL verdict published.**
-**DARK-WINDOW CUSTODY [PROPOSED r64/r65 — ⚠️ PENDING DAVID'S RATIFICATION (Codex r64 A5: this narrows R2-32's OFF-stamping to post-activation and adds a second field to the flip txn — owner authority, not reviewer authority); every consumer of this clause is marked PROPOSED until David rules]: the six label fields have exactly ONE writer per era. The live
+**DARK-WINDOW CUSTODY [RATIFIED — R2-48, David 2026-08-02]: the six label fields have exactly ONE writer per era. The live
 label writers stamp ONLY when `system_config/review_v2.firstEnabledAt` is SET (written in the same audited
 txn as the first `enabled:true`, NEVER cleared — the kill switch clears `enabled` only). Before that marker
 exists (the dark window) there are ZERO live label writers — B3 owns the fields exclusively, and R2-32's

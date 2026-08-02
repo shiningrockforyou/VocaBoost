@@ -1,9 +1,9 @@
 {
  "loop": "win-executor",
  "turnOwner": "winclaude",
- "round": 73,
+ "round": 74,
  "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_073.md",
+ "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_074.md",
  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
  "execStatus": null,
  "execDecision": null,
@@ -11,12 +11,12 @@
  "execReviewRepoPath": null,
  "changedFiles": [],
  "evidenceFiles": [
+  "docs/plans/loop/win/reviews/winclaude_073.md",
   "docs/plans/loop/win/reviews/winclaude_072.md",
-  "docs/plans/loop/win/reviews/winclaude_071.md",
-  "docs/plans/loop/win/reviews/winclaude_070.md"
+  "docs/plans/loop/win/reviews/winclaude_071.md"
  ],
- "note": "ORDER 73-1: commit+push the r64 fold (fc through-cutoff, dark-window custody, repair-chain resolver, ledger pairing, quarantine spec). Then standby \u2014 the emulator lap builds on WSL next.",
+ "note": "ORDER 74-1: commit+push the r65/r65p batch (adjudication law, marker-bound gate, tail disposition, execution lease, isolated 54/0 lap). Watch for untracked emulator-lap-root/lock \u2014 exclude + flag if not gitignored.",
  "updatedBy": "winclaude",
  "updatedAt": "2026-08-02T00:00:00Z",
- "revision": 145
+ "revision": 146
 }

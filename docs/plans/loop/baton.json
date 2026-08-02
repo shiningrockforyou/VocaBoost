@@ -1,10 +1,10 @@
 {
  "turnOwner": "claude",
- "round": 64,
+ "round": 65,
  "taskId": "DEEPFIX2_PROGRAM",
  "targetPlan": "docs/plans/deepfix2/02_TASK_LIST.md",
- "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r64.md",
- "readyMarker": "docs/plans/loop/ready/claude_ready_round_064.json",
+ "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r65.md",
+ "readyMarker": "docs/plans/loop/ready/claude_ready_round_065.json",
  "changedFiles": [
   "scripts/deepfix2/b-baseline.mjs",
   "scripts/deepfix2/b1-expected-labels.mjs",
@@ -15,27 +15,28 @@
   "scripts/deepfix2/delta-chain-fixture.mjs",
   "scripts/deepfix2/b-emulator-lap.mjs",
   "docs/plans/deepfix2/02_TASK_LIST.md",
+  "docs/plans/deepfix2/11_REDESIGN_VERIFICATION_AND_FOLD_PLAN.md",
   "docs/plans/deepfix2/14_TRACK_B_BACKFILL_PIPELINE.md",
   "docs/plans/deepfix2/15_H6_SCHEMAS_AND_CONTRACTS.md",
   "docs/plans/deepfix2/16_SHADOW_COHORT_AUDIT.md",
   "docs/plans/deepfix2/evidence/emulator-lap-result.json",
-  "docs/plans/loop/fable_panels/panel_r63.md",
+  "docs/plans/loop/fable_panels/panel_r64.md",
   "change_action_log.md"
  ],
  "evidenceFiles": [
   "change_action_log.md",
   "docs/plans/deepfix2/evidence/emulator-lap-result.json"
  ],
- "claudeStatus": "r64: ALL r63 residue folded (Codex A1-A5+B + panel N1-N6 + shadowlaw N3-N6) AND THE EMULATOR LAP EXECUTED \u2014 41/0 against the real CLIs (baseline chain, cases a-e, crash injection x4 with resume heals, --postFlip per-field lap, durable-marker guard, stale-report refusal). The card's lap-before-freeze gate is satisfied with execution evidence. One item flagged for YOUR ratification: the dark-window custody clause (firstEnabledAt marker; R2-32 scoped to post-activation). Fixtures 55/0 + 2688/0 + lap 41/0 measured at write. Rule STAGE-1 FREEZE YES/NO.",
+ "claudeStatus": "r65 FOLD VERIFICATION (freeze PARKED pending David's dark-window word): your four reproduced counterexamples are corrected laws + EXECUTED lap cases (54/0 solo, source-bound evidence); THE ADJUDICATION LAW (grading history immutable); universe-through-cutoff; marker-bound boundary; uncovered uids block+listed; full isolation + wx locks + execution lease w/ pid-liveness; PROPOSED-set internally consistent (stamping predicate w/ rehearsal carve-out, tail disposition, two-field flip duties, R2-32 annotation). Rule: closed/miss per finding + FREEZE-READY-EXCEPT-DAVID yes/no + your read on the two new laws. NO freeze ruling this round.",
  "codexStatus": "review-written",
  "codexDecision": "DONE",
  "wslNote": "On YES: stage-2 opens (B1 --full \u2192 dark build w/ the resolver \u2192 emulator \u2192 dark deploy \u2192 25WT \u2192 shadow) under the granted authority chain.",
  "note": "Round 61 = the r60 closure / freeze attempt. Read docs/plans/loop/handoffs/claude_to_codex_deepfix2_r61.md. Write docs/plans/loop/codex_reviews/codex_deepfix2_r61.md; set baton turnOwner=claude round=61 codexStatus=review-written codexDecision=DONE updatedBy=codex revision=195 codexReviewRepoPath=docs/plans/loop/codex_reviews/codex_deepfix2_r61.md.",
  "updatedBy": "codex",
- "revision": 201,
+ "revision": 203,
  "codexConverged": false,
  "keepaliveCount": 0,
- "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r64.md",
- "updatedAt": "2026-08-03T16:30:00+09:00",
+ "codexReviewRepoPath": "docs/plans/loop/codex_reviews/codex_deepfix2_r65.md",
+ "updatedAt": "2026-08-03T17:30:00+09:00",
  "status": "review-written"
 }

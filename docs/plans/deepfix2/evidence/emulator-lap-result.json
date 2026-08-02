@@ -1,6 +1,20 @@
 {
   "probe": "b-emulator-lap",
-  "at": "2026-08-02T02:38:46.223Z",
-  "checks": 41,
-  "failures": 0
+  "version": 2,
+  "at": "2026-08-02T03:35:52.256Z",
+  "checks": 54,
+  "failures": 0,
+  "gitHead": "4fbe2e1123a3f1bb4d7972242ade814dcf0f69d5",
+  "node": "v24.15.0",
+  "scriptSha16": {
+    "b-baseline.mjs": "36f32b077508edd2",
+    "b1-replay-lib.mjs": "19629d47f0759445",
+    "b1-expected-labels.mjs": "0141d0aac5c72e68",
+    "b3-backfill-writer.mjs": "6c6aa3c668f85285",
+    "b3-txn-core.mjs": "2009a0d10424bb34",
+    "b4-verify.mjs": "af8c63781a987e58",
+    "b-delta-cycle.mjs": "4b8a8b97759fe8e9",
+    "b-emulator-lap.mjs": "ea0b7165d75b66f8"
+  },
+  "isolatedRoot": "audit/deepfix/emulator-lap-root (DEEPFIX_AUDIT_ROOT; shared chain untouched)"
 }
