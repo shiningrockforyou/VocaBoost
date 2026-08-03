@@ -56,6 +56,23 @@ Real failures this prevents, all from one program:
 5. **Correct falsehoods at their source**, in every document that carries them — not just the newest.
 6. **Card what you defer**, with its real constraint, so it is not silently dropped.
 
+## When the work came from an agent, verify the DIFF, not the report
+
+An agent's summary is a **claim**. `git diff` is a **fact**. Record the HEAD sha before launching, then:
+
+```
+node scripts/deepfix2/verify-agent-work.mjs <baseline-sha> [claimed.json]
+```
+
+It reports the real changed-file set, flags any protected path or feature-flag VALUE that moved, checks
+the reflog for history rewriting, and — given the agent's report — names files **changed but not
+declared** (scope creep nobody reviewed) and **declared but not changed** (the work did not happen).
+
+A second independent record exists: each agent's `agent-*.jsonl` transcript logs every tool call it
+made, and `journal.jsonl` holds its actual return value. Read those before believing a summary.
+
+And re-run the tests yourself. A number in a report is a claim about a run you did not see.
+
 ## Reporting
 
 State what the fold did AND what it did not close. If a claim had to be withdrawn, say so plainly —
