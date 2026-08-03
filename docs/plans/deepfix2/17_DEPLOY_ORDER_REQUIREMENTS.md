@@ -111,8 +111,8 @@ handoff-ephemeral.
    deployed, so that window would leave them client-forgeable.**
    **PANEL ROUND 1 FOLDED (2026-08-03) — the artifact now EXISTS and is verified, not deployed.**
    Live base fetched (ruleset d8f3e0d0…, 2026-06-28, 210 lines vs the repo draft's 419 — the r91 refusal
-   quantified). Merged artifact authored; **204/204 matrix green**; **eleven per-clause mutants all KILLED**
-   (each clause is pinned by a named case); whole-file mutations discriminate (raw base and P10 draft
+   quantified). Merged artifact authored; **213/213 matrix green**; **12 per-clause mutants all KILLED**
+   (every MUTATED clause is pinned by a named case — clauses without a mutant are assertion-covered; the receipt lists which is which); whole-file mutations discriminate (raw base and P10 draft
    fail the same COUNT but share only ~45 — the ~28 P10-only failures are exactly the live-flow
    regressions; the receipt carries the current figures, re-derived from the shipped evidence).
    Reviewers: spec-fidelity **YES**; adversarial-forgery **NO** ("safe to deploy" but named uncovered
@@ -134,8 +134,15 @@ handoff-ephemeral.
    here, and NOT caused by this program**; (ii) **the reset fence** (`resetAt`/`resetEpoch`/`resetInProgress`) is
    now client-unwritable, closing the GATE-4 backfill-laundering lever, the day_completions CAS-namespace
    fork and the engine self-DoS. **PRODUCTION EVIDENCE:** the read-only fence sweep found **ZERO** fence
-   values across 2,519 progress docs — since the fence's only writer is gated off, nothing can have been
-   pre-forged. **TRUTH REPAIRS (the spec's own claims were false):** "zero client writes denied" holds
+   values across 2,519 progress docs, so nothing was forged AND no legacy reset has touched them.
+   **Two corrections to how this was first published [panel r4]:** (a) the decidability premise "the
+   fence's only writer is gated off, so any hit would be a client write" is FALSE — the LEGACY
+   resetProgress branch (the live one) stamps `resetEpoch`+`resetAt` on progress_meta
+   (foundation.js:2271-2273), so a non-zero result would have needed correlating with
+   `reset_progress_server` system_logs entries; (b) the coverage is THINNER than the headline —
+   progress_meta holds ZERO docs in production and list_progress ONE, so "clean" is vacuous there and
+   the 2,518 came from class_progress. Inertness rests on the SOURCE GREP (zero client writers,
+   corroborated in the shipped bundle), which the sweep only corroborates. **TRUTH REPAIRS (the spec's own claims were false):** "zero client writes denied" holds
    only until GATE 4 (from then the erasure guard denies the pre-2026-07-18 CACHED-bundle reset path;
    the live bundle routes to the Admin-SDK callable), and "composition reads only reviewRestingUntil/
    day_completions" is FALSE (progress.js:62-70 reads csd/twi) — matrix case 10 is relabelled a
@@ -147,7 +154,7 @@ handoff-ephemeral.
    (CS must cross-check before treating one as evidence). **THE DEPLOY LANDMINE — MY "FIX" WAS WRONG AND IS REVERTED [panel r2 HIGH → panel r3 BLOCKER]:**
    `firebase.json` points the Firestore rules deploy at `/app/firestore.rules`, which holds the UNSHIPPED
    P10 cutover, so a plain `firebase deploy --only firestore:rules` would ship it. The damage is measured,
-   not asserted: that file scores **129/204** on this matrix with **29 live-flow regressions** (every
+   not asserted: that file scores **137/213** on this matrix with **30 live-flow regressions** (every
    student progress write, the reset path, plain attempt create, challenge review, teacher class/list
    creation), and it constrains user CREATE to `role:'student'`, which would also break teacher signup.
    **I tried to disarm it by moving the draft and repointing `firebase.json` at the live-ruleset copy.

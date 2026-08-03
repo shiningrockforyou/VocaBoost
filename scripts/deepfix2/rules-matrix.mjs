@@ -5,8 +5,9 @@
  * ============================================================================
  * Runs the frozen case list (firestore.review_v2.rules:111-126) against the
  * MERGED artifact audit/deepfix/task3/live_baseline/firestore.merged.rules —
- * never against the spec fragment, never against the UNSHIPPED P10 draft
- * (docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules — moved off the deploy path).
+ * never against the spec fragment, and never against /app/firestore.rules — which
+ * still holds the UNSHIPPED P10 cutover and IS the configured deploy path (an
+ * attempt to move it off that path was reverted; see 17_ §7b).
  *
  * LIVE-BASE ADAPTATIONS (documented, per the spec's own CLAUSE 5 note (b) and
  * the "preserved AS FOUND in the live base" NOTE):
@@ -349,6 +350,16 @@ await ok("E11 the fenced doc still EXISTS after the refused deletes (the bypass 
 await ok("E12 deleting an UNFENCED progress doc still works (live reset path preserved)", s1.doc("users/student1/class_progress/c2_l2b").set({ csd: 0 }).then(() => s1.doc("users/student1/class_progress/c2_l2b").delete()));
 // [panel r3 BLOCKER-2] the attempts guard now names the marker the LIVE writers stamp.
 await deny("A3 student deletes an attempt carrying manualOverride (the real CS/override marker)", s1.doc("attempts/a_manual").delete());
+// [panel r4 BLOCKER] the marker was guarded on DELETE only. Full bypass set:
+await deny("A4 student CREATES a forged CS anchor (real docId shape)", s1.doc("attempts/student1_c1_l1_day3_typed_new_manual").set({ studentId: "student1", teacherId: "teacher1", manualOverride: true, passed: true, score: 100, sessionType: "new", newWordEndIndex: 119, manualReviewNote: "Teacher override" }));
+await deny("A5 student CREATES a bare manualOverride attempt", s1.doc("attempts/forge_mo").set({ studentId: "student1", manualOverride: true }));
+await deny("A6 teacher-of-record UPDATE adds manualOverride", t1.doc("attempts/a1").update({ manualOverride: true }));
+await deny("A7 teacher-of-record STRIPS manualOverride via FieldValue.delete (the erasure bypass's first call)", t1.doc("attempts/a_manual").update({ manualOverride: firebase.firestore.FieldValue.delete() }));
+await deny("A8 teacher strips the marker via set-without-merge", t1.doc("attempts/a_manual").set({ studentId: "student1", teacherId: "teacher1", score: 100, passed: true }));
+await ok("A9 the marker SURVIVED both strip attempts (so the delete guard still bites)", s1.doc("attempts/a_manual").get().then((d) => { if (d.data()?.manualOverride !== true) throw new Error("marker gone"); }));
+await deny("A10 self-asserted teacher forges on their OWN attempt (studentId==teacherId==self)", t2.doc("attempts/self_forge").set({ studentId: "teacher2", teacherId: "teacher2", manualOverride: true, passed: true, score: 100 }));
+await deny("A11 BATCH create carrying the marker", (() => { const b = s1.batch(); b.set(s1.doc("attempts/batch_forge"), { studentId: "student1", manualOverride: true }); return b.commit(); })());
+await ok("A12 NEGATIVE CONTROL: teacher plain challenge-review update (no marker keys) still ALLOWS", t1.doc("attempts/a1").update({ answers: [{ wordId: "w1", isCorrect: true }], score: 100, passed: true }));
 
 // ── CASE A [panel F5]: attempts erasure guard ───────────────────────────────
 await deny("A1 student deletes a STAMPED attempt (override/posture erasure)", s1.doc("attempts/a_stamped").delete());

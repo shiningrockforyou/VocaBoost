@@ -56,6 +56,39 @@ service cloud.firestore {
       return getUserData().role == 'teacher';
     }
 
+    // ── DEEPFIX2 KEY SETS — declared ONCE, used by every branch ──────────────
+    // These exist because the same lists were previously written out per
+    // operation, and three separate reviews found the same defect: a key added
+    // to one branch's list and missing from the others (delete-then-recreate on
+    // `role`; the reset fence with no delete guard; `manualOverride` on delete
+    // only). Single definition makes that divergence structurally impossible.
+
+    // Server-written labels on study_states — client-immutable and non-erasable.
+    function serverLabelKeys() {
+      return ['reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
+              'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil'];
+    }
+
+    // The reset/epoch fence — server truth (resetProgress, Admin SDK) only.
+    function resetFenceKeys() {
+      return ['resetAt', 'resetEpoch', 'resetInProgress'];
+    }
+
+    // Engine-owned subcollections — no client writes in any operation.
+    function serverOwnedSubcollections() {
+      return ['review_queues', 'review_presentations', 'day_completions',
+              'streak_credits', 'restudy_completions', 'restudy_visits',
+              'review_counters', 'review_cursors', 'compose_keys'];
+    }
+
+    // Attempt markers written only by server/CS surfaces. `manualOverride` is
+    // the one with LIVE writers (foundation.js:2985, scripts/cs/manual-pass.mjs:70);
+    // the rest are the force-pass surface and the engine's posture stamp.
+    function serverOnlyAttemptKeys() {
+      return ['manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
+              'preOverride', 'gatePosture'];
+    }
+
     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
     // Read-only and teacher-only — student/own-progress writes go through the
     // owner rule under /users/{userId}/class_progress.
@@ -122,44 +155,37 @@ service cloud.firestore {
         // exactly as before (the inertness law: only surfaces that do not
         // exist pre-train are guarded).
         allow create: if isAuthenticated() && (isOwner(userId) || isTeacher())
-          && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',
-               'streak_credits', 'restudy_completions', 'restudy_visits',
-               'review_counters', 'review_cursors', 'compose_keys'])
+          && !(subcollection in serverOwnedSubcollections())
           && !(subcollection == 'study_states'
-               && request.resource.data.keys().hasAny([
-                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
-          && !request.resource.data.keys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);
+               && request.resource.data.keys().hasAny(serverLabelKeys()))
+          && !request.resource.data.keys().hasAny(resetFenceKeys());
 
         allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
-          && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',
-               'streak_credits', 'restudy_completions', 'restudy_visits',
-               'review_counters', 'review_cursors', 'compose_keys'])
+          && !(subcollection in serverOwnedSubcollections())
           && !(subcollection == 'study_states'
-               && request.resource.data.diff(resource.data).affectedKeys().hasAny([
-                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);
+               && request.resource.data.diff(resource.data).affectedKeys().hasAny(serverLabelKeys()))
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(resetFenceKeys());
 
         allow delete: if isAuthenticated() && (isOwner(userId) || isTeacher())
-          && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',
-               'streak_credits', 'restudy_completions', 'restudy_visits',
-               'review_counters', 'review_cursors', 'compose_keys'])
+          && !(subcollection in serverOwnedSubcollections())
           && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
-               && resource.data.keys().hasAny([
-                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
+               && resource.data.keys().hasAny(serverLabelKeys()))
           // The reset fence must survive DELETION too [panel r3 BLOCKER]: guarding
           // only create+update left delete-then-recreate as a clean bypass, which
           // would fork the day_completions CAS namespace (composer.js:154 reads 0
           // for an absent doc), clear the §2b fail-closed reset lock
           // (composer.js:166), and walk the GATE-4 backfill past its own drift and
-          // lock checks (b3-txn-core.mjs:28/:38). Inert: no client path deletes
-          // progress_meta or list_progress.
-          && !resource.data.keys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);
+          // lock checks (b3-txn-core.mjs:28/:38).
+          // INERTNESS, stated for the REAL blast radius [panel r4]: this clause
+          // gates DELETE on EVERY users/{uid} subcollection, and two of those do
+          // have live client deletes — sessionService.js:163 (session_states, a
+          // hot path on every day advance) and db.js:3203 (class_progress). Both
+          // stay legal because the guard fires only on a doc that CARRIES a fence
+          // field, and the fence is written solely to progress_meta (or
+          // list_progress once LIST_PROGRESS_CANONICAL flips) by resetProgress —
+          // never to session_states or class_progress. Fixtured: E12 deletes an
+          // unfenced progress doc and still ALLOWS.
+          && !resource.data.keys().hasAny(resetFenceKeys());
       }
     }
 
@@ -222,8 +248,7 @@ service cloud.firestore {
         && request.resource.data.studentId == request.auth.uid
         // DEEPFIX2 [CLAUSE 5(a)]: the force-pass/engine stamp surface is
         // server-only — a client-created attempt must not carry it.
-        && !request.resource.data.keys().hasAny([
-             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);
+        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys());
 
       // Student-side updates are limited to the `answers` array (for
       // submitChallenge, which mutates a nested challengeStatus on a single
@@ -236,8 +261,7 @@ service cloud.firestore {
         (resource.data.teacherId == request.auth.uid && isTeacher()
           // DEEPFIX2 [CLAUSE 5(a)]: teacher-of-record edits stay legal, but the
           // override labels + engine stamp are Admin-SDK-only (forge-proof).
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-               'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]))
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(serverOnlyAttemptKeys()))
       );
 
       // Allow students to delete their own attempts (for progress reset)
@@ -259,9 +283,7 @@ service cloud.firestore {
       // LOG-ONLY under LIST_SCOPED_RECON.
       allow delete: if isAuthenticated()
         && resource.data.studentId == request.auth.uid
-        && !resource.data.keys().hasAny([
-             'manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
-             'preOverride', 'gatePosture' ]);
+        && !resource.data.keys().hasAny(serverOnlyAttemptKeys());
     }
 
     // SYSTEM LOGS (for reconciliation events)

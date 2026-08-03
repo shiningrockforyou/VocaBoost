@@ -42,26 +42,20 @@ const MUTANTS = [
   {
     id: "M1-delete-operand",
     why: "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
-    from: `          && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
-               && resource.data.keys().hasAny([`,
-    to: `          && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
-               && request.resource.data.keys().hasAny([`,
+    from: `               && resource.data.keys().hasAny(serverLabelKeys()))`,
+    to: `               && request.resource.data.keys().hasAny(serverLabelKeys()))`,
   },
   {
     id: "M2-nine-list-hole",
     why: "dropping ONE subcollection name from ONE op branch must not slip through",
-    from: `        allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
-          && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',`,
-    to: `        allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
-          && !(subcollection in ['review_presentations', 'day_completions',`,
+    from: `      return ['review_queues', 'review_presentations', 'day_completions',`,
+    to: `      return ['review_presentations', 'day_completions',`,
   },
   {
     id: "M3-hasAny-to-hasOnly",
     why: "the six-label update guard must fire on ANY label, not only on a write of all six",
-    from: `               && request.resource.data.diff(resource.data).affectedKeys().hasAny([
-                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',`,
-    to: `               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',`,
+    from: `               && request.resource.data.diff(resource.data).affectedKeys().hasAny(serverLabelKeys()))`,
+    to: `               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(serverLabelKeys()))`,
   },
   {
     id: "M4-role-guard-removed",
@@ -73,29 +67,25 @@ const MUTANTS = [
   {
     id: "M5-reset-fence-removed",
     why: "HARDENING B2 — without it the backfill's epoch fence is client-forgeable",
-    from: `          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    from: `          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(resetFenceKeys());`,
     to: `          ;`,
   },
   {
     id: "M8-fence-delete-removed",
     why: "panel r3 BLOCKER — without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
-    from: `          && !resource.data.keys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    from: `          && !resource.data.keys().hasAny(resetFenceKeys());`,
     to: `          ;`,
   },
   {
     id: "M9-fence-create-removed",
     why: "panel r3 — the fence CREATE branch carried no mutant, so it was pinned by assertion only",
-    from: `          && !request.resource.data.keys().hasAny([
-               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    from: `          && !request.resource.data.keys().hasAny(resetFenceKeys());`,
     to: `          ;`,
   },
   {
     id: "M10-attempt-create-guard-removed",
     why: "panel r3 — the attempt CREATE override guard carried no mutant",
-    from: `        && !request.resource.data.keys().hasAny([
-             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);`,
+    from: `        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys());`,
     to: `        ;`,
   },
   {
@@ -111,11 +101,15 @@ const MUTANTS = [
     to: `      allow delete: if isAuthenticated() && isOwner(userId);`,
   },
   {
+    id: "M12-manualOverride-dropped",
+    why: "panel r4 BLOCKER — dropping the LIVE marker from the shared list must break create, update AND delete",
+    from: `      return ['manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',`,
+    to: `      return ['teacherEdited', 'teacherEditedBy', 'teacherEditedAt',`,
+  },
+  {
     id: "M6-attempt-erasure-removed",
     why: "CLAUSE 5 + r54 — without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
-    from: `        && !resource.data.keys().hasAny([
-             'manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
-             'preOverride', 'gatePosture' ]);`,
+    from: `        && !resource.data.keys().hasAny(serverOnlyAttemptKeys());`,
     to: `        ;`,
   },
 ];

@@ -12,11 +12,18 @@
  * in their history discarded and `reviewFailCount: 0` minted as server truth.
  *
  * The merged artifact now makes those fields client-unwritable going forward.
- * This sweep measures whether any forgery ALREADY happened, and it is decidable:
- * `resetProgress` is the ONLY writer of the fence and it is gated OFF
- * (RESET_V2_ENABLED === false, and the legacy branch writes no epoch), so in a
- * clean cohort EVERY doc must carry no fence at all. Any hit is either a client
- * write or a script — both need explaining before GATE 4.
+ * This sweep measures whether any fence value exists today.
+ *
+ * ⚠️ CORRECTED 2026-08-03 [panel r4]: an earlier version of this docstring said
+ * "the legacy branch writes no epoch", making any hit provably a client write.
+ * THAT IS FALSE — the LEGACY resetProgress branch stamps
+ * `resetEpoch: increment(1)` + `resetAt` onto progress_meta
+ * (functions/foundation.js:2271-2273), and that branch is the LIVE one
+ * (RESET_V2_ENABLED === false). So a fence value is NOT self-evidently forged:
+ * it may be a legitimate legacy reset. What the sweep can still establish is the
+ * ZERO case — no fence value anywhere means no forgery AND no legacy reset has
+ * touched these docs. A NON-zero result requires correlating each hit with a
+ * `reset_progress_server` entry in system_logs before drawing any conclusion.
  *
  * Usage: NODE_PATH=/app/node_modules node scripts/deepfix2/reset-fence-integrity-sweep.mjs
  * Exit: 0 clean · 1 hits found (investigate; do NOT backfill until explained) · 2 error.
@@ -66,8 +73,9 @@ for (const group of GROUPS) {
 
 const total = report.hits.length;
 report.verdict = total === 0
-  ? "CLEAN — no reset fence exists anywhere; the GATE-4 backfill's epoch filter cannot have been pre-forged"
-  : `${total} FENCE VALUE(S) FOUND — explain each before GATE 4`;
+  ? "CLEAN — no fence value exists anywhere, so no forgery AND no legacy reset has touched these docs; the GATE-4 backfill's epoch filter cannot have been pre-forged"
+  : `${total} FENCE VALUE(S) FOUND — correlate EACH with a reset_progress_server entry in system_logs ` +
+    `before concluding forgery; the legacy resetProgress branch writes this field legitimately`;
 // Keep the committed receipt uid-free: hit doc ids are {classId}_{listId}, not uids.
 writeFileSync("/app/audit/deepfix/task3/live_baseline/reset-fence-sweep-receipt.json",
   JSON.stringify({ ...report, hits: report.hits.slice(0, 50) }, null, 2) + "\n");
