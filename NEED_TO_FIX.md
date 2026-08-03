@@ -56,9 +56,31 @@ zero `resetEpoch` attempts — but B2 is a **sample** (`scripts/deepfix2/b2-data
 counts `resetEpoch` present/absent only), not a cohort-wide provenance proof, and it does not cover the
 other three keys at all.
 
-**What closes it.** Before any pre-existing attempt is admitted as engine evidence, scan production
-attempts cohort-wide for all four keys and quarantine anything not fully bound to a real server
-presentation. Queued as `engine-key-provenance-scan`.
+**CLOSED 2026-08-03 by a cohort-wide read-only scan — the gap is now measured, not argued.**
+`scripts/deepfix2/engine-key-provenance-scan.mjs` (NEW, strictly read-only) paged the **entire**
+`attempts` collection — **41,680 attempts, 0 quarantine candidates** — and found
+**ZERO** documents carrying ANY of the four engine keys: `resetEpoch` 0, `presentationId` 0, `queueId` 0, `engineResult` 0.
+Receipt: `audit/deepfix/task3/live_baseline/engine-key-provenance-receipt.json`.
+
+It is a FULL scan on purpose, not an index-backed `orderBy` query: a missing or exempted single-field
+index would have silently under-reported exactly the documents being hunted. The script also resolves
+any hit against `users/{studentId}/review_presentations/{presentationId}` for existence, ownership and
+stamp coherence — that machinery simply had nothing to judge, because there were no hits.
+
+**So the artifact's claim now holds for history too**, and on stronger evidence than the original
+argument: not "the flag is off and grep finds no writer", but "no such document exists in the corpus".
+**THE CLAIM IS NOW TRUE ON BOTH LEGS, and the owed repair has shrunk accordingly.** The rules DEPLOYED
+2026-08-03 (order 97, ruleset `384c9c7a…`), so the attempt-create guard the comment cites now genuinely
+exists in production — the claim is true PROSPECTIVELY because the guard is live, and RETROSPECTIVELY
+because the cohort scan found zero such documents. When the comment was written, neither leg was
+established; both now are.
+
+**What is still owed is small and must NOT become a standalone deploy:** the comment cites only the create
+guard, and should also cite this scan as the evidence for pre-existing documents. Editing it changes the
+artifact's sha, which would make the artifact diverge from the ruleset now running in production — so a
+comment-only edit would either create a false drift signal or force a production redeploy for zero
+behavioural change. **BUNDLE IT WITH THE NEXT REAL RULES CHANGE.** Until then the artifact and production
+are byte-identical, which is worth more than a tidier comment.
 
 **Comment repair is deliberately deferred.** Correcting the wording at its source would change the
 artifact's bytes, and `f40f91fce3693b82` is the exact hash Codex certified and the deploy order

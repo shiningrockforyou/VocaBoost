@@ -28,8 +28,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const MERGED = "/app/audit/deepfix/task3/live_baseline/firestore.merged.rules";
-const LIVE = "/app/audit/deepfix/task3/live_baseline/firestore.live.rules";
-const P10 = "/app/firestore.rules";
+// REPOINTED AFTER THE r97 DEPLOY (2026-08-03). Both whole-file baselines used to
+// be "some OTHER ruleset than the artifact", which is the only thing that makes a
+// whole-file mutation meaningful. The deploy made both of them the artifact:
+// `firestore.live.rules` is rewritten by fetch-live-rules.mjs (production now RUNS
+// the artifact) and `/app/firestore.rules` was staged from the artifact to deploy
+// it. Left alone, both runs would have scored a perfect green — and the runner
+// fails closed on "a whole-file mutation stayed green", so this would have read as
+// a defect rather than as a stale path. The order preserved exactly the two files
+// this needs, which is what they were for.
+const LIVE = "/app/audit/deepfix/task3/live_baseline/firestore.live.PRE_R79_DEPLOY.rules";
+const P10 = "/app/audit/deepfix/task3/firestore.p10d.rules";
 const RUNNER = "/app/scripts/deepfix2/run-rules-matrix.sh";
 const MATRIX = "/app/scripts/deepfix2/rules-matrix.mjs";
 

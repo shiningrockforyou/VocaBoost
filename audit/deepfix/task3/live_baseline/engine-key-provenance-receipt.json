@@ -1,0 +1,29 @@
+{
+  "kind": "engine-key-provenance-scan",
+  "readOnly": true,
+  "date": "2026-08-03T20:02:02.485Z",
+  "projectId": "vocaboost-879c2",
+  "scope": "FULL `attempts` collection",
+  "engineKeys": [
+    "resetEpoch",
+    "presentationId",
+    "queueId",
+    "engineResult"
+  ],
+  "scanned": 41680,
+  "attemptsCarryingAnyEngineKey": 0,
+  "perKeyPresence": {
+    "resetEpoch": 0,
+    "presentationId": 0,
+    "queueId": 0,
+    "engineResult": 0
+  },
+  "byVerdict": {
+    "SERVER_BOUND": 0,
+    "UNBOUND": 0,
+    "INCOHERENT": 0,
+    "NO_STUDENT": 0
+  },
+  "quarantineCandidates": [],
+  "claimThisSupports": "COHORT-WIDE: no pre-existing attempt carries an engine key that is not bound to a real, owned server presentation. The artifact's 'presence proves server authorship' therefore holds for the existing corpus as well as going forward."
+}
