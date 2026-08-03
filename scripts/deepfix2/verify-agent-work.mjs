@@ -13,16 +13,26 @@
  *   3. any edit to a protected path, regardless of what the report says.
  *
  * Usage:
- *   node scripts/deepfix2/verify-agent-work.mjs <baseline-sha> [claimed.json]
+ *   node scripts/deepfix2/verify-agent-work.mjs <baseline-sha> [claimed.json] [--repo <path>]
  *     baseline-sha  the commit HEAD sat at when the agent was launched
- *     claimed.json  optional: {"filesChanged":[...]} from the agent's report
- * Exit: 0 clean · 1 a protected path was touched or claims disagree with the diff.
+ *     claimed.json  optional: {"filesChanged":[...]} from the agent's report.
+ *                   WITHOUT it the report-vs-diff reconciliation does not run.
+ *     --repo <path> the tree the agent actually worked in. REQUIRED when the
+ *                   agent ran under isolation:"worktree" — otherwise this diffs
+ *                   the main tree, finds nothing, and prints CLEAN while the real
+ *                   changes sit in the worktree.
+ * Exit: 0 clean · 1 findings (protected path, flag flip, or claims disagree)
+ *       · 2 THE CHECK DID NOT RUN (missing/unresolvable baseline). 2 is NOT clean.
  */
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 
-const baseline = process.argv[2];
+const argv = process.argv.slice(2);
+const repoIx = argv.indexOf("--repo");
+const REPO = repoIx >= 0 ? argv[repoIx + 1] : "/app";
+if (repoIx >= 0) argv.splice(repoIx, 2);
+const baseline = argv[0];
 if (!baseline) { console.error("usage: verify-agent-work.mjs <baseline-sha> [claimed.json]"); process.exit(2); }
 
 // Paths no agent may touch. Edit deliberately; this is the whole point.
@@ -37,13 +47,18 @@ const PROTECTED = [
 // Flag VALUE changes are protected even inside an allowed file.
 const FLAG_FILES = [/^src\/config\/featureFlags\.js$/, /^functions\/foundation\.js$/];
 
-const git = (...a) => execFileSync("git", ["-C", "/app", ...a], { encoding: "utf8" });
+const git = (...a) => execFileSync("git", ["-C", REPO, ...a], { encoding: "utf8" });
+if (REPO !== "/app") console.log(`(verifying worktree ${REPO})\n`);
 
 let changed;
 try {
   changed = git("diff", "--name-only", `${baseline}..HEAD`).split("\n").filter(Boolean);
-  const dirty = git("status", "--porcelain").split("\n").filter(Boolean)
-    .map((l) => l.slice(3).trim()).filter(Boolean);
+  // -uall lists every untracked FILE; without it a new directory collapses to a
+  // single entry and the files inside it escape the per-file checks below.
+  const dirty = git("status", "--porcelain", "-uall").split("\n").filter(Boolean)
+    // A rename arrives as "old.js -> new.js"; take BOTH sides or renaming a
+    // protected file evades the anchored checks below.
+    .flatMap((l) => l.slice(3).trim().split(" -> ")).map((x) => x.trim()).filter(Boolean);
   changed = [...new Set([...changed, ...dirty])];
 } catch (e) {
   console.error(`cannot diff from ${baseline}: ${e.message.split("\n")[0]}`);
@@ -77,7 +92,7 @@ if (flagFiles.length) {
   }
 }
 
-const claimPath = process.argv[3];
+const claimPath = argv[1];
 if (claimPath && existsSync(claimPath)) {
   const claimed = (JSON.parse(readFileSync(claimPath, "utf8")).filesChanged || [])
     .map((f) => f.replace(/^\/app\//, ""));
@@ -110,7 +125,7 @@ try {
   });
   console.log("\nHISTORY INTEGRITY (reflog):");
   if (rewrites.length) {
-    console.log(`  ! ${rewrites.length} history-rewriting entr(ies) — confirm each was yours:`);
+    console.log(`  ! ADVISORY — ${rewrites.length} history-rewriting entr(ies); this does NOT set the exit code, so confirm each was yours:`);
     rewrites.slice(0, 5).forEach((l) => console.log(`      ${l.slice(0, 110)}`));
   } else console.log("  ✓ no reset/amend/rebase in the last 40 entries");
 } catch { console.log("\nHISTORY INTEGRITY: reflog unavailable"); }

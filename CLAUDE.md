@@ -44,6 +44,20 @@ question, **the default is to keep going**, not to report and wait.
 - **Never hand-type a test score** — derive it from the evidence JSON; the gate diffs them.
 - Rationale and the full loop: `docs/plans/deepfix2/EXECUTION_DISCIPLINE.md`.
 
+### The four skills, and WHEN to load them
+Skills fire on judgement, which is the thing that has been unreliable here — so these pointers exist
+in the always-loaded file too. Load the skill by name; do not improvise the process.
+
+| The moment | Skill |
+|---|---|
+| a review / panel / Codex round returns findings | **folding-review-findings** |
+| a subagent, workflow or teammate reports work finished | **verifying-agent-work** |
+| about to write a receipt, status claim, or changelog row | **verifying-published-claims** |
+| about to deploy, or to hand a production instruction to another agent | **ordering-deploys** |
+
+If you are about to do one of those four things and have not loaded the skill, that is the error —
+these were written *because* the process was reinvented badly each time.
+
 ## General Rules
 1. Always log code changes to `change_action_log.md` using the table format: `| Date | File | Change |`
 2. Always consider industry convention / best practice when coming up with solutions or plans
