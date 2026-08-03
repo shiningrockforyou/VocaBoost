@@ -572,3 +572,14 @@ it (after confirming it carries no currentStudyDay) and the legacy readers recov
 now reject `reset_already_running`; a crashed reset's lock is takeover-eligible after 10 minutes —
 re-running resetProgress self-heals it. (3) Claimed grading_jobs for the list are cancelled
 (`cancelled_reset`) with their answer rows redacted.
+
+### CS-2026-08-03 — POST-GATE-4 triage note (rules): "Failed to delete word study states"
+Once the review-v2 ruleset ships AND the 26SM backfill runs, a `study_states` doc carrying any of the six
+server label fields **cannot be deleted by a client** (the r54 erasure guard — labels must not be
+erasable). The LIVE bundle is unaffected: `SERVER_RESET_PROGRESS = true`, so progress resets route to the
+`resetProgress` Cloud Function (Admin SDK, rules-bypassing). **If a student reports "Failed to delete word
+study states" after GATE 4, triage it as a STALE BUNDLE** (a tab still running a build older than
+`6bffe1c`, 2026-07-18) → hard refresh, NOT as a rules regression. Same reasoning applies to a client
+attempt-delete failure on an engine-stamped attempt (`gatePosture`/`teacherEdited`/`preOverride`).
+Also: `system_logs` rows are **client-attributable** — any authenticated user can write a row naming
+another uid. Cross-check `uid`/`createTime` before treating a `csd_anchor_invalid` row as evidence.

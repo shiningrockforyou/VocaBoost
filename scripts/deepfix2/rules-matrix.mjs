@@ -90,6 +90,19 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   });
   // grading_jobs: owned by student1
   b.set(db.doc("grading_jobs/gj1"), { uid: "student1", status: "complete", rows: [] });
+  // an attempt carrying the engine/override stamps (erasure-guard target)
+  b.set(db.doc("attempts/a_stamped"), {
+    studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
+    teacherEdited: true, teacherEditedBy: "teacher1",
+    preOverride: { score: 80, passed: false },
+    gatePosture: { effectiveEnabled: true, configVersion: 1, threshold: 92, source: "config" },
+  });
+  // a study_state carrying MULTIPLE labels + one for the third-party probes
+  b.set(db.doc("users/student1/study_states/w_multi"), {
+    status: "learning", reviewFailCount: 2, reviewLastProvenAt: 5, reviewRestingUntil: 9,
+  });
+  // the server-only reset/epoch fence (B2 guard targets)
+  b.set(db.doc("users/student1/progress_meta/fenced"), { resetEpoch: 1, resetAt: 1000, resetInProgress: false });
   // system_config: the seeded dark doc
   b.set(db.doc("system_config/review_v2"), { enabled: false, threshold: 92, configVersion: 1 });
   // server-only sinks
@@ -124,7 +137,12 @@ async function ok(name, p) {
 }
 async function deny(name, p) {
   try { await assertFails(p); pass++; }
-  catch (e) { fail++; failures.push(`DENY-expected ALLOWED: ${name}`); }
+  catch (e) {
+    fail++;
+    // assertFails ALSO rejects when the error is not PERMISSION_DENIED, so the
+    // raw message is carried through — "wrong error" must not read as "allowed".
+    failures.push(`DENY-expected FAILED: ${name} :: ${e.message?.slice(0, 140)}`);
+  }
 }
 
 // ── CASE 1: plain study_states stay owner-CRUD; label-carrying delete denied ─
@@ -269,8 +287,69 @@ await deny("9x2 student create list (base's own denial)", s1.doc("lists/lx").set
 await deny("9x3 non-owner list update (base's own denial)", t2.doc("lists/l1").update({ name: "hax" }));
 await deny("9x4 student create class (base's own denial)", s1.doc("classes/cx").set({ ownerTeacherId: "student1" }));
 
+// ── CASE 3b [panel S2]: THE POST-BACKFILL SHAPE — legacy writes on a doc that
+//    CARRIES labels must still pass (after GATE 4 every 26SM doc is labeled, so
+//    this is the shape every live client writer will hit).
+await ok("3b owner merge-writes legacy fields on a LABEL-CARRYING study_state", s1.doc("users/student1/study_states/w_labeled").set({ status: "PASSED", lastTestedAt: 123, timesTestedTotal: 4 }, { merge: true }));
+await ok("3c teacher merge-writes legacy fields on a LABEL-CARRYING study_state (reviewChallenge shape)", t1.doc("users/student1/study_states/w_labeled").set({ status: "PASSED", lastTestedAt: 456 }, { merge: true }));
+await deny("3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒ DENY", s1.doc("users/student1/study_states/w_labeled").set({ status: "learning" }));
+await deny("3e create carrying a label ALONGSIDE legacy fields", s1.doc("users/student1/study_states/w_mixed").set({ status: "learning", lastTestedAt: 1, reviewFailCount: 0 }));
+await deny("3f update touching TWO labels at once", s1.doc("users/student1/study_states/w_multi").update({ reviewFailCount: 0, reviewRestingUntil: 0 }));
+await deny("3g delete a MULTI-label doc", s1.doc("users/student1/study_states/w_multi").delete());
+
+// ── CASE R [panel F1]: role is CREATE-ONLY — no self-elevation ──────────────
+await deny("R1 student promotes self to teacher", s1.doc("users/student1").update({ role: "teacher" }));
+await deny("R2 student promotes self via set-merge", s1.doc("users/student1").set({ role: "teacher" }, { merge: true }));
+await deny("R3 teacher demotes another user (challenges-only branch)", t1.doc("users/student2").update({ role: "student", displayName: "x" }));
+await ok("R4 owner updates OTHER user-doc fields (unchanged)", s1.doc("users/student1").update({ displayName: "S1c" }));
+await ok("R5 owner write that RESTATES the same role value (seeder shape)", s1.doc("users/student1").set({ role: "student", displayName: "S1d" }, { merge: true }));
+await deny("R6 student writes enrolledClasses→teacher role in one op", s1.doc("users/student1").update({ role: "teacher", enrolledClasses: { c1: true } }));
+
+// ── CASE E [panel F2/F3]: the server-only reset/epoch fence is unwritable ────
+await deny("E1 owner writes resetAt to progress_meta (backfill-fence laundering)", s1.doc("users/student1/progress_meta/c1_l1").update({ resetAt: 999 }));
+await deny("E2 owner bumps resetEpoch (forks the day_completions CAS namespace)", s1.doc("users/student1/progress_meta/fenced").update({ resetEpoch: 7 }));
+await deny("E3 owner sets resetInProgress (engine self-DoS)", s1.doc("users/student1/progress_meta/fenced").update({ resetInProgress: true }));
+await deny("E4 owner sets resetEpoch on list_progress (the other max() input)", s1.doc("users/student1/list_progress/c1_l1").update({ resetEpoch: 7 }));
+await deny("E5 owner CREATES a progress doc pre-seeded with a reset fence", s1.doc("users/student1/progress_meta/forged").set({ resetEpoch: 9, resetAt: 1 }));
+await ok("E6 owner writes NON-fence fields on the same doc (unchanged)", s1.doc("users/student1/progress_meta/fenced").update({ someLegacyField: 1 }));
+
+// ── CASE A [panel F5]: attempts erasure guard ───────────────────────────────
+await deny("A1 student deletes a STAMPED attempt (override/posture erasure)", s1.doc("attempts/a_stamped").delete());
+await ok("A2 student deletes a PLAIN attempt (live reset path preserved)", s1.doc("attempts/a1").get().then(() => s1.doc("attempts/a2p").set({ studentId: "student1" })).then(() => s1.doc("attempts/a2p").delete()));
+
+// ── CASE T [panel F9]: third-party student — the owner model's base denial ──
+await deny("T1 other student reads student1's study_states", s2.doc("users/student1/study_states/w_plain").get());
+await deny("T2 other student writes student1's study_states", s2.doc("users/student1/study_states/w_plain").update({ status: "hax" }));
+await deny("T3 other student writes student1's class_progress", s2.doc("users/student1/class_progress/c1_l1").update({ csd: 99 }));
+await deny("T4 other student reads student1's review_queues", s2.doc("users/student1/review_queues/seeded").get());
+
+// ── CASE G [panel F9]: collection-group reads of the server subcollections ──
+await deny("G1 collection-group read review_queues", s1.collectionGroup("review_queues").get());
+await deny("G2 collection-group read day_completions", s1.collectionGroup("day_completions").get());
+await deny("G3 collection-group read study_states", s1.collectionGroup("study_states").get());
+
+// ── CASE N [panel F9]: unauth writes to the guarded surfaces ────────────────
+await deny("N1 unauth create in a server subcollection", un.doc("users/student1/review_queues/anon").set({ x: 1 }));
+await deny("N2 unauth create a label-carrying study_state", un.doc("users/student1/study_states/anon").set({ reviewFailCount: 0 }));
+
+// ── CASE S [panel F9]: reads of the OTHER eight subcollections + literal-doc match ─
+for (const sub of NINE.filter((x) => x !== "review_queues")) {
+  await ok(`S-r owner reads ${sub}`, s1.doc(`users/student1/${sub}/seeded`).get());
+}
+await deny("S1 write to system_config/{not-review_v2} (literal-doc match)", s1.doc("system_config/other").set({ x: 1 }));
+await deny("S2 read system_config/{not-review_v2}", s1.doc("system_config/other").get());
+await deny("S3 write a subcollection under ai_metering", t1.doc("ai_metering/m1/sub/x").set({ x: 1 }));
+
 // ── CASE 10: pool-forgery inertness — legacy pool fields still owner-writable ─
-await ok("10 owner writes status/masteredAt still pass (composition ignores them — server half rides DF2-10's unit matrix)", s1.doc("users/student1/study_states/w_plain").update({ status: "learning", masteredAt: 999 }));
+// DEFERRED-SURFACE ACKNOWLEDGEMENT (not an inertness proof) [panel F3]: the
+// spec's claim that "composition reads only reviewRestingUntil/day_completions"
+// is FALSE — progress.js:62-70 reads currentStudyDay/totalWordsIntroduced (the
+// frontier + review-universe authority) from the client-writable durable
+// progress doc. csd/twi therefore remain FORGEABLE by their owner; that is the
+// live legacy posture and its closure is carded to P6/DF2-46, NOT to this file.
+// (The reset/epoch half of that surface IS closed here — see CASE E.)
+await ok("10a owner writes status/masteredAt still pass (legacy display fields)", s1.doc("users/student1/study_states/w_plain").update({ status: "learning", masteredAt: 999 }));
+await ok("10b DEFERRED: owner still writes csd/twi (P6/DF2-46 closes this, not this ruleset)", s1.doc("users/student1/class_progress/c1_l1").update({ currentStudyDay: 7, totalWordsIntroduced: 70 }));
 
 await env.cleanup();
 

@@ -109,6 +109,32 @@ handoff-ephemeral.
    land the rules before GATE 4 (the 26SM backfill), not merely before gate 5 — between backfill and
    rules-deploy, real backfilled labels exist in `study_states` with the field-immunity clauses not yet
    deployed, so that window would leave them client-forgeable.**
+   **PANEL ROUND 1 FOLDED (2026-08-03) — the artifact now EXISTS and is verified, not deployed.**
+   Live base fetched (ruleset d8f3e0d0…, 2026-06-28, 210 lines vs the repo draft's 419 — the r91 refusal
+   quantified). Merged artifact authored; **189/189 matrix green**; **six per-clause mutants all KILLED**
+   (each clause is pinned by a named case); whole-file mutations discriminate (raw base and P10 draft
+   fail 71 each but share only 44 — 27 P10-only failures are exactly the live-flow regressions).
+   Reviewers: spec-fidelity **YES**; adversarial-forgery **NO** ("safe to deploy" but named uncovered
+   paths). **TWO HARDENING DELTAS BEYOND THE SPEC, both verified inert against the live client tree:**
+   (i) **`role` is now CREATE-ONLY** — the live base let ANY student self-promote to teacher and thereby
+   read `ai_metering`/`ops_metrics` and write every other student's progress records (a pre-existing
+   LIVE hole this deploy closes); (ii) **the reset fence** (`resetAt`/`resetEpoch`/`resetInProgress`) is
+   now client-unwritable, closing the GATE-4 backfill-laundering lever, the day_completions CAS-namespace
+   fork and the engine self-DoS. **PRODUCTION EVIDENCE:** the read-only fence sweep found **ZERO** fence
+   values across 2,519 progress docs — since the fence's only writer is gated off, nothing can have been
+   pre-forged. **TRUTH REPAIRS (the spec's own claims were false):** "zero client writes denied" holds
+   only until GATE 4 (from then the erasure guard denies the pre-2026-07-18 CACHED-bundle reset path;
+   the live bundle routes to the Admin-SDK callable), and "composition reads only reviewRestingUntil/
+   day_completions" is FALSE (progress.js:62-70 reads csd/twi) — matrix case 10 is relabelled a
+   DEFERRED-SURFACE ACKNOWLEDGEMENT. **CARDED, NOT THIS DEPLOY:** the engine's `enrolledClasses` authz
+   fallback (foundation.js:325-329) is client-writable and must close PRE-FLIP — but it needs a cohort
+   data-check first, because "phantom members" (in `members/` yet absent from `studentIds`) may
+   legitimately depend on it; the exclusion list is a DENY-LIST (fail-open for a renamed/new
+   subcollection — add a pre-deploy grep check, invert at P6); `system_logs` rows are client-attributable
+   (CS must cross-check before treating one as evidence). **DEPLOY-GATE MECHANICS:** review the diff with
+   `scripts/deepfix2/diff-rules-vs-live.sh` (the base is CRLF, the artifact LF — a naive diff shows a
+   100% rewrite and hides the six declared hunks), and re-run `fetch-live-rules.mjs` AFTER the deploy to
+   re-baseline the drift sha. **NEXT: the Codex final gate, then its own deploy order.**
    **DEPLOY STATUS (2026-08-03, post-pause resume under David's full-permission go): THE DARK DEPLOY IS
    COMPLETE — all legs except this workstream.** Leg 1 indexes ✅ (r91: 42→43, additive-proven). Leg 3
    functions ✅ (r92: 17→24, nine surgical `--only functions:<name>` targets, REMOVED: NONE; the 7

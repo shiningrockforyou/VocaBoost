@@ -1,0 +1,32 @@
+{
+  "projectId": "vocaboost-879c2",
+  "groups": {
+    "progress_meta": {
+      "scanned": 0,
+      "carrying": {
+        "resetAt": 0,
+        "resetEpoch": 0,
+        "resetInProgress": 0
+      }
+    },
+    "list_progress": {
+      "scanned": 1,
+      "carrying": {
+        "resetAt": 0,
+        "resetEpoch": 0,
+        "resetInProgress": 0
+      }
+    },
+    "class_progress": {
+      "scanned": 2518,
+      "carrying": {
+        "resetAt": 0,
+        "resetEpoch": 0,
+        "resetInProgress": 0
+      }
+    }
+  },
+  "hits": [],
+  "scanned": 2519,
+  "verdict": "CLEAN — no reset fence exists anywhere; the GATE-4 backfill's epoch filter cannot have been pre-forged"
+}

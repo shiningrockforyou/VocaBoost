@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+/**
+ * ============================================================================
+ * DEEPFIX2 — rules-mutants.mjs: DOES THE MATRIX HAVE TEETH? (panel F7)
+ * ============================================================================
+ * The review panel's MEDIUM finding: the matrix's two whole-file mutation runs
+ * (raw live base / repo P10 draft) prove the clause SET is load-bearing, but no
+ * evidence showed that any INDIVIDUAL clause is pinned — a subtly wrong operand
+ * could ship with every case still green.
+ *
+ * This runner mutates ONE clause at a time in the merged artifact, runs the full
+ * matrix against each mutant, and REQUIRES the run to go red. A mutant that
+ * stays green means that clause is unasserted — a matrix gap, reported as such.
+ *
+ * It also re-runs the two whole-file mutations against the CURRENT harness, so
+ * every recorded number belongs to the harness that actually ships (the panel
+ * caught the receipt quoting /136 totals for a 189-assertion matrix).
+ *
+ * READ-ONLY w.r.t. the repo: every mutant is written to a temp file.
+ * Usage: NODE_PATH=/app/node_modules node scripts/deepfix2/rules-mutants.mjs
+ * Exit: 0 every mutant died · 1 a mutant SURVIVED (matrix gap) or a run errored.
+ */
+
+import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const MERGED = "/app/audit/deepfix/task3/live_baseline/firestore.merged.rules";
+const LIVE = "/app/audit/deepfix/task3/live_baseline/firestore.live.rules";
+const P10 = "/app/firestore.rules";
+const RUNNER = "/app/scripts/deepfix2/run-rules-matrix.sh";
+const MATRIX = "/app/scripts/deepfix2/rules-matrix.mjs";
+
+const sha16 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex").slice(0, 16);
+const base = readFileSync(MERGED, "utf8");
+const scratch = mkdtempSync(join(tmpdir(), "rules-mutants-"));
+
+/** One targeted edit each. `from` must appear exactly once in the artifact. */
+const MUTANTS = [
+  {
+    id: "M1-delete-operand",
+    why: "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
+    from: `          && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
+               && resource.data.keys().hasAny([`,
+    to: `          && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
+               && request.resource.data.keys().hasAny([`,
+  },
+  {
+    id: "M2-nine-list-hole",
+    why: "dropping ONE subcollection name from ONE op branch must not slip through",
+    from: `        allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
+          && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',`,
+    to: `        allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
+          && !(subcollection in ['review_presentations', 'day_completions',`,
+  },
+  {
+    id: "M3-hasAny-to-hasOnly",
+    why: "the six-label update guard must fire on ANY label, not only on a write of all six",
+    from: `               && request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',`,
+    to: `               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                    'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',`,
+  },
+  {
+    id: "M4-role-guard-removed",
+    why: "HARDENING B1 — without it a student self-promotes to teacher",
+    from: `        (isOwner(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||`,
+    to: `        isOwner(userId) ||`,
+  },
+  {
+    id: "M5-reset-fence-removed",
+    why: "HARDENING B2 — without it the backfill's epoch fence is client-forgeable",
+    from: `          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    to: `          ;`,
+  },
+  {
+    id: "M6-attempt-erasure-removed",
+    why: "CLAUSE 5 + r54 — without it the override record and the CSD/TWI anchor stay erasable",
+    from: `        && !resource.data.keys().hasAny([
+             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);`,
+    to: `        ;`,
+  },
+];
+
+function runMatrix(rulesPath) {
+  try {
+    const out = execFileSync("bash", [RUNNER, rulesPath], {
+      encoding: "utf8", timeout: 300000, stdio: ["ignore", "pipe", "pipe"],
+    });
+    return parse(out);
+  } catch (e) {
+    // A red matrix exits 1 — that is a RESULT here, not an error.
+    const out = `${e.stdout ?? ""}${e.stderr ?? ""}`;
+    const parsed = parse(out);
+    if (parsed) return parsed;
+    throw new Error(`matrix run failed to produce a verdict for ${rulesPath}: ${out.slice(-400)}`);
+  }
+}
+function parse(out) {
+  const m = out.match(/RULES MATRIX \[rules sha256 ([0-9a-f]+)\]: (\d+)\/(\d+) green/);
+  if (!m) return null;
+  const failed = [...out.matchAll(/^\s+✗ (.+)$/gm)].map((x) => x[1].trim());
+  return { rulesSha16: m[1], pass: Number(m[2]), total: Number(m[3]), failed };
+}
+
+const results = { matrixSha16: sha16(MATRIX), canonical: null, mutants: [], wholeFile: [] };
+
+console.log(`[mutants] matrix sha16 ${results.matrixSha16}`);
+console.log("[mutants] canonical run (must be fully green)…");
+results.canonical = runMatrix(MERGED);
+console.log(`  ${results.canonical.pass}/${results.canonical.total} (rules ${results.canonical.rulesSha16})`);
+let bad = results.canonical.pass !== results.canonical.total;
+if (bad) console.log("  !! the canonical artifact is not green — fix that before reading mutants");
+
+for (const mut of MUTANTS) {
+  const occurrences = base.split(mut.from).length - 1;
+  if (occurrences !== 1) {
+    console.log(`  !! ${mut.id}: anchor matched ${occurrences}× (expected 1) — mutant NOT applied`);
+    results.mutants.push({ id: mut.id, why: mut.why, applied: false, killed: false });
+    bad = true;
+    continue;
+  }
+  const path = join(scratch, `${mut.id}.rules`);
+  writeFileSync(path, base.replace(mut.from, mut.to));
+  const r = runMatrix(path);
+  const killed = r.pass !== r.total;
+  results.mutants.push({
+    id: mut.id, why: mut.why, applied: true, killed,
+    pass: r.pass, total: r.total,
+    // WHICH assertions died is the useful evidence — a clause is pinned by the
+    // cases that notice its absence, whichever those turn out to be.
+    killedBy: r.failed.slice(0, 6),
+  });
+  console.log(`  ${killed ? "KILLED" : "SURVIVED !!"} ${mut.id}: ${r.pass}/${r.total}` +
+    (killed ? ` — first: ${r.failed[0]?.slice(0, 80)}` : ""));
+  if (!killed) bad = true;
+}
+
+console.log("[mutants] whole-file runs against the CURRENT harness…");
+for (const [label, path] of [["raw live base", LIVE], ["repo P10 draft", P10]]) {
+  const r = runMatrix(path);
+  results.wholeFile.push({
+    label, rulesSha16: r.rulesSha16, pass: r.pass, total: r.total,
+    failureCount: r.failed.length, failures: r.failed,
+  });
+  console.log(`  ${label}: ${r.pass}/${r.total} (${r.failed.length} failures)`);
+  if (r.pass === r.total) { console.log("    !! a whole-file mutation stayed green"); bad = true; }
+}
+// The two whole-file runs can coincide on COUNT while failing for different
+// reasons; the overlap is the evidence that they discriminate different things.
+if (results.wholeFile.length === 2) {
+  const [a, b] = results.wholeFile.map((w) => new Set(w.failures));
+  const only = (x, y) => [...x].filter((f) => !y.has(f));
+  results.wholeFileOverlap = {
+    liveOnly: only(a, b).length, p10Only: only(b, a).length,
+    shared: [...a].filter((f) => b.has(f)).length,
+    p10OnlyExamples: only(b, a).slice(0, 8),
+  };
+  console.log(`  overlap: ${results.wholeFileOverlap.shared} shared · ` +
+    `${results.wholeFileOverlap.liveOnly} live-only · ${results.wholeFileOverlap.p10Only} P10-only`);
+}
+
+writeFileSync("/app/audit/deepfix/task3/live_baseline/rules-mutants-report.json",
+  JSON.stringify(results, null, 2) + "\n");
+console.log(`\n[mutants] ${bad ? "PROBLEM — see above" : "all mutants killed; every clause is pinned"}`);
+process.exit(bad ? 1 : 0);

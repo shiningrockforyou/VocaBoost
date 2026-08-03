@@ -12,6 +12,20 @@
 // (WinClaude runs the emulator matrix on the merged artifact, not on this fragment).
 //
 // ── INERTNESS LAW [r53-B3] ──────────────────────────────────────────────────────────────────────
+// ⚠️ CORRECTED 2026-08-03 BY THE REVIEW PANEL — read this before trusting the two claims below.
+// (1) "Zero live/cached-client write is denied" is TRUE ONLY UNTIL GATE 4. From the 26SM backfill
+//     onward every study_state carries the six labels, so the r54 ERASURE guard denies the
+//     pre-2026-07-18 cached-bundle client reset path (src/services/db.js:3221-3252, the
+//     SERVER_RESET_PROGRESS=false branch). The LIVE bundle is unaffected — that flag is true and the
+//     reset routes to the Admin-SDK callable. Every other client write is genuinely inert: all client
+//     study_states writers use set(..., {merge:true}) touching legacy keys only (fixtured: matrix 3b/3c).
+// (2) The line-124-126 claim that "composition reads only reviewRestingUntil/day_completions" is FALSE.
+//     functions/reviewV2/progress.js:62-70 reads currentStudyDay/totalWordsIntroduced (the frontier and
+//     review-universe authority) and composer.js:154-168 reads resetEpoch/resetInProgress. The MERGED
+//     ARTIFACT now closes the reset/epoch half (a HARDENING delta beyond this spec — the fields have no
+//     client writer). csd/twi remain owner-writable — the live legacy posture, carded to P6/DF2-46.
+//     Matrix case 10 is therefore labelled a DEFERRED-SURFACE ACKNOWLEDGEMENT, never an inertness proof.
+//
 // Every clause below guards ONLY fields/collections that DO NOT EXIST before the dark train:
 // the SIX NEW server label fields (incl. the RENAMED clock `reviewLastTestedAt` and the resting truth
 // `reviewRestingUntil` — legacy `lastTestedAt`/`masteredAt` remain client-writable, are NEVER read by the
@@ -85,7 +99,11 @@
 //   match /ops_metrics/{metricId} {
 //     allow read: if isTeacher();
 //     allow write: if false;                // Admin SDK only — composition_fallback/saturation/abort signals
-//   }                                       // (system_logs stays client-creatable and is NEVER an authority signal)
+//   }                                       // (system_logs stays client-creatable and is never an ENGINE authority signal —
+//                                         // but rows are CLIENT-ATTRIBUTABLE: create requires only auth,
+//                                         // with no uid binding, so a student can write a row naming
+//                                         // another student. CS must cross-check uid/createTime before
+//                                         // treating a csd_anchor_invalid row as evidence [panel F11].)
 //
 // ── CLAUSE 4c: shadow_registry — server-only (the shadow-audit membership set) [r61] ────────────
 //   match /shadow_registry/{chunkId} {

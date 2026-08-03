@@ -12,7 +12,16 @@
 //   narrowing is introduced: list_progress/class_progress/progress_meta and
 //   the legacy attempt writes stay exactly as live (the inertness law).
 // NOT the repo's firestore.rules (that is the unshipped P10 end-state).
-// Gate: the 10-case emulator matrix (rules-matrix.mjs) must pass on THIS file.
+// TWO DELTA GROUPS, deliberately distinguishable:
+//   (1) SPEC-MANDATED — the nine-subcollection exclusion, the six-label
+//       study_states guards, the attempt override-key guards (create/update per
+//       CLAUSE 5(a); delete added by the r54 erasure law), the four new
+//       top-level matches.
+//   (2) HARDENING BEYOND THE SPEC (r-panel forgery lens): `role` made
+//       create-only (F1), and the server-only reset/epoch fence
+//       (resetAt/resetEpoch/resetInProgress) made client-unwritable (F2/F3).
+//       BOTH verified inert against the live client tree before authoring.
+// Gate: the emulator matrix (rules-matrix.mjs) must pass on THIS file.
 // ============================================================================
 rules_version = '2';
 
@@ -47,10 +56,24 @@ service cloud.firestore {
     // USERS
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (
-        isOwner(userId) ||
+
+      // DEEPFIX2 [HARDENING, beyond the spec — r-panel forgery lens F1]: the
+      // live base let an owner rewrite their OWN `role`, and isTeacher() reads
+      // that field, so any student could self-promote to teacher and then read
+      // ai_metering / ops_metrics and write every other student's records. The
+      // write is split so `role` becomes create-only; every other owner write
+      // and the teacher challenges-only branch are preserved verbatim.
+      // VERIFIED create-only: AuthContext.jsx:75 (signup) and :113 (Google,
+      // guarded by !userSnap.exists()); no client path updates role.
+      allow create: if isAuthenticated() && isOwner(userId);
+
+      allow update: if isAuthenticated() && (
+        (isOwner(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
         (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
       );
+
+      allow delete: if isAuthenticated() && isOwner(userId);
 
       // TODO(security): teacher writes here exist solely to support
       // reviewChallenge (writes student's study_states + class_progress when
@@ -76,7 +99,9 @@ service cloud.firestore {
           && !(subcollection == 'study_states'
                && request.resource.data.keys().hasAny([
                     'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
+          && !request.resource.data.keys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);
 
         allow update: if isAuthenticated() && (isOwner(userId) || isTeacher())
           && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',
@@ -85,7 +110,9 @@ service cloud.firestore {
           && !(subcollection == 'study_states'
                && request.resource.data.diff(resource.data).affectedKeys().hasAny([
                     'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);
 
         allow delete: if isAuthenticated() && (isOwner(userId) || isTeacher())
           && !(subcollection in ['review_queues', 'review_presentations', 'day_completions',
@@ -176,8 +203,16 @@ service cloud.firestore {
       );
 
       // Allow students to delete their own attempts (for progress reset)
+      // DEEPFIX2 [CLAUSE 5 + the r54 erasure law]: but NOT an attempt carrying
+      // the engine/override stamps — deleting one erases the teacher's override
+      // record, the gatePosture stamp, and the passed-`new` CSD/TWI
+      // reconciliation anchor. Inert for legacy clients (no client-written
+      // attempt carries these keys; the live reset path is the Admin-SDK
+      // callable, and progressService.js:92 is LOG-ONLY under LIST_SCOPED_RECON).
       allow delete: if isAuthenticated()
-        && resource.data.studentId == request.auth.uid;
+        && resource.data.studentId == request.auth.uid
+        && !resource.data.keys().hasAny([
+             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);
     }
 
     // SYSTEM LOGS (for reconciliation events)
@@ -210,7 +245,7 @@ service cloud.firestore {
 
     // CLAUSE 4: AI grading meters — server-incremented, teacher-readable.
     match /ai_metering/{meterId} {
-      allow read: if isAuthenticated() && isTeacher();
+      allow read: if isAuthenticated() && isTeacher();   // teacher-only HOLDS given the role guard above
       allow write: if false;              // incremented in the grading-job claim txn (Admin SDK)
     }
 

@@ -1,51 +1,200 @@
 {
-  "workstream": "17_ \u00a77b THE RULES LEG \u2014 author + matrix (pre-panel)",
+  "workstream": "17_ \u00a77b THE RULES LEG \u2014 authored, panel-reviewed, matrix + mutation verified",
   "date": "2026-08-03",
+  "status": "NOT DEPLOYED \u2014 awaiting the Codex final gate, then its own deploy order",
   "artifacts": {
     "live_base": {
       "path": "audit/deepfix/task3/live_baseline/firestore.live.rules",
-      "sha16": "44914b60858a1dcd",
-      "ruleset": "d8f3e0d0-8e8b-4fe1-aff8-9aceb1d5f9c4",
-      "createdInProd": "2026-06-28"
+      "sha16": "44914b60858a1dcd"
     },
     "merged": {
       "path": "audit/deepfix/task3/live_baseline/firestore.merged.rules",
-      "sha16": "c77937ce8e117a23"
+      "sha16": "c44b82072e4eefd7"
+    },
+    "spec": {
+      "path": "audit/deepfix/task3/firestore.review_v2.rules",
+      "sha16": "1ad58b498c8de042"
     },
     "matrix": {
       "path": "scripts/deepfix2/rules-matrix.mjs",
-      "sha16": "e088c3fc5503e9ef"
+      "sha16": "68cc42b8d482692e"
+    },
+    "mutants": {
+      "path": "scripts/deepfix2/rules-mutants.mjs",
+      "sha16": "2e5d4757ccc3ddb3"
     },
     "runner": {
       "path": "scripts/deepfix2/run-rules-matrix.sh",
       "sha16": "a8c69da030368f58"
     },
-    "spec": {
-      "path": "audit/deepfix/task3/firestore.review_v2.rules",
-      "sha16": "0f84ebc7e4745aab"
+    "diff_helper": {
+      "path": "scripts/deepfix2/diff-rules-vs-live.sh",
+      "sha16": "9dcf04a04b7ae292"
+    },
+    "fence_sweep": {
+      "path": "scripts/deepfix2/reset-fence-integrity-sweep.mjs",
+      "sha16": "b1a47ceae8d27ea5"
     }
   },
-  "runs": [
-    {
-      "target": "merged (canonical)",
-      "result": "148/148 green",
-      "note": "loaded-rules sha256 prefix c77937ce8e117a23 printed by the harness itself"
+  "liveBaseProvenance": {
+    "ruleset": "projects/vocaboost-879c2/rulesets/d8f3e0d0-8e8b-4fe1-aff8-9aceb1d5f9c4",
+    "createdInProd": "2026-06-28",
+    "lines": 210,
+    "sha256Prefix": "44914b60858a1dcd",
+    "note": "the base is CRLF and the artifact LF, so review the diff via diff-rules-vs-live.sh (6 declared hunks); deploying re-baselines the drift sha \u2014 re-run fetch-live-rules.mjs AFTER deploy"
+  },
+  "deltaGroups": {
+    "specMandated": [
+      "nine server-owned subcollections client-unwritable (create/update/delete)",
+      "six study_states label fields immutable on create/update and NON-ERASABLE on delete (r54)",
+      "attempt override/engine keys unforgeable on the two live client write branches (CLAUSE 5(a))",
+      "attempt DELETE erasure guard (CLAUSE 5 + the r54 erasure law \u2014 reviewers split; ADDED, verified inert)",
+      "four new top-level matches: system_config/review_v2 (literal doc), ai_metering, ops_metrics, shadow_registry"
+    ],
+    "hardeningBeyondSpec": [
+      "F1: `role` made CREATE-ONLY \u2014 the live base let any student self-promote to teacher and then read ai_metering/ops_metrics and write every other student's records. Verified create-only in the client (AuthContext.jsx:75 signup; :113 Google, guarded by !userSnap.exists(); db.js:286 touches profile only)",
+      "F2/F3: the server-only reset fence (resetAt/resetEpoch/resetInProgress) made client-unwritable. Verified zero client writers (src/ only READS resetAt at db.js:3578). Closes the backfill-fence laundering lever, the day_completions CAS-namespace fork, and the engine self-DoS"
+    ],
+    "deliberatelyNOTclosed": [
+      "csd/twi remain owner-writable \u2014 the live legacy posture the app depends on; carded to P6/DF2-46 and asserted as a DEFERRED-SURFACE ACKNOWLEDGEMENT (matrix 10b), never as an inertness proof",
+      "client attempt create/answers-update/plain-delete remain legal \u2014 load-bearing until DF2-46",
+      "users/{uid}/session_states stays client-writable (legacy session state; documented, not an oversight)"
+    ]
+  },
+  "verification": {
+    "matrix": {
+      "cases": 189,
+      "green": 189,
+      "rulesSha16": "c44b82072e4eefd7",
+      "matrixSha16": "68cc42b8d482692e"
     },
-    {
-      "target": "raw live base (mutation A)",
-      "result": "79/136 pre-upgrade \u2014 57 failures, ALL new-clause cases; ZERO case-9 regression failures",
-      "proves": "the matrix discriminates the deltas, and case 9 truthfully describes the live base"
+    "perClauseMutants": [
+      {
+        "id": "M1-delete-operand",
+        "killed": true,
+        "score": "188/189",
+        "why": "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
+        "firstKilledBy": "ALLOW-expected DENIED: 1c owner delete PLAIN study_state :: 7 PERMISSION_DENIED:"
+      },
+      {
+        "id": "M2-nine-list-hole",
+        "killed": true,
+        "score": "188/189",
+        "why": "dropping ONE subcollection name from ONE op branch must not slip through",
+        "firstKilledBy": "DENY-expected FAILED: 4b owner update review_queues :: Expected request to fail, but it succeeded."
+      },
+      {
+        "id": "M3-hasAny-to-hasOnly",
+        "killed": true,
+        "score": "188/189",
+        "why": "the six-label update guard must fire on ANY label, not only on a write of all six",
+        "firstKilledBy": "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels \u21d2 DENY :: Expected request to fail, but it succeeded."
+      },
+      {
+        "id": "M4-role-guard-removed",
+        "killed": true,
+        "score": "186/189",
+        "why": "HARDENING B1 \u2014 without it a student self-promotes to teacher",
+        "firstKilledBy": "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded."
+      },
+      {
+        "id": "M5-reset-fence-removed",
+        "killed": true,
+        "score": "185/189",
+        "why": "HARDENING B2 \u2014 without it the backfill's epoch fence is client-forgeable",
+        "firstKilledBy": "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded."
+      },
+      {
+        "id": "M6-attempt-erasure-removed",
+        "killed": true,
+        "score": "188/189",
+        "why": "CLAUSE 5 + r54 \u2014 without it the override record and the CSD/TWI anchor stay erasable",
+        "firstKilledBy": "DENY-expected FAILED: A1 student deletes a STAMPED attempt (override/posture erasure) :: Expected request to fail, but it succeeded."
+      }
+    ],
+    "wholeFileMutations": [
+      {
+        "target": "raw live base",
+        "score": "118/189",
+        "failures": 71
+      },
+      {
+        "target": "repo P10 draft",
+        "score": "118/189",
+        "failures": 71
+      }
+    ],
+    "wholeFileOverlap": {
+      "liveOnly": 27,
+      "p10Only": 27,
+      "shared": 44,
+      "p10OnlyExamples": [
+        "ALLOW-expected DENIED: 4f teacher read review_queues ::",
+        "ALLOW-expected DENIED: 9-u3 teacher challenges-only update on student user doc :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p1 owner write list_progress :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p2 owner write class_progress :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p3 owner write progress_meta :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p4 owner CREATE class_progress (new pairing) :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p5 owner DELETE progress record (reset path) :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: 9-p6 teacher write student list_progress (live grant) :: 7 PERMISSION_DENIED:"
+      ]
     },
-    {
-      "target": "repo firestore.rules P10 draft (mutation B)",
-      "result": "74/136 pre-upgrade \u2014 26 ALLOW-expected regressions dead (student attempt create, all progress-record writes, challenge review, teacher class/list create...)",
-      "proves": "case 9 catches the r91 wrong-base ship instantly"
+    "note": "every number here comes from the CURRENT harness (matrixSha16 above). The prior receipt quoted /136 totals from a pre-upgrade harness \u2014 the panel caught it; that is why per-run shas are now recorded."
+  },
+  "productionEvidence": {
+    "resetFenceSweep": {
+      "verdict": "CLEAN \u2014 no reset fence exists anywhere; the GATE-4 backfill's epoch filter cannot have been pre-forged",
+      "scanned": 2519,
+      "groups": {
+        "progress_meta": {
+          "scanned": 0,
+          "carrying": {
+            "resetAt": 0,
+            "resetEpoch": 0,
+            "resetInProgress": 0
+          }
+        },
+        "list_progress": {
+          "scanned": 1,
+          "carrying": {
+            "resetAt": 0,
+            "resetEpoch": 0,
+            "resetInProgress": 0
+          }
+        },
+        "class_progress": {
+          "scanned": 2518,
+          "carrying": {
+            "resetAt": 0,
+            "resetEpoch": 0,
+            "resetInProgress": 0
+          }
+        }
+      },
+      "meaning": "resetProgress is the fence's ONLY writer and is gated OFF, so any value would have been a client write. None exists \u21d2 the GATE-4 backfill's epoch filter cannot have been pre-forged."
     }
+  },
+  "verifiedPropertiesOnEmulator": [
+    "full-overwrite set() (no merge) on a labeled study_state \u21d2 DENY (the implicit field drop is caught)",
+    "FieldValue.delete() erasure of a label \u21d2 DENY",
+    "delete of a labeled doc, including by a self-promoted teacher \u21d2 DENY",
+    "collection-group reads of review_queues / day_completions / study_states \u21d2 DENY",
+    "unauthenticated access to every guarded surface \u21d2 DENY",
+    "grading_jobs read stays uid-bound; a non-owner cannot read it",
+    "system_config write denied even for a teacher; any system_config doc other than the literal review_v2 is unmatched \u21d2 DENY",
+    "no {document=**} catch-all and no overlapping write-granting match block \u21d2 no OR-semantics re-allow path",
+    "post-GATE-4 shape: legacy merge-writes on a LABEL-CARRYING doc still ALLOW (matrix 3b/3c) \u2014 the live client writers keep working"
   ],
-  "adaptations": [
-    "exclusion list = the NINE new subcollections ONLY \u2014 no P6 names (list_progress/class_progress/progress_meta stay writable; live base ships no exclusion list)",
-    "case 7 live-base form: only override/engine-key-carrying attempt writes denied; plain client attempt writes remain legal (load-bearing until DF2-46)",
-    "case 9 regression set authored here (the base ships no test set): every live allow branch + the base denials DEEPFIX2 relies on"
+  "honestResiduals": [
+    "from GATE 4 the erasure guard denies the pre-2026-07-18 CACHED-bundle client reset path (live bundle unaffected: SERVER_RESET_PROGRESS=true routes to the Admin-SDK callable). The spec's 'zero denied writes' law is corrected in place.",
+    "system_logs rows stay client-attributable to any uid \u2014 never an ENGINE signal, but CS must cross-check before treating one as evidence",
+    "the subcollection exclusion is a DENY-LIST: a renamed or newly added server subcollection ships client-writable by default (carded: pre-deploy grep check; invert to an allow-list at P6)",
+    "the engine's own authz has an enrolledClasses fallback (foundation.js:325-329) that is client-writable \u2014 carded PRE-FLIP, and it needs a cohort data-check first because 'phantom members' (in members/ but not studentIds) may legitimately depend on it"
   ],
+  "panel": {
+    "specFidelityLens": "YES",
+    "adversarialForgeryLens": "NO \u2014 'safe to deploy' but named uncovered paths; every finding folded or carded",
+    "nextGate": "Codex (final gate, per David's 2026-08-03 sequencing ruling)"
+  },
   "no_uids": true
 }
