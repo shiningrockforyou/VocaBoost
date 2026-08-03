@@ -9,9 +9,16 @@
  * the executor's read-before-deploy refusal). This converts the advisory half
  * into gates.
  *
- * Run it before publishing a claim, committing a fold, or issuing an order:
- *   node scripts/deepfix2/gate.mjs [--workstream rules]
- * Exit: 0 clean · 1 a gate failed (do not publish) · 2 could not evaluate.
+ * TWO MODES:
+ *   node scripts/deepfix2/gate.mjs --plan   BEFORE editing — validates the PLAN
+ *   node scripts/deepfix2/gate.mjs          BEFORE publishing — validates the WORK
+ *
+ * --plan exists because the worst defect this program produced came from a plan
+ * that was itself incomplete: a ledger row said "split the write into
+ * create/update" and never mentioned delete, so a faithful execution still
+ * shipped a false "closed" claim. Validating output could never catch that —
+ * only validating the plan can (Anthropic's plan-validate-execute pattern).
+ * Exit: 0 clean · 1 a gate failed (do not proceed) · 2 could not evaluate.
  *
  * It checks what a machine can check. It cannot check judgment — that is what
  * the ledger's BYPASS-SET rows and the review panels are for.
@@ -26,22 +33,90 @@ const SCRATCH = process.env.DEEPFIX2_SCRATCH
 const sha16 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex").slice(0, 16);
 const rel = (p) => p.replace(/^\/app\//, "");
 
+const CLOSED_MARK = /CLOSED BY CONVERGENCE|SUPERSEDED|VERIFY PASS COMPLETE/;
+/** The ACTIVE ledger: newest by mtime, skipping ones already closed out.
+ *  (mtime alone lied once — closing four old ledgers made them the "newest".) */
+function activeLedgers() {
+  const explicit = process.argv.find((a) => a.endsWith(".md") && existsSync(a));
+  if (explicit) return [explicit];
+  if (!existsSync(SCRATCH)) return [];
+  return readdirSync(SCRATCH)
+    .filter((f) => f.includes("fold-ledger"))
+    .map((f) => `${SCRATCH}/${f}`)
+    .filter((f) => !CLOSED_MARK.test(readFileSync(f, "utf8").slice(0, 400)))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
+}
+
+const PLAN_MODE = process.argv.includes("--plan");
 let failed = 0, warned = 0;
 const say = (icon, gate, msg) => console.log(`${icon} ${gate.padEnd(9)} ${msg}`);
 const fail = (gate, msg) => { failed++; say("✗", gate, msg); };
 const warn = (gate, msg) => { warned++; say("!", gate, msg); };
 const pass = (gate, msg) => say("✓", gate, msg);
 
+// ── PLAN MODE: validate the ledger BEFORE any edit ───────────────────────────
+if (PLAN_MODE) {
+  const found = activeLedgers();
+  if (!found.length) {
+    fail("PLAN", "no fold ledger — copy scripts/deepfix2/FOLD_LEDGER_TEMPLATE.md and fill it BEFORE editing");
+  } else {
+    const path = found[0];
+    const body = readFileSync(path, "utf8");
+    const name = path.split("/").pop();
+
+    // Split into row blocks so each row can be judged with its own detail lines.
+    const rows = [];
+    let cur = null;
+    for (const line of body.split("\n")) {
+      const m = line.match(/^\[[ x~!]\] ([A-Z]+\d+[a-z]?)\s*(.*)$/);
+      if (m) { cur = { id: m[1], text: m[2], detail: [] }; rows.push(cur); }
+      else if (cur && /^\s+\S/.test(line)) cur.detail.push(line);
+    }
+    if (!rows.length) fail("PLAN", `${name}: no ledger rows found`);
+    else pass("PLAN", `${name}: ${rows.length} rows`);
+
+    // Only DELTA rows (groups A/B — the ones that actually change a guard) owe a
+    // bypass set. Verify rows and doc-repair rows merely mention guards.
+    const CLOSER = /(guard|clos|denie?[sd]|immutab|unwritable|erasure|forge|protect|lock)/i;
+    const HASBYPASS = /(bypass set|delete-then-recreate|set-merge|set-with-merge)/i;
+    const naked = rows.filter((r) => {
+      if (!/^[AB]\d/.test(r.id)) return false;
+      const blob = [r.text, ...r.detail].join(" ");
+      return CLOSER.test(blob) && !HASBYPASS.test(blob);
+    });
+    if (naked.length) {
+      fail("PLAN", `row(s) claim a closure with NO bypass set enumerated: ${naked.map((r) => r.id).join(" ")}` +
+        " — list create/update/delete/set-merge/overwrite/delete-then-recreate/batch/transaction and fixture each");
+    } else if (rows.length) {
+      pass("PLAN", "every closure row enumerates a bypass set");
+    }
+
+    // Verify-before-edit rows must exist and point at something checkable.
+    const vRows = rows.filter((r) => /^V\d/.test(r.id));
+    if (!vRows.length) fail("PLAN", "no GROUP V rows — every 'this is inert / nothing writes this' assumption must be verified in code FIRST");
+    else pass("PLAN", `${vRows.length} verify-before-edit row(s)`);
+
+    // Fixture demand: any delta row should name a case/fixture/mutant.
+    const deltas = rows.filter((r) => /^[AB]\d/.test(r.id));
+    const unfixtured = deltas.filter((r) => !/(fixture|case|mutant|matrix)/i.test([r.text, ...r.detail].join(" ")));
+    if (unfixtured.length) warn("PLAN", `delta row(s) name no fixture: ${unfixtured.map((r) => r.id).join(" ")}`);
+    else if (deltas.length) pass("PLAN", `${deltas.length} delta row(s) each name a fixture`);
+
+    if (!/## CLOSE/i.test(body)) warn("PLAN", "no CLOSE section — add it so the fold has a definition of done");
+  }
+  console.log(`\n${failed ? "PLAN REJECTED — fix the plan before editing" : "PLAN ACCEPTED — proceed to edits"}` +
+    ` (${failed} failure(s), ${warned} warning(s))`);
+  process.exit(failed ? 1 : 0);
+}
+
 // ── GATE 1: LEDGER — every row ticked ────────────────────────────────────────
 // The failure this prevents: rows silently dying. Three did, unnoticed, until
 // David asked whether the ledger was being checked at all.
-const ledgers = existsSync(SCRATCH)
-  ? readdirSync(SCRATCH).filter((f) => f.includes("fold-ledger")).map((f) => `${SCRATCH}/${f}`)
-  : [];
+const ledgers = activeLedgers();
 if (!ledgers.length) {
   warn("LEDGER", "no fold ledger found — write one BEFORE editing, not after");
 } else {
-  const newest = ledgers.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
+  const newest = ledgers[0];
   const body = readFileSync(newest, "utf8");
   const open = [...body.matchAll(/^\[ \] (\S+)/gm)].map((m) => m[1]);
   const total = (body.match(/^\[[x !]\] /gm) || []).length + open.length;
