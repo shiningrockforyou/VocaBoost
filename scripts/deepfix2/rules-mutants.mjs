@@ -85,8 +85,8 @@ const MUTANTS = [
   {
     id: "M10-attempt-create-guard-removed",
     why: "panel r3 — the attempt CREATE override guard carried no mutant",
-    from: `        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys());`,
-    to: `        ;`,
+    from: `        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys())`,
+    to: `        && true`,
   },
   {
     id: "M11-users-create-widened",
@@ -99,6 +99,18 @@ const MUTANTS = [
     why: "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
     from: `      allow delete: if false;`,
     to: `      allow delete: if isAuthenticated() && isOwner(userId);`,
+  },
+  {
+    id: "M13-manual-docid-guard-removed",
+    why: "panel r5 — the manual-anchor docId is a SYNONYM three CS consumers key on; without the guard the r4 field fix is bypassable by naming the doc",
+    from: `        && !attemptId.matches('.*[Mm]anual.*');`,
+    to: `        ;`,
+  },
+  {
+    id: "M14-engine-stamps-dropped",
+    why: "panel r5 — resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create and update",
+    from: `              'resetEpoch', 'presentationId', 'queueId', 'engineResult'];`,
+    to: `              ];`,
   },
   {
     id: "M12-manualOverride-dropped",
@@ -192,6 +204,13 @@ if (results.wholeFile.length === 2) {
     `${results.wholeFileOverlap.liveOnly} live-only · ${results.wholeFileOverlap.p10Only} P10-only`);
 }
 
+// FAIL CLOSED if the harness moved under us: evidence must be reconstructable
+// from the committed tree, or the numbers it certifies are unverifiable [panel r5].
+const matrixNow = sha16(MATRIX);
+if (matrixNow !== results.matrixSha16) {
+  console.log(`\n!! matrix changed mid-run (${results.matrixSha16} -> ${matrixNow}) — re-run before publishing`);
+  bad = true;
+}
 writeFileSync("/app/audit/deepfix/task3/live_baseline/rules-mutants-report.json",
   JSON.stringify(results, null, 2) + "\n");
 console.log(`\n[mutants] ${bad ? "PROBLEM — see above" : `all ${MUTANTS.length} mutants killed; every MUTATED clause is pinned (clauses without a mutant are covered by assertion only — see the receipt)`}`);

@@ -23,6 +23,24 @@
 //     (load-bearing until DF2-46), so attempt HISTORY remains client-shaped.
 //   * `role` is self-asserted at signup, so `isTeacher()` is an availability
 //     gate, not a confidentiality boundary (see the users block).
+//   * `users/{uid}.enrolledClasses` is OWNER-WRITABLE and the server reads it as
+//     an entitlement OR-branch (functions/index.js:321, foundation.js:326 and
+//     :2486), so a student can self-grant engine access to a class they were
+//     never enrolled in. Not a regression (identical to the live base); carded
+//     PRE-FLIP, and it needs a cohort data-check first because "phantom members"
+//     may legitimately depend on that fallback.
+//   * `classes.studentIds` can be rewritten by ANY authenticated user (the
+//     self-enroll branch binds nothing to request.auth.uid) and review-v2 makes
+//     it BINDING at transaction time (reviewV2/config.js:180-182, :270). Same
+//     status: live-base behaviour, carded pre-flip.
+//   * `answers[].gradedIsCorrect` — the §6b append-only grading preimage — is
+//     rewritable through the student answers-only branch, and the GATE-4 backfill
+//     consumes it as authority (b1-replay-lib.mjs:99). Firestore rules cannot
+//     inspect fields inside array elements, so this is NOT fixable here: the
+//     BACKFILL must not trust it unverified. Carded for gate 4.
+//   * `writtenBy` / `correctnessSource` are forgeable on client-created attempts
+//     — forensic provenance only; no live enforcement path reads them from the
+//     document (index.js:452 uses an in-process argument).
 //
 // TWO DELTA GROUPS, deliberately distinguishable:
 //   (1) SPEC-MANDATED — the nine-subcollection exclusion, the six-label
@@ -86,7 +104,12 @@ service cloud.firestore {
     // the rest are the force-pass surface and the engine's posture stamp.
     function serverOnlyAttemptKeys() {
       return ['manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
-              'preOverride', 'gatePosture'];
+              'preOverride', 'gatePosture',
+              // The engine's own stamps [panel r5]. `resetEpoch` is load-bearing:
+              // its mere PRESENCE is the engine/legacy discriminator
+              // (reviewV2/completion.js:340), so forging it flips which fence set
+              // an attempt is judged under.
+              'resetEpoch', 'presentationId', 'queueId', 'engineResult'];
     }
 
     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
@@ -248,7 +271,14 @@ service cloud.firestore {
         && request.resource.data.studentId == request.auth.uid
         // DEEPFIX2 [CLAUSE 5(a)]: the force-pass/engine stamp surface is
         // server-only — a client-created attempt must not carry it.
-        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys());
+        && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys())
+        // …and neither may it claim the manual-anchor docId, which is a SYNONYM
+        // for that field: scripts/cs/deepfix-census{,2}.mjs and the migration
+        // WRITER deepfix-migrate-list-progress.mjs:198 all treat a `_manual` id
+        // as equivalent to manualOverride === true [panel r5]. The real writers
+        // (foundation.js:2971, scripts/cs/manual-pass.mjs) are Admin SDK and
+        // bypass rules, so this denies nothing legitimate.
+        && !attemptId.matches('.*[Mm]anual.*');
 
       // Student-side updates are limited to the `answers` array (for
       // submitChallenge, which mutates a nested challengeStatus on a single

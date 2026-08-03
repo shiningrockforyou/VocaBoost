@@ -9,7 +9,7 @@
     },
     "merged": {
       "path": "audit/deepfix/task3/live_baseline/firestore.merged.rules",
-      "sha16": "a08c81ccc1d812eb"
+      "sha16": "def5231f5be328c2"
     },
     "spec": {
       "path": "audit/deepfix/task3/firestore.review_v2.rules",
@@ -17,11 +17,11 @@
     },
     "matrix": {
       "path": "scripts/deepfix2/rules-matrix.mjs",
-      "sha16": "b3fb33f9a7fb238b"
+      "sha16": "60d4007e155768dc"
     },
     "mutants": {
       "path": "scripts/deepfix2/rules-mutants.mjs",
-      "sha16": "475424898432cdc7"
+      "sha16": "aa547a888765ab47"
     },
     "runner": {
       "path": "scripts/deepfix2/run-rules-matrix.sh",
@@ -64,93 +64,107 @@
   },
   "verification": {
     "matrix": {
-      "cases": 213,
-      "green": 213,
-      "rulesSha16": "a08c81ccc1d812eb",
-      "matrixSha16": "8c9e90ebf7b903be"
+      "cases": 228,
+      "green": 228,
+      "rulesSha16": "def5231f5be328c2",
+      "matrixSha16": "60d4007e155768dc"
     },
     "perClauseMutants": [
       {
         "id": "M1-delete-operand",
         "killed": true,
-        "score": "212/213",
+        "score": "227/228",
         "why": "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
         "firstKilledBy": "ALLOW-expected DENIED: 1c owner delete PLAIN study_state :: 7 PERMISSION_DENIED:"
       },
       {
         "id": "M2-nine-list-hole",
         "killed": true,
-        "score": "209/213",
+        "score": "224/228",
         "why": "dropping ONE subcollection name from ONE op branch must not slip through",
         "firstKilledBy": "DENY-expected FAILED: 4a owner create review_queues :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M3-hasAny-to-hasOnly",
         "killed": true,
-        "score": "211/213",
+        "score": "226/228",
         "why": "the six-label update guard must fire on ANY label, not only on a write of all six",
         "firstKilledBy": "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels \u21d2 DENY :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M4-role-guard-removed",
         "killed": true,
-        "score": "210/213",
+        "score": "225/228",
         "why": "HARDENING B1 \u2014 without it a student self-promotes to teacher",
         "firstKilledBy": "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M5-reset-fence-removed",
         "killed": true,
-        "score": "209/213",
+        "score": "224/228",
         "why": "HARDENING B2 \u2014 without it the backfill's epoch fence is client-forgeable",
         "firstKilledBy": "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M8-fence-delete-removed",
         "killed": true,
-        "score": "209/213",
+        "score": "224/228",
         "why": "panel r3 BLOCKER \u2014 without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
         "firstKilledBy": "DENY-expected FAILED: E7 owner DELETES a fenced progress_meta doc :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M9-fence-create-removed",
         "killed": true,
-        "score": "212/213",
+        "score": "227/228",
         "why": "panel r3 \u2014 the fence CREATE branch carried no mutant, so it was pinned by assertion only",
         "firstKilledBy": "DENY-expected FAILED: E5 owner CREATES a progress doc pre-seeded with a reset fence :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M10-attempt-create-guard-removed",
         "killed": true,
-        "score": "204/213",
+        "score": "216/228",
         "why": "panel r3 \u2014 the attempt CREATE override guard carried no mutant",
         "firstKilledBy": "DENY-expected FAILED: 7a student create attempt carrying teacherEdited :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M11-users-create-widened",
         "killed": true,
-        "score": "212/213",
+        "score": "227/228",
         "why": "panel r3 \u2014 the users CREATE clause carried no mutant (only assertions R10/R11)",
         "firstKilledBy": "DENY-expected FAILED: R11 create someone ELSE's user doc :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M7-users-delete-reopened",
         "killed": true,
-        "score": "212/213",
+        "score": "227/228",
         "why": "panel r2 BLOCKER \u2014 an open delete branch is a two-call bypass of the role guard",
         "firstKilledBy": "DENY-expected FAILED: R7 student DELETES own user doc (the bypass's first call) :: Expected request to fail, but it succeeded."
       },
       {
+        "id": "M13-manual-docid-guard-removed",
+        "killed": true,
+        "score": "225/228",
+        "why": "panel r5 \u2014 the manual-anchor docId is a SYNONYM three CS consumers key on; without the guard the r4 field fix is bypassable by naming the doc",
+        "firstKilledBy": "DENY-expected FAILED: A18 student creates an attempt at the manual-anchor docId shape :: Expected request to fail, but it succeeded."
+      },
+      {
+        "id": "M14-engine-stamps-dropped",
+        "killed": true,
+        "score": "217/228",
+        "why": "panel r5 \u2014 resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create and update",
+        "firstKilledBy": "DENY-expected FAILED: A13 student creates an attempt carrying resetEpoch :: Expected request to fail, but it succeeded."
+      },
+      {
         "id": "M12-manualOverride-dropped",
         "killed": true,
-        "score": "206/213",
+        "score": "222/228",
         "why": "panel r4 BLOCKER \u2014 dropping the LIVE marker from the shared list must break create, update AND delete",
         "firstKilledBy": "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M6-attempt-erasure-removed",
         "killed": true,
-        "score": "210/213",
+        "score": "223/228",
         "why": "CLAUSE 5 + r54 \u2014 without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
         "firstKilledBy": "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded."
       }
@@ -158,18 +172,18 @@
     "wholeFileMutations": [
       {
         "target": "raw live base",
-        "score": "129/213",
-        "failures": 84
+        "score": "131/228",
+        "failures": 97
       },
       {
         "target": "repo P10 draft",
-        "score": "137/213",
-        "failures": 76
+        "score": "151/228",
+        "failures": 77
       }
     ],
     "wholeFileOverlap": {
-      "liveOnly": 38,
-      "p10Only": 30,
+      "liveOnly": 51,
+      "p10Only": 31,
       "shared": 46
     },
     "mutantCoverage": {
@@ -194,7 +208,7 @@
       ],
       "note": "'every clause is pinned' was an OVERSTATEMENT at r2; now scoped to every MUTATED clause, and the runner prints the narrowed wording."
     },
-    "note": "all numbers re-derived from shipped evidence after the artifact was FROZEN (rules sha16 34abd2f1f6ef2597). Two prior receipts published stale totals (/136 at r1; 118-of-189 at r2 \u2014 the latter inside the paragraph claiming the r1 error was fixed); the panel caught both. The suite now REFUSES to pass when a mutant anchor goes stale \u2014 that is how M6 was caught after its guard changed."
+    "note": "all numbers re-derived from the shipped evidence after the artifact was FROZEN at rules sha16 def5231f5be328c2 (an earlier note cited the r3 PRE-refactor sha here \u2014 the one field whose whole job is to bind the numbers to the frozen file named the wrong file; caught by panel r5). The mutation suite now FAILS CLOSED on both a stale mutant anchor AND a harness whose hash moves mid-run \u2014 the latter is why the earlier evidence was bound to a matrix present in no commit. Both refusals fired during this fold, which is the intended behaviour."
   },
   "productionEvidence": {
     "resetFenceSweep": {
@@ -267,6 +281,11 @@
       "bypassEnumerationLens": "NO \u2014 found `manualOverride` client-forgeable on CREATE and strippable via teacher UPDATE (a 2-call erasure bypass); ~700 probes clean on everything else; 692-probe live-vs-merged differential showed zero unintended widening",
       "claimsAndRevertLens": "NO \u2014 stale receipt block (already removed before the fold), the false sweep premise, a stale RESUME, and doc residue; the artifact rule TEXT judged sound and the revert functionally complete",
       "fold": "`manualOverride` added to the create and teacher-update guards; and \u2014 the ROOT-CAUSE fix for three recurrences \u2014 every repeated key list hoisted into a rules FUNCTION (serverLabelKeys / resetFenceKeys / serverOwnedSubcollections / serverOnlyAttemptKeys) so a key can never again be present in one branch and absent from another. Full bypass set fixtured incl. the 2-call strip-then-delete sequence; mutant M12 pins the shared list."
+    },
+    "round5": {
+      "refactorEquivalenceLens": "YES \u2014 62-vs-62 statement textual proof that the de-duplication changed nothing but the two intended additions; 1136-probe independent differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows); evaluation limits MEASURED (~17x headroom, and an over-budget ruleset fails at COMPILE time so it can never become a silent runtime denial); plus 12 NEW function-swap mutants the reviewer authored \u2014 all killed",
+      "bypassReEnumerationLens": "NO \u2014 but explicitly 'no reason to block the deploy on rule content; the artifact is strictly safer than live on every surface I probed'. 2205 assertions across the six named protected things found ZERO holes and zero inertness regressions: 'I could not construct a single asymmetric branch.' The NO is on DISCLOSURE \u2014 the enumeration stopped at the collections the spec named rather than at what the ENGINE reads as truth: the SYNONYMS.",
+      "fold": "engine stamps (resetEpoch/presentationId/queueId/engineResult) added to the shared attempt-key list \u2014 resetEpoch is load-bearing because its mere presence is the engine/legacy discriminator; the manual-anchor DOCID closed as a synonym for the field r4 closed (three CS consumers, one a migration writer, treat the id as equivalent); the four uncovered authority surfaces DISCLOSED in the artifact header; gradedIsCorrect carded for gate 4 because rules cannot inspect array elements."
     }
   },
   "no_uids": true,
@@ -287,7 +306,7 @@
   },
   "deployLandmine": {
     "status": "MY r2 FIX WAS WRONG AND IS FULLY REVERTED \u2014 firestore.rules is back at its original path; firebase.json again reads \"rules\": \"firestore.rules\"",
-    "theRealRisk": "a plain `firebase deploy --only firestore:rules` from /app ships whatever sits at firestore.rules, today the UNSHIPPED P10 cutover: 137/213 on this matrix with 30 P10-only live-flow regressions (every student progress write, the reset path, plain attempt create, challenge review, teacher class/list creation), plus it breaks teacher signup by constraining user CREATE to role:'student'",
+    "theRealRisk": "a plain `firebase deploy --only firestore:rules` from /app ships whatever sits at firestore.rules, today the UNSHIPPED P10 cutover: 151/228 on this matrix with 31 P10-only live-flow regressions, plus it breaks teacher signup by constraining user CREATE to role:'student'",
     "whyMyFixWasWorse": [
       "the 'blind deploy is now a no-op' claim was FALSE: firebase-tools skips an upload only when {name, content} deep-equals the live ruleset, and I changed name \u2014 so every deploy would cut a NEW ruleset",
       "once the merged artifact shipped, a bare `firebase deploy` would have SILENTLY ROLLED BACK the whole workstream while printing success \u2014 strictly worse than a visible outage",
@@ -300,6 +319,10 @@
   "structuralFix": {
     "why": "three consecutive review rounds found the SAME defect \u2014 a key present in one operation branch's list and absent from another's (role: update-only; the reset fence: no delete; manualOverride: delete-only). Root cause: each key set was written out once per branch, so editing one copy left the others behind.",
     "what": "every repeated key set is now a rules FUNCTION called by all branches \u2014 serverLabelKeys(), resetFenceKeys(), serverOwnedSubcollections(), serverOnlyAttemptKeys(). Divergence is now structurally impossible rather than merely discouraged.",
-    "proof": "pure refactor + the new guards: matrix 213/213 green, all 12 mutants killed, and M12 (dropping manualOverride from the shared list) breaks create, update AND delete cases at once."
+    "proof": "pure refactor + the new guards: matrix 228/228 green, all 14 mutants killed, and M12 (dropping manualOverride from the shared list) breaks create, update AND delete cases at once. Panel r5 proved the refactor equivalence-preserving independently: a 62-vs-62 statement textual comparison and a 1136-probe differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows), plus 12 function-swap mutants the reviewer authored \u2014 all killed."
+  },
+  "provenanceDefectsFixed": {
+    "matrixShaMismatch": "the mutants report recorded a matrixSha16 present in NO commit \u2014 I edited the harness after the mutation run and committed without re-running, so 12/12 was bound to a harness a reviewer could not reconstruct. The reviewer re-derived it independently (all 12 still die), and rules-mutants.mjs now FAILS CLOSED when the harness hash moves under it.",
+    "frozenShaCitation": "verification.note cited the r3 PRE-refactor artifact sha as 'the frozen artifact' \u2014 the one field whose entire job is to bind the numbers to the frozen file named the wrong file. Re-derived below."
   }
 }

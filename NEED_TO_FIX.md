@@ -581,3 +581,39 @@ student-identifying content).
 
 **Interaction with DEEPFIX2:** none blocking. The engine's own authority is server-side (Admin SDK), and
 its label fields are already denied to teachers. This is an independent, pre-existing exposure.
+
+---
+
+## #NN — GATE-4 BACKFILL TRUSTS A CLIENT-WRITABLE FIELD (`answers[].gradedIsCorrect`)
+**Found:** 2026-08-03, DEEPFIX2 rules panel r5. **Rules CANNOT fix this** — Firestore rules cannot
+inspect fields inside array elements. It must be handled in the backfill.
+
+**What's exposed.** `functions/reviewV2/stamping.js:46` describes `gradedIsCorrect` as "append-only
+grading truth… the preimage is written ONLY where absent (first adjudication wins; a second accept
+cannot launder the preimage)". It lives *inside* the `answers` array. The live attempts rule lets a
+student replace that whole array on their own attempt:
+
+```
+allow update: if ... (resource.data.studentId == request.auth.uid
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ...
+```
+
+`hasOnly(['answers'])` constrains WHICH top-level key changes, not what goes inside it. So a student
+can rewrite every `gradedIsCorrect` value in their own attempt history.
+
+**Why it matters at GATE 4.** `scripts/deepfix2/b1-replay-lib.mjs:99` consumes it as authority:
+`if (typeof r.gradedIsCorrect === "boolean") gradedOk = r.gradedIsCorrect;` — so the backfill would
+mint forged history into the six server labels, which the new ruleset then freezes as immutable server
+truth. **This is the same laundering shape as the reset fence**, which was closed at the rules layer;
+this one cannot be.
+
+**Options before the backfill runs:**
+1. **Backfill ignores it** — recompute correctness from the stored answer + the word, never trust the
+   stored boolean. Safest; changes replay semantics, so it needs its own verification.
+2. **Cross-check** — trust `gradedIsCorrect` only when a `challenges.history` / `system_logs`
+   adjudication record corroborates it; treat uncorroborated values as absent.
+3. **Read-only sweep first** — scan 26SM for attempts whose `gradedIsCorrect` disagrees with a
+   recomputation, and quantify the population before deciding. (Cheapest first step.)
+
+**Not urgent for the rules deploy** — the ruleset is strictly safer than live either way. It IS a
+prerequisite for **gate 4 (the 26SM backfill)**, alongside the rules leg itself.

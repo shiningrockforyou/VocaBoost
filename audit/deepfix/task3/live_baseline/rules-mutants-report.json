@@ -1,9 +1,9 @@
 {
-  "matrixSha16": "8c9e90ebf7b903be",
+  "matrixSha16": "60d4007e155768dc",
   "canonical": {
-    "rulesSha16": "a08c81ccc1d812eb",
-    "pass": 213,
-    "total": 213,
+    "rulesSha16": "def5231f5be328c2",
+    "pass": 228,
+    "total": 228,
     "failed": []
   },
   "mutants": [
@@ -12,8 +12,8 @@
       "why": "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
       "applied": true,
       "killed": true,
-      "pass": 212,
-      "total": 213,
+      "pass": 227,
+      "total": 228,
       "killedBy": [
         "ALLOW-expected DENIED: 1c owner delete PLAIN study_state :: 7 PERMISSION_DENIED:"
       ]
@@ -23,8 +23,8 @@
       "why": "dropping ONE subcollection name from ONE op branch must not slip through",
       "applied": true,
       "killed": true,
-      "pass": 209,
-      "total": 213,
+      "pass": 224,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: 4a owner create review_queues :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 4b owner update review_queues :: Expected request to fail, but it succeeded.",
@@ -37,8 +37,8 @@
       "why": "the six-label update guard must fire on ANY label, not only on a write of all six",
       "applied": true,
       "killed": true,
-      "pass": 211,
-      "total": 213,
+      "pass": 226,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒ DENY :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 3i MIXED BATCH delete (plain + labeled) fails as a unit :: Expected request to fail, but it succeeded."
@@ -49,8 +49,8 @@
       "why": "HARDENING B1 — without it a student self-promotes to teacher",
       "applied": true,
       "killed": true,
-      "pass": 210,
-      "total": 213,
+      "pass": 225,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: R2 student promotes self via set-merge :: Expected request to fail, but it succeeded.",
@@ -62,8 +62,8 @@
       "why": "HARDENING B2 — without it the backfill's epoch fence is client-forgeable",
       "applied": true,
       "killed": true,
-      "pass": 209,
-      "total": 213,
+      "pass": 224,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E2 owner bumps resetEpoch (forks the day_completions CAS namespace) :: Expected request to fail, but it succeeded.",
@@ -76,8 +76,8 @@
       "why": "panel r3 BLOCKER — without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
       "applied": true,
       "killed": true,
-      "pass": 209,
-      "total": 213,
+      "pass": 224,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: E7 owner DELETES a fenced progress_meta doc :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E8 owner DELETES a fenced list_progress doc :: Expected request to fail, but it succeeded.",
@@ -90,8 +90,8 @@
       "why": "panel r3 — the fence CREATE branch carried no mutant, so it was pinned by assertion only",
       "applied": true,
       "killed": true,
-      "pass": 212,
-      "total": 213,
+      "pass": 227,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: E5 owner CREATES a progress doc pre-seeded with a reset fence :: Expected request to fail, but it succeeded."
       ]
@@ -101,15 +101,15 @@
       "why": "panel r3 — the attempt CREATE override guard carried no mutant",
       "applied": true,
       "killed": true,
-      "pass": 204,
-      "total": 213,
+      "pass": 216,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: 7a student create attempt carrying teacherEdited :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 7a student create attempt carrying teacherEditedBy :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 7a student create attempt carrying teacherEditedAt :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 7a student create attempt carrying preOverride :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 7a student create attempt carrying gatePosture :: Expected request to fail, but it succeeded.",
-        "DENY-expected FAILED: A4 student CREATES a forged CS anchor (real docId shape) :: Expected request to fail, but it succeeded."
+        "DENY-expected FAILED: A5 student CREATES a bare manualOverride attempt :: Expected request to fail, but it succeeded."
       ]
     },
     {
@@ -117,8 +117,8 @@
       "why": "panel r3 — the users CREATE clause carried no mutant (only assertions R10/R11)",
       "applied": true,
       "killed": true,
-      "pass": 212,
-      "total": 213,
+      "pass": 227,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: R11 create someone ELSE's user doc :: Expected request to fail, but it succeeded."
       ]
@@ -128,10 +128,39 @@
       "why": "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
       "applied": true,
       "killed": true,
-      "pass": 212,
-      "total": 213,
+      "pass": 227,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: R7 student DELETES own user doc (the bypass's first call) :: Expected request to fail, but it succeeded."
+      ]
+    },
+    {
+      "id": "M13-manual-docid-guard-removed",
+      "why": "panel r5 — the manual-anchor docId is a SYNONYM three CS consumers key on; without the guard the r4 field fix is bypassable by naming the doc",
+      "applied": true,
+      "killed": true,
+      "pass": 225,
+      "total": 228,
+      "killedBy": [
+        "DENY-expected FAILED: A18 student creates an attempt at the manual-anchor docId shape :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A19 student creates a docId merely ENDING in manual :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A20 self-asserted teacher creates a manual-shaped docId :: Expected request to fail, but it succeeded."
+      ]
+    },
+    {
+      "id": "M14-engine-stamps-dropped",
+      "why": "panel r5 — resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create and update",
+      "applied": true,
+      "killed": true,
+      "pass": 217,
+      "total": 228,
+      "killedBy": [
+        "DENY-expected FAILED: A13 student creates an attempt carrying resetEpoch :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds resetEpoch :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying presentationId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds presentationId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying queueId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds queueId :: Expected request to fail, but it succeeded."
       ]
     },
     {
@@ -139,15 +168,15 @@
       "why": "panel r4 BLOCKER — dropping the LIVE marker from the shared list must break create, update AND delete",
       "applied": true,
       "killed": true,
-      "pass": 206,
-      "total": 213,
+      "pass": 222,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded.",
-        "DENY-expected FAILED: A4 student CREATES a forged CS anchor (real docId shape) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: A5 student CREATES a bare manualOverride attempt :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: A6 teacher-of-record UPDATE adds manualOverride :: Expected request to fail, but it succeeded.",
         "ALLOW-expected DENIED: A9 the marker SURVIVED both strip attempts (so the delete guard still bites) ::",
-        "DENY-expected FAILED: A10 self-asserted teacher forges on their OWN attempt (studentId==teacherId==self) :: Expected request to fail, but it succeeded."
+        "DENY-expected FAILED: A10 self-asserted teacher forges on their OWN attempt (studentId==teacherId==self) :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A11 BATCH create carrying the marker :: Expected request to fail, but it succeeded."
       ]
     },
     {
@@ -155,11 +184,13 @@
       "why": "CLAUSE 5 + r54 — without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
       "applied": true,
       "killed": true,
-      "pass": 210,
-      "total": 213,
+      "pass": 223,
+      "total": 228,
       "killedBy": [
         "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded.",
         "ALLOW-expected DENIED: A9 the marker SURVIVED both strip attempts (so the delete guard still bites) ::",
+        "DENY-expected FAILED: A16 student deletes an engine-stamped attempt :: Expected request to fail, but it succeeded.",
+        "ALLOW-expected DENIED: A17 the engine stamp SURVIVED the strip attempt ::",
         "DENY-expected FAILED: A1 student deletes a STAMPED attempt (override/posture erasure) :: Expected request to fail, but it succeeded."
       ]
     }
@@ -168,9 +199,9 @@
     {
       "label": "raw live base",
       "rulesSha16": "44914b60858a1dcd",
-      "pass": 129,
-      "total": 213,
-      "failureCount": 84,
+      "pass": 131,
+      "total": 228,
+      "failureCount": 97,
       "failures": [
         "DENY-expected FAILED: 1d owner delete LABEL-carrying study_state (erasure guard) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 2a owner create study_state with reviewFailCount :: Expected request to fail, but it succeeded.",
@@ -255,15 +286,28 @@
         "ALLOW-expected DENIED: A9 the marker SURVIVED both strip attempts (so the delete guard still bites) ::",
         "DENY-expected FAILED: A10 self-asserted teacher forges on their OWN attempt (studentId==teacherId==self) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: A11 BATCH create carrying the marker :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying resetEpoch :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds resetEpoch :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying presentationId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds presentationId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying queueId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds queueId :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A13 student creates an attempt carrying engineResult :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A14 teacher-of-record UPDATE adds engineResult :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A15 teacher STRIPS resetEpoch from an engine attempt (flips it to legacy) :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A16 student deletes an engine-stamped attempt :: Expected request to fail, but it succeeded.",
+        "ALLOW-expected DENIED: A17 the engine stamp SURVIVED the strip attempt ::",
+        "DENY-expected FAILED: A19 student creates a docId merely ENDING in manual :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: A20 self-asserted teacher creates a manual-shaped docId :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: A1 student deletes a STAMPED attempt (override/posture erasure) :: Expected request to fail, but it succeeded."
       ]
     },
     {
       "label": "repo P10 draft",
       "rulesSha16": "752981b78f532ebd",
-      "pass": 137,
-      "total": 213,
-      "failureCount": 76,
+      "pass": 151,
+      "total": 228,
+      "failureCount": 77,
       "failures": [
         "DENY-expected FAILED: 1d owner delete LABEL-carrying study_state (erasure guard) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 2a owner create study_state with reviewFailCount :: Expected request to fail, but it succeeded.",
@@ -339,14 +383,15 @@
         "DENY-expected FAILED: E10 owner deletes a study_state carrying resetEpoch (no six-label) :: Expected request to fail, but it succeeded.",
         "ALLOW-expected DENIED: E12 deleting an UNFENCED progress doc still works (live reset path preserved) :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: A12 NEGATIVE CONTROL: teacher plain challenge-review update (no marker keys) still ALLOWS :: 7 PERMISSION_DENIED:",
+        "ALLOW-expected DENIED: A21 NEGATIVE CONTROL: an ordinary attempt docId still creates fine :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: A2 student deletes a PLAIN attempt (live reset path preserved) :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: 10b DEFERRED: owner still writes csd/twi (P6/DF2-46 closes this, not this ruleset) :: 7 PERMISSION_DENIED:"
       ]
     }
   ],
   "wholeFileOverlap": {
-    "liveOnly": 38,
-    "p10Only": 30,
+    "liveOnly": 51,
+    "p10Only": 31,
     "shared": 46,
     "p10OnlyExamples": [
       "ALLOW-expected DENIED: 4f teacher read review_queues ::",

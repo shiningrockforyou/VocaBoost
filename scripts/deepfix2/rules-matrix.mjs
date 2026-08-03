@@ -108,6 +108,10 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   b.set(db.doc("users/student1/list_progress/fenced_lp"), { resetEpoch: 2, twi: 30 });
   b.set(db.doc("users/student1/study_states/w_fenced"), { status: "learning", resetEpoch: 1 });
   // an attempt carrying the marker the LIVE override writers actually stamp
+  b.set(db.doc("attempts/a_engine"), {
+    studentId: "student1", teacherId: "teacher1", score: 90, passed: true,
+    resetEpoch: 0, presentationId: "p1", queueId: "q1", engineResult: { ok: true },
+  });
   b.set(db.doc("attempts/a_manual"), {
     studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
     manualOverride: true, manualReviewNote: "CS manual pass",
@@ -360,6 +364,20 @@ await ok("A9 the marker SURVIVED both strip attempts (so the delete guard still 
 await deny("A10 self-asserted teacher forges on their OWN attempt (studentId==teacherId==self)", t2.doc("attempts/self_forge").set({ studentId: "teacher2", teacherId: "teacher2", manualOverride: true, passed: true, score: 100 }));
 await deny("A11 BATCH create carrying the marker", (() => { const b = s1.batch(); b.set(s1.doc("attempts/batch_forge"), { studentId: "student1", manualOverride: true }); return b.commit(); })());
 await ok("A12 NEGATIVE CONTROL: teacher plain challenge-review update (no marker keys) still ALLOWS", t1.doc("attempts/a1").update({ answers: [{ wordId: "w1", isCorrect: true }], score: 100, passed: true }));
+// [panel r5] the ENGINE's own stamps are authority too — resetEpoch's mere
+// presence is the engine/legacy discriminator (completion.js:340).
+for (const k of ["resetEpoch", "presentationId", "queueId", "engineResult"]) {
+  await deny(`A13 student creates an attempt carrying ${k}`, s1.doc(`attempts/forge_${k}`).set({ studentId: "student1", [k]: 1 }));
+  await deny(`A14 teacher-of-record UPDATE adds ${k}`, t1.doc("attempts/a1").update({ [k]: 1 }));
+}
+await deny("A15 teacher STRIPS resetEpoch from an engine attempt (flips it to legacy)", t1.doc("attempts/a_engine").update({ resetEpoch: firebase.firestore.FieldValue.delete() }));
+await deny("A16 student deletes an engine-stamped attempt", s1.doc("attempts/a_engine").delete());
+await ok("A17 the engine stamp SURVIVED the strip attempt", s1.doc("attempts/a_engine").get().then((d) => { if (d.data()?.resetEpoch === undefined) throw new Error("stamp gone"); }));
+// [panel r5] the docId is a SYNONYM for manualOverride — three CS consumers key on it.
+await deny("A18 student creates an attempt at the manual-anchor docId shape", s1.doc("attempts/student1_c1_l1_day3_typed_new_manual").set({ studentId: "student1", passed: true, score: 100 }));
+await deny("A19 student creates a docId merely ENDING in manual", s1.doc("attempts/whatever_manual").set({ studentId: "student1" }));
+await deny("A20 self-asserted teacher creates a manual-shaped docId", t2.doc("attempts/t2_x_manual").set({ studentId: "teacher2" }));
+await ok("A21 NEGATIVE CONTROL: an ordinary attempt docId still creates fine", s1.doc("attempts/ordinary_nonce_123").set({ studentId: "student1", score: 50, passed: false }));
 
 // ── CASE A [panel F5]: attempts erasure guard ───────────────────────────────
 await deny("A1 student deletes a STAMPED attempt (override/posture erasure)", s1.doc("attempts/a_stamped").delete());
