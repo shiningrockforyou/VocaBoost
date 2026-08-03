@@ -38,6 +38,15 @@ function resolve(item) {
   const b = item.blocker;
   if (b === "none") return null;
   if (b === "codex" || b === "win") return heldBy(b);
+  // `codex:YES` — a returned baton is NOT approval. The gate resolved only when
+  // the VERDICT is YES; a NO leaves the item blocked no matter who holds the turn.
+  // (Without this the queue reported "rules-deploy-order READY" minutes after
+  // Codex returned NO — the exact false-green this program keeps producing.)
+  if (b === "codex:YES") {
+    const d = batons.codex?.codexDecision;
+    if (d === "YES") return null;
+    return d ? `Codex verdict is ${d} (round ${batons.codex?.round}) — fix and re-gate` : "Codex has not ruled yet";
+  }
   if (b.startsWith("david:")) return `David's decision (${b.slice(6)})`;
   if (b.startsWith("after:")) {
     const dep = byId[b.slice(6)];

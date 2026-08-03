@@ -4,12 +4,14 @@ Format (one per line, parsed):  `- [ ] <id> | <what> | blocker: <token>`
 Blocker tokens the script can RESOLVE by itself:
   `none`            — runnable right now
   `codex`           — the Codex baton is not back with claude
+  `codex:YES`       — Codex has not returned a YES verdict (a returned baton is NOT approval)
   `win`             — the WinClaude baton is not back with claude
   `david:<what>`    — a decision only David can make (never auto-runnable)
   `after:<id>`      — another queue item must be done first
 
 - [x] rules-artifact | Author + verify the merged rules artifact | blocker: none
-- [ ] rules-deploy-order | Write + issue the rules deploy order (stage into firestore.rules, verify sha, deploy, re-baseline) | blocker: codex
+- [ ] rules-fix-r78 | Close Codex r78's blocker: deny client `answers` update on an engine-stamped attempt | blocker: none
+- [ ] rules-deploy-order | Write + issue the rules deploy order (stage into firestore.rules, verify sha, deploy, re-baseline) | blocker: codex:YES
 - [x] typed-design | Engine typed-leg DESIGN (18_TYPED_LEG_DESIGN.md — reuse grading_jobs keyed on rv2_{presentationId}) | blocker: none
 - [ ] df2-12-13-typed | Typed-test durable grading — IMPLEMENT 18_'s design + the typed emulator battery | blocker: none
 - [ ] df2-51-client | Session-flow cutover behind REVIEW_V2_CLIENT (compose→submit→complete with legacy fallback) | blocker: none
