@@ -2199,7 +2199,9 @@ exports.overrideAttempt = foundation.overrideAttempt;
 // ============================================================================
 // [DF2-12 · 18_TYPED_LEG_DESIGN §3] THE ENGINE'S TYPED LEG REUSES THIS
 // MACHINERY — one lease protocol, not two. `functions/reviewV2/typedGrading.js`
-// claims `rv2_{presentationId}` through these exact helpers (lazily required,
+// claims `rv2_{uid}_{presentationId}` (composer.js `engineDocId` — the uid is
+// there because `grading_jobs` is GLOBAL while `presentationId` is not;
+// rv2-docid-collision A1) through these exact helpers (lazily required,
 // so the cycle with the callables below never loads a partial module) and
 // grades through `exports.gradeTypedTest` itself. Deploy-inert: the runtime
 // loader only registers exported functions carrying `__endpoint`

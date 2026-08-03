@@ -34,8 +34,36 @@ response. `claimOrRecoverGradingJob(uid, jobKey)` (`index.js:928`) returns `retu
 already exists, so a retry never re-grades and never double-charges the AI.
 
 **The engine must reuse that machinery, keyed on its own identity.** The engine's attempt docId is
-already `rv2_{presentationId}` (1:1 with a composed presentation, per the callables header), so one
+`rv2_{uid}_{presentationId}` (`functions/reviewV2/composer.js` `engineDocId`), so one student's one
 presentation = one grade.
+
+> **CORRECTION (rv2-docid-collision fold, ledger D2).** Both this section and §4 said the key was
+> `rv2_{presentationId}` and called it **"1:1 with a composed presentation"**. That was **true per user
+> and FALSE globally — which was the whole defect.** `presentationId` is
+> `{classId}_{listId}_d{day}_e{epoch}_p{seq}` (`presentations.js:445`; `_n{seq}`/`_r{seq}` at
+> `:474`/`:489`) over a queue id carrying no uid (`composer.js:82-84`), and `seq` counts **per user** —
+> so every student in the same class+list+day+epoch derived the **same** string, while `attempts` and
+> `grading_jobs` are **top-level** collections. Observed consequence (lap CASE TR (10), pre-fix): the
+> first student's attempt landed and the second was refused `presentation_invalid`; before the
+> typed-fix-audit's A4 guard, worse — the second student was served the first's grade as their own
+> "replay". On the typed leg the second student hit `permission-denied` from the grading-job uid fence
+> (`index.js:936-938`) on their own test.
+>
+> **THE FIX, and where it was NOT applied.** The uid went into the **derived** id, not into
+> `presentationId`. `presentationId` is already uid-scoped **by path** (`users/{uid}/…`), and it is
+> stored in `review_presentations`, registered in `compose_keys`, echoed to the client and compared in
+> `completion.js:412`/`:482` and `presentations.js:365` — scoping it there has a far wider blast radius
+> than the defect warrants. **The principle: when an id crosses from a scoped namespace into a global
+> one, it must acquire the scope it is losing.** Both derivation sites call the one `engineDocId`
+> function, because a job key that named a different test from its attempt would be a worse defect than
+> the one being fixed. No migration was needed: a read-only production query found **0** `rv2_`
+> documents in `attempts` and **0** in `grading_jobs`, so this is a pure forward-scheme change.
+> Fixtures: lap **CASE RC** (the bypass set, the single-student control, and the two-student typed leg
+> end to end) and **CASE TR (10)** (the inverted regression witness); mutant
+> **`M-A1-UID-SCOPE-REVERT`**.
+>
+> The uid in the key is a **namespace, not a fence** — the key stays client-derivable (a student knows
+> its own uid), so §5.6's acceptance test still trusts nothing about who claimed it.
 
 > **CORRECTION (typed-fix-audit fold, ledger D1).** This section previously called that key
 > "collision-free" and "replay-safe by construction". **That was false.** `claimOrRecoverGradingJob` is
@@ -43,7 +71,9 @@ presentation = one grade.
 > `jobAttemptDocId = (writeContext || gradeContext)?.attemptDocId` (`functions/index.js:1048-1051`),
 > with no namespace restriction — and the client knows its own `presentationId`
 > (`src/services/reviewV2Client.js:152`). `rv2_` is therefore a **naming convention, not a namespace
-> boundary**: a student can claim `rv2_{their presentationId}`, grade answers of their choosing, and
+> boundary**: a student can claim `rv2_{any uid}_{any presentationId}` — their own key or a
+> classmate's, since the uid scoping added by the rv2-docid-collision fold is a namespace and not a
+> fence — grade answers of their choosing, and
 > the payload the live path caches (`index.js:1136-1141`) satisfied the engine's entire acceptance test
 > (`Array.isArray(payload.results)`). The engine now trusts nothing derived from the key — see §5.6.
 > Restricting the live key namespace **at its source** is a separate fold (it touches the path 947
@@ -60,7 +90,9 @@ Rejected alternatives:
 ```
 client → reviewV2SubmitAttempt({presentationId, answers})   // typed
   1. fence exactly as today (queue/presentation/claim — unchanged)
-  2. jobKey = `rv2_{presentationId}`
+  2. jobKey = `rv2_{uid}_{presentationId}`      // composer.js engineDocId — the
+                                               // SAME function callables.js
+                                               // derives attemptId with [D2]
      claim = claimOrRecoverGradingJob(uid, jobKey)
        · return_cached  → skip to (4) with the cached rows
        · in_progress    → return {status: 'grading_in_progress'} as DATA (retryable, no write)

@@ -116,7 +116,7 @@ Defense in depth only — not a prerequisite for the engine, which fails closed 
 
 ---
 
-## 18. Engine `rv2_` attempt/job ids COLLIDE ACROSS STUDENTS in the same class · review-v2 engine · BLOCKS THE 25WT REHEARSAL (found 2026-08-03, typed-fix-audit fold)
+## 18. ~~Engine `rv2_` attempt/job ids COLLIDE ACROSS STUDENTS~~ **FIXED 2026-08-03** · review-v2 engine · (was: BLOCKS THE 25WT REHEARSAL; found by the typed-fix-audit lap)
 
 **What's broken.** Two students in the SAME class + list + day + epoch derive the **same**
 `presentationId`, therefore the same `attempts/rv2_{presentationId}` document id and the same
@@ -153,7 +153,37 @@ surfaced by the typed-fix-audit lap only because CASE TG needed seven students; 
 the `TR COLLISION` fixtures in `scripts/deepfix2/engine-emulator-lap.mjs`, which assert the
 fail-closed behaviour so the defect cannot be lost.
 
-**Fix direction.** Make the derived document ids uid-scoped — `rv2_{uid}_{presentationId}`, or put the
+**FIXED 2026-08-03 (rv2-docid-collision fold).** Both derived global ids are now
+`rv2_{uid}_{presentationId}`, produced by ONE shared function — `engineDocId(uid, presentationId)`
+(`functions/reviewV2/composer.js:117`, exported `:448`) — called from BOTH derivation sites:
+`callables.js:550` (`attemptId`) and `typedGrading.js:260` (`jobKey`). One function on purpose: a job key
+that named a different test from the attempt whose rows it builds would be a worse defect than the one
+being fixed, and this is the same structural shape that root-caused the earlier repeat-defect class.
+`presentationId` itself is UNCHANGED — it is already uid-scoped by path, and it is stored, registered in
+`compose_keys`, echoed to the client and compared in three places, so scoping it there had a far wider
+blast radius than the defect warranted. **The principle: when an id crosses from a scoped namespace into
+a global one, it must acquire the scope it is losing.**
+
+**NO MIGRATION WAS NEEDED** — a read-only production query found **0** `rv2_` documents in `attempts` and
+**0** in `grading_jobs`, so this is a pure forward-scheme change.
+
+**THE UID IS A NAMESPACE, NOT A FENCE** — stated explicitly so nobody later mistakes it for a security
+boundary. A student knows their own uid, so the key stays client-derivable; the third-party and teacher
+fixtures deliberately name the victim's full uid-scoped key and still reach the document. The fence
+remains the job's `uid` FIELD (`index.js:936-938`) and the cached-grade acceptance test (18_ §5.6).
+
+**Fixtures:** lap CASE RC (the bypass set, the single-student control, and the two-student typed leg end
+to end), CASE RC0 (a crash-free canary — see below), and CASE TR (10), which is the INVERTED regression
+witness: it used to assert the broken behaviour, and now asserts that both students land. Mutant
+`M-A1-UID-SCOPE-REVERT` reverts the scoping and is killed.
+
+**Worth keeping:** the implementer found that under a scoping revert the lap dies of a `TypeError` in an
+EARLIER case, before the collision fixtures ever run — so the mutant would have been recorded as "killed"
+while naming no assertion. CASE RC0 exists to be a crash-free canary that actually names the failure, and
+the mutant runner now falls back to in-run RED lines when a lap crashes. A mutant that dies for the wrong
+reason is a mutant that proves nothing.
+
+**Original fix direction, kept for the record.** Make the derived document ids uid-scoped — `rv2_{uid}_{presentationId}`, or put the
 uid into the presentation id itself. Both `attempts` and `grading_jobs` must move together or the
 typed leg splits. NOT a hot fix: it changes the id scheme the whole engine and its evidence chain key
 on (completion's `serverClaim.attemptDocId` binding, the lap, the rules artifact's docId reasoning).

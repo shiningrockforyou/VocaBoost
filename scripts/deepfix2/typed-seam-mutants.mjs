@@ -14,6 +14,12 @@
  * literally the code this fold replaced, so its run is the pre-fix behaviour
  * measured by the post-fix fixtures.
  *
+ * The runner has since taken on guards from later folds that are measured the
+ * same way — currently `M-A1-UID-SCOPE-REVERT` (rv2-docid-collision A1: the
+ * engine's DERIVED GLOBAL doc ids, `attempts/{id}` and `grading_jobs/{key}`,
+ * are uid-scoped by one shared function in composer.js, so reverting it reverts
+ * both legs at once). The name stays for continuity of the evidence file.
+ *
  * MUTATION IS IN-PLACE, because the lap hard-codes /app paths and a copied tree
  * would not be the code under test. Every original is snapshotted to a temp
  * directory AND to memory, restored in `finally`, on every fatal signal, and on
@@ -38,6 +44,7 @@ import { join, basename } from "node:path";
 const TG = "/app/functions/reviewV2/typedGrading.js";
 const COMPLETION = "/app/functions/reviewV2/completion.js";
 const CALLABLES = "/app/functions/reviewV2/callables.js";
+const COMPOSER = "/app/functions/reviewV2/composer.js";
 const LAP = "/app/scripts/deepfix2/engine-emulator-lap.mjs";
 const REPORT = "/app/docs/plans/deepfix2/evidence/typed-seam-mutants.json";
 
@@ -109,6 +116,17 @@ const MUTANTS = [
       to: `function isEngineAttemptFor(stored, {uid, presentationId}) {\n  return true; // [MUTANT M-A4] replay-provenance check removed\n  /* eslint-disable no-unreachable */\n  if (!stored || typeof stored !== "object") return false;`,
     }],
   },
+  {
+    id: "M-A1-UID-SCOPE-REVERT",
+    file: COMPOSER,
+    // NOTE: double-quoted, NOT a template literal — `from`/`to` contain
+    // `${uid}`/`${presentationId}` verbatim and must not be interpolated here.
+    why: "rv2-docid-collision A1: reverts the uid scoping of the engine's DERIVED GLOBAL ids. `attempts` and `grading_jobs` are top-level while `presentationId` carries no uid and `seq` counts per user, so without the uid every student in one class+list+day+epoch derives the SAME attempt id and grading-job key — the first student lands and the second is refused (typed: `permission-denied` on the job claim). Reverting the ONE shared function reverts BOTH legs together, which is exactly the pre-fix state. The collision fixtures (lap CASE RC + CASE TR (10)) must go red.",
+    edits: [{
+      from: "  return `rv2_${uid}_${presentationId}`;",
+      to: "  return `rv2_${presentationId}`; // [MUTANT M-A1-UID-SCOPE-REVERT] uid scoping reverted",
+    }],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -166,7 +184,14 @@ function runLap(label) {
       });
   const out = `${res.stdout ?? ""}${res.stderr ?? ""}`;
   const m = out.match(/==== ENGINE LAP v3: (\d+)\/(\d+) green/);
-  const reds = [...out.matchAll(/^RED: (.+)$/gm)].map((x) => x[1].trim());
+  const summaryReds = [...out.matchAll(/^RED: (.+)$/gm)].map((x) => x[1].trim());
+  // The `RED: …` list is printed only by the END-OF-RUN summary, so a lap that
+  // CRASHES reported "killed by nothing" — the least useful evidence there is,
+  // exactly when you most want to know which assertion noticed first. Fall back
+  // to the in-run lines (`  RED <name>: got … want …`, console.error'd by
+  // `check` as each one fails), which are present either way.
+  const inRunReds = [...out.matchAll(/^ {2}RED (.+)$/gm)].map((x) => x[1].trim());
+  const reds = summaryReds.length > 0 ? summaryReds : inRunReds;
   return {
     exit: res.status,
     pass: m ? Number(m[1]) : null,

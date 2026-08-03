@@ -29,10 +29,21 @@
  * anchor continuity) · MCQ server verdict vs canonical `definition` (client
  * verdicts never trusted); TYPED review is graded OUTSIDE the txn through the
  * LIVE grading job — claim → grade → persist → write, keyed on
- * `rv2_{presentationId}` (DF2-12 · 18_TYPED_LEG_DESIGN §4; the concurrent
+ * `rv2_{uid}_{presentationId}` (DF2-12 · 18_TYPED_LEG_DESIGN §4; the concurrent
  * submit gets `grading_in_progress` as DATA with zero writes) · attempt docId
- * = `rv2_{presentationId}` (1:1, idempotent replay returns the NORMALIZED
- * envelope with zero writes [C5] — and, for typed, zero grader calls).
+ * = `rv2_{uid}_{presentationId}` (1:1 with a composed presentation, idempotent
+ * replay returns the NORMALIZED envelope with zero writes [C5] — and, for
+ * typed, zero grader calls).
+ *
+ * [D3 TRUTH REPAIR — rv2-docid-collision fold] Both ids read
+ * `rv2_{presentationId}` until this fold, and this header called that "1:1
+ * with a composed presentation". THAT WAS TRUE PER USER AND FALSE GLOBALLY,
+ * which was the whole defect: `presentationId` carries no uid (it does not
+ * need one — presentations live under `users/{uid}/`) while `attempts` and
+ * `grading_jobs` are TOP-LEVEL and `seq` counts PER USER, so every student in
+ * the same class+list+day+epoch derived the SAME id. The first student's
+ * attempt landed and the second was refused (NEED_TO_FIX 18). The derivation
+ * now carries the uid — composer.js `engineDocId`, called by BOTH legs.
  */
 
 "use strict";
@@ -43,7 +54,7 @@ const admin = require("firebase-admin");
 const {FieldValue} = require("firebase-admin/firestore");
 
 const {resolveReviewConfig, checkClientVersion, assertServableInTxn} = require("./config");
-const {composeDayQueue, queueDocId, effectiveResetEpoch, resetLockActive} = require("./composer");
+const {composeDayQueue, queueDocId, engineDocId, effectiveResetEpoch, resetLockActive} = require("./composer");
 const {composePresentation} = require("./presentations");
 const {stampLabelsInTxn} = require("./stamping");
 const {completeDay, graduateRerunInTxn} = require("./completion");
@@ -103,10 +114,13 @@ function requireStrings(data, names) {
  * [A4] IS THIS STORED DOCUMENT AN ENGINE ATTEMPT FOR THIS UID + PRESENTATION?
  *
  * The submit callable addresses its attempt by the DERIVED id
- * `rv2_{presentationId}`, which is neither secret nor server-owned: the live
- * ruleset lets a student create a plain `attempts/{anything}` document, and
- * the client derives the same id. So the existence of a document there is not
- * evidence of anything — provenance must come from the CONTENT.
+ * `rv2_{uid}_{presentationId}` (composer.js `engineDocId`), which is neither
+ * secret nor server-owned: the live ruleset lets a student create a plain
+ * `attempts/{anything}` document, and the client can derive the same id — its
+ * own uid is the least secret thing it knows. So the existence of a document
+ * there is not evidence of anything — provenance must come from the CONTENT.
+ * The uid in the id is a NAMESPACE, not a fence [rv2-docid-collision A1]: it
+ * stops two students colliding, it does not stop anyone writing there.
  *
  * The engine's own write (the WRITES block below) always stamps all five:
  * `studentId`, `presentationId`, an integer `resetEpoch` (THE engine/legacy
@@ -529,7 +543,11 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
     wordMetaById.set(s.id, s.data());
   });
 
-  const attemptId = `rv2_${d.presentationId}`;
+  // [rv2-docid-collision A1] `attempts` is a GLOBAL collection and
+  // `presentationId` carries no uid, so the derived id acquires the scope the
+  // presentation had by path. MUST stay the same derivation as
+  // typedGrading.js's `jobKey` — one function, called twice.
+  const attemptId = engineDocId(uid, d.presentationId);
   const attemptRef = db.collection("attempts").doc(attemptId);
   const pmRef = db.doc(`users/${uid}/progress_meta/${pres.listId}`);
   const lpRef = db.doc(`users/${uid}/list_progress/${pres.listId}`);
@@ -592,8 +610,9 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
     if (aSnap.exists) {
       // [A4 · Codex r78 follow-up] PROVENANCE IS NEVER INFERRED FROM THE
       // DOCUMENT NAME. `attempts` create is open to the owning student in the
-      // live ruleset (rules-matrix 9-a1 / A21) and `rv2_{presentationId}` is
-      // an id the client can derive itself (reviewV2Client.js:152), so "a doc
+      // live ruleset (rules-matrix 9-a1 / A21) and `rv2_{uid}_{presentationId}`
+      // is an id the client can derive itself (reviewV2Client.js:152 + its own
+      // uid — the uid scoping is a namespace, not a fence), so "a doc
       // exists at this id" proved nothing — yet this early return handed back
       // its `score`/`passed`/`engineResult` as an engine replay. A replay is
       // now served ONLY for a fully-stamped ENGINE attempt belonging to THIS

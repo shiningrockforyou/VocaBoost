@@ -88,6 +88,36 @@ function cursorDocId(listId, resetEpoch) {
   return `${listId}_e${resetEpoch}`;
 }
 
+/**
+ * THE DERIVED GLOBAL DOC ID [rv2-docid-collision fold, A1] — the ONE place the
+ * engine turns a PER-USER identity into a key for a GLOBAL collection.
+ *
+ * `presentationId` is `{queueDocId}_p{seq}` (presentations.js:445; `_n{seq}` /
+ * `_r{seq}` for the new-day and rerun families at :474/:489) and carries NO
+ * uid — correctly, because every presentation, queue, counter and compose_key
+ * document lives under `users/{uid}/` and is therefore uid-scoped BY PATH.
+ * But `attempts/{id}` and `grading_jobs/{key}` are TOP-LEVEL collections and
+ * `seq` counts PER USER, so every student in the same class+list+day+epoch
+ * derived the SAME string: the first student's attempt landed and the second
+ * was refused (NEED_TO_FIX 18; typed submits additionally hit
+ * `permission-denied` on the grading-job uid fence, index.js:936-938).
+ *
+ * THE LAW: when an id crosses from a scoped namespace into a global one, it
+ * must acquire the scope it is losing. `presentationId` itself is deliberately
+ * UNCHANGED — it is already uid-scoped by path, and it is written into
+ * `review_presentations`, registered in `compose_keys`, echoed to the client
+ * and compared in several places, so scoping it there would have a far wider
+ * blast radius than the defect warrants.
+ *
+ * BOTH derivation sites call THIS function — `callables.js` `attemptId` and
+ * `typedGrading.js` `jobKey`. They must never drift apart: the typed leg's job
+ * key would then name a different test from the attempt whose rows it builds.
+ * Fixtures: lap CASE RC (the full bypass set) + CASE TR (10).
+ */
+function engineDocId(uid, presentationId) {
+  return `rv2_${uid}_${presentationId}`;
+}
+
 /** `poolHash` law (H6 §2): SHA-256 hex over the canonical JSON serialization
  *  of the ordered id array [r55 — delimiter-safe]. */
 function computePoolHash(orderedQueueWordIds) {
@@ -415,5 +445,6 @@ module.exports = {
   resetLockActive,
   queueDocId,
   cursorDocId,
+  engineDocId,
   ALGORITHM_VERSION,
 };

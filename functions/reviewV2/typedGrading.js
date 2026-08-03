@@ -10,8 +10,19 @@
  * transaction. This module is the seam between the two.
  *
  * THE DECISION [18_ §3]: reuse `grading_jobs`, do NOT re-implement grading.
- *  - The job key is the engine's OWN identity: `rv2_{presentationId}` — 1:1
- *    with a composed presentation, so one presentation = one grade.
+ *  - The job key is the engine's OWN identity: `rv2_{uid}_{presentationId}`
+ *    (composer.js `engineDocId`) — one student's one presentation = one grade.
+ *  - [D3 TRUTH REPAIR — rv2-docid-collision fold. This key read
+ *    `rv2_{presentationId}` and was described here as "1:1 with a composed
+ *    presentation". TRUE PER USER, FALSE GLOBALLY — and `grading_jobs` is a
+ *    GLOBAL collection.] `presentationId` carries no uid (presentations.js:445
+ *    over composer.js:82-84) and `seq` counts PER USER, so every student in
+ *    one class+list+day+epoch produced the same key; because the claim is
+ *    fenced on the job's `uid` FIELD (index.js:936-938), the SECOND student to
+ *    submit a typed test got `permission-denied` on their own test. The uid is
+ *    now part of the derived key. It is a NAMESPACE, not a fence: the key is
+ *    still client-derivable and the acceptance test below still trusts nothing
+ *    about who claimed it.
  *  - [D1 TRUTH REPAIR — this header previously claimed the key was
  *    "replay-safe by construction, and collision-free against the legacy key
  *    space (client attempt nonces)". THAT WAS FALSE.] The LIVE grader takes
@@ -19,8 +30,10 @@
  *    (functions/index.js:1048-1051) with no namespace restriction, and the
  *    client knows its own presentationId (src/services/reviewV2Client.js:152).
  *    `rv2_` is therefore a NAMING CONVENTION, not a namespace boundary: any
- *    student may claim and populate `rv2_{their presentationId}` through the
- *    live callable, with answers and verdicts of their choosing. The engine
+ *    student may claim and populate `rv2_{any uid}_{any presentationId}`
+ *    through the live callable — their own key or another student's — with
+ *    answers and verdicts of their choosing (lap CASE RC third-party/teacher
+ *    rows name the VICTIM's full uid-scoped key and still reach it). The engine
  *    consequently trusts NOTHING derived from the key — a cached payload is
  *    usable only when it PROVES engine provenance, this presentation, and
  *    this answer sheet (`usableCachedResults` below, 18_ §5.6). Hardening the
@@ -59,6 +72,10 @@
 "use strict";
 
 const crypto = require("crypto");
+// [rv2-docid-collision A1] the SHARED derivation for the engine's global doc
+// ids — the attempt id and this module's job key must never drift apart.
+// composer.js requires only crypto/firestore/config.js, so there is no cycle.
+const {engineDocId} = require("./composer");
 
 /** gradeTypedTest refuses > 100 answers per request — chunk to match. */
 const GRADE_BATCH_MAX = 100;
@@ -145,7 +162,7 @@ function answerSheetKey({presentedWordIds, submitted}) {
  *
  * Until this fold the test was `Array.isArray(payload.results)` alone, and the
  * job key is CLAIMABLE BY THE CLIENT through the live grader (see the D1 note
- * in the header). So a student could pre-seed `rv2_{presentationId}` with
+ * in the header). So a student could pre-seed `rv2_{uid}_{presentationId}` with
  * self-chosen answers, and the engine would build its attempt rows from that
  * foreign grade. THREE clauses close it; a payload failing ANY of them is not
  * a grade of this submission and the caller fails CLOSED:
@@ -236,7 +253,11 @@ function buildTypedRows({presentedWordIds, submitted, wordMetaById, results}) {
  */
 async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
   presentedWordIds, submitted, wordMetaById}) {
-  const jobKey = `rv2_${presentationId}`;
+  // [rv2-docid-collision A1] `grading_jobs` is GLOBAL and the claim is fenced
+  // on the job's `uid` FIELD (index.js:936-938) — under the unscoped key every
+  // student after the first in a class+list+day+epoch hit `permission-denied`
+  // on their own test. SAME derivation as callables.js's `attemptId`.
+  const jobKey = engineDocId(uid, presentationId);
   // THE SHEET BEING SUBMITTED NOW [A2] — computed BEFORE the claim so both
   // cached-payload seams below test against the same identity.
   const sheetKey = answerSheetKey({presentedWordIds, submitted});

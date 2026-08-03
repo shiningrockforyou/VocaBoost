@@ -90,6 +90,20 @@ const check = (name, got, want) => {
 const checkTrue = (name, v) => check(name, Boolean(v), true);
 const CASE = (n) => { caseName = n; console.log(`\n== CASE ${n}`); };
 
+/**
+ * THE ENGINE'S DERIVED GLOBAL DOC ID [rv2-docid-collision A1] — `attempts/{id}`
+ * and `grading_jobs/{key}`, both TOP-LEVEL collections, keyed from a
+ * `presentationId` that carries no uid (presentations.js:445 over
+ * composer.js:82-84, `seq` per user).
+ *
+ * WRITTEN OUT HERE, NOT IMPORTED FROM composer.js, ON PURPOSE: importing the
+ * production derivation would make every fixture below agree with whatever the
+ * engine does, and the mutant `M-A1-UID-SCOPE-REVERT` would survive. This is an
+ * INDEPENDENT statement of the scheme, so reverting the uid scoping in
+ * composer.js makes these lookups miss and the lap go red.
+ */
+const rv2Id = (uid, presentationId) => `rv2_${uid}_${presentationId}`;
+
 const CONFIG_PATH = "system_config/review_v2";
 const NOW = Date.now();
 const DAY = 86400000;
@@ -157,6 +171,47 @@ async function seedAttempt(id, {uid, classId, listId, day, sessionType, rows, sc
     gatePosture: {effectiveEnabled: gateOn, threshold: 92, configVersion: 1, source: "lap-seed"},
     submittedAt: Timestamp.now(),
   });
+}
+
+// ===========================================================================
+CASE("RC0 — THE DERIVED-ID CANARY: one presentationId, two students, two documents [rv2-docid-collision A1]");
+{
+  // WHY THIS RUNS FIRST, and why it duplicates four assertions from CASE RC.
+  // Every case from CB onward DEREFERENCES a document at the derived id
+  // (`(await …doc(rv2Id(uid, pid)).get()).data().x`). If the uid scoping is
+  // ever reverted, those reads miss and the lap dies of a TypeError in CB —
+  // a red run, but one that never reaches the fixtures that OWN the defect,
+  // and one that reports no assertion at all. This canary is placed ahead of
+  // the first such dereference and is written to be CRASH-FREE (it asserts on
+  // the ids the SERVER returns, never on a document it assumes exists), so a
+  // scoping regression is reported as a NAMED assertion by the fixture that
+  // means it. The full bypass set stays in CASE RC. Mutant:
+  // `M-A1-UID-SCOPE-REVERT` in typed-seam-mutants.mjs.
+  await wipeEmulator();
+  await seedConfig({rehearsalClassIds: ["cZ"], queueSize: 6, testSize: 4});
+  await seedClass("cZ", {students: ["uZ1", "uZ2"], listId: "LZ"});
+  await seedWords("LZ", 20);
+  await seedProgress("uZ1", "cZ", "LZ", {csd: 2, twi: 10});
+  await seedProgress("uZ2", "cZ", "LZ", {csd: 2, twi: 10});
+  const cz = {classId: "cZ", listId: "LZ", clientContractVersion: 1};
+  const z1 = await call(CALL.reviewV2ComposeSession, "uZ1", {...cz, logicalDay: 3, composeKey: "lap-key-rc0-1"});
+  const z2 = await call(CALL.reviewV2ComposeSession, "uZ2", {...cz, logicalDay: 3, composeKey: "lap-key-rc0-2"});
+  const zPid = z1.presentation.presentationId;
+  check("RC0 the colliding INPUT is still real: one presentationId for both students",
+      [z1.status, z2.status, z2.presentation.presentationId], ["composed", "composed", zPid]);
+  const zs1 = await call(CALL.reviewV2SubmitAttempt, "uZ1", {presentationId: zPid, clientContractVersion: 1,
+    answers: z1.presentation.presentedWordIds.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}))});
+  const zs2 = await call(CALL.reviewV2SubmitAttempt, "uZ2", {presentationId: zPid, clientContractVersion: 1,
+    answers: z2.presentation.presentedWordIds.map((w) => ({wordId: w, studentResponse: ""}))});
+  check("RC0 BOTH students land — neither is refused, neither replays the other",
+      [zs1.status, zs1.replayed, zs1.score, zs2.status, zs2.replayed, zs2.score],
+      ["attempt_written", false, 100, "attempt_written", false, 0]);
+  check("RC0 the SERVER-RETURNED ids are uid-scoped and distinct",
+      [zs1.attemptId, zs2.attemptId, zs1.attemptId !== zs2.attemptId],
+      [rv2Id("uZ1", zPid), rv2Id("uZ2", zPid), true]);
+  check("RC0 nothing is written at the id the OLD unscoped scheme derived",
+      [(await db.collection("attempts").doc(`rv2_${zPid}`).get()).exists,
+        (await db.collection("attempts").get()).size], [false, 2]);
 }
 
 // ===========================================================================
@@ -968,7 +1023,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   check("submit written", [r.status, r.replayed, r.totalQuestions], ["attempt_written", false, 4]);
   check("server verdict: blank+wrong counted", r.correctCount, 2);
   check("score server-derived", r.score, 50);
-  const attDoc = (await db.collection("attempts").doc(`rv2_${presId}`).get()).data();
+  const attDoc = (await db.collection("attempts").doc(rv2Id("uX", presId)).get()).data();
   check("COMPLETE-ROWS: blank explicit", [attDoc.answers.length, attDoc.answers[0].blank === true || attDoc.answers.some((x) => x.blank === true)], [4, true]);
   check("gatePosture stamped", attDoc.gatePosture.effectiveEnabled, true);
   // Idempotent replay: NORMALIZED envelope, zero writes.
@@ -986,7 +1041,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   const newAnswers = r.presentation.presentedWordIds.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
   r = await submit(newPresId, newAnswers);
   check("new submit: anchor stamped", [r.status, r.score], ["attempt_written", 100]);
-  const newAtt = (await db.collection("attempts").doc(`rv2_${newPresId}`).get()).data();
+  const newAtt = (await db.collection("attempts").doc(rv2Id("uX", newPresId)).get()).data();
   check("new attempt anchor fields", [newAtt.newWordStartIndex, newAtt.newWordEndIndex, newAtt.sessionType], [10, 19, "new"]);
   // [r72 C8] live-new label stamps, asserted BEFORE any rerun can touch the
   // word: lc+lp written, the rotation clock NOT (new tests never advance it).
@@ -1002,12 +1057,12 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   r = await submit(retake.presentation.presentationId, retakeAnswers);
   check("retake passes", [r.status, r.passed], ["attempt_written", true]);
   r = await call(CALL.reviewV2CompleteDay, "uX", {...common, logicalDay: 3,
-    consumedAttemptId: `rv2_${retake.presentation.presentationId}`, consumedAttemptClassId: "cX",
-    newTestAttemptId: `rv2_${newPresId}`});
+    consumedAttemptId: rv2Id("uX", retake.presentation.presentationId), consumedAttemptClassId: "cX",
+    newTestAttemptId: rv2Id("uX", newPresId)});
   check("completes through callable", [r.status, r.evidenceKind, r.advancedToDay, r.newTwi], ["completed", "standard", 3, 20]);
   const again = await call(CALL.reviewV2CompleteDay, "uX", {...common, logicalDay: 3,
-    consumedAttemptId: `rv2_${retake.presentation.presentationId}`, consumedAttemptClassId: "cX",
-    newTestAttemptId: `rv2_${newPresId}`});
+    consumedAttemptId: rv2Id("uX", retake.presentation.presentationId), consumedAttemptClassId: "cX",
+    newTestAttemptId: rv2Id("uX", newPresId)});
   check("replay ⇒ already_completed", again.status, "already_completed");
 
   // MintVisit + rerun through the callables (visit-bound end to end).
@@ -1034,7 +1089,7 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   TG._typedSeam.grade = null;
   check("typed all-blank submit writes a COMPLETE all-fail sheet",
       [r.status, r.replayed, r.totalQuestions, r.correctCount, r.score], ["attempt_written", false, 4, 0, 0]);
-  const blankTypedAtt = (await db.collection("attempts").doc(`rv2_${blankTypedPid}`).get()).data();
+  const blankTypedAtt = (await db.collection("attempts").doc(rv2Id("uX", blankTypedPid)).get()).data();
   check("typed blanks: rows PRESENT + explicit + server-ai provenance",
       [blankTypedAtt.answers.length, blankTypedAtt.answers.every((x) => x.blank === true && x.isCorrect === false),
         blankTypedAtt.correctnessSource, blankTypedAtt.testType], [4, true, "server-ai", "typed"]);
@@ -1191,8 +1246,8 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
       {presentationId: pid, answers: ans, clientContractVersion: 1});
   const composeT = (ck) => call(CALL.reviewV2ComposeSession, "uT", {...common, logicalDay: 3, composeKey: ck});
   const answersFor = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
-  const attemptDoc = (pid) => db.collection("attempts").doc(`rv2_${pid}`).get();
-  const jobDoc = (pid) => db.collection("grading_jobs").doc(`rv2_${pid}`).get();
+  const attemptDoc = (pid) => db.collection("attempts").doc(rv2Id("uT", pid)).get();
+  const jobDoc = (pid) => db.collection("grading_jobs").doc(rv2Id("uT", pid)).get();
 
   // ---- 1. THE HAPPY LEG + §5.1 (the stamp set survives the round trip) ----
   let r = await composeT("lap-key-t001");
@@ -1239,7 +1294,7 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
   // THE DISCRIMINATING REPLAY [kills the "just re-claim the job" shortcut]:
   // the job cache is GONE (cleanup/TTL/reset). A replay that still consults the
   // grading job would now CREATE a claim (a write) and RE-GRADE (a charge).
-  await db.collection("grading_jobs").doc(`rv2_${pid1}`).delete();
+  await db.collection("grading_jobs").doc(rv2Id("uT", pid1)).delete();
   const callsBeforeCacheless = graderCalls;
   const rep2 = await submitT(pid1, answersFor(ids1));
   check("replay with the job cache GONE: still the normalized envelope",
@@ -1329,7 +1384,7 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
       STAMP.gradingPreimageWrites(att4.answers, [flipIdx]), [{index: flipIdx, gradedIsCorrect: false}]);
   const adjudicated = att4.answers.map((x, i) => (i === flipIdx
     ? {...x, gradedIsCorrect: false, isCorrect: true, challengeStatus: "accepted"} : x));
-  await db.collection("attempts").doc(`rv2_${pid4}`).update({answers: adjudicated});
+  await db.collection("attempts").doc(rv2Id("uT", pid4)).update({answers: adjudicated});
   const replay4 = await submitT(pid4, [
     {wordId: wBlank, studentResponse: "   "},
     {wordId: wGood, studentResponse: `def${wGood.slice(1)}`},
@@ -1353,7 +1408,7 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
   // never established authority ⇒ fail-CLOSED: no attempt, typed DATA refusal.
   TG._typedSeam.grade = async ({answers}) => {
     graderCalls++;
-    await db.collection("grading_jobs").doc(`rv2_${pid5}`)
+    await db.collection("grading_jobs").doc(rv2Id("uT", pid5))
         .set({leaseId: "another-worker", leaseExpiresAt: Date.now() - 1000}, {merge: true});
     return answers.map((a) => ({wordId: a.wordId, isCorrect: true, reasoning: ""}));
   };
@@ -1361,7 +1416,7 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
   check("a superseded grade is FAIL-CLOSED as DATA", r, {status: "grading_in_progress"});
   check("a superseded grade mints NO attempt", (await attemptDoc(pid5)).exists, false);
   const noEv = await call(CALL.reviewV2CompleteDay, "uT", {...common, logicalDay: 3,
-    consumedAttemptId: `rv2_${pid5}`, consumedAttemptClassId: "cT", newTestAttemptId: null});
+    consumedAttemptId: rv2Id("uT", pid5), consumedAttemptClassId: "cT", newTestAttemptId: null});
   check("completion refuses the never-landed grade as no_evidence",
       [noEv.status, noEv.reason], ["no_evidence", "consumed attempt missing"]);
   TG._typedSeam.grade = verdictGrader();
@@ -1381,7 +1436,7 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
       [newAtt.newWordStartIndex, newAtt.newWordEndIndex, newAtt.resetEpoch, newAtt.correctnessSource],
       [10, 19, 0, "server-ai"]);
   const done = await call(CALL.reviewV2CompleteDay, "uT", {...common, logicalDay: 3,
-    consumedAttemptId: `rv2_${pid1}`, consumedAttemptClassId: "cT", newTestAttemptId: `rv2_${npid}`});
+    consumedAttemptId: rv2Id("uT", pid1), consumedAttemptClassId: "cT", newTestAttemptId: rv2Id("uT", npid)});
   check("THE TYPED DAY COMPLETES (engine evidence, attempt-time posture)",
       [done.status, done.evidenceKind, done.completion.postureSource, done.advancedToDay, done.newTwi],
       ["completed", "standard", "attempt", 3, 20]);
@@ -1448,8 +1503,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
       {presentationId: pid, answers: ans, clientContractVersion: 1});
   const good = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
   const junk = (ids) => ids.map((w) => ({wordId: w, studentResponse: "not the meaning at all"}));
-  const jobOf = (pid) => db.collection("grading_jobs").doc(`rv2_${pid}`).get();
-  const attOf = (pid) => db.collection("attempts").doc(`rv2_${pid}`).get();
+  const jobOf = (pid) => db.collection("grading_jobs").doc(rv2Id("uP", pid)).get();
+  const attOf = (pid) => db.collection("attempts").doc(rv2Id("uP", pid)).get();
   const attemptCount = async () => (await db.collection("attempts").get()).size;
   /** THE LIVE ROUTE exactly as a client reaches it: grade-only + a job key of
    *  the caller's choosing (no writeContext ⇒ the cached-payload branch). */
@@ -1479,7 +1534,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   check("typed session composes", [r.status, r.presentation.testType], ["composed", "typed"]);
   const pid1 = r.presentation.presentationId;
   const ids1 = r.presentation.presentedWordIds;
-  const poisoned = await liveGrade("uP", `rv2_${pid1}`, ids1, "not the meaning at all");
+  const poisoned = await liveGrade("uP", rv2Id("uP", pid1), ids1, "not the meaning at all");
   check("the LIVE grader accepted the ENGINE's job key and graded the attacker's sheet",
       [Array.isArray(poisoned.results), poisoned.results.length,
         poisoned.results.every((x) => x.isCorrect === true)], [true, ids1.length, true]);
@@ -1532,7 +1587,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
           engineJob2.payload.answerSheetKey.length === 64],
       ["reviewV2", pid2, true]);
   const aiBeforeC2 = aiCalls;
-  const overwrite = await liveGrade("uP", `rv2_${pid2}`, ids2, "not the meaning at all");
+  const overwrite = await liveGrade("uP", rv2Id("uP", pid2), ids2, "not the meaning at all");
   check("C2 the live route CANNOT overwrite a graded job — it returns the cache",
       [overwrite.source, overwrite.presentationId], ["reviewV2", pid2]);
   check("C2 …and spends no AI call doing it", aiCalls, aiBeforeC2);
@@ -1546,15 +1601,15 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   r = await composeP("lap-key-tx04");
   const pid4 = r.presentation.presentationId;
   const ids4 = r.presentation.presentedWordIds;
-  await liveGrade("uP", `rv2_${pid4}`, ids4, "not the meaning at all");
+  await liveGrade("uP", rv2Id("uP", pid4), ids4, "not the meaning at all");
   r = await submitP(pid4, junk(ids4));
   check("C4 step 1: poisoned ⇒ refused", r, {status: "grading_in_progress"});
-  await db.collection("grading_jobs").doc(`rv2_${pid4}`).delete();
-  await liveGrade("uP", `rv2_${pid4}`, ids4, "still not the meaning");
+  await db.collection("grading_jobs").doc(rv2Id("uP", pid4)).delete();
+  await liveGrade("uP", rv2Id("uP", pid4), ids4, "still not the meaning");
   r = await submitP(pid4, junk(ids4));
   check("C4 step 2: delete-then-RE-poison ⇒ still refused", r, {status: "grading_in_progress"});
   check("C4 the sequence minted nothing", (await attOf(pid4)).exists, false);
-  await db.collection("grading_jobs").doc(`rv2_${pid4}`).delete();
+  await db.collection("grading_jobs").doc(rv2Id("uP", pid4)).delete();
   r = await submitP(pid4, good(ids4));
   check("C4 other leg: with the poison gone the engine grades and lands",
       [r.status, r.score], ["attempt_written", 100]);
@@ -1569,7 +1624,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   const pid5b = r.presentation.presentationId;
   const ids5b = r.presentation.presentedWordIds;
   // (i) the whole engine-authored payload for P1, offered under P2's key.
-  await db.collection("grading_jobs").doc(`rv2_${pid5b}`).set({
+  await db.collection("grading_jobs").doc(rv2Id("uP", pid5b)).set({
     uid: "uP", status: "graded", payload: payload5a, version: 1,
   });
   r = await submitP(pid5b, good(ids5b));
@@ -1580,7 +1635,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     presentedWordIds: ids5b,
     submitted: new Map(good(ids5b).map((a) => [a.wordId, a.studentResponse])),
   });
-  await db.collection("grading_jobs").doc(`rv2_${pid5b}`).set({
+  await db.collection("grading_jobs").doc(rv2Id("uP", pid5b)).set({
     uid: "uP", status: "graded", version: 1,
     payload: {results: ids5b.map((w) => ({wordId: w, isCorrect: true})),
       source: "reviewV2", presentationId: pid5a, answerSheetKey: sheet5b},
@@ -1591,7 +1646,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   check("C5 minted nothing", (await attOf(pid5b)).exists, false);
   // (iii) the same payload with presentationId CORRECTED is accepted — the
   //       clause is the ONLY thing that refused above (a negative control).
-  await db.collection("grading_jobs").doc(`rv2_${pid5b}`).set({
+  await db.collection("grading_jobs").doc(rv2Id("uP", pid5b)).set({
     uid: "uP", status: "graded", version: 1,
     payload: {results: ids5b.map((w) => ({wordId: w, isCorrect: true})),
       source: "reviewV2", presentationId: pid5b, answerSheetKey: sheet5b},
@@ -1604,12 +1659,16 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   // ---- C6 · A THIRD PARTY / A TEACHER CLAIMING THE KEY --------------------
   // The presentationId is DERIVABLE (`{classId}_{listId}_d{day}_e{epoch}_p{n}`,
   // presentations.js:445), and `grading_jobs` is a GLOBAL collection — so the
-  // key is reachable by anyone. The uid fence (index.js:936-938) is what must
-  // hold; it is asserted here, never assumed.
+  // key is reachable by anyone. NOTE THE ATTACKER'S KEY BELOW: it is the
+  // VICTIM's FULL uid-scoped key `rv2_{uP}_{pid}` [rv2-docid-collision A1]. The
+  // uid in the key is a NAMESPACE, not a fence — a classmate knows uP's uid, so
+  // scoping the id fixes the collision and grants no secrecy. The uid fence
+  // that must hold is the job's `uid` FIELD (index.js:936-938); it is asserted
+  // here, never assumed.
   r = await composeP("lap-key-tx07");
   const pid6 = r.presentation.presentationId;
   const ids6 = r.presentation.presentedWordIds;
-  await liveGrade("uOther", `rv2_${pid6}`, ids6, "not the meaning at all");
+  await liveGrade("uOther", rv2Id("uP", pid6), ids6, "not the meaning at all");
   const j6 = (await jobOf(pid6)).data();
   check("C6 a third party CAN claim the key — but the job records THEIR uid", j6.uid, "uOther");
   const errThird = await submitErrP(pid6, good(ids6));
@@ -1620,7 +1679,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   r = await composeP("lap-key-tx08");
   const pid6t = r.presentation.presentationId;
   const ids6t = r.presentation.presentedWordIds;
-  await liveGrade("uTeach", `rv2_${pid6t}`, ids6t, "not the meaning at all");
+  await liveGrade("uTeach", rv2Id("uP", pid6t), ids6t, "not the meaning at all");
   check("C6 a teacher's claim is recorded under the TEACHER's uid",
       (await jobOf(pid6t)).data().uid, "uTeach");
   const errTeacher = await submitErrP(pid6t, good(ids6t));
@@ -1629,7 +1688,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   check("C6 …and mints nothing", (await attOf(pid6t)).exists, false);
   // The mirror: the VICTIM cannot read a foreign-uid job either.
   checkTrue("C6 the fence is symmetric (a foreign uid cannot claim OUR graded job)",
-      String(await liveGradeErr("uOther", `rv2_${pid5a}`, ids5a, "x")).includes("permission-denied"));
+      String(await liveGradeErr("uOther", rv2Id("uP", pid5a), ids5a, "x")).includes("permission-denied"));
 
   // ---- C7 · THE OTHER LEG: the LEGITIMATE lost-response replay ------------
   r = await composeP("lap-key-tx09");
@@ -1762,7 +1821,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     const ids = c.presentation.presentedWordIds;
     const base = ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
     await cacheThenDie(pid, base);
-    const jr = db.collection("grading_jobs").doc(`rv2_${pid}`);
+    const jr = db.collection("grading_jobs").doc(rv2Id("uP", pid));
     const full = (await jr.get()).data().payload;
     await jr.update({payload: {results: full.results, presentationId: full.presentationId,
       answerSheetKey: full.answerSheetKey}});
@@ -1857,8 +1916,8 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
       {presentationId: pid, answers: ans, clientContractVersion: 1});
   const goodS = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
   const junkS = (ids) => ids.map((w) => ({wordId: w, studentResponse: "not the meaning at all"}));
-  const jobS = (pid) => db.collection("grading_jobs").doc(`rv2_${pid}`);
-  const attS = (pid) => db.collection("attempts").doc(`rv2_${pid}`).get();
+  const jobS = (pid) => db.collection("grading_jobs").doc(rv2Id("uS", pid));
+  const attS = (pid) => db.collection("attempts").doc(rv2Id("uS", pid)).get();
   const attemptCountS = async () => (await db.collection("attempts").get()).size;
   const sheetKeyOf = (ids, sheet) => TG.answerSheetKey({presentedWordIds: ids,
     submitted: new Map(sheet.map((a) => [a.wordId, a.studentResponse]))});
@@ -1890,7 +1949,7 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   let takeover = null;
   interleave = async () => {
     await expireOurLease(pid1);
-    await liveGradeS("uS", `rv2_${pid1}`, ids1, "not the meaning at all");
+    await liveGradeS("uS", rv2Id("uS", pid1), ids1, "not the meaning at all");
     takeover = (await jobS(pid1).get()).data();
   };
   const attemptsBefore1 = await attemptCountS();
@@ -2018,7 +2077,7 @@ CASE("TR — rv2_ replay provenance: never inferred from the document NAME [A4]"
   const pidS = r.presentation.presentationId;
   const idsS = r.presentation.presentedWordIds;
   const ansS = idsS.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
-  const squatRef = db.collection("attempts").doc(`rv2_${pidS}`);
+  const squatRef = db.collection("attempts").doc(rv2Id("uR", pidS));
   const engineShape = {
     studentId: "uR", classId: "cR", listId: "LR", studyDay: 3, sessionType: "review",
     testType: "mcq", score: 100, passed: true, totalQuestions: 1,
@@ -2065,13 +2124,13 @@ CASE("TR — rv2_ replay provenance: never inferred from the document NAME [A4]"
   r = await submitR(pidS, ansS);
   check("TR the legitimate submit lands once the squatter is gone",
       [r.status, r.replayed, r.score], ["attempt_written", false, 100]);
-  const beforeReplay = await db.collection("attempts").doc(`rv2_${pidS}`).get();
+  const beforeReplay = await db.collection("attempts").doc(rv2Id("uR", pidS)).get();
   const attemptsBefore = (await db.collection("attempts").get()).size;
   r = await submitR(pidS, ansS);
   check("TR THE OTHER LEG: a genuine engine attempt still REPLAYS",
       [r.status, r.replayed, r.score, r.stamped !== null], ["attempt_written", true, 100, true]);
   check("TR …with ZERO writes",
-      [(await db.collection("attempts").doc(`rv2_${pidS}`).get()).updateTime.isEqual(beforeReplay.updateTime),
+      [(await db.collection("attempts").doc(rv2Id("uR", pidS)).get()).updateTime.isEqual(beforeReplay.updateTime),
         (await db.collection("attempts").get()).size], [true, attemptsBefore]);
   // (9) TYPED: a squatted typed presentation must also cost ZERO grader calls —
   //     the pre-read skips grading on `exists`, so the refusal must come first.
@@ -2084,26 +2143,38 @@ CASE("TR — rv2_ replay provenance: never inferred from the document NAME [A4]"
     trGraderCalls++;
     return answers.map((a) => ({wordId: a.wordId, isCorrect: true, reasoning: ""}));
   };
-  await db.collection("attempts").doc(`rv2_${pidT}`).set({studentId: "uR", score: 100, passed: true,
+  await db.collection("attempts").doc(rv2Id("uR", pidT)).set({studentId: "uR", score: 100, passed: true,
     answers: [], totalQuestions: 0});
   r = await submitR(pidT, idsT.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`})));
   check("TR a squatted TYPED presentation fails closed", r, REFUSAL);
   check("TR …and never reaches the grader", trGraderCalls, 0);
   check("TR …and never claims a grading job",
-      (await db.collection("grading_jobs").doc(`rv2_${pidT}`).get()).exists, false);
+      (await db.collection("grading_jobs").doc(rv2Id("uR", pidT)).get()).exists, false);
   TG._typedSeam.grade = null;
   await db.doc("classes/cR").update({"assignments.LR.reviewTestType": "mcq"});
-  // (10) THE CROSS-STUDENT COLLISION — surfaced BY this fixture set, not
-  //      predicted by it. `presentationId` is `{classId}_{listId}_d{day}_
+  // (10) THE CROSS-STUDENT COLLISION — surfaced BY this fixture set, then FIXED
+  //      [rv2-docid-collision A1]. THESE ASSERTIONS WERE INVERTED, NOT DELETED:
+  //      they are the regression witness for the original defect, so they must
+  //      go red if it ever returns.
+  //
+  //      THE DEFECT (the historical record, corrected once already by the
+  //      typed-fix audit): `presentationId` is `{classId}_{listId}_d{day}_
   //      e{epoch}_p{seq}` (presentations.js:445) over a queue id that carries NO
-  //      uid (composer.js:82-84), while `attempts` and `grading_jobs` are GLOBAL
-  //      collections — so the FIRST review presentation of EVERY student in a
-  //      class derives the SAME `rv2_` document id. This is a pre-existing
-  //      defect of the id scheme, NOT of this fold; what the fold changes is the
-  //      outcome. Before A4 the second student's submit matched on `aSnap.exists`
-  //      and was handed the FIRST student's score/passed/engineResult as their
-  //      own "replay". It now fails CLOSED. Pinned here so the defect cannot be
-  //      lost, and so the day it is fixed this assertion turns red on purpose.
+  //      uid (composer.js:82-84) and `seq` counts PER USER, while `attempts` and
+  //      `grading_jobs` are GLOBAL collections — so the FIRST review
+  //      presentation of EVERY student in a class derived the SAME document id.
+  //      Observed, NOT "both students blocked": the FIRST student's attempt
+  //      landed and only the SECOND was refused (before A4, worse — the second
+  //      student was handed the FIRST's score/passed/engineResult as their own
+  //      "replay"). On the typed leg the second student got `permission-denied`
+  //      from the grading-job uid fence on their own test (CASE RC).
+  //
+  //      THE FIX scopes the DERIVED id, NOT presentationId: `rv2_{uid}_{pid}`
+  //      (composer.js `engineDocId`, called by BOTH callables.js `attemptId` and
+  //      typedGrading.js `jobKey`). presentationId is deliberately unchanged —
+  //      it is uid-scoped by path — SO THE COLLIDING INPUT IS STILL ASSERTED
+  //      FIRST: if the two students ever stopped sharing a presentationId this
+  //      fixture would silently stop testing the defect at all.
   await db.doc("classes/cShared").set({studentIds: ["uA1", "uA2"],
     assignments: {LR: {name: "seed", weeklyPace: 50, studyDaysPerWeek: 5}}});
   await seedConfig({rehearsalClassIds: ["cR", "cShared"], queueSize: 6, testSize: 4});
@@ -2112,20 +2183,37 @@ CASE("TR — rv2_ replay provenance: never inferred from the document NAME [A4]"
   const sharedCommon = {classId: "cShared", listId: "LR", clientContractVersion: 1};
   const cA1 = await call(CALL.reviewV2ComposeSession, "uA1", {...sharedCommon, logicalDay: 3, composeKey: "lap-key-tr-a1"});
   const cA2 = await call(CALL.reviewV2ComposeSession, "uA2", {...sharedCommon, logicalDay: 3, composeKey: "lap-key-tr-a2"});
-  check("TR COLLISION: two students in one class derive the SAME presentationId",
+  check("TR COLLISION (the input, UNCHANGED): two students in one class still derive the SAME presentationId",
       cA1.presentation.presentationId, cA2.presentation.presentationId);
-  const sA1 = await call(CALL.reviewV2SubmitAttempt, "uA1", {presentationId: cA1.presentation.presentationId,
+  const collidingPid = cA1.presentation.presentationId;
+  const sA1 = await call(CALL.reviewV2SubmitAttempt, "uA1", {presentationId: collidingPid,
     clientContractVersion: 1,
     answers: cA1.presentation.presentedWordIds.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}))});
   check("TR COLLISION: the first student's attempt lands", [sA1.status, sA1.score], ["attempt_written", 100]);
   const sA2 = await call(CALL.reviewV2SubmitAttempt, "uA2", {presentationId: cA2.presentation.presentationId,
     clientContractVersion: 1,
     answers: cA2.presentation.presentedWordIds.map((w) => ({wordId: w, studentResponse: ""}))});
-  check("TR COLLISION: the SECOND student fails CLOSED instead of inheriting the first's grade",
-      sA2, REFUSAL);
-  check("TR COLLISION: exactly one attempt exists at the colliding id, still the FIRST student's",
-      (await db.collection("attempts").doc(`rv2_${cA2.presentation.presentationId}`).get()).data().studentId,
-      "uA1");
+  // WAS: "the SECOND student fails CLOSED instead of inheriting the first's
+  // grade" ⇒ REFUSAL. The second student is a student, not an attacker.
+  check("TR COLLISION (INVERTED): the SECOND student now LANDS THEIR OWN attempt, with their own grade",
+      [sA2.status, sA2.replayed, sA2.score, sA2.passed], ["attempt_written", false, 0, false]);
+  // WAS: "exactly one attempt exists at the colliding id, still the FIRST
+  // student's". Now: two documents, neither at the id the old scheme derived.
+  check("TR COLLISION (INVERTED): TWO documents, one per student, each carrying its own owner and grade",
+      [sA1.attemptId !== sA2.attemptId,
+        (await db.collection("attempts").doc(sA1.attemptId).get()).data().studentId,
+        (await db.collection("attempts").doc(sA1.attemptId).get()).data().score,
+        (await db.collection("attempts").doc(sA2.attemptId).get()).data().studentId,
+        (await db.collection("attempts").doc(sA2.attemptId).get()).data().score],
+      [true, "uA1", 100, "uA2", 0]);
+  check("TR COLLISION: each id is the uid-scoped derivation, and the OLD colliding id holds NOTHING",
+      [sA1.attemptId, sA2.attemptId,
+        (await db.collection("attempts").doc(`rv2_${collidingPid}`).get()).exists],
+      [rv2Id("uA1", collidingPid), rv2Id("uA2", collidingPid), false]);
+  check("TR COLLISION: each presentation claims its OWN attempt (the completion.js:412 binding)",
+      [(await db.doc(`users/uA1/review_presentations/${collidingPid}`).get()).data().serverClaim.attemptDocId,
+        (await db.doc(`users/uA2/review_presentations/${collidingPid}`).get()).data().serverClaim.attemptDocId],
+      [rv2Id("uA1", collidingPid), rv2Id("uA2", collidingPid)]);
   // (11) the predicate itself, on the shapes above (fixture-facing surface).
   check("TR the predicate accepts ONLY the fully-stamped engine shape",
       [CALL.isEngineAttemptFor(engineShape, {uid: "uR", presentationId: pidS}),
@@ -2136,17 +2224,371 @@ CASE("TR — rv2_ replay provenance: never inferred from the document NAME [A4]"
 }
 
 // ===========================================================================
+CASE("RC — THE DERIVED GLOBAL ID IS UID-SCOPED: the full bypass set [rv2-docid-collision A1 · C2/C3/C5]");
+{
+  // WHAT THIS CASE IS FOR. CASE TR (10) proves the headline: two students in
+  // one class both land. This case is the BYPASS SET — one fixture per way two
+  // students could still collide or cross-read AFTER the fix (create · update ·
+  // delete · set-merge · set-overwrite · FieldValue.delete · delete-then-
+  // recreate SEQUENCE · batch · transaction · a different path · third party ·
+  // teacher) — plus THE OTHER LEG (a single-student class must behave EXACTLY
+  // as before) and the typed leg end to end for two students, which is the path
+  // that previously threw `permission-denied` on the grading-job claim.
+  //
+  // THE FENCE UNDER TEST IS NOT THE UID IN THE KEY. The uid is a NAMESPACE:
+  // every student knows their classmates' uids, and the Admin SDK used below
+  // bypasses rules entirely. What must hold is that each submit adjudicates
+  // EXACTLY ONE document — the one its own uid names — and never inherits,
+  // clobbers or is blocked by another student's.
+  await wipeEmulator();
+  await seedConfig({rehearsalClassIds: ["cC", "cSolo"], queueSize: 6, testSize: 4});
+  await seedClass("cC", {students: ["uA", "uB"], listId: "LC"});
+  await seedClass("cSolo", {students: ["uSolo"], listId: "LC"});
+  await seedWords("LC", 30);
+  await seedProgress("uA", "cC", "LC", {csd: 2, twi: 10});
+  await seedProgress("uB", "cC", "LC", {csd: 2, twi: 10});
+  await seedProgress("uSolo", "cSolo", "LC", {csd: 2, twi: 10});
+  await db.doc("users/uTeachC").set({role: "teacher", displayName: "T"});
+  const common = {classId: "cC", listId: "LC", clientContractVersion: 1};
+  const composeC = (uid, ck) => call(CALL.reviewV2ComposeSession, uid, {...common, logicalDay: 3, composeKey: ck});
+  const submitC = (uid, pid, ans) => call(CALL.reviewV2SubmitAttempt, uid,
+      {presentationId: pid, answers: ans, clientContractVersion: 1});
+  const good = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
+  const wrong = (ids) => ids.map((w) => ({wordId: w, studentResponse: "not the meaning at all"}));
+  const attRef = (uid, pid) => db.collection("attempts").doc(rv2Id(uid, pid));
+  const attCount = async () => (await db.collection("attempts").get()).size;
+  const REFUSAL_RC = {status: "presentation_invalid",
+    reason: "attempt identity occupied by a non-engine document"};
+  /** A fully engine-shaped attempt for `owner` on `pid` — the ONLY shape A4
+   *  accepts, so a squat built from it isolates the IDENTITY question. */
+  const engineShapeFor = (owner, pid, score) => ({
+    studentId: owner, classId: "cC", listId: "LC", studyDay: 3, sessionType: "review",
+    testType: "mcq", score, passed: score >= 92, totalQuestions: 1,
+    answers: [{wordId: "w0", isCorrect: score >= 92}],
+    presentationId: pid, queueId: "q", resetEpoch: 0,
+    gatePosture: {effectiveEnabled: true, threshold: 92, configVersion: 1, source: "planted"},
+    engineResult: {stamped: 0, stampSkipped: null, rerunGraduated: [], visitHalf: null},
+  });
+  // The two students compose IN LOCKSTEP so `seq` stays equal and the
+  // presentationId keeps colliding — that shared string is the precondition of
+  // every row below, so it is asserted, never assumed.
+  const pairA = await composeC("uA", "lap-key-rc-a1");
+  const pairB = await composeC("uB", "lap-key-rc-b1");
+  const pid = pairA.presentation.presentationId;
+  const idsA = pairA.presentation.presentedWordIds;
+  const idsB = pairB.presentation.presentedWordIds;
+  check("RC precondition: both students hold the SAME presentationId (the collision is still real)",
+      [pairA.status, pairB.status, pairB.presentation.presentationId], ["composed", "composed", pid]);
+
+  // ---- create · a different path (THE DEFECT) -----------------------------
+  const nBeforeCreate = await attCount();
+  const sA = await submitC("uA", pid, good(idsA));
+  const sB = await submitC("uB", pid, wrong(idsB));
+  check("RC create: BOTH students land, each at their OWN uid-scoped id",
+      [sA.status, sA.attemptId, sB.status, sB.attemptId],
+      ["attempt_written", rv2Id("uA", pid), "attempt_written", rv2Id("uB", pid)]);
+  check("RC create: TWO documents, each owned by its own student with its own grade",
+      [await attCount() - nBeforeCreate,
+        (await attRef("uA", pid).get()).data().studentId, (await attRef("uA", pid).get()).data().score,
+        (await attRef("uB", pid).get()).data().studentId, (await attRef("uB", pid).get()).data().score],
+      [2, "uA", 100, "uB", 0]);
+  check("RC A DIFFERENT PATH — ONE presentationId, TWO uids, TWO documents (and nothing at the old id)",
+      [sA.attemptId !== sB.attemptId,
+        (await attRef("uA", pid).get()).data().presentationId,
+        (await attRef("uB", pid).get()).data().presentationId,
+        (await db.collection("attempts").doc(`rv2_${pid}`).get()).exists],
+      [true, pid, pid, false]);
+
+  // ---- update ------------------------------------------------------------
+  const aBeforeUpdate = await attRef("uA", pid).get();
+  const nBeforeUpdate = await attCount();
+  const repB = await submitC("uB", pid, wrong(idsB));
+  check("RC update: B's re-submit REPLAYS B's own stored envelope",
+      [repB.status, repB.replayed, repB.score], ["attempt_written", true, 0]);
+  check("RC update: A's document is untouched and the collection did not grow",
+      [(await attRef("uA", pid).get()).updateTime.isEqual(aBeforeUpdate.updateTime), await attCount()],
+      [true, nBeforeUpdate]);
+
+  // ---- delete ------------------------------------------------------------
+  await attRef("uB", pid).delete();
+  check("RC delete: removing B's attempt leaves A's intact",
+      [(await attRef("uA", pid).get()).exists, (await attRef("uB", pid).get()).exists], [true, false]);
+  const reB = await submitC("uB", pid, good(idsB));
+  check("RC delete: B re-lands at B's OWN id and is graded from B's OWN sheet — A's 100 is never inherited",
+      [reB.status, reB.replayed, reB.attemptId, reB.score],
+      ["attempt_written", false, rv2Id("uB", pid), 100]);
+  check("RC delete: A's document is still A's",
+      [(await attRef("uA", pid).get()).data().studentId, (await attRef("uA", pid).get()).data().score],
+      ["uA", 100]);
+
+  // ---- set-merge / set-overwrite · the OLD colliding id is INERT ----------
+  // The id the pre-fix scheme derived is now addressed by nobody. Both shapes
+  // of write to it must be invisible to both students.
+  await db.collection("attempts").doc(`rv2_${pid}`)
+      .set({studentId: "uA", score: 100, passed: true}, {merge: true});
+  let mA = await submitC("uA", pid, good(idsA));
+  let mB = await submitC("uB", pid, good(idsB));
+  check("RC set-merge at the OLD colliding id ⇒ INERT: both students still replay their own",
+      [mA.replayed, mA.score, mA.attemptId, mB.replayed, mB.score, mB.attemptId],
+      [true, 100, rv2Id("uA", pid), true, 100, rv2Id("uB", pid)]);
+  await db.collection("attempts").doc(`rv2_${pid}`).set(engineShapeFor("uA", pid, 13));
+  mA = await submitC("uA", pid, good(idsA));
+  mB = await submitC("uB", pid, good(idsB));
+  check("RC set-overwrite at the OLD id with a FULLY engine-shaped doc ⇒ still INERT (score 13 is never served)",
+      [mA.replayed, mA.score, mB.replayed, mB.score], [true, 100, true, 100]);
+  check("RC …and the planted doc is not even read (untouched)",
+      (await db.collection("attempts").doc(`rv2_${pid}`).get()).data().score, 13);
+  await db.collection("attempts").doc(`rv2_${pid}`).delete();
+
+  // ---- FieldValue.delete() -----------------------------------------------
+  // Strip the ownership stamp off A's OWN attempt. A fails closed on its own
+  // document (A4); B, addressing a different document, is untouched.
+  await attRef("uA", pid).update({studentId: FieldValue.delete()});
+  const fA = await submitC("uA", pid, good(idsA));
+  check("RC FieldValue.delete: stripping `studentId` makes A's OWN replay fail CLOSED", fA, REFUSAL_RC);
+  const fB = await submitC("uB", pid, good(idsB));
+  check("RC FieldValue.delete: …and B is entirely unaffected — a different document",
+      [fB.status, fB.replayed, fB.score], ["attempt_written", true, 100]);
+  await attRef("uA", pid).update({studentId: "uA"});
+  check("RC FieldValue.delete other leg: restoring the stamp restores A's replay",
+      (await submitC("uA", pid, good(idsA))).replayed, true);
+
+  // ---- delete-then-recreate SEQUENCE -------------------------------------
+  await attRef("uA", pid).delete();
+  await attRef("uA", pid).set(engineShapeFor("uB", pid, 100));
+  const seqA = await submitC("uA", pid, good(idsA));
+  check("RC SEQUENCE delete→recreate: a doc recreated at A's id but NAMING B fails CLOSED for A", seqA, REFUSAL_RC);
+  check("RC SEQUENCE: …and B's own attempt is untouched by the sequence",
+      [(await attRef("uB", pid).get()).data().studentId, (await attRef("uB", pid).get()).data().score],
+      ["uB", 100]);
+  await attRef("uA", pid).delete();
+  const seqA2 = await submitC("uA", pid, good(idsA));
+  check("RC SEQUENCE other leg: with the squat gone A lands again at A's own id",
+      [seqA2.status, seqA2.replayed, seqA2.attemptId, seqA2.score],
+      ["attempt_written", false, rv2Id("uA", pid), 100]);
+
+  // ---- batch --------------------------------------------------------------
+  // ONE atomic commit CROSS-PLANTS both students: A's id gets a document owned
+  // by B and B's id one owned by A. A batch is the only shape that can touch
+  // both derived documents at once; it still cannot make either student read
+  // the other's, because the id each submit addresses is its own.
+  const bt = db.batch();
+  bt.set(attRef("uA", pid), engineShapeFor("uB", pid, 7));
+  bt.set(attRef("uB", pid), engineShapeFor("uA", pid, 9));
+  bt.set(db.collection("attempts").doc(`rv2_${pid}`), engineShapeFor("uA", pid, 11));
+  await bt.commit();
+  const btA = await submitC("uA", pid, good(idsA));
+  const btB = await submitC("uB", pid, good(idsB));
+  check("RC batch: cross-planted documents are REFUSED, never crossed over (neither 7 nor 9 is served)",
+      [btA, btB], [REFUSAL_RC, REFUSAL_RC]);
+  await attRef("uA", pid).delete();
+  await attRef("uB", pid).delete();
+  await db.collection("attempts").doc(`rv2_${pid}`).delete();
+  const btA2 = await submitC("uA", pid, good(idsA));
+  const btB2 = await submitC("uB", pid, wrong(idsB));
+  check("RC batch other leg: cleared, both students land their own grades again",
+      [btA2.score, btA2.attemptId, btB2.score, btB2.attemptId],
+      [100, rv2Id("uA", pid), 0, rv2Id("uB", pid)]);
+
+  // ---- transaction --------------------------------------------------------
+  // The engine's attempt write IS a transaction. Two students submitting the
+  // SAME presentationId CONCURRENTLY is the shape that previously guaranteed
+  // one loser; both must now commit. Fresh presentations (seq 2), still shared.
+  const txA = await composeC("uA", "lap-key-rc-a2");
+  const txB = await composeC("uB", "lap-key-rc-b2");
+  const pid2 = txA.presentation.presentationId;
+  check("RC transaction setup: the second presentation collides too",
+      [pid2 === pid, txB.presentation.presentationId], [false, pid2]);
+  const [tA, tB] = await Promise.all([
+    submitC("uA", pid2, good(txA.presentation.presentedWordIds)),
+    submitC("uB", pid2, wrong(txB.presentation.presentedWordIds)),
+  ]);
+  check("RC transaction: CONCURRENT submits of the same presentationId BOTH commit, with their own grades",
+      [tA.status, tA.replayed, tA.score, tB.status, tB.replayed, tB.score],
+      ["attempt_written", false, 100, "attempt_written", false, 0]);
+  check("RC transaction: two distinct documents, correctly owned",
+      [tA.attemptId !== tB.attemptId,
+        (await attRef("uA", pid2).get()).data().studentId,
+        (await attRef("uB", pid2).get()).data().studentId], [true, "uA", "uB"]);
+
+  // ---- THE OTHER LEG [C3]: a SINGLE-student class is unchanged ------------
+  // Same replay semantics, same idempotency, same completion evidence — the
+  // regression control for "the fix changed nothing where there was no defect".
+  const soloCommon = {classId: "cSolo", listId: "LC", clientContractVersion: 1};
+  const cS = await call(CALL.reviewV2ComposeSession, "uSolo", {...soloCommon, logicalDay: 3, composeKey: "lap-key-rc-solo"});
+  const pidSolo = cS.presentation.presentationId;
+  const idsSolo = cS.presentation.presentedWordIds;
+  const s1 = await call(CALL.reviewV2SubmitAttempt, "uSolo",
+      {presentationId: pidSolo, answers: good(idsSolo), clientContractVersion: 1});
+  check("RC SOLO: the single-student submit lands exactly as before",
+      [s1.status, s1.replayed, s1.score, s1.passed, s1.attemptId],
+      ["attempt_written", false, 100, true, rv2Id("uSolo", pidSolo)]);
+  const soloBefore = await attRef("uSolo", pidSolo).get();
+  const nBeforeSolo = await attCount();
+  const s2 = await call(CALL.reviewV2SubmitAttempt, "uSolo",
+      {presentationId: pidSolo, answers: good(idsSolo), clientContractVersion: 1});
+  check("RC SOLO: idempotent replay ⇒ the SAME normalized envelope",
+      [s2.status, s2.replayed, s2.score, s2.correctCount, s2.totalQuestions, s2.stamped === s1.stamped],
+      ["attempt_written", true, 100, idsSolo.length, idsSolo.length, true]);
+  check("RC SOLO: replay performs ZERO writes",
+      [(await attRef("uSolo", pidSolo).get()).updateTime.isEqual(soloBefore.updateTime), await attCount()],
+      [true, nBeforeSolo]);
+  const soloNew = await call(CALL.reviewV2ComposeNewTest, "uSolo", {...soloCommon, logicalDay: 3, composeKey: "lap-key-rc-solo-n"});
+  const soloNewPid = soloNew.presentation.presentationId;
+  await call(CALL.reviewV2SubmitAttempt, "uSolo", {presentationId: soloNewPid,
+    clientContractVersion: 1, answers: good(soloNew.presentation.presentedWordIds)});
+  const soloDone = await call(CALL.reviewV2CompleteDay, "uSolo", {...soloCommon, logicalDay: 3,
+    consumedAttemptId: rv2Id("uSolo", pidSolo), consumedAttemptClassId: "cSolo",
+    newTestAttemptId: rv2Id("uSolo", soloNewPid)});
+  check("RC SOLO: completeDay still binds its evidence through the DERIVED id",
+      [soloDone.status, soloDone.evidenceKind, soloDone.advancedToDay], ["completed", "standard", 3]);
+
+  // ---- C5 · THE TYPED LEG END TO END, TWO STUDENTS, ONE CLASS -------------
+  // THE PATH THAT USED TO THROW. `claimOrRecoverGradingJob` refuses a job whose
+  // `uid` field is someone else's (index.js:936-938) — so under the unscoped
+  // key the SECOND student's typed submit died with `permission-denied` on
+  // their own test, before the grader was ever reached.
+  //
+  // A SEPARATE CLASS, and the reason matters: for a live review the modality is
+  // the DAY QUEUE SNAPSHOT's (`presentations.js:407` over the queue pinned at
+  // first compose), so flipping `reviewTestType` on a class whose day-3 queue
+  // already exists would silently keep composing MCQ — a green typed fixture
+  // that never went typed. `cTy` is typed from the first compose.
+  await seedClass("cTy", {students: ["uTA", "uTB"], listId: "LC", asg: {reviewTestType: "typed"}});
+  await seedConfig({rehearsalClassIds: ["cC", "cSolo", "cTy"], queueSize: 6, testSize: 4});
+  await seedProgress("uTA", "cTy", "LC", {csd: 2, twi: 10});
+  await seedProgress("uTB", "cTy", "LC", {csd: 2, twi: 10});
+  const tyCommon = {classId: "cTy", listId: "LC", clientContractVersion: 1};
+  const composeTy = (uid, ck) => call(CALL.reviewV2ComposeSession, uid, {...tyCommon, logicalDay: 3, composeKey: ck});
+  const submitTy = (uid, pid, ans) => call(CALL.reviewV2SubmitAttempt, uid,
+      {presentationId: pid, answers: ans, clientContractVersion: 1});
+  const submitTyErr = (uid, pid, ans) => callErr(CALL.reviewV2SubmitAttempt, uid,
+      {presentationId: pid, answers: ans, clientContractVersion: 1});
+  let rcGraderCalls = 0;
+  TG._typedSeam.grade = async ({answers}) => {
+    rcGraderCalls++;
+    return answers.map((a) => ({
+      wordId: a.wordId,
+      isCorrect: a.studentResponse === a.correctDefinition,
+      reasoning: a.studentResponse === a.correctDefinition ? "" : "that is not the meaning",
+    }));
+  };
+  const tyA = await composeTy("uTA", "lap-key-rc-ty-a");
+  const tyB = await composeTy("uTB", "lap-key-rc-ty-b");
+  const pidTy = tyA.presentation.presentationId;
+  const idsTA = tyA.presentation.presentedWordIds;
+  const idsTB = tyB.presentation.presentedWordIds;
+  check("RC TYPED setup: genuinely TYPED, and the presentationId still collides",
+      [tyA.presentation.testType, tyB.presentation.testType, tyB.presentation.presentationId],
+      ["typed", "typed", pidTy]);
+  const jobRef = (uid) => db.collection("grading_jobs").doc(rv2Id(uid, pidTy));
+  const callsBeforeTyped = rcGraderCalls;
+  // A submits FIRST — this is what creates the grading job whose ownership,
+  // under the OLD unscoped key, student B was then refused.
+  const tyErrA = await submitTyErr("uTA", pidTy, good(idsTA));
+  check("RC TYPED: student A's typed submit does not throw", tyErrA, null);
+  const tySubA = await submitTy("uTA", pidTy, good(idsTA));
+  check("RC TYPED: …and A's attempt is A's own, replaying its stored envelope",
+      [tySubA.status, tySubA.replayed, tySubA.score, tySubA.attemptId],
+      ["attempt_written", true, 100, rv2Id("uTA", pidTy)]);
+  // THE REGRESSION WITNESS: THIS is the call that used to throw
+  // `permission-denied` — the second student in a class, on their own test.
+  const tyErrB = await submitTyErr("uTB", pidTy, wrong(idsTB));
+  check("RC TYPED (WAS `permission-denied` ON THE JOB CLAIM): student B's typed submit does not throw",
+      tyErrB, null);
+  const tySubB = await submitTy("uTB", pidTy, wrong(idsTB));
+  check("RC TYPED: …and B's attempt is B's own, with B's own (failing) grade",
+      [tySubB.status, tySubB.replayed, tySubB.score, tySubB.attemptId],
+      ["attempt_written", true, 0, rv2Id("uTB", pidTy)]);
+  check("RC TYPED: each student owns a SEPARATE grading job under their OWN key",
+      [(await jobRef("uTA").get()).exists, (await jobRef("uTA").get()).data().uid,
+        (await jobRef("uTB").get()).exists, (await jobRef("uTB").get()).data().uid,
+        (await db.collection("grading_jobs").doc(`rv2_${pidTy}`).get()).exists],
+      [true, "uTA", true, "uTB", false]);
+  check("RC TYPED: each job cached the grade of ITS OWN presentation, and each sheet was graded once",
+      [(await jobRef("uTA").get()).data().payload.source, (await jobRef("uTA").get()).data().payload.presentationId,
+        (await jobRef("uTB").get()).data().payload.source, (await jobRef("uTB").get()).data().payload.presentationId,
+        rcGraderCalls - callsBeforeTyped],
+      ["reviewV2", pidTy, "reviewV2", pidTy, 2]);
+  check("RC TYPED: the attempts carry their own owner, grade and server-ai provenance",
+      [(await attRef("uTA", pidTy).get()).data().studentId, (await attRef("uTA", pidTy).get()).data().score,
+        (await attRef("uTA", pidTy).get()).data().correctnessSource,
+        (await attRef("uTB", pidTy).get()).data().studentId, (await attRef("uTB", pidTy).get()).data().score],
+      ["uTA", 100, "server-ai", "uTB", 0]);
+
+  // ---- third party / teacher naming the VICTIM's FULL uid-scoped key ------
+  // The uid in the key buys NO secrecy: a classmate (and a teacher) can derive
+  // `rv2_{uA}_{pid}` and claim it through the LIVE grader. The fence that must
+  // hold is the job's `uid` FIELD, and the victim must fail CLOSED rather than
+  // consume a foreign grade — the same law as CASE TX C6, restated against the
+  // NEW key shape so a scoping change cannot quietly retire it.
+  process.env.ANTHROPIC_API_KEY = "lap-stub-key-never-leaves-this-process";
+  const AnthropicCtorC = fnRequire("@anthropic-ai/sdk").default;
+  const MessagesProtoC = Object.getPrototypeOf(new AnthropicCtorC({apiKey: "x"}).messages);
+  const realCreateC = MessagesProtoC.create;
+  MessagesProtoC.create = async (body) => {
+    const m = String(body?.messages?.[0]?.content ?? "").match(/<words>\n([\s\S]*?)\n<\/words>/);
+    const words = m ? JSON.parse(m[1]) : [];
+    return {content: [{type: "text",
+      text: JSON.stringify(words.map((w) => ({wordId: w.wordId, isCorrect: true})))}]};
+  };
+  const liveGradeC = (uid, jobKey, ids) => call(INDEX.gradeTypedTest, uid, {
+    answers: ids.map((w) => ({wordId: w, word: `word${w.slice(1)}`,
+      correctDefinition: `def${w.slice(1)}`, studentResponse: "not the meaning at all"})),
+    gradeContext: {attemptDocId: jobKey, classId: "cTy", listId: "LC"},
+  });
+  const thirdA = await composeTy("uTA", "lap-key-rc-3p-a");
+  const thirdB = await composeTy("uTB", "lap-key-rc-3p-b");
+  const pid3p = thirdA.presentation.presentationId;
+  check("RC THIRD PARTY setup: both students compose, still sharing one presentationId",
+      [thirdA.status, thirdB.status, thirdB.presentation.presentationId],
+      ["composed", "composed", pid3p]);
+  await liveGradeC("uTB", rv2Id("uTA", pid3p), thirdA.presentation.presentedWordIds);
+  check("RC THIRD PARTY: student B CAN claim A's full uid-scoped key — the job records B's uid",
+      (await db.collection("grading_jobs").doc(rv2Id("uTA", pid3p)).get()).data().uid, "uTB");
+  const victimErr = await submitTyErr("uTA", pid3p, good(thirdA.presentation.presentedWordIds));
+  checkTrue("RC THIRD PARTY: A's submit fails CLOSED on the foreign-uid job (never consumed)",
+      String(victimErr).includes("permission-denied"));
+  check("RC THIRD PARTY: …and mints nothing", (await attRef("uTA", pid3p).get()).exists, false);
+  check("RC THIRD PARTY: B's OWN key is untouched by the attack — B still lands normally",
+      [(await submitTy("uTB", pid3p, good(thirdB.presentation.presentedWordIds))).status,
+        (await db.collection("grading_jobs").doc(rv2Id("uTB", pid3p)).get()).data().uid],
+      ["attempt_written", "uTB"]);
+  // …and the same, by a TEACHER account (identity, not role).
+  const teachA = await composeTy("uTA", "lap-key-rc-tp-a");
+  await composeTy("uTB", "lap-key-rc-tp-b"); // keep the two students in lockstep
+  const pidTp = teachA.presentation.presentationId;
+  await liveGradeC("uTeachC", rv2Id("uTA", pidTp), teachA.presentation.presentedWordIds);
+  check("RC TEACHER: a teacher-of-record claiming a student's key is recorded under the TEACHER's uid",
+      (await db.collection("grading_jobs").doc(rv2Id("uTA", pidTp)).get()).data().uid, "uTeachC");
+  const teachErr = await submitTyErr("uTA", pidTp, good(teachA.presentation.presentedWordIds));
+  checkTrue("RC TEACHER: the student's submit refuses the teacher-poisoned key too",
+      String(teachErr).includes("permission-denied"));
+  check("RC TEACHER: …and mints nothing", (await attRef("uTA", pidTp).get()).exists, false);
+  // A third party writing an ATTEMPT at the victim's full uid-scoped id gains
+  // nothing either: provenance still comes from the CONTENT (A4), not the name.
+  await attRef("uTA", pidTp).set({...engineShapeFor("uTB", pidTp, 100), classId: "cTy"});
+  check("RC THIRD PARTY (attempts): a doc planted at A's id but naming B is refused for A",
+      await submitTy("uTA", pidTp, good(teachA.presentation.presentedWordIds)), REFUSAL_RC);
+
+  MessagesProtoC.create = realCreateC;
+  TG._typedSeam.grade = null;
+}
+
+// ===========================================================================
 CASE("TG — completeDay wordId↔presentation binding [A3 · Codex r78 item 3]");
 {
   await wipeEmulator();
   const GS = ["uG0", "uG1", "uG2", "uG3", "uG4", "uG5", "uG6"];
-  // ONE CLASS PER STUDENT — deliberately, and this is NOT cosmetic: the engine's
-  // presentationId is `{classId}_{listId}_d{day}_e{epoch}_p{seq}` with NO uid
-  // component (presentations.js:445 · composer.js:82-84), while `attempts` and
-  // `grading_jobs` are GLOBAL collections. Two students in the SAME class
-  // therefore derive the SAME `rv2_` document id. That collision is a real
-  // pre-existing defect, pinned as its own fixture in CASE TR; this case is
-  // about the wordId binding, so it is kept out of its way.
+  // ONE CLASS PER STUDENT — kept from when it was load-bearing, and the reason
+  // is recorded because it no longer is: the engine's presentationId is
+  // `{classId}_{listId}_d{day}_e{epoch}_p{seq}` with NO uid component
+  // (presentations.js:445 · composer.js:82-84) and it STILL has none, so two
+  // students in one class still share a presentationId. What changed
+  // [rv2-docid-collision A1] is that the GLOBAL ids derived from it are now
+  // uid-scoped (composer.js `engineDocId`), so a shared class would no longer
+  // collide here. The isolation stays anyway: this case is about the wordId
+  // binding, and the collision has its own fixtures (CASE RC + CASE TR (10)).
   await seedConfig({rehearsalClassIds: GS.map((u) => `cG_${u}`), queueSize: 6, testSize: 4});
   for (const u of GS) await seedClass(`cG_${u}`, {students: [u], listId: "LGG"});
   await seedWords("LGG", 30);
@@ -2165,7 +2607,7 @@ CASE("TG — completeDay wordId↔presentation binding [A3 · Codex r78 item 3]"
     if (s.status !== "attempt_written" || s.passed !== true) {
       throw new Error(`TG setup submit ${uid}: ${JSON.stringify(s)}`);
     }
-    return {pid, ids, queue, attemptId: `rv2_${pid}`,
+    return {pid, ids, queue, attemptId: rv2Id(uid, pid),
       unpresented: queue.filter((w) => !ids.includes(w))};
   };
   const done = (uid, attemptId) => call(CALL.reviewV2CompleteDay, uid, {...commonFor(uid), logicalDay: 3,
