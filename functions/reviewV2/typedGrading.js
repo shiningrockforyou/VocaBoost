@@ -11,9 +11,21 @@
  *
  * THE DECISION [18_ §3]: reuse `grading_jobs`, do NOT re-implement grading.
  *  - The job key is the engine's OWN identity: `rv2_{presentationId}` — 1:1
- *    with a composed presentation, so one presentation = one grade,
- *    replay-safe by construction, and collision-free against the legacy
- *    key space (client attempt nonces).
+ *    with a composed presentation, so one presentation = one grade.
+ *  - [D1 TRUTH REPAIR — this header previously claimed the key was
+ *    "replay-safe by construction, and collision-free against the legacy key
+ *    space (client attempt nonces)". THAT WAS FALSE.] The LIVE grader takes
+ *    its job key from CLIENT-SUPPLIED `writeContext/gradeContext.attemptDocId`
+ *    (functions/index.js:1048-1051) with no namespace restriction, and the
+ *    client knows its own presentationId (src/services/reviewV2Client.js:152).
+ *    `rv2_` is therefore a NAMING CONVENTION, not a namespace boundary: any
+ *    student may claim and populate `rv2_{their presentationId}` through the
+ *    live callable, with answers and verdicts of their choosing. The engine
+ *    consequently trusts NOTHING derived from the key — a cached payload is
+ *    usable only when it PROVES engine provenance, this presentation, and
+ *    this answer sheet (`usableCachedResults` below, 18_ §5.6). Hardening the
+ *    live key namespace AT ITS SOURCE is carded separately (ledger E1): it
+ *    touches the path 947 students use today.
  *  - `claimOrRecoverGradingJob` / `persistGradingJobResult` are the LIVE
  *    production helpers (functions/index.js), reached through
  *    `exports._gradingJobs` — one lease protocol, not two.
@@ -45,6 +57,8 @@
  */
 
 "use strict";
+
+const crypto = require("crypto");
 
 /** gradeTypedTest refuses > 100 answers per request — chunk to match. */
 const GRADE_BATCH_MAX = 100;
@@ -98,9 +112,64 @@ async function defaultGrade({uid, classId, listId, answers}) {
   return Array.isArray(res?.results) ? res.results : [];
 }
 
-/** A cached job payload is usable only when it carries a results ARRAY. */
-function resultsOf(payload) {
-  return payload && Array.isArray(payload.results) ? payload.results : null;
+/**
+ * ANSWER-SHEET IDENTITY [18_ §5.6] — what a cached grade is a grade OF.
+ *
+ * A grade is only reusable for the sheet it was computed from, so the sheet
+ * needs an identity. It is the set of (presented wordId → normalized submitted
+ * response) PAIRS, hashed. Consequences, each fixtured:
+ *  - ORDER IS NOT IDENTITY: the pairs are sorted by wordId, so a different
+ *    presentation order of the same answers still reuses the cache.
+ *  - BLANKS ARE PART OF THE SHEET: a presented word with no submitted answer
+ *    is the pair (wordId, ""), so blank→filled drift fails closed even though
+ *    blanks never reach the AI.
+ *  - WHITESPACE IS NOT IDENTITY, CASE IS. The grader treats a response as
+ *    blank on `.trim()` (below) and the AI cannot meaningfully verdict on
+ *    surrounding/repeated whitespace, so a legitimate replay must not fail
+ *    closed on a trailing space. Case CAN change a verdict and no legitimate
+ *    replay re-types an answer, so case drift is drift.
+ */
+function normalizeResponse(raw) {
+  return String(raw ?? "").trim().replace(/\s+/g, " ");
+}
+function answerSheetKey({presentedWordIds, submitted}) {
+  const pairs = presentedWordIds
+      .map((wordId) => [String(wordId), normalizeResponse(submitted.get(wordId) ?? "")])
+      .sort((a, b) => (a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0)));
+  return crypto.createHash("sha256").update(JSON.stringify(pairs)).digest("hex");
+}
+
+/**
+ * THE CACHED-GRADE ACCEPTANCE TEST [A1+A2 · 18_ §5.6] — the ONE seam where a
+ * grade the engine did not compute can enter graduation-bearing rows.
+ *
+ * Until this fold the test was `Array.isArray(payload.results)` alone, and the
+ * job key is CLAIMABLE BY THE CLIENT through the live grader (see the D1 note
+ * in the header). So a student could pre-seed `rv2_{presentationId}` with
+ * self-chosen answers, and the engine would build its attempt rows from that
+ * foreign grade. THREE clauses close it; a payload failing ANY of them is not
+ * a grade of this submission and the caller fails CLOSED:
+ *   (a) ENGINE PROVENANCE — only this module writes `source: "reviewV2"`, and
+ *       the live grader's payload shape (index.js:1136-1141) cannot carry it:
+ *       every field there is server-constructed.
+ *   (b) THIS PRESENTATION — a grade cached under another presentation's key,
+ *       or replayed across presentations, is not this test's grade.
+ *   (c) THIS ANSWER SHEET — the grade must be a grade OF the sheet being
+ *       submitted now (see answerSheetKey above).
+ * A payload written by an OLDER engine build (before this fold) carries none
+ * of the three and is therefore REFUSED, not trusted: the engine is dark
+ * (REVIEW_V2_CLIENT=false) so no such cache exists for a live student, and the
+ * caller's refusal is DATA — the student recomposes rather than inheriting an
+ * unverifiable grade.
+ */
+function usableCachedResults(payload, {presentationId, sheetKey}) {
+  if (!payload || typeof payload !== "object") return null;
+  if (payload.source !== "reviewV2") return null;
+  if (typeof presentationId !== "string" || presentationId.length === 0) return null;
+  if (payload.presentationId !== presentationId) return null;
+  if (typeof sheetKey !== "string" || sheetKey.length === 0) return null;
+  if (payload.answerSheetKey !== sheetKey) return null;
+  return Array.isArray(payload.results) ? payload.results : null;
 }
 
 function chunk(arr, size) {
@@ -168,6 +237,9 @@ function buildTypedRows({presentedWordIds, submitted, wordMetaById, results}) {
 async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
   presentedWordIds, submitted, wordMetaById}) {
   const jobKey = `rv2_${presentationId}`;
+  // THE SHEET BEING SUBMITTED NOW [A2] — computed BEFORE the claim so both
+  // cached-payload seams below test against the same identity.
+  const sheetKey = answerSheetKey({presentedWordIds, submitted});
   const jobs = gradingJobs();
   const claim = await jobs.claimOrRecoverGradingJob(uid, jobKey);
 
@@ -180,9 +252,15 @@ async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
   let graderCalls = 0;
 
   if (claim.action === "return_cached") {
-    // THE LOST-RESPONSE PATH: a prior worker already graded this exact
-    // presentation. Reuse it — no re-grade, no second charge [§5.4].
-    results = resultsOf(claim.payload);
+    // THE LOST-RESPONSE PATH [D2 TRUTH REPAIR — this comment used to ASSERT
+    // that "a prior worker already graded this exact presentation"; nothing
+    // checked it. It is now ENFORCED, not assumed]: reuse the cache only when
+    // `usableCachedResults` proves engine provenance + this presentation +
+    // this answer sheet. No re-grade, no second charge [§5.4]; a payload that
+    // fails any clause is a foreign or stale grade and mints NOTHING.
+    // Fixtures: lap CASE TX poison-before-submit / cross-presentation /
+    // sheet-drift · the legitimate leg is lap CASE T-3 + TX legit-replay.
+    results = usableCachedResults(claim.payload, {presentationId, sheetKey});
     if (results === null) return {refusal: {status: "grading_in_progress"}};
     cached = true;
   } else {
@@ -213,11 +291,18 @@ async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
     // Cache the grade on the job BEFORE the attempt write, fenced on our
     // lease — that is what makes a lost response replayable.
     const outcome = await jobs.persistGradingJobResult(uid, jobKey, claim.leaseId,
-        {results: fresh, source: "reviewV2", presentationId});
+        {results: fresh, source: "reviewV2", presentationId, answerSheetKey: sheetKey});
     if (outcome === "already_graded") {
-      // Another worker cached first — THEIRS is canonical (never ours).
+      // Another worker cached first — THEIRS is canonical (never ours). THE
+      // SIBLING SEAM [A1]: this branch consumes a payload we did not write,
+      // exactly like `return_cached` above, and is REACHABLE by the same
+      // poisoning (our lease expires → the live grader takes the key over →
+      // status becomes `graded` → our persist returns `already_graded`). It
+      // takes the SAME acceptance test; guarding only the direct path is the
+      // defect class this fold exists to close.
       const snap = await db.collection("grading_jobs").doc(jobKey).get();
-      const theirs = resultsOf(snap.exists ? snap.data().payload : null);
+      const theirs = usableCachedResults(snap.exists ? snap.data().payload : null,
+          {presentationId, sheetKey});
       if (theirs === null) return {refusal: {status: "grading_in_progress"}};
       results = theirs;
       cached = true;
@@ -243,6 +328,9 @@ module.exports = {
   resolveTypedGrade,
   // Pure/fixture-facing surface:
   buildTypedRows,
+  usableCachedResults,
+  answerSheetKey,
+  normalizeResponse,
   UNGRADEABLE_REASON,
   GRADE_BATCH_MAX,
   _typedSeam, // emulator-only [18_ §6 — the AI grader cannot run here]

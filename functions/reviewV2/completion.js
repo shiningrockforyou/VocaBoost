@@ -598,8 +598,27 @@ async function completeDay(db, params) {
       correctCount: 0, eligibleFillCount: 0, invalidScore: false};
     // [r72 C1.2 — A1: an override mints ONE advance + ZERO graduation]
     if (consumed !== null && governingGateOn && consumed.teacherEdited !== true) {
+      // [A3 · Codex r78 item 3 — DEFENSE IN DEPTH] A ROW MAY ONLY GRADUATE A
+      // WORD THE SERVER ACTUALLY PRESENTED. Until this fold the rows were
+      // mapped into graduation by `wordId` alone, with nothing comparing them
+      // to the presentation — so a row naming an unpresented QUEUE word (a
+      // fill candidate, or any word of the day's queue) would be counted as
+      // TESTED-CORRECT by computeGraduation (:164) and graduate. The presented
+      // set is already in hand: `consumedPresentation` was fetched and fully
+      // bound at :400-439 (uid/list/class/day/epoch + the attempt's own claim).
+      // EXCLUDED, NOT REFUSED — fewer graduations is the safe direction, the
+      // impossible-record fence above already governs the record's validity,
+      // and refusing here would strand a day on a row anomaly.
+      // LEGACY IS UNTOUCHED: an epoch-less legacy attempt carries no
+      // `presentationId`, so `consumedPresentation` is null and the fence is
+      // inert — the `?? rows.map(...)` fallback below is that leg.
+      const serverPresentedIds = consumedPresentation
+        ? new Set(Array.isArray(consumedPresentation.presentedWordIds)
+          ? consumedPresentation.presentedWordIds : [])
+        : null;
       const rows = consumed.answers
           .filter((r) => r && typeof r.wordId === "string")
+          .filter((r) => serverPresentedIds === null || serverPresentedIds.has(r.wordId))
           .map((r) => ({wordId: r.wordId, isCorrect: r.isCorrect === true}));
       const queueIds = consumedQueue ? consumedQueue.orderedQueueWordIds : null;
       const presentedWordIds = consumedPresentation?.presentedWordIds ?? rows.map((r) => r.wordId);

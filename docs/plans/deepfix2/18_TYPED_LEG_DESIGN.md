@@ -34,8 +34,20 @@ response. `claimOrRecoverGradingJob(uid, jobKey)` (`index.js:928`) returns `retu
 already exists, so a retry never re-grades and never double-charges the AI.
 
 **The engine must reuse that machinery, keyed on its own identity.** The engine's attempt docId is
-already `rv2_{presentationId}` (1:1 with a composed presentation, per the callables header), which is a
-natural, collision-free job key: one presentation = one grade, replay-safe by construction.
+already `rv2_{presentationId}` (1:1 with a composed presentation, per the callables header), so one
+presentation = one grade.
+
+> **CORRECTION (typed-fix-audit fold, ledger D1).** This section previously called that key
+> "collision-free" and "replay-safe by construction". **That was false.** `claimOrRecoverGradingJob` is
+> also reached from the LIVE `gradeTypedTest`, whose job key is **client-supplied** —
+> `jobAttemptDocId = (writeContext || gradeContext)?.attemptDocId` (`functions/index.js:1048-1051`),
+> with no namespace restriction — and the client knows its own `presentationId`
+> (`src/services/reviewV2Client.js:152`). `rv2_` is therefore a **naming convention, not a namespace
+> boundary**: a student can claim `rv2_{their presentationId}`, grade answers of their choosing, and
+> the payload the live path caches (`index.js:1136-1141`) satisfied the engine's entire acceptance test
+> (`Array.isArray(payload.results)`). The engine now trusts nothing derived from the key — see §5.6.
+> Restricting the live key namespace **at its source** is a separate fold (it touches the path 947
+> students use today) and is carded in `WORK_QUEUE.md` / `NEED_TO_FIX.md`.
 
 Rejected alternatives:
 - *Grade inside the submit transaction* — an AI call inside a Firestore transaction is a non-starter
@@ -74,6 +86,42 @@ Step 2's `in_progress` branch is a **new protocol status** and must be added to 
 3. **The preimage law holds.** `gradedIsCorrect` is written only where absent (first adjudication wins).
    A re-grade after a challenge must not launder it.
 4. **Metering is charged once.** The cached-return path must not increment `ai_metering`.
+5. **Every non-authoritative outcome is a DATA refusal.** A live lease held by a concurrent submit, and
+   any persist outcome that did not establish authority (`superseded`/`lease_expired`/`absent`/`error`),
+   return `{status: 'grading_in_progress'}` with zero writes — a worker that never established
+   authority must not mint an attempt.
+6. **A cached grade is only usable for the sheet it graded** *(added by the typed-fix-audit fold —
+   this is law, not merely code)*. Because the job key is claimable by the client (§3 correction), the
+   engine's cached-grade seam (`typedGrading.js` `usableCachedResults`, consumed at BOTH the
+   `return_cached` path (`:263`) and its `already_graded` sibling (`:295-308`)) accepts a payload only
+   when all three hold:
+
+   > **On the word "BOTH"** — it was published here before it was true as *evidence*. An independent
+   > audit reverted only the sibling call site and the entire lap stayed green, proving the battery was
+   > blind to it. It is now pinned by **CASE TS** (which reaches `already_graded` through production
+   > code: the engine's lease lapses mid-grade and a competitor takes the key over) and by the mutant
+   > **`M-A1-SIBLING-CALL-SITE`**, which reverts *only* that branch and dies on 4 TS assertions.
+   > Corroboration that TS reaches a genuinely new seam: `M-A1-PREFIX-CONSUMER` went from 21 red to 25.
+
+   | clause | what it proves | what backs it |
+   |---|---|---|
+   | `source === 'reviewV2'` | the ENGINE wrote this cache | **not forgeable today**, and the scope of that word is exact: the live grader builds its payload as one hard-coded object literal (`index.js:1136-1141`) that has no `source` field, `foundation.js:2225-2237` writes only status/cancelledAt/resetEpoch/rows, and rules deny every client write to `grading_jobs`. It rests on a literal in a file this fold did not touch and **no fixture pins it** — a future field added there would silently defeat the clause. Do not upgrade this to "unforgeable" without one [audit F4] |
+   | `presentationId === this presentation` | it is THIS test's grade | blocks cross-presentation replay |
+   | `answerSheetKey === this sheet` | it is a grade OF what is being submitted now | binds verdicts to the text they were computed from |
+
+   **Answer-sheet identity** is the sha256 of the (presented `wordId` → normalized response) pairs,
+   **sorted by `wordId`**. Therefore, as law: presentation **order is not identity** (a reordered sheet
+   still reuses the cache); **blanks are part of the sheet** (a presented word with no answer is the
+   pair `(wordId, "")`, so blank→filled drift fails closed even though blanks never reach the AI);
+   **whitespace is not identity but case is** — the grader already treats a response as blank on
+   `.trim()`, and a legitimate replay must not fail closed on a trailing space, whereas no legitimate
+   replay re-types an answer in different case.
+
+   A payload written by an **older engine build** carries none of the three and is therefore **refused,
+   not trusted**. The refusal is `grading_in_progress` (the frozen retryable typed status): it performs
+   zero writes, and because a poisoned/stale key can only ever belong to the caller's own uid
+   (`index.js:936-938`), the affected student recovers by composing a new test — a new
+   `presentationId` is a new job key.
 
 ## 6. Test plan (before any review round)
 

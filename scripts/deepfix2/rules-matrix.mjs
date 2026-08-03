@@ -92,6 +92,18 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   });
   // grading_jobs: owned by student1
   b.set(db.doc("grading_jobs/gj1"), { uid: "student1", status: "complete", rows: [] });
+  // [typed-fix-audit C3] a GRADED engine job carrying the provenance the
+  // engine's cached-grade seam now enforces (typedGrading.js usableCachedResults).
+  // The whole point of the consumer-side check is that the docId is predictable
+  // (`rv2_{presentationId}`), so the rules half — no client write of ANY shape —
+  // must be asserted per operation, not assumed from the one update case.
+  b.set(db.doc("grading_jobs/rv2_p1"), {
+    uid: "student1", status: "graded",
+    payload: {
+      results: [{ wordId: "wordA", isCorrect: false }],
+      source: "reviewV2", presentationId: "p1", answerSheetKey: "sheet-hash",
+    },
+  });
   // an attempt carrying the engine/override stamps (erasure-guard target)
   b.set(db.doc("attempts/a_stamped"), {
     studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
@@ -225,6 +237,63 @@ await ok("8a owner read own grading_job", s1.doc("grading_jobs/gj1").get());
 await deny("8b other student read grading_job", s2.doc("grading_jobs/gj1").get());
 await deny("8c owner write grading_job", s1.doc("grading_jobs/gj1").update({ status: "forged" }));
 await deny("8d teacher create grading_job", t1.doc("grading_jobs/gj2").set({ uid: "x" }));
+
+// ── CASE GJ [typed-fix-audit ledger C3]: THE FULL BYPASS SET on the grade
+//    cache. The engine's cached-grade seam trusts a payload only when it proves
+//    engine provenance + presentation + answer sheet; that consumer-side check
+//    is one half of the fence. This is the other half — the grade cache must be
+//    unwritable by a client THROUGH EVERY OPERATION, not just the update that
+//    happened to be fixtured. The docId is `rv2_{presentationId}`, which the
+//    client can derive (reviewV2Client.js:152), so it is named literally here.
+const POISON = {
+  results: [{ wordId: "wordA", isCorrect: true }],
+  source: "reviewV2", presentationId: "p1", answerSheetKey: "sheet-hash",
+};
+// create — the pre-seed, the shape that starts the whole attack
+await deny("GJ1 owner CREATES a grading job at the predictable engine key", s1.doc("grading_jobs/rv2_p_new").set({ uid: "student1", status: "graded", payload: POISON }));
+// update — overwrite an engine-written cache
+await deny("GJ2 owner UPDATES the payload of an engine-written cache", s1.doc("grading_jobs/rv2_p1").update({ payload: POISON }));
+// delete — clear it so it can be re-seeded
+await deny("GJ3 owner DELETES an engine-written cache", s1.doc("grading_jobs/rv2_p1").delete());
+// set-with-merge
+await deny("GJ4 owner SET-WITH-MERGE on the cache", s1.doc("grading_jobs/rv2_p1").set({ payload: POISON }, { merge: true }));
+// set-without-merge (full overwrite restating the owner field)
+await deny("GJ5 owner SET-WITHOUT-MERGE on the cache", s1.doc("grading_jobs/rv2_p1").set({ uid: "student1", status: "graded", payload: POISON }));
+// FieldValue.delete() — strip the provenance the engine now checks, so a bare
+// {results} payload would look like an older build's cache
+await deny("GJ6 owner STRIPS payload.source via FieldValue.delete", s1.doc("grading_jobs/rv2_p1").update({ "payload.source": firebase.firestore.FieldValue.delete() }));
+await deny("GJ7 owner STRIPS the whole payload via FieldValue.delete", s1.doc("grading_jobs/rv2_p1").update({ payload: firebase.firestore.FieldValue.delete() }));
+// batch
+await deny("GJ8 BATCH write to the cache", (() => { const b = s1.batch(); b.set(s1.doc("grading_jobs/rv2_p1"), { payload: POISON }, { merge: true }); return b.commit(); })());
+// transaction
+await deny("GJ9 TRANSACTION write to the cache", s1.runTransaction(async (tx) => {
+  const ref = s1.doc("grading_jobs/rv2_p1");
+  await tx.get(ref);
+  tx.update(ref, { payload: POISON });
+}));
+// delete-then-recreate SEQUENCE — both calls, not just the first
+await deny("GJ10a SEQUENCE step 1: owner deletes the cache", s1.doc("grading_jobs/rv2_p1").delete());
+await deny("GJ10b SEQUENCE step 2: owner recreates it poisoned", s1.doc("grading_jobs/rv2_p1").set({ uid: "student1", status: "graded", payload: POISON }));
+// as a third party / as a teacher
+await deny("GJ11 THIRD-PARTY student writes another student's cache", s2.doc("grading_jobs/rv2_p1").set({ payload: POISON }, { merge: true }));
+await deny("GJ12 TEACHER writes a student's cache", t1.doc("grading_jobs/rv2_p1").set({ payload: POISON }, { merge: true }));
+await deny("GJ13 TEACHER deletes a student's cache", t1.doc("grading_jobs/rv2_p1").delete());
+await deny("GJ14 unauth writes the cache", un.doc("grading_jobs/rv2_p1").set({ payload: POISON }));
+// THE PAYLOAD SURVIVED — refusals are worth nothing unless the cache is intact
+await ok("GJ15 the engine cache SURVIVED every write above (field-by-field)", s1.doc("grading_jobs/rv2_p1").get().then((d) => {
+  const v = d.data() ?? {};
+  if (v.status !== "graded") throw new Error(`status mutated: ${v.status}`);
+  if (v.payload?.source !== "reviewV2") throw new Error("provenance mutated");
+  if (v.payload?.presentationId !== "p1") throw new Error("presentation mutated");
+  if (v.payload?.answerSheetKey !== "sheet-hash") throw new Error("sheet key mutated");
+  if (v.payload?.results?.[0]?.isCorrect !== false) throw new Error("verdict flipped");
+}));
+// THE PREMISE OF THE CONSUMER-SIDE REPLAY CHECK [A4], pinned rather than
+// asserted in prose: `attempts/rv2_{presentationId}` is an ORDINARY attempt id
+// to this ruleset, so a client CAN put a document there. That is exactly why
+// reviewV2SubmitAttempt may not treat "a doc exists at this id" as provenance.
+await ok("GJ16 PREMISE: a client CAN create a plain attempt at an rv2_ docId (so the NAME proves nothing)", s1.doc("attempts/rv2_p_squat").set({ studentId: "student1", score: 100, passed: true, answers: [], totalQuestions: 0 }));
+await deny("GJ17 …but NOT one carrying the engine stamps the replay check demands", s1.doc("attempts/rv2_p_squat2").set({ studentId: "student1", score: 100, passed: true, resetEpoch: 0, presentationId: "p1", engineResult: { ok: true } }));
 
 // ── CASE 9: REGRESSION SWEEP — every pre-existing allow still passes ─────────
 // users

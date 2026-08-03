@@ -1,7 +1,7 @@
 {
-  "workstream": "17_ \u00a77b THE RULES LEG \u2014 authored, panel-reviewed, matrix + mutation verified",
+  "workstream": "17_ §7b THE RULES LEG — authored, panel-reviewed, matrix + mutation verified",
   "date": "2026-08-03",
-  "status": "NOT DEPLOYED \u2014 awaiting the Codex final gate, then its own deploy order",
+  "status": "NOT DEPLOYED — awaiting the Codex final gate, then its own deploy order",
   "artifacts": {
     "live_base": {
       "path": "audit/deepfix/task3/live_baseline/firestore.live.rules",
@@ -17,7 +17,7 @@
     },
     "matrix": {
       "path": "scripts/deepfix2/rules-matrix.mjs",
-      "sha16": "c2070cf3e746ce06"
+      "sha16": "e251ee63541f8c71"
     },
     "mutants": {
       "path": "scripts/deepfix2/rules-mutants.mjs",
@@ -41,156 +41,151 @@
     "createdInProd": "2026-06-28",
     "lines": 210,
     "sha256Prefix": "44914b60858a1dcd",
-    "note": "the base is CRLF and the artifact LF, so review the diff via diff-rules-vs-live.sh (6 declared hunks); deploying re-baselines the drift sha \u2014 re-run fetch-live-rules.mjs AFTER deploy"
+    "note": "the base is CRLF and the artifact LF, so review the diff via diff-rules-vs-live.sh (6 declared hunks); deploying re-baselines the drift sha — re-run fetch-live-rules.mjs AFTER deploy"
   },
   "deltaGroups": {
     "specMandated": [
       "nine server-owned subcollections client-unwritable (create/update/delete)",
       "six study_states label fields immutable on create/update and NON-ERASABLE on delete (r54)",
       "attempt override/engine keys unforgeable on the two live client write branches (CLAUSE 5(a))",
-      "attempt DELETE erasure guard (CLAUSE 5 + the r54 erasure law \u2014 reviewers split; ADDED, verified inert)",
+      "attempt DELETE erasure guard (CLAUSE 5 + the r54 erasure law — reviewers split; ADDED, verified inert)",
       "four new top-level matches: system_config/review_v2 (literal doc), ai_metering, ops_metrics, shadow_registry"
     ],
     "hardeningBeyondSpec": [
-      "F1 [CORRECTED at panel r2]: `role` cannot be changed on an EXISTING account \u2014 update denies any affectedKeys touching role, and DELETE is closed (`if false`) because delete-then-recreate was a two-call bypass that my first 'create-only' claim missed. Verified no live writer: role is written only at doc creation (AuthContext.jsx:75 signup; :113 Google, guarded by !userSnap.exists()); seedFullData.js:958 restates an IDENTICAL value behind TeacherRoute, which diff() omits from affectedKeys (pinned by matrix R5); db.js:286 touches profile only; and NO client path deletes a users doc. Pinned by matrix R1-R11 and mutants M4 + M7.",
+      "F1 [CORRECTED at panel r2]: `role` cannot be changed on an EXISTING account — update denies any affectedKeys touching role, and DELETE is closed (`if false`) because delete-then-recreate was a two-call bypass that my first 'create-only' claim missed. Verified no live writer: role is written only at doc creation (AuthContext.jsx:75 signup; :113 Google, guarded by !userSnap.exists()); seedFullData.js:958 restates an IDENTICAL value behind TeacherRoute, which diff() omits from affectedKeys (pinned by matrix R5); db.js:286 touches profile only; and NO client path deletes a users doc. Pinned by matrix R1-R11 and mutants M4 + M7.",
       "F2/F3: the server-only reset fence (resetAt/resetEpoch/resetInProgress) made client-unwritable. Verified zero client writers (src/ only READS resetAt at db.js:3578; the shipped dist bundle likewise contains only a read). Closes the backfill-fence laundering lever, the day_completions CAS-namespace fork, and the engine self-DoS."
     ],
     "deliberatelyNOTclosed": [
-      "csd/twi remain owner-writable \u2014 the live legacy posture the app depends on; carded to P6/DF2-46 and asserted as a DEFERRED-SURFACE ACKNOWLEDGEMENT (matrix 10b), never as an inertness proof",
-      "client attempt create/answers-update/plain-delete remain legal \u2014 load-bearing until DF2-46",
+      "csd/twi remain owner-writable — the live legacy posture the app depends on; carded to P6/DF2-46 and asserted as a DEFERRED-SURFACE ACKNOWLEDGEMENT (matrix 10b), never as an inertness proof",
+      "client attempt create/answers-update/plain-delete remain legal — load-bearing until DF2-46",
       "users/{uid}/session_states stays client-writable (legacy session state; documented, not an oversight)",
-      "`role` is SELF-ASSERTED AT SIGNUP (Signup.jsx:124-149 renders a public Teacher radio that db.js:254 writes verbatim), and the live base's TODO(security) grant \u2014 preserved verbatim \u2014 lets ANY teacher write ANY student's subcollections regardless of class membership. So 'teacher' is an availability gate, NOT a confidentiality boundary, and the ai_metering/ops_metrics reads this deploy adds inherit that. Closing it is a PRODUCT decision (gated teacher registration, or class-scoped teacher grants) \u2014 raised to David, not fixed here, and not caused by this program."
+      "`role` is SELF-ASSERTED AT SIGNUP (Signup.jsx:124-149 renders a public Teacher radio that db.js:254 writes verbatim), and the live base's TODO(security) grant — preserved verbatim — lets ANY teacher write ANY student's subcollections regardless of class membership. So 'teacher' is an availability gate, NOT a confidentiality boundary, and the ai_metering/ops_metrics reads this deploy adds inherit that. Closing it is a PRODUCT decision (gated teacher registration, or class-scoped teacher grants) — raised to David, not fixed here, and not caused by this program."
     ]
   },
   "verification": {
-    "matrix": {
-      "cases": 244,
-      "green": 244,
-      "rulesSha16": "f40f91fce3693b82",
-      "matrixSha16": "c2070cf3e746ce06"
-    },
+    "matrix": "262/262",
     "perClauseMutants": [
       {
         "id": "M1-delete-operand",
         "killed": true,
-        "score": "243/244",
+        "score": "261/262",
         "why": "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
         "firstKilledBy": "ALLOW-expected DENIED: 1c owner delete PLAIN study_state :: 7 PERMISSION_DENIED:"
       },
       {
         "id": "M2-nine-list-hole",
         "killed": true,
-        "score": "240/244",
+        "score": "258/262",
         "why": "dropping ONE subcollection name from ONE op branch must not slip through",
         "firstKilledBy": "DENY-expected FAILED: 4a owner create review_queues :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M3-hasAny-to-hasOnly",
         "killed": true,
-        "score": "242/244",
+        "score": "260/262",
         "why": "the six-label update guard must fire on ANY label, not only on a write of all six",
-        "firstKilledBy": "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels \u21d2 DENY :: Expected request to fail, but it succeeded."
+        "firstKilledBy": "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒ DENY :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M4-role-guard-removed",
         "killed": true,
-        "score": "241/244",
-        "why": "HARDENING B1 \u2014 without it a student self-promotes to teacher",
+        "score": "259/262",
+        "why": "HARDENING B1 — without it a student self-promotes to teacher",
         "firstKilledBy": "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M5-reset-fence-removed",
         "killed": true,
-        "score": "240/244",
-        "why": "HARDENING B2 \u2014 without it the backfill's epoch fence is client-forgeable",
+        "score": "258/262",
+        "why": "HARDENING B2 — without it the backfill's epoch fence is client-forgeable",
         "firstKilledBy": "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M8-fence-delete-removed",
         "killed": true,
-        "score": "240/244",
-        "why": "panel r3 BLOCKER \u2014 without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
+        "score": "258/262",
+        "why": "panel r3 BLOCKER — without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
         "firstKilledBy": "DENY-expected FAILED: E7 owner DELETES a fenced progress_meta doc :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M9-fence-create-removed",
         "killed": true,
-        "score": "243/244",
-        "why": "panel r3 \u2014 the fence CREATE branch carried no mutant, so it was pinned by assertion only",
+        "score": "261/262",
+        "why": "panel r3 — the fence CREATE branch carried no mutant, so it was pinned by assertion only",
         "firstKilledBy": "DENY-expected FAILED: E5 owner CREATES a progress doc pre-seeded with a reset fence :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M10-attempt-create-guard-removed",
         "killed": true,
-        "score": "232/244",
-        "why": "panel r3 \u2014 the attempt CREATE override guard carried no mutant",
+        "score": "249/262",
+        "why": "panel r3 — the attempt CREATE override guard carried no mutant",
         "firstKilledBy": "DENY-expected FAILED: 7a student create attempt carrying teacherEdited :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M11-users-create-widened",
         "killed": true,
-        "score": "243/244",
-        "why": "panel r3 \u2014 the users CREATE clause carried no mutant (only assertions R10/R11)",
+        "score": "261/262",
+        "why": "panel r3 — the users CREATE clause carried no mutant (only assertions R10/R11)",
         "firstKilledBy": "DENY-expected FAILED: R11 create someone ELSE's user doc :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M7-users-delete-reopened",
         "killed": true,
-        "score": "243/244",
-        "why": "panel r2 BLOCKER \u2014 an open delete branch is a two-call bypass of the role guard",
+        "score": "261/262",
+        "why": "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
         "firstKilledBy": "DENY-expected FAILED: R7 student DELETES own user doc (the bypass's first call) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M13-manual-docid-guard-removed",
         "killed": true,
-        "score": "241/244",
-        "why": "panel r5 \u2014 the manual-anchor docId is a SYNONYM three CS consumers key on; without the guard the r4 field fix is bypassable by naming the doc",
+        "score": "259/262",
+        "why": "panel r5 — the manual-anchor docId is a SYNONYM three CS consumers key on; without the guard the r4 field fix is bypassable by naming the doc",
         "firstKilledBy": "DENY-expected FAILED: A18 student creates an attempt at the manual-anchor docId shape :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M14-engine-stamps-dropped",
         "killed": true,
-        "score": "223/244",
-        "why": "panel r5 \u2014 resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create, teacher update, AND the r78 resource-side guard",
-        "firstKilledBy": "DENY-expected FAILED: A13 student creates an attempt carrying resetEpoch :: Expected request to fail, but it succeeded."
+        "score": "240/262",
+        "why": "panel r5 — resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create, teacher update, AND the r78 resource-side guard",
+        "firstKilledBy": "DENY-expected FAILED: GJ17 …but NOT one carrying the engine stamps the replay check demands :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M15-engine-resource-guard-removed",
         "killed": true,
-        "score": "234/244",
-        "why": "codex r78 BLOCKER \u2014 the guard is RESOURCE-side; without it an owner (or the teacher of record) replaces `answers` on an already engine-stamped attempt while every marker and the score stay intact, and completeDay maps those rows into graduation (completion.js:340, :377-379, :601-603, :716-721). M14 could never detect this: it mutates the key LIST, and before r78 there was no resource-side guard to mutate.",
+        "score": "252/262",
+        "why": "codex r78 BLOCKER — the guard is RESOURCE-side; without it an owner (or the teacher of record) replaces `answers` on an already engine-stamped attempt while every marker and the score stay intact, and completeDay maps those rows into graduation (completion.js:340, :377-379, :601-603, :716-721). M14 could never detect this: it mutates the key LIST, and before r78 there was no resource-side guard to mutate.",
         "firstKilledBy": "DENY-expected FAILED: AE1 owner UPDATE replaces answers on an engine attempt (same count, permuted ids) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M12-manualOverride-dropped",
         "killed": true,
-        "score": "238/244",
-        "why": "panel r4 BLOCKER \u2014 dropping the LIVE marker from the shared list must break create, update AND delete",
+        "score": "256/262",
+        "why": "panel r4 BLOCKER — dropping the LIVE marker from the shared list must break create, update AND delete",
         "firstKilledBy": "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded."
       },
       {
         "id": "M6-attempt-erasure-removed",
         "killed": true,
-        "score": "237/244",
-        "why": "CLAUSE 5 + r54 \u2014 without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
+        "score": "255/262",
+        "why": "CLAUSE 5 + r54 — without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
         "firstKilledBy": "DENY-expected FAILED: A3 student deletes an attempt carrying manualOverride (the real CS/override marker) :: Expected request to fail, but it succeeded."
       }
     ],
     "wholeFileMutations": [
       {
         "target": "raw live base",
-        "score": "137/244",
-        "failures": 107
+        "score": "154/262",
+        "failures": 108
       },
       {
         "target": "repo P10 draft",
-        "score": "165/244",
-        "failures": 79
+        "score": "182/262",
+        "failures": 80
       }
     ],
     "wholeFileOverlap": {
-      "liveOnly": 61,
-      "p10Only": 33,
+      "liveOnly": 62,
+      "p10Only": 34,
       "shared": 46
     },
     "mutantCoverage": {
@@ -206,7 +201,7 @@
         "users CREATE (M11)",
         "users DELETE (M7)",
         "attempt DELETE erasure guard (M6)",
-        "the SHARED serverOnlyAttemptKeys() list (M12) \u2014 one mutant now covers create+update+delete together"
+        "the SHARED serverOnlyAttemptKeys() list (M12) — one mutant now covers create+update+delete together"
       ],
       "assertionOnlyNoMutant": [
         "the four new top-level matches",
@@ -215,11 +210,11 @@
       ],
       "note": "'every clause is pinned' was an OVERSTATEMENT at r2; now scoped to every MUTATED clause, and the runner prints the narrowed wording."
     },
-    "note": "all numbers re-derived after the r78 fold, artifact frozen at rules sha16 f40f91fce3693b82. INDEPENDENTLY RE-EXECUTED BY THE DELEGATOR, not quoted from the authoring agent: the matrix was re-run (244/244), the PRE-FIX artifact was extracted from git and re-run to reproduce the defect (234/244, exactly the 10 AE cases incl. AE13 \"row 0 mutated\"), and this mutant suite was re-run (15/15 killed). A first attempt at that mutant run died on emulator PORT CONTENTION with a concurrent agent \u2014 a resource conflict, not an artifact failure; re-run clean once the other lap finished."
+    "note": "ALL NUMBERS RE-DERIVED FROM rules-mutants-report.json, never hand-typed. Artifact frozen at rules sha16 f40f91fce3693b82; matrix harness sha16 e251ee63541f8c71; canonical 262/262, 15/15 per-clause mutants killed. EVIDENCE-SET CHANGE SINCE THE CODEX r79 CERTIFICATION, disclosed rather than buried: Codex reviewed matrix c2070cf3e746ce06 — fully green on the 244 cases that harness then held — and certified the ARTIFACT. The typed-fix-audit fold then added CASE GJ (18 assertions pinning grading_jobs client-write denial across the full bypass set) as its ledger row C3 required. That change is PURELY ADDITIVE — 0 lines removed, 244 -> 262 cases — and the ARTIFACT BYTES ARE UNCHANGED, so the hash Codex certified is still exactly what the deploy order stages and verifies. The larger matrix re-verifies the same artifact fully green. It also caught a gate blind spot: gate.mjs checked the artifact sha but not the harness sha, so a stale matrix hash passed as 'every published score matches'; a FREEZE check on the matrix sha now fails closed."
   },
   "productionEvidence": {
     "resetFenceSweep": {
-      "verdict": "CLEAN \u2014 no reset fence exists anywhere; the GATE-4 backfill's epoch filter cannot have been pre-forged",
+      "verdict": "CLEAN — no reset fence exists anywhere; the GATE-4 backfill's epoch filter cannot have been pre-forged",
       "scanned": 2519,
       "groups": {
         "progress_meta": {
@@ -247,26 +242,26 @@
           }
         }
       },
-      "meaning": "CORRECTED [panel r4]: the earlier premise \u2014 'resetProgress is the fence's only writer and it is gated off, so any value would have been a client write' \u2014 was FALSE. The LEGACY resetProgress branch (the live one under RESET_V2_ENABLED=false) DOES stamp resetEpoch+resetAt on progress_meta (functions/foundation.js:2271-2273). What the ZERO result still establishes: no fence value exists anywhere, so nothing was forged AND no legacy reset has touched these docs. A non-zero result would have required correlating each hit with a reset_progress_server system_logs entry."
+      "meaning": "CORRECTED [panel r4]: the earlier premise — 'resetProgress is the fence's only writer and it is gated off, so any value would have been a client write' — was FALSE. The LEGACY resetProgress branch (the live one under RESET_V2_ENABLED=false) DOES stamp resetEpoch+resetAt on progress_meta (functions/foundation.js:2271-2273). What the ZERO result still establishes: no fence value exists anywhere, so nothing was forged AND no legacy reset has touched these docs. A non-zero result would have required correlating each hit with a reset_progress_server system_logs entry."
     }
   },
   "verifiedPropertiesOnEmulator": [
-    "full-overwrite set() (no merge) on a labeled study_state \u21d2 DENY (the implicit field drop is caught)",
-    "FieldValue.delete() erasure of a label \u21d2 DENY",
-    "delete of a labeled doc, including by a self-promoted teacher \u21d2 DENY",
-    "collection-group reads of review_queues / day_completions / study_states \u21d2 DENY",
-    "unauthenticated access to every guarded surface \u21d2 DENY",
+    "full-overwrite set() (no merge) on a labeled study_state ⇒ DENY (the implicit field drop is caught)",
+    "FieldValue.delete() erasure of a label ⇒ DENY",
+    "delete of a labeled doc, including by a self-promoted teacher ⇒ DENY",
+    "collection-group reads of review_queues / day_completions / study_states ⇒ DENY",
+    "unauthenticated access to every guarded surface ⇒ DENY",
     "grading_jobs read stays uid-bound; a non-owner cannot read it",
-    "system_config write denied even for a teacher; any system_config doc other than the literal review_v2 is unmatched \u21d2 DENY",
-    "no {document=**} catch-all and no overlapping write-granting match block \u21d2 no OR-semantics re-allow path",
-    "post-GATE-4 shape: legacy merge-writes on a LABEL-CARRYING doc still ALLOW (matrix 3b/3c) \u2014 the live client writers keep working"
+    "system_config write denied even for a teacher; any system_config doc other than the literal review_v2 is unmatched ⇒ DENY",
+    "no {document=**} catch-all and no overlapping write-granting match block ⇒ no OR-semantics re-allow path",
+    "post-GATE-4 shape: legacy merge-writes on a LABEL-CARRYING doc still ALLOW (matrix 3b/3c) — the live client writers keep working"
   ],
   "honestResiduals": [
-    "the reset-fence sweep's coverage is THINNER than its headline: progress_meta has ZERO docs in production and list_progress ONE, so 'clean' there is vacuous; class_progress carried the 2,518. Inertness is established by the SOURCE GREP (zero client writers, corroborated in the shipped bundle) \u2014 the sweep corroborates, it does not carry the argument.",
+    "the reset-fence sweep's coverage is THINNER than its headline: progress_meta has ZERO docs in production and list_progress ONE, so 'clean' there is vacuous; class_progress carried the 2,518. Inertness is established by the SOURCE GREP (zero client writers, corroborated in the shipped bundle) — the sweep corroborates, it does not carry the argument.",
     "from GATE 4 the erasure guard denies the pre-2026-07-18 CACHED-bundle client reset path. Bounded more tightly than first stated [panel r2]: there is no service worker or PWA and assets are content-hashed, so a stale bundle survives only inside an ALREADY-OPEN tab, and in the shipped bundle both risky branches are dead-code-eliminated (LIST_SCOPED_RECON minifies to true; the SERVER_RESET_PROGRESS=false batch-delete is absent from every dist chunk).",
-    "system_logs rows stay client-attributable to any uid \u2014 never an ENGINE signal, but CS must cross-check uid/createTime before treating one as evidence",
+    "system_logs rows stay client-attributable to any uid — never an ENGINE signal, but CS must cross-check uid/createTime before treating one as evidence",
     "the subcollection exclusion is a DENY-LIST: a renamed or newly added server subcollection ships client-writable by default (carded: pre-deploy grep check; invert to an allow-list at P6)",
-    "the engine's own authz has an enrolledClasses fallback (foundation.js:325-329) that is client-writable \u2014 carded PRE-FLIP, and it needs a cohort data-check first because 'phantom members' (in members/ yet absent from studentIds) may legitimately depend on it"
+    "the engine's own authz has an enrolledClasses fallback (foundation.js:325-329) that is client-writable — carded PRE-FLIP, and it needs a cohort data-check first because 'phantom members' (in members/ yet absent from studentIds) may legitimately depend on it"
   ],
   "panel": {
     "round1": {
@@ -274,35 +269,35 @@
       "adversarialForgeryLens": "NO"
     },
     "round2": {
-      "foldClosureLens": "NO \u2014 F1 published as closed when it was not (delete-then-recreate)",
-      "blastRadiusLens": "YES \u2014 zero live client writers denied; but found the firebase.json landmine"
+      "foldClosureLens": "NO — F1 published as closed when it was not (delete-then-recreate)",
+      "blastRadiusLens": "YES — zero live client writers denied; but found the firebase.json landmine"
     },
     "round2Fold": "delete branch closed, F1 restated honestly in all three documents, users create/delete pinned by R7-R11 + mutant M7, landmine disarmed, receipt claims narrowed to what the evidence supports",
     "nextGate": "Codex (final gate, per David's 2026-08-03 sequencing ruling)",
     "round3": {
-      "closureLens": "NO \u2014 found the SAME delete-side bypass on the reset fence, and that the attempts guard named five keys with zero writers",
-      "toolingLens": "NO \u2014 the firebase.json repoint was harmful and broke five harnesses",
+      "closureLens": "NO — found the SAME delete-side bypass on the reset fence, and that the attempts guard named five keys with zero writers",
+      "toolingLens": "NO — the firebase.json repoint was harmful and broke five harnesses",
       "fold": "reset fence closed on DELETE (mutant M8 + cases E7-E12); attempts guard now names `manualOverride`, the marker the LIVE writers actually stamp, with the anchor over-claim WITHDRAWN (an unmarked legacy passed-`new` attempt cannot be protected by rules without P6 semantics); repo-structure change fully reverted; four more mutants; every stale number re-derived"
     },
     "round4": {
-      "bypassEnumerationLens": "NO \u2014 found `manualOverride` client-forgeable on CREATE and strippable via teacher UPDATE (a 2-call erasure bypass); ~700 probes clean on everything else; 692-probe live-vs-merged differential showed zero unintended widening",
-      "claimsAndRevertLens": "NO \u2014 stale receipt block (already removed before the fold), the false sweep premise, a stale RESUME, and doc residue; the artifact rule TEXT judged sound and the revert functionally complete",
-      "fold": "`manualOverride` added to the create and teacher-update guards; and \u2014 the ROOT-CAUSE fix for three recurrences \u2014 every repeated key list hoisted into a rules FUNCTION (serverLabelKeys / resetFenceKeys / serverOwnedSubcollections / serverOnlyAttemptKeys) so a key can never again be present in one branch and absent from another. Full bypass set fixtured incl. the 2-call strip-then-delete sequence; mutant M12 pins the shared list."
+      "bypassEnumerationLens": "NO — found `manualOverride` client-forgeable on CREATE and strippable via teacher UPDATE (a 2-call erasure bypass); ~700 probes clean on everything else; 692-probe live-vs-merged differential showed zero unintended widening",
+      "claimsAndRevertLens": "NO — stale receipt block (already removed before the fold), the false sweep premise, a stale RESUME, and doc residue; the artifact rule TEXT judged sound and the revert functionally complete",
+      "fold": "`manualOverride` added to the create and teacher-update guards; and — the ROOT-CAUSE fix for three recurrences — every repeated key list hoisted into a rules FUNCTION (serverLabelKeys / resetFenceKeys / serverOwnedSubcollections / serverOnlyAttemptKeys) so a key can never again be present in one branch and absent from another. Full bypass set fixtured incl. the 2-call strip-then-delete sequence; mutant M12 pins the shared list."
     },
     "round5": {
-      "refactorEquivalenceLens": "YES \u2014 62-vs-62 statement textual proof that the de-duplication changed nothing but the two intended additions; 1136-probe independent differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows); evaluation limits MEASURED (~17x headroom, and an over-budget ruleset fails at COMPILE time so it can never become a silent runtime denial); plus 12 NEW function-swap mutants the reviewer authored \u2014 all killed",
-      "bypassReEnumerationLens": "NO \u2014 but explicitly 'no reason to block the deploy on rule content; the artifact is strictly safer than live on every surface I probed'. 2205 assertions across the six named protected things found ZERO holes and zero inertness regressions: 'I could not construct a single asymmetric branch.' The NO is on DISCLOSURE \u2014 the enumeration stopped at the collections the spec named rather than at what the ENGINE reads as truth: the SYNONYMS.",
-      "fold": "engine stamps (resetEpoch/presentationId/queueId/engineResult) added to the shared attempt-key list \u2014 resetEpoch is load-bearing because its mere presence is the engine/legacy discriminator; the manual-anchor DOCID closed as a synonym for the field r4 closed (three CS consumers, one a migration writer, treat the id as equivalent); the four uncovered authority surfaces DISCLOSED in the artifact header; gradedIsCorrect carded for gate 4 because rules cannot inspect array elements."
+      "refactorEquivalenceLens": "YES — 62-vs-62 statement textual proof that the de-duplication changed nothing but the two intended additions; 1136-probe independent differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows); evaluation limits MEASURED (~17x headroom, and an over-budget ruleset fails at COMPILE time so it can never become a silent runtime denial); plus 12 NEW function-swap mutants the reviewer authored — all killed",
+      "bypassReEnumerationLens": "NO — but explicitly 'no reason to block the deploy on rule content; the artifact is strictly safer than live on every surface I probed'. 2205 assertions across the six named protected things found ZERO holes and zero inertness regressions: 'I could not construct a single asymmetric branch.' The NO is on DISCLOSURE — the enumeration stopped at the collections the spec named rather than at what the ENGINE reads as truth: the SYNONYMS.",
+      "fold": "engine stamps (resetEpoch/presentationId/queueId/engineResult) added to the shared attempt-key list — resetEpoch is load-bearing because its mere presence is the engine/legacy discriminator; the manual-anchor DOCID closed as a synonym for the field r4 closed (three CS consumers, one a migration writer, treat the id as equivalent); the four uncovered authority surfaces DISCLOSED in the artifact header; gradedIsCorrect carded for gate 4 because rules cannot inspect array elements."
     },
     "round78_codex": {
-      "verdict": "NO \u2014 BLOCKING",
+      "verdict": "NO — BLOCKING",
       "finding": "engine MARKERS were immutable but engine EVIDENCE was not: the student answers-only branch had no condition on the EXISTING document, so an owner could replace `answers` on an already engine-stamped attempt. completeDay classifies engine evidence from resetEpoch PRESENCE and validates only the correct-COUNT, so a same-count permutation of isCorrect across word IDs passes the arithmetic while letting the client choose which words graduate and receive server-written reviewRestingUntil. Codex reproduced it: marker write 403, answers write 200.",
-      "fold": "guard authored by an independent agent (NOT the delegator \u2014 this was the FOURTH consecutive review to find the same defect class in his work, so he stopped authoring). `engineStampKeys()` hoisted into `isEngineStampedAttempt()` and applied ABOVE the student|teacher OR, so one expression covers both branches. THE AGENT FOUND A PATH CODEX DID NOT NAME: the teacher-of-record branch was equally exploitable (AE9). Nine of the ten enumerated paths were live allows pre-fix, not one.",
-      "compatibilityDecision": "guarded on the four ENGINE keys \u2014 broader than Codex's stated minimum (`resetEpoch` alone) because guarding only the key a reviewer names is the exact failure being repaired; deliberately NARROWER than the full marker set because SERVER_OVERRIDE=false makes the teacher-of-record client write live TODAY, so the full set would convert a legal write into a denial on historical manual/teacher-edited documents. Pinned by fixtures AE14/AE15.",
-      "processDefectsAlsoRaised": "Codex logged two protocol violations of mine: I committed six times while it held the baton (one commit swept its own probe files into my authorship), and the ready marker omitted three required fields so its watcher threw instead of firing. Both generalized in memory \u2014 baton exclusivity applies to EVERY executor, not just the one it was first written for.",
+      "fold": "guard authored by an independent agent (NOT the delegator — this was the FOURTH consecutive review to find the same defect class in his work, so he stopped authoring). `engineStampKeys()` hoisted into `isEngineStampedAttempt()` and applied ABOVE the student|teacher OR, so one expression covers both branches. THE AGENT FOUND A PATH CODEX DID NOT NAME: the teacher-of-record branch was equally exploitable (AE9). Nine of the ten enumerated paths were live allows pre-fix, not one.",
+      "compatibilityDecision": "guarded on the four ENGINE keys — broader than Codex's stated minimum (`resetEpoch` alone) because guarding only the key a reviewer names is the exact failure being repaired; deliberately NARROWER than the full marker set because SERVER_OVERRIDE=false makes the teacher-of-record client write live TODAY, so the full set would convert a legal write into a denial on historical manual/teacher-edited documents. Pinned by fixtures AE14/AE15.",
+      "processDefectsAlsoRaised": "Codex logged two protocol violations of mine: I committed six times while it held the baton (one commit swept its own probe files into my authorship), and the ready marker omitted three required fields so its watcher threw instead of firing. Both generalized in memory — baton exclusivity applies to EVERY executor, not just the one it was first written for.",
       "stillOpenFromCodexR78": [
-        "item 3 \u2014 bind engine row wordIds to the server presentation inside completeDay (functions/ was outside the authoring agent's touch set; the arithmetic is still count-only)",
-        "the rv2_{presentationId} replay follow-up \u2014 a client can still pre-seed an UNSTAMPED attempt at an rv2_* docId"
+        "item 3 — bind engine row wordIds to the server presentation inside completeDay (functions/ was outside the authoring agent's touch set; the arithmetic is still count-only)",
+        "the rv2_{presentationId} replay follow-up — a client can still pre-seed an UNSTAMPED attempt at an rv2_* docId"
       ]
     }
   },
@@ -310,37 +305,37 @@
   "ledgerAudit": {
     "when": "2026-08-03, prompted by David asking whether the fold ledger was actually being checked",
     "found": [
-      "the r1 ledger existed with ZERO rows ticked \u2014 no separate verify pass had been run",
+      "the r1 ledger existed with ZERO rows ticked — no separate verify pass had been run",
       "the r2 fold had NO ledger at all",
-      "row B1 was WRITTEN WRONG: it planned 'split the users write into create/update' with update-only fixtures, so DELETE never entered the plan \u2014 that row, faithfully executed, produced the false 'role is create-only, hole closed' claim both r2 reviewers then caught",
-      "row C2 (mixed-batch delete of study_states) was never implemented \u2014 now cases 3h/3i/3j",
-      "rows D2/D5 landed the csd/twi deferral + the system_logs honesty note in the SPEC and 17_ but NOT in the merged artifact, the file a deployer actually reads \u2014 now both are in it"
+      "row B1 was WRITTEN WRONG: it planned 'split the users write into create/update' with update-only fixtures, so DELETE never entered the plan — that row, faithfully executed, produced the false 'role is create-only, hole closed' claim both r2 reviewers then caught",
+      "row C2 (mixed-batch delete of study_states) was never implemented — now cases 3h/3i/3j",
+      "rows D2/D5 landed the csd/twi deferral + the system_logs honesty note in the SPEC and 17_ but NOT in the merged artifact, the file a deployer actually reads — now both are in it"
     ],
     "rulesAdopted": [
-      "a ledger row for a security/closure claim must enumerate the BYPASS SET (every op and sequence reaching the same end state), with a fixture per path \u2014 written as the claim to falsify, not the edit to make",
+      "a ledger row for a security/closure claim must enumerate the BYPASS SET (every op and sequence reaching the same end state), with a fixture per path — written as the claim to falsify, not the edit to make",
       "the verify pass must physically tick each row with file:line + fixture reference before any claim is published",
       "a 'every clause is pinned' claim requires one mutant per clause INCLUDING newly added ones"
     ]
   },
   "deployLandmine": {
-    "status": "MY r2 FIX WAS WRONG AND IS FULLY REVERTED \u2014 firestore.rules is back at its original path; firebase.json again reads \"rules\": \"firestore.rules\"",
-    "theRealRisk": "a plain `firebase deploy --only firestore:rules` from /app ships whatever sits at firestore.rules, today the UNSHIPPED P10 cutover: 165/244 on this matrix with 31 P10-only live-flow regressions, plus it breaks teacher signup by constraining user CREATE to role:'student'",
+    "status": "MY r2 FIX WAS WRONG AND IS FULLY REVERTED — firestore.rules is back at its original path; firebase.json again reads \"rules\": \"firestore.rules\"",
+    "theRealRisk": "a plain `firebase deploy --only firestore:rules` from /app ships whatever sits at firestore.rules, today the UNSHIPPED P10 cutover: 182/262 on this matrix with 34 P10-only live-flow regressions, plus it breaks teacher signup by constraining user CREATE to role:'student'",
     "whyMyFixWasWorse": [
-      "the 'blind deploy is now a no-op' claim was FALSE: firebase-tools skips an upload only when {name, content} deep-equals the live ruleset, and I changed name \u2014 so every deploy would cut a NEW ruleset",
-      "once the merged artifact shipped, a bare `firebase deploy` would have SILENTLY ROLLED BACK the whole workstream while printing success \u2014 strictly worse than a visible outage",
+      "the 'blind deploy is now a no-op' claim was FALSE: firebase-tools skips an upload only when {name, content} deep-equals the live ruleset, and I changed name — so every deploy would cut a NEW ruleset",
+      "once the merged artifact shipped, a bare `firebase deploy` would have SILENTLY ROLLED BACK the whole workstream while printing success — strictly worse than a visible outage",
       "it broke five harnesses, one DESTRUCTIVELY (lsr_deepfix_flag_on.mjs strands feature flags flipped ON with no restore path)",
       "the committed blob is LF while production is CRLF, so a fresh checkout would have deployed 210 changed lines",
       "it collapsed the drift BASELINE and the deploy SOURCE into one script-regenerated file"
     ],
-    "theActualControl": "what DEPLOY_ORDER.md \u00a72 already prescribes and what stopped r91: the deploy path is a STAGING SLOT. The rules order must cp the merged artifact to firestore.rules, verify its sha, deploy, then re-run fetch-live-rules.mjs to re-baseline. No 'disarmed' claim is published \u2014 stage-and-verify plus the executor's read-before-deploy refusal is the control."
+    "theActualControl": "what DEPLOY_ORDER.md §2 already prescribes and what stopped r91: the deploy path is a STAGING SLOT. The rules order must cp the merged artifact to firestore.rules, verify its sha, deploy, then re-run fetch-live-rules.mjs to re-baseline. No 'disarmed' claim is published — stage-and-verify plus the executor's read-before-deploy refusal is the control."
   },
   "structuralFix": {
-    "why": "three consecutive review rounds found the SAME defect \u2014 a key present in one operation branch's list and absent from another's (role: update-only; the reset fence: no delete; manualOverride: delete-only). Root cause: each key set was written out once per branch, so editing one copy left the others behind.",
-    "what": "every repeated key set is now a rules FUNCTION called by all branches \u2014 serverLabelKeys(), resetFenceKeys(), serverOwnedSubcollections(), serverOnlyAttemptKeys(). Divergence is now structurally impossible rather than merely discouraged.",
-    "proof": "pure refactor + the new guards: matrix 244/244 green, all 14 mutants killed, and M12 (dropping manualOverride from the shared list) breaks create, update AND delete cases at once. Panel r5 proved the refactor equivalence-preserving independently: a 62-vs-62 statement textual comparison and a 1136-probe differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows), plus 12 function-swap mutants the reviewer authored \u2014 all killed."
+    "why": "three consecutive review rounds found the SAME defect — a key present in one operation branch's list and absent from another's (role: update-only; the reset fence: no delete; manualOverride: delete-only). Root cause: each key set was written out once per branch, so editing one copy left the others behind.",
+    "what": "every repeated key set is now a rules FUNCTION called by all branches — serverLabelKeys(), resetFenceKeys(), serverOwnedSubcollections(), serverOnlyAttemptKeys(). Divergence is now structurally impossible rather than merely discouraged.",
+    "proof": "pure refactor + the new guards: the matrix fully green with every per-clause mutant killed (as re-derived in `verification` above), and M12 (dropping manualOverride from the shared list) breaks create, update AND delete cases at once. Panel r5 proved the refactor equivalence-preserving independently: a 62-vs-62 statement textual comparison and a 1136-probe differential (481 allows removed, all classified; 4 added, all intended reads; ZERO new write allows), plus 12 function-swap mutants the reviewer authored — all killed."
   },
   "provenanceDefectsFixed": {
-    "matrixShaMismatch": "the mutants report recorded a matrixSha16 present in NO commit \u2014 I edited the harness after the mutation run and committed without re-running, so 12/12 was bound to a harness a reviewer could not reconstruct. The reviewer re-derived it independently (all 12 still die), and rules-mutants.mjs now FAILS CLOSED when the harness hash moves under it.",
-    "frozenShaCitation": "verification.note cited the r3 PRE-refactor artifact sha as 'the frozen artifact' \u2014 the one field whose entire job is to bind the numbers to the frozen file named the wrong file. Re-derived below."
+    "matrixShaMismatch": "the mutants report recorded a matrixSha16 present in NO commit — I edited the harness after the mutation run and committed without re-running, so 12/12 was bound to a harness a reviewer could not reconstruct. The reviewer re-derived it independently (all 12 still die), and rules-mutants.mjs now FAILS CLOSED when the harness hash moves under it.",
+    "frozenShaCitation": "verification.note cited the r3 PRE-refactor artifact sha as 'the frozen artifact' — the one field whose entire job is to bind the numbers to the frozen file named the wrong file. Re-derived below."
   }
 }

@@ -156,6 +156,21 @@ if (existsSync(ART) && existsSync(EVID)) {
   } else {
     pass("FREEZE", `evidence sha matches the artifact (${actual})`);
   }
+  // THE INSTRUMENT, not just the specimen [audit F-gate, 2026-08-03]. This gate
+  // checked only the ARTIFACT sha, so when a fold added 18 cases to the matrix
+  // the evidence file kept certifying a matrix hash that no longer existed and
+  // the gate still printed "every published score matches". A score is only
+  // reproducible if the HARNESS that produced it is also the one in the tree.
+  const MATRIX = "/app/scripts/deepfix2/rules-matrix.mjs";
+  if (existsSync(MATRIX) && ev?.matrixSha16) {
+    const mNow = sha16(MATRIX);
+    if (ev.matrixSha16 !== mNow) {
+      fail("FREEZE", `evidence was produced by matrix ${ev.matrixSha16} but the tree has ${mNow} — ` +
+        "re-run rules-mutants.mjs; every score in the receipt is stale");
+    } else {
+      pass("FREEZE", `evidence matrix matches the tree (${mNow})`);
+    }
+  }
 }
 
 // ── GATE 3: NUMBERS — no hand-typed score may contradict the evidence ────────

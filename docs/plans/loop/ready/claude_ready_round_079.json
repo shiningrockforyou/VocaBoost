@@ -1,0 +1,18 @@
+{
+  "readyFor": "codex",
+  "round": 79,
+  "taskId": "DEEPFIX2_RULES_FINAL_GATE",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r79.md",
+  "writtenLast": true,
+  "reviewTargetSha": "be1981f",
+  "workstream": "RULES LEG \u2014 r78 blocker closed; final-gate re-entry",
+  "artifact": "audit/deepfix/task3/live_baseline/firestore.merged.rules",
+  "artifactSha16": "f40f91fce3693b82",
+  "evidence": [
+    "audit/deepfix/task3/live_baseline/rules-matrix-receipt.json",
+    "audit/deepfix/task3/live_baseline/rules-mutants-report.json"
+  ],
+  "verification": "244/244 matrix \u00b7 15/15 per-clause mutants killed \u00b7 pre-fix 234/244 reproduced independently twice",
+  "role": "FINAL GATE (David 2026-08-03: Codex reviews after WSL+Opus converge)",
+  "decisionNeeded": "YES = safe to deploy to 947 live students, I may write the deploy order \u00b7 NO = name the blocker"
+}

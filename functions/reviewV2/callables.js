@@ -99,6 +99,41 @@ function requireStrings(data, names) {
   }
 }
 
+/**
+ * [A4] IS THIS STORED DOCUMENT AN ENGINE ATTEMPT FOR THIS UID + PRESENTATION?
+ *
+ * The submit callable addresses its attempt by the DERIVED id
+ * `rv2_{presentationId}`, which is neither secret nor server-owned: the live
+ * ruleset lets a student create a plain `attempts/{anything}` document, and
+ * the client derives the same id. So the existence of a document there is not
+ * evidence of anything — provenance must come from the CONTENT.
+ *
+ * The engine's own write (the WRITES block below) always stamps all five:
+ * `studentId`, `presentationId`, an integer `resetEpoch` (THE engine/legacy
+ * discriminator, completion.js:340), the complete frozen `gatePosture` shape
+ * (15_ §4), and `engineResult`. Three of those are in the rules artifact's
+ * `engineStampKeys()`, so a client cannot forge them on create or add them on
+ * update — the rules and this check are the two halves of one fence, and this
+ * half holds even where rules do not apply (Admin SDK, a pre-lockdown
+ * document, or a future rules regression).
+ */
+function isEngineAttemptFor(stored, {uid, presentationId}) {
+  if (!stored || typeof stored !== "object") return false;
+  if (stored.studentId !== uid) return false;
+  if (typeof presentationId !== "string" || presentationId.length === 0) return false;
+  if (stored.presentationId !== presentationId) return false;
+  if (!Number.isInteger(stored.resetEpoch)) return false;
+  const gp = stored.gatePosture;
+  const postureComplete = Boolean(gp) && typeof gp === "object" &&
+    typeof gp.effectiveEnabled === "boolean" &&
+    Number.isInteger(gp.configVersion) && gp.configVersion >= 1 &&
+    Number.isInteger(gp.threshold) && gp.threshold >= 1 && gp.threshold <= 100 &&
+    typeof gp.source === "string" && gp.source.length > 0;
+  if (!postureComplete) return false;
+  if (!stored.engineResult || typeof stored.engineResult !== "object") return false;
+  return true;
+}
+
 /** Preflight gate: authorization (throws) + protocol posture (returns a
  *  refusal object or null). Binding posture checks re-run in every txn. */
 async function resolveAndGate(db, {uid, classId, listId, clientContractVersion}) {
@@ -555,8 +590,21 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
     const refusal = assertServableInTxn(txnConfig, d.clientContractVersion);
     if (refusal) return refusal;
     if (aSnap.exists) {
-      // Idempotent retry ⇒ the NORMALIZED envelope, ZERO writes [§8 + C5].
+      // [A4 · Codex r78 follow-up] PROVENANCE IS NEVER INFERRED FROM THE
+      // DOCUMENT NAME. `attempts` create is open to the owning student in the
+      // live ruleset (rules-matrix 9-a1 / A21) and `rv2_{presentationId}` is
+      // an id the client can derive itself (reviewV2Client.js:152), so "a doc
+      // exists at this id" proved nothing — yet this early return handed back
+      // its `score`/`passed`/`engineResult` as an engine replay. A replay is
+      // now served ONLY for a fully-stamped ENGINE attempt belonging to THIS
+      // uid and claiming THIS presentation; anything else fails CLOSED as
+      // DATA with ZERO writes. Fixtures: lap CASE TR (pre-seeded · legacy
+      // shaped · wrong presentation · foreign uid · the legitimate replay).
       const stored = aSnap.data();
+      if (!isEngineAttemptFor(stored, {uid, presentationId: d.presentationId})) {
+        return {status: "presentation_invalid",
+          reason: "attempt identity occupied by a non-engine document"};
+      }
       const storedRows = Array.isArray(stored.answers) ? stored.answers : [];
       const er = stored.engineResult ?? {};
       return {
@@ -852,6 +900,7 @@ const reviewV2EvaluateThresholds = onCall({enforceAppCheck: false}, async (reque
 
 module.exports = {
   loadCanonicalWordsStrict, // test-facing [r73 — the N-1 gap fixture]
+  isEngineAttemptFor, // test-facing [A4 — the replay-provenance predicate]
   _testHooks, // emulator-only [r74 C8a]
   reviewV2ComposeSession,
   reviewV2ComposeNewTest,

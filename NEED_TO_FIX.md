@@ -8,6 +8,140 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 21. `grading_in_progress` is returned for a PERMANENT condition, but its frozen contract says "poll" · client contract · BLOCKS DF2-51 CLIENT CUTOVER (audit F3, 2026-08-03)
+
+**The contradiction.** `src/services/reviewV2Client.js:55-59` freezes `GRADING_IN_PROGRESS` as
+*"Retryable, zero writes — the caller polls, it does NOT re-submit with a new composeKey"*. That is
+correct for what the status was invented for: a genuinely concurrent worker holding a live 180s lease,
+which resolves on its own.
+
+The typed-fix-audit fold then reused the SAME status for a condition that **never resolves**: a cached
+grading-job payload that fails provenance / presentation / answer-sheet binding
+(`functions/reviewV2/typedGrading.js` `usableCachedResults`). A job in `status: graded` does not
+self-clear, so the refusal is permanent. **A client that obeys the frozen contract polls forever.**
+The lap's own recovery fixture (`engine-emulator-lap.mjs:1517-1520`) exercises the recompose that the
+contract tells the client not to do — so the code and the published contract disagree today.
+
+**Not a live bug.** No client consumer of the status exists yet (grep: only the definition), and the
+engine is dark. It is a **prerequisite for `df2-51-client`**: shipping the cutover against the current
+contract would build a poll-forever path for a real student.
+
+**Options (pick at cutover, with a fixture either way):**
+1. A distinct DATA status for the permanent case (e.g. `grade_unusable`) meaning *recompose, do not
+   poll* — costs one entry in the frozen RV2 list, which is a versioned client contract.
+2. Keep one status but carry a discriminator field (`retryable: true|false`) the client switches on.
+3. Make the engine clear a poisoned job so the condition becomes genuinely transient — rejected on
+   first look, because deleting a `graded` job on refusal hands the client a cache-eviction lever.
+
+**Note the interaction with card 18:** the collision defect ALSO routes a second student into a
+refusal that only a recompose clears, so whichever option is chosen must cover both.
+
+---
+
+## 20. "An engine key's presence proves server authorship" is TRUE GOING FORWARD, NOT HISTORICALLY · rules/activation · CUTOVER PREREQUISITE (Codex r79, 2026-08-03)
+
+**Status:** carded as an ACTIVATION/CUTOVER prerequisite by Codex's own ruling — explicitly *not* a
+rules-deploy blocker. The protective rules should ship regardless; they are what makes the claim true
+going forward.
+
+**The claim.** `firestore.merged.rules:133` and `:346` state that because the attempt CREATE guard
+denies a client all four engine keys, "the presence of any one of them proves the document was
+server-written."
+
+**Why it is overclaimed for HISTORY.** That guard does not exist in production yet. The LIVE create
+rule allows arbitrary extra fields, so any attempt written before this ruleset deploys *could* carry a
+client-authored `resetEpoch`/`presentationId`/`queueId`/`engineResult`. What we actually have is: the
+client feature flag is disabled, a source grep finds no client writer, and the B2 investigation found
+zero `resetEpoch` attempts — but B2 is a **sample** (`scripts/deepfix2/b2-database-investigation.mjs:73`
+counts `resetEpoch` present/absent only), not a cohort-wide provenance proof, and it does not cover the
+other three keys at all.
+
+**What closes it.** Before any pre-existing attempt is admitted as engine evidence, scan production
+attempts cohort-wide for all four keys and quarantine anything not fully bound to a real server
+presentation. Queued as `engine-key-provenance-scan`.
+
+**Comment repair is deliberately deferred.** Correcting the wording at its source would change the
+artifact's bytes, and `f40f91fce3693b82` is the exact hash Codex certified and the deploy order
+verifies before staging. The correction is therefore a POST-DEPLOY step (the artifact is re-baselined
+by `fetch-live-rules.mjs` after deploy anyway) and is written into the deploy order as such.
+
+---
+
+## 19. The live grading-job key namespace is client-chosen — `rv2_` is a convention, not a boundary · backend · DEFENSE IN DEPTH (carded 2026-08-03, deferred by design)
+
+**Status:** consumer-side closure is in the typed-fix-audit fold (dark engine code); hardening the
+LIVE callable at its source is deliberately NOT bundled with it.
+
+**What's exposed.** `functions/index.js:1048-1051` derives the grading-job key from client-supplied
+`writeContext/gradeContext.attemptDocId` and claims `grading_jobs/{that key}` with no namespace
+restriction (`GRADE_JOB_ENABLED = true`, `:104`). A caller may therefore name **any** key, including
+the engine's `rv2_{presentationId}` — and the client holds its own `presentationId`
+(`src/services/reviewV2Client.js:152`). The payload the live path caches
+(`functions/index.js:1136-1141`) satisfies the engine's cached-grade acceptance test
+(`functions/reviewV2/typedGrading.js:102-104`), so a pre-seeded grade would be consumed as engine
+evidence. The header comment at `typedGrading.js:13-16` calling `rv2_` "collision-free against the
+legacy key space" is FALSE as written — it is a naming convention, not a namespace boundary
+(corrected at source in the fold).
+
+**Why the fix is split.** The consumer-side check (engine provenance + presentation + answer-sheet
+binding, fail-closed) lives entirely in dark code and closes the exploitable path. Restricting the key
+namespace inside `gradeTypedTest` changes the LIVE grading callable that all 947 students use today —
+a different blast radius, needing its own fold, its own fixtures and its own deploy order.
+
+**Option if it is ever wanted:** refuse a client-supplied `attemptDocId` matching `^rv2_` in
+`gradeTypedTest` (server-reserved prefix), with a fixture proving the legacy client flow is unchanged.
+Defense in depth only — not a prerequisite for the engine, which fails closed without it.
+
+---
+
+## 18. Engine `rv2_` attempt/job ids COLLIDE ACROSS STUDENTS in the same class · review-v2 engine · BLOCKS THE 25WT REHEARSAL (found 2026-08-03, typed-fix-audit fold)
+
+**What's broken.** Two students in the SAME class + list + day + epoch derive the **same**
+`presentationId`, therefore the same `attempts/rv2_{presentationId}` document id and the same
+`grading_jobs/rv2_{presentationId}` key.
+
+**Why it happens (root cause).** `presentationId` is
+`{classId}_{listId}_d{day}_e{epoch}_p{seq}` (`functions/reviewV2/presentations.js:445`; `_n{seq}` /
+`_r{seq}` for new-day and rerun) over a queue id that carries **no uid**
+(`functions/reviewV2/composer.js:82-84`). That is sound where it is stored — `review_presentations`
+and `review_queues` are under `users/{uid}/` — but `attempts` and `grading_jobs` are **GLOBAL**
+top-level collections, and `seq` counts per user, so every student's first review presentation of a
+day is `_p1`.
+
+**Impact.** In a class with more than one student:
+- MCQ: the second student's submit finds the first student's attempt at that id. **Before the A4
+  replay-provenance check it was returned to them as their own "replay" — the first student's
+  score/passed/engineResult.** completeDay would then refuse it (`studentId !== uid`), so it did not
+  reach graduation, but the student saw a grade that was not theirs.
+- Typed: the second student's grading-job claim hits `job.uid !== uid` and throws
+  `permission-denied` (`functions/index.js:936-938`) — a hard failure.
+- With A4 in place the MCQ case now fails CLOSED (`presentation_invalid`) instead of leaking a grade.
+  **CORRECTED 2026-08-03 (independent audit) — an earlier draft of this card said "both students are
+  still blocked". That was FALSE, and contradicted by the very fixtures cited below.** What the
+  fixtures actually assert: the **FIRST** student's attempt lands normally (`attempt_written`,
+  score 100 — `engine-emulator-lap.mjs:1906`) and remains the only document at the colliding id
+  (`:1913`); only the **SECOND** student is refused (`:1910`). That second student is not permanently
+  stuck either — recomposing advances their own per-user `presentationCount` to `_p2`, which no longer
+  collides. So the real shape is: **one student silently wins the id, the other eats a refusal and a
+  forced recompose.** It is a correctness/availability defect, not (post-A4) a data-exposure one — and
+  it is a rehearsal blocker because a multi-student class is exactly where it bites.
+
+**How it stayed hidden.** Every engine fixture before this fold used ONE student per class. It was
+surfaced by the typed-fix-audit lap only because CASE TG needed seven students; it is now pinned by
+the `TR COLLISION` fixtures in `scripts/deepfix2/engine-emulator-lap.mjs`, which assert the
+fail-closed behaviour so the defect cannot be lost.
+
+**Fix direction.** Make the derived document ids uid-scoped — `rv2_{uid}_{presentationId}`, or put the
+uid into the presentation id itself. Both `attempts` and `grading_jobs` must move together or the
+typed leg splits. NOT a hot fix: it changes the id scheme the whole engine and its evidence chain key
+on (completion's `serverClaim.attemptDocId` binding, the lap, the rules artifact's docId reasoning).
+
+**Effort/risk.** Medium effort, contained blast radius while the engine is dark (`REVIEW_V2_CLIENT=false`,
+no live student writes an `rv2_` document today), but it MUST land before the 25WT rehearsal, which
+runs a real class of students.
+
+---
+
 ## 17. Unfiltered `study_states` full-collection scans → 207M Firestore QUERY reads/month (~83% of the GCP bill)  ·  client/query  ·  HIGH (measured 2026-07-30)
 
 **What's broken.** Four call sites read a student's ENTIRE `study_states` subcollection with no `where`,
@@ -617,3 +751,4 @@ this one cannot be.
 
 **Not urgent for the rules deploy** — the ruleset is strictly safer than live either way. It IS a
 prerequisite for **gate 4 (the 26SM backfill)**, alongside the rules leg itself.
+
