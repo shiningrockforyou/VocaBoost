@@ -14,7 +14,7 @@
     ]
   },
   "firestore": {
-    "rules": "audit/deepfix/task3/live_baseline/firestore.live.rules",
+    "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
   "emulators": {

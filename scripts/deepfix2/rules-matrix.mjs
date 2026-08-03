@@ -104,6 +104,13 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   });
   // the server-only reset/epoch fence (B2 guard targets)
   b.set(db.doc("users/student1/progress_meta/fenced"), { resetEpoch: 1, resetAt: 1000, resetInProgress: false });
+  b.set(db.doc("users/student1/list_progress/fenced_lp"), { resetEpoch: 2, twi: 30 });
+  b.set(db.doc("users/student1/study_states/w_fenced"), { status: "learning", resetEpoch: 1 });
+  // an attempt carrying the marker the LIVE override writers actually stamp
+  b.set(db.doc("attempts/a_manual"), {
+    studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
+    manualOverride: true, manualReviewNote: "CS manual pass",
+  });
   // system_config: the seeded dark doc
   b.set(db.doc("system_config/review_v2"), { enabled: false, threshold: 92, configVersion: 1 });
   // server-only sinks
@@ -332,6 +339,16 @@ await deny("E3 owner sets resetInProgress (engine self-DoS)", s1.doc("users/stud
 await deny("E4 owner sets resetEpoch on list_progress (the other max() input)", s1.doc("users/student1/list_progress/c1_l1").update({ resetEpoch: 7 }));
 await deny("E5 owner CREATES a progress doc pre-seeded with a reset fence", s1.doc("users/student1/progress_meta/forged").set({ resetEpoch: 9, resetAt: 1 }));
 await ok("E6 owner writes NON-fence fields on the same doc (unchanged)", s1.doc("users/student1/progress_meta/fenced").update({ someLegacyField: 1 }));
+// [panel r3 BLOCKER] guarding create+update alone left DELETE-then-recreate as a
+// clean bypass. The whole set, not just the direct write:
+await deny("E7 owner DELETES a fenced progress_meta doc", s1.doc("users/student1/progress_meta/fenced").delete());
+await deny("E8 owner DELETES a fenced list_progress doc", s1.doc("users/student1/list_progress/fenced_lp").delete());
+await deny("E9 TEACHER deletes another student's fenced doc", t1.doc("users/student1/progress_meta/fenced").delete());
+await deny("E10 owner deletes a study_state carrying resetEpoch (no six-label)", s1.doc("users/student1/study_states/w_fenced").delete());
+await ok("E11 the fenced doc still EXISTS after the refused deletes (the bypass is dead)", s1.doc("users/student1/progress_meta/fenced").get());
+await ok("E12 deleting an UNFENCED progress doc still works (live reset path preserved)", s1.doc("users/student1/class_progress/c2_l2b").set({ csd: 0 }).then(() => s1.doc("users/student1/class_progress/c2_l2b").delete()));
+// [panel r3 BLOCKER-2] the attempts guard now names the marker the LIVE writers stamp.
+await deny("A3 student deletes an attempt carrying manualOverride (the real CS/override marker)", s1.doc("attempts/a_manual").delete());
 
 // ── CASE A [panel F5]: attempts erasure guard ───────────────────────────────
 await deny("A1 student deletes a STAMPED attempt (override/posture erasure)", s1.doc("attempts/a_stamped").delete());

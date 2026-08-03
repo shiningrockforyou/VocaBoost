@@ -29,7 +29,7 @@ import { join } from "node:path";
 
 const MERGED = "/app/audit/deepfix/task3/live_baseline/firestore.merged.rules";
 const LIVE = "/app/audit/deepfix/task3/live_baseline/firestore.live.rules";
-const P10 = "/app/docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules";
+const P10 = "/app/firestore.rules";
 const RUNNER = "/app/scripts/deepfix2/run-rules-matrix.sh";
 const MATRIX = "/app/scripts/deepfix2/rules-matrix.mjs";
 
@@ -78,6 +78,33 @@ const MUTANTS = [
     to: `          ;`,
   },
   {
+    id: "M8-fence-delete-removed",
+    why: "panel r3 BLOCKER — without a DELETE-side fence, delete-then-recreate clears it (the r2 shape)",
+    from: `          && !resource.data.keys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    to: `          ;`,
+  },
+  {
+    id: "M9-fence-create-removed",
+    why: "panel r3 — the fence CREATE branch carried no mutant, so it was pinned by assertion only",
+    from: `          && !request.resource.data.keys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
+    to: `          ;`,
+  },
+  {
+    id: "M10-attempt-create-guard-removed",
+    why: "panel r3 — the attempt CREATE override guard carried no mutant",
+    from: `        && !request.resource.data.keys().hasAny([
+             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);`,
+    to: `        ;`,
+  },
+  {
+    id: "M11-users-create-widened",
+    why: "panel r3 — the users CREATE clause carried no mutant (only assertions R10/R11)",
+    from: `      allow create: if isAuthenticated() && isOwner(userId);`,
+    to: `      allow create: if isAuthenticated();`,
+  },
+  {
     id: "M7-users-delete-reopened",
     why: "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
     from: `      allow delete: if false;`,
@@ -85,9 +112,10 @@ const MUTANTS = [
   },
   {
     id: "M6-attempt-erasure-removed",
-    why: "CLAUSE 5 + r54 — without it the override record and the CSD/TWI anchor stay erasable",
+    why: "CLAUSE 5 + r54 — without it a MARKED attempt (manualOverride/gatePosture) stays erasable",
     from: `        && !resource.data.keys().hasAny([
-             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);`,
+             'manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
+             'preOverride', 'gatePosture' ]);`,
     to: `        ;`,
   },
 ];
@@ -172,5 +200,5 @@ if (results.wholeFile.length === 2) {
 
 writeFileSync("/app/audit/deepfix/task3/live_baseline/rules-mutants-report.json",
   JSON.stringify(results, null, 2) + "\n");
-console.log(`\n[mutants] ${bad ? "PROBLEM — see above" : "all mutants killed; every clause is pinned"}`);
+console.log(`\n[mutants] ${bad ? "PROBLEM — see above" : `all ${MUTANTS.length} mutants killed; every MUTATED clause is pinned (clauses without a mutant are covered by assertion only — see the receipt)`}`);
 process.exit(bad ? 1 : 0);

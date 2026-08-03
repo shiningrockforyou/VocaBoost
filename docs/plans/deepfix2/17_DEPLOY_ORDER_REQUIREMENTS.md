@@ -113,7 +113,8 @@ handoff-ephemeral.
    Live base fetched (ruleset d8f3e0d0…, 2026-06-28, 210 lines vs the repo draft's 419 — the r91 refusal
    quantified). Merged artifact authored; **189/189 matrix green**; **six per-clause mutants all KILLED**
    (each clause is pinned by a named case); whole-file mutations discriminate (raw base and P10 draft
-   fail 71 each but share only 44 — 27 P10-only failures are exactly the live-flow regressions).
+   fail the same COUNT but share only ~45 — the ~28 P10-only failures are exactly the live-flow
+   regressions; the receipt carries the current figures, re-derived from the shipped evidence).
    Reviewers: spec-fidelity **YES**; adversarial-forgery **NO** ("safe to deploy" but named uncovered
    paths). **TWO HARDENING DELTAS BEYOND THE SPEC, both verified inert against the live client tree:**
    (i) **`role` can no longer be changed on an existing account** — the live base let ANY student rewrite
@@ -143,16 +144,26 @@ handoff-ephemeral.
    data-check first, because "phantom members" (in `members/` yet absent from `studentIds`) may
    legitimately depend on it; the exclusion list is a DENY-LIST (fail-open for a renamed/new
    subcollection — add a pre-deploy grep check, invert at P6); `system_logs` rows are client-attributable
-   (CS must cross-check before treating one as evidence). **THE DEPLOY LANDMINE, DISARMED [panel r2 HIGH]:** `firebase.json` still pointed the Firestore rules
-   deploy at `/app/firestore.rules` — the UNSHIPPED P10 cutover — so a plain
-   `firebase deploy --only firestore:rules` from `/app` would have shipped it despite the r91 halt. The
-   damage is now measured, not asserted: that file scores **118/189** on this matrix with **27 live-flow
-   regressions** (every student progress write, the reset path, plain attempt create, challenge review,
-   teacher class/list creation), and it constrains user CREATE to `role:'student'`, which would also
-   break teacher signup. **FIXED:** the draft moved to
-   `docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules` (labelled, deployed by nothing) and `firebase.json`
-   repointed at the CURRENT LIVE ruleset, so a blind rules deploy is now a **no-op** instead of an
-   outage. The real rules order must name the merged artifact explicitly.
+   (CS must cross-check before treating one as evidence). **THE DEPLOY LANDMINE — MY "FIX" WAS WRONG AND IS REVERTED [panel r2 HIGH → panel r3 BLOCKER]:**
+   `firebase.json` points the Firestore rules deploy at `/app/firestore.rules`, which holds the UNSHIPPED
+   P10 cutover, so a plain `firebase deploy --only firestore:rules` would ship it. The damage is measured,
+   not asserted: that file scores **129/204** on this matrix with **29 live-flow regressions** (every
+   student progress write, the reset path, plain attempt create, challenge review, teacher class/list
+   creation), and it constrains user CREATE to `role:'student'`, which would also break teacher signup.
+   **I tried to disarm it by moving the draft and repointing `firebase.json` at the live-ruleset copy.
+   THAT MADE IT WORSE and is fully reverted.** Why it was wrong: (a) the "blind deploy is now a no-op"
+   claim was FALSE — firebase-tools skips an upload only when `{name, content}` deep-equals the live
+   ruleset, and I changed `name`, so every deploy would have cut a NEW ruleset; (b) once the merged
+   artifact shipped, a bare `firebase deploy` would have **silently ROLLED BACK the entire workstream**
+   while printing success — strictly worse than a visible outage; (c) it broke five harnesses, one
+   DESTRUCTIVELY (`lsr_deepfix_flag_on.mjs` strands feature flags flipped ON with no restore path);
+   (d) the committed blob is LF while production is CRLF, so a fresh checkout would have deployed 210
+   changed lines; (e) it collapsed the drift BASELINE and the deploy SOURCE into one script-regenerated
+   file. **THE ACTUAL CONTROL** is what `audit/deepfix/task3/DEPLOY_ORDER.md` §2 already prescribes and
+   what stopped r91: the deploy path is a STAGING SLOT — the rules order must `cp` the merged artifact to
+   `firestore.rules`, verify its sha, deploy, then re-run `fetch-live-rules.mjs` to re-baseline. No
+   "disarmed" claim is published; stage-and-verify plus the executor's read-before-deploy refusal is the
+   control.
    **DEPLOY-GATE MECHANICS:** review the diff with
    `scripts/deepfix2/diff-rules-vs-live.sh` (the base is CRLF, the artifact LF — a naive diff shows a
    100% rewrite and hides the six declared hunks), and re-run `fetch-live-rules.mjs` AFTER the deploy to

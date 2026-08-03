@@ -78,9 +78,12 @@ service cloud.firestore {
       // written only at doc creation (AuthContext.jsx:75 signup; :113 Google,
       // guarded by !userSnap.exists()); seedFullData.js:958 restates an
       // IDENTICAL value behind TeacherRoute, which diff() omits from
-      // affectedKeys (matrix R5); db.js:286 touches profile only; and NO client
-      // path deletes a users doc (zero deleteDoc on users/, no account-deletion
-      // flow).
+      // affectedKeys (matrix R5); db.js:286 touches profile only; and no CLIENT
+      // path deletes a users doc. The one account-deletion flow is
+      // scripts/cs/erase-account.mjs (Admin SDK, rules-bypassing), which deletes
+      // the users doc AND the Auth identity in the same run — and that
+      // auth.deleteUser call is LOAD-BEARING here: `create` is bare isOwner, so
+      // a surviving uid whose doc was erased could re-create it as a teacher.
       //
       // WHAT THIS DOES NOT BUY — read before trusting `isTeacher()`:
       // `role` is SELF-ASSERTED AT SIGNUP (src/pages/Signup.jsx:124-149 renders
@@ -147,7 +150,16 @@ service cloud.firestore {
           && !(subcollection == 'study_states'                     // label-ERASURE guard [r54]
                && resource.data.keys().hasAny([
                     'reviewFailCount', 'reviewLastFailedAt', 'reviewLastCorrectAt',
-                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]));
+                    'reviewLastProvenAt', 'reviewLastTestedAt', 'reviewRestingUntil' ]))
+          // The reset fence must survive DELETION too [panel r3 BLOCKER]: guarding
+          // only create+update left delete-then-recreate as a clean bypass, which
+          // would fork the day_completions CAS namespace (composer.js:154 reads 0
+          // for an absent doc), clear the §2b fail-closed reset lock
+          // (composer.js:166), and walk the GATE-4 backfill past its own drift and
+          // lock checks (b3-txn-core.mjs:28/:38). Inert: no client path deletes
+          // progress_meta or list_progress.
+          && !resource.data.keys().hasAny([
+               'resetAt', 'resetEpoch', 'resetInProgress' ]);
       }
     }
 
@@ -229,16 +241,27 @@ service cloud.firestore {
       );
 
       // Allow students to delete their own attempts (for progress reset)
-      // DEEPFIX2 [CLAUSE 5 + the r54 erasure law]: but NOT an attempt carrying
-      // the engine/override stamps — deleting one erases the teacher's override
-      // record, the gatePosture stamp, and the passed-`new` CSD/TWI
-      // reconciliation anchor. Inert for legacy clients (no client-written
-      // attempt carries these keys; the live reset path is the Admin-SDK
-      // callable, and progressService.js:92 is LOG-ONLY under LIST_SCOPED_RECON).
+      // DEEPFIX2 [CLAUSE 5 + the r54 erasure law] — deleting an attempt that
+      // carries a server-written marker erases evidence, so those are protected.
+      // `manualOverride` is the marker the LIVE override writers actually stamp
+      // (functions/foundation.js:2985 and scripts/cs/manual-pass.mjs:70); the
+      // other keys are the FUTURE force-pass surface (DF2-10 leg 7, not built)
+      // and the engine's `gatePosture` stamp (callables.js, dark).
+      //
+      // WHAT THIS DOES NOT PROTECT [panel r3 — the first wording over-claimed]:
+      // an ORDINARY passed-`new` attempt carries NO marker at all, and today
+      // every one of the 947 students' CSD/TWI anchors is exactly that. Rules
+      // cannot distinguish it from any other attempt, so it stays deletable —
+      // protecting it would mean denying all client attempt deletes, i.e. P6
+      // semantics, which this file deliberately does not bring forward.
+      // Inert today: no client-written attempt carries any of these keys, the
+      // live reset path is the Admin-SDK callable, and progressService.js:92 is
+      // LOG-ONLY under LIST_SCOPED_RECON.
       allow delete: if isAuthenticated()
         && resource.data.studentId == request.auth.uid
         && !resource.data.keys().hasAny([
-             'teacherEdited', 'teacherEditedBy', 'teacherEditedAt', 'preOverride', 'gatePosture' ]);
+             'manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
+             'preOverride', 'gatePosture' ]);
     }
 
     // SYSTEM LOGS (for reconciliation events)

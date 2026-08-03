@@ -583,3 +583,12 @@ study states" after GATE 4, triage it as a STALE BUNDLE** (a tab still running a
 attempt-delete failure on an engine-stamped attempt (`gatePosture`/`teacherEdited`/`preOverride`).
 Also: `system_logs` rows are **client-attributable** — any authenticated user can write a row naming
 another uid. Cross-check `uid`/`createTime` before treating a `csd_anchor_invalid` row as evidence.
+
+### CS-2026-08-03b — `erase-account.mjs`'s `auth.deleteUser` call is LOAD-BEARING (rules coupling)
+`scripts/cs/erase-account.mjs` deletes a user's Firestore doc **and** their Auth identity. Once the
+review-v2 ruleset ships, that second step is a security dependency, not a tidy-up: the rules make `role`
+unchangeable on an existing user doc and deny user-doc deletion by clients, but `create` is still
+owner-only-not-content-checked. If the Firestore doc were erased while the Auth identity survived, that
+uid could sign in and re-create its own doc with `role: 'teacher'`. **Never remove or skip the
+`auth.deleteUser` call, and if it fails, treat the erase as INCOMPLETE and retry** rather than leaving a
+doc-less identity behind.
