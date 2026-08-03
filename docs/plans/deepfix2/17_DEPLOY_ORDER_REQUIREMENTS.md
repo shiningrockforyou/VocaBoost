@@ -111,7 +111,7 @@ handoff-ephemeral.
    deployed, so that window would leave them client-forgeable.**
    **PANEL ROUND 1 FOLDED (2026-08-03) — the artifact now EXISTS and is verified, not deployed.**
    Live base fetched (ruleset d8f3e0d0…, 2026-06-28, 210 lines vs the repo draft's 419 — the r91 refusal
-   quantified). Merged artifact authored; **189/189 matrix green**; **six per-clause mutants all KILLED**
+   quantified). Merged artifact authored; **204/204 matrix green**; **eleven per-clause mutants all KILLED**
    (each clause is pinned by a named case); whole-file mutations discriminate (raw base and P10 draft
    fail the same COUNT but share only ~45 — the ~28 P10-only failures are exactly the live-flow
    regressions; the receipt carries the current figures, re-derived from the shipped evidence).

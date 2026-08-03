@@ -7,6 +7,20 @@
   `docs/resume_archive/RESUME_<YYYY-MM-DD>.md` (copy, don't move — `/RESUME.md` must always exist), then
   overwrite `/RESUME.md` with the new state. See `docs/resume_archive/README.md`.
 
+## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
+- **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,
+  prints both batons, lists unfinished fold ledgers and uncommitted work.
+- **Before publishing any claim, committing a fold, or issuing an order, run**
+  `node scripts/deepfix2/gate.mjs` — it fails closed on unticked ledger rows, stale test scores,
+  an artifact edited after its evidence run, unsupported strong claims, a missing watcher, and
+  git activity while an executor holds the baton.
+- **Plan every fold** from `scripts/deepfix2/FOLD_LEDGER_TEMPLATE.md`. A closure/security claim
+  REQUIRES a BYPASS SET per guard (create · update · delete · set-merge · set-overwrite ·
+  delete-then-recreate · batch · transaction · other path · third party · teacher), one fixture each,
+  and one mutant per new clause.
+- **Never hand-type a test score** — derive it from the evidence JSON; the gate diffs them.
+- Rationale and the full loop: `docs/plans/deepfix2/EXECUTION_DISCIPLINE.md`.
+
 ## General Rules
 1. Always log code changes to `change_action_log.md` using the table format: `| Date | File | Change |`
 2. Always consider industry convention / best practice when coming up with solutions or plans

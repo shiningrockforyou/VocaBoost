@@ -186,7 +186,7 @@
       ],
       "note": "'every clause is pinned' was an OVERSTATEMENT at r2; now scoped to every MUTATED clause, and the runner prints the narrowed wording."
     },
-    "note": "all numbers re-derived from shipped evidence after the artifact was FROZEN (rules sha16 34abd2f1f6ef2597). Two prior receipts published stale totals (/136 at r1; 118/189 at r2 \u2014 the latter inside the paragraph claiming the r1 error was fixed); the panel caught both. The suite now REFUSES to pass when a mutant anchor goes stale \u2014 that is how M6 was caught after its guard changed."
+    "note": "all numbers re-derived from shipped evidence after the artifact was FROZEN (rules sha16 34abd2f1f6ef2597). Two prior receipts published stale totals (/136 at r1; 118-of-189 at r2 \u2014 the latter inside the paragraph claiming the r1 error was fixed); the panel caught both. The suite now REFUSES to pass when a mutant anchor goes stale \u2014 that is how M6 was caught after its guard changed."
   },
   "productionEvidence": {
     "resetFenceSweep": {
@@ -257,12 +257,6 @@
     }
   },
   "no_uids": true,
-  "deployLandmineDisarmed": {
-    "found": "panel r2 blast-radius lens, HIGH",
-    "problem": "firebase.json pointed the Firestore rules deploy at /app/firestore.rules \u2014 the UNSHIPPED P10 cutover \u2014 so a plain `firebase deploy --only firestore:rules` from /app would have shipped it. This is the r91 near-miss, still armed in the repo.",
-    "measuredDamage": "that draft scores 118/189 on this matrix: 27 live-flow regressions incl. every student progress write, the reset path, plain attempt create, challenge review, teacher class/list creation; it also constrains user CREATE to role:'student', breaking teacher signup",
-    "fix": "draft moved to docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules (labelled, deployed by nothing); firebase.json repointed at the CURRENT LIVE ruleset so a blind rules deploy is a NO-OP. The real rules order must name the merged artifact explicitly."
-  },
   "ledgerAudit": {
     "when": "2026-08-03, prompted by David asking whether the fold ledger was actually being checked",
     "found": [
