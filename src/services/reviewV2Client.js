@@ -49,6 +49,11 @@ export const RV2 = Object.freeze({
   REVIEW_V2_DARK: 'review_v2_dark',
   CLIENT_VERSION_STALE: 'client_version_stale',
   TYPED_MODALITY_DEFERRED: 'typed_modality_deferred',
+  // Typed grading runs OUTSIDE the submit transaction (18_TYPED_LEG_DESIGN §4):
+  // a concurrent submit for the same presentation gets this instead of a second
+  // attempt. Retryable, zero writes — the caller polls, it does NOT re-submit
+  // with a new composeKey (that would compose a different test).
+  GRADING_IN_PROGRESS: 'grading_in_progress',
   // authority refusals
   DAY_GUARD_REJECTED: 'day_guard_rejected',
   NO_EVIDENCE: 'no_evidence',
@@ -88,6 +93,12 @@ export class ReviewV2Error extends Error {
 /** True when the result means "engine not serving — use the legacy path". */
 export function isNotServing(result) {
   return Boolean(result) && NOT_SERVING.has(result.status)
+}
+
+/** True when the engine is still grading this submission — retry the SAME
+ *  submit, do not recompose [18_TYPED_LEG_DESIGN §4]. */
+export function isGradingInProgress(result) {
+  return Boolean(result) && result.status === RV2.GRADING_IN_PROGRESS;
 }
 
 /** True when the result means "this bundle is too old — force a refresh"
