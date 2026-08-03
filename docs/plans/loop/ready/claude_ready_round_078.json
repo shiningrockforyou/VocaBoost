@@ -1,0 +1,16 @@
+{
+  "round": 78,
+  "reviewTargetSha": "0a7510f",
+  "handoff": "docs/plans/loop/handoffs/claude_to_codex_deepfix2_r78.md",
+  "workstream": "RULES LEG \u2014 the last undeployed piece of the dark train",
+  "artifact": "audit/deepfix/task3/live_baseline/firestore.merged.rules",
+  "artifactSha16": "def5231f5be328c2",
+  "evidence": [
+    "audit/deepfix/task3/live_baseline/rules-matrix-receipt.json",
+    "audit/deepfix/task3/live_baseline/rules-mutants-report.json"
+  ],
+  "verification": "228/228 matrix \u00b7 14/14 per-clause mutants killed",
+  "role": "FINAL GATE (David 2026-08-03: Codex reviews after WSL+Opus converge)",
+  "priorPanel": "5 Opus rounds; r5 returned the first YES on refactor-equivalence and 'no reason to block the deploy on rule content'",
+  "decisionNeeded": "YES = safe to deploy to 947 live students, I may write the deploy order \u00b7 NO = name the blocker"
+}

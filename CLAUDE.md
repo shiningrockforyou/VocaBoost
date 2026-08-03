@@ -7,6 +7,23 @@
   `docs/resume_archive/RESUME_<YYYY-MM-DD>.md` (copy, don't move — `/RESUME.md` must always exist), then
   overwrite `/RESUME.md` with the new state. See `docs/resume_archive/README.md`.
 
+## Continuous Execution (PROGRAM MODE)
+
+When working a multi-item program (DEEPFIX2/3, a task list, a migration) rather than answering a
+question, **the default is to keep going**, not to report and wait.
+
+- **Before ending a turn, run** `node scripts/deepfix2/whats-next.mjs`. It reads
+  `docs/plans/deepfix2/WORK_QUEUE.md`, resolves each blocker against live baton state, and **exits 10
+  when something is runnable**. Exit 10 means: do not end the turn — start the top item.
+- **THE PHRASE TRIGGER:** if you find yourself writing *"nothing else is blocked"*, *"meanwhile I
+  can…"*, *"next up is…"*, or *"I'll start X"* — that sentence is only allowed **after** the tool call
+  that starts it. Writing it instead of doing it is the error.
+- Waiting on a review, a baton, or a background job is **not** a reason to stop; it is a reason to pick
+  up an item whose blocker is `none`. Only a `david:*` blocker or an empty ready-list ends a turn.
+- Keep the queue honest: add an item when new work appears, mark `[x]` when it lands, and record its
+  real blocker (`none` · `codex` · `win` · `david:<what>` · `after:<id>`).
+- **This is program mode only.** A conversational question gets an answer, not a work session.
+
 ## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
 - **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,
   prints both batons, lists unfinished fold ledgers and uncommitted work.
