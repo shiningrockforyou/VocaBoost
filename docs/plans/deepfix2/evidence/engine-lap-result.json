@@ -2,7 +2,7 @@
   "kind": "engine-emulator-lap",
   "version": 3,
   "pass": true,
-  "total": 220,
+  "total": 266,
   "failed": 0,
   "reds": [],
   "sourceShas": {
@@ -14,14 +14,14 @@
     "functions/reviewV2/monitoring.js": "1a21613c0c52f9cb",
     "functions/reviewV2/reset.js": "7c7dcb60a10e8326",
     "functions/reviewV2/visits.js": "7bb0efc31c9ed53e",
-    "functions/reviewV2/callables.js": "8f9ab02e92b48c7a",
+    "functions/reviewV2/callables.js": "5dedbc31440e6e54",
     "functions/reviewV2/progress.js": "62f524b305f61f8d",
     "functions/foundation.js": "96822cdab02039b9",
-    "functions/index.js": "2fc1429a96c58049",
+    "functions/index.js": "825116e201738bf8",
     "src/services/db.js": "eae877340950efa9",
-    "engine-emulator-lap.mjs": "e3062d70c8a02843",
+    "engine-emulator-lap.mjs": "2a57345a22c2de38",
     "flip-review-v2.mjs": "1c544b849c91885c",
     "b-delta-cycle.mjs": "03a187551ee8019d"
   },
-  "at": "2026-08-02T16:21:23.656Z"
+  "at": "2026-08-03T15:10:24.238Z"
 }

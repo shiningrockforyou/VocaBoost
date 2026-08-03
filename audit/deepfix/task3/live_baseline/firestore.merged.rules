@@ -20,7 +20,12 @@
 //     closure is carded to P6/DF2-46, and matrix case 10b asserts it as a
 //     DEFERRED SURFACE, never as an inertness proof.
 //   * Client attempt create / answers-only update / plain delete stay legal
-//     (load-bearing until DF2-46), so attempt HISTORY remains client-shaped.
+//     (load-bearing until DF2-46), so attempt HISTORY remains client-shaped —
+//     WITH ONE EXCEPTION as of [codex r78]: a client update of ANY kind is refused
+//     when the EXISTING attempt is engine-stamped (isEngineStampedAttempt()). The
+//     legacy answers-only update is untouched; only engine evidence, which does
+//     not exist in the live base, is frozen against the client. See the attempts
+//     update clause for the marker-set compatibility decision.
 //   * `role` is self-asserted at signup, so `isTeacher()` is an availability
 //     gate, not a confidentiality boundary (see the users block).
 //   * `users/{uid}.enrolledClasses` is OWNER-WRITABLE and the server reads it as
@@ -99,17 +104,43 @@ service cloud.firestore {
               'review_counters', 'review_cursors', 'compose_keys'];
     }
 
+    // The ENGINE's own stamps [panel r5], declared ONCE and consumed THREE ways:
+    // the request-side attempt CREATE guard and the request-side TEACHER UPDATE
+    // guard (both through serverOnlyAttemptKeys() below), and the RESOURCE-side
+    // marked-document guard isEngineStampedAttempt() [codex r78].
+    // `resetEpoch` is load-bearing: its mere PRESENCE is the engine/legacy
+    // discriminator (reviewV2/completion.js:340), so forging it flips which fence
+    // set an attempt is judged under.
+    function engineStampKeys() {
+      return ['resetEpoch', 'presentationId', 'queueId', 'engineResult'];
+    }
+
     // Attempt markers written only by server/CS surfaces. `manualOverride` is
     // the one with LIVE writers (foundation.js:2985, scripts/cs/manual-pass.mjs:70);
     // the rest are the force-pass surface and the engine's posture stamp.
+    // COMPOSED from engineStampKeys() instead of restating those four keys: a
+    // second copy of a key list is exactly the divergence that produced the
+    // r2/r3/r4/r5 defects, so the request-side and resource-side sets are now
+    // structurally incapable of drifting apart.
     function serverOnlyAttemptKeys() {
       return ['manualOverride', 'teacherEdited', 'teacherEditedBy', 'teacherEditedAt',
-              'preOverride', 'gatePosture',
-              // The engine's own stamps [panel r5]. `resetEpoch` is load-bearing:
-              // its mere PRESENCE is the engine/legacy discriminator
-              // (reviewV2/completion.js:340), so forging it flips which fence set
-              // an attempt is judged under.
-              'resetEpoch', 'presentationId', 'queueId', 'engineResult'];
+              'preOverride', 'gatePosture'].concat(engineStampKeys());
+    }
+
+    // Is the EXISTING attempt engine evidence? [codex r78 BLOCKER — see the full
+    // rationale on the attempts update clause.]
+    // A client can author NONE of these four (the attempt create guard denies them),
+    // so the presence of any one of them proves the document was server-written.
+    // NULL-RESOURCE NOTE, stated because it is visible in the emulator log and must
+    // not be mistaken for a defect: on a set() against a NON-EXISTENT doc the engine
+    // evaluates BOTH the create and the update rule, and in the update evaluation
+    // `resource` is null, so this raises an evaluation error and that branch denies —
+    // while the separate create rule decides the request. This is PRE-EXISTING
+    // behaviour, not something this guard introduced: the previous first term of the
+    // same clause (`resource.data.studentId == ...`) errored on the identical path.
+    // Verified: every create case in the matrix (9-a1, A21, R10, …) stays green.
+    function isEngineStampedAttempt() {
+      return resource.data.keys().hasAny(engineStampKeys());
     }
 
     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
@@ -285,7 +316,56 @@ service cloud.firestore {
       // answer). Score, passed, credibility, retention, gradedBy and similar
       // fields cannot be touched from the client.
       // Teacher updates: only the teacher of record for this attempt.
-      allow update: if isAuthenticated() && (
+      allow update: if isAuthenticated()
+        // ── DEEPFIX2 [codex r78 BLOCKER] THE MARKED-DOCUMENT GUARD ────────────
+        // Every other condition in this clause guards the INCOMING write. NOTHING
+        // guarded the EXISTING document, so an owner could leave every protected
+        // marker and the top-level score untouched while REPLACING `answers` on an
+        // already engine-stamped attempt. That payload is grade-bearing:
+        // completeDay classifies the record as engine evidence from `resetEpoch`
+        // PRESENCE alone (completion.js:340), then validates only the correct-COUNT
+        // against the stored score (completion.js:377-379 — no wordId is ever
+        // compared against the server presentation), then maps the stored rows
+        // straight into graduation (completion.js:601-603). A same-count
+        // permutation of `isCorrect` across word IDs therefore satisfies the
+        // arithmetic while letting the CLIENT choose which words graduate and
+        // receive the server-written `reviewRestingUntil` (completion.js:716-721).
+        //
+        // HOISTED above the student|teacher OR deliberately: it must cover BOTH
+        // branches from ONE expression. Writing it into the student branch alone
+        // would leave the teacher-of-record branch — which can also address a
+        // future engine document — as the surviving sibling, and "guard the
+        // operation the reviewer named, miss its siblings" is the exact defect
+        // class r2, r3, r4 and r5 each re-found in a different operation.
+        //
+        // WHY THE ENGINE SET AND NOT serverOnlyAttemptKeys() — the compatibility
+        // decision r78 asked to be made explicitly:
+        //   * BROADER than the review's stated minimum `hasAny(['resetEpoch'])`.
+        //     Guarding only the one key a reviewer happened to name is the defect
+        //     being repaired; and since the create guard denies a client all four,
+        //     the presence of ANY of them already proves server authorship.
+        //   * NARROWER than the full marker set, on purpose. manualOverride and
+        //     teacherEdited* DO occur on historical documents — both are counted
+        //     over the real cohort at scripts/deepfix2/b1-replay-lib.mjs:63-70 —
+        //     and an answers update on such a document is LEGAL in the live base.
+        //     Using the full set would convert a live-legal write into a denial
+        //     for the 947-student cohort: a regression strictly worse than the bug.
+        //     Engine attempts by contrast DO NOT EXIST in the live base
+        //     (REVIEW_V2_CLIENT=false, src/config/featureFlags.js:243; the stamps
+        //     are written only by reviewV2/callables.js through the Admin SDK), so
+        //     this guard is purely ADDITIVE to live behaviour. Fixtured both ways:
+        //     AE1-AE13 deny every path into the engine document, AE14/AE15 keep the
+        //     marked-but-NON-engine document writable, and 9-a5/9-a7/A12 keep the
+        //     ordinary legacy student and teacher paths green.
+        //   * CONSEQUENCE, stated now rather than discovered later: once engine
+        //     attempts exist, the client-side reviewChallenge fallback
+        //     (src/services/db.js:2950 — live today, since SERVER_OVERRIDE=false)
+        //     can no longer edit one. Challenge review of an engine attempt must
+        //     go through the `reviewChallenge` callable (Admin SDK, rules-bypassing).
+        //     That is the fail-closed direction, which is what makes the guard safe
+        //     to carry before the engine ships.
+        && !isEngineStampedAttempt()
+        && (
         (resource.data.studentId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ||
         (resource.data.teacherId == request.auth.uid && isTeacher()

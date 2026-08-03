@@ -108,9 +108,23 @@ const MUTANTS = [
   },
   {
     id: "M14-engine-stamps-dropped",
-    why: "panel r5 — resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create and update",
-    from: `              'resetEpoch', 'presentationId', 'queueId', 'engineResult'];`,
-    to: `              ];`,
+    // RE-POINTED [codex r78]: the four engine keys moved out of serverOnlyAttemptKeys()
+    // into engineStampKeys() (which serverOnlyAttemptKeys() now .concat()s). The old
+    // anchor no longer exists, and an anchor that matches 0× is reported as
+    // "mutant NOT applied" — a mutant silently ceasing to test anything. Mutating the
+    // single declaration now breaks the request-side create/update guards AND the
+    // resource-side marked-document guard at once, which is the point of the refactor.
+    // Replaced with a never-present key rather than an empty list, so the mutant tests
+    // the KEY SET rather than accidentally testing empty-list evaluation.
+    why: "panel r5 — resetEpoch's PRESENCE is the engine/legacy discriminator (completion.js:340); dropping the engine stamps must break create, teacher update, AND the r78 resource-side guard",
+    from: `      return ['resetEpoch', 'presentationId', 'queueId', 'engineResult'];`,
+    to: `      return ['__no_engine_stamp__'];`,
+  },
+  {
+    id: "M15-engine-resource-guard-removed",
+    why: "codex r78 BLOCKER — the guard is RESOURCE-side; without it an owner (or the teacher of record) replaces `answers` on an already engine-stamped attempt while every marker and the score stay intact, and completeDay maps those rows into graduation (completion.js:340, :377-379, :601-603, :716-721). M14 could never detect this: it mutates the key LIST, and before r78 there was no resource-side guard to mutate.",
+    from: `        && !isEngineStampedAttempt()`,
+    to: `        && true`,
   },
   {
     id: "M12-manualOverride-dropped",

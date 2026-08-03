@@ -111,7 +111,7 @@ handoff-ephemeral.
    deployed, so that window would leave them client-forgeable.**
    **PANEL ROUND 1 FOLDED (2026-08-03) — the artifact now EXISTS and is verified, not deployed.**
    Live base fetched (ruleset d8f3e0d0…, 2026-06-28, 210 lines vs the repo draft's 419 — the r91 refusal
-   quantified). Merged artifact authored; **228/228 matrix green**; **14 per-clause mutants all KILLED**
+   quantified). Merged artifact authored; **244/244 matrix green**; **15 per-clause mutants all KILLED**
    (every MUTATED clause is pinned by a named case — clauses without a mutant are assertion-covered; the receipt lists which is which); whole-file mutations discriminate (raw base and P10 draft
    fail the same COUNT but share only ~45 — the ~28 P10-only failures are exactly the live-flow
    regressions; the receipt carries the current figures, re-derived from the shipped evidence).
@@ -154,7 +154,7 @@ handoff-ephemeral.
    (CS must cross-check before treating one as evidence). **THE DEPLOY LANDMINE — MY "FIX" WAS WRONG AND IS REVERTED [panel r2 HIGH → panel r3 BLOCKER]:**
    `firebase.json` points the Firestore rules deploy at `/app/firestore.rules`, which holds the UNSHIPPED
    P10 cutover, so a plain `firebase deploy --only firestore:rules` would ship it. The damage is measured,
-   not asserted: that file scores **151/228** on this matrix with **31 live-flow regressions** (every
+   not asserted: that file scores **165/244** on this matrix with **33 live-flow regressions** (every
    student progress write, the reset path, plain attempt create, challenge review, teacher class/list
    creation), and it constrains user CREATE to `role:'student'`, which would also break teacher signup.
    **I tried to disarm it by moving the draft and repointing `firebase.json` at the live-ruleset copy.

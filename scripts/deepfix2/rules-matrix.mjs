@@ -107,10 +107,23 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   b.set(db.doc("users/student1/progress_meta/fenced"), { resetEpoch: 1, resetAt: 1000, resetInProgress: false });
   b.set(db.doc("users/student1/list_progress/fenced_lp"), { resetEpoch: 2, twi: 30 });
   b.set(db.doc("users/student1/study_states/w_fenced"), { status: "learning", resetEpoch: 1 });
-  // an attempt carrying the marker the LIVE override writers actually stamp
+  // an ENGINE-STAMPED attempt — the codex-r78 target. It carries REAL grade-bearing
+  // rows (so "the rows survived the refusal" is assertable) and a score that matches
+  // the row arithmetic completeDay actually checks: 1 correct of 2 => 50.
   b.set(db.doc("attempts/a_engine"), {
-    studentId: "student1", teacherId: "teacher1", score: 90, passed: true,
+    studentId: "student1", teacherId: "teacher1", score: 50, passed: true,
+    totalQuestions: 2,
+    answers: [{ wordId: "wordA", isCorrect: true }, { wordId: "wordB", isCorrect: false }],
     resetEpoch: 0, presentationId: "p1", queueId: "q1", engineResult: { ok: true },
+  });
+  // the SAME shape owned by a SELF-ASSERTED teacher (studentId == teacherId == self),
+  // so the "as a teacher" bypass can be probed on a document where BOTH update
+  // branches would otherwise admit them.
+  b.set(db.doc("attempts/a_engine_t2"), {
+    studentId: "teacher2", teacherId: "teacher2", score: 50, passed: true,
+    totalQuestions: 2,
+    answers: [{ wordId: "wordA", isCorrect: true }, { wordId: "wordB", isCorrect: false }],
+    resetEpoch: 0, presentationId: "p2", queueId: "q2", engineResult: { ok: true },
   });
   b.set(db.doc("attempts/a_manual"), {
     studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
@@ -378,6 +391,70 @@ await deny("A18 student creates an attempt at the manual-anchor docId shape", s1
 await deny("A19 student creates a docId merely ENDING in manual", s1.doc("attempts/whatever_manual").set({ studentId: "student1" }));
 await deny("A20 self-asserted teacher creates a manual-shaped docId", t2.doc("attempts/t2_x_manual").set({ studentId: "teacher2" }));
 await ok("A21 NEGATIVE CONTROL: an ordinary attempt docId still creates fine", s1.doc("attempts/ordinary_nonce_123").set({ studentId: "student1", score: 50, passed: false }));
+
+// ── CASE AE [codex r78 BLOCKER]: ENGINE MARKERS WERE IMMUTABLE, ENGINE EVIDENCE
+//    WAS NOT. The student answers-only branch carried no condition on the EXISTING
+//    document, so an owner could replace `answers` on an already engine-stamped
+//    attempt while every protected marker and the top-level score stayed put.
+//    completeDay classifies the record as engine evidence from `resetEpoch`
+//    PRESENCE (completion.js:340), validates only the correct-COUNT against the
+//    score (:377-379 — no wordId is compared to the server presentation), then maps
+//    the stored rows into graduation (:601-603); the graduated ids receive the
+//    server-written reviewRestingUntil (:716-721). So a SAME-COUNT permutation of
+//    `isCorrect` across word IDs passes the arithmetic and hands the client the
+//    graduation set. THE FULL BYPASS SET FOLLOWS, one case per path — a guard
+//    fixtured only on the direct update is precisely what let this reach round 78.
+const PERMUTED = [{ wordId: "wordA", isCorrect: false }, { wordId: "wordB", isCorrect: true }];
+// (1) the direct path
+await deny("AE1 owner UPDATE replaces answers on an engine attempt (same count, permuted ids)", s1.doc("attempts/a_engine").update({ answers: PERMUTED }));
+// (2) set-with-merge — identical effect, different SDK call
+await deny("AE2 owner SET-WITH-MERGE replaces answers on an engine attempt", s1.doc("attempts/a_engine").set({ answers: PERMUTED }, { merge: true }));
+// (3) set-WITHOUT-merge restating every other field verbatim, so diff() still
+//     yields exactly ['answers'] — the shape a request-side hasOnly() cannot see
+await deny("AE3 owner SET-WITHOUT-MERGE restating all other fields (diff is STILL answers-only)", s1.doc("attempts/a_engine").set({
+  studentId: "student1", teacherId: "teacher1", score: 50, passed: true, totalQuestions: 2,
+  resetEpoch: 0, presentationId: "p1", queueId: "q1", engineResult: { ok: true },
+  answers: PERMUTED,
+}));
+// (4) FieldValue.delete() on the rows — affectedKeys is still exactly ['answers']
+await deny("AE4 owner DELETES the answers field via FieldValue.delete (row erasure)", s1.doc("attempts/a_engine").update({ answers: firebase.firestore.FieldValue.delete() }));
+// (5) single-row surgery via array transforms (Firestore has no array-index field
+//     path, so arrayRemove is the closest legal analogue to deleting one row)
+await deny("AE5 owner removes ONE row via arrayRemove", s1.doc("attempts/a_engine").update({ answers: firebase.firestore.FieldValue.arrayRemove({ wordId: "wordA", isCorrect: true }) }));
+// (6) batch
+await deny("AE6 BATCH answers replacement on an engine attempt", (() => { const b = s1.batch(); b.update(s1.doc("attempts/a_engine"), { answers: PERMUTED }); return b.commit(); })());
+// (7) transaction
+await deny("AE7 TRANSACTION answers replacement on an engine attempt", s1.runTransaction(async (tx) => {
+  const ref = s1.doc("attempts/a_engine");
+  await tx.get(ref);
+  tx.update(ref, { answers: PERMUTED });
+}));
+// (8)-(11) every identity that can address the document
+await deny("AE8 THIRD-PARTY student replaces answers on someone else's engine attempt", s2.doc("attempts/a_engine").update({ answers: PERMUTED }));
+await deny("AE9 TEACHER-OF-RECORD replaces answers on an engine attempt (the SIBLING branch)", t1.doc("attempts/a_engine").update({ answers: PERMUTED }));
+await deny("AE10 SELF-ASSERTED teacher (not of record) replaces answers on an engine attempt", t2.doc("attempts/a_engine").update({ answers: PERMUTED }));
+await deny("AE11 SELF-ASSERTED teacher on their OWN engine attempt (studentId==teacherId==self)", t2.doc("attempts/a_engine_t2").update({ answers: PERMUTED }));
+// (12) the delete-then-recreate SEQUENCE — BOTH calls, not just the first
+await deny("AE12a SEQUENCE step 1: owner deletes the engine attempt", s1.doc("attempts/a_engine").delete());
+await deny("AE12b SEQUENCE step 2: owner overwrites it as a LEGACY doc (drops the engine stamps)", s1.doc("attempts/a_engine").set({
+  studentId: "student1", teacherId: "teacher1", score: 50, passed: true, totalQuestions: 2, answers: PERMUTED,
+}));
+// (13) THE ROWS SURVIVED — refusals are worth nothing unless the evidence is intact
+await ok("AE13 the engine rows + stamp SURVIVED every refusal above (row-by-row check)", s1.doc("attempts/a_engine").get().then((d) => {
+  const v = d.data() ?? {};
+  const rows = v.answers;
+  if (!Array.isArray(rows) || rows.length !== 2) throw new Error(`rows clobbered: ${JSON.stringify(rows)}`);
+  if (rows[0].wordId !== "wordA" || rows[0].isCorrect !== true) throw new Error("row 0 mutated");
+  if (rows[1].wordId !== "wordB" || rows[1].isCorrect !== false) throw new Error("row 1 mutated");
+  if (v.resetEpoch === undefined || v.presentationId !== "p1") throw new Error("stamp mutated");
+}));
+// (14)-(15) THE OTHER LEG — the compatibility decision, PINNED. The guard names the
+//     ENGINE set, not the full serverOnlyAttemptKeys(), because manualOverride /
+//     teacherEdited* occur on HISTORICAL documents (b1-replay-lib.mjs:63-70) whose
+//     answers update is legal in the live base. Without these two cases that call is
+//     an unpinned opinion, and the next refactor widens the set and breaks 947 students.
+await ok("AE14 owner answers update on a MARKED but NON-engine attempt still ALLOWS (teacherEdited/gatePosture)", s1.doc("attempts/a_stamped").update({ answers: [{ wordId: "w1", isCorrect: true, challengeStatus: "pending" }] }));
+await ok("AE15 teacher-of-record update on a MARKED but NON-engine attempt still ALLOWS", t1.doc("attempts/a_stamped").update({ answers: [{ wordId: "w1", isCorrect: true }], score: 95 }));
 
 // ── CASE A [panel F5]: attempts erasure guard ───────────────────────────────
 await deny("A1 student deletes a STAMPED attempt (override/posture erasure)", s1.doc("attempts/a_stamped").delete());

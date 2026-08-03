@@ -27,15 +27,18 @@
  * (R2-41(h) as ruled by both lanes) · live new-day range = [twi, twi+pace)
  * with `deriveDailyPace` (the day's anchor; stamped on the attempt for
  * anchor continuity) · MCQ server verdict vs canonical `definition` (client
- * verdicts never trusted); typed review modality refuses
- * `typed_modality_deferred` (DATA) until DF2-12 · attempt docId =
- * `rv2_{presentationId}` (1:1, idempotent replay returns the NORMALIZED
- * envelope with zero writes [C5]).
+ * verdicts never trusted); TYPED review is graded OUTSIDE the txn through the
+ * LIVE grading job — claim → grade → persist → write, keyed on
+ * `rv2_{presentationId}` (DF2-12 · 18_TYPED_LEG_DESIGN §4; the concurrent
+ * submit gets `grading_in_progress` as DATA with zero writes) · attempt docId
+ * = `rv2_{presentationId}` (1:1, idempotent replay returns the NORMALIZED
+ * envelope with zero writes [C5] — and, for typed, zero grader calls).
  */
 
 "use strict";
 
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const {FieldValue} = require("firebase-admin/firestore");
 
@@ -47,6 +50,16 @@ const {completeDay, graduateRerunInTxn} = require("./completion");
 const {mintRestudyVisit, recordRerunHalfInTxn} = require("./visits");
 const {evaluateThresholds, recordOpsMetric} = require("./monitoring");
 const {readProgressTruth} = require("./progress");
+const {resolveTypedGrade} = require("./typedGrading");
+
+// [DF2-12 · 18_ §4] The typed leg delegates to `gradeTypedTest`, which reads
+// ANTHROPIC_API_KEY from the process env — so the submit callable must carry
+// the same secret binding or the grader has no key at runtime. `defineSecret`
+// de-dupes by name (params registerParam), so this is the SAME param object
+// index.js declares, not a second one. GRADE_TOKEN_SECRET is deliberately NOT
+// bound: the engine grades with no binding context, so no gradeToken is ever
+// minted (see typedGrading.js `defaultGrade`).
+const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
 function getDb() {
   return admin.firestore();
@@ -428,7 +441,7 @@ const reviewV2ComposeRerun = onCall({enforceAppCheck: false}, async (request) =>
 //    server verdict + COMPLETE-ROWS + stamps (+ rerun graduation/visit half)
 // ---------------------------------------------------------------------------
 
-const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) => {
+const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropicApiKey]}, async (request) => {
   const db = getDb();
   const uid = requireAuth(request);
   const d = request.data ?? {};
@@ -455,13 +468,10 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     clientContractVersion: d.clientContractVersion,
   });
   if (gate.refusal) return gate.refusal;
-  if (pres.testType === "typed") {
-    // DF2-12's grading-jobs integration lands in-train — refuse as DATA
-    // [C5/L-3], zero writes, rather than mint an unstamped typed attempt.
-    return {status: "typed_modality_deferred"};
-  }
 
-  // MCQ answer key: canonical definitions (never the client's).
+  // Answer-sheet validation + the canonical answer key — SHARED by BOTH
+  // modalities [DF2-12]: typed grades the SAME presented set under the SAME
+  // drift rule, and its rows must be shaped identically to MCQ's [18_ §5.2].
   const presentedSet = new Set(pres.presentedWordIds);
   const submitted = new Map();
   for (const a of d.answers) {
@@ -477,32 +487,64 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
     db.collection("lists").doc(pres.listId).collection("words").doc(id));
   const wordSnaps = await db.getAll(...wordRefs);
   const keyByWordId = new Map();
+  const wordMetaById = new Map(); // typed: the grader needs word + definitions
   wordSnaps.forEach((s) => {
-    if (s.exists) keyByWordId.set(s.id, s.data().definition ?? null);
+    if (!s.exists) return;
+    keyByWordId.set(s.id, s.data().definition ?? null);
+    wordMetaById.set(s.id, s.data());
   });
-
-  // COMPLETE-ROWS [r64]: one row per PRESENTED word; absent/empty ⇒ blank.
-  const rows = pres.presentedWordIds.map((wordId) => {
-    const resp = (submitted.get(wordId) ?? "").trim();
-    const key = keyByWordId.get(wordId);
-    const blank = resp === "";
-    const isCorrect = !blank && key != null && resp === String(key).trim();
-    return {
-      wordId,
-      studentResponse: submitted.get(wordId) ?? "",
-      correctDefinition: key,
-      isCorrect,
-      ...(blank ? {blank: true} : {}),
-    };
-  });
-  const totalQuestions = rows.length;
-  const correctCount = rows.filter((r) => r.isCorrect).length;
-  const score = Math.round((correctCount / totalQuestions) * 100);
 
   const attemptId = `rv2_${d.presentationId}`;
   const attemptRef = db.collection("attempts").doc(attemptId);
   const pmRef = db.doc(`users/${uid}/progress_meta/${pres.listId}`);
   const lpRef = db.doc(`users/${uid}/list_progress/${pres.listId}`);
+
+  let rows;
+  let correctnessSource = null;
+  let gradeSkippedForReplay = false;
+  if (pres.testType === "typed") {
+    // ---- THE TYPED LEG [DF2-12 · 18_ §4] --------------------------------
+    // REPLAY FIRST [§5.4 + §6]: an already-written attempt is returned by the
+    // txn below as the NORMALIZED envelope. Short-circuit here so a replay
+    // performs ZERO writes AND never touches the grading job — a claim on a
+    // vanished/expired job would otherwise re-grade and charge the AI twice.
+    const preAttempt = await attemptRef.get();
+    if (preAttempt.exists) {
+      rows = [];
+      gradeSkippedForReplay = true;
+    } else {
+      const graded = await resolveTypedGrade(db, {
+        uid, classId: pres.classId, listId: pres.listId,
+        presentationId: d.presentationId,
+        presentedWordIds: pres.presentedWordIds,
+        submitted, wordMetaById,
+      });
+      if (graded.refusal) return graded.refusal; // DATA, zero attempt writes
+      rows = graded.rows;
+    }
+    // The write path's provenance marker [18_ §4(4)]: this grade came from
+    // the server-side AI grader, never from a client verdict.
+    correctnessSource = "server-ai";
+  } else {
+    // MCQ answer key: canonical definitions (never the client's).
+    // COMPLETE-ROWS [r64]: one row per PRESENTED word; absent/empty ⇒ blank.
+    rows = pres.presentedWordIds.map((wordId) => {
+      const resp = (submitted.get(wordId) ?? "").trim();
+      const key = keyByWordId.get(wordId);
+      const blank = resp === "";
+      const isCorrect = !blank && key != null && resp === String(key).trim();
+      return {
+        wordId,
+        studentResponse: submitted.get(wordId) ?? "",
+        correctDefinition: key,
+        isCorrect,
+        ...(blank ? {blank: true} : {}),
+      };
+    });
+  }
+  const totalQuestions = rows.length;
+  const correctCount = rows.filter((r) => r.isCorrect).length;
+  const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
   const result = await db.runTransaction(async (txn) => {
     // ---- READS (the activation barrier: config joins THIS txn) ----------
@@ -531,6 +573,13 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
         visitHalf: er.visitHalf ?? null,
         gatePosture: stored.gatePosture ?? null,
       };
+    }
+    if (gradeSkippedForReplay) {
+      // The pre-read saw a stored attempt, so the typed grade was skipped —
+      // and now the doc is gone. Mint NOTHING from an empty answer sheet;
+      // `grading_in_progress` is the retryable typed status, and the retry
+      // grades from scratch (or from the still-cached job).
+      return {status: "grading_in_progress"};
     }
     const pmData = pm.exists ? pm.data() : null;
     const lpData = lp.exists ? lp.data() : null;
@@ -640,6 +689,10 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false}, async (request) =
       passed,
       totalQuestions,
       answers: rows,
+      // G2 provenance [18_ §4(4)]: 'server-ai' on the typed leg (the rows'
+      // isCorrect came from the server-side AI grader); omitted for MCQ,
+      // whose verdict is server-computed against the canonical definition.
+      ...(correctnessSource ? {correctnessSource} : {}),
       presentationId: d.presentationId,
       queueId,
       resetEpoch: p.resetEpoch,

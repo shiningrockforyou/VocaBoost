@@ -1,5 +1,8 @@
 # DEEPFIX2 WORK QUEUE — machine-read by `scripts/deepfix2/whats-next.mjs`
 
+**SEQUENCED, NOT PARALLEL (David, 2026-08-03).** The server contract moved twice in one day, so
+client work would be built against a shifting target. One item at a time; `after:` chains enforce it.
+
 Format (one per line, parsed):  `- [ ] <id> | <what> | blocker: <token>`
 Blocker tokens the script can RESOLVE by itself:
   `none`            — runnable right now
@@ -10,13 +13,14 @@ Blocker tokens the script can RESOLVE by itself:
   `after:<id>`      — another queue item must be done first
 
 - [x] rules-artifact | Author + verify the merged rules artifact | blocker: none
-- [ ] rules-fix-r78 | Close Codex r78's blocker: deny client `answers` update on an engine-stamped attempt | blocker: none
+- [x] rules-fix-r78 | Codex r78 blocker closed (agent-authored, I verified: 244/244 + pre-fix reproduction) | blocker: none
+- [ ] rules-receipt | Re-derive the receipt/evidence from the current artifact, commit, re-gate with Codex | blocker: none
 - [ ] rules-deploy-order | Write + issue the rules deploy order (stage into firestore.rules, verify sha, deploy, re-baseline) | blocker: codex:YES
 - [x] typed-design | Engine typed-leg DESIGN (18_TYPED_LEG_DESIGN.md — reuse grading_jobs keyed on rv2_{presentationId}) | blocker: none
-- [ ] df2-12-13-typed | Typed-test durable grading — IMPLEMENT 18_'s design + the typed emulator battery | blocker: none
-- [ ] df2-51-client | Session-flow cutover behind REVIEW_V2_CLIENT (compose→submit→complete with legacy fallback) | blocker: none
-- [ ] df2-11-teacher-ui | Teacher settings UI (threshold / sizes / rehearsal classes) | blocker: none
-- [ ] df2-07-messaging | Messaging copy on existing screens | blocker: none
+- [ ] typed-fix-audit | Typed leg: close the audit BLOCKER (job-key poisoning via live gradeTypedTest) + the cached-grade/answer-sheet binding | blocker: after:rules-receipt
+- [ ] df2-51-client | Session-flow cutover behind REVIEW_V2_CLIENT | blocker: after:typed-fix-audit
+- [ ] df2-11-teacher-ui | Teacher settings UI (threshold / sizes / rehearsal classes) | blocker: after:df2-51-client
+- [ ] df2-07-messaging | Messaging copy on existing screens | blocker: after:df2-51-client
 - [ ] rehearsal-25wt | 25WT rehearsal: localhost client → deployed dark backend | blocker: after:df2-12-13-typed
 - [ ] shadow-audit-16 | Shadow audit | blocker: after:rehearsal-25wt
 - [ ] gate4-backfill | THE 26SM BACKFILL | blocker: david:backfill-go

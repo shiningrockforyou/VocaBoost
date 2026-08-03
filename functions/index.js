@@ -2197,6 +2197,16 @@ exports.overrideAttempt = foundation.overrideAttempt;
 // (pre-flip, only `rehearsalClassIds` members are served — the 25WT
 // rehearsal). No client routes to any of these until DF2-51.
 // ============================================================================
+// [DF2-12 · 18_TYPED_LEG_DESIGN §3] THE ENGINE'S TYPED LEG REUSES THIS
+// MACHINERY — one lease protocol, not two. `functions/reviewV2/typedGrading.js`
+// claims `rv2_{presentationId}` through these exact helpers (lazily required,
+// so the cycle with the callables below never loads a partial module) and
+// grades through `exports.gradeTypedTest` itself. Deploy-inert: the runtime
+// loader only registers exported functions carrying `__endpoint`
+// (firebase-functions/lib/runtime/loader.js extractStack), so this plain
+// helper object mints no function.
+exports._gradingJobs = {claimOrRecoverGradingJob, persistGradingJobResult};
+
 const reviewV2 = require("./reviewV2/callables");
 exports.reviewV2ComposeSession = reviewV2.reviewV2ComposeSession;
 exports.reviewV2ComposeNewTest = reviewV2.reviewV2ComposeNewTest;

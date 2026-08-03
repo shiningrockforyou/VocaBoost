@@ -48,6 +48,9 @@ export const RV2 = Object.freeze({
   CONFIG_HOLD: 'config_hold',
   REVIEW_V2_DARK: 'review_v2_dark',
   CLIENT_VERSION_STALE: 'client_version_stale',
+  // RETIRED BY THE SERVER (DF2-12, 18_ §4): the typed leg now grades and
+  // writes, so no live callable returns this. Kept in the frozen list so a
+  // client rolled back to an older backend still decodes it.
   TYPED_MODALITY_DEFERRED: 'typed_modality_deferred',
   // Typed grading runs OUTSIDE the submit transaction (18_TYPED_LEG_DESIGN §4):
   // a concurrent submit for the same presentation gets this instead of a second

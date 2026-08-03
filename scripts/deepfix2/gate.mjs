@@ -163,6 +163,10 @@ if (existsSync(EVID) && existsSync(RECEIPT)) {
   add(ev.canonical?.pass, ev.canonical?.total);
   for (const m of ev.mutants || []) add(m.pass, m.total);
   for (const w of ev.wholeFile || []) add(w.pass, w.total);
+  // "N/N mutants killed" is a COUNT derived from the evidence, not a test score —
+  // legitimate, and it was being reported as a stale number.
+  const nm = (ev.mutants || []).length;
+  if (nm) { add(nm, nm); add((ev.mutants || []).filter((m) => m.killed).length, nm); }
   const docs = [RECEIPT, "/app/docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md"];
   let bad = [];
   for (const d of docs) {

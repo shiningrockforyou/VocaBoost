@@ -47,11 +47,18 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
 process.env.RESET_V2_FOR_TEST = "1";
 
 const fnRequire = createRequire("/app/functions/index.js");
-const {initializeApp, cert} = fnRequire("firebase-admin/app");
+const {initializeApp, cert, getApps} = fnRequire("firebase-admin/app");
 const {getFirestore, Timestamp, FieldValue} = fnRequire("firebase-admin/firestore");
 const key = JSON.parse(readFileSync(new URL("../serviceAccountKey.json", import.meta.url)));
 const PROJECT = key.project_id;
-initializeApp({credential: cert(key)});
+// [DF2-12] index.js LOADS FIRST and owns `admin.initializeApp()`: the engine's
+// typed leg reaches the LIVE grading-job helpers + `gradeTypedTest` through it
+// (18_ §3), and a second initializeApp on the default app throws. Under
+// `emulators:exec` GCLOUD_PROJECT/FIREBASE_CONFIG are set and
+// FIRESTORE_EMULATOR_HOST means no credential is ever exercised; the cert init
+// remains as the fallback when index.js somehow claimed no app.
+const INDEX = fnRequire("/app/functions/index.js");
+if (getApps().length === 0) initializeApp({credential: cert(key)});
 const db = getFirestore();
 
 const fft = fnRequire("firebase-functions-test")({projectId: PROJECT});
@@ -64,6 +71,7 @@ const VIS = fnRequire("/app/functions/reviewV2/visits.js");
 const RESET = fnRequire("/app/functions/reviewV2/reset.js");
 const MON = fnRequire("/app/functions/reviewV2/monitoring.js");
 const CALL = fnRequire("/app/functions/reviewV2/callables.js");
+const TG = fnRequire("/app/functions/reviewV2/typedGrading.js");
 const foundation = fnRequire("/app/functions/foundation.js");
 
 const wrap = (c) => fft.wrap(c);
@@ -1014,12 +1022,22 @@ CASE("CB — THE CALLABLE BOUNDARY (firebase-functions-test) [C8]");
   const rSub = await submit(r.presentation.presentationId, rerunAnswers);
   check("rerun half recorded", [rSub.status, rSub.visitHalf.recorded, rSub.visitHalf.completedVisit], ["attempt_written", true, false]);
   checkTrue("rerun graduated tested-correct", rSub.rerunGraduated.length === rerunAnswers.length);
-  // typed modality ⇒ DATA (flip the assignment to typed, compose, submit).
+  // TYPED modality [DF2-12 — was `typed_modality_deferred` until 18_ §4]: an
+  // ALL-BLANK typed submit is graded WITHOUT ever reaching the AI (blank is
+  // fail by law, R2-17) — the seam throws if a single grader call is made.
   await db.doc("classes/cX").update({"assignments.LX.reviewTestType": "typed"});
   r = await call(CALL.reviewV2ComposeRerun, "uX", {...common, visitedDay: 2, half: "review", composeKey: "lap-key-cb10", visitId: vid});
   check("typed rerun composes", r.status, "composed");
-  r = await submit(r.presentation.presentationId, []);
-  check("typed submit ⇒ DATA deferral", r.status, "typed_modality_deferred");
+  const blankTypedPid = r.presentation.presentationId;
+  TG._typedSeam.grade = async () => { throw new Error("all-blank typed submit must never call the AI grader"); };
+  r = await submit(blankTypedPid, []);
+  TG._typedSeam.grade = null;
+  check("typed all-blank submit writes a COMPLETE all-fail sheet",
+      [r.status, r.replayed, r.totalQuestions, r.correctCount, r.score], ["attempt_written", false, 4, 0, 0]);
+  const blankTypedAtt = (await db.collection("attempts").doc(`rv2_${blankTypedPid}`).get()).data();
+  check("typed blanks: rows PRESENT + explicit + server-ai provenance",
+      [blankTypedAtt.answers.length, blankTypedAtt.answers.every((x) => x.blank === true && x.isCorrect === false),
+        blankTypedAtt.correctnessSource, blankTypedAtt.testType], [4, true, "server-ai", "typed"]);
   await db.doc("classes/cX").update({"assignments.LX.reviewTestType": "mcq"});
 
   // [r72 C3] AUTHORIZATION RACES at the TXN level: removal between preflight
@@ -1135,6 +1153,246 @@ CASE("N1 — canonical position gaps: servable + surfaced");
   const dup = await db.doc("lists/LG/words/g4").set({word: "d", definition: "d", position: 3});
   const res2 = await CALL.loadCanonicalWordsStrict(db, "LG");
   checkTrue("duplicate still refuses", Boolean(res2.refusal));
+}
+
+// ===========================================================================
+CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ §§4-6]");
+{
+  await wipeEmulator();
+  await seedConfig({rehearsalClassIds: ["cT"], queueSize: 6, testSize: 4});
+  await seedClass("cT", {students: ["uT"], listId: "LT", asg: {reviewTestType: "typed"}});
+  await seedWords("LT", 20);
+  await seedProgress("uT", "cT", "LT", {csd: 2, twi: 10});
+  const common = {classId: "cT", listId: "LT", clientContractVersion: 1};
+
+  // THE INJECTED GRADER [18_ §6]: the AI grader CANNOT run in the emulator, so
+  // the emulator-gated seam in typedGrading.js replaces gradeTypedTest's
+  // Anthropic call with a deterministic verdict function. Everything AROUND it
+  // is the REAL production code: the live claimOrRecoverGradingJob lease, the
+  // payload cache, persistGradingJobResult's fencing, the row law, and the
+  // engine's own attempt transaction. What this therefore does NOT prove: the
+  // prompt, the AI's verdicts, the token spend, or gradeTypedTest's internal
+  // resolution/validation of the answers we hand it.
+  let graderCalls = 0;
+  let graderSeen = [];
+  const verdictGrader = (opts = {}) => async ({answers}) => {
+    graderCalls++;
+    graderSeen = answers.map((a) => a.wordId);
+    return answers
+        .filter((a) => !(opts.omit || []).includes(a.wordId))
+        .map((a) => ({
+          wordId: a.wordId,
+          isCorrect: a.studentResponse === a.correctDefinition,
+          reasoning: a.studentResponse === a.correctDefinition ? "" : "that is not the meaning",
+        }));
+  };
+  TG._typedSeam.grade = verdictGrader();
+  const submitT = (pid, ans) => call(CALL.reviewV2SubmitAttempt, "uT",
+      {presentationId: pid, answers: ans, clientContractVersion: 1});
+  const composeT = (ck) => call(CALL.reviewV2ComposeSession, "uT", {...common, logicalDay: 3, composeKey: ck});
+  const answersFor = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
+  const attemptDoc = (pid) => db.collection("attempts").doc(`rv2_${pid}`).get();
+  const jobDoc = (pid) => db.collection("grading_jobs").doc(`rv2_${pid}`).get();
+
+  // ---- 1. THE HAPPY LEG + §5.1 (the stamp set survives the round trip) ----
+  let r = await composeT("lap-key-t001");
+  check("typed session composes", [r.status, r.presentation.testType, r.presentation.presentedWordIds.length],
+      ["composed", "typed", 4]);
+  const pid1 = r.presentation.presentationId;
+  const ids1 = r.presentation.presentedWordIds;
+  r = await submitT(pid1, answersFor(ids1));
+  check("typed submit written (server-derived score)",
+      [r.status, r.replayed, r.totalQuestions, r.correctCount, r.score, r.passed],
+      ["attempt_written", false, 4, 4, 100, true]);
+  check("the AI was called EXACTLY once", graderCalls, 1);
+  const att1 = (await attemptDoc(pid1)).data();
+  check("§5.1 stamp set intact: resetEpoch · gatePosture · presentationId · queueId",
+      [att1.resetEpoch, typeof att1.queueId === "string" && att1.queueId.length > 0, att1.presentationId,
+        att1.gatePosture.effectiveEnabled, Number.isInteger(att1.gatePosture.configVersion),
+        Number.isInteger(att1.gatePosture.threshold), att1.gatePosture.source],
+      [0, true, pid1, true, true, true, "reviewV2SubmitAttempt"]);
+  check("engine discriminator survives (completion.js:340 keys on resetEpoch PRESENCE)",
+      att1.resetEpoch !== undefined && att1.resetEpoch !== null, true);
+  check("typed provenance + modality stamped", [att1.correctnessSource, att1.testType], ["server-ai", "typed"]);
+  check("§5.2 rows.length === totalQuestions", [att1.answers.length, att1.totalQuestions], [4, 4]);
+  check("§5.3 NO gradedIsCorrect at grade time (the preimage is adjudication's)",
+      att1.answers.some((x) => "gradedIsCorrect" in x), false);
+  const j1 = await jobDoc(pid1);
+  check("the grade is cached on the job", [j1.exists, j1.data().status, Array.isArray(j1.data().payload?.results)],
+      [true, "graded", true]);
+
+  // ---- 2. REPLAY: normalized envelope, ZERO new writes, ZERO metering -----
+  const attBefore = await attemptDoc(pid1);
+  const jobBefore = await jobDoc(pid1);
+  const attemptsBefore = (await db.collection("attempts").get()).size;
+  const callsBeforeReplay = graderCalls;
+  const rep = await submitT(pid1, answersFor(ids1));
+  check("replay ⇒ the NORMALIZED envelope",
+      [rep.status, rep.replayed, rep.score, rep.correctCount, rep.totalQuestions],
+      ["attempt_written", true, 100, 4, 4]);
+  check("replay: ZERO extra metering (no grader call)", graderCalls, callsBeforeReplay);
+  check("replay: ZERO new writes (attempt + job frozen, no new attempt docs)",
+      [(await attemptDoc(pid1)).updateTime.isEqual(attBefore.updateTime),
+        (await jobDoc(pid1)).updateTime.isEqual(jobBefore.updateTime),
+        (await db.collection("attempts").get()).size],
+      [true, true, attemptsBefore]);
+  // THE DISCRIMINATING REPLAY [kills the "just re-claim the job" shortcut]:
+  // the job cache is GONE (cleanup/TTL/reset). A replay that still consults the
+  // grading job would now CREATE a claim (a write) and RE-GRADE (a charge).
+  await db.collection("grading_jobs").doc(`rv2_${pid1}`).delete();
+  const callsBeforeCacheless = graderCalls;
+  const rep2 = await submitT(pid1, answersFor(ids1));
+  check("replay with the job cache GONE: still the normalized envelope",
+      [rep2.status, rep2.replayed, rep2.score], ["attempt_written", true, 100]);
+  check("replay with the job cache GONE: no re-grade", graderCalls, callsBeforeCacheless);
+  check("replay with the job cache GONE: no job re-claimed, attempt untouched",
+      [(await jobDoc(pid1)).exists, (await attemptDoc(pid1)).updateTime.isEqual(attBefore.updateTime),
+        (await db.collection("attempts").get()).size],
+      [false, true, attemptsBefore]);
+
+  // ---- 3. THE LOST RESPONSE: grade cached, worker dies, retry ⇒ cached ----
+  r = await composeT("lap-key-t002");
+  const pid2 = r.presentation.presentationId;
+  const ids2 = r.presentation.presentedWordIds;
+  TG._typedSeam.afterPersist = async () => { throw new Error("worker died after caching the grade"); };
+  const died = await callErr(CALL.reviewV2SubmitAttempt, "uT",
+      {presentationId: pid2, answers: answersFor(ids2), clientContractVersion: 1});
+  TG._typedSeam.afterPersist = null;
+  checkTrue("lost response: the worker died mid-flight", String(died).includes("worker died"));
+  check("lost response: NO attempt minted", (await attemptDoc(pid2)).exists, false);
+  check("lost response: the grade IS durably cached", [(await jobDoc(pid2)).exists, (await jobDoc(pid2)).data().status],
+      [true, "graded"]);
+  const callsAfterDeath = graderCalls;
+  r = await submitT(pid2, answersFor(ids2));
+  check("retry serves the CACHED grade", [r.status, r.replayed, r.score], ["attempt_written", false, 100]);
+  check("retry did NOT re-grade (metering charged once)", graderCalls, callsAfterDeath);
+
+  // ---- 4. CONCURRENT DOUBLE-SUBMIT: one grades, one gets DATA, one attempt -
+  r = await composeT("lap-key-t003");
+  const pid3 = r.presentation.presentationId;
+  const ids3 = r.presentation.presentedWordIds;
+  let release; const held = new Promise((res) => { release = res; });
+  let entered; const enteredP = new Promise((res) => { entered = res; });
+  const callsBeforeRace = graderCalls;
+  TG._typedSeam.grade = async ({answers}) => {
+    graderCalls++;
+    entered();
+    await held; // hold the lease while the second submit races in
+    return answers.map((a) => ({wordId: a.wordId, isCorrect: true, reasoning: ""}));
+  };
+  const inflight = submitT(pid3, answersFor(ids3));
+  await enteredP;
+  const second = await submitT(pid3, answersFor(ids3));
+  check("§5.5 concurrent submit ⇒ grading_in_progress as DATA", second, {status: "grading_in_progress"});
+  check("§5.5 the concurrent submit wrote NOTHING", (await attemptDoc(pid3)).exists, false);
+  release();
+  const first = await inflight;
+  check("the lease holder wins the write", [first.status, first.replayed], ["attempt_written", false]);
+  check("exactly ONE attempt for the presentation",
+      (await db.collection("attempts").where("presentationId", "==", pid3).get()).size, 1);
+  check("two submits, ONE grade", graderCalls, callsBeforeRace + 1);
+  TG._typedSeam.grade = verdictGrader();
+
+  // ---- 5. UNGRADEABLE ⇒ PRESENT + INCORRECT, row count WHOLE [§5.2] -------
+  r = await composeT("lap-key-t004");
+  const pid4 = r.presentation.presentationId;
+  const [wBlank, wGood, wNoDoc, wNoVerdict] = r.presentation.presentedWordIds;
+  const savedWord = (await db.doc(`lists/LT/words/${wNoDoc}`).get()).data();
+  await db.doc(`lists/LT/words/${wNoDoc}`).delete(); // canonical word vanishes AFTER composition
+  TG._typedSeam.grade = verdictGrader({omit: [wNoVerdict]}); // the AI skips a row
+  const callsBeforeUngradeable = graderCalls;
+  r = await submitT(pid4, [
+    {wordId: wBlank, studentResponse: "   "},
+    {wordId: wGood, studentResponse: `def${wGood.slice(1)}`},
+    {wordId: wNoDoc, studentResponse: "a genuine attempt at the meaning"},
+    {wordId: wNoVerdict, studentResponse: `def${wNoVerdict.slice(1)}`},
+  ]);
+  check("ungradeable answers keep the row count WHOLE",
+      [r.status, r.totalQuestions, r.correctCount, r.score], ["attempt_written", 4, 1, 25]);
+  const att4 = (await attemptDoc(pid4)).data();
+  const by4 = Object.fromEntries(att4.answers.map((x) => [x.wordId, x]));
+  check("rows.length === totalQuestions (no dropped row)", [att4.answers.length, att4.totalQuestions], [4, 4]);
+  check("blank ⇒ PRESENT, explicit, incorrect [R2-17]", [by4[wBlank].blank, by4[wBlank].isCorrect], [true, false]);
+  check("no canonical word ⇒ PRESENT + incorrect + flagged",
+      [by4[wNoDoc].ungradeable, by4[wNoDoc].isCorrect], [true, false]);
+  check("no AI verdict ⇒ PRESENT + incorrect + flagged",
+      [by4[wNoVerdict].ungradeable, by4[wNoVerdict].isCorrect], [true, false]);
+  check("only GRADEABLE rows were sent to the AI (blanks/unresolvable never charged)",
+      [...graderSeen].sort(), [wGood, wNoVerdict].sort());
+  check("one grader call for the mixed sheet", graderCalls, callsBeforeUngradeable + 1);
+  await db.doc(`lists/LT/words/${wNoDoc}`).set(savedWord);
+  TG._typedSeam.grade = verdictGrader();
+
+  // ---- 6. THE PREIMAGE LAW [§5.3]: first adjudication wins, forever -------
+  const flipIdx = att4.answers.findIndex((x) => x.wordId === wNoDoc);
+  check("the first adjudication mints the preimage from the CURRENT grade",
+      STAMP.gradingPreimageWrites(att4.answers, [flipIdx]), [{index: flipIdx, gradedIsCorrect: false}]);
+  const adjudicated = att4.answers.map((x, i) => (i === flipIdx
+    ? {...x, gradedIsCorrect: false, isCorrect: true, challengeStatus: "accepted"} : x));
+  await db.collection("attempts").doc(`rv2_${pid4}`).update({answers: adjudicated});
+  const replay4 = await submitT(pid4, [
+    {wordId: wBlank, studentResponse: "   "},
+    {wordId: wGood, studentResponse: `def${wGood.slice(1)}`},
+    {wordId: wNoDoc, studentResponse: "a genuine attempt at the meaning"},
+    {wordId: wNoVerdict, studentResponse: `def${wNoVerdict.slice(1)}`},
+  ]);
+  check("a re-submit after adjudication REPLAYS (never re-grades)",
+      [replay4.status, replay4.replayed], ["attempt_written", true]);
+  const att4b = (await attemptDoc(pid4)).data();
+  check("the adjudicated row + its preimage SURVIVE the typed replay (no laundering)",
+      [att4b.answers[flipIdx].isCorrect, att4b.answers[flipIdx].gradedIsCorrect], [true, false]);
+  check("a second adjudication writes NO new preimage (append-only)",
+      STAMP.gradingPreimageWrites(att4b.answers, [flipIdx]), []);
+
+  // ---- 7. A GRADE THAT NEVER LANDS: refused, cached-out, NOT stranded -----
+  r = await composeT("lap-key-t005");
+  const pid5 = r.presentation.presentationId;
+  const ids5 = r.presentation.presentedWordIds;
+  // Another worker takes the lease over WHILE we grade and then itself dies
+  // (the takeover lease is left EXPIRED) ⇒ our persist is `superseded` ⇒ we
+  // never established authority ⇒ fail-CLOSED: no attempt, typed DATA refusal.
+  TG._typedSeam.grade = async ({answers}) => {
+    graderCalls++;
+    await db.collection("grading_jobs").doc(`rv2_${pid5}`)
+        .set({leaseId: "another-worker", leaseExpiresAt: Date.now() - 1000}, {merge: true});
+    return answers.map((a) => ({wordId: a.wordId, isCorrect: true, reasoning: ""}));
+  };
+  r = await submitT(pid5, answersFor(ids5));
+  check("a superseded grade is FAIL-CLOSED as DATA", r, {status: "grading_in_progress"});
+  check("a superseded grade mints NO attempt", (await attemptDoc(pid5)).exists, false);
+  const noEv = await call(CALL.reviewV2CompleteDay, "uT", {...common, logicalDay: 3,
+    consumedAttemptId: `rv2_${pid5}`, consumedAttemptClassId: "cT", newTestAttemptId: null});
+  check("completion refuses the never-landed grade as no_evidence",
+      [noEv.status, noEv.reason], ["no_evidence", "consumed attempt missing"]);
+  TG._typedSeam.grade = verdictGrader();
+  r = await submitT(pid5, answersFor(ids5));
+  check("the student is NOT stranded: the expired lease is reclaimed and the test lands",
+      [r.status, r.replayed, r.score], ["attempt_written", false, 100]);
+
+  // ---- 8. THE TYPED DAY COMPLETES on engine evidence ----------------------
+  const nt = await call(CALL.reviewV2ComposeNewTest, "uT", {...common, logicalDay: 3, composeKey: "lap-key-t006"});
+  check("typed NEW test composes", [nt.status, nt.presentation.testType, nt.presentation.presentedWordIds.length],
+      ["composed", "typed", 10]);
+  const npid = nt.presentation.presentationId;
+  r = await submitT(npid, answersFor(nt.presentation.presentedWordIds));
+  check("typed NEW submit written", [r.status, r.score, r.passed], ["attempt_written", 100, true]);
+  const newAtt = (await attemptDoc(npid)).data();
+  check("typed new attempt keeps the anchor range + engine stamps",
+      [newAtt.newWordStartIndex, newAtt.newWordEndIndex, newAtt.resetEpoch, newAtt.correctnessSource],
+      [10, 19, 0, "server-ai"]);
+  const done = await call(CALL.reviewV2CompleteDay, "uT", {...common, logicalDay: 3,
+    consumedAttemptId: `rv2_${pid1}`, consumedAttemptClassId: "cT", newTestAttemptId: `rv2_${npid}`});
+  check("THE TYPED DAY COMPLETES (engine evidence, attempt-time posture)",
+      [done.status, done.evidenceKind, done.completion.postureSource, done.advancedToDay, done.newTwi],
+      ["completed", "standard", "attempt", 3, 20]);
+
+  // ---- 9. METERING SURFACE ------------------------------------------------
+  // There is NO live ai_metering writer in functions/ (15_ H6 schedules it for
+  // the claim txn; grep: zero writers today), so "charged once" is asserted as
+  // (a) the grader-call counts above and (b) the engine writing no metering doc.
+  check("the typed leg writes NO ai_metering doc", (await db.collection("ai_metering").get()).size, 0);
+  TG._typedSeam.grade = null;
+  TG._typedSeam.afterPersist = null;
 }
 
 // ===========================================================================
