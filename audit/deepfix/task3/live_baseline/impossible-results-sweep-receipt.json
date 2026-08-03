@@ -1,0 +1,92 @@
+{
+  "projectId": "vocaboost-879c2",
+  "cohort": "26SM",
+  "students": 971,
+  "attemptsScanned": 35639,
+  "answerRowsWithPreimage": 28,
+  "counts": {
+    "preimage_disagrees_no_challenge": 0,
+    "preimage_without_challenge": 0,
+    "score_mismatch": 9,
+    "passed_below_threshold": 0,
+    "rows_exceed_total": 4,
+    "negative_or_absurd": 3,
+    "manual_shaped_docid_no_marker": 0,
+    "marker_without_provenance": 0
+  },
+  "samples": {
+    "preimage_disagrees_no_challenge": [],
+    "preimage_without_challenge": [],
+    "score_mismatch": [
+      {
+        "classId": "clHW1WonMayisHpYEUOr",
+        "studyDay": null,
+        "stored": 88,
+        "recomputed": 86
+      },
+      {
+        "classId": "clHW1WonMayisHpYEUOr",
+        "studyDay": null,
+        "stored": 100,
+        "recomputed": 95
+      },
+      {
+        "classId": "clHW1WonMayisHpYEUOr",
+        "studyDay": null,
+        "stored": 98,
+        "recomputed": 96
+      },
+      {
+        "classId": "clHW1WonMayisHpYEUOr",
+        "studyDay": null,
+        "stored": 100,
+        "recomputed": 95
+      },
+      {
+        "classId": "clHW1WonMayisHpYEUOr",
+        "studyDay": null,
+        "stored": 50,
+        "recomputed": 2
+      }
+    ],
+    "passed_below_threshold": [],
+    "rows_exceed_total": [
+      {
+        "classId": "7PDT5jGKWNBh8oB0tjYh",
+        "studyDay": 15
+      },
+      {
+        "classId": "BY3cZduMAdqTtfCe8U5d",
+        "studyDay": 8
+      },
+      {
+        "classId": "jDDw2GEurOj5kD9JswI7",
+        "studyDay": 8
+      },
+      {
+        "classId": "wRoGjp2QTa89DxAk9PlT",
+        "studyDay": 9
+      }
+    ],
+    "negative_or_absurd": [
+      {
+        "classId": "7PDT5jGKWNBh8oB0tjYh",
+        "studyDay": 15,
+        "score": 130
+      },
+      {
+        "classId": "BY3cZduMAdqTtfCe8U5d",
+        "studyDay": 8,
+        "score": 103
+      },
+      {
+        "classId": "jDDw2GEurOj5kD9JswI7",
+        "studyDay": 8,
+        "score": 107
+      }
+    ],
+    "manual_shaped_docid_no_marker": [],
+    "marker_without_provenance": []
+  },
+  "limitation": "A surface pass. It finds arithmetic/provenance states a correct server could not produce; it does NOT prove absence of tampering — a forger who keeps the arithmetic self-consistent is invisible to it."
+}

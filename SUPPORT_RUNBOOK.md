@@ -592,3 +592,37 @@ owner-only-not-content-checked. If the Firestore doc were erased while the Auth 
 uid could sign in and re-create its own doc with `role: 'teacher'`. **Never remove or skip the
 `auth.deleteUser` call, and if it fails, treat the erase as INCOMPLETE and retry** rather than leaving a
 doc-less identity behind.
+
+### CS-2026-08-03c — IMPOSSIBLE-RESULTS SWEEP (read-only) — 4 real attempts with rows > totalQuestions
+**Script:** `scripts/cs/impossible-results-sweep.mjs [classNameRegex=26SM]` (READ-ONLY; excludes 25WT/DUP
+sandbox classes, which a bare /26SM/ filter otherwise pulls in — one is named "25WT DUP THROTTLE 26SM …").
+
+**Why it exists:** the rules panel established that `answers[].gradedIsCorrect` — the grading preimage the
+GATE-4 backfill consumes as authority — is client-rewritable (rules cannot inspect array elements).
+David's call: assume no student exploited it, but surface-pass for impossible results.
+
+**Result over the real cohort (971 students, 35,639 attempts):** no forgery signature. Zero preimage
+anomalies, zero manual-marker anomalies, zero threshold violations. **Four attempts have arithmetic a
+correct server cannot produce** — more answer rows than `totalQuestions`, three of them scoring above
+100%:
+
+| class | day | score | rows/tq | correct | duplicate wordIds |
+|---|---|---|---|---|---|
+| 26SM SAT Adv B1 | 15 | 130 | 41/30 | 39 | 0 |
+| 26SM SAT Adv E | 8 | 103 | 31/30 | 31 | 0 |
+| 26SM SAT Inter E | 8 | 107 | 32/30 | 32 | 0 |
+| 26SM SAT Bridge (CORE) | 9 | 100 | 31/30 | 30 | 0 |
+
+All `sessionType: review`, all `graded: true`, all legacy (no `resetEpoch`), across four different
+classes and three different weeks, **zero duplicate wordIds**. That pattern reads as a composition/
+recording mismatch — a queue larger than the recorded `totalQuestions` — **not** as tampering (a forger
+would produce duplicates or a self-consistent score).
+
+**Already defended:** `b1-replay-lib.mjs:76` rejects any attempt whose score is outside 0-100 as
+`badScore`, so the three >100 attempts are skipped by the backfill today. The fourth (score exactly 100,
+31 rows) would replay with one extra row. Separately, the review-v2 completion fence
+(`completion.js:368`) refuses `rows > totalQuestions`, so such an attempt could not serve as live
+day-completion evidence after the flip.
+
+**Action:** none required before the rules deploy. Re-run this sweep before GATE 4 and decide whether to
+correct the four records or let the existing `badScore` guard absorb them.
