@@ -624,5 +624,27 @@ would produce duplicates or a self-consistent score).
 (`completion.js:368`) refuses `rows > totalQuestions`, so such an attempt could not serve as live
 day-completion evidence after the flip.
 
-**Action:** none required before the rules deploy. Re-run this sweep before GATE 4 and decide whether to
-correct the four records or let the existing `badScore` guard absorb them.
+**VERDICT (David 2026-08-03): LEAVE THEM — no fix, no data touch.** The decision is not a judgement
+call; the backfill already refuses this exact shape *by design and by name*:
+- `b1-replay-lib.mjs:108` — `if (rows.length > tq) { bump("rowsGtTotal", …); continue; }`
+- `b1-replay-lib.mjs:76` — score outside 0-100 ⇒ `badScore`, `continue`
+`rowsGtTotal` and `scoreRowsDisagree` are pre-existing entries in `EXCL_KEYS` (b1-replay-lib.mjs:11),
+so whoever wrote the replay anticipated this and fenced it. **All four attempts are excluded from the
+label replay already** — they contribute nothing to the six labels. `continue` skips the ATTEMPT, not
+the student: no gate anywhere refuses to proceed on a non-zero exclusion count.
+
+**Forward impact of leaving them: nil, in the conservative direction.** The words tested in those four
+attempts simply take their labels from the student's other attempts. Worst case a word looks slightly
+less-recently-tested than it was and surfaces in review a little sooner — harmless. And
+`completion.js:368` refuses `rows > totalQuestions` as live day-completion evidence, so they cannot
+serve as evidence after the flip either (they are July review attempts on days 8/9/15 in any case).
+
+**Why NOT to "fix" them:** editing four historical attempts would mean writing to real 26SM records to
+correct a value that every consumer already ignores — pure downside. David's read is that they are
+artifacts of earlier CS fixes in the most-repaired classes, which fits: all four are `review`, all
+legacy, spread across four classes and three weeks, with zero duplicate wordIds.
+
+**If they ever DO need correcting** (only if a future consumer starts trusting `score` without the
+guard): the minimal-repercussion fix is to correct `totalQuestions` UP to the row count — not to delete
+rows or rewrite the score — because that leaves every derived value self-consistent, touches one scalar
+field per document, and keeps the attempt inside the replay's existing fences.
