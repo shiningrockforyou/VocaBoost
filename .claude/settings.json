@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(grep -nB2 -A6 \"Deploy-provenance probe\" functions/index.js)"
+    ]
+  }
+}

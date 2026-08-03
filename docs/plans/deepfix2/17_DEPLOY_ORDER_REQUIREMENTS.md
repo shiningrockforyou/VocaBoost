@@ -83,6 +83,43 @@ handoff-ephemeral.
    bounded skew where in-flight writers still stamp the prior run (their rows quarantine — fail-closed,
    never misclassified). PROCEDURE (extends the existing generation law's schedule): after writing
    `shadow_registry/window`, WAIT > the 60s TTL before starting batteries; same on teardown.
+7b. **THE RULES LEG — ITS OWN WORKSTREAM, NOT A MERGE STEP [r91 HALT, 2026-08-03]. WinClaude REFUSED
+   the ordered rules deploy and the refusal was correct — the order (mine) was wrong in three ways:**
+   (a) **`firestore.rules` in this repo is NOT the live production ruleset.** It self-declares as the
+   P10-CUTOVER (FINAL) end-state — "⛔ DO NOT deploy this file at the P6 (or P10c) step … Deploying it
+   EARLY BREAKS LIVE STUDENT FLOWS AND LOCKS OUT UN-BACKFILLED TEACHERS" (firestore.rules:4-12, verified
+   first-hand). `firebase.json` maps `rules → firestore.rules`, so the ordered command would have shipped
+   TWO unshipped lockdowns (P6 + P10d) to production alongside our clauses. NOT additive.
+   (b) **`audit/deepfix/task3/firestore.review_v2.rules` is 131 lines of COMMENTARY** — a SPECIFICATION
+   of clauses to AUTHOR, not a fragment to concatenate.
+   (c) **The artifact itself mandates a 10-case emulator matrix ON THE MERGED FILE** (its lines 111-126),
+   including case 9 "regression sweep: every pre-existing allow in the base still passes" — the test that
+   would have caught (a) independently. The ordered sequence had no matrix step. The artifact even names
+   the rule the order broke: "The merge base is THE RULESET LIVE IN PRODUCTION AT DARK-TRAIN TIME — not
+   any repo draft."
+   **THE CORRECT SEQUENCE (WSL-owned; rules edits are not the executor's):** fetch the LIVE ruleset (the
+   Firebase Rules REST API / console) as the merge base → AUTHOR the review_v2 clauses as real rule text
+   → run the 10-case matrix on the MERGED file incl. the regression sweep → diff-review → deploy as its
+   own order. **SEQUENCING: this is NOT a blocker for the dark deploy or the 25WT rehearsal** — the
+   engine's safety comes from its callables being server-side (Admin SDK writes bypass rules), and every
+   surface the artifact locks is NEW, so no live or cached client writes it. **It IS required before the
+   flip**, when the six labels start governing student experience and a hand-rolled client write could
+   forge them (B3's backfill overwrites all six from history, so any pre-backfill poisoning is wiped —
+   the real exposure window opens at the flip). **DEADLINE TIGHTENED [WinClaude r091, adopted r092]:
+   land the rules before GATE 4 (the 26SM backfill), not merely before gate 5 — between backfill and
+   rules-deploy, real backfilled labels exist in `study_states` with the field-immunity clauses not yet
+   deployed, so that window would leave them client-forgeable.**
+   **DEPLOY STATUS (2026-08-03, post-pause resume under David's full-permission go): THE DARK DEPLOY IS
+   COMPLETE — all legs except this workstream.** Leg 1 indexes ✅ (r91: 42→43, additive-proven). Leg 3
+   functions ✅ (r92: 17→24, nine surgical `--only functions:<name>` targets, REMOVED: NONE; the 7
+   `reviewV2*` callables created, `resetProgress`/`reviewChallenge` updated in place; deployed tree =
+   `b54c6e5`, `RESET_V2_ENABLED === false` verified from the uploaded source). Leg 4 config doc ✅
+   (WSL, seed-review-v2-config.mjs --execute: `system_config/review_v2` CREATED + post-write VERIFIED
+   dark — enabled:false, firstEnabledAt:null, rehearsalClassIds:[], configVersion:1, 92/60/30,
+   minClientVersion:null). Leg 2 rules = THIS workstream, the only remaining leg. NOTHING ACTIVATED:
+   no marker, no rehearsal classes. **Surgical-deploy caveat [r92]: `exports.version` (the
+   deploy-provenance probe) was not in the target set, so it still reports the LAST FULL deploy's SHA —
+   add `functions:version` to every future surgical target list, or distrust it after surgical trains.**
 8. Standard set: functions + `audit/deepfix/task3/firestore.review_v2.rules` + indexes, all
    `enabled:false`, `rehearsalClassIds:[]`; the R2-48 flip choreography (14_ §4) governs activation;
    Firebase hosting is NOT used for the client — **NETLIFY AUTO-DEPLOYS the front-end on EVERY push to
@@ -92,7 +129,10 @@ handoff-ephemeral.
    David-visible release points; WinClaude orders state the client-deploy consequence whenever src/
    stages.
    **RULED — David, 2026-08-03, verbatim (via the WinClaude channel, receipt at win-baton rev 169):
-   "I turned off auto publishing so it is a non-issue. Continue".** CONSEQUENCES, all in force:
+   "I turned off auto publishing so it is a non-issue. Continue".** **LEVER CONFIRMED VISUALLY 2026-08-03 (David's Netlify
+   page): "Auto Publishing **Locked**" · "Published `main@ce09792`" · the reverse action is labelled
+   "Unlock to start auto publishing".** Production is PINNED at `ce09792`; all later pushes show
+   `completed` (built, unpublished). CONSEQUENCES, all in force:
    (a) a push to `main` BUILDS but does NOT publish — production stays pinned until David publishes
    deliberately; (b) **Q6 is now properly satisfiable and better than its original wording**: the
    OFF-parity + old-bundle checks are evaluated against a BUILT-BUT-UNPUBLISHED deploy, then David
@@ -108,3 +148,11 @@ handoff-ephemeral.
    the teacher-path grading preimage) shipped earlier at `c7abf0a` and IS inside the pinned build.
    ACTION WHEN DAVID NAMES THE LEVER: record it here as a ruling and rewire the WinClaude standing orders
    (branch-only vs push-safe) accordingly; until then the frontend phase stays held.**
+   **SECOND RULING — BUILDS STOPPED (David, 2026-08-03, this channel): David flagged that every Netlify
+   BUILD costs money even unpublished (~20 pushes had bought 1 published deploy), and moved the stronger
+   lever on my recommendation: Build settings → Build status → "Stopped builds" (repo link kept;
+   auto-publish lock remains underneath). CONSEQUENCE: a push to `main` now triggers NOTHING — no build,
+   no cost, no publish; commit/push cadence is fully decoupled from his bill. THE SHIP PATH at flip time
+   is now explicit: either re-activate builds for the one Q6 release, or build locally and publish via
+   CLI/API (Netlify's own alternative for stopped builds). If a build ever appears on a future push, the
+   toggle didn't save — tell David.**

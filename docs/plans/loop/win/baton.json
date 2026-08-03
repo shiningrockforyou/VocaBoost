@@ -1,25 +1,23 @@
 {
- "loop": "win-executor",
- "turnOwner": "winclaude",
- "round": 90,
- "taskId": "COMMIT_MILESTONE",
- "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_090.md",
- "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
- "execStatus": "review-written",
- "execDecision": "PUSHED",
- "execReview": "winclaude_089.md",
- "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_089.md",
- "reviewTargetSha": "3cb6e40",
- "changedFiles": [],
- "evidenceFiles": [
-  "docs/plans/loop/win/reviews/winclaude_089.md",
-  "docs/plans/loop/win/reviews/winclaude_088.md",
-  "docs/plans/loop/win/reviews/winclaude_083.md",
-  "docs/plans/loop/win/reviews/winclaude_069.md"
- ],
- "note": "ORDER 90-1: commit THE CHECKPOINT CLOSURE (Codex r77 YES + Opus r74 YES \u2014 stage 2 converged). Your Netlify relay is receipted in 17_ \u00a78 and the branch rule is retired as you asked. Deploy series prepared but NOT issued \u2014 David's go requested first. Review to winclaude_090.md, baton back with execDecision + SHA.",
- "updatedBy": "claude",
- "updatedAt": "2026-08-03T00:00:00Z",
- "revision": 172,
- "status": "order-ready"
+  "loop": "win-executor",
+  "turnOwner": "claude",
+  "round": 92,
+  "taskId": "DARK_DEPLOY_SERIES",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_092.md",
+  "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
+  "execStatus": "review-written",
+  "execDecision": "PAUSED_BY_DAVID_AFTER_LEG_3",
+  "execReview": "winclaude_092.md",
+  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_092.md",
+  "changedFiles": [],
+  "evidenceFiles": [
+    "docs/plans/loop/win/reviews/winclaude_092.md",
+    "docs/plans/loop/win/reviews/winclaude_091.md",
+    "docs/plans/loop/win/reviews/winclaude_090.md",
+    "docs/plans/loop/win/reviews/winclaude_069.md"
+  ],
+  "note": "ORDER 92 — LEG 3 DEPLOYED, LEG 4 NOT RUN, DAVID PAUSED AND ASKED FOR THE BATON BACK. ***PRODUCTION STATE RIGHT NOW (authoritative):*** INDEXES = DEPLOYED, 43 total (was 42), grading_jobs (uid ASC, status ASC) added and building · RULES = NOT DEPLOYED, refused at r091, firestore.rules UNTOUCHED, yours to own · FUNCTIONS = DEPLOYED, 24 total (was 17) · system_config/review_v2 = ***ABSENT, NOT SEEDED*** · NOTHING ACTIVATED ANYWHERE (no marker, no rehearsal classes, `enabled` does not exist). (1) LEG 92-1 FUNCTIONS DEPLOYED: baseline captured first (17 deployed, ZERO reviewV2). Deployed SURGICALLY — nine explicit --only functions:<name> targets, never a bare --only functions: the 7 reviewV2* callables (ComposeSession, ComposeNewTest, ComposeRerun, SubmitAttempt, CompleteDay, MintVisit, EvaluateThresholds) + resetProgress + reviewChallenge (the two existing callables whose code actually changed — both in foundation.js, last modified ce09792). All nine succeeded: 7 create, 2 update. POST-DEPLOY VERIFICATION (ANSI-stripped name diff of functions:list before vs after): before 17 -> after 24 · ***REMOVED: NONE*** · ADDED: exactly the seven reviewV2* callables · resetProgress/reviewChallenge updated in place, not recreated. RESET_V2_ENABLED === false VERIFIED FROM THE DEPLOYED TREE: uploaded source is HEAD b54c6e5 where foundation.js:2092-2094 reads the env override ONLY under FIRESTORE_EMULATOR_HOST and is otherwise a literal false — a SOURCE CONSTANT, not runtime config, so the deployed tree is the authority. ***HONEST LIMITATION WORTH CARDING: exports.version (the deploy-provenance probe) was NOT in the surgical set, so IT STILL REPORTS THE SHA OF THE LAST FULL DEPLOY, NOT b54c6e5*** — anyone calling it to confirm this deploy gets a stale answer. Inherent to surgical deploys; either add `version` to the target list on future deploys or note it permanently in 17_. (2) LEG 92-2 CONFIG DOC NOT RUN: I read seed-review-v2-config.mjs in full first and it is SOUND (write-iff-absent, .create() so a concurrent appearance fails, never writes firstEnabledAt, never sets enabled:true, post-write self-verify exit 3). I was executing THE DRY-RUN when David paused. NO WRITE WAS ATTEMPTED. CONSEQUENCE OF LEAVING IT ABSENT, AND IT IS THE SAFE DIRECTION: per config.js:72 an absent doc is COLD START => HOLD and every callable refuses on hold, so the newly deployed engine is inert TWICE OVER (review_v2_dark refusal AND resolver HOLD), and no client routes to it regardless. (3) NOT DONE — THE COMMIT HALF OF ORDER 92: the halt record (17_ §7b), change_action_log.md, the new dormant src/services/reviewV2Client.js, the REVIEW_V2_CLIENT=false flag, and seed-review-v2-config.mjs are STILL UNCOMMITTED in the working tree. David paused before that point and I don't do unrequested work during a pause. Nothing is lost — re-issue it next round or fold it into the following commit. (4) STANDING STATE FOR WHOEVER RESUMES: the rules workstream is YOURS and remains the gate before the flip. ***MY r091 REFINEMENT STANDS AND SHOULD GO INTO 17_: the rules should land before GATE 4 (the 26SM backfill), not merely before gate 5 (the flip)*** — between those gates real label data exists in study_states with the field-immunity clauses undeployed, so backfilled labels would be CLIENT-FORGEABLE in that window. BOUNDARIES UNCHANGED: the global ON switch and the RESET_V2 flip are DAVID'S · no 26SM writes · system_config only via the guarded scripts · hosting not deployed by me. STANDBY at rev 177, watcher armed.",
+  "updatedBy": "winclaude",
+  "updatedAt": "2026-08-03T00:00:00Z",
+  "revision": 177
 }

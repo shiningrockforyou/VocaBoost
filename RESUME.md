@@ -1,33 +1,36 @@
-# RESUME — DEEPFIX2: ✅ STAGE-2 CHECKPOINT CLOSED (2026-08-03) → THE DARK DEPLOY
+# RESUME — DEEPFIX2 (active 2026-08-03: DARK DEPLOY COMPLETE → THE RULES WORKSTREAM)
 
-## THE CHECKPOINT IS CONVERGED
-**Codex r77 YES** ("PRESENTABLE: YES. The Stage-2 checkpoint is converged", target `3cb6e40`) +
-**Opus r74 YES**. Receipts: `docs/plans/loop/codex_reviews/codex_deepfix2_r77.md` ·
-`docs/plans/loop/fable_panels/panel_r74_opus.md`. Engine lap **220/220**, sha-bound, lint clean unmasked.
-Rounds r70→r77 all folded; every closing condition closed or explicitly deferred with reasons.
+## PRODUCTION (all live-verified)
+Indexes 43 ✅ · functions 24 ✅ (17→24, zero removed; deployed tree `b54c6e5`) · **`system_config/
+review_v2` SEEDED DARK ✅** (enabled:false · firstEnabledAt:null · rehearsalClassIds:[] · configVersion:1
+· 92/60/30) · rules NOT deployed (the one remaining leg, §7b workstream) · client PINNED `ce09792` ·
+**Netlify BUILDS STOPPED** (David's second ruling — pushes trigger nothing; cost decoupled) · NOTHING
+ACTIVATED. Students see no difference.
 
-## NEXT: THE DARK-DEPLOY ORDER SERIES (per docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIREMENTS.md)
-**AWAITING DAVID'S GO** (asked 2026-08-03 — it is the program's first PRODUCTION backend deploy).
-The four legs, in order:
-1. **indexes** — `firebase deploy --only firestore:indexes` (adds the NEW grading_jobs (uid,status)
-   composite; 17_ §2 requires it before any RESET_V2 flip). Additive, no behavior change.
-2. **rules** — merge `audit/deepfix/task3/firestore.review_v2.rules` (131 lines, ADDITIVE: denies client
-   writes to the SIX new label fields + nine new subcollections + three new top-level collections; all
-   are NEW surfaces, so the lock is inert for every live/cached client) into `firestore.rules` (419
-   lines) and deploy. THE ONE OUTWARD-FACING LEG — verify additivity leg-by-leg before deploying.
-3. **functions** — the 7 dormant callables + the ONE index.js wiring block. `RESET_V2_ENABLED=false`
-   keeps `resetProgress` on the legacy law (David: flip it at the rehearsal phase).
-4. **the config doc** — create `system_config/review_v2` = `{enabled:false, firstEnabledAt:null,
-   rehearsalClassIds:[], configVersion:1, threshold:92, queueSize:60, testSize:30,
-   minClientVersion:null}`. Until it exists the resolver returns HOLD (cold-start law) — safe, but the
-   doc must exist before the rehearsal.
-POST-DEPLOY: verify dark (every callable refuses `review_v2_dark`), then 25WT rehearsal
-(`rehearsalClassIds` = sandbox class ids) → shadow audit (16_) → **David's backfill go** → **David's
-flip** (flip-review-v2.mjs refuses without his flag).
+## RULINGS THIS SESSION (receipts in change_action_log 2026-08-03)
+1. **Full-permission resume** — David verbatim: "You have my full permission to go ahead with
+   everything." Gates 4/5 (26SM backfill · the flip) remain HIS alone; everything else proceeds.
+2. **Review sequencing** — "save Codex for after you and Opus authenticators converge": WSL+Opus
+   (Workflow) converge FIRST, then ONE final-gate Codex round via the baton. Codex is not skipped.
+3. **Rules deadline tightened** (WinClaude r091, adopted): before GATE 4, not gate 5 — the
+   backfill→rules window would leave backfilled study_states labels client-forgeable.
+
+## ACTIVE: THE RULES WORKSTREAM (17_ §7b — mine, WSL)
+fetch LIVE production ruleset (Rules REST API; scripts/deepfix2/fetch-live-rules.mjs) as merge base →
+verify it differs from repo firestore.rules (unshipped P10 end-state — NEVER deploy) → AUTHOR review_v2
+clauses as real rule text from audit/deepfix/task3/firestore.review_v2.rules (131-line SPEC; its lines
+111-126 mandate the 10-case emulator matrix incl. case 9 regression sweep) → matrix on the MERGED file
+(scratch firebase.json — do NOT touch /app/firebase.json) → Opus panel converge → Codex final gate →
+own deploy order.
+
+## THEN, in order
+DF2-12/13 typed grading → DF2-51 client cutover (wrapper + dormant flag EXIST; DailySessionFlow rewiring
+next) → 25WT rehearsal (localhost client → deployed dark backend; RESET_V2 flip = David-acknowledged
+step here) → shadow audit (16_) → **David's backfill go** → **David's flip** (`--yes-i-am-david`).
+DEFERRED until post-rehearsal: the DF2-10 adoption legs (evidence reader · throttle removal ·
+force-pass) — the only work touching live student paths.
 
 ## STANDING
-Netlify auto-publish OFF (David 08-03, receipted 17_ §8) — pushes BUILD but never ship; **branch rule
-RETIRED**, client work commits to main normally · R2-51 ratified · RESET_V2 flip = rehearsal phase ·
-perpetual watcher (relaunch first thing each wake) · fold-ledger + OTHER-LEG discipline · absolute paths,
-verified in-call · commit-then-marker protocol (worktree frozen during any review) · calibration alerts
-to David each round.
+Watcher first-thing every wake · fold-ledger + OTHER-LEG + deploy-orders-read-every-file · absolute
+paths · no folds while a panel measures · zero git during WinClaude/Codex turns · calibration alerts ·
+`exports.version` is STALE after surgical deploys (add functions:version to future target lists).

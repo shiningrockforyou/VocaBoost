@@ -228,3 +228,16 @@ export const FORCED_PATHWAY = true;
 // Roll back = flip false + rebuild.
 // Default OFF — flag-off behavior is byte-equivalent to today (Run-L discipline).
 export const RECOVERY_GUARD = true;
+
+// REVIEW_V2_CLIENT: route the day's session (compose → submit → complete)
+// through the DEEPFIX2 review-v2 engine callables (src/services/reviewV2Client.js)
+// instead of the legacy initializeDailySession/submitVocabAttempt/completeSession
+// path. Same dormant-draft idiom as the flags above: ships FALSE, so the
+// legacy path is byte-identical until it flips.
+// Rollout: the engine dark-deploys first (17_ §8 order series) → this flips ON
+// for the 25WT rehearsal ONLY (localhost client → deployed dark backend; the
+// server serves rehearsalClassIds while globally dark) → validate the full
+// matrix → then it ships with the launch. Roll back = flip false + rebuild.
+// The server refuses everything with `review_v2_dark` until its own posture
+// allows, so a mistaken flip cannot activate anything by itself.
+export const REVIEW_V2_CLIENT = false;
