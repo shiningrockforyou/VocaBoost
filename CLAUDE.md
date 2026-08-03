@@ -23,6 +23,12 @@ question, **the default is to keep going**, not to report and wait.
 - Keep the queue honest: add an item when new work appears, mark `[x]` when it lands, and record its
   real blocker (`none` · `codex` · `win` · `david:<what>` · `after:<id>`).
 - **This is program mode only.** A conversational question gets an answer, not a work session.
+- **Delegate the code, keep the judgement.** In a long program session, hand bounded implementation,
+  test batteries and audits to FRESH agents with a written brief (pair every implementer with an
+  independent auditor told not to trust its self-report). Keep for yourself: folding reviewer findings,
+  trade-offs, sequencing, batons, and the owner interface. The test is *does this need the whole
+  program in mind, or just this file and this brief?* Long context degrades enumeration — the sibling
+  case you drop is the one that ships.
 
 ## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
 - **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,
