@@ -5,7 +5,8 @@
  * ============================================================================
  * Runs the frozen case list (firestore.review_v2.rules:111-126) against the
  * MERGED artifact audit/deepfix/task3/live_baseline/firestore.merged.rules —
- * never against the spec fragment, never against the repo's firestore.rules.
+ * never against the spec fragment, never against the UNSHIPPED P10 draft
+ * (docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules — moved off the deploy path).
  *
  * LIVE-BASE ADAPTATIONS (documented, per the spec's own CLAUSE 5 note (b) and
  * the "preserved AS FOUND in the live base" NOTE):
@@ -18,8 +19,8 @@
  *     here — every pre-existing allow branch in the live ruleset asserted, and
  *     the base's own denials that DEEPFIX2 relies on staying denials.
  *
- * Run (from /app; scratch dir carries its own firebase.json so /app's
- * firebase.json → firestore.rules P10 draft is never loaded):
+ * Run (from /app; the scratch dir carries its own firebase.json so /app's
+ * firebase.json is never loaded):
  *   see scripts/deepfix2/run-rules-matrix.sh
  * Exit: 0 all green · 1 any case failed.
  *
@@ -296,6 +297,17 @@ await deny("3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒
 await deny("3e create carrying a label ALONGSIDE legacy fields", s1.doc("users/student1/study_states/w_mixed").set({ status: "learning", lastTestedAt: 1, reviewFailCount: 0 }));
 await deny("3f update touching TWO labels at once", s1.doc("users/student1/study_states/w_multi").update({ reviewFailCount: 0, reviewRestingUntil: 0 }));
 await deny("3g delete a MULTI-label doc", s1.doc("users/student1/study_states/w_multi").delete());
+// [ledger C2] the legacy client reset path deletes a WHOLE LIST of study_states
+// in one batch. A batch is atomic, so a mixed set (plain + labeled) must fail as
+// a unit — this is the shape that breaks a >2-week-old cached tab after GATE 4.
+await ok("3h seed a plain doc for the mixed-batch case", s1.doc("users/student1/study_states/w_batch_plain").set({ status: "learning" }));
+await deny("3i MIXED BATCH delete (plain + labeled) fails as a unit", (() => {
+  const batch = s1.batch();
+  batch.delete(s1.doc("users/student1/study_states/w_batch_plain"));
+  batch.delete(s1.doc("users/student1/study_states/w_labeled"));
+  return batch.commit();
+})());
+await ok("3j the plain doc survived the refused batch (atomicity)", s1.doc("users/student1/study_states/w_batch_plain").get());
 
 // ── CASE R [panel F1]: role is CREATE-ONLY — no self-elevation ──────────────
 await deny("R1 student promotes self to teacher", s1.doc("users/student1").update({ role: "teacher" }));
@@ -304,6 +316,14 @@ await deny("R3 teacher demotes another user (challenges-only branch)", t1.doc("u
 await ok("R4 owner updates OTHER user-doc fields (unchanged)", s1.doc("users/student1").update({ displayName: "S1c" }));
 await ok("R5 owner write that RESTATES the same role value (seeder shape)", s1.doc("users/student1").set({ role: "student", displayName: "S1d" }, { merge: true }));
 await deny("R6 student writes enrolledClasses→teacher role in one op", s1.doc("users/student1").update({ role: "teacher", enrolledClasses: { c1: true } }));
+// [panel r2 BLOCKER] the delete-then-recreate bypass: with delete open, a
+// student could drop their own user doc and recreate it as a teacher. Both
+// halves are pinned, and the SECOND is the one that used to be unasserted.
+await deny("R7 student DELETES own user doc (the bypass's first call)", s1.doc("users/student1").delete());
+await deny("R8 third party deletes another user's doc", s2.doc("users/student1").delete());
+await deny("R9 teacher deletes a student's user doc", t1.doc("users/student1").delete());
+await ok("R10 a genuinely NEW account creates its own doc (signup, incl. the teacher radio)", env.authenticatedContext("newuser1").firestore().doc("users/newuser1").set({ role: "teacher", email: "n@x.com" }));
+await deny("R11 create someone ELSE's user doc", s1.doc("users/victim").set({ role: "student" }));
 
 // ── CASE E [panel F2/F3]: the server-only reset/epoch fence is unwritable ────
 await deny("E1 owner writes resetAt to progress_meta (backfill-fence laundering)", s1.doc("users/student1/progress_meta/c1_l1").update({ resetAt: 999 }));

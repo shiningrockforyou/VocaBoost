@@ -116,9 +116,21 @@ handoff-ephemeral.
    fail 71 each but share only 44 — 27 P10-only failures are exactly the live-flow regressions).
    Reviewers: spec-fidelity **YES**; adversarial-forgery **NO** ("safe to deploy" but named uncovered
    paths). **TWO HARDENING DELTAS BEYOND THE SPEC, both verified inert against the live client tree:**
-   (i) **`role` is now CREATE-ONLY** — the live base let ANY student self-promote to teacher and thereby
-   read `ai_metering`/`ops_metrics` and write every other student's progress records (a pre-existing
-   LIVE hole this deploy closes); (ii) **the reset fence** (`resetAt`/`resetEpoch`/`resetInProgress`) is
+   (i) **`role` can no longer be changed on an existing account** — the live base let ANY student rewrite
+   their own `role` in place and thereby read `ai_metering`/`ops_metrics` and write every other student's
+   progress records. **CORRECTED AT PANEL R2 — my first claim of "create-only, hole closed" was FALSE:**
+   both r2 reviewers independently found that `create` and `delete` were bare `isOwner`, so
+   delete-then-recreate restored elevation in TWO calls, and the 189-case matrix had ZERO assertions on
+   either op (a mutant replacing the delete branch with `if true` would have shipped green). Now closed:
+   `allow delete: if false` (verified — no client path deletes a users doc), with both ops pinned by
+   cases R7-R11 and mutant M7. **WHAT IT STILL DOES NOT BUY, and this is DAVID'S CALL:** `role` is
+   **self-asserted at signup** — `src/pages/Signup.jsx:124-149` renders a public "Teacher" radio that
+   `db.js:254` writes verbatim, so anyone with an email address can hold `role:'teacher'` from account
+   creation, and the live base's own `TODO(security)` grant (preserved verbatim here) lets ANY teacher
+   write ANY student's subcollections regardless of class membership. These clauses stop an ESTABLISHED
+   account from escalating; they do NOT make 'teacher' a confidentiality boundary. Closing that is a
+   PRODUCT decision (gated teacher registration, or class-scoped teacher grants) — **carded, not fixed
+   here, and NOT caused by this program**; (ii) **the reset fence** (`resetAt`/`resetEpoch`/`resetInProgress`) is
    now client-unwritable, closing the GATE-4 backfill-laundering lever, the day_completions CAS-namespace
    fork and the engine self-DoS. **PRODUCTION EVIDENCE:** the read-only fence sweep found **ZERO** fence
    values across 2,519 progress docs — since the fence's only writer is gated off, nothing can have been
@@ -131,7 +143,17 @@ handoff-ephemeral.
    data-check first, because "phantom members" (in `members/` yet absent from `studentIds`) may
    legitimately depend on it; the exclusion list is a DENY-LIST (fail-open for a renamed/new
    subcollection — add a pre-deploy grep check, invert at P6); `system_logs` rows are client-attributable
-   (CS must cross-check before treating one as evidence). **DEPLOY-GATE MECHANICS:** review the diff with
+   (CS must cross-check before treating one as evidence). **THE DEPLOY LANDMINE, DISARMED [panel r2 HIGH]:** `firebase.json` still pointed the Firestore rules
+   deploy at `/app/firestore.rules` — the UNSHIPPED P10 cutover — so a plain
+   `firebase deploy --only firestore:rules` from `/app` would have shipped it despite the r91 halt. The
+   damage is now measured, not asserted: that file scores **118/189** on this matrix with **27 live-flow
+   regressions** (every student progress write, the reset path, plain attempt create, challenge review,
+   teacher class/list creation), and it constrains user CREATE to `role:'student'`, which would also
+   break teacher signup. **FIXED:** the draft moved to
+   `docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules` (labelled, deployed by nothing) and `firebase.json`
+   repointed at the CURRENT LIVE ruleset, so a blind rules deploy is now a **no-op** instead of an
+   outage. The real rules order must name the merged artifact explicitly.
+   **DEPLOY-GATE MECHANICS:** review the diff with
    `scripts/deepfix2/diff-rules-vs-live.sh` (the base is CRLF, the artifact LF — a naive diff shows a
    100% rewrite and hides the six declared hunks), and re-run `fetch-live-rules.mjs` AFTER the deploy to
    re-baseline the drift sha. **NEXT: the Codex final gate, then its own deploy order.**

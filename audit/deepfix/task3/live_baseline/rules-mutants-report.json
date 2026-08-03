@@ -1,9 +1,9 @@
 {
-  "matrixSha16": "68cc42b8d482692e",
+  "matrixSha16": "71911643388283c5",
   "canonical": {
-    "rulesSha16": "c44b82072e4eefd7",
-    "pass": 189,
-    "total": 189,
+    "rulesSha16": "745514bc9c28822a",
+    "pass": 197,
+    "total": 197,
     "failed": []
   },
   "mutants": [
@@ -12,8 +12,8 @@
       "why": "the study_states erasure guard must read the EXISTING doc, not the (null) incoming one",
       "applied": true,
       "killed": true,
-      "pass": 188,
-      "total": 189,
+      "pass": 196,
+      "total": 197,
       "killedBy": [
         "ALLOW-expected DENIED: 1c owner delete PLAIN study_state :: 7 PERMISSION_DENIED:"
       ]
@@ -23,8 +23,8 @@
       "why": "dropping ONE subcollection name from ONE op branch must not slip through",
       "applied": true,
       "killed": true,
-      "pass": 188,
-      "total": 189,
+      "pass": 196,
+      "total": 197,
       "killedBy": [
         "DENY-expected FAILED: 4b owner update review_queues :: Expected request to fail, but it succeeded."
       ]
@@ -34,10 +34,11 @@
       "why": "the six-label update guard must fire on ANY label, not only on a write of all six",
       "applied": true,
       "killed": true,
-      "pass": 188,
-      "total": 189,
+      "pass": 195,
+      "total": 197,
       "killedBy": [
-        "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒ DENY :: Expected request to fail, but it succeeded."
+        "DENY-expected FAILED: 3d full-overwrite set() (NO merge) on a labeled doc drops labels ⇒ DENY :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: 3i MIXED BATCH delete (plain + labeled) fails as a unit :: Expected request to fail, but it succeeded."
       ]
     },
     {
@@ -45,8 +46,8 @@
       "why": "HARDENING B1 — without it a student self-promotes to teacher",
       "applied": true,
       "killed": true,
-      "pass": 186,
-      "total": 189,
+      "pass": 194,
+      "total": 197,
       "killedBy": [
         "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: R2 student promotes self via set-merge :: Expected request to fail, but it succeeded.",
@@ -58,8 +59,8 @@
       "why": "HARDENING B2 — without it the backfill's epoch fence is client-forgeable",
       "applied": true,
       "killed": true,
-      "pass": 185,
-      "total": 189,
+      "pass": 193,
+      "total": 197,
       "killedBy": [
         "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E2 owner bumps resetEpoch (forks the day_completions CAS namespace) :: Expected request to fail, but it succeeded.",
@@ -68,12 +69,23 @@
       ]
     },
     {
+      "id": "M7-users-delete-reopened",
+      "why": "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
+      "applied": true,
+      "killed": true,
+      "pass": 196,
+      "total": 197,
+      "killedBy": [
+        "DENY-expected FAILED: R7 student DELETES own user doc (the bypass's first call) :: Expected request to fail, but it succeeded."
+      ]
+    },
+    {
       "id": "M6-attempt-erasure-removed",
       "why": "CLAUSE 5 + r54 — without it the override record and the CSD/TWI anchor stay erasable",
       "applied": true,
       "killed": true,
-      "pass": 188,
-      "total": 189,
+      "pass": 196,
+      "total": 197,
       "killedBy": [
         "DENY-expected FAILED: A1 student deletes a STAMPED attempt (override/posture erasure) :: Expected request to fail, but it succeeded."
       ]
@@ -83,9 +95,9 @@
     {
       "label": "raw live base",
       "rulesSha16": "44914b60858a1dcd",
-      "pass": 118,
-      "total": 189,
-      "failureCount": 71,
+      "pass": 124,
+      "total": 197,
+      "failureCount": 73,
       "failures": [
         "DENY-expected FAILED: 1d owner delete LABEL-carrying study_state (erasure guard) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 2a owner create study_state with reviewFailCount :: Expected request to fail, but it succeeded.",
@@ -149,9 +161,11 @@
         "DENY-expected FAILED: 3e create carrying a label ALONGSIDE legacy fields :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 3f update touching TWO labels at once :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 3g delete a MULTI-label doc :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: 3i MIXED BATCH delete (plain + labeled) fails as a unit :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: R1 student promotes self to teacher :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: R2 student promotes self via set-merge :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: R6 student writes enrolledClasses→teacher role in one op :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: R7 student DELETES own user doc (the bypass's first call) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E1 owner writes resetAt to progress_meta (backfill-fence laundering) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E2 owner bumps resetEpoch (forks the day_completions CAS namespace) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: E3 owner sets resetInProgress (engine self-DoS) :: Expected request to fail, but it succeeded.",
@@ -162,10 +176,10 @@
     },
     {
       "label": "repo P10 draft",
-      "rulesSha16": "752981b78f532ebd",
-      "pass": 118,
-      "total": 189,
-      "failureCount": 71,
+      "rulesSha16": "88525d6eeb4ec011",
+      "pass": 124,
+      "total": 197,
+      "failureCount": 73,
       "failures": [
         "DENY-expected FAILED: 1d owner delete LABEL-carrying study_state (erasure guard) :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 2a owner create study_state with reviewFailCount :: Expected request to fail, but it succeeded.",
@@ -235,6 +249,8 @@
         "DENY-expected FAILED: 3e create carrying a label ALONGSIDE legacy fields :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 3f update touching TWO labels at once :: Expected request to fail, but it succeeded.",
         "DENY-expected FAILED: 3g delete a MULTI-label doc :: Expected request to fail, but it succeeded.",
+        "DENY-expected FAILED: 3i MIXED BATCH delete (plain + labeled) fails as a unit :: Expected request to fail, but it succeeded.",
+        "ALLOW-expected DENIED: R10 a genuinely NEW account creates its own doc (signup, incl. the teacher radio) :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: E6 owner writes NON-fence fields on the same doc (unchanged) :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: A2 student deletes a PLAIN attempt (live reset path preserved) :: 7 PERMISSION_DENIED:",
         "ALLOW-expected DENIED: 10b DEFERRED: owner still writes csd/twi (P6/DF2-46 closes this, not this ruleset) :: 7 PERMISSION_DENIED:"
@@ -242,9 +258,9 @@
     }
   ],
   "wholeFileOverlap": {
-    "liveOnly": 27,
-    "p10Only": 27,
-    "shared": 44,
+    "liveOnly": 28,
+    "p10Only": 28,
+    "shared": 45,
     "p10OnlyExamples": [
       "ALLOW-expected DENIED: 4f teacher read review_queues ::",
       "ALLOW-expected DENIED: 9-u3 teacher challenges-only update on student user doc :: 7 PERMISSION_DENIED:",

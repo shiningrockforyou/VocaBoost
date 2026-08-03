@@ -29,7 +29,7 @@ import { join } from "node:path";
 
 const MERGED = "/app/audit/deepfix/task3/live_baseline/firestore.merged.rules";
 const LIVE = "/app/audit/deepfix/task3/live_baseline/firestore.live.rules";
-const P10 = "/app/firestore.rules";
+const P10 = "/app/docs/plans/UNSHIPPED_P10_CUTOVER.firestore.rules";
 const RUNNER = "/app/scripts/deepfix2/run-rules-matrix.sh";
 const MATRIX = "/app/scripts/deepfix2/rules-matrix.mjs";
 
@@ -76,6 +76,12 @@ const MUTANTS = [
     from: `          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                'resetAt', 'resetEpoch', 'resetInProgress' ]);`,
     to: `          ;`,
+  },
+  {
+    id: "M7-users-delete-reopened",
+    why: "panel r2 BLOCKER — an open delete branch is a two-call bypass of the role guard",
+    from: `      allow delete: if false;`,
+    to: `      allow delete: if isAuthenticated() && isOwner(userId);`,
   },
   {
     id: "M6-attempt-erasure-removed",

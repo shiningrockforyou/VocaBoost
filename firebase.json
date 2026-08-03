@@ -1,7 +1,11 @@
 {
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
     "rewrites": [
       {
         "source": "**",
@@ -10,7 +14,7 @@
     ]
   },
   "firestore": {
-    "rules": "firestore.rules",
+    "rules": "audit/deepfix/task3/live_baseline/firestore.live.rules",
     "indexes": "firestore.indexes.json"
   },
   "emulators": {

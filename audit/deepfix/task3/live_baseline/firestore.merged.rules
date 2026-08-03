@@ -12,6 +12,18 @@
 //   narrowing is introduced: list_progress/class_progress/progress_meta and
 //   the legacy attempt writes stay exactly as live (the inertness law).
 // NOT the repo's firestore.rules (that is the unshipped P10 end-state).
+// WHAT THIS FILE DELIBERATELY DOES **NOT** CLOSE — do not read it as forge-proof:
+//   * `currentStudyDay` / `totalWordsIntroduced` (csd/twi) stay OWNER-WRITABLE.
+//     The engine reads them as the frontier and review-universe authority
+//     (functions/reviewV2/progress.js:62-70), so a student can still forge their
+//     own day position. That is the LIVE legacy posture the app depends on; its
+//     closure is carded to P6/DF2-46, and matrix case 10b asserts it as a
+//     DEFERRED SURFACE, never as an inertness proof.
+//   * Client attempt create / answers-only update / plain delete stay legal
+//     (load-bearing until DF2-46), so attempt HISTORY remains client-shaped.
+//   * `role` is self-asserted at signup, so `isTeacher()` is an availability
+//     gate, not a confidentiality boundary (see the users block).
+//
 // TWO DELTA GROUPS, deliberately distinguishable:
 //   (1) SPEC-MANDATED — the nine-subcollection exclusion, the six-label
 //       study_states guards, the attempt override-key guards (create/update per
@@ -57,14 +69,26 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
 
-      // DEEPFIX2 [HARDENING, beyond the spec — r-panel forgery lens F1]: the
-      // live base let an owner rewrite their OWN `role`, and isTeacher() reads
-      // that field, so any student could self-promote to teacher and then read
-      // ai_metering / ops_metrics and write every other student's records. The
-      // write is split so `role` becomes create-only; every other owner write
-      // and the teacher challenges-only branch are preserved verbatim.
-      // VERIFIED create-only: AuthContext.jsx:75 (signup) and :113 (Google,
-      // guarded by !userSnap.exists()); no client path updates role.
+      // DEEPFIX2 [HARDENING, beyond the spec — panel F1, CORRECTED at panel r2]:
+      // the live base let an owner rewrite their OWN `role` in place, and
+      // isTeacher() reads that field. The write is split so an UPDATE can never
+      // touch `role`, and DELETE is closed so the guard cannot be bypassed by
+      // delete-then-recreate (panel r2 found that two-call path; my first
+      // "create-only" claim was wrong). VERIFIED no live writer: role is
+      // written only at doc creation (AuthContext.jsx:75 signup; :113 Google,
+      // guarded by !userSnap.exists()); seedFullData.js:958 restates an
+      // IDENTICAL value behind TeacherRoute, which diff() omits from
+      // affectedKeys (matrix R5); db.js:286 touches profile only; and NO client
+      // path deletes a users doc (zero deleteDoc on users/, no account-deletion
+      // flow).
+      //
+      // WHAT THIS DOES NOT BUY — read before trusting `isTeacher()`:
+      // `role` is SELF-ASSERTED AT SIGNUP (src/pages/Signup.jsx:124-149 renders
+      // a public "Teacher" radio that db.js:254 writes verbatim), so anyone with
+      // an email can hold role:'teacher' from the start. These clauses stop an
+      // ESTABLISHED account from escalating in place; they do NOT make 'teacher'
+      // a confidentiality boundary. Closing that is a PRODUCT decision (gated
+      // teacher registration, or class-scoped teacher grants), carded to David.
       allow create: if isAuthenticated() && isOwner(userId);
 
       allow update: if isAuthenticated() && (
@@ -73,7 +97,9 @@ service cloud.firestore {
         (isTeacher() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['challenges']))
       );
 
-      allow delete: if isAuthenticated() && isOwner(userId);
+      // Closed [panel r2]: delete + recreate was a two-call bypass of the role
+      // guard. No client path deletes a users doc, so this denies nothing live.
+      allow delete: if false;
 
       // TODO(security): teacher writes here exist solely to support
       // reviewChallenge (writes student's study_states + class_progress when
@@ -217,6 +243,11 @@ service cloud.firestore {
 
     // SYSTEM LOGS (for reconciliation events)
     match /system_logs/{logId} {
+      // DEEPFIX2 [panel F11]: unchanged from the live base, but stated honestly —
+      // create requires only auth and binds no uid, so rows are CLIENT-ATTRIBUTABLE:
+      // anyone can write a row naming another student. Never an ENGINE authority
+      // signal; CS must cross-check uid/createTime before treating a row (e.g.
+      // csd_anchor_invalid) as evidence.
       allow create: if isAuthenticated();
       allow read: if isAuthenticated() && isTeacher();
     }
@@ -245,7 +276,10 @@ service cloud.firestore {
 
     // CLAUSE 4: AI grading meters — server-incremented, teacher-readable.
     match /ai_metering/{meterId} {
-      allow read: if isAuthenticated() && isTeacher();   // teacher-only HOLDS given the role guard above
+      // teacher-GATED, not confidential: `role` is self-asserted at signup (see
+      // the users block). Real confidentiality needs a custom claim or an
+      // Admin-SDK read path. Nothing student-identifying lives here.
+      allow read: if isAuthenticated() && isTeacher();
       allow write: if false;              // incremented in the grading-job claim txn (Admin SDK)
     }
 

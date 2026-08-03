@@ -538,3 +538,46 @@ gaps are servable + warned (`positionGap`). Fix when carded: allocate `max(exist
 add paths (a delete with no subsequent add stays a gap, governed by warn-and-serve). The read-only sweep
 (scripts/deepfix2/list-position-sweep.mjs, receipt in docs/plans/deepfix2/evidence/) re-runs before 26SM
 meets the engine; any flagged list needs repair first.
+
+---
+
+## #NN — TEACHER IS SELF-ASSERTED AT SIGNUP, AND ANY TEACHER CAN WRITE ANY STUDENT'S DATA
+**Found:** 2026-08-03, DEEPFIX2 rules panel (round-2 reviewers, independently). **Live today. Not caused
+by DEEPFIX2.** **DAVID'S DECISION — a product call, not a code fix I should make unilaterally.**
+
+**What's broken.** `src/pages/Signup.jsx:124-149` renders a public **"Teacher" radio** on the signup form;
+`src/pages/Signup.jsx:38` passes it to `createUserDocument`, and `src/services/db.js:254` writes
+`role: docOverrides.role ?? 'student'` **verbatim** — no invite code, no approval, no verification. Anyone
+with an email address holds `role: 'teacher'` from account creation.
+
+Security rules resolve `isTeacher()` off that same self-asserted field, and the LIVE ruleset grants
+(`firestore.live.rules:45-48`, carrying its own `TODO(security)` admitting the grant is overly broad):
+
+```
+match /users/{userId}/{subcollection}/{docId} {
+  allow read:  if isAuthenticated() && (isOwner(userId) || isTeacher());
+  allow write: if isAuthenticated() && (isOwner(userId) || isTeacher());
+}
+```
+
+⇒ **a self-registered "teacher" can read and write EVERY student's `study_states`, `class_progress`,
+`list_progress` and session records — regardless of class membership** — plus read every student's
+attempts surface and rewrite `ap_answer_keys` (`ap_answer_keys` is `read, write: if isTeacher()`).
+
+**What the DEEPFIX2 rules artifact does and does not do.** It closes in-place elevation of an EXISTING
+account (`role` unchangeable on update; user-doc delete closed so delete-then-recreate cannot bypass it)
+and it keeps the nine engine subcollections + six label fields unwritable **by teachers too**. It does
+**not** make `teacher` a privilege boundary, and it must not be described as doing so. The artifact's new
+`ai_metering` / `ops_metrics` teacher-reads inherit the same weakness (both hold usage/ops counters, no
+student-identifying content).
+
+**Options for David (roughly increasing effort):**
+1. **Remove the teacher radio from public signup** — teachers created by an admin/CS flow or an invite
+   code. Smallest change; closes open registration immediately. (Existing teacher accounts unaffected.)
+2. **Scope the teacher grant to class membership** — replace the blanket `isTeacher()` branch with a
+   membership check (`studentIds`/`members`). Correct fix; needs a careful audit of every teacher surface
+   that reads student subcollections, so it wants its own workstream.
+3. **Move `role` to a custom auth claim** — set server-side, unforgeable, and rules read `request.auth.token.role`. Strongest, biggest migration.
+
+**Interaction with DEEPFIX2:** none blocking. The engine's own authority is server-side (Admin SDK), and
+its label fields are already denied to teachers. This is an independent, pre-existing exposure.

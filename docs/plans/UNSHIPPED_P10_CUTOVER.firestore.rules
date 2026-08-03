@@ -1,3 +1,18 @@
+// ============================================================================
+// ⛔ MOVED OUT OF THE DEPLOY PATH 2026-08-03 — was /app/firestore.rules.
+// firebase.json pointed the Firestore rules deploy HERE, so a plain
+// `firebase deploy --only firestore:rules` from /app would have shipped this
+// UNSHIPPED end-state to 947 live students. Measured damage (deepfix2 rules
+// matrix, whole-file run): 118/189, with 27 live-flow regressions including
+// every student progress write (list_progress / class_progress /
+// progress_meta), the reset path, plain attempt create, challenge review,
+// and teacher class/list creation. It also constrains user CREATE to
+// role:'student', which would break teacher signup.
+// This nearly shipped once already (the r91 HALT). firebase.json now points
+// at the CURRENT LIVE ruleset, so a blind deploy is a no-op. This file stays
+// as the P-series design record; it is deployed by NOTHING.
+// ============================================================================
+
 rules_version = '2';
 
 // ============================================================================
