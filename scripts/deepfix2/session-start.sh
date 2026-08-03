@@ -1,11 +1,27 @@
 #!/usr/bin/env bash
 # DEEPFIX2 — one command for every start-of-turn duty (replaces a list I must recall).
 # Usage: bash scripts/deepfix2/session-start.sh
-SCRATCH="${DEEPFIX2_SCRATCH:-/tmp/claude-1000/-app/87eba36e-8e66-4638-bae9-6cd6f923fff6/scratchpad}"
+# SCRATCH resolution (2026-08-03): the old hardcoded per-session path died with its
+# session and the watcher relaunch silently no-opped while printing "relaunched".
+# Now: env override, else the NEWEST live session scratchpad, else /tmp.
+if [ -n "${DEEPFIX2_SCRATCH:-}" ]; then
+  SCRATCH="$DEEPFIX2_SCRATCH"
+else
+  SCRATCH=$(ls -td /tmp/claude-*/-app/*/scratchpad 2>/dev/null | head -1)
+  [ -n "$SCRATCH" ] || SCRATCH=/tmp
+fi
 echo "=== 1. WATCHER (relaunch first-thing, always) ==="
-pgrep -af baton-watcher | grep -v defunct >/dev/null 2>&1 \
-  && echo "   already alive" \
-  || { nohup bash "$SCRATCH/baton-watcher.sh" >/dev/null 2>&1 & echo "   relaunched"; }
+if pgrep -f "deepfix2/baton-watcher.sh" | grep -qv "^$$\$"; then
+  echo "   already alive"
+elif [ -f /app/scripts/deepfix2/baton-watcher.sh ]; then
+  nohup bash /app/scripts/deepfix2/baton-watcher.sh >/dev/null 2>&1 &
+  sleep 1
+  pgrep -f "deepfix2/baton-watcher.sh" >/dev/null \
+    && echo "   relaunched (log: ${DEEPFIX2_BATON_LOG:-/tmp/deepfix2-baton-events.log})" \
+    || echo "   !! RELAUNCH FAILED — start it by hand and check gate 6"
+else
+  echo "   !! scripts/deepfix2/baton-watcher.sh MISSING — gate 6 will fail"
+fi
 echo "=== 2. BATONS ==="
 python3 - <<'PY'
 import json
@@ -19,13 +35,19 @@ for name, path in (("win  ", "/app/docs/plans/loop/win/baton.json"),
     except Exception as e:
         print(f"   {name}: unreadable ({e})")
 PY
-echo "=== 3. OPEN LEDGER ROWS (unfinished folds) ==="
+echo "=== 3. OPEN LEDGER ROWS (unfinished folds, scratch: $SCRATCH) ==="
 grep -l "^\[ \]" "$SCRATCH"/*fold-ledger*.md 2>/dev/null | while read -r f; do
   echo "   $(basename "$f"): $(grep -c '^\[ \]' "$f") open"
 done || true
 grep -q "^\[ \]" "$SCRATCH"/*fold-ledger*.md 2>/dev/null || echo "   none open"
 echo "=== 4. UNCOMMITTED WORK ==="
-n=$(git -C /app status --short 2>/dev/null | wc -l); echo "   $n path(s) dirty"
+# A git failure must never read as "clean" — it did once (dubious-ownership fatal
+# piped into wc -l printed "0 path(s) dirty" over a 2-path dirty tree).
+if out=$(git -C /app status --short 2>&1); then
+  n=$(printf '%s' "$out" | grep -c .); echo "   $n path(s) dirty"
+else
+  echo "   !! GIT UNREADABLE — do not trust any cleanliness claim: $(printf '%s' "$out" | head -1)"
+fi
 echo "=== 5. RESUME POINTER ==="
 head -3 /app/RESUME.md 2>/dev/null | sed 's/^/   /'
 echo

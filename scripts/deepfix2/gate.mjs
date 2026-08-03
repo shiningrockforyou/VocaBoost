@@ -28,8 +28,14 @@ import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 
+// SCRATCH resolution (2026-08-03): a hardcoded per-session path outlived its
+// session once — the ledger lookup silently searched a wiped directory. Env
+// override, else the newest live session scratchpad, else /tmp.
 const SCRATCH = process.env.DEEPFIX2_SCRATCH
-  || "/tmp/claude-1000/-app/87eba36e-8e66-4638-bae9-6cd6f923fff6/scratchpad";
+  || (() => { try {
+        return execFileSync("bash", ["-lc", "ls -td /tmp/claude-*/-app/*/scratchpad 2>/dev/null | head -1"],
+          { encoding: "utf8" }).trim() || "/tmp";
+      } catch { return "/tmp"; } })();
 const sha16 = (p) => createHash("sha256").update(readFileSync(p)).digest("hex").slice(0, 16);
 const rel = (p) => p.replace(/^\/app\//, "");
 
@@ -228,7 +234,7 @@ try {
 try {
   const out = execFileSync("bash", ["-lc", "pgrep -af baton-watcher | grep -v defunct | wc -l"], { encoding: "utf8" }).trim();
   if (Number(out) > 0) pass("WATCHER", `${out} watcher process(es) alive`);
-  else fail("WATCHER", "NO watcher running — relaunch scratchpad/baton-watcher.sh first");
+  else fail("WATCHER", "NO watcher running — run: bash scripts/deepfix2/session-start.sh (relaunches scripts/deepfix2/baton-watcher.sh)");
 } catch { warn("WATCHER", "could not check watcher processes"); }
 
 // ── GATE 7: LOG — a code/deploy change needs a dated row today ────────────────
