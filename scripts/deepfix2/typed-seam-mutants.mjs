@@ -117,6 +117,15 @@ const MUTANTS = [
     }],
   },
   {
+    id: "M-A1-JOBKEY-ONLY-REVERT",
+    file: TG,
+    why: "rv2-collision audit F4 — THE SINGLE-LEG MUTANT. M-A1-UID-SCOPE-REVERT edits the SHARED engineDocId, so it reverts BOTH legs at once and dies at whichever leg a fixture happens to reach. That is exactly the blind spot M-A1-SIBLING-CALL-SITE exists to cover elsewhere. This one reverts ONLY the typed leg's jobKey (typedGrading.js) and leaves callables.js' attemptId correctly scoped — the state a partial refactor or a bad merge would ship. The grading_jobs assertions in CASE RC must notice that the two students share a job key while holding separate attempts.",
+    edits: [{
+      from: `  const jobKey = engineDocId(uid, presentationId);`,
+      to: `  const jobKey = \`rv2_\${presentationId}\`; // [MUTANT jobkey-only] pre-fix scheme, attemptId left scoped`,
+    }],
+  },
+  {
     id: "M-A1-UID-SCOPE-REVERT",
     file: COMPOSER,
     // NOTE: double-quoted, NOT a template literal — `from`/`to` contain

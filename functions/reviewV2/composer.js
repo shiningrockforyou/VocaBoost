@@ -115,6 +115,20 @@ function cursorDocId(listId, resetEpoch) {
  * Fixtures: lap CASE RC (the full bypass set) + CASE TR (10).
  */
 function engineDocId(uid, presentationId) {
+  // FAIL LOUD, not silently global [rv2-collision audit, Q3]. This function is the
+  // ONE place a per-user id acquires the scope it needs to key a GLOBAL collection.
+  // It previously validated nothing, so an undefined/empty uid would have produced
+  // `rv2_undefined_{pid}` — a well-formed string that silently RECREATES the exact
+  // cross-student collision this function exists to prevent, and would have looked
+  // like a working id in every log. Callers are safe today (requireAuth guarantees a
+  // uid, callables.js:97-103), which is precisely why the failure would be silent if
+  // that ever stopped being true.
+  if (typeof uid !== "string" || uid.length === 0) {
+    throw new Error(`engineDocId: uid must be a non-empty string, got ${JSON.stringify(uid)}`);
+  }
+  if (typeof presentationId !== "string" || presentationId.length === 0) {
+    throw new Error(`engineDocId: presentationId must be a non-empty string, got ${JSON.stringify(presentationId)}`);
+  }
   return `rv2_${uid}_${presentationId}`;
 }
 

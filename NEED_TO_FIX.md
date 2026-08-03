@@ -8,6 +8,43 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 22. A classmate can PERMANENTLY BLOCK another student's engine test by squatting the ATTEMPT id · rules/backend · **PRE-FLIP BLOCKER** (found 2026-08-03 by the rv2-collision independent audit, finding F6)
+
+**The twin of card 19, on the other leg.** Card 19 is the `grading_jobs` denial; this is the same shape on
+`attempts`. Neither was introduced by the rv2-docid-collision fold, and neither is closed by it.
+
+**The path, verified against the DEPLOYED ruleset:**
+1. Attempt CREATE requires only `studentId == request.auth.uid`, no engine keys, and an id not matching
+   `manual` (`firestore.live.rules:301-312`). So **any authenticated user may create**
+   `attempts/rv2_{victimUid}_{presentationId}` **stamped with their OWN studentId** — nothing about the
+   document NAME is checked against the caller.
+2. The victim's engine submit then finds that document, and `isEngineAttemptFor` correctly refuses it
+   (`callables.js:623-625` ⇒ `presentation_invalid`) because `stored.studentId !== uid`.
+3. DELETE requires `resource.data.studentId == request.auth.uid` (`firestore.live.rules:394-396`), so
+   **only the squatter can remove it.** The victim is blocked at that `presentationId` permanently.
+
+**The uncomfortable part:** step 2 is the A4 replay-provenance guard shipped by the typed-fix-audit fold.
+It is doing exactly the right thing — failing closed rather than serving the victim a stranger's document —
+but that converts a would-be data leak into a denial. Fail-closed is correct; it is not free.
+
+**Reachability** is the same as card 19: uids enumerate from `classes.studentIds` (readable by any
+authenticated user) and `presentationId` is `{classId}_{listId}_d{day}_e{epoch}_p{seq}` with a small,
+predictable seq. Recomposing yields `_p2`, which a squatter can follow.
+
+**Not live today** — the engine is dark, so no student's submit reaches step 2. **Live at the flip.**
+
+**Fix direction (with card 19 — they should be decided together):** the real defect is that a *global*
+collection accepts client creates at server-derived names. Options: deny client creates matching the
+`rv2_` prefix in rules (cheap, rules-only, and the prefix is already server-reserved by convention);
+or require the docId to bind to the caller (rules cannot parse ids, so this means a different id scheme);
+or move attempts to a uid-scoped subcollection (the DF2-46 direction, far larger).
+
+**Rehearsal note:** the collision fix removed the *accidental* collisions that would have surfaced this
+class of failure during 25WT. The rehearsal must therefore test squatting **deliberately** — it will no
+longer happen by itself.
+
+---
+
 ## 21. `grading_in_progress` is returned for a PERMANENT condition, but its frozen contract says "poll" · client contract · BLOCKS DF2-51 CLIENT CUTOVER (audit F3, 2026-08-03)
 
 **The contradiction.** `src/services/reviewV2Client.js:55-59` freezes `GRADING_IN_PROGRESS` as
@@ -26,7 +63,24 @@ contract tells the client not to do — so the code and the published contract d
 engine is dark. It is a **prerequisite for `df2-51-client`**: shipping the cutover against the current
 contract would build a poll-forever path for a real student.
 
-**Options (pick at cutover, with a fixture either way):**
+**DECIDED 2026-08-03 (delegator; this is a technical call, not David's): OPTION 1 — a DISTINCT DATA
+status meaning *recompose, do not poll*.**
+
+Why option 1 and not the discriminator field: one status that means two opposite things ("keep polling"
+vs "stop polling") is precisely the ambiguity that produces the poll-forever bug. The two conditions are
+genuinely different and deserve different names. The usual objection — that adding to a versioned frozen
+list breaks old clients — **does not apply here**: the engine is dark, `REVIEW_V2_CLIENT=false`, and a grep
+finds no consumer of these statuses anywhere except the definition. There is no old client. The FIRST
+client to read them is the DF2-51 cutover, so this is the one moment the list can be changed for free.
+
+**And recompose is not merely a nicety — it is the ONLY recovery path a student has** (see card 19): a
+grading job stamped with someone else's uid can never be re-claimed, and clients cannot delete it. A
+status that tells the client to keep polling would strand that student permanently.
+
+**Implementation belongs with DF2-51**, with a fixture for BOTH legs: the transient case still polls, the
+permanent case recomposes exactly once.
+
+**Options as originally carded, kept for the record:**
 1. A distinct DATA status for the permanent case (e.g. `grade_unusable`) meaning *recompose, do not
    poll* — costs one entry in the frozen RV2 list, which is a versioned client contract.
 2. Keep one status but carry a discriminator field (`retryable: true|false`) the client switches on.
@@ -89,10 +143,28 @@ by `fetch-live-rules.mjs` after deploy anyway) and is written into the deploy or
 
 ---
 
-## 19. The live grading-job key namespace is client-chosen — `rv2_` is a convention, not a boundary · backend · DEFENSE IN DEPTH (carded 2026-08-03, deferred by design)
+## 19. The live grading-job key namespace is client-chosen — a classmate can PERMANENTLY BLOCK another student's test · backend · **PRE-FLIP BLOCKER** (carded 2026-08-03; severity raised the same day, see below)
 
-**Status:** consumer-side closure is in the typed-fix-audit fold (dark engine code); hardening the
-LIVE callable at its source is deliberately NOT bundled with it.
+**Status:** the consumer-side closure (not trusting a cached grade) shipped in the typed-fix-audit fold.
+**But that only stops FORGERY. It does not stop DENIAL — and denial turns out to be reachable, permanent,
+and triggerable by a classmate. This is no longer "defense in depth"; it is a pre-flip blocker.**
+
+**THE DENIAL PATH, established 2026-08-03 by reading the code:**
+1. `claimOrRecoverGradingJob` stamps the job with the CALLER's uid (`index.js:955-958`), and the live
+   `gradeTypedTest` lets the caller name ANY job key (`index.js:1048-1051`, `GRADE_JOB_ENABLED=true`).
+2. On every later claim, `if (job.uid && job.uid !== uid) throw permission-denied` (`index.js:936-938`)
+   runs **FIRST — before the status and lease checks**. So an expired lease does **NOT** release the
+   document to another uid. The block is **permanent**, not a 180-second window.
+3. The victim cannot clear it: `grading_jobs` denies every client write (`firestore.live.rules:417`).
+   Only an Admin-SDK deletion (a CS intervention) or a recompose to a different `presentationId` recovers.
+4. The key is derivable by a classmate. Uids are enumerable from `classes/{id}.studentIds` (readable by
+   any authenticated user), and `presentationId` is `{classId}_{listId}_d{day}_e{epoch}_p{seq}` where
+   classId/listId are shared, epoch is normally 0 and seq starts at 1. The uid scoping added by the
+   rv2-docid-collision fold does not help — it was always a NAMESPACE, not a fence.
+
+**Not live today** — the engine is dark, so no student's submit reaches the claim. **It becomes live at
+the flip**, which is why this must close before activation rather than after. Recomposing gives a new
+`_p{seq}` key, but seq is small and predictable, so an attacker can follow.
 
 **What's exposed.** `functions/index.js:1048-1051` derives the grading-job key from client-supplied
 `writeContext/gradeContext.attemptDocId` and claims `grading_jobs/{that key}` with no namespace
@@ -140,18 +212,22 @@ day is `_p1`.
 - With A4 in place the MCQ case now fails CLOSED (`presentation_invalid`) instead of leaking a grade.
   **CORRECTED 2026-08-03 (independent audit) — an earlier draft of this card said "both students are
   still blocked". That was FALSE, and contradicted by the very fixtures cited below.** What the
-  fixtures actually assert: the **FIRST** student's attempt lands normally (`attempt_written`,
-  score 100 — `engine-emulator-lap.mjs:1906`) and remains the only document at the colliding id
-  (`:1913`); only the **SECOND** student is refused (`:1910`). That second student is not permanently
+  fixtures asserted AT THE TIME: the **FIRST** student's attempt landed normally
+  (`attempt_written`, score 100) and remained the only document at the colliding id; only the
+  **SECOND** student was refused. **(Line numbers dropped — audit finding F2: the `:1906`/`:1910`/`:1913`
+  cited here now land in a different case entirely, and a stale line reference is worse than none.)** That second student is not permanently
   stuck either — recomposing advances their own per-user `presentationCount` to `_p2`, which no longer
   collides. So the real shape is: **one student silently wins the id, the other eats a refusal and a
   forced recompose.** It is a correctness/availability defect, not (post-A4) a data-exposure one — and
   it is a rehearsal blocker because a multi-student class is exactly where it bites.
 
 **How it stayed hidden.** Every engine fixture before this fold used ONE student per class. It was
-surfaced by the typed-fix-audit lap only because CASE TG needed seven students; it is now pinned by
-the `TR COLLISION` fixtures in `scripts/deepfix2/engine-emulator-lap.mjs`, which assert the
-fail-closed behaviour so the defect cannot be lost.
+surfaced by the typed-fix-audit lap only because CASE TG needed seven students.
+
+**(Audit finding F2 — corrected.)** This paragraph used to end *"it is now pinned by the `TR COLLISION`
+fixtures … which assert the fail-closed behaviour"*. Present tense, and no longer true: the
+rv2-docid-collision fold **inverted** those very assertions. They now assert that BOTH students land,
+which makes them the regression witness for this defect rather than a description of it.
 
 **FIXED 2026-08-03 (rv2-docid-collision fold).** Both derived global ids are now
 `rv2_{uid}_{presentationId}`, produced by ONE shared function — `engineDocId(uid, presentationId)`

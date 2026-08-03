@@ -1,6 +1,6 @@
 {
   "kind": "typed-seam-mutants",
-  "at": "2026-08-03T21:22:49.857Z",
+  "at": "2026-08-03T22:37:08.200Z",
   "canonical": {
     "exit": 0,
     "pass": 445,
@@ -150,6 +150,20 @@
       "tail": null
     },
     {
+      "id": "M-A1-JOBKEY-ONLY-REVERT",
+      "file": "/app/functions/reviewV2/typedGrading.js",
+      "why": "rv2-collision audit F4 — THE SINGLE-LEG MUTANT. M-A1-UID-SCOPE-REVERT edits the SHARED engineDocId, so it reverts BOTH legs at once and dies at whichever leg a fixture happens to reach. That is exactly the blind spot M-A1-SIBLING-CALL-SITE exists to cover elsewhere. This one reverts ONLY the typed leg's jobKey (typedGrading.js) and leaves callables.js' attemptId correctly scoped — the state a partial refactor or a bad merge would ship. The grading_jobs assertions in CASE RC must notice that the two students share a job key while holding separate attempts.",
+      "applied": true,
+      "killed": true,
+      "mode": "crash",
+      "exit": 1,
+      "pass": null,
+      "total": null,
+      "killedBy": [],
+      "redCount": 0,
+      "tail": "s-test) [C8]\n\n== CASE N1 — canonical position gaps: servable + surfaced\n\n== CASE T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ §§4-6]\n⚠  Script exited unsuccessfully (code 1)\ni  emulators: Shutting down emulators.\ni  firestore: Stopping Firestore Emulator\ni  hub: Stopping emulator hub\ni  logging: Stopping Logging Emulator\n\nError: Script \"node scripts/deepfix2/engine-emulator-lap.mjs\" exited with code 1\nfile:///app/scripts/deepfix2/engine-emulator-lap.mjs:1276\n  check(\"the grade is cached on the job\", [j1.exists, j1.data().status, Array.isArray(j1.data().payload?.results)],\n                                                               ^\n\nTypeError: Cannot read properties of undefined (reading 'status')\n    at file:///app/scripts/deepfix2/engine-emulator-lap.mjs:1276:64\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n\nNode.js v24.15.0\n"
+    },
+    {
       "id": "M-A1-UID-SCOPE-REVERT",
       "file": "/app/functions/reviewV2/composer.js",
       "why": "rv2-docid-collision A1: reverts the uid scoping of the engine's DERIVED GLOBAL ids. `attempts` and `grading_jobs` are top-level while `presentationId` carries no uid and `seq` counts per user, so without the uid every student in one class+list+day+epoch derives the SAME attempt id and grading-job key — the first student lands and the second is refused (typed: `permission-denied` on the job claim). Reverting the ONE shared function reverts BOTH legs together, which is exactly the pre-fix state. The collision fixtures (lap CASE RC + CASE TR (10)) must go red.",
@@ -173,7 +187,7 @@
     "/app/functions/reviewV2/typedGrading.js": "bc2d94ce15c6f1be",
     "/app/functions/reviewV2/completion.js": "7c3a38476c869c0c",
     "/app/functions/reviewV2/callables.js": "c2c8fa58e6f9a207",
-    "/app/functions/reviewV2/composer.js": "50749267434138f1"
+    "/app/functions/reviewV2/composer.js": "5c4d6bfef0b6fb90"
   },
   "pass": true
 }

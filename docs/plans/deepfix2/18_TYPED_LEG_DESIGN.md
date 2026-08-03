@@ -150,10 +150,27 @@ Step 2's `in_progress` branch is a **new protocol status** and must be added to 
    replay re-types an answer in different case.
 
    A payload written by an **older engine build** carries none of the three and is therefore **refused,
-   not trusted**. The refusal is `grading_in_progress` (the frozen retryable typed status): it performs
-   zero writes, and because a poisoned/stale key can only ever belong to the caller's own uid
-   (`index.js:936-938`), the affected student recovers by composing a new test — a new
-   `presentationId` is a new job key.
+   not trusted**. It performs zero writes.
+
+   > **CORRECTION (rv2-collision independent audit, finding F1 — 2026-08-03).** This paragraph used to
+   > end: *"because a poisoned/stale key can only ever belong to the caller's own uid
+   > (`index.js:936-938`), the affected student recovers by composing a new test."* **Both halves were
+   > false, and this fold's own fixtures are the counter-example.**
+   >
+   > *It is NOT always the caller's own uid.* `index.js:936-938` only bites once the document EXISTS. A
+   > third party who claims FIRST creates it with **their** uid (`index.js:955-958`) — fixtured at
+   > `engine-emulator-lap.mjs:2546-2548` (a classmate) and `:2561-2563` (a teacher), where the job
+   > records the ATTACKER's uid against the victim's key.
+   >
+   > *And the victim does not get this DATA refusal at all.* They get a THROWN `permission-denied` from
+   > that same uid check (`:2549-2552`), because it runs BEFORE the status and lease checks — so an
+   > expired lease never releases the document. The block is **permanent**; clients cannot delete
+   > `grading_jobs` (`firestore.live.rules:417`).
+   >
+   > Recomposing does yield a new key, so it remains the student-side recovery — but as an escape from
+   > someone else's denial, not as a tidy self-service reset, and `_p{seq}` is predictable enough to
+   > follow. **That is card 19 (`gradejob-namespace`), now a PRE-FLIP BLOCKER.** The sentence removed
+   > here is the exact reasoning that let card 19 sit as "defense in depth" for a day.
 
 ## 6. Test plan (before any review round)
 

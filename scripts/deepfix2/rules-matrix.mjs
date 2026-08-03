@@ -95,7 +95,7 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   // [typed-fix-audit C3] a GRADED engine job carrying the provenance the
   // engine's cached-grade seam now enforces (typedGrading.js usableCachedResults).
   // The whole point of the consumer-side check is that the docId is predictable
-  // (`rv2_{presentationId}`), so the rules half — no client write of ANY shape —
+  // (`rv2_{uid}_{presentationId}`), so the rules half — no client write of ANY shape —
   // must be asserted per operation, not assumed from the one update case.
   b.set(db.doc("grading_jobs/rv2_p1"), {
     uid: "student1", status: "graded",
@@ -243,7 +243,7 @@ await deny("8d teacher create grading_job", t1.doc("grading_jobs/gj2").set({ uid
 //    engine provenance + presentation + answer sheet; that consumer-side check
 //    is one half of the fence. This is the other half — the grade cache must be
 //    unwritable by a client THROUGH EVERY OPERATION, not just the update that
-//    happened to be fixtured. The docId is `rv2_{presentationId}`, which the
+//    happened to be fixtured. The docId is `rv2_{uid}_{presentationId}`, which the
 //    client can derive (reviewV2Client.js:152), so it is named literally here.
 const POISON = {
   results: [{ wordId: "wordA", isCorrect: true }],
@@ -289,7 +289,7 @@ await ok("GJ15 the engine cache SURVIVED every write above (field-by-field)", s1
   if (v.payload?.results?.[0]?.isCorrect !== false) throw new Error("verdict flipped");
 }));
 // THE PREMISE OF THE CONSUMER-SIDE REPLAY CHECK [A4], pinned rather than
-// asserted in prose: `attempts/rv2_{presentationId}` is an ORDINARY attempt id
+// asserted in prose: `attempts/rv2_{uid}_{presentationId}` is an ORDINARY attempt id
 // to this ruleset, so a client CAN put a document there. That is exactly why
 // reviewV2SubmitAttempt may not treat "a doc exists at this id" as provenance.
 await ok("GJ16 PREMISE: a client CAN create a plain attempt at an rv2_ docId (so the NAME proves nothing)", s1.doc("attempts/rv2_p_squat").set({ studentId: "student1", score: 100, passed: true, answers: [], totalQuestions: 0 }));

@@ -232,6 +232,25 @@ for (const d of [ART, RECEIPT, "/app/docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIRE
 }
 if (!warned) pass("CLAIMS", "no unsupported strong claims found");
 
+// ── GATE 4b: MUTANT RESIDUE — never commit a deliberately broken guard ───────
+// The near-miss this prevents (2026-08-03, during a "save state"): the typed-seam
+// mutation suite edits source files IN PLACE and restores them at the end, so
+// while it runs the working tree legitimately contains a REVERTED security guard.
+// `git status` shows an innocent one-line diff. Staging everything at that moment
+// commits the mutant — a silent hole that every test would then be tuned around.
+// The suite restores and self-verifies, so this only fires mid-run or after a
+// hard kill, which are exactly the two moments a human would not think to check.
+try {
+  const scan = execFileSync("bash", ["-lc",
+    "grep -rln '\\[MUTANT' /app/functions /app/src 2>/dev/null | head -20"], { encoding: "utf8" }).trim();
+  if (scan) {
+    fail("MUTANT", `source file(s) still carry a MUTANT marker — a mutation run is in flight or died ` +
+      `mid-run. DO NOT COMMIT; let it restore, or restore from its backup dir: ${scan.split("\n").join(" ")}`);
+  } else {
+    pass("MUTANT", "no mutant residue in functions/ or src/");
+  }
+} catch { warn("MUTANT", "could not scan for mutant residue"); }
+
 // ── GATE 5: BATON — never touch git while an executor holds the turn ──────────
 // The failure this prevents: index-lock collisions and racing an executor's push.
 try {

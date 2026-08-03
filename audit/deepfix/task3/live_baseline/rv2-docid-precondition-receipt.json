@@ -1,0 +1,20 @@
+{
+  "kind": "rv2-docid-scheme-precondition-scan",
+  "readOnly": true,
+  "why": "Audit finding F3: the rv2-docid-collision fold shipped a docId SCHEME change with NO migration, justified by an ad-hoc query whose result was never receipted. This is that receipt. A docId-PREFIX scan, distinct from the field-based engine-key provenance receipt, which covered `attempts` only and said nothing about document NAMES or about `grading_jobs`.",
+  "projectId": "vocaboost-879c2",
+  "collections": {
+    "attempts": {
+      "docsWithRv2Prefix": 0,
+      "sampleIds": [],
+      "totalDocs": 41688
+    },
+    "grading_jobs": {
+      "docsWithRv2Prefix": 0,
+      "sampleIds": [],
+      "totalDocs": 16732
+    }
+  },
+  "conclusion": "ZERO documents carry an rv2_ docId in either global collection ⇒ the scheme change from rv2_{presentationId} to rv2_{uid}_{presentationId} needs NO migration: there is nothing addressed by the old scheme.",
+  "at": "2026-08-03T22:32:12.737Z"
+}

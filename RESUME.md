@@ -1,67 +1,89 @@
-# RESUME — DEEPFIX2 (2026-08-03: **THE DARK DEPLOY IS COMPLETE — all four legs live, nothing activated**)
+# RESUME — DEEPFIX2 (2026-08-03 save-state: rules DEPLOYED · two PRE-FLIP BLOCKERS found · evidence re-run in flight)
 
-## PRODUCTION (live-verified)
-Indexes 43 ✅ · functions 24 ✅ (zero removed) · `system_config/review_v2` SEEDED DARK ✅ · **rules DEPLOYED 2026-08-03 (order 97): ruleset `384c9c7a-b9ec-4f17-95ab-b72fff9c5fd1`, 523 lines, sha16 `f40f91fce3693b82` — byte-identical to the certified artifact** · client PINNED `ce09792` · **Netlify
-BUILDS STOPPED** · NOTHING ACTIVATED. Students see no difference. **WSL cannot push — every push is a
-WinClaude order** [[wsl-claude-has-no-git-push]]. Read-only remote checks DO work:
-`git -c http.sslBackend=gnutls ls-remote origin refs/heads/main`; a fresh session also needs
-`git config --global --add safe.directory /app`.
+## ⚠️ READ THIS FIRST IF THE TREE LOOKS DIRTY
+`scripts/deepfix2/typed-seam-mutants.mjs` mutates `functions/reviewV2/{typedGrading,completion,callables}.js`
+**IN PLACE** and restores them at the end. While it runs, a source file legitimately contains a **REVERTED
+SECURITY GUARD**, and `git status` shows only an innocent one-line diff. **NEVER commit while it runs.**
+`gate.mjs` now fails closed on this (`MUTANT` check, added after a near-miss during this very save-state —
+it caught a real attempt to stage a mutated `typedGrading.js`). If the gate says MUTANT: wait, or restore
+from the backup dir the runner prints at startup.
+
+**At save-state time a run was IN FLIGHT** (started 22:37Z, ~10 laps). If it never finished, re-run
+`node scripts/deepfix2/typed-seam-mutants.mjs` and confirm it prints "tree restored" before committing.
+
+## PRODUCTION
+Indexes 43 ✅ · **rules DEPLOYED 2026-08-03** (ruleset `384c9c7a-b9ec-4f17-95ab-b72fff9c5fd1`, 523 lines,
+sha16 `f40f91fce3693b82` — byte-identical to the artifact Codex certified at r79; verified by me re-fetching
+production and re-running the matrix against those bytes: **262/262**) · `system_config/review_v2` SEEDED
+DARK ✅ · client PINNED `ce09792`, Netlify builds stopped · **NOTHING ACTIVATED**.
+**FUNCTIONS ARE STALE: production still runs `b54c6e5` (r092)** — it predates the typed leg, the
+typed-fix-audit guards AND the collision fix. Queue item `functions-deploy-engine`.
+**No production evidence on the rules yet** — the deploy landed ~05:00 KST with students asleep; the newest
+`system_logs` row predates it. First busy hour is the real test; watch `users/{uid}/{subcollection}` writes.
+**WSL cannot push** [[wsl-claude-has-no-git-push]]; read-only checks work via
+`git -c http.sslBackend=gnutls ls-remote`. A fresh session needs `git config --global --add safe.directory /app`.
 
 ## START HERE EVERY TURN
-`bash scripts/deepfix2/session-start.sh` · before publishing ANY claim or issuing ANY order:
-`node scripts/deepfix2/gate.mjs` · plan a fold with `--plan` BEFORE editing.
-Rationale: docs/plans/deepfix2/EXECUTION_DISCIPLINE.md. Four skills auto-fire. The baton watcher now
-lives IN THE REPO (`scripts/deepfix2/baton-watcher.sh`). **gate.mjs now also checks the MATRIX sha, not
-just the artifact sha** — the old gate printed "every published score matches" while the evidence
-certified a harness that no longer existed.
+`bash scripts/deepfix2/session-start.sh` · before ANY claim or order: `node scripts/deepfix2/gate.mjs` ·
+plan a fold with `--plan` BEFORE editing. The gate gained three checks today: the MATRIX sha (it certified a
+harness that no longer existed), MUTANT residue (above), and it already had the artifact sha.
 
-## THE RULES LEG — **DEPLOYED AND INDEPENDENTLY VERIFIED**
-Production runs ruleset `384c9c7a-b9ec-4f17-95ab-b72fff9c5fd1` (created 2026-08-03T20:08:33.994879Z, 523 lines, sha16
-`f40f91fce3693b82`) — the exact artifact Codex certified at r79. **Verified by me, not accepted from the
-executor's report:** I re-fetched production read-only (byte-identical to their handback) and re-ran the
-full matrix against those fetched bytes — **262/262 green**. The P10d trap did NOT ship.
+## THE TWO PRE-FLIP BLOCKERS — the most important thing on this page
+Both are **denial** vectors, both **reachable by a classmate**, both **dark today and LIVE AT THE FLIP**.
+Same root cause: **a GLOBAL collection accepting client creates at server-derived names.** Decide together.
+- **NEED_TO_FIX 19 · `gradejob-namespace`** — pre-claim another student's grading-job key via the live
+  `gradeTypedTest`. The uid check (`index.js:936-938`) runs BEFORE the status/lease checks, so an expired
+  lease NEVER releases the doc: the block is **permanent**, and clients cannot delete `grading_jobs`.
+- **NEED_TO_FIX 22 · `attempt-id-squat`** — create `attempts/rv2_{victimUid}_{pid}` with your OWN studentId
+  (`firestore.live.rules:301-312`); only the creator can delete it (`:394-396`); the victim then gets
+  `presentation_invalid` forever (`callables.js:623-625`). The refusing guard is one WE shipped — failing
+  closed correctly, which converts a data leak into a denial.
+Keys are derivable: uids from `classes.studentIds` (any authenticated user may read), `presentationId` =
+`{classId}_{listId}_d{day}_e{epoch}_p{seq}` with small predictable seq. **The uid scoping added today is a
+NAMESPACE, NOT A FENCE** — never let that be misread again (it already caused one false "self-inflicted only"
+claim, corrected in 18_ §5.6).
 
-**ROLLBACK, if ever needed:** `audit/deepfix/task3/live_baseline/firestore.live.PRE_R79_DEPLOY.rules` is
-the exact pre-deploy production ruleset — restore it to `firestore.rules` and redeploy. Its sha will NOT
-equal `44914b60858a1dcd` (LF vs CRLF); the rule text is what matters, do not chase that number.
-The P10d draft is preserved at `audit/deepfix/task3/firestore.p10d.rules`.
+## WHAT LANDED TODAY (4 commits: fed7c84 · 561121d · bf483a3 · c705bf1)
+1. **Rules receipt re-verified** on a from-scratch harness (mutants report regenerated byte-identical);
+   Codex re-gate r79 issued → **YES**.
+2. **Typed-fix-audit fold CLOSED** — cached-grade forgery closed at BOTH seams. An independent audit proved
+   the `already_graded` sibling had ZERO coverage; now pinned by CASE TS + `M-A1-SIBLING-CALL-SITE`.
+3. **RULES DEPLOYED** (order 97). Caught a post-deploy trap: re-baselining made BOTH whole-file baselines in
+   `rules-mutants.mjs` become the artifact, which would have read as a defect; repointed at the preserved
+   snapshots. **ROLLBACK = restore `live_baseline/firestore.live.PRE_R79_DEPLOY.rules` and redeploy** (its
+   sha won't equal `44914b60858a1dcd` — LF vs CRLF; the rule text is what matters).
+4. **rv2 docid collision FIXED** — `rv2_{uid}_{presentationId}` from ONE shared `engineDocId()`
+   (`composer.js:117`) used by both derivation sites. No migration (receipt: 0 `rv2_` docIds across 41,688
+   attempts + 16,732 grading_jobs).
 
-**A POST-DEPLOY TRAP THAT WAS CAUGHT AND FIXED:** the deploy made BOTH whole-file baselines in
-`rules-mutants.mjs` become the artifact itself (`firestore.live.rules` was re-baselined by
-`fetch-live-rules.mjs`; `/app/firestore.rules` was staged from the artifact). Both mutations would have
-scored a perfect green, and the runner fails closed on that — so it would have read as a DEFECT rather
-than a stale path. Repointed at the two preserved snapshots. **STILL OWED: the artifact-comment repair**
-(NEED_TO_FIX 20 — `firestore.merged.rules:133`/`:346` reason from a create guard that did not exist
-historically; the claim is true, its stated reason is not). Safe to do now: the sha is no longer
-load-bearing for an unexecuted order.
+## UNCOMMITTED AT SAVE-STATE (the audit fold — commit once the run restores + gate is clean)
+The rv2-collision independent audit returned **PASS WITH FINDINGS**; these are the repairs:
+`18_TYPED_LEG_DESIGN.md` §5.6 (F1 — it told readers a poisoned key is always self-inflicted; the fold's own
+fixtures disprove it) · `NEED_TO_FIX.md` card 18 (F2 — stale line refs + a present-tense claim this fold
+inverted) + NEW cards 19-raised/22 · `composer.js` `engineDocId` now fails loud on a missing scope (Q3) ·
+`typed-seam-mutants.mjs` new single-leg mutant `M-A1-JOBKEY-ONLY-REVERT` (F4) · `rules-matrix.mjs` stale
+prose (F5) · `gate.mjs` MUTANT check · the precondition receipt (F3).
+**Also uncommitted and NOT mine:** `.claude/settings.json` (the Windows executor's session).
 
-## THE TYPED FOLD — CLOSED, BUT THE TYPED LEG IS **NOT** READY [D3]
-The security fold is closed and evidenced: **engine lap 395/395 · 7/7 typed-seam mutants killed**.
-Authoring was delegated (the delegator is the wrong author for guard-shaped work) and independently
-audited; the audit returned **PASS WITH FINDINGS** and every finding was folded:
-- **F1 (high):** the `already_graded` sibling seam was correct as CODE but had ZERO evidence — the
-  auditor reverted only that branch and the whole 376-case battery stayed green. Now pinned by
-  **CASE TS** + mutant **`M-A1-SIBLING-CALL-SITE`** (killed, 4 red).
-- **F2:** "both students blocked" was FALSE and contradicted by its own fixture — corrected in all
-  three places it was published.
-- **F3/F4:** carded (NEED_TO_FIX 21) and the "unforgeable" overclaim narrowed to "not forgeable today".
+## DECIDED (do not relitigate)
+- **`grading_in_progress` → a DISTINCT status meaning *recompose, do not poll*** (NEED_TO_FIX 21). One
+  status cannot mean two opposite things; the frozen RV2 list is free to change NOW because no client
+  consumes it yet. Implementation + both-leg fixtures ride with `df2-51-client`.
+- **The artifact comment repair BUNDLES with the next real rules change** — editing it would diverge the
+  artifact from running production for zero behavioural gain.
 
-**DO NOT read these greens as typed-leg readiness.** Two carded blockers stand in front of it:
-**NEED_TO_FIX 18** (`rv2_` ids collide across students in a class — blocks the 25WT rehearsal) and
-**NEED_TO_FIX 21** (`grading_in_progress` returned for a permanent condition, contradicting its frozen
-client contract — blocks DF2-51). The typed leg ships as CODE, not as a readiness claim.
-
-## AWAITING DAVID
-**Anyone can self-register as a teacher** (`Signup.jsx:124-149` → `db.js:254`), and the LIVE ruleset lets
-ANY teacher read/write EVERY student's subcollections regardless of class membership. Live today, NOT
-caused by DEEPFIX2. Three options carded at the bottom of NEED_TO_FIX.md. **His call.**
-
-## THEN, in order
-~~verify the order-97 outcome~~ **DONE — deployed and independently re-verified at 262/262 against bytes
-fetched from production** → ~~engine-key-provenance-scan~~ **DONE: 41,680 attempts scanned, ZERO
-carrying any engine key, 0 quarantine candidates — Codex r79's qualification is now measured, not argued
-(the artifact COMMENT repair is still owed, deliberately POST-deploy)** → rv2-docid-collision
-(NEED_TO_FIX 18 — **fold ledger already written and gate-`--plan` ACCEPTED at
-`<scratch>/rv2-collision-fold-ledger.md`; explicitly NOT started, because it changes the docId scheme the
-deploying artifact reasons about**) → DF2-51 client cutover (needs NEED_TO_FIX 21 decided) → 25WT rehearsal → shadow audit
-→ **David's backfill go** → **David's flip**. DF2-10 adoption legs stay DEFERRED until after the rehearsal.
+## WHAT'S LEFT (`node scripts/deepfix2/whats-next.mjs` is authoritative)
+Engine/client: the two blockers above → `functions-deploy-engine` (gated on the audit, now done) →
+`rehearsal-spec` (**an UNWRITTEN launch blocker from 13_ O1-5: David ordered a 25WT rehearsal + "rigorous
+Playwright" as the no-canary compensating controls and NEITHER was ever specified; also note 25WT cannot
+rehearse a 907-student mass-wall event, and the collision fix REMOVED the accidental collisions that would
+have surfaced squatting — so the rehearsal must now test it deliberately**) → `df2-51-client` → DF2-11/07 →
+25WT rehearsal → shadow audit.
+**The rehearsal is: Playwright driving a LOCAL dev server against the REAL deployed dark backend, hosting
+NOT deployed, cohort 25WT, ON-behaviour via `rehearsalClassIds`.**
+**David's four:** backfill-go · flip-go · `gradedIsCorrect` backfill-trust · teacher-registration (anyone can
+self-register as a teacher and teachers can read/write every student's subcollections — live today, not
+caused by DEEPFIX2).
+Beyond the flip DEEPFIX2 still owes: DF2-46 twin retirement · the P10d rules lineage (preserved at
+`audit/deepfix/task3/firestore.p10d.rules`, still the LAST rules deploy) · `class_progress` retirement ·
+CS toolchain + docs on the universal model.
