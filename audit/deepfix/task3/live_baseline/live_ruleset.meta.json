@@ -1,0 +1,11 @@
+{
+  "projectId": "vocaboost-879c2",
+  "release": "projects/vocaboost-879c2/releases/cloud.firestore",
+  "releaseUpdateTime": "2026-06-28T15:20:01.572204Z",
+  "rulesetName": "projects/vocaboost-879c2/rulesets/d8f3e0d0-8e8b-4fe1-aff8-9aceb1d5f9c4",
+  "rulesetCreateTime": "2026-06-28T15:20:00.299855Z",
+  "sourceFileName": "firestore.rules",
+  "lines": 211,
+  "sha256": "44914b60858a1dcd7a2a317d4b941275bca1a36dd8e403cf22be4f15fef67570",
+  "fetchedBy": "scripts/deepfix2/fetch-live-rules.mjs"
+}

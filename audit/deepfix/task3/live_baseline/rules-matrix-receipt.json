@@ -1,0 +1,51 @@
+{
+  "workstream": "17_ \u00a77b THE RULES LEG \u2014 author + matrix (pre-panel)",
+  "date": "2026-08-03",
+  "artifacts": {
+    "live_base": {
+      "path": "audit/deepfix/task3/live_baseline/firestore.live.rules",
+      "sha16": "44914b60858a1dcd",
+      "ruleset": "d8f3e0d0-8e8b-4fe1-aff8-9aceb1d5f9c4",
+      "createdInProd": "2026-06-28"
+    },
+    "merged": {
+      "path": "audit/deepfix/task3/live_baseline/firestore.merged.rules",
+      "sha16": "c77937ce8e117a23"
+    },
+    "matrix": {
+      "path": "scripts/deepfix2/rules-matrix.mjs",
+      "sha16": "e088c3fc5503e9ef"
+    },
+    "runner": {
+      "path": "scripts/deepfix2/run-rules-matrix.sh",
+      "sha16": "a8c69da030368f58"
+    },
+    "spec": {
+      "path": "audit/deepfix/task3/firestore.review_v2.rules",
+      "sha16": "0f84ebc7e4745aab"
+    }
+  },
+  "runs": [
+    {
+      "target": "merged (canonical)",
+      "result": "148/148 green",
+      "note": "loaded-rules sha256 prefix c77937ce8e117a23 printed by the harness itself"
+    },
+    {
+      "target": "raw live base (mutation A)",
+      "result": "79/136 pre-upgrade \u2014 57 failures, ALL new-clause cases; ZERO case-9 regression failures",
+      "proves": "the matrix discriminates the deltas, and case 9 truthfully describes the live base"
+    },
+    {
+      "target": "repo firestore.rules P10 draft (mutation B)",
+      "result": "74/136 pre-upgrade \u2014 26 ALLOW-expected regressions dead (student attempt create, all progress-record writes, challenge review, teacher class/list create...)",
+      "proves": "case 9 catches the r91 wrong-base ship instantly"
+    }
+  ],
+  "adaptations": [
+    "exclusion list = the NINE new subcollections ONLY \u2014 no P6 names (list_progress/class_progress/progress_meta stay writable; live base ships no exclusion list)",
+    "case 7 live-base form: only override/engine-key-carrying attempt writes denied; plain client attempt writes remain legal (load-bearing until DF2-46)",
+    "case 9 regression set authored here (the base ships no test set): every live allow branch + the base denials DEEPFIX2 relies on"
+  ],
+  "no_uids": true
+}
