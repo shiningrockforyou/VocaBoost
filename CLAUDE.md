@@ -7,6 +7,23 @@
   `docs/resume_archive/RESUME_<YYYY-MM-DD>.md` (copy, don't move — `/RESUME.md` must always exist), then
   overwrite `/RESUME.md` with the new state. See `docs/resume_archive/README.md`.
 
+## Operating model — DELEGATE, KEEP JUDGMENT (established 2026-08-04; agent-defs are live)
+- **Delegate implementation; keep judgment, sequencing, and verification.** Spawn the **`implementer`**
+  agent-def (Sonnet default; pass `model: opus` at spawn for a live-path/security/data fold) for bounded
+  work from a WRITTEN BRIEF. Read verdicts and briefs, not diffs — every file you read yourself is
+  orchestrator context you can't get back. Do NOT author code inline when a brief + delegate will do.
+- **Verify with the independent `auditor` agent-def** (Opus, no Edit/Write) for anything touching
+  production, security, data, or the shared harness: it re-executes the evidence and returns a GO/NO-GO
+  you read INSTEAD of the diff. Scale it — routine/reversible work can stop at a self-check.
+- **Before fanning out parallel agents, do a file-ownership pass:** disjoint file sets run in parallel;
+  if two need one file, sequence them or single-own it (never a hand-specified patch). Worktree isolation
+  is only for a big migration.
+- **The durable ledger home is `docs/plans/deepfix2/_ledgers/`** — NOT the session scratchpad (it dies).
+- **Queue markers** (`whats-next.mjs` parses all four): `[ ]` unstarted · `[x]` done · `[>]` IN FLIGHT
+  (claimed) · `[~]` CARDED. Set `[>]` before delegating an item so a second session won't re-start it.
+- **At session end run `bash scripts/deepfix2/save-state.sh`** (fail-closed): it sweeps scratchpad
+  ledgers/briefs into `_ledgers/` and REFUSES to finish if RESUME points at `/tmp` or a nonexistent file.
+
 ## Continuous Execution (PROGRAM MODE)
 
 When working a multi-item program (DEEPFIX2/3, a task list, a migration) rather than answering a
@@ -187,6 +204,11 @@ these were written *because* the process was reinvented badly each time.
 ## Visual Development & Testing
 
 ### Quick Visual Check
+**⚠ On WSL you CANNOT run this yourself** — vite will not start (win32 `node_modules` in a shared
+checkout), so a front-end visual check is a **WinClaude order**, not a step you perform. See "UI FOLDS:
+THE VISUAL CHECK IS A WINCLAUDE ORDER" above for the order shape. The checklist below is what that order
+carries out (and what a non-WSL environment would do directly).
+
 **IMMEDIATELY after implementing any front-end change:**
 1. **Identify what changed** - Review the modified components/pages
 2. **Navigate to affected pages** - Use `mcp__playwright__browser_navigate` to visit each changed view
