@@ -1,27 +1,14 @@
 {
   "loop": "win-executor",
-  "turnOwner": "claude",
-  "round": 103,
-  "taskId": "BATCHED_FLAGOFF_VISUAL_DASH_DF211",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_103.md",
+  "turnOwner": "winclaude",
+  "round": 104,
+  "taskId": "BATCHED_FLAGOFF_VISUAL_DF207A_DF233_PUSH",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_104.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "review-written",
-  "execDecision": "CLEAN",
-  "pushedSha": "e37fe76",
-  "localHead": "e37fe76",
-  "changedFiles": [
-    "docs/plans/loop/win/reviews/winclaude_103.md",
-    "audit/playwright/findings/r103_dash_df211_flagoff/ (7 screenshots + console.json)"
-  ],
-  "evidenceFiles": [
-    "docs/plans/loop/win/reviews/winclaude_103.md",
-    "audit/playwright/findings/r103_dash_df211_flagoff/04-T2-assign-modal.png",
-    "audit/playwright/findings/r103_dash_df211_flagoff/06-T2-edit-settings-modal.png"
-  ],
-  "note": "ORDER 103 — CLEAN on both tasks. TASK 1: does the Dashboard load and the streak render unchanged? YES. TASK 2: do both teacher modals show today's Min/Max Review Test Settings (not the new group), still save, and the read card show no review block? YES to all three. New console error/warning beyond the known PHASE pair? NO — 0 errors, 0 extra warnings. PUSH SUCCEEDED: b6dce9b..e37fe76, origin/main == local HEAD. ***ONE CORRECTION: your order and baton both say 6 commits; the real count was 14*** (git rev-list --count origin/main..HEAD = 14). All 14 are on origin at e37fe76. Same drift as r100 (17 vs 19) — you commit between writing the order and my executing it, which is fine, but the number in the order is not reliable and I will keep reporting the real one. History-only as stated; Netlify publish disabled, nothing deployed. TASK 1 (dashboard-streak-authority f60ebf7, student lsr_s64 on 25WT RUNSL P1): Dashboard LOADS FULLY — hero + class/list panels + stat tiles, no blank page and no interstitial, so the new streakCredits/streakAuthority imports do NOT break mount. Streak renders normally: hero pill 'FIRE 1-day streak' plus a '1 days' stat tile — a real styled number, not missing or broken. NO NaN/undefined/Infinity anywhere in the rendered dashboard text (explicitly checked). TASK 2 (df2-11 1c05038, teacher lsr_teacher_01, owner of 25WT RUNSL P1). 2a AssignListModal: 'Review Test Settings' renders with Review Test Mode + Min Questions 30 + Max Questions 60 and the legacy helper 'Review test size scales with intervention (min at 0%, max at 100%)' — TODAY'S FIELDS EXACTLY AS BEFORE. 2b ClassDetail Edit List Settings: same section, Min 30 / Max 60, and ***SAVE EXERCISED NOT JUST OBSERVED*** — clicking Save Settings produced 'List settings updated successfully.', the modal closed, 0 console errors. 2c ClassDetail read card: NO review-settings block, as today. THE NEW GROUP IS ABSENT FLAG-OFF as required — no reviewPassThreshold/reviewQueueSize/reviewTestSize/reviewGateEnabled surface anywhere. ***I NEARLY FILED A FALSE FINDING — SECOND ROUND RUNNING — AND I AM RECORDING THE MECHANISM.*** My automated check reported 'has NEW group: true' on the Assign modal, which under your order is explicitly a finding. I OPENED THE SCREENSHOT BEFORE REPORTING IT AND IT WAS WRONG. The regex matched two PRE-EXISTING NEW-WORD fields: 'Pass Threshold (%)' whose helper says 'Students must score this % or higher to pass NEW WORD tests' (the existing new-word threshold, not reviewPassThreshold), and 'New Word Test Size' (matched on the substring 'Test Size'). NEITHER belongs to the new review group. Same failure mode as r102's phantom contrast issue: a text/computed-value heuristic looked conclusive and was wrong. ***SCREENSHOTS ARE THE AUTHORITY FOR A RENDER QUESTION; THE STRING MATCH IS ONLY A POINTER.*** I am treating that as a standing rule. Two other automated readings this round were also false and were corrected the same way: 'read card mentions review settings' on a page that had not navigated (WRONG ROUTE — I used /class/ but the real route is /classes/), and 'Save control enabled: false' on a modal that was not open. CONSOLE: 60 messages, 0 errors, 4 warnings — only the known PHASE pair. Warnings beyond that pair: 0, explicitly filtered and counted. BOUNDARIES: 25WT sandbox only (lsr_s64, lsr_teacher_01), never 26SM — and I noted dmchwang@gmail.com ALSO owns 25WT classes but DID NOT TOUCH David's account · REVIEW_V2_CLIENT read-only, still false · NO AI SPEND (view/interaction only, no test submitted) · no deploys · no commits, branching, stash or reset · node_modules untouched · no source edited to make anything render. The one write was the Save Settings click your order asked me to exercise, on a sandbox class, with values unchanged. STANDBY at rev 200, watcher armed.",
-  "updatedBy": "winclaude",
-  "updatedAt": "2026-08-05T00:00:00Z",
-  "revision": 200,
-  "execReview": "winclaude_103.md",
-  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_103.md"
+  "execStatus": "ordered",
+  "execDecision": "",
+  "note": "ORDER 104: four flag-OFF checks (df2-07a sheet %, HelpModal new line, help-site throttle-FAQ deletions, df2-33 dashboard parity) + push. NO AI spend, NO submissions, 25WT only, flag stays false. Two tasks have NAMED expected differences (deliberate copy changes) - read the order before judging.",
+  "updatedBy": "claude",
+  "updatedAt": "2026-08-05T00:40:00Z",
+  "revision": 201
 }
