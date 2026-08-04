@@ -1,0 +1,42 @@
+{
+  "kind": "cutover-d-refusals-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C3-MCQ-REVERT",
+      "clause": "MCQTest.jsx: a SUCCESSFUL recompose renders through the non-blocking banner, not `error` (A1)",
+      "target": "src/pages/MCQTest.jsx",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 88,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C3-TYPED-REVERT",
+      "clause": "TypedTest.jsx: a SUCCESSFUL recompose renders through gradingError('transient'), not `error` (A1)",
+      "target": "src/pages/TypedTest.jsx",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 88,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C4-A2-DROP",
+      "clause": "reuse_anchor_mismatch has a specific, non-generic reason (A2)",
+      "target": "src/services/reviewV2Compose.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 90,
+      "failures": 2,
+      "restoredOk": true
+    }
+  ],
+  "targetShas16": {
+    "src/pages/MCQTest.jsx": "05278fefa22aaecf",
+    "src/pages/TypedTest.jsx": "847825f6d570756b",
+    "src/services/reviewV2Compose.js": "32696b09fdc7977b"
+  },
+  "at": "2026-08-04T18:26:52.431Z"
+}

@@ -804,7 +804,21 @@ const MCQTest = () => {
                 const freshPool = rv2DistractorPool({ words: freshWords, poolWords: originalWords })
                 setOriginalWords(freshPool)
                 generateQuestions(freshWords, null, freshPool)
-                setError(out.reason)
+                // A1 (cutover-d, state-collision fix): a SUCCESSFUL swap is NOT
+                // `error` — `error` gates the full-page "Something went wrong"
+                // interstitial (:1440, `!showResults`), which would BLOCK the
+                // fresh test just rendered above, and whose OWN "Try Again"
+                // rebuilds testWords from loadTestWords' STALE testConfig closure
+                // (:264-293) — a later submit would then answer the NEW
+                // presentationId with the OLD words (server drift-reject,
+                // callables.js:527-529). submitError is this page's EXISTING
+                // non-blocking inline banner (:1861) whose own retry calls
+                // handleSubmit directly: testWords/originalWords are already the
+                // fresh presentation (generateQuestions above) and
+                // getRv2SubmitHandle() already prefers the sessionStorage blob
+                // (updateRv2PresentationInBlob above), so that retry submits the
+                // NEW presentationId with the NEW words — no drift, no interstitial.
+                setSubmitError(out.reason)
               } catch (swapErr) {
                 console.error('[RV2] recompose swap failed:', swapErr)
                 setSubmitError(out.reason)
@@ -1852,7 +1866,7 @@ const MCQTest = () => {
 
         {error && (
           <div className="px-4 pb-4">
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-alert border border-border-error bg-error px-4 py-3 text-sm text-text-error">
               {error}
             </div>
           </div>
@@ -1860,12 +1874,12 @@ const MCQTest = () => {
 
         {submitError && (
           <div className="px-4 pb-4">
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+            <div className="rounded-alert border border-border-error bg-error px-4 py-3">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="h-5 w-5 text-text-error flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">{submitError}</p>
-                  <p className="text-xs text-red-600 mt-1">Your answers are saved locally. Please try again.</p>
+                  <p className="text-sm font-medium text-text-error-strong">{submitError}</p>
+                  <p className="text-xs text-text-error mt-1">Your answers are saved locally. Please try again.</p>
                 </div>
               </div>
               <Button
@@ -1942,11 +1956,11 @@ const MCQTest = () => {
               </p>
 
               {submitError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 font-semibold mb-3">{submitError}</p>
+                <div className="mt-4 p-4 bg-error border border-border-error rounded-alert">
+                  <p className="text-text-error-strong font-semibold mb-3">{submitError}</p>
                   <button
                     onClick={handleSubmit}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    className="w-full px-4 py-2 bg-brand-primary text-white rounded-button hover:bg-brand-primary/90 transition-colors"
                   >
                     Retry Submission
                   </button>

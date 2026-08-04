@@ -36,7 +36,12 @@
  *     the priority prefix), no re-sort, no re-sampling through
  *     `selectTestWords`.
  *
- * Refusal COPY here is deliberately minimal — fold 51d owns the final copy.
+ * Refusal COPY here is deliberately minimal and STAYS here — NOT superseded by
+ * a later fold. SCOPE DECISION [cutover-d D1, 2026-08-04]: RV2 refusal copy
+ * (why a request was refused) is a SEPARATE REGISTER from DF2-07's
+ * `reviewOnlyReason` messaging (why review-only mode is active / threshold
+ * copy) — different axes, rendered on the SAME screens, made coherent by
+ * sharing design TOKENS (A3), never by a merged string source.
  */
 
 // Explicit .js extension: this module is imported by the node-run fixture
@@ -135,7 +140,7 @@ export function classifyThrownRefusal(err) {
   return null
 }
 
-/** Minimal rendered reasons (fold 51d owns the final copy). EVERY blocking
+/** Minimal rendered reasons (this register's own — separate from DF2-07, D1). EVERY blocking
  *  refusal renders one of these — an unknown status gets the generic line,
  *  never a blank screen and never a silent legacy fallback. */
 const REFUSAL_REASONS = {
@@ -161,6 +166,16 @@ const REFUSAL_REASONS = {
     '시험 정보를 불러오지 못했습니다. 페이지를 새로고침해 주세요. (The test could not be loaded — please reload the page.)',
   [RV2.LIST_WORDS_MALFORMED]:
     '단어 목록에 문제가 있어 시험을 만들 수 없습니다. 선생님께 알려 주세요. (This word list has a data problem — please tell your teacher.)',
+  // A2 (cutover-d coverage gap): composer.js's same-day cross-class reuse
+  // path (composer.js:358-367) refuses when this class's word-universe
+  // anchor doesn't match the class that first composed the shared day — real
+  // data drift, not something a reload alone reliably fixes. Same two-step
+  // register as REASON_UNUSABLE_TERMINAL (reviewV2Submit.js): try reloading,
+  // tell the teacher if it repeats. Student-safe — never names anchorNwei/
+  // generation/the cross-class mechanism.
+  [RV2.REUSE_ANCHOR_MISMATCH]:
+    '오늘의 학습 세션을 준비하는 중 문제가 발생했습니다. 페이지를 새로고침한 뒤에도 반복되면 선생님께 알려 주세요. ' +
+    '(There was a problem preparing today\'s session — reload the page, and tell your teacher if it repeats.)',
 }
 
 const GENERIC_REFUSAL_REASON =

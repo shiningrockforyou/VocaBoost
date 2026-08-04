@@ -8,6 +8,16 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 27. After a grade_unusable recompose, a HARD PAGE RELOAD loses the fresh word list · client · **flag-gated (0 students today), PRE-FLIP** (found 2026-08-04, cutover-d)
+
+**What.** cutover-d fixed the in-app recompose retry (fresh words + updated blob ⇒ no drift). But `updateRv2PresentationInBlob` (`src/pages/MCQTest.jsx:1191`) persists only the presentation HANDLE (`{presentationId,testType,logicalDay,resetEpoch,source}`), NOT `presentedWordIds` (those live only in the transient `out.compose`). So a HARD RELOAD after a successful swap but BEFORE the next submit loses the in-memory fresh words, and `loadTestWords` cannot re-fetch them ⇒ the next submit answers the new `presentationId` with the old word set ⇒ server drift-reject (`callables.js:527-529`) — a SAFE refusal banner, not corruption or a wrong grade.
+
+**Impact.** Flag-gated (`REVIEW_V2_CLIENT=false` ⇒ 0 students today); live at the flip. Worst case is a refusal + a re-compose, not data loss. Low severity.
+
+**Fix direction.** Persist `presentedWordIds` in the sessionStorage blob so `loadTestWords` can rebuild after a reload, OR have `loadTestWords` do a server round-trip (re-compose) for an rv2 presentation. Belongs near `df2-51-navui` (the retest/reload UI). Honestly documented by the cutover-d implementer, confirmed by its auditor.
+
+---
+
 ## 26. The LEGACY typed grader marked 20/20 GARBAGE answers as 100% correct · backend/grading · **POTENTIAL LIVE-PATH SEVERITY (947 students' typed graduation) — UNCONFIRMED pending diagnosis** (found 2026-08-04, win order 101, during the cutover-b flag-off visual)
 
 **What's observed.** On a 25WT sandbox account (`lsr_s64@vocaboost.test`), a typed new-word test submitted with the literal string "answer" for ALL 20 words was graded **20/20 correct, score 100** (e.g. `vitriolic` → correct answer "caustic; full of bitterness"; submitted "answer" → ✓). The UI result card and the STORED attempt (score=100, passed=true, 20 rows all `isCorrect`) agree — grading really ran (the deployed `gradeTypedTest` callable via httpsCallable, NOT stubbed in dev).

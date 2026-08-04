@@ -1078,7 +1078,25 @@ const TypedTest = () => {
                 setResults(null)
                 setFocusedIndex(0)
                 inputRefs.current = new Array(servedV2.length)
-                setError(out.reason)
+                // A1 (cutover-d, state-collision fix): a SUCCESSFUL swap is NOT
+                // `error` — `error` gates the full-page "Something went wrong"
+                // interstitial (:1718, `!showResults`), which would BLOCK the
+                // fresh test just rendered above, and whose OWN "Try Again"
+                // rebuilds `words` from loadTestWords' STALE testConfig closure
+                // (:263-269) — a later submit would then answer the NEW
+                // presentationId with the OLD words (server drift-reject,
+                // callables.js:527-529). gradingError (kind 'transient') is this
+                // file's EXISTING non-blocking treatment for a swap: its own
+                // "Try Again" calls handleRetryGrading → handleSubmit directly.
+                // words/originalWords are already the fresh presentation (above)
+                // and getRv2SubmitHandle() already prefers the sessionStorage
+                // blob (updateRv2PresentationInBlob above), so that retry submits
+                // the NEW presentationId with the NEW words — no drift, no
+                // interstitial. Contrast the catch below (the swap ITSELF
+                // failed): that stays 'deterministic' — the blob may be poisoned,
+                // so only a reload is safe.
+                setGradingErrorKind('transient')
+                setGradingError(out.reason)
               } catch (swapErr) {
                 // The fresh test could not be prepared: the blob still holds the
                 // poisoned presentation, so a blind resubmit would refuse again
@@ -2120,7 +2138,7 @@ const TypedTest = () => {
           </div>
 
           {error && (
-            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
+            <div className="mt-6 rounded-alert border border-border-error bg-error px-4 py-3 text-sm text-text-error">
               {error}
             </div>
           )}
@@ -2225,20 +2243,20 @@ const TypedTest = () => {
           actually renders. "Retry Save" re-runs the write only, never re-grades. */}
       {submitError && !isSubmitting && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+          <div className="bg-surface rounded-modal shadow-theme-xl p-8 max-w-md mx-4">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <AlertTriangle className="text-yellow-500 h-12 w-12" />
+                <AlertTriangle className="text-text-warning h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold text-yellow-700 mb-4">
+              <h3 className="text-xl font-bold text-text-warning-strong mb-4">
                 Couldn&apos;t Save Your Results
               </h3>
-              <p className="text-sm text-gray-700 mb-4">
+              <p className="text-sm text-text-secondary mb-4">
                 {submitError} Your answers are safe — this only retries saving (it won&apos;t re-grade).
               </p>
               <button
                 onClick={handleRetrySave}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                className="w-full px-4 py-2 bg-brand-primary text-white rounded-button hover:bg-brand-primary/90 transition-colors"
               >
                 Retry Save
               </button>
@@ -2250,29 +2268,29 @@ const TypedTest = () => {
       {/* Grading Error with Manual Retry */}
       {gradingError && !isSubmitting && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.35)' }}>
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md mx-4">
+          <div className="bg-surface rounded-modal shadow-theme-xl p-8 max-w-md mx-4">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <AlertTriangle className="text-red-500 h-12 w-12" />
+                <AlertTriangle className="text-text-error h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold text-red-700 mb-4">
+              <h3 className="text-xl font-bold text-text-error-strong mb-4">
                 {gradingErrorKind === 'deterministic' ? 'Couldn’t Grade — Please Reload' : 'Grading Didn’t Go Through'}
               </h3>
-              <p className="text-sm text-gray-700 mb-4">
+              <p className="text-sm text-text-secondary mb-4">
                 {gradingError}
               </p>
               {gradingErrorKind === 'deterministic' ? (
                 // Re-submitting the same payload repeats the failure (Codex #5) — reload rebuilds it.
                 <button
                   onClick={() => window.location.reload()}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="w-full px-4 py-2 bg-brand-primary text-white rounded-button hover:bg-brand-primary/90 transition-colors"
                 >
                   Reload Page
                 </button>
               ) : (
                 <button
                   onClick={handleRetryGrading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="w-full px-4 py-2 bg-brand-primary text-white rounded-button hover:bg-brand-primary/90 transition-colors"
                 >
                   Try Again
                 </button>

@@ -43,7 +43,12 @@
  *     per-tab — exactly like the composeKey itself (cutover-a BS-TABS) — so
  *     two tabs are each bounded to one recompose, never a loop.
  *
- * Refusal COPY here is deliberately minimal — fold 51d owns the final copy.
+ * Refusal COPY here is deliberately minimal and STAYS here — NOT superseded by
+ * a later fold. SCOPE DECISION [cutover-d D1, 2026-08-04]: RV2 refusal copy
+ * (why a request was refused) is a SEPARATE REGISTER from DF2-07's
+ * `reviewOnlyReason` messaging (why review-only mode is active / threshold
+ * copy) — different axes, rendered on the SAME screens, made coherent by
+ * sharing design TOKENS (A3), never by a merged string source.
  */
 
 // Explicit .js extensions: this module is imported by the node-run fixture
@@ -119,7 +124,7 @@ export function clearRecomposeGuard(scope, { storage } = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Copy (fold 51d owns the final copy)
+// Copy (this register's own — separate from DF2-07, D1)
 // ---------------------------------------------------------------------------
 
 const REASON_RECOMPOSED =

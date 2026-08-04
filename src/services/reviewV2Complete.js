@@ -79,8 +79,12 @@
  *     branches, never a mis-route), so this is a documented correction, not
  *     a plumbing contradiction (see the fold report for the full census).
  *
- * Refusal COPY here is deliberately minimal — fold 51d owns the final copy
- * (matches reviewV2Submit.js's own posture). `no_evidence`'s reason text is
+ * Refusal COPY here is deliberately minimal and STAYS here — NOT superseded by
+ * a later fold [cutover-d D1 SCOPE DECISION, 2026-08-04: RV2 refusal copy is a
+ * SEPARATE REGISTER from DF2-07's `reviewOnlyReason` messaging — different
+ * axes rendered on the SAME screens, coherent via shared design TOKENS (A3),
+ * never a merged string source] (matches reviewV2Submit.js's own posture).
+ * `no_evidence`'s reason text is
  * copied VERBATIM from the EXISTING `completionNotApplied` UX (MCQTest.jsx/
  * TypedTest.jsx today) — the same user-facing situation ("this day can't
  * complete yet, your answers are saved"), not a new message.
@@ -101,7 +105,7 @@ import {
 } from './reviewV2Compose.js'
 
 // ---------------------------------------------------------------------------
-// Copy (fold 51d owns the final copy)
+// Copy (this register's own — separate from DF2-07, D1)
 // ---------------------------------------------------------------------------
 
 // Copied VERBATIM from the existing `completionNotApplied` UX (MCQTest.jsx

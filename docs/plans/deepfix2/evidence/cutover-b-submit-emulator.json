@@ -5,13 +5,13 @@
   "failed": 0,
   "reds": [],
   "sourceShas": {
-    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "src/services/reviewV2Submit.js": "0b667c94bb2e7758",
     "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
-    "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
+    "src/services/reviewV2Compose.js": "32696b09fdc7977b",
     "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc",
     "functions/reviewV2/typedGrading.js": "21b5be28758c8893",
     "functions/reviewV2/composer.js": "5c4d6bfef0b6fb90",
     "scripts/deepfix2/cutover-b-submit-emulator.mjs": "f63f039d14f1f682"
   },
-  "at": "2026-08-04T15:38:42.810Z"
+  "at": "2026-08-04T18:08:45.713Z"
 }
