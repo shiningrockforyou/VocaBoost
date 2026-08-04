@@ -69,6 +69,36 @@ unambiguous. If it is quiet, nothing changed; that is NOT the same as nothing go
   instant while silently missing the events it exists to catch. Executor rounds run 10-60 minutes, so
   60s costs ~2% of the wait.
 
+## UI FOLDS: THE VISUAL CHECK IS A WINCLAUDE ORDER (established 2026-08-04, orders 98+99)
+
+CLAUDE.md already mandates a visual check after every front-end change. **WSL cannot perform one**, and
+this is structural, not a one-off: `node_modules` in this shared checkout holds WINDOWS binaries
+(`@esbuild/win32-x64`, `@rollup/rollup-win32-x64-*`), so vite will not start under WSL, and reinstalling
+for Linux would break the Windows side. Same family as "WSL cannot git push".
+
+**So every UI fold ends with a WinClaude order, not with a green test run.** Do not rediscover this per
+fold and do not treat a passing fixture suite as satisfying the row.
+
+**What such an order must carry** (both 98 and 99 worked; copy their shape):
+- **The one thing it exists to prove.** For a flag-gated fold that is FLAG-OFF PARITY — 947 students are
+  on that path, and fixtures are not a running browser.
+- **25WT sandbox identities ONLY, never 26SM**, repeated at every step. The dev build talks to REAL
+  production Firebase (`VITE_USE_EMULATOR=false`), so a UI check WRITES to live Firestore.
+- **Do not flip the flag.** Flag-ON verification is a separate, later order against a rehearsal class.
+- **Console capture for the whole run.** Any NEW error or warning is a finding even if the UI looks
+  right — a silent throw is how a refusal-routing bug surfaces.
+- **The expected differences, named up front.** Order 98 had to be told the review sheet drops its
+  "Words #a-b" line flag-on; without that the executor reports an expected change as a regression, and a
+  real bug hides behind the false one.
+- **Refusal conditions**, including "if the dev server will not start, that is a REPORT, not something to
+  fix", and "do not edit source to make something render — if it does not render, that IS the finding".
+
+**Two operational facts learned the hard way, carry them into every future UI order:**
+- **Typed tests cost real money.** They call the live AI grader. Prefer an MCQ class where the modality
+  does not matter to what is being checked.
+- **A day-start account hits the first-run "Customize Your Flashcards" modal**, and a driver whose
+  selector matches a button BEHIND it hangs silently with no error (win r099 §3). Dismiss it explicitly.
+
 ## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
 - **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,
   prints both batons, lists unfinished fold ledgers and uncommitted work.
