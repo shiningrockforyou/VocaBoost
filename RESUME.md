@@ -1,89 +1,92 @@
-# RESUME — DEEPFIX2 (2026-08-03 save-state: rules DEPLOYED · two PRE-FLIP BLOCKERS found · evidence re-run in flight)
+# RESUME — DEEPFIX2 (2026-08-04: cutover-a LANDED + browser-verified · cutover-b was IN FLIGHT, cancelled clean)
 
-## ⚠️ READ THIS FIRST IF THE TREE LOOKS DIRTY
-`scripts/deepfix2/typed-seam-mutants.mjs` mutates `functions/reviewV2/{typedGrading,completion,callables}.js`
-**IN PLACE** and restores them at the end. While it runs, a source file legitimately contains a **REVERTED
-SECURITY GUARD**, and `git status` shows only an innocent one-line diff. **NEVER commit while it runs.**
-`gate.mjs` now fails closed on this (`MUTANT` check, added after a near-miss during this very save-state —
-it caught a real attempt to stage a mutated `typedGrading.js`). If the gate says MUTANT: wait, or restore
-from the backup dir the runner prints at startup.
+## ⚡ FIRST ACTION OF THIS SESSION — before session-start, before reading further
+```
+Monitor({command: "bash /app/scripts/deepfix2/baton-monitor.sh",
+         description: "DEEPFIX2 baton returns (win + codex)", persistent: true, timeout_ms: 3600000})
+```
+Then `bash scripts/deepfix2/session-start.sh`, then read `/tmp/deepfix2-baton-events.log` for anything
+that changed while nothing was armed. **This is CLAUDE.md's documented first action** — it exists because
+on 2026-08-04 a passive log-only watcher let win order 98 sit unread for an hour.
 
-**At save-state time a run was IN FLIGHT** (started 22:37Z, ~10 laps). If it never finished, re-run
-`node scripts/deepfix2/typed-seam-mutants.mjs` and confirm it prints "tree restored" before committing.
+## WHERE THINGS STAND
+**Nothing is activated.** `REVIEW_V2_CLIENT=false`, client pinned `ce09792`, Netlify builds stopped.
+**Both batons idle with claude** (win rev 192 round 99 CLEAN · codex rev 231 round 79 YES).
+Production: indexes 43 · functions 24 (**STALE — `b54c6e5`, predates the typed leg, the typed-fix-audit
+guards, the collision fix and cutover-a**) · config doc dark · **rules DEPLOYED** (`384c9c7a…`,
+sha16 `f40f91fce3693b82`, re-verified 262/262 against bytes fetched from production).
 
-## PRODUCTION
-Indexes 43 ✅ · **rules DEPLOYED 2026-08-03** (ruleset `384c9c7a-b9ec-4f17-95ab-b72fff9c5fd1`, 523 lines,
-sha16 `f40f91fce3693b82` — byte-identical to the artifact Codex certified at r79; verified by me re-fetching
-production and re-running the matrix against those bytes: **262/262**) · `system_config/review_v2` SEEDED
-DARK ✅ · client PINNED `ce09792`, Netlify builds stopped · **NOTHING ACTIVATED**.
-**FUNCTIONS ARE STALE: production still runs `b54c6e5` (r092)** — it predates the typed leg, the
-typed-fix-audit guards AND the collision fix. Queue item `functions-deploy-engine`.
-**No production evidence on the rules yet** — the deploy landed ~05:00 KST with students asleep; the newest
-`system_logs` row predates it. First busy hour is the real test; watch `users/{uid}/{subcollection}` writes.
-**WSL cannot push** [[wsl-claude-has-no-git-push]]; read-only checks work via
-`git -c http.sslBackend=gnutls ls-remote`. A fresh session needs `git config --global --add safe.directory /app`.
+**Server ~done (4,370 lines, 11 modules). Client ~1/4 through (11,157 legacy lines still the live path).**
 
-## START HERE EVERY TURN
-`bash scripts/deepfix2/session-start.sh` · before ANY claim or order: `node scripts/deepfix2/gate.mjs` ·
-plan a fold with `--plan` BEFORE editing. The gate gained three checks today: the MATRIX sha (it certified a
-harness that no longer existed), MUTANT residue (above), and it already had the artifact sha.
+## WHAT WAS IN FLIGHT WHEN THIS WAS SAVED
+`cutover-b-submit` — implementer **CANCELLED CLEANLY** before it edited anything (it was still reading the
+server contract). **Tree verified intact**: no source modified, no mutant residue, all three touched files
+parse. **Nothing to recover or undo.**
+- Its ledger is ACTIVE and gate-`--plan` ACCEPTED at `<scratch>/cutover-b-submit-fold-ledger.md`.
+  **⚠ That scratchpad dies with the session.** If it is gone, the six V-row answers below are the value —
+  re-derive the ledger from them rather than starting cold.
+- **The brief that was in flight is worth reconstructing from the ledger** — it named six things the
+  implementer must not re-derive.
 
-## THE TWO PRE-FLIP BLOCKERS — the most important thing on this page
-Both are **denial** vectors, both **reachable by a classmate**, both **dark today and LIVE AT THE FLIP**.
-Same root cause: **a GLOBAL collection accepting client creates at server-derived names.** Decide together.
-- **NEED_TO_FIX 19 · `gradejob-namespace`** — pre-claim another student's grading-job key via the live
-  `gradeTypedTest`. The uid check (`index.js:936-938`) runs BEFORE the status/lease checks, so an expired
-  lease NEVER releases the doc: the block is **permanent**, and clients cannot delete `grading_jobs`.
-- **NEED_TO_FIX 22 · `attempt-id-squat`** — create `attempts/rv2_{victimUid}_{pid}` with your OWN studentId
-  (`firestore.live.rules:301-312`); only the creator can delete it (`:394-396`); the victim then gets
-  `presentation_invalid` forever (`callables.js:623-625`). The refusing guard is one WE shipped — failing
-  closed correctly, which converts a data leak into a denial.
-Keys are derivable: uids from `classes.studentIds` (any authenticated user may read), `presentationId` =
-`{classId}_{listId}_d{day}_e{epoch}_p{seq}` with small predictable seq. **The uid scoping added today is a
-NAMESPACE, NOT A FENCE** — never let that be misread again (it already caused one false "self-inflicted only"
-claim, corrected in 18_ §5.6).
+### The six V rows, ALL ANSWERED (this is the expensive part — do not redo it)
+1. **V1** — legacy submit `context` carries `attemptDocId = uid_testId_nonce` (`MCQTest.jsx:700`): the
+   client-minted nonce that IS the 06-29 outage root cause. Every other field is server-supplied under the
+   engine. **Send ONLY `{presentationId, answers}`** — never smuggle a client attemptDocId/totalQuestions.
+2. **V2 (was the BLOCKING row) — the gradeToken is SUBSUMED, not lost, so the fold can ship.** Both
+   `GRADE_TOKEN_MINT` and `GRADE_TOKEN_ENFORCED` are `false` in prod (`index.js:67,79`) — nothing live is
+   removed. It was disarmed because ENFORCING it re-armed the 06-29 outage (nonce→docId divergence, still
+   unpatched on legacy). The engine kills that root cause: `attemptId = engineDocId(uid, presentationId)`
+   is SERVER-derived, and verdicts never reach the client before the write (`callables.js:550`, `:812`).
+   **DO NOT touch either flag.**
+3. **V3** — the client is the denominator authority today (`totalQuestions: testWords.length`). Under the
+   engine it comes from the presentation. **This is why cutover-a's truncation bug existed**: 50/50 = 100%
+   today, but 50 answers against a 60-word presentation is a guaranteed fail once the server sizes it.
+4. **V4** — 8 statuses from the callable, **and `grade_unusable` is NOT among them** (it passes through
+   from the typed grading resolver — a census grepping only the callable MISSES it). Classified:
+   terminal `attempt_written` (incl. `replayed:true`) · poll `grading_in_progress` · recompose-ONCE
+   `grade_unusable` · block-with-reason (6) · legacy-fallback `config_hold`/`review_v2_dark` + the thrown trio.
+5. **V5 — recovery INVERTS.** Today the client fetches a cached grade and writes it. Under the engine the
+   client never holds a grade and never writes, so that leg is **impossible**, not merely unnecessary.
+   Replacement: call submit again — same presentationId returns `attempt_written, replayed:true`, zero
+   writes (`callables.js:636-637`). This is why cutover-a's persisted composeKey matters here.
+6. **V6** — flag-off parity is a DESIGN obligation, not a discoverable property. Only C2 can prove it.
 
-## WHAT LANDED TODAY (4 commits: fed7c84 · 561121d · bf483a3 · c705bf1)
-1. **Rules receipt re-verified** on a from-scratch harness (mutants report regenerated byte-identical);
-   Codex re-gate r79 issued → **YES**.
-2. **Typed-fix-audit fold CLOSED** — cached-grade forgery closed at BOTH seams. An independent audit proved
-   the `already_graded` sibling had ZERO coverage; now pinned by CASE TS + `M-A1-SIBLING-CALL-SITE`.
-3. **RULES DEPLOYED** (order 97). Caught a post-deploy trap: re-baselining made BOTH whole-file baselines in
-   `rules-mutants.mjs` become the artifact, which would have read as a defect; repointed at the preserved
-   snapshots. **ROLLBACK = restore `live_baseline/firestore.live.PRE_R79_DEPLOY.rules` and redeploy** (its
-   sha won't equal `44914b60858a1dcd` — LF vs CRLF; the rule text is what matters).
-4. **rv2 docid collision FIXED** — `rv2_{uid}_{presentationId}` from ONE shared `engineDocId()`
-   (`composer.js:117`) used by both derivation sites. No migration (receipt: 0 `rv2_` docIds across 41,688
-   attempts + 16,732 grading_jobs).
+## LANDED TODAY (9 commits since the backup point 3ad1fc5)
+- **cutover-a-compose COMMITTED `f9b423f`** — review composition from the engine, flag-gated. Algorithm
+  REPLACED (priority-bands→cursor rotation), so no fixture asserts client==server. Lazy compose at review
+  entry · presented order verbatim · composeKey persisted. Opus audit PASS WITH FINDINGS: **three
+  undeclared student-visible changes folded** (MCQ distractor pool narrowed ⇒ 3-option questions; dead
+  range label; typed truncation ⇒ 83% cap) + a silent fallback + a FALSIFIED receipt whose root cause is
+  now structurally fixed. **VISUAL CHECK CLOSED** — win 98 (review path) + win 99 (new-word path, CLEAN).
+- **19_REHEARSAL_SPEC.md** — closes 13_ O1-5's data half. Leads with: 25WT is 13 students vs 947, so it
+  **cannot rehearse a mass-wall event**.
+- **gate.mjs hardened twice**: an EVIDENCE check (fold receipts must report success AND bind the tree —
+  it caught a falsified receipt on my own run) and a MUTANT-residue check (a mutation run leaves a
+  REVERTED GUARD in the tree mid-run; committing then ships it).
+- **The baton watcher is now an EVENT monitor** and CLAUDE.md's first action.
 
-## UNCOMMITTED AT SAVE-STATE (the audit fold — commit once the run restores + gate is clean)
-The rv2-collision independent audit returned **PASS WITH FINDINGS**; these are the repairs:
-`18_TYPED_LEG_DESIGN.md` §5.6 (F1 — it told readers a poisoned key is always self-inflicted; the fold's own
-fixtures disprove it) · `NEED_TO_FIX.md` card 18 (F2 — stale line refs + a present-tense claim this fold
-inverted) + NEW cards 19-raised/22 · `composer.js` `engineDocId` now fails loud on a missing scope (Q3) ·
-`typed-seam-mutants.mjs` new single-leg mutant `M-A1-JOBKEY-ONLY-REVERT` (F4) · `rules-matrix.mjs` stale
-prose (F5) · `gate.mjs` MUTANT check · the precondition receipt (F3).
-**Also uncommitted and NOT mine:** `.claude/settings.json` (the Windows executor's session).
+## NEXT, in order (`node scripts/deepfix2/whats-next.mjs` is authoritative)
+1. **cutover-b-submit** — re-brief from the ledger/V-rows above.
+2. **gradejob-namespace + attempt-id-squat** — the two PRE-FLIP BLOCKERS (NEED_TO_FIX 19 + 22): a
+   classmate can PERMANENTLY block another student's test. Dark today, LIVE AT THE FLIP. Decide together —
+   one root cause: a global collection accepting client creates at server-derived names.
+3. **monitoring-abort-rule** (13_ O1-6 HIGH) — the flip's monitoring has no numbers, no card, no abort
+   rule, and **the rehearsal explicitly cannot cover the mass-wall risk, so this carries it**. B1 has run.
+4. Then: cutover-c/d · dashboard (2 items — the engine writes `streak_credits` and NOTHING in src/ reads
+   it, NEED_TO_FIX 25) · df2-11 teacher UI · df2-07 messaging · df2-51-navui · **functions-deploy-engine**
+   · playwright-suite · rehearsal-25wt · shadow-audit.
+5. **David's four:** backfill-go · flip-go · gradedIsCorrect backfill-trust · teacher-registration.
 
-## DECIDED (do not relitigate)
-- **`grading_in_progress` → a DISTINCT status meaning *recompose, do not poll*** (NEED_TO_FIX 21). One
-  status cannot mean two opposite things; the frozen RV2 list is free to change NOW because no client
-  consumes it yet. Implementation + both-leg fixtures ride with `df2-51-client`.
-- **The artifact comment repair BUNDLES with the next real rules change** — editing it would diverge the
-  artifact from running production for zero behavioural gain.
-
-## WHAT'S LEFT (`node scripts/deepfix2/whats-next.mjs` is authoritative)
-Engine/client: the two blockers above → `functions-deploy-engine` (gated on the audit, now done) →
-`rehearsal-spec` (**an UNWRITTEN launch blocker from 13_ O1-5: David ordered a 25WT rehearsal + "rigorous
-Playwright" as the no-canary compensating controls and NEITHER was ever specified; also note 25WT cannot
-rehearse a 907-student mass-wall event, and the collision fix REMOVED the accidental collisions that would
-have surfaced squatting — so the rehearsal must now test it deliberately**) → `df2-51-client` → DF2-11/07 →
-25WT rehearsal → shadow audit.
-**The rehearsal is: Playwright driving a LOCAL dev server against the REAL deployed dark backend, hosting
-NOT deployed, cohort 25WT, ON-behaviour via `rehearsalClassIds`.**
-**David's four:** backfill-go · flip-go · `gradedIsCorrect` backfill-trust · teacher-registration (anyone can
-self-register as a teacher and teachers can read/write every student's subcollections — live today, not
-caused by DEEPFIX2).
-Beyond the flip DEEPFIX2 still owes: DF2-46 twin retirement · the P10d rules lineage (preserved at
-`audit/deepfix/task3/firestore.p10d.rules`, still the LAST rules deploy) · `class_progress` retirement ·
-CS toolchain + docs on the universal model.
+## STANDING FACTS THAT KEEP MATTERING
+- **The dev build talks to REAL production Firebase** (`VITE_USE_EMULATOR=false`). Any UI check writes to
+  live Firestore ⇒ 25WT identities only, never 26SM. Typed tests bill real AI tokens.
+- **WSL cannot run vite** (win32 node_modules, shared checkout) ⇒ every UI fold's visual check is a
+  WinClaude order. Cannot git push either (schannel); read-only checks work via
+  `git -c http.sslBackend=gnutls ls-remote`.
+- **A concurrent session writes to this repo** (26SM-T19 extraction; `.claude/settings*.json` are theirs).
+  **Stage explicitly, never `git add -A`.**
+- **Codex checkpoints:** proposed at the three pre-flip blockers as a SET (one is live-path and
+  unassessed — NEED_TO_FIX 23), and before the functions deploy. Not on intermediate folds.
+- **My recurring failure mode, verified repeatedly:** I undercount enumerations (fixture censuses twice)
+  and publish numbers that have since moved. Derive counts, never type them; pair every implementer with
+  an independent auditor told not to trust the report.
