@@ -5,11 +5,10 @@
 Monitor({command: "bash /app/scripts/deepfix2/baton-monitor.sh",
          description: "DEEPFIX2 baton returns (win + codex)", persistent: true, timeout_ms: 3600000})
 ```
-Then `bash scripts/deepfix2/session-start.sh`. **The win baton was handed to WinClaude for ORDER 103 at the
-end of the last session** (batched flag-OFF visual checks: dashboard streak + df2-11 teacher modals). CHECK
-IF IT RETURNED — read `docs/plans/loop/win/baton.json` + the baton event log (path in CLAUDE.md's baton-monitor section). **If order 103
-returned: that is the top of the queue** — fold it (close `dashboard-streak-authority-visual` +
-`df2-11-teacher-ui-visual` in WORK_QUEUE), then continue.
+Then `bash scripts/deepfix2/session-start.sh`. **The win baton is IDLE with claude** (order 103 returned
+CLEAN and was FOLDED last session — both visual checks closed; all commits pushed, `origin/main == e37fe76`).
+Nothing pending on WinClaude. Confirm `docs/plans/loop/win/baton.json` (turnOwner=claude, rev 200), then
+pick up the queue.
 
 ## OPERATING MODEL (CLAUDE.md "DELEGATE, KEEP JUDGMENT")
 Delegate implementation to the **`implementer`** agent-def (Sonnet; `model: opus` at spawn for a live-path/
@@ -34,10 +33,12 @@ delegating; **`[~]`** = carded. Durable ledgers live in `docs/plans/deepfix2/_le
 - `54d98a2` **NTF-23 verified**: the legacy cached-grade cross-student vector is fenced (uid throw + client-
   write-denial + namespace reservation); shrinks to an off-critical-path defense-in-depth card (Codex ratifies).
 
-## IN FLIGHT (WinClaude — order 103, baton handed off)
-- **`dashboard-streak-authority-visual` + `df2-11-teacher-ui-visual`** — ONE batched WinClaude order 103
-  (`claude_to_winclaude_103.md`): flag-OFF, does the Dashboard load + streak render unchanged; do BOTH teacher
-  modals show today's Min/Max section (NOT the new group) + still save. 25WT, no AI spend. Fold on return.
+## RECENTLY CLOSED (nothing in flight)
+- **win order 103 — CLEAN, FOLDED** (both `dashboard-streak-authority-visual` + `df2-11-teacher-ui-visual`
+  closed): flag-OFF, the Dashboard loads + streak renders unchanged; BOTH teacher modals show today's Min/Max
+  (NOT the new group), the Edit-modal save was exercised, the read card has no review block. 0 console errors.
+  WinClaude also PUSHED all local commits (`origin/main == e37fe76`). ⇒ **The client cutover is now COMPLETE
+  end-to-end: code + independent audit + browser, all CLEAN.** No WinClaude work pending.
 
 ## PENDING — DAVID (the real bottleneck for the rehearsal → flip)
 - **NTF-26** — the LEGACY typed grader marks garbage 100% (root-caused to Haiku prompt leniency; win-102 MCQ

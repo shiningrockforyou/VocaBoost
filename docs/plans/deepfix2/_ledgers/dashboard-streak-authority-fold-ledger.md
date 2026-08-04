@@ -134,10 +134,10 @@ account-wide server streak the authority behind the flag; df2-33 settles how it'
     session, git-history-confirmed). A fully-green gate is impossible until that separate pre-deploy
     staleness clears; this fold does not touch any of it.
 [x] commit
-[ ] **VISUAL CHECK** — a WinClaude order (dispatched: order 103): the streak displays UNCHANGED flag-off
-    (hero pill + stat tile), AND the Dashboard still LOADS flag-off (the new `streakCredits` import must not
-    break page load — the one runtime risk byte-identity can't cover). Flag-ON display is df2-33's + the
-    rehearsal's (account-wide number is dead until the flip). 25WT.
+[x] **VISUAL CHECK** — CLOSED CLEAN, win order 103 TASK 1 (2026-08-04): the Dashboard LOADS FULLY flag-off
+    (the new `streakCredits`/`streakAuthority` imports don't break mount) AND the streak renders UNCHANGED
+    ("1-day streak" pill + "1 days" tile, a real styled number, no NaN/undefined); 0 console errors. Flag-ON
+    display is df2-33's + the rehearsal's (account-wide number is dead until the flip). 25WT. See winclaude_103.md.
 [x] concurrent session shares the repo — stage explicitly (Dashboard.jsx + 2 new src + 3 fixtures + 3
     evidence + ledger + NEED_TO_FIX + WORK_QUEUE + change log; NOT .claude/*, NOT the win baton).
 [x] implementer PAIRED with independent verification — orchestrator LEVEL-4 re-execution (the strongest

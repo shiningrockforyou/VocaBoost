@@ -1,0 +1,302 @@
+[
+ {
+  "who": "student",
+  "type": "debug",
+  "text": "[vite] connecting..."
+ },
+ {
+  "who": "student",
+  "type": "debug",
+  "text": "[vite] connected."
+ },
+ {
+  "who": "student",
+  "type": "info",
+  "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+ },
+ {
+  "who": "student",
+  "type": "info",
+  "text": "[vocaboost] build 25ec1fb (dirty) · main · 2026-08-04T09:12:33.981Z"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "who": "student",
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "who": "student",
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "who": "student",
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "who": "teacher",
+  "type": "debug",
+  "text": "[vite] connecting..."
+ },
+ {
+  "who": "teacher",
+  "type": "debug",
+  "text": "[vite] connected."
+ },
+ {
+  "who": "teacher",
+  "type": "info",
+  "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+ },
+ {
+  "who": "teacher",
+  "type": "info",
+  "text": "[vocaboost] build 25ec1fb (dirty) · main · 2026-08-04T09:12:33.981Z"
+ },
+ {
+  "who": "teacher",
+  "type": "debug",
+  "text": "[vite] connecting..."
+ },
+ {
+  "who": "teacher",
+  "type": "debug",
+  "text": "[vite] connected."
+ },
+ {
+  "who": "teacher",
+  "type": "info",
+  "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+ },
+ {
+  "who": "teacher",
+  "type": "info",
+  "text": "[vocaboost] build 25ec1fb (dirty) · main · 2026-08-04T09:12:33.981Z"
+ }
+]

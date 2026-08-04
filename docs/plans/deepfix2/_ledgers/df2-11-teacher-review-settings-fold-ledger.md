@@ -139,11 +139,13 @@ implementer. D1 (doc truth-repair) = OUT of this implementer's allowed file set 
         → 6 mutants on reviewSettingsAuthority.js (threshold-upper, size-upper, lower-bound, integer-check,
           gate-coerce, type-enum) — 6/6 KILLED, restore clean, no residue. Evidence:
           df2-11-teacher-review-settings-mutants.json (pass:true).
-[~] C5  **VISUAL CHECK (WinClaude order, 25WT):** flag-OFF, BOTH modals render UNCHANGED (the min/max block
+[x] C5  **VISUAL CHECK (WinClaude order, 25WT):** flag-OFF, BOTH modals render UNCHANGED (the min/max block
         exactly as today) AND both still LOAD/SAVE. The new group is flag-ON only (dead until the flip).
         Batched with the pending dashboard-streak-authority-visual.
-        → NOT THIS IMPLEMENTER (WSL cannot run vite). Orchestrator dispatches the WinClaude order. Flag-OFF
-          RENDER parity is the one thing it must prove; the flag-OFF JSX branch is today's block verbatim.
+        → CLOSED CLEAN — win order 103 TASK 2 (2026-08-04). Both modals show today's Min/Max (Min 30/Max 60,
+          NOT the new group); ClassDetail Edit SAVE exercised → "List settings updated successfully", 0 errors;
+          read card shows NO review block; the new group provably ABSENT flag-off. WinClaude caught+discarded
+          3 false automated readings via the screenshots. See winclaude_103.md.
 
 ## GROUP D — TRUTH REPAIRS
 [x] D1  Any doc that says DF2-11 "DELETES the dead reviewTestSizeMin/Max" must read "FLAG-SCOPES the
@@ -178,5 +180,5 @@ implementer. D1 (doc truth-repair) = OUT of this implementer's allowed file set 
     [x] gate.mjs (explicit ledger path; foreign reds enumerated) — --plan ACCEPTED + final: the fold's OWN checks
     GREEN (LEDGER all ticked · FREEZE · MUTANT · BATON · WATCHER · LOG); reds are FOREIGN (engine-lap-result +
     audit/deepfix/task3 + 17_DEPLOY — not this fold's artifacts; engine-lap re-runs at deploy).   [x] commit (orchestrator).
-[~] **VISUAL CHECK** — WinClaude order (C5), batched with dashboard-streak-authority-visual. 25WT.
+[x] **VISUAL CHECK** — WinClaude order 103 CLEAN (C5), batched with dashboard-streak-authority-visual. 25WT.
 [x] concurrent session shares the repo — staged EXPLICITLY (9 footprint + D1 + change-log + queue; NOT .claude/settings, per the auditor's hygiene note).   [x] implementer (OPUS — live surface) PAIRED with an independent OPUS auditor — GO verdict (level-4: re-ran 42/0 + 6/6; all 6 flag-off surfaces byte-identical; validator mirrors config.js; reviewGateEnabled default-TRUE confirmed on every path).
