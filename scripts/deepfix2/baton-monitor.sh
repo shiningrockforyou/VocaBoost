@@ -17,7 +17,7 @@
 #
 # Usage (normally via the harness Monitor, persistent):
 #   bash scripts/deepfix2/baton-monitor.sh
-# Env: DEEPFIX2_BATON_POLL (seconds, default 20)
+# Env: DEEPFIX2_BATON_POLL (seconds, default 60 — see the rationale immediately below)
 # POLLING IS CORRECT HERE, NOT A COMPROMISE [2026-08-04]. /app is a 9p mount (v9fs) —
 # WSL viewing C:\Users\dmchw\vocaboost. inotify does NOT fire reliably for writes made
 # on the WINDOWS side, and the win baton is written by WinClaude FROM WINDOWS. A true
