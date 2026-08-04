@@ -1,0 +1,17 @@
+{
+  "kind": "dashboard-streak-authority-pure",
+  "pass": true,
+  "total": 32,
+  "failed": 0,
+  "reds": [],
+  "constants": {
+    "ACCOUNT_STREAK_QUERY_LIMIT": 400
+  },
+  "sourceShas": {
+    "src/utils/streakAuthority.js": "76132f14c87033ce",
+    "src/services/streakCredits.js": "608439a2eb06338f",
+    "src/pages/Dashboard.jsx": "c1bcb28227965424",
+    "scripts/deepfix2/dashboard-streak-authority-fixtures.mjs": "f6922e9b675dc877"
+  },
+  "at": "2026-08-04T19:44:35.843Z"
+}

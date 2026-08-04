@@ -1,0 +1,16 @@
+{
+  "kind": "dashboard-streak-authority-emulator",
+  "pass": true,
+  "total": 9,
+  "failed": 0,
+  "reds": [],
+  "notes": {
+    "emulatorGap": "Firestore emulator (firebase-tools 15.25.1) throws 'Firestore does not support descending key scans' on orderBy(documentId(),'desc') (code failed-precondition) — production-valid, emulator-unsupported. fetchCreditDocs itself cannot be invoked against this emulator; its DESC clause is confirmed by QS-DESC-STATIC (source anchor) instead of live execution."
+  },
+  "sourceShas": {
+    "src/services/streakCredits.js": "608439a2eb06338f",
+    "src/utils/streakAuthority.js": "76132f14c87033ce",
+    "scripts/deepfix2/dashboard-streak-authority-emulator.mjs": "8483b855a9fdb03f"
+  },
+  "at": "2026-08-04T19:34:17.913Z"
+}

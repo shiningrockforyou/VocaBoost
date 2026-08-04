@@ -1,0 +1,31 @@
+{
+  "kind": "dashboard-streak-authority-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C4-REVERSE-FRESHNESS-GATE",
+      "clause": "a stale streak reports 0, a fresh one reports its count (C1/C4)",
+      "target": "src/utils/streakAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 32,
+      "failures": 7,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C5-SCOPE-TO-ONE-LIST",
+      "clause": "the read is account-wide, never filtered by classId/listId (A2/C5)",
+      "target": "src/services/streakCredits.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 32,
+      "failures": 1,
+      "restoredOk": true
+    }
+  ],
+  "targetShas16": {
+    "src/utils/streakAuthority.js": "76132f14c87033ce",
+    "src/services/streakCredits.js": "608439a2eb06338f"
+  },
+  "at": "2026-08-04T19:44:40.932Z"
+}

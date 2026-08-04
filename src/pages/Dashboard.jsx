@@ -17,7 +17,11 @@ import {
   updateUserSettings,
 } from '../services/db'
 import { getClassProgress } from '../services/progressService'
-import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED } from '../config/featureFlags'
+// DASHBOARD-STREAK-AUTHORITY (NTF-25): the account-wide server streak_credits
+// read + derivation, behind REVIEW_V2_CLIENT (:1399). Flag-off this is never
+// called (ledger V4/C2 — the legacy calculateStreak path is untouched).
+import { fetchAccountStreak } from '../services/streakCredits'
+import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
 import { db } from '../firebase'
@@ -322,6 +326,13 @@ const Dashboard = () => {
   // ONE state (Codex round-3) so status and data can never diverge across renders.
   const [progressEntries, setProgressEntries] = useState({})
   const [progressDataLoading, setProgressDataLoading] = useState(false) // F1: init false; true only when there are fetchable pairs
+  // DASHBOARD-STREAK-AUTHORITY (NTF-25, A1): the ACCOUNT-WIDE server streak
+  // (derived by deriveAccountStreak, keyed on uid only — NOT the per-list
+  // loop above). null = not loaded. Flag-off (REVIEW_V2_CLIENT false) the
+  // fetch that would set these never runs (see the progress-loading effect
+  // below), so they stay at their initial values for the life of the page.
+  const [serverStreak, setServerStreak] = useState(null)
+  const [serverStreakLoading, setServerStreakLoading] = useState(false)
   // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per cycling list, for
   // lap-aware display. Loaded lazily (cheap aggregate count) ONLY for effective-cycling lists
   // and ONLY when CYCLING_ENABLED. Empty ⇒ displays use the legacy path (byte-equivalent off).
@@ -684,6 +695,27 @@ const Dashboard = () => {
     }
 
     let cancelled = false
+
+    // DASHBOARD-STREAK-AUTHORITY (NTF-25, A1/A2): behind REVIEW_V2_CLIENT, read the
+    // ACCOUNT-WIDE server streak_credits ledger — ONE query keyed on `uid` only (NOT
+    // the per-(classId,listId) `fetchTasks` loop below), read-only (V5 — the only
+    // Firestore verb this reaches is getDocs; see streakCredits.js), run in parallel
+    // with the per-list progress fetch. Flag-off this function returns immediately —
+    // no read is even attempted, so the effect stays byte-equivalent to today (V4).
+    const loadServerStreak = async () => {
+      if (!REVIEW_V2_CLIENT) return
+      setServerStreakLoading(true)
+      try {
+        const days = await fetchAccountStreak(db, user.uid)
+        if (!cancelled) setServerStreak(days)
+      } catch (err) {
+        console.error('Failed to load account-wide streak:', err)
+        if (!cancelled) setServerStreak(0)
+      } finally {
+        if (!cancelled) setServerStreakLoading(false)
+      }
+    }
+
     const loadProgressData = async () => {
       // Build the fetch tasks from the UNION of every source focus resolution can use
       // (assignedListDetails ids, assignedLists, and assignments keys) — getPrimaryFocus
@@ -746,6 +778,7 @@ const Dashboard = () => {
     }
 
     loadProgressData()
+    loadServerStreak()
     return () => { cancelled = true }
   }, [user?.uid, studentClasses, isTeacher])
 
@@ -1394,9 +1427,23 @@ const Dashboard = () => {
         ? Math.round(avgReviewScore * 100)
         : 0
 
+      // DASHBOARD-STREAK-AUTHORITY (NTF-25, A1): behind REVIEW_V2_CLIENT the account-wide
+      // server streak is the authority; while its read is in flight, hold the WHOLE panel
+      // in loading (same "data-loading before derive" gate progressDataLoading uses above)
+      // rather than flash 0/stale. Flag-off REVIEW_V2_CLIENT is a false constant, so this
+      // never evaluates true and nothing here changes flag-off behavior.
+      if (REVIEW_V2_CLIENT && serverStreakLoading) {
+        return { loading: true }
+      }
+
       // Current Streak: read from persisted class_progress (calculated on session completion)
       // Falls back to client-side calculation if not yet persisted
-      const streakDays = progress.streakDays ?? calculateStreak(recentSessions, getPrimaryFocus.studyDaysPerWeek || 5)
+      // OTHER LEG (flag-off, ledger V4/C2): `progress.streakDays ?? calculateStreak(recentSessions,
+      // getPrimaryFocus.studyDaysPerWeek || 5)` is UNCHANGED — REVIEW_V2_CLIENT is a build-time
+      // `false` constant, so this ternary always evaluates the legacy branch flag-off.
+      const streakDays = REVIEW_V2_CLIENT
+        ? serverStreak
+        : (progress.streakDays ?? calculateStreak(recentSessions, getPrimaryFocus.studyDaysPerWeek || 5))
 
       return {
         totalWordsIntroduced: wordsIntro || 0,
@@ -1413,7 +1460,7 @@ const Dashboard = () => {
         error: true
       }
     }
-  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading])
+  }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, serverStreak, serverStreakLoading])
 
   // Destructure for easier access (loading -> numbers undefined; hero renders skeleton)
   const { totalWordsIntroduced, masteryRate, streakDays, error: panelBError, loading: panelBLoading } = panelBState

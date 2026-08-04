@@ -98,7 +98,7 @@ Meanwhile the dashboard computes its **own** streak client-side: `calculateStrea
 (`src/pages/Dashboard.jsx:37-123`) with its own weekend-skip logic, consumed at `:1399` as
 `progress.streakDays ?? calculateStreak(...)`.
 
-**`grep -rn "streak_credits" src/` returns NOTHING.** The client has never read the server's credit.
+**`grep -rn "streak_credits" src/` now returns `src/services/streakCredits.js` + `src/utils/streakAuthority.js` + the `Dashboard.jsx` call site** — behind `REVIEW_V2_CLIENT` (still false) the Dashboard reads the ACCOUNT-WIDE server credit and derives the streak (dashboard-streak-authority, landed 2026-08-04). Flag-OFF the client still computes its own via `calculateStreak` (byte-identical, V4/C2 parity proof); the two-authorities problem is RESOLVED behind the flag, latent until the flip. Remaining flag-on/rehearsal work: the account-wide-vs-per-list *presentation* (dashboard-df2-33, carded E1) and the epoch/reset streak-hole (carded E2).
 
 **Why it matters at the flip.** Two independent authorities computing the same user-visible number, with
 different inputs (the client reads `recentSessions`; the server reads its own credit ledger) and different
