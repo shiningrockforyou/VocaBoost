@@ -55,39 +55,19 @@
  * (NS_EMU_RECEIPT env redirects the receipt so the mutant driver never clobbers it.)
  */
 
-import { createRequire } from "node:module";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { createHash } from "node:crypto";
+import {
+  requireEmulatorEnv, connectEmulator, createCaseRunner, sha16, writeReceipt, finalizeRun,
+} from "./lib/fold-harness.mjs";
 
-if (!process.env.FIRESTORE_EMULATOR_HOST) {
-  console.error("FATAL: FIRESTORE_EMULATOR_HOST not set — this fixture runs ONLY against the emulator");
-  process.exit(2);
-}
+requireEmulatorEnv();
 
 // ---- the engine side, pinned to functions/node_modules (lap law) ----------
-const fnRequire = createRequire("/app/functions/index.js");
-const { initializeApp, cert, getApps } = fnRequire("firebase-admin/app");
-const { getFirestore } = fnRequire("firebase-admin/firestore");
-const key = JSON.parse(readFileSync(new URL("../serviceAccountKey.json", import.meta.url)));
-const PROJECT = key.project_id;
-const INDEX = fnRequire("/app/functions/index.js"); // owns admin.initializeApp (lap law)
-if (getApps().length === 0) initializeApp({ credential: cert(key) });
-const db = getFirestore();
-const fft = fnRequire("firebase-functions-test")({ projectId: PROJECT });
-const wrap = (c) => fft.wrap(c);
+const { db, fft, wrap, wipeEmulator, indexModule: INDEX } = connectEmulator();
 
 const submitVocabAttempt = wrap(INDEX.submitVocabAttempt);
 const gradeTypedTest = wrap(INDEX.gradeTypedTest);
 
-let total = 0; let failed = 0; const reds = []; let caseName = "";
-const CASE = (n) => { caseName = n; console.log(`\n== CASE ${n}`); };
-const check = (name, got, want) => {
-  total++;
-  const g = JSON.stringify(got); const w = JSON.stringify(want);
-  if (g !== w) { failed++; reds.push(`${caseName} :: ${name} — got ${g} want ${w}`); console.error(`  RED ${name}: got ${g} want ${w}`); }
-  else console.log(`  ok ${name}`);
-};
-const checkTrue = (name, v) => check(name, Boolean(v), true);
+const { CASE, check, checkTrue, fail, stats } = createCaseRunner({ verbose: true });
 
 /** Invoke a callable and classify the outcome for assertions. */
 async function callResult(callable, data, uid) {
@@ -102,11 +82,6 @@ async function callResult(callable, data, uid) {
 const deniedByGuard = (r) =>
   r.ok === false && r.code === "invalid-argument" && /reserved rv2_ document-id prefix/.test(r.message);
 
-async function wipeEmulator() {
-  const host = process.env.FIRESTORE_EMULATOR_HOST;
-  const res = await fetch(`http://${host}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`emulator wipe failed: ${res.status}`);
-}
 const exists = async (path) => (await db.doc(path).get()).exists;
 
 // ---- identities + seeds ---------------------------------------------------
@@ -287,8 +262,8 @@ async function runCrossBoundary() {
 
 // ---- driver ---------------------------------------------------------------
 const sourceShas = {
-  "index.js": createHash("sha256").update(readFileSync("/app/functions/index.js")).digest("hex").slice(0, 16),
-  "reviewV2/typedGrading.js": createHash("sha256").update(readFileSync("/app/functions/reviewV2/typedGrading.js")).digest("hex").slice(0, 16),
+  "index.js": sha16("/app/functions/index.js"),
+  "reviewV2/typedGrading.js": sha16("/app/functions/reviewV2/typedGrading.js"),
 };
 
 try {
@@ -297,9 +272,10 @@ try {
   await runCrossBoundary();
 } catch (e) {
   console.error("FATAL during run:", e?.stack || e);
-  failed++; reds.push(`FATAL: ${e?.message || e}`);
+  fail(`FATAL: ${e?.message || e}`);
 }
 
+const { total, failed, reds } = stats();
 const receipt = {
   kind: "namespace-reservation-emulator",
   pass: failed === 0,
@@ -315,10 +291,8 @@ const receipt = {
 };
 const OUT = process.env.NS_EMU_RECEIPT
   || new URL("../../docs/plans/deepfix2/evidence/namespace-reservation-emulator.json", import.meta.url);
-mkdirSync(new URL("../../docs/plans/deepfix2/evidence/", import.meta.url), { recursive: true });
-writeFileSync(OUT, JSON.stringify(receipt, null, 2) + "\n");
+writeReceipt(OUT, receipt, { trailingNewline: true });
 
 console.log(`\nNAMESPACE-RESERVATION EMULATOR: ${total - failed}/${total} green` + (failed ? "" : " — every mouth refuses rv2_, every legit id flows through"));
 if (reds.length) { console.log("REDS:"); for (const r of reds) console.log("  ✗ " + r); }
-await fft.cleanup?.();
-process.exit(failed ? 1 : 0);
+await finalizeRun(fft, failed);

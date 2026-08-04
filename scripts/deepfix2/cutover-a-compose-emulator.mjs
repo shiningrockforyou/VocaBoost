@@ -68,14 +68,12 @@
  * Evidence: docs/plans/deepfix2/evidence/cutover-a-compose-emulator.json
  */
 
-import { createRequire } from "node:module";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { createHash } from "node:crypto";
+import {
+  requireEmulatorEnv, connectEmulator, createSeedHelpers, fakeStorage,
+  createCaseRunner, sha16, writeReceipt, finalizeRun,
+} from "./lib/fold-harness.mjs";
 
-if (!process.env.FIRESTORE_EMULATOR_HOST) {
-  console.error("FATAL: FIRESTORE_EMULATOR_HOST not set — this fixture runs ONLY against the emulator");
-  process.exit(2);
-}
+requireEmulatorEnv();
 
 // ---- the REAL client module (the unit under test) --------------------------
 import {
@@ -86,27 +84,11 @@ import {
 import { ReviewV2Error, CLIENT_CONTRACT_VERSION } from "../../src/services/reviewV2Client.js";
 
 // ---- the engine side, pinned to functions/node_modules (lap law) ----------
-const fnRequire = createRequire("/app/functions/index.js");
-const { initializeApp, cert, getApps } = fnRequire("firebase-admin/app");
-const { getFirestore, Timestamp } = fnRequire("firebase-admin/firestore");
-const key = JSON.parse(readFileSync(new URL("../serviceAccountKey.json", import.meta.url)));
-const PROJECT = key.project_id;
-fnRequire("/app/functions/index.js"); // index.js owns admin.initializeApp (lap law)
-if (getApps().length === 0) initializeApp({ credential: cert(key) });
-const db = getFirestore();
-const fft = fnRequire("firebase-functions-test")({ projectId: PROJECT });
+const { fnRequire, db, Timestamp, fft, wrap, wipeEmulator } = connectEmulator();
 const CALL = fnRequire("/app/functions/reviewV2/callables.js");
 const foundation = fnRequire("/app/functions/foundation.js");
-const wrap = (c) => fft.wrap(c);
 
-let total = 0; let failed = 0; const reds = []; let caseName = "";
-const CASE = (n) => { caseName = n; console.log(`\n== CASE ${n}`); };
-const check = (name, got, want) => {
-  total++;
-  const g = JSON.stringify(got); const w = JSON.stringify(want);
-  if (g !== w) { failed++; reds.push(`${caseName} :: ${name} — got ${g} want ${w}`); console.error(`  RED ${name}: got ${g} want ${w}`); }
-};
-const checkTrue = (name, v) => check(name, Boolean(v), true);
+const { CASE, check, checkTrue, stats } = createCaseRunner();
 
 /** Injected compose fns: the fft-wrapped PUBLIC callables, with
  *  reviewV2Client.call()'s exact contract — payload through, HttpsError →
@@ -132,50 +114,9 @@ const composeNewAs = (uid) => async (data) => {
   }
 };
 
-function fakeStorage() {
-  const m = new Map();
-  return {
-    getItem: (k) => (m.has(k) ? m.get(k) : null),
-    setItem: (k, v) => { m.set(k, v); },
-    removeItem: (k) => { m.delete(k); },
-  };
-}
-
 // ---- seeds (lap idioms) ----------------------------------------------------
-const CONFIG_PATH = "system_config/review_v2";
-async function wipeEmulator() {
-  const host = process.env.FIRESTORE_EMULATOR_HOST;
-  const res = await fetch(`http://${host}/emulator/v1/projects/${PROJECT}/databases/(default)/documents`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`emulator wipe failed: ${res.status}`);
-}
-async function seedConfig(overrides = {}) {
-  await db.doc(CONFIG_PATH).set({
-    enabled: false, threshold: 92, queueSize: 60, testSize: 30,
-    configVersion: 1, minClientVersion: null,
-    rehearsalClassIds: [], firstEnabledAt: null,
-    ...overrides,
-  });
-}
-async function seedClass(classId, { listId = "L1", students = [], asg = {} } = {}) {
-  await db.collection("classes").doc(classId).set({
-    studentIds: students,
-    assignments: { [listId]: { name: "seed", pace: 1, studyDaysPerWeek: 5, ...asg } },
-  });
-}
-async function seedWords(listId, count) {
-  const batch = db.batch();
-  for (let i = 0; i < count; i++) {
-    batch.set(db.collection("lists").doc(listId).collection("words").doc(`w${i}`),
-      { word: `word${i}`, definition: `def${i}`, position: i });
-  }
-  await batch.commit();
-}
-async function seedProgress(uid, classId, listId, { csd, twi }) {
-  await foundation.durableProgressRef(uid, classId, listId).set({
-    classId, listId, currentStudyDay: csd, totalWordsIntroduced: twi,
-    updatedAt: Timestamp.now(),
-  }, { merge: true });
-}
+const { CONFIG_PATH, seedConfig, seedClass, seedWords, seedProgress } =
+  createSeedHelpers({ db, Timestamp, foundation });
 
 /** INDEPENDENT reference sweep (deliberately NOT imported from composer.js —
  *  importing the production law would make the fixture agree with whatever it
@@ -558,23 +499,22 @@ CASE("TIME (C7) — BAD leg: compose at SESSION START pins the queue; the failed
 }
 
 // ===========================================================================
-mkdirSync(new URL("../../docs/plans/deepfix2/evidence/", import.meta.url), { recursive: true });
-const sha16 = (p) => createHash("sha256").update(readFileSync(new URL(p, import.meta.url))).digest("hex").slice(0, 16);
-writeFileSync(new URL("../../docs/plans/deepfix2/evidence/cutover-a-compose-emulator.json", import.meta.url),
-  JSON.stringify({
+const { total, failed, reds } = stats();
+writeReceipt(
+  new URL("../../docs/plans/deepfix2/evidence/cutover-a-compose-emulator.json", import.meta.url),
+  {
     kind: "cutover-a-compose-emulator",
     pass: failed === 0,
     total, failed, reds,
     sourceShas: {
-      "src/services/reviewV2Compose.js": sha16("../../src/services/reviewV2Compose.js"),
-      "src/services/reviewV2Client.js": sha16("../../src/services/reviewV2Client.js"),
-      "functions/reviewV2/callables.js": sha16("../../functions/reviewV2/callables.js"),
-      "functions/reviewV2/composer.js": sha16("../../functions/reviewV2/composer.js"),
-      "functions/reviewV2/presentations.js": sha16("../../functions/reviewV2/presentations.js"),
-      "scripts/deepfix2/cutover-a-compose-emulator.mjs": sha16("./cutover-a-compose-emulator.mjs"),
+      "src/services/reviewV2Compose.js": sha16("/app/src/services/reviewV2Compose.js"),
+      "src/services/reviewV2Client.js": sha16("/app/src/services/reviewV2Client.js"),
+      "functions/reviewV2/callables.js": sha16("/app/functions/reviewV2/callables.js"),
+      "functions/reviewV2/composer.js": sha16("/app/functions/reviewV2/composer.js"),
+      "functions/reviewV2/presentations.js": sha16("/app/functions/reviewV2/presentations.js"),
+      "scripts/deepfix2/cutover-a-compose-emulator.mjs": sha16("/app/scripts/deepfix2/cutover-a-compose-emulator.mjs"),
     },
     at: new Date().toISOString(),
-  }, null, 2));
+  });
 console.log(`\ncutover-a-compose EMULATOR: ${total} checks, ${failed} failures — evidence written`);
-await fft.cleanup?.();
-process.exit(failed ? 1 : 0);
+await finalizeRun(fft, failed);
