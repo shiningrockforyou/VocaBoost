@@ -34,12 +34,16 @@ they ship later via `functions-deploy-engine`, Codex-gated. "Production unchange
 - (this commit) — CLAUDE.md operating-model section + this RESUME.
 
 ## PENDING (needs David / WinClaude)
-- **Win order 100 DONE — PASS_WITH_GAP** (`docs/plans/loop/win/reviews/winclaude_100.md`): push SUCCEEDED
-  (all 19 commits on origin). The cutover-b VISUAL CHECK is BLOCKED at a COST boundary — the NEW-WORD test
-  is TYPED (reviewTestType governs only the REVIEW test), so submit→grade→result would bill real AI
-  grading; WinClaude's cost-guard stopped. **Submit→grade→result stays UNVERIFIED in a browser** (cutover-b's
-  acceptance criterion). **DAVID DECISION** (see `cutover-b-visual`): authorize one bounded typed submission,
-  OR make the new-word test MCQ-configurable, OR provide an account past the new-word gate on an MCQ class.
+- **cutover-b VISUAL CLOSED — win order 101 CLEAN** (`winclaude_101.md`; push done at order 100, all 19 on
+  origin): with the typed submission authorized (David, ≤200 on 25WT), WinClaude drove the flag-OFF path
+  end-to-end — typed submit → result card 100% → phase advanced, 0 console errors, flag-gating verified in
+  code. cutover-b's acceptance criterion is met.
+- **⚠ NEW LIVE-PATH FINDING → NEED_TO_FIX 26 (not a cutover-b defect):** the LEGACY typed grader
+  (`gradeTypedTest`, untouched by any fold) marked **20/20 GARBAGE answers** (the literal "answer" for every
+  word) as **100% correct**. cutover-b is provably dead flag-off, so it did not cause this — but typed scores
+  gate graduation for 947 students. No pre-cutover GRADED baseline exists (the account's older attempts were
+  seeded, not graded). NEEDS DIAGNOSIS: a no-spend code-look at the grader's prompt + error handling
+  (fail-open?), and/or a wrong-but-plausible probe (WinClaude, 1 submission). **David is aware; decision pending.**
 - **Deferred bundle item:** the shared test-harness lib (`scripts/deepfix2/lib/fold-harness.mjs`) — modest
   savings (~100–200 lines/file, re-scoped by the plan-audit); the clean committed baseline now exists.
 

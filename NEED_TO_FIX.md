@@ -8,6 +8,22 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 26. The LEGACY typed grader marked 20/20 GARBAGE answers as 100% correct · backend/grading · **POTENTIAL LIVE-PATH SEVERITY (947 students' typed graduation) — UNCONFIRMED pending diagnosis** (found 2026-08-04, win order 101, during the cutover-b flag-off visual)
+
+**What's observed.** On a 25WT sandbox account (`lsr_s64@vocaboost.test`), a typed new-word test submitted with the literal string "answer" for ALL 20 words was graded **20/20 correct, score 100** (e.g. `vitriolic` → correct answer "caustic; full of bitterness"; submitted "answer" → ✓). The UI result card and the STORED attempt (score=100, passed=true, 20 rows all `isCorrect`) agree — grading really ran (the deployed `gradeTypedTest` callable via httpsCallable, NOT stubbed in dev).
+
+**NOT caused by any DEEPFIX2 fold.** cutover-b's submit adapter is PROVABLY dead flag-off (win order 101 verified `rv2Handle` is null when `REVIEW_V2_CLIENT=false`, so the legacy path runs), and the grading call is the legacy `gradeTypedTest` (`functions/index.js`), untouched by this program. Pre-existing legacy-path behaviour surfaced incidentally, not a regression.
+
+**Why it matters.** Typed scores gate graduation under the redesign (the 92% gate). If the production typed grader accepts arbitrary unrelated text as correct, typed tests are trivially passable and the gate is meaningless for typed students — the opposite of R2-19's intent ("accept ANY answer demonstrating the student knows the word's meaning … REJECT wrong-meaning / unrelated / empty"). Broader than DEEPFIX2 — it affects the 947 live students today.
+
+**Two hypotheses, NOT yet distinguished:** (1) the grader genuinely accepts garbage (lenient/broken prompt or acceptance logic); (2) the grader FAIL-OPENS to "correct" on an error (e.g. an OpenAI call failure). Both are bugs; scope differs. **No pre-cutover GRADED baseline exists** — the account's 7 earlier all-100% attempts (2026-07-12) were HARNESS-SEEDED, not graded, so they prove nothing about the grader. Do NOT overclaim severity until diagnosed.
+
+**Diagnosis (cheap, do first):** (a) NO-SPEND CODE LOOK — read `gradeTypedTest`'s OpenAI prompt + response parsing + error handling: does it fail-open to correct, and does the prompt actually reject unrelated answers? (b) PROBE (WinClaude, ~1 typed submission on 25WT within David's ≤200 allowance): submit deliberately WRONG-BUT-PLAUSIBLE answers — if those also grade 100%, the grader does not discriminate at all; if they grade wrong, then "answer" being accepted is a narrower leniency issue.
+
+**Effort/risk:** diagnosis is cheap (a code read + optionally one probe). The FIX depends on the root cause (prompt hardening vs fail-open repair). Severity potentially HIGH but UNCONFIRMED.
+
+---
+
 ## 22. A classmate can PERMANENTLY BLOCK another student's engine test by squatting the ATTEMPT id · rules/backend · **PRE-FLIP BLOCKER** (found 2026-08-03 by the rv2-collision independent audit, finding F6)
 
 **The twin of card 19, on the other leg.** Card 19 is the `grading_jobs` denial; this is the same shape on

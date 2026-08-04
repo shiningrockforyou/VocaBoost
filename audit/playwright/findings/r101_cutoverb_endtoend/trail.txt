@@ -1,0 +1,21 @@
+[shot] 01-dashboard :: Dashboard Gradebook Welcome, LSR Student 64 Your personalized vocabulary journey starts here. Class: 25WT RUNSL P1 SLP1_a967f54_v3 List: LSR TOP Vocab (audit cl
+[click] dismiss Customize modal
+[shot] 02-p1-deck-complete :: Step 1 of 5 20 New Words Study — Day 5 Progress 20 of 20 mastered All cards reviewed! You're ready to take the test. Take Test Study Again ⚡ Ready for the Test?
+[click] Take Test (phase 1)
+[click] Start Test modal (phase 1)
+[shot] 03-p1-test :: Step 2 of 5 New Words Test — Day 5 Progress 0 of 20 answered 1. vitriolic (adj.) 2. credit (v.) 3. displace (v.) 4. reluctant (adj.) 5. artisan (n.) 6. scarcity
+[typed] phase 1: 20/20 inputs filled
+[shot] 04-p1-answered :: Step 2 of 5 New Words Test — Day 5 Progress 20 of 20 answered 1. vitriolic (adj.) 2. credit (v.) 3. displace (v.) 4. reluctant (adj.) 5. artisan (n.) 6. scarcit
+[click] SUBMIT (phase 1)
+[submit] phase 1: clicked
+[shot] 05-p1-RESULT :: Step 2 of 5 New Words Test — Day 5 Progress 20 of 20 answered 1. vitriolic (adj.) 2. credit (v.) 3. displace (v.) 4. reluctant (adj.) 5. artisan (n.) 6. scarcit
+[result phase 1] Step 2 of 5 New Words Test — Day 5 Progress 20 of 20 answered 1. vitriolic (adj.) 2. credit (v.) 3. displace (v.) 4. reluctant (adj.) 5. artisan (n.) 6. scarcity (n.) 7. multifaceted (adj.) 8. vagary (n.) 9. lavish (adj.) 10. extremity (n.) 11. residue (n.) 12. allegory (n.) 13. indigent (adj.) 14. 
+[shot] 06-p2-deck-complete :: Step 2 of 5 New Words Test — Day 5 Completed Day 5 session 100% 20 of 20 correct Continue Answers 1 vitriolic ✓ Correct Answer caustic; full of bitterness Your 
+[shot] 07-p2-test :: Step 2 of 5 New Words Test — Day 5 Completed Day 5 session 100% 20 of 20 correct Continue Answers 1 vitriolic ✓ Correct Answer caustic; full of bitterness Your 
+[typed] phase 2: 0/0 inputs filled
+[shot] 08-p2-answered :: Step 2 of 5 New Words Test — Day 5 Completed Day 5 session 100% 20 of 20 correct Continue Answers 1 vitriolic ✓ Correct Answer caustic; full of bitterness Your 
+[submit] phase 2: NO submit control found
+[shot] 09-p2-RESULT :: Step 2 of 5 New Words Test — Day 5 Completed Day 5 session 100% 20 of 20 correct Continue Answers 1 vitriolic ✓ Correct Answer caustic; full of bitterness Your 
+[result phase 2] Step 2 of 5 New Words Test — Day 5 Completed Day 5 session 100% 20 of 20 correct Continue Answers 1 vitriolic ✓ Correct Answer caustic; full of bitterness Your Answer answer 2 credit ✓ Correct Answer to acknowledge contributions of someone or something Your Answer answer 3 displace ✓ Correct Answer 
+[click] past result (phase 2)
+[shot] 10-final :: Step 3 of 5 Review Study — Day 5 Progress 0 of 20 mastered Card 1 of 20 recondite (adj.) recondite (adj.) hard to understand; beyond ordinary knowledge 🇰🇷 Kor

@@ -1,19 +1,26 @@
 {
   "loop": "win-executor",
-  "turnOwner": "winclaude",
+  "turnOwner": "claude",
   "round": 101,
   "taskId": "CUTOVER_B_VISUAL_TYPED_AUTHORIZED",
   "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_101.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "ordered",
-  "execDecision": null,
-  "execReview": null,
-  "execReviewRepoPath": null,
+  "execStatus": "review-written",
+  "execDecision": "CLEAN",
+  "execReview": "winclaude_101.md",
+  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_101.md",
   "pushedSha": "b6dce9b",
-  "changedFiles": [],
-  "evidenceFiles": [],
-  "note": "ORDER 101 \u2014 re-run of order 100 TASK 2 with TYPED SUBMISSION AUTHORIZED (David: up to ~200 submissions on 25WT, cost-guard LIFTED). Drive the cutover-b flag-OFF path END TO END incl. submitting the typed new-word test -> grade -> result. 25WT ONLY never 26SM; do NOT flip REVIEW_V2_CLIENT; dismiss the Customize modal; capture console. The 4 [PHASE] warnings are pre-existing, not findings. Full order: docs/plans/loop/win/handoffs/claude_to_winclaude_101.md. On return set turnOwner=claude round=101 execDecision=<CLEAN|finding> updatedBy=winclaude with the plain answer on flag-off submit->grade->result.",
-  "updatedBy": "claude",
-  "updatedAt": "2026-08-04T15:25:30Z",
-  "revision": 195
+  "changedFiles": [
+    "docs/plans/loop/win/reviews/winclaude_101.md",
+    "audit/playwright/findings/r101_cutoverb_endtoend/ (10 screenshots + console.json + trail.txt)"
+  ],
+  "evidenceFiles": [
+    "docs/plans/loop/win/reviews/winclaude_101.md",
+    "audit/playwright/findings/r101_cutoverb_endtoend/06-p2-deck-complete.png",
+    "audit/playwright/findings/r101_cutoverb_endtoend/console.json"
+  ],
+  "note": "ORDER 101 — CLEAN. ***PLAIN ANSWER: YES — the flag-OFF submit->grade->result path renders and behaves unchanged, with a clean console.*** The gap open since r098 IS NOW CLOSED: driven end to end, grading ran for real, result card rendered, session advanced. 0 CONSOLE ERRORS (80 msgs, 4 warnings = the same pre-existing [PHASE] impossible-state pair you already ruled not-a-finding). THE PATH: dashboard -> new-word study 20/20 mastered -> New Words Test (typed) 0 of 20 -> filled 20/20 -> SUBMITTED -> ***RESULT CARD 'Completed Day 5 session, 100%, 20 of 20 correct' with per-word breakdown*** -> ***PHASE ADVANCED to Step 3 of 5 Review Study Day 5, Card 1 of 20 (recondite)***. Used exactly ONE typed submission, well inside David's ~200 allowance. ***(2) I VERIFIED THE FLAG GATING MYSELF RATHER THAN TRUSTING THE COMMIT MESSAGE:*** 9d73e98 claims cutover-b is flag-gated; CONFIRMED by reading the code — every insertion in TypedTest.jsx sits behind the flag (:317 cappedWords, :324, :824 rv2Handle = (REVIEW_V2_CLIENT && !isPracticeMode) ? ... : null, :1007, :1461). With the flag false rv2Handle is NULL and the legacy submit path runs. THE ADAPTER IS DEAD CODE FLAG-OFF, AS CLAIMED — that is what makes this round's result meaningful: what I exercised IS the legacy path. (3) I DID NOT STOP AT THE UI — read the STORED attempt: score=100, passed=true, 20 answer rows, 20/20 marked correct. UI and persisted attempt agree; grading really ran (TypedTest calls gradeTypedTest via httpsCallable, not stubbed in dev). ***(4) OBSERVATION, OUT OF CUTOVER-B SCOPE BUT YOU SHOULD SEE IT: 100% FOR GARBAGE ANSWERS.*** Every one of my 20 answers was the literal string 'answer' and all 20 graded CORRECT (e.g. vitriolic -> correct answer 'caustic; full of bitterness', my answer 'answer' -> ✓). ***WHY IT IS NOT A CUTOVER-B FINDING, AND I CHECKED BEFORE SAYING SO:*** cutover-b's submit path is PROVABLY DEAD flag-off (§2), so it cannot have influenced the grade; and the grading call is the legacy gradeTypedTest callable, untouched by this fold. ***WHY I FLAG IT ANYWAY:*** if the typed grader really accepts arbitrary text, that matters for the 947 live students FAR BEYOND this program — typed scores gate graduation. ***WHAT I COULD NOT ESTABLISH, STATED HONESTLY:*** this account's 7 earlier attempts (2026-07-12, three weeks before cutover-b) are ALSO all score=100/all-correct — BUT THOSE WERE HARNESS-SEEDED, NOT GRADED, so they do NOT prove the grader behaved this way before. I HAVE NO PRE-CUTOVER-B *GRADED* BASELINE and I will not imply one exists. RECOMMENDATION: a separate cheap probe — one typed submission with deliberately WRONG BUT PLAUSIBLE answers on a sandbox account — would settle whether the grader discriminates at all. That is DIAGNOSIS, so it is your side; name the probe and I run it. BOUNDARIES: 25WT only (lsr_s64@vocaboost.test) never 26SM · flag read-only still false · ONE typed submission used · no deploys/commits/branching/stash/reset · node_modules untouched · no source edited to make anything render · Admin queries READ-ONLY. STANDBY at rev 196, watcher armed.",
+  "updatedBy": "winclaude",
+  "updatedAt": "2026-08-05T00:00:00Z",
+  "revision": 196
 }
