@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-08-04T23:36:41.532Z",
+  "model": "claude-haiku-4-5-20251001",
+  "runs": 3,
+  "configs": [
+    {
+      "n": 20,
+      "student": "test",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 20,
+      "student": "asdf",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 20,
+      "student": "idk",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 20,
+      "student": ".",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 20,
+      "student": "몰라",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 5,
+      "student": "answer",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 10,
+      "student": "answer",
+      "correctPerRun": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "n": 2,
+      "student": "answer",
+      "correctPerRun": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 20,
+      "student": "answer1",
+      "correctPerRun": [
+        20,
+        20,
+        20
+      ]
+    }
+  ]
+}

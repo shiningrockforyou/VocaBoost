@@ -8,6 +8,28 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 28. The FROZEN AI-metering contract (15_ §6) has ZERO implementation — retests cannot be "AI-metered" as their card requires · backend/engine · **BLOCKS DF2-51's typed-retest leg; spend-guard gap at the flip** (found 2026-08-04, df2-51 design draft F1)
+
+**What.** `02_TASK_LIST.md:170` requires DF2-51 retests to be AI-metered; R2-20 (`11_:63`) made metering a
+BINDING CONDITION; `15_H6_SCHEMAS_AND_CONTRACTS.md:184/:191` freeze the surface (`aiCallCount`,
+`ai_metering/{uid}`, `ai_metering/_global`). Grep over `functions/` + `src/` (excl. node_modules) returns
+**0 occurrences** of `ai_metering`/`aiCallCount` — the only "metering" hit is a comment
+(`typedGrading.js:58`). Not "nothing built yet": sibling §6 contracts ARE implemented (`streak_credits`
+at `completion.js:679`; bookmark cleanup `reset.js:108-114`). Verified twice 2026-08-04 (draft agent +
+orchestrator re-run, `verify-df2-51-cites.mjs` F1 leg).
+
+**Impact.** DF2-51 is client-only and CANNOT satisfy the clause — an unmetered typed retest would bill
+the live grader per attempt with no per-student or global cap (the R2-20 condition exists precisely to
+bound that spend). Latent until the flip + DF2-51 ship; also relevant to any future engine deploy that
+enables reruns for real students.
+
+**Fix direction.** Implement the frozen 15_ §6 surface server-side (engine), as a DF2-14/DF2-10 residual
+— NOT part of DF2-51's client folds. Draft's launch-scope recommendation (22_ §3c, PROPOSED): MCQ-only
+retests at launch so the client ships without the meter; typed retests stay dark until the meter exists.
+David has not ruled.
+
+---
+
 ## 27. After a grade_unusable recompose, a HARD PAGE RELOAD loses the fresh word list · client · **flag-gated (0 students today), PRE-FLIP** (found 2026-08-04, cutover-d)
 
 **What.** cutover-d fixed the in-app recompose retry (fresh words + updated blob ⇒ no drift). But `updateRv2PresentationInBlob` (`src/pages/MCQTest.jsx:1191`) persists only the presentation HANDLE (`{presentationId,testType,logicalDay,resetEpoch,source}`), NOT `presentedWordIds` (those live only in the transient `out.compose`). So a HARD RELOAD after a successful swap but BEFORE the next submit loses the in-memory fresh words, and `loadTestWords` cannot re-fetch them ⇒ the next submit answers the new `presentationId` with the old word set ⇒ server drift-reject (`callables.js:527-529`) — a SAFE refusal banner, not corruption or a wrong grade.
@@ -36,7 +58,15 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 **A live probe was NOT run** (would need a browser submission; the diagnosis is code-conclusive without it). Optional: a WinClaude probe with WRONG-BUT-PLAUSIBLE answers (within David's ≤200 25WT allowance) would characterize HOW lenient (does it reject anything wrong?), refining the fix scope.
 
-**Effort/risk:** the fix is small and mostly prompt+test; the RISK is a live-path grader deploy for 947 students + the over-tightening hazard. HIGH importance (grading integrity), CONFIRMED root cause.
+**⇒ ASSESSMENT COMPLETE 2026-08-04 (David-directed; direct API probe, live prompt extracted from source, promptSha 153ba85f92a24caf, 3 runs/case — evidence `docs/plans/deepfix2/evidence/ntf26-grader-leniency-{baseline,round2}.json`). THE "PROMPT LENIENCY" ROOT CAUSE IS SUPERSEDED — the grader is NOT generically lenient:**
+- **Every single-word wrongness class is rejected 0/3**: generic filler ("answer", "test", "idk", "asdf", "I don't know"), wrong-but-plausible EN, wrong-but-plausible KO, unrelated-real-word. The existing regression suite also stays green (9/9, incl. both wrong-meaning controls).
+- **Uniform-garbage BATCHES are rejected too**: 20× "test" / "asdf" / "idk" / "." / "몰라" → 0/20 correct, every run. 20× "it means something good" → 0/20.
+- **The ONLY failing configuration is the win-101 shape: ≥~10 identical rows of the literal string "answer" (or "answer1") → ALL marked correct, 3/3 runs, perfectly reproducible.** 2× and 5× "answer" are rejected; 10× and 20× flip. **Mechanism: schema confusion** — at scale, `"student": "answer"` reads as placeholder/template data rather than a real submission, and the rubric's "Default to CORRECT" resolves the ambiguity the wrong way.
+- **Severity refined**: not "typed tests are trivially passable" — it is a NARROW, DISCOVERABLE, 100%-reliable cheat (type "answer" in every box) plus evidence of template-interpretation fragility. Real lazy inputs (ㅁㄴㅇㄹ, ".", 몰라, idk) all fail correctly today.
+
+**FIX (per assessment; David directed "fix the prompt"):** (1) prompt: state that `student` is ALWAYS the literal typed text, never a placeholder + ONE worked WRONG example of the "answer"-as-filler shape (rule 3 finally gets its example); touch NOTHING else — the false-reject history (0992f5f) says the Korean-acceptance framing must stay byte-identical. (2) regression harness: add BATCH-mode cases (the suite graded singles only — it could NEVER have caught this): 20×/10×"answer" expect-all-wrong, 20×"answer1", and a 20×-genuine-correct batch to prove no batch over-tightening. (3) defense-in-depth code heuristic: pre-AI auto-fail identical non-blank responses spanning ≥8 rows AND ≥80% of a test (no genuine student does this; catches any future string that flips the model), extending the blank/self-ref pre-filters. Deploy rides `functions-deploy-engine` (David executes).
+
+**Effort/risk:** the fix is small and mostly prompt+test; the RISK is a live-path grader deploy for 947 students + the over-tightening hazard — bounded by the measured baseline (all-green singles suite + batch positives must stay green post-fix). HIGH importance (grading integrity), root cause MEASURED, exploit reproducible.
 
 ---
 

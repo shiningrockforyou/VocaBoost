@@ -1,0 +1,189 @@
+{
+  "generatedAt": "2026-08-04T23:33:00.324Z",
+  "model": "claude-haiku-4-5-20251001",
+  "runs": 3,
+  "promptSha": "153ba85f92a24caf",
+  "systemChars": 4774,
+  "singles": [
+    {
+      "cls": "A-filler",
+      "word": "vitriolic",
+      "student": "answer",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "A-filler",
+      "word": "placate",
+      "student": "test",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "A-filler",
+      "word": "dissonance",
+      "student": "idk",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "A-filler",
+      "word": "ephemeral",
+      "student": "asdf",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "A-filler",
+      "word": "gregarious",
+      "student": "I don't know",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "B-plausible-EN",
+      "word": "vitriolic",
+      "student": "to make something better",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "B-plausible-EN",
+      "word": "placate",
+      "student": "to make someone very angry",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "B-plausible-EN",
+      "word": "dissonance",
+      "student": "a beautiful melody",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "B-plausible-EN",
+      "word": "ephemeral",
+      "student": "lasting forever",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "B-plausible-EN",
+      "word": "laconic",
+      "student": "using many many words",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "C-plausible-KO",
+      "word": "gregarious",
+      "student": "수줍은",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "C-plausible-KO",
+      "word": "ubiquitous",
+      "student": "희귀한",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "D-unrelated-real",
+      "word": "obfuscate",
+      "student": "a type of fruit",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "cls": "D-unrelated-real",
+      "word": "penurious",
+      "student": "the sound a dog makes",
+      "verdicts": [
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "batches": [
+    {
+      "cls": "E-batch-filler",
+      "student": "answer",
+      "note": "win-101 replica",
+      "perRun": [
+        {
+          "correct": 20,
+          "of": 20
+        },
+        {
+          "correct": 20,
+          "of": 20
+        },
+        {
+          "correct": 20,
+          "of": 20
+        }
+      ]
+    },
+    {
+      "cls": "F-batch-plausible",
+      "student": "it means something good",
+      "note": "identical plausible filler x20",
+      "perRun": [
+        {
+          "correct": 0,
+          "of": 20
+        },
+        {
+          "correct": 0,
+          "of": 20
+        },
+        {
+          "correct": 0,
+          "of": 20
+        }
+      ]
+    }
+  ]
+}
