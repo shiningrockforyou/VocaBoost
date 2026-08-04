@@ -45,6 +45,40 @@ longer happen by itself.
 
 ---
 
+## 24. BEHAVIOURAL CHANGE AT THE FLIP: today's failed NEW words no longer enter today's REVIEW · review-v2 engine · **NOT A DEFECT — but it must not be discovered during the rehearsal** (found 2026-08-04, cutover-a-compose)
+
+**Today (legacy).** `buildReviewQueue` takes `todaysNewFailed` as an explicit input and
+`selectReviewQueue` pushes those words to the FRONT of the review queue as Priority 1
+(`studyAlgorithm.js:289-290`). Fail a new word this morning, review it this afternoon.
+
+**After the flip (engine).** The review universe is canonical positions `< twi`, and `progress.js:20-23`
+states plainly that twi counts words introduced through the **COMPLETED** days and is **"STABLE all day
+(twi advances only at day completion), so review-first composes identically before/after the day's new
+test."** Today's new words are therefore OUTSIDE today's review universe **by design**. A word failed in
+today's new test is stamped, and surfaces via `needsPriority` in a LATER day's rotation — not today's.
+
+**So this is a deliberate design property, not an omission** — today's failure becomes tomorrow's
+priority. But it IS a visible change in what a student is asked to review, and nobody had written it down.
+
+**Why it is carded rather than fixed.** It follows from the engine's frontier model. "Fixing" it would
+mean pulling uncompleted-day words into the review universe, which contradicts the twi definition the
+whole completion/graduation chain rests on.
+
+**What it obliges:**
+1. **The 25WT rehearsal spec must list this as an EXPECTED difference**, or the first observer reports it
+   as a bug — and a real bug hiding behind an expected one is the worst outcome.
+2. Any messaging that implies "you'll review what you got wrong today" needs checking (DF2-07 scope).
+
+**Corrects my own analysis.** The cutover-a ledger's V2 row reasoned that composing the review session
+lazily (at review-phase entry) would let today's failures be prioritised. The lazy decision **stands and
+dominates** — it is still right for every other reason — but that specific mechanism was WRONG: under the
+engine those words are not eligible today regardless of compose timing. The live client can advance twi
+mid-day via entry-time anchor reconciliation (`progressService.js:187`, `twi = newWordEndIndex + 1`),
+which is the only path that changes this, and it is a legacy reconciliation behaviour rather than an
+engine one.
+
+---
+
 ## 23. The LEGACY `gradeTypedTest` consumes a cached grade with NO acceptance test — the twin of the hole the engine just closed · backend · (found 2026-08-04 by the rv2-refusal-status independent audit, Q2)
 
 **What's exposed.** `functions/index.js:1052` takes the `return_cached` branch of

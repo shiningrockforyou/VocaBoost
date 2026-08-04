@@ -232,6 +232,39 @@ for (const d of [ART, RECEIPT, "/app/docs/plans/deepfix2/17_DEPLOY_ORDER_REQUIRE
 }
 if (!warned) pass("CLAIMS", "no unsupported strong claims found");
 
+// ── GATE 3b: EVIDENCE — every receipt must bind the tree AND report success ──
+// The failure this prevents (independent audit, 2026-08-04): gates 2 and 3 hardcode
+// the RULES artifact paths, so they never looked at docs/plans/deepfix2/evidence/*.
+// A fold shipped with a published "117/0" whose own evidence file said
+// `pass:false, failed:1` and carried a MUTANT's source sha — because the mutant
+// driver runs the fixture last and the fixture writes its receipt unconditionally,
+// so whichever ran last won. The claim happened to be true; the artifact did not
+// support it, and a green NUMBERS on that fold was a pass about a DIFFERENT fold's
+// numbers. Two checks, both cheap: a receipt must say it passed, and its recorded
+// source hashes must be the bytes now in the tree.
+try {
+  const EVID_DIR = "/app/docs/plans/deepfix2/evidence";
+  if (existsSync(EVID_DIR)) {
+    const bad = [];
+    for (const f of readdirSync(EVID_DIR).filter((x) => x.endsWith(".json"))) {
+      const full = `${EVID_DIR}/${f}`;
+      let d; try { d = JSON.parse(readFileSync(full, "utf8")); } catch { bad.push(`${f}: unparseable`); continue; }
+      if (d.pass === false || (typeof d.failed === "number" && d.failed > 0)) {
+        bad.push(`${f}: reports FAILURE (pass=${d.pass}, failed=${d.failed})`);
+      }
+      for (const [src, rec] of Object.entries(d.sourceShas ?? {})) {
+        const cand = [`/app/${src}`, `/app/scripts/deepfix2/${src}`,
+          `/app/functions/reviewV2/${src}`, `/app/functions/${src}`, `/app/src/services/${src}`]
+          .find((c) => existsSync(c));
+        if (!cand) continue;                       // path moved; not this gate's business
+        if (sha16(cand) !== rec) bad.push(`${f}: certifies ${src} @ ${rec} but the tree is ${sha16(cand)}`);
+      }
+    }
+    if (bad.length) fail("EVIDENCE", `receipt(s) do not support their claim — re-run the producer: ${bad.slice(0, 4).join(" · ")}`);
+    else pass("EVIDENCE", "every fold receipt reports success and binds the current tree");
+  }
+} catch (e) { warn("EVIDENCE", `could not scan fold evidence (${e.message})`); }
+
 // ── GATE 4b: MUTANT RESIDUE — never commit a deliberately broken guard ───────
 // The near-miss this prevents (2026-08-03, during a "save state"): the typed-seam
 // mutation suite edits source files IN PLACE and restores them at the end, so

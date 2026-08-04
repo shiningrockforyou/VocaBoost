@@ -1,0 +1,62 @@
+{
+  "kind": "cutover-a-compose-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C4-TEST-SET-FROM-QUEUE",
+      "clause": "the test set is presentedWordIds, verbatim (A1)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 2,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C5-STALE-KEY-ON-RETAKE",
+      "clause": "a deliberate retake mints a NEW composeKey (V5)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M-F3-NARROW-POOL",
+      "clause": "the distractor pool is the FULL pool, never the presented subset (F3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M-F2-SEGMENT-RANGE-LABEL",
+      "clause": "the review range label is nulled — the segment is dead flag-on (F2)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 4,
+      "restoredOk": true
+    },
+    {
+      "id": "M-F4-RETRUNCATE-TYPED",
+      "clause": "a server-composed typed set is never truncated (F4)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M-F5-SILENT-DAY-FALLBACK",
+      "clause": "an invalid logicalDay is an OBSERVABLE legacy outcome (F5)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 211,
+      "failures": 28,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": "6e5923e678c73fe7",
+  "at": "2026-08-04T09:00:44.700Z"
+}

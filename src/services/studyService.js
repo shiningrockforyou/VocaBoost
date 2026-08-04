@@ -415,6 +415,15 @@ export async function initializeDailySession(userId, classId, listId, assignment
   //   segment = (unmastered words / studyDaysPerWeek), the day-of-week-th slice,
   //   capped at REVIEW_STUDY_CAP. segment.wordIds is the pinned effective set used by
   //   study, test, AND graduation, so "everything that graduates was studied" holds.
+  //
+  // [D1 truth repair — CUTOVER-A COMPOSE] This client-computed SEGMENT is the
+  // LEGACY (flag-off) review-selection model only. Behind REVIEW_V2_CLIENT the
+  // review STUDY set and TEST set come from the engine's composeSession — a
+  // cursor-chained ROTATION over the whole introduced range
+  // (functions/reviewV2/composer.js sweepQueue) with NO segment notion; the
+  // engine deliberately serves a DIFFERENT set than this slicer (DF2-14).
+  // The segment remains computed here for the flag-off path and, until the
+  // completion fold (51c), for legacy graduation bookkeeping.
   const unmasteredPool = await getUnmasteredPool(userId, listId, totalWordsIntroduced,
     { cycling: cyclingActive, cycleLength });
   const reviewBacklogTotal = unmasteredPool.length;

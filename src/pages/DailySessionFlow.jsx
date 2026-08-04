@@ -17,7 +17,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db } from '../firebase'
-import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED, REENTRY_GUARD } from '../config/featureFlags'
+import { SERVER_REVIEW_MARKER, CONTINUATION_LINKS, CYCLING_ENABLED, REENTRY_GUARD, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { useAuth } from '../contexts/AuthContext'
 import Flashcard from '../components/Flashcard'
 import Watermark from '../components/Watermark'
@@ -35,6 +35,7 @@ import {
   initializeDailySession,
   getNewWords,
   resolveSegmentWords,
+  getSegmentWordsByIds,
   updateQueueTracking,
   recordSessionCompletion,
   initializeNewWordStates,
@@ -43,6 +44,16 @@ import {
   graduateSegmentWords,
   returnMasteredWords
 } from '../services/studyService'
+// CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): the engine composition adapter. Dead
+// imports while the flag is false — every call below is gated at its call
+// site, so the flag-off path is byte-identical to today (V6 discipline).
+import {
+  composeReviewSessionV2,
+  composeNewTestV2,
+  refusalReasonText,
+  rv2DistractorPool,
+  rv2TestConfigOverride
+} from '../services/reviewV2Compose'
 import { fetchAllWords, logSystemEvent } from '../services/db'
 import {
   getSessionState,
@@ -119,6 +130,14 @@ function DailySessionFlowSession() {
   const [reviewQueue, setReviewQueue] = useState([])
   const [reviewQueueCurrent, setReviewQueueCurrent] = useState([])
   const [reviewDismissed, setReviewDismissed] = useState(new Set())
+
+  // CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): the engine-composed sessions for
+  // this entry — {presentationId, presentedWordIds, words, testType, ...} or
+  // null (flag off / engine not serving / not yet composed). `words` are the
+  // presented ids RESOLVED to word objects IN THE SERVED ORDER (V3). Always
+  // null while the flag is false.
+  const [rv2Review, setRv2Review] = useState(null)
+  const [rv2New, setRv2New] = useState(null)
 
   // Review test results
   const [reviewTestResults, setReviewTestResults] = useState(null)
@@ -506,8 +525,91 @@ function DailySessionFlowSession() {
   // D1: new-FAILED are STUDY-ONLY — they are NOT in segment.wordIds, so they never enter
   // the review TEST pool (navigateToTest filters them out) or graduation. Folding them
   // here only affects flashcard study.
-  const buildReviewStudySet = useCallback(async (segment) => {
+  //
+  // CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): behind the flag, the review STUDY set is the
+  // engine's day queue and the review TEST set is the engine presentation — composed
+  // HERE, at REVIEW-PHASE ENTRY, never at session start (V2: the day queue is created by
+  // the FIRST composeSession and then PINNED day-scoped; composing early pins it before
+  // the day's labels/anchor moves, and no later call can repair it). Contract for callers
+  // (flag-on only): a BLOCKED refusal renders its reason via setError and returns NULL —
+  // callers must bail on null. Flag-off: `null` is unreachable and the legacy body below
+  // runs verbatim.
+  // dayNumberArg = the session's logical day (config.dayNumber at every call site);
+  // opts.freshKey = deliberate retake ⇒ compose a NEW presentation (V5: never reuse the
+  // persisted key for a genuinely new test).
+  // F5: the day validation lives in the ADAPTER (shared with prepareRv2NewTest — the two
+  // surfaces can no longer disagree); an invalid day comes back as an OBSERVABLE
+  // {outcome:'legacy', via:'invalid_day'}, logged below — never a silent slide past the
+  // engine.
+  const buildReviewStudySet = useCallback(async (segment, dayNumberArg = null, opts = {}) => {
     if (!segment || !user?.uid) return []
+
+    if (REVIEW_V2_CLIENT) {
+      const entry = await composeReviewSessionV2({
+        uid: user.uid, classId, listId,
+        logicalDay: dayNumberArg,
+        freshKey: opts.freshKey === true
+      })
+      if (entry.outcome === 'composed') {
+        // Resolve BOTH sets to word objects, PRESERVING the served order (V3:
+        // presentedWordIds arrives pre-shuffled with a priority prefix — never
+        // re-shuffle, never sort back to queue order). getSegmentWordsByIds
+        // maps over the input id array, so order is preserved by construction.
+        const [queueWords, presentedWords] = await Promise.all([
+          getSegmentWordsByIds(user.uid, listId, entry.queueWordIds),
+          getSegmentWordsByIds(user.uid, listId, entry.presentedWordIds)
+        ])
+        if (queueWords.length !== entry.queueWordIds.length ||
+            presentedWords.length !== entry.presentedWordIds.length) {
+          // A served id is missing from the list read — render a reason rather
+          // than silently studying/testing a SUBSET of the composed set.
+          console.error('[RV2] composed word id(s) missing from list', {
+            queue: `${queueWords.length}/${entry.queueWordIds.length}`,
+            presented: `${presentedWords.length}/${entry.presentedWordIds.length}`
+          })
+          setError(refusalReasonText('malformed_response'))
+          return null
+        }
+        // F3: poolWords = the DAY QUEUE — the day's full flag-on serving
+        // universe, which rv2TestConfigOverride hands to MCQ as the
+        // distractor pool (never the presented subset alone).
+        setRv2Review({ ...entry, words: presentedWords, poolWords: queueWords })
+        // STUDY set = the day queue in server order, plus today's new-FAILED
+        // prepended — STUDY-ONLY exactly as the legacy set below (they never
+        // enter the engine TEST set, which is presentedWordIds verbatim).
+        // De-duped: a failed word already serving in the queue is not doubled.
+        if (!newWordFailedIds || newWordFailedIds.length === 0) return queueWords
+        const failedDocsV2 = await Promise.all(
+          newWordFailedIds.map(wordId => getDoc(doc(db, 'lists', listId, 'words', wordId)))
+        )
+        const queueIdSet = new Set(entry.queueWordIds)
+        const failedWordsV2 = failedDocsV2
+          .filter(docSnap => docSnap.exists() && !queueIdSet.has(docSnap.id))
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data(), studyState: { status: 'failed' } }))
+        return [...failedWordsV2, ...queueWords]
+      }
+      if (entry.outcome === 'blocked') {
+        // Every non-not-serving refusal BLOCKS with a rendered reason — never
+        // a silent legacy fallback (that would hide a refusing engine), never
+        // a blank screen (unknown statuses carry the generic reason).
+        console.warn('[RV2] compose refused — blocking review entry', { status: entry.status })
+        setError(entry.reason)
+        return null
+      }
+      // outcome 'legacy' (config_hold / review_v2_dark as data, or the thrown
+      // not-found / permission-denied / failed-precondition trio): the normal
+      // pre-flip state — fall through to the legacy computation silently.
+      // F5: EXCEPT an invalid dayNumber — the engine was never even asked;
+      // that is a client-state bug and must be observable (system_logs, same
+      // convention as csd_anchor_invalid / legacy_write_denied) while the
+      // student still gets the working legacy session.
+      if (entry.via === 'invalid_day') {
+        logSystemEvent('rv2_compose_invalid_day', {
+          classId, listId, surface: 'composeSession', dayNumber: dayNumberArg ?? null
+        })
+      }
+      setRv2Review(null)
+    }
 
     const segmentWords = excludeRetiredMastered(
       await resolveSegmentWords(user.uid, listId, segment)
@@ -524,7 +626,7 @@ function DailySessionFlowSession() {
 
     // Prepend failed new words so they appear first in review study.
     return [...failedWords, ...segmentWords]
-  }, [user?.uid, listId, newWordFailedIds])
+  }, [user?.uid, classId, listId, newWordFailedIds])
 
   // ============================================================
   // PHASE 0: Initialize Session
@@ -612,7 +714,10 @@ function DailySessionFlowSession() {
           // Mid-session recovery: new word test passed, need to do review
           // Load the review study set (full capped segment + today's new-FAILED)
           try {
-            const segmentWords = await buildReviewStudySet(config.segment)
+            const segmentWords = await buildReviewStudySet(config.segment, config.dayNumber)
+            // RV2 (flag-on only): null = compose refused with a rendered reason
+            // (setError already called) — do not enter the review phase.
+            if (REVIEW_V2_CLIENT && segmentWords === null) return
 
             if (segmentWords.length === 0) {
               // Empty review segment (all words MASTERED & resting) — valid state.
@@ -837,7 +942,9 @@ function DailySessionFlowSession() {
           // Resume at review phase (same day only)
           // Use the full review study set (capped segment + new-FAILED)
           if (config.segment) {
-            const allWords = await buildReviewStudySet(config.segment)
+            const allWords = await buildReviewStudySet(config.segment, config.dayNumber)
+            // RV2 (flag-on only): blocked refusal already rendered via setError.
+            if (REVIEW_V2_CLIENT && allWords === null) return
             if (allWords.length === 0) {
               // Empty review segment (all words MASTERED & resting): designed outcome
               // is the "all mastered" modal -> completeSession(), not the review phase.
@@ -852,7 +959,9 @@ function DailySessionFlowSession() {
           setPhase(PHASES.NEW_WORDS)
         } else if (config.segment) {
           // Use the full review study set (capped segment + new-FAILED)
-          const allWords = await buildReviewStudySet(config.segment)
+          const allWords = await buildReviewStudySet(config.segment, config.dayNumber)
+          // RV2 (flag-on only): blocked refusal already rendered via setError.
+          if (REVIEW_V2_CLIENT && allWords === null) return
           if (allWords.length === 0) {
             // Empty review segment on a review-only day = every word MASTERED & resting → the list-end /
             // all-mastered TERMINAL NO-WORK state. Complete WITHOUT recording: do NOT reuse showNoReviewModal
@@ -998,9 +1107,71 @@ function DailySessionFlowSession() {
     setIsFlipped(false)
   }
 
-  const goToNewWordTest = () => {
+  // CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): compose the day's NEW-word test from
+  // the engine at TEST ENTRY. composeNewTest does NOT create/pin the day queue
+  // (only composeSession does), so this cannot violate the V2 timing law.
+  // Returns the composed block, 'legacy' (engine not serving — use the legacy
+  // path), or 'blocked' (reason already rendered via setError).
+  const prepareRv2NewTest = async (freshKey) => {
+    try {
+      const res = await composeNewTestV2({
+        uid: user.uid, classId, listId,
+        logicalDay: sessionConfig?.dayNumber,
+        freshKey
+      })
+      if (res.outcome === 'composed') {
+        // Resolve to word objects IN THE SERVED ORDER (V3 — verbatim).
+        const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
+        if (words.length !== res.presentedWordIds.length) {
+          console.error('[RV2] composed new-test id(s) missing from list', {
+            resolved: `${words.length}/${res.presentedWordIds.length}`
+          })
+          setError(refusalReasonText('malformed_response'))
+          return 'blocked'
+        }
+        // F3: poolWords = the day's introduced words — exactly the legacy
+        // new-test distractor pool (`newWords`), so flag-on MCQ options draw
+        // from the same universe legacy draws from.
+        const block = { ...res, words, poolWords: newWords }
+        setRv2New(block)
+        return block
+      }
+      if (res.outcome === 'blocked') {
+        console.warn('[RV2] new-test compose refused — blocking', { status: res.status })
+        setError(res.reason)
+        return 'blocked'
+      }
+      // F5: an invalid dayNumber never reached the engine — observable in
+      // system_logs (same law as the review chokepoint), then legacy serves.
+      if (res.via === 'invalid_day') {
+        logSystemEvent('rv2_compose_invalid_day', {
+          classId, listId, surface: 'composeNewTest', dayNumber: sessionConfig?.dayNumber ?? null
+        })
+      }
+      setRv2New(null)
+      return 'legacy'
+    } catch (err) {
+      // Resolution read failure — render a reason, never a blank screen.
+      console.error('[RV2] new-test preparation failed:', err)
+      setError(refusalReasonText('malformed_response'))
+      return 'blocked'
+    }
+  }
+
+  const goToNewWordTest = async () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
     const actualMode = testMode === 'typed' ? 'typed' : 'mcq'
+    if (REVIEW_V2_CLIENT) {
+      // Persisted-key compose: a reload re-entering here replays the SAME
+      // presentation (V5). Modality follows the ENGINE's testType (the day's
+      // pinned posture), not the client-read assignment.
+      const prepared = await prepareRv2NewTest(false)
+      if (prepared === 'blocked') return
+      if (prepared !== 'legacy') {
+        navigateToTest('new', prepared.testType, prepared)
+        return
+      }
+    }
     navigateToTest('new', actualMode)
   }
 
@@ -1012,8 +1183,18 @@ function DailySessionFlowSession() {
     await moveToReviewPhase()
   }
 
-  const handleNewWordTestRetake = () => {
+  const handleNewWordTestRetake = async () => {
     const testMode = assignmentSettings?.testMode || 'mcq'
+    if (REVIEW_V2_CLIENT) {
+      // Deliberate retake ⇒ fresh composeKey ⇒ the engine composes a NEW
+      // presentation (V5: never replay a stale presentation on a real retake).
+      const prepared = await prepareRv2NewTest(true)
+      if (prepared === 'blocked') return
+      if (prepared !== 'legacy') {
+        navigateToTest('new', prepared.testType, prepared)
+        return
+      }
+    }
     navigateToTest('new', testMode === 'typed' ? 'typed' : 'mcq')
   }
 
@@ -1033,7 +1214,11 @@ function DailySessionFlowSession() {
     }
 
     // Build the review study set (full capped segment + today's new-FAILED, prepended).
-    const allWords = await buildReviewStudySet(config.segment)
+    // RV2: this is THE review-phase entry — behind the flag the engine composes here
+    // (lazily, per V2), inside buildReviewStudySet.
+    const allWords = await buildReviewStudySet(config.segment, config.dayNumber)
+    // RV2 (flag-on only): blocked refusal already rendered via setError.
+    if (REVIEW_V2_CLIENT && allWords === null) return
 
     // Check if segment is empty (shouldn't happen, but safety check)
     if (allWords.length === 0) {
@@ -1193,6 +1378,14 @@ function DailySessionFlowSession() {
   }
 
   const goToReviewTest = () => {
+    // RV2: the review session was composed at review-phase entry
+    // (buildReviewStudySet). Modality follows the ENGINE's testType — the
+    // day's pinned queue-snapshot posture — and the presentation words ride
+    // along verbatim.
+    if (REVIEW_V2_CLIENT && rv2Review) {
+      navigateToTest('review', rv2Review.testType, rv2Review)
+      return
+    }
     // Use reviewTestType if set, otherwise fall back to legacy behavior
     const reviewTestType = assignmentSettings?.reviewTestType
     const actualMode = reviewTestType || getReviewTestType(reviewTestAttempts, assignmentSettings?.testMode || 'mcq')
@@ -1225,14 +1418,30 @@ function DailySessionFlowSession() {
     return v + 1
   }
 
-  const navigateToTest = (testPhase, mode) => {
+  const navigateToTest = (testPhase, mode, rv2Override = null) => {
+    // CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): when this test was engine-composed,
+    // the TEST set is the presentation's words VERBATIM (V3: served order =
+    // rendered order; no re-shuffle, no re-sample, no new-FAILED filtering —
+    // membership is the server's). rv2Override is passed by the compose sites
+    // because React state (rv2New/rv2Review) may not have committed yet.
+    const rv2ForTest = REVIEW_V2_CLIENT
+      ? (rv2Override ?? (testPhase === 'new' ? rv2New : rv2Review))
+      : null
+
     // D1: the review TEST pool is the segment ONLY. reviewQueue is the STUDY set, which
     // prepends today's new-FAILED words (study-only) — strip them here so they don't
     // enter the test sample or graduation statistics. New-word tests use newWords as-is.
     const newFailedSet = new Set(newWordFailedIds || [])
-    const wordPool = testPhase === 'new'
-      ? newWords
-      : reviewQueue.filter(w => !newFailedSet.has(w.id))
+    // F3: flag-on, the pool handed to buildTestConfig (⇒ originalWordPool, and
+    // the crash-recovery pool below) is the FULL distractor pool — the
+    // presented words verbatim plus the day's serving universe — never the
+    // presented subset alone, which shrank MCQ to N−1 distractors and moved
+    // the guess odds.
+    const wordPool = rv2ForTest
+      ? rv2DistractorPool({ words: rv2ForTest.words, poolWords: rv2ForTest.poolWords })
+      : (testPhase === 'new'
+          ? newWords
+          : reviewQueue.filter(w => !newFailedSet.has(w.id)))
 
     // Build context for test header
     const wordRangeStart = testPhase === 'new'
@@ -1243,7 +1452,7 @@ function DailySessionFlowSession() {
       : (sessionConfig?.segment?.endIndex || 0) + 1
 
     // Build complete test config (handles testSize limiting, defaults, etc.)
-    const testConfig = buildTestConfig({
+    let testConfig = buildTestConfig({
       assignment: assignmentSettings,
       wordPool: wordPool || [],
       testType: testPhase,
@@ -1263,6 +1472,21 @@ function DailySessionFlowSession() {
         newWordEndIndex: sessionConfig?.newWordEndIndex ?? null,
       }
     })
+
+    // RV2 (flag-on, engine-composed test only): override the selection —
+    // buildTestConfig's selectTestWords re-samples AND re-shuffles, which
+    // would destroy the presentation's priority prefix (V3) and could drop
+    // served words. The engine already sized the test (effectiveTestSize =
+    // min(testSize, |queue|)); render presentedWordIds verbatim. `rv2` is the
+    // handle the SUBMIT fold consumes (presentationId → reviewV2SubmitAttempt).
+    // F2+F3: the override is the PURE, fixtured rv2TestConfigOverride —
+    // presented words VERBATIM as wordsToTest, the FULL pool as
+    // originalWordPool (F3, never re-narrowed to the presented subset), and
+    // for REVIEW a nulled range label (F2: the segment range describes a set
+    // that no longer exists flag-on; both consumers hide the line on falsy).
+    if (rv2ForTest) {
+      testConfig = rv2TestConfigOverride({ baseConfig: testConfig, rv2: rv2ForTest, testPhase })
+    }
 
     const route = mode === 'typed' ? '/typedtest' : '/mcqtest'
 
@@ -1288,7 +1512,10 @@ function DailySessionFlowSession() {
       // P8 · CONT-A: carried so the finished terminal can validate the nextListId link
       // on return from the test (init is skipped on testCompleted re-entry).
       classAssignedListIds,
-      reviewTestAttempts
+      reviewTestAttempts,
+      // RV2 (flag-on only — key absent flag-off, blob byte-identical): the
+      // engine presentation this test runs against, for the SUBMIT fold.
+      ...(rv2ForTest ? { rv2Presentation: testConfig.rv2 } : {})
     }))
 
     // Write the crash-recovery marker for the TEST phase. The test runs on a
@@ -1634,7 +1861,16 @@ function DailySessionFlowSession() {
     if (REENTRY_GUARD) {
       try {
         if (sessionConfig?.segment) {
-          const allWords = await buildReviewStudySet(sessionConfig.segment)
+          // RV2: a re-entry retake is a DELIBERATE retake — freshKey mints a new
+          // composeKey so the engine composes a NEW presentation (V5: replay is
+          // only for the SAME test; a real retake must never replay a stale one).
+          const allWords = await buildReviewStudySet(
+            sessionConfig.segment,
+            sessionConfig.dayNumber,
+            REVIEW_V2_CLIENT ? { freshKey: true } : {}
+          )
+          // RV2 (flag-on only): blocked refusal already rendered via setError.
+          if (REVIEW_V2_CLIENT && allWords === null) return
           if (allWords.length === 0) {
             // Empty review segment (all words MASTERED & resting): designed outcome is the
             // "all mastered" modal -> completeSession(), not an empty review phase.
@@ -1690,7 +1926,17 @@ function DailySessionFlowSession() {
       } else {
         // Review phase - use the full review study set (capped segment + new-FAILED)
         if (sessionConfig.segment) {
-          const allWords = await buildReviewStudySet(sessionConfig.segment)
+          // RV2: same-session crash recovery resumes the SAME test — the
+          // persisted composeKey replays the SAME presentation (V5), so no
+          // freshKey here.
+          const allWords = await buildReviewStudySet(sessionConfig.segment, sessionConfig.dayNumber)
+          // RV2 (flag-on only): blocked refusal already rendered via setError;
+          // clear the recovery latch so the effect doesn't loop, then bail.
+          if (REVIEW_V2_CLIENT && allWords === null) {
+            setSavedLocalSessionState(null)
+            setPendingLocalRecovery(false)
+            return
+          }
           setReviewQueue(allWords)
 
           // Re-filter based on saved state

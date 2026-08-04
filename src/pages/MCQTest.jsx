@@ -5,13 +5,18 @@ import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { db } from '../firebase'
 import { submitTestAttempt, withRetry, logSystemEvent, getNewWordAttemptForDay } from '../services/db'
-import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD, FORCED_PATHWAY } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD, FORCED_PATHWAY, REVIEW_V2_CLIENT } from '../config/featureFlags'
+// CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): retakes of an engine-composed test
+// recompose a NEW presentation (fresh composeKey) instead of re-sampling
+// locally. Dead imports while the flag is false — every use is call-site gated.
+import { composeNewTestV2, composeReviewSessionV2, rv2DistractorPool, rv2TestConfigOverride } from '../services/reviewV2Compose'
 import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
   initializeDailySession,
   getNewWords,
   resolveSegmentWords,
+  getSegmentWordsByIds,
   processTestResults,
   selectTestWords,
   completeSessionFromTest
@@ -207,12 +212,20 @@ const MCQTest = () => {
     loadList()
   }, [loadList])
 
-  const generateQuestions = (words, numOptions = null) => {
+  // F3 (rv2Pool, flag-on only): the distractor pool must arrive as an ARGUMENT
+  // for the first render — `originalWords` state has not committed yet at the
+  // first PATH-A call (same-tick setState), so the state-based arm below sees
+  // [] and falls back to `words` = the presented subset (N−1 distractors max).
+  // rv2Pool is passed ONLY from REVIEW_V2_CLIENT-gated call sites; when null
+  // (every legacy call), the original state/words fallback runs verbatim.
+  const generateQuestions = (words, numOptions = null, rv2Pool = null) => {
     const effectiveOptionsCount = numOptions ?? optionsCount
     const testWordsWithOptions = words.map(word => {
-      const otherWords = originalWords.length > 0
-        ? originalWords.filter(w => w.id !== word.id)
-        : words.filter(w => w.id !== word.id)
+      const otherWords = (rv2Pool && rv2Pool.length > 0)
+        ? rv2Pool.filter(w => w.id !== word.id)
+        : originalWords.length > 0
+          ? originalWords.filter(w => w.id !== word.id)
+          : words.filter(w => w.id !== word.id)
       const shuffledOthers = shuffleArray(otherWords)
       // Use optionsCount from assignment (optionsCount - 1 distractors + 1 correct = optionsCount total)
       const distractors = shuffledOthers.slice(0, effectiveOptionsCount - 1).map(w => ({
@@ -258,7 +271,15 @@ const MCQTest = () => {
         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
         setConfiguredTestSize(effectiveTestSize)
         setOriginalWords(testConfig.originalWordPool)
-        generateQuestions(testConfig.wordsToTest, testConfig.testOptionsCount)
+        // F3 (flag-on only): hand the pool as the argument — state has not
+        // committed on this first call, so without it the distractor draw
+        // falls back to the presented subset. Legacy calls pass null and run
+        // the original fallback verbatim.
+        generateQuestions(
+          testConfig.wordsToTest,
+          testConfig.testOptionsCount,
+          (REVIEW_V2_CLIENT && testConfig.rv2) ? testConfig.originalWordPool : null
+        )
         setLoading(false)
         return
       }
@@ -953,6 +974,19 @@ const MCQTest = () => {
     }
   }
 
+  // RV2 (flag-on only): keep the sessionStorage blob's presentation handle
+  // current across in-page retakes, so the SUBMIT fold always sees the
+  // presentation the on-screen test was composed from.
+  const updateRv2PresentationInBlob = (rv2) => {
+    try {
+      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
+      if (blob) {
+        blob.rv2Presentation = rv2
+        sessionStorage.setItem('dailySessionState', JSON.stringify(blob))
+      }
+    } catch { /* blob absent/corrupt — the location.state testConfig still carries rv2 */ }
+  }
+
   const handleRetake = async () => {
     // For new word test retakes (below threshold), use existing logic
     if (currentTestType === 'new') {
@@ -963,6 +997,48 @@ const MCQTest = () => {
       setShowResults(false)
       setCanRetake(false)
       setTestResultsData(null)
+
+      // RV2: an engine-composed test retakes by COMPOSING A NEW PRESENTATION
+      // (fresh composeKey — V5: a retake must differ and must not replay),
+      // rendered in the served order (V3) — never a local re-sample.
+      if (REVIEW_V2_CLIENT && testConfig?.rv2?.source === 'composeNewTest') {
+        try {
+          const res = await composeNewTestV2({
+            uid: user.uid, classId: classIdParam, listId,
+            logicalDay: testConfig.rv2.logicalDay,
+            freshKey: true
+          })
+          if (res.outcome === 'composed') {
+            const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
+            if (words.length === res.presentedWordIds.length) {
+              updateRv2PresentationInBlob({
+                presentationId: res.presentationId, testType: res.testType,
+                logicalDay: res.logicalDay, resetEpoch: null, source: 'composeNewTest',
+              })
+              // F3: the retake pool stays FULL — the fresh presentation's
+              // words first, then the entry pool (already full via
+              // rv2TestConfigOverride) — never the presented subset alone.
+              const pool = rv2DistractorPool({ words, poolWords: originalWords })
+              setOriginalWords(pool)
+              generateQuestions(words, null, pool)
+              return
+            }
+            console.error('[RV2] retake compose: word id(s) missing from list')
+            setError('시험을 다시 만들지 못했습니다. 페이지를 새로고침해 주세요. (The retake could not be prepared — please reload the page.)')
+            return
+          }
+          if (res.outcome === 'blocked') {
+            setError(res.reason)
+            return
+          }
+          // outcome 'legacy' (engine stopped serving mid-session): fall
+          // through to the legacy re-sample of the words already on screen.
+        } catch (err) {
+          console.error('[RV2] retake compose failed:', err)
+          setError('시험을 다시 만들지 못했습니다. 페이지를 새로고침해 주세요. (The retake could not be prepared — please reload the page.)')
+          return
+        }
+      }
 
       // Re-shuffle words for retake - use configured test size, not full pool size
       const shuffled = selectTestWords(originalWords, configuredTestSize)
@@ -1032,6 +1108,53 @@ const MCQTest = () => {
       })
 
       console.log('[RETAKE] Restored progress from snapshot')
+
+      // RV2: a review retake of an engine-composed test is a DELIBERATE
+      // retake — fresh composeKey ⇒ the engine composes a NEW presentation
+      // (the day queue replays day-pinned; only the presentation is new).
+      // Navigating with the OLD testConfig would replay the old words.
+      if (REVIEW_V2_CLIENT && sessionContext?.rv2?.source === 'composeSession') {
+        const res = await composeReviewSessionV2({
+          uid: user.uid, classId: classIdParam, listId,
+          logicalDay: sessionContext.rv2.logicalDay,
+          freshKey: true
+        })
+        if (res.outcome === 'composed') {
+          const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
+          if (words.length !== res.presentedWordIds.length) {
+            throw new Error('RV2 retake: composed word id(s) missing from list')
+          }
+          // F2+F3: rebuild the page-bound config through the PURE override —
+          // full distractor pool (fresh presentation ∪ the entry pool),
+          // presented order verbatim, review range label stays nulled.
+          const nextConfig = rv2TestConfigOverride({
+            baseConfig: sessionContext,
+            testPhase: 'review',
+            rv2: {
+              presentationId: res.presentationId, testType: res.testType,
+              logicalDay: res.logicalDay, resetEpoch: res.resetEpoch ?? null,
+              words, poolWords: sessionContext.originalWordPool,
+            },
+          })
+          updateRv2PresentationInBlob(nextConfig.rv2)
+          navigate(`/mcqtest/${classIdParam}/${listId}?type=review`, {
+            state: {
+              testConfig: nextConfig,
+              returnPath
+            }
+          })
+          return
+        }
+        if (res.outcome === 'blocked') {
+          // Rendered reason on the results card (existing retakeError slot) —
+          // never a silent fallback that would replay the stale presentation.
+          setRetakeError(res.reason)
+          setCanRetake(false)
+          return
+        }
+        // outcome 'legacy': engine stopped serving — the legacy navigate below
+        // reuses the on-screen words exactly as today.
+      }
 
       // [6] Navigate to retake (same test)
       navigate(`/mcqtest/${classIdParam}/${listId}?type=review`, {

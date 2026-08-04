@@ -1,0 +1,15 @@
+{
+  "kind": "cutover-a-compose-pure",
+  "pass": true,
+  "total": 211,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
+    "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
+    "src/utils/testConfig.js": "542d4c5c40c6da44",
+    "src/utils/studyAlgorithm.js": "f78ad21b3a148a8e",
+    "scripts/deepfix2/cutover-a-compose-fixtures.mjs": "6b14b63fe219e0b2"
+  },
+  "at": "2026-08-04T09:00:42.084Z"
+}

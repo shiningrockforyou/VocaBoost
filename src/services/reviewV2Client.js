@@ -82,6 +82,13 @@ export const RV2 = Object.freeze({
   LIST_WORDS_MALFORMED: 'list_words_malformed',
   EMPTY_POOL: 'empty_pool',
   LIST_END: 'list_end',
+  // [D1 truth repair — CUTOVER-A COMPOSE] The next three are DECLARED in the
+  // frozen status list but are NEVER returned as data: `resolveAndGate`
+  // (callables.js:158-160) THROWS them as HttpsError — not-found /
+  // permission-denied / failed-precondition — so they surface as a
+  // `ReviewV2Error` from `call()` below, never as `result.status`. A client
+  // switching only on `result.status` will never see them; route the thrown
+  // channel via `classifyThrownRefusal` (reviewV2Compose.js).
   CLASS_NOT_FOUND: 'class_not_found',
   NOT_ENROLLED: 'not_enrolled',
   LIST_NOT_ASSIGNED: 'list_not_assigned',
@@ -89,7 +96,15 @@ export const RV2 = Object.freeze({
 
 /** Statuses that mean "the engine is not serving this student right now" —
  *  the caller should fall back to the legacy path rather than show an error.
- *  (A dark/held engine is the NORMAL pre-flip state.) */
+ *  (A dark/held engine is the NORMAL pre-flip state.)
+ *  [D1 truth repair] Of the five, ONLY `config_hold` and `review_v2_dark`
+ *  can actually arrive as data — the other three are THROWN as HttpsError
+ *  (see the frozen-list note above), so `isNotServing(result)` can never
+ *  match them. Callers MUST route the thrown trio to the SAME legacy
+ *  fallback by error code (not-found / permission-denied /
+ *  failed-precondition) — `classifyThrownRefusal` in reviewV2Compose.js is
+ *  that router. The three stay listed here so the frozen intent ("these five
+ *  mean not-serving") remains in one place. */
 const NOT_SERVING = new Set([
   RV2.CONFIG_HOLD, RV2.REVIEW_V2_DARK, RV2.CLASS_NOT_FOUND,
   RV2.NOT_ENROLLED, RV2.LIST_NOT_ASSIGNED,
@@ -104,7 +119,9 @@ export class ReviewV2Error extends Error {
   }
 }
 
-/** True when the result means "engine not serving — use the legacy path". */
+/** True when the result means "engine not serving — use the legacy path".
+ *  DATA channel only [D1]: this predicate sees `config_hold` /
+ *  `review_v2_dark`; the thrown trio never reaches it (see NOT_SERVING). */
 export function isNotServing(result) {
   return Boolean(result) && NOT_SERVING.has(result.status)
 }

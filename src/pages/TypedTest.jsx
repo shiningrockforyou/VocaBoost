@@ -10,12 +10,17 @@ import {
   initializeDailySession,
   getNewWords,
   resolveSegmentWords,
+  getSegmentWordsByIds,
   processTestResults,
   selectTestWords,
   completeSessionFromTest
 } from '../services/studyService'
 import { getOrCreateClassProgress, getClassProgress } from '../services/progressService'
-import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, RECOVERY_GUARD, FORCED_PATHWAY } from '../config/featureFlags'
+import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, RECOVERY_GUARD, FORCED_PATHWAY, REVIEW_V2_CLIENT } from '../config/featureFlags'
+// CUTOVER-A COMPOSE (REVIEW_V2_CLIENT): retakes of an engine-composed test
+// recompose a NEW presentation (fresh composeKey) instead of re-sampling
+// locally. Dead imports while the flag is false — every use is call-site gated.
+import { composeNewTestV2, composeReviewSessionV2, rv2ServedTypedWords, rv2TestConfigOverride } from '../services/reviewV2Compose'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -297,9 +302,24 @@ const TypedTest = () => {
         const effectiveTestSize = testConfig.testType === 'new' ? testConfig.testSizeNew : testConfig.testSizeReview
         setConfiguredTestSize(effectiveTestSize)
         // Apply MAX_TYPED_TEST_WORDS cap on top of testConfig's limiting
-        const cappedWords = testConfig.wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
+        // F4 (flag-on only): NEVER truncate a SERVER-COMPOSED set — the engine
+        // derives the score denominator from its own presentation record, so
+        // slicing a 51-60-word presentation (reviewTestSizeMax default 60) to
+        // 50 caps the score at ≤83%, a guaranteed fail at a 95% threshold.
+        // rv2ServedTypedWords honours the full presented set; the flag-off
+        // leg is the original slice, verbatim.
+        const cappedWords = (REVIEW_V2_CLIENT && testConfig.rv2)
+          ? rv2ServedTypedWords(testConfig.wordsToTest)
+          : testConfig.wordsToTest.slice(0, MAX_TYPED_TEST_WORDS)
         setOriginalWords(cappedWords)
-        setWords(shuffleArray([...cappedWords]))
+        // RV2 (flag-on, engine-composed test only): render in the SERVED order
+        // — presentedWordIds arrives pre-shuffled with a priority PREFIX (V3);
+        // a local re-shuffle would destroy it. Flag-off: today's shuffle exactly.
+        if (REVIEW_V2_CLIENT && testConfig.rv2) {
+          setWords([...cappedWords])
+        } else {
+          setWords(shuffleArray([...cappedWords]))
+        }
         setResponses({})
         setResults(null)
         setShowResults(false)
@@ -1230,6 +1250,19 @@ const TypedTest = () => {
     pendingSaveRef.current()
   }
 
+  // RV2 (flag-on only): keep the sessionStorage blob's presentation handle
+  // current across in-page retakes, so the SUBMIT fold always sees the
+  // presentation the on-screen test was composed from.
+  const updateRv2PresentationInBlob = (rv2) => {
+    try {
+      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
+      if (blob) {
+        blob.rv2Presentation = rv2
+        sessionStorage.setItem('dailySessionState', JSON.stringify(blob))
+      }
+    } catch { /* blob absent/corrupt — the location.state testConfig still carries rv2 */ }
+  }
+
   const handleRetake = async () => {
     // For new word test retakes (below threshold), use existing logic
     if (currentTestType === 'new') {
@@ -1239,6 +1272,48 @@ const TypedTest = () => {
       setCanRetake(false)
       setTestResultsData(null)
       setResults(null)
+
+      // RV2: an engine-composed test retakes by COMPOSING A NEW PRESENTATION
+      // (fresh composeKey — V5: a retake must differ and must not replay),
+      // rendered in the served order (V3) — never a local re-sample.
+      if (REVIEW_V2_CLIENT && testConfig?.rv2?.source === 'composeNewTest') {
+        try {
+          const res = await composeNewTestV2({
+            uid: user.uid, classId: classIdParam, listId,
+            logicalDay: testConfig.rv2.logicalDay,
+            freshKey: true
+          })
+          if (res.outcome === 'composed') {
+            const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
+            if (words.length === res.presentedWordIds.length) {
+              updateRv2PresentationInBlob({
+                presentationId: res.presentationId, testType: res.testType,
+                logicalDay: res.logicalDay, resetEpoch: null, source: 'composeNewTest',
+              })
+              // F4: honour the full served set on retakes too (same law as
+              // PATH A — the engine sized this test; never re-cap it).
+              const cappedV2 = rv2ServedTypedWords(words)
+              setOriginalWords(cappedV2)
+              setWords(cappedV2)
+              inputRefs.current = new Array(cappedV2.length)
+              return
+            }
+            console.error('[RV2] retake compose: word id(s) missing from list')
+            setError('시험을 다시 만들지 못했습니다. 페이지를 새로고침해 주세요. (The retake could not be prepared — please reload the page.)')
+            return
+          }
+          if (res.outcome === 'blocked') {
+            setError(res.reason)
+            return
+          }
+          // outcome 'legacy' (engine stopped serving mid-session): fall
+          // through to the legacy re-sample of the words already on screen.
+        } catch (err) {
+          console.error('[RV2] retake compose failed:', err)
+          setError('시험을 다시 만들지 못했습니다. 페이지를 새로고침해 주세요. (The retake could not be prepared — please reload the page.)')
+          return
+        }
+      }
 
       // Regenerate from original words - use configured test size, capped at MAX_TYPED_TEST_WORDS
       const shuffled = selectTestWords(originalWords, configuredTestSize)
@@ -1310,6 +1385,53 @@ const TypedTest = () => {
       })
 
       console.log('[RETAKE] Restored progress from snapshot')
+
+      // RV2: a review retake of an engine-composed test is a DELIBERATE
+      // retake — fresh composeKey ⇒ the engine composes a NEW presentation
+      // (the day queue replays day-pinned; only the presentation is new).
+      // Navigating with the OLD testConfig would replay the old words.
+      if (REVIEW_V2_CLIENT && sessionContext?.rv2?.source === 'composeSession') {
+        const res = await composeReviewSessionV2({
+          uid: user.uid, classId: classIdParam, listId,
+          logicalDay: sessionContext.rv2.logicalDay,
+          freshKey: true
+        })
+        if (res.outcome === 'composed') {
+          const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
+          if (words.length !== res.presentedWordIds.length) {
+            throw new Error('RV2 retake: composed word id(s) missing from list')
+          }
+          // F2+F3: rebuild the page-bound config through the PURE override —
+          // full distractor pool (fresh presentation ∪ the entry pool),
+          // presented order verbatim, review range label stays nulled.
+          const nextConfig = rv2TestConfigOverride({
+            baseConfig: sessionContext,
+            testPhase: 'review',
+            rv2: {
+              presentationId: res.presentationId, testType: res.testType,
+              logicalDay: res.logicalDay, resetEpoch: res.resetEpoch ?? null,
+              words, poolWords: sessionContext.originalWordPool,
+            },
+          })
+          updateRv2PresentationInBlob(nextConfig.rv2)
+          navigate(`/typedtest/${classIdParam}/${listId}?type=review`, {
+            state: {
+              testConfig: nextConfig,
+              returnPath
+            }
+          })
+          return
+        }
+        if (res.outcome === 'blocked') {
+          // Rendered reason on the results card (existing retakeError slot) —
+          // never a silent fallback that would replay the stale presentation.
+          setRetakeError(res.reason)
+          setCanRetake(false)
+          return
+        }
+        // outcome 'legacy': engine stopped serving — the legacy navigate below
+        // reuses the on-screen words exactly as today.
+      }
 
       // [6] Navigate to retake (same test)
       navigate(`/typedtest/${classIdParam}/${listId}?type=review`, {
