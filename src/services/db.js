@@ -22,8 +22,9 @@ import {
 } from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { db, auth } from '../firebase'
-import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ, REVIEW_PAIRING_V2, FORCED_PATHWAY } from '../config/featureFlags'
+import { SERVER_CHALLENGE_WRITE, LIST_SCOPED_RECON, SERVER_RESET_PROGRESS, CYCLING_ENABLED, SERVER_OVERRIDE, TEACHER_IDS_READ, REVIEW_PAIRING_V2, FORCED_PATHWAY, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { reviewPairsWithAnchor, RECENT_ATTEMPTS_WINDOW } from '../utils/reviewPairing'
+import { assignReviewSettings, patchReviewSettings } from '../utils/reviewSettingsAuthority'
 // CS PR-3 · WI-1 (FORCED_PATHWAY): grandfathered completion-engagement predicate + binary-throttle
 // owner. Consumed ONLY under the flag — the getReviewForDay reconciliation engagement gate + the
 // challenge-accept hold-guard below. Flag-off they are never read (byte-equivalent to today).
@@ -813,6 +814,11 @@ export const assignListToClass = async (
   reviewTestType = 'mcq',
   reviewTestSizeMin = 30,
   reviewTestSizeMax = 60,
+  // DF2-11 · REVIEW_V2_CLIENT: appended options object carrying the new review-settings
+  // group (reviewPassThreshold/reviewQueueSize/reviewTestSize/reviewGateEnabled). The nine
+  // positional args are intact, so a flag-off caller passes `undefined` here ⇒ the write
+  // spread below takes the reviewTestSizeMin/Max branch ⇒ byte-identical to today.
+  reviewOptions,
 ) => {
   if (!classId || !listId) {
     throw new Error('classId and listId are required.')
@@ -834,8 +840,17 @@ export const assignListToClass = async (
     passThreshold: Number(passThreshold) || 95,
     testSizeNew: Number(testSizeNew) || 50,
     reviewTestType: reviewTestType || 'mcq',
-    reviewTestSizeMin: Number(reviewTestSizeMin) || 30,
-    reviewTestSizeMax: Number(reviewTestSizeMax) || 60,
+    // DF2-11 · REVIEW_V2_CLIENT: flag-scoped min/max → review-group SWAP. Flag-ON writes the
+    // review-v2 override group the server reads (config.js:163-192), validated by
+    // assignReviewSettings; flag-OFF writes today's reviewTestSizeMin/Max EXACTLY (byte-identical).
+    // The min/max keys are NOT deleted here — the physical delete rides the flip release
+    // (DF2-02a / ledger E1); they live on as the flag-off branch.
+    ...(REVIEW_V2_CLIENT
+      ? assignReviewSettings(reviewOptions)
+      : {
+          reviewTestSizeMin: Number(reviewTestSizeMin) || 30,
+          reviewTestSizeMax: Number(reviewTestSizeMax) || 60,
+        }),
     assignedAt: assignments[listId]?.assignedAt ?? serverTimestamp(),
   }
 
@@ -940,6 +955,17 @@ export const updateAssignmentSettings = async (classId, listId, settings = {}) =
       throw new Error('Review test size max must be between 1 and 500.')
     }
     updates.reviewTestSizeMax = maxValue
+  }
+
+  // DF2-11 · REVIEW_V2_CLIENT: flag-scoped review-settings group (reviewPassThreshold/
+  // reviewQueueSize/reviewTestSize/reviewGateEnabled). Only PERSISTED when the client cutover
+  // flag is on — flag-OFF this block is skipped entirely, so the reviewTestSizeMin/Max blocks
+  // above stay the write EXACTLY as today (byte-identical). patchReviewSettings validates each
+  // PRESENT field (mirrors config.js:163-192) and throws on out-of-range before the write;
+  // absent keys are omitted so the server keeps its frozen default. The flag-on modal sends the
+  // new group and NOT min/max, so the min/max blocks above no-op ⇒ min/max omitted flag-on.
+  if (REVIEW_V2_CLIENT) {
+    Object.assign(updates, patchReviewSettings(settings))
   }
 
   if (settings.studyDaysPerWeek !== undefined) {

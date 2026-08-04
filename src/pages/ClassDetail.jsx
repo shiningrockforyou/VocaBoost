@@ -24,7 +24,7 @@ import {
 } from '../services/db'
 import { fetchStudentsProgressForClass } from '../services/progressService'
 import { fetchStudentsSessionStates } from '../services/sessionService'
-import { CONTINUATION_LINKS, CYCLING_ENABLED } from '../config/featureFlags'
+import { CONTINUATION_LINKS, CYCLING_ENABLED, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { computeLapView, getCycleLength } from '../services/studyService'
 import AssignListModal from '../components/AssignListModal.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
@@ -174,7 +174,7 @@ const ClassDetail = () => {
   const [listFilter, setListFilter] = useState('all')
   const [generatingPDF, setGeneratingPDF] = useState(null)
 const [settingsModalList, setSettingsModalList] = useState(null)
-  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, nextListId: null, cyclingEnabled: false })
+  const [settingsForm, setSettingsForm] = useState({ pace: 20, testOptionsCount: 4, testMode: 'mcq', studyDaysPerWeek: 5, passThreshold: 95, testSizeNew: 50, reviewTestType: 'mcq', reviewTestSizeMin: 30, reviewTestSizeMax: 60, reviewPassThreshold: 92, reviewQueueSize: 60, reviewTestSize: 30, reviewGateEnabled: true, nextListId: null, cyclingEnabled: false })
 const [savingSettings, setSavingSettings] = useState(false)
 const [unassigningListId, setUnassigningListId] = useState(null)
   const [removingStudentId, setRemovingStudentId] = useState(null)
@@ -274,6 +274,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
           reviewTestType: assignment.reviewTestType || 'mcq',
           reviewTestSizeMin: assignment.reviewTestSizeMin ?? 30,
           reviewTestSizeMax: assignment.reviewTestSizeMax ?? 60,
+          // DF2-11 · REVIEW_V2_CLIENT review-settings group (rendered flag-ON only; hydrated
+          // unconditionally like nextListId/cyclingEnabled — inert flag-OFF).
+          reviewPassThreshold: assignment.reviewPassThreshold ?? 92,
+          reviewQueueSize: assignment.reviewQueueSize ?? 60,
+          reviewTestSize: assignment.reviewTestSize ?? 30,
+          reviewGateEnabled: assignment.reviewGateEnabled !== false,
           nextListId: assignment.nextListId ?? null, // P8 · CONT-A list-sequence link
           cyclingEnabled: assignment.cyclingEnabled === true, // P9 · CYC per-assignment gate
         }
@@ -387,12 +393,14 @@ const [unassigningListId, setUnassigningListId] = useState(null)
     return teacherLists.filter((list) => !assignedIds.has(list.id))
   }, [classInfo?.assignedLists, classInfo?.assignments, teacherLists])
 
-  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq', passThreshold = 95, testSizeNew = 50, reviewTestType = 'mcq', reviewTestSizeMin = 30, reviewTestSizeMax = 60) => {
+  const handleAssignList = async (listId, pace = 20, testOptionsCount = 4, testMode = 'mcq', passThreshold = 95, testSizeNew = 50, reviewTestType = 'mcq', reviewTestSizeMin = 30, reviewTestSizeMax = 60, reviewOptions) => {
     if (!classId) return
     setAssigning(true)
     setFeedback('')
     try {
-      await assignListToClass(classId, listId, pace, testOptionsCount, testMode, passThreshold, testSizeNew, reviewTestType, reviewTestSizeMin, reviewTestSizeMax)
+      // DF2-11 · REVIEW_V2_CLIENT: pass the modal's appended review-settings options straight
+      // through as the writer's 10th arg. Flag-OFF it is `undefined` ⇒ byte-identical write.
+      await assignListToClass(classId, listId, pace, testOptionsCount, testMode, passThreshold, testSizeNew, reviewTestType, reviewTestSizeMin, reviewTestSizeMax, reviewOptions)
       setAssignModalOpen(false)
       setFeedback('List assigned successfully.')
       await loadClass()
@@ -415,6 +423,12 @@ const [unassigningListId, setUnassigningListId] = useState(null)
       reviewTestType: list.reviewTestType || 'mcq',
       reviewTestSizeMin: list.reviewTestSizeMin ?? 30,
       reviewTestSizeMax: list.reviewTestSizeMax ?? 60,
+      // DF2-11 · REVIEW_V2_CLIENT review-settings group (used flag-ON only; hydrated
+      // unconditionally like nextListId/cyclingEnabled — inert flag-OFF).
+      reviewPassThreshold: list.reviewPassThreshold ?? 92,
+      reviewQueueSize: list.reviewQueueSize ?? 60,
+      reviewTestSize: list.reviewTestSize ?? 30,
+      reviewGateEnabled: list.reviewGateEnabled !== false,
       nextListId: list.nextListId ?? null, // P8 · CONT-A
       cyclingEnabled: list.cyclingEnabled === true, // P9 · CYC
     })
@@ -437,8 +451,20 @@ const [unassigningListId, setUnassigningListId] = useState(null)
         passThreshold: settingsForm.passThreshold,
         testSizeNew: settingsForm.testSizeNew,
         reviewTestType: settingsForm.reviewTestType,
-        reviewTestSizeMin: settingsForm.reviewTestSizeMin,
-        reviewTestSizeMax: settingsForm.reviewTestSizeMax,
+        // DF2-11 · REVIEW_V2_CLIENT: flag-scoped min/max → review-group SWAP. Flag-ON sends the
+        // review-v2 override group; flag-OFF sends today's reviewTestSizeMin/Max EXACTLY (same
+        // spread-conditional idiom as nextListId/cyclingEnabled below) ⇒ byte-identical caller.
+        ...(REVIEW_V2_CLIENT
+          ? {
+              reviewPassThreshold: settingsForm.reviewPassThreshold,
+              reviewQueueSize: settingsForm.reviewQueueSize,
+              reviewTestSize: settingsForm.reviewTestSize,
+              reviewGateEnabled: settingsForm.reviewGateEnabled === true,
+            }
+          : {
+              reviewTestSizeMin: settingsForm.reviewTestSizeMin,
+              reviewTestSizeMax: settingsForm.reviewTestSizeMax,
+            }),
         // P8 · CONT-A: only send nextListId while the feature is ON — with the flag off
         // the key is omitted entirely (undefined → no-op in updateAssignmentSettings),
         // keeping the flag-off write byte-identical to today's.
@@ -806,6 +832,17 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                         <span className="text-emerald-600">
                           Test Options: {list.testOptionsCount ?? 4} choices
                         </span>
+                        {/* DF2-11 · REVIEW_V2_CLIENT: surface the review-settings group on the card
+                            (display only). Flag-OFF this renders nothing ⇒ byte-identical to today. */}
+                        {REVIEW_V2_CLIENT && (
+                          <>
+                            <span className="text-text-muted">|</span>
+                            <span className="text-brand-text">
+                              Review: {list.reviewPassThreshold ?? 92}% · Q{list.reviewQueueSize ?? 60} · T{list.reviewTestSize ?? 30}
+                              {list.reviewGateEnabled === false ? ' · gate off' : ''}
+                            </span>
+                          </>
+                        )}
                         {/* P8 · CONT-A: surface the configured sequence link on the card (display only;
                             resolves the id against this class's assigned lists — a dangling link shows nothing) */}
                         {CONTINUATION_LINKS && list.nextListId && (() => {
@@ -1255,7 +1292,106 @@ const [unassigningListId, setUnassigningListId] = useState(null)
               </label>
             </div>
 
-            {/* Review Test Settings */}
+            {/* DF2-11 · REVIEW_V2_CLIENT: flag-scoped min/max → review-group SWAP. Flag-OFF renders
+                today's "Review Test Settings" (min/max) section BYTE-IDENTICALLY (the physical delete
+                rides the flip release, ledger E1); flag-ON renders the review-v2 settings group. */}
+            {REVIEW_V2_CLIENT ? (
+              <div className="border-t border-border-default pt-4 mt-4">
+                <h3 className="text-sm font-semibold text-text-primary mb-3">Review Settings</h3>
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Review Test Mode
+                    <select
+                      value={settingsForm.reviewTestType}
+                      onChange={(event) =>
+                        setSettingsForm((prev) => ({ ...prev, reviewTestType: event.target.value }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                    >
+                      <option value="mcq">Multiple Choice Only</option>
+                      <option value="typed">Written Only</option>
+                    </select>
+                    <p className="mt-1 text-xs text-text-muted">Test format for review tests (past words).</p>
+                  </label>
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Review Pass Threshold (%)
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={settingsForm.reviewPassThreshold}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, reviewPassThreshold: e.target.value }))}
+                      onBlur={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          reviewPassThreshold: Math.max(1, Math.min(100, parseInt(e.target.value, 10) || 92)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                      placeholder="92"
+                    />
+                    <p className="mt-1 text-xs text-text-muted">
+                      Students must score this % or higher to pass a review test (separate from the new-word threshold).
+                    </p>
+                  </label>
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Review Queue Size
+                    <input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={settingsForm.reviewQueueSize}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, reviewQueueSize: e.target.value }))}
+                      onBlur={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          reviewQueueSize: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 60)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                      placeholder="60"
+                    />
+                    <p className="mt-1 text-xs text-text-muted">How many past words are eligible for review each day.</p>
+                  </label>
+                  <label className="block text-sm font-medium text-text-secondary">
+                    Review Test Size
+                    <input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={settingsForm.reviewTestSize}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, reviewTestSize: e.target.value }))}
+                      onBlur={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          reviewTestSize: Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 30)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-border-default bg-base px-3 py-2 text-text-primary outline-none ring-border-strong focus:bg-surface focus:ring-2"
+                      placeholder="30"
+                    />
+                    <p className="mt-1 text-xs text-text-muted">How many words appear on each review test.</p>
+                  </label>
+                  <label className="flex items-start gap-3 text-sm font-medium text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.reviewGateEnabled === true}
+                      onChange={(event) =>
+                        setSettingsForm((prev) => ({ ...prev, reviewGateEnabled: event.target.checked }))
+                      }
+                      className="mt-0.5 h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-2 focus:ring-border-strong"
+                    />
+                    <span>
+                      Require a passing review test to advance
+                      <span className="mt-1 block text-xs font-normal text-text-muted">
+                        When on, a student must pass the review test to move ahead. Turn off to record the review
+                        without gating the day.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            ) : (
             <div className="border-t border-border-default pt-4 mt-4">
               <h3 className="text-sm font-semibold text-text-primary mb-3">Review Test Settings</h3>
               <div className="space-y-4">
@@ -1317,6 +1453,7 @@ const [unassigningListId, setUnassigningListId] = useState(null)
                 <p className="text-xs text-text-muted">Review test size scales with intervention (min at 0%, max at 100%).</p>
               </div>
             </div>
+            )}
 
             {/* P8 · CONT-A (CONTINUATION_LINKS): list sequence — the ordered "what comes after this
                 list" affordance over the class's OWN assigned lists. Flag off = section absent and

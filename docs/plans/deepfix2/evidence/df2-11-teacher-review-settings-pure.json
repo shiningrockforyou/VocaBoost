@@ -1,0 +1,25 @@
+{
+  "kind": "df2-11-teacher-review-settings-pure",
+  "pass": true,
+  "total": 42,
+  "failed": 0,
+  "reds": [],
+  "constants": {
+    "REVIEW_V2_CLIENT": false,
+    "REVIEW_SETTINGS_DEFAULTS": {
+      "reviewPassThreshold": 92,
+      "reviewQueueSize": 60,
+      "reviewTestSize": 30,
+      "reviewGateEnabled": true,
+      "reviewTestType": "mcq"
+    }
+  },
+  "sourceShas": {
+    "src/utils/reviewSettingsAuthority.js": "1b7f6228951e5629",
+    "src/services/db.js": "318ca962da11dca6",
+    "src/pages/ClassDetail.jsx": "faba02f39e9895f0",
+    "src/components/AssignListModal.jsx": "3fc6c3956dd5d63d",
+    "scripts/deepfix2/df2-11-teacher-review-settings-fixtures.mjs": "b6fcf92dcf1343fe"
+  },
+  "at": "2026-08-04T21:03:03.491Z"
+}

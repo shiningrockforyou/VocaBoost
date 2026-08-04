@@ -1,0 +1,64 @@
+{
+  "kind": "df2-11-teacher-review-settings-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-THRESHOLD-UPPER-WIDEN",
+      "clause": "reviewPassThreshold rejects > 100 (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-SIZE-UPPER-WIDEN",
+      "clause": "reviewTestSize rejects > 500 (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-LOWER-BOUND-DROP",
+      "clause": "the ints reject < 1 (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M4-INTEGER-DROP",
+      "clause": "the ints reject non-integers (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M5-GATE-COERCE-DROP",
+      "clause": "reviewGateEnabled coerces to a real boolean (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 2,
+      "restoredOk": true
+    },
+    {
+      "id": "M6-TYPE-ENUM-DROP",
+      "clause": "reviewTestType defaults anything but 'typed' to mcq (C3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 42,
+      "failures": 2,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": {
+    "src/utils/reviewSettingsAuthority.js": "1b7f6228951e5629"
+  },
+  "at": "2026-08-04T21:05:58.318Z"
+}
