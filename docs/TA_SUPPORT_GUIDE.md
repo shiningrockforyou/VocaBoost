@@ -12,7 +12,7 @@ you only need to send a few specific cases to me (David), listed at the end.
    meaning but it's marked wrong" complaint should be **rare** now. If it still happens, it's a genuine call → Challenge (#1).
 2. **Challenge tokens now reset every Monday** (not "30 days"). Tell students *"challenges reset weekly."*
 3. **"Day won't advance / review won't submit / 단어시험 먼저 봐야 된다" is fixed.** If a student still gets **no new words**,
-   it's **low review scores** holding them (see the new #7), not a freeze.
+   it's **low review scores** holding them, not a freeze.
 4. **Class changes now carry progress automatically** — reload once; only escalate if it's still Day 1 after a reload.
 
 *(A student-facing + teacher FAQ version of all this now lives in the in-app Help pages.)*
@@ -79,13 +79,6 @@ you only need to send a few specific cases to me (David), listed at the end.
 - The right lists are already on every class — students just pick the one they want from the
   **class/list selector** on their dashboard. Have them select the correct list there.
 - If one specific student needs a different *default* list → **send it to me.**
-
-### 7. "New words stopped showing" / "새 단어가 안 떠요" (only getting reviews)
-- This is the app **holding them on review because their recent review scores are low** (roughly under 30%). It's working as
-  designed, not a freeze.
-- **Tell the student:** *"Keep doing the reviews and get your scores up (above ~30%) — new words come back automatically."*
-  Skipping or rushing reviews keeps new words locked.
-- If a teacher wants to force new words for a specific student anyway → **send me their email.**
 
 ### 8. "Grades → 'no results'" for a student who's clearly active
 - Known Gradebook **display** bug for students inactive ~a month — their grades exist, they just don't show on the first page.

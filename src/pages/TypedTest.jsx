@@ -2032,6 +2032,7 @@ const TypedTest = () => {
           onClose={() => setShowProgressSheet(false)}
           currentPhase={currentTestType === 'new' ? 'new_word_test' : 'review_test'}
           isFirstDay={sessionContext?.isFirstDay}
+          retakeThreshold={retakeThreshold}
         />
       </main>
     )
@@ -2085,6 +2086,7 @@ const TypedTest = () => {
         dayNumber={sessionContext?.dayNumber || 1}
         wordRangeStart={sessionContext?.wordRangeStart}
         wordRangeEnd={sessionContext?.wordRangeEnd}
+        retakeThreshold={retakeThreshold}
       />
 
       {/* Main Content Area */}

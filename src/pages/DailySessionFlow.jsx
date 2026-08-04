@@ -2167,6 +2167,7 @@ function DailySessionFlowSession() {
         wordRangeStart={lapDisplayNewIndex(sessionConfig?.newWordStartIndex)}
         wordRangeEnd={lapDisplayNewIndex(sessionConfig?.newWordEndIndex)}
         newWordsTestScore={newWordTestResults?.score}
+        retakeThreshold={sessionConfig?.retakeThreshold}
         reviewTestScore={reviewTestResults?.score}
         cardsRemaining={currentQueueLength}
         cardsDismissed={currentDismissedCount}

@@ -17,7 +17,7 @@ Most things are now self-serve; the short escalate-to-David list is at the botto
 
 3. **"Day won't advance / review won't submit / 단어시험 먼저 봐야 된다" is fixed** (the review-only-day deadlock, "#11"). A student
    who finished their list, or who is on a review-only day, is no longer frozen. If someone still isn't getting new words, it's
-   almost always **low review scores** holding them (FAQ 4) — that's the system working, not a bug.
+   almost always **low review scores** holding them — that's the system working, not a bug.
 
 4. **Class changes now carry progress automatically.** Moving a student between classes on the same list (e.g. ADV→FINAL, or a
    승반) should keep their day/progress. Occasionally the first load still shows Day 1 → have them **reload once**; only escalate
@@ -43,14 +43,6 @@ Most things are now self-serve; the short escalate-to-David list is at the botto
 - First: did they actually **pass (≥92%)**? If just below, they simply **retake** — normal, not a bug.
 - If a disputed answer is what's keeping them under → handle as **FAQ 1 (Challenge)**.
 - If they **passed** but it didn't move → **reload first**. Still stuck on a *passed* day after reload → send it to me.
-
-### 4. "New words stopped appearing" / "새 단어가 안 떠요" (review-only)
-- This is the **throttle** working as designed: when recent **review scores are low (roughly under 30%)**, the app holds the
-  student on **review only** and gives **no new words** until their reviews come up.
-- **Correct answer to the student:** *"Your review scores are too low — keep doing the reviews and score above ~30%, and new
-  words come back."* It's not broken.
-- A student can't fix low retention by skipping — see FAQ 11. If a teacher wants to force new words for a specific student
-  anyway → send me their email.
 
 ### 5. "My progress reset to Day 1" / "I'm re-studying words I already know" (after a class change)
 - Progress is **not lost**, and class changes now **carry automatically**. Have them **reload** and pick the correct list from
@@ -87,7 +79,7 @@ Most things are now self-serve; the short escalate-to-David list is at the botto
 ### 11. "I submitted a blank/accidental review" / mis-submit
 - There's **no self-serve review-retake** yet, and a submitted review can't be undone in-app → send me the student + day.
 - **Prevention (tell students):** actually **answer the review questions** — don't hit Submit on an empty/0 test. Skipping
-  reviews both hurts their score and keeps new words locked (FAQ 4).
+  reviews both hurts their score and keeps new words locked.
 
 ### 12. "What's the pass mark?" / threshold confusion
 - **92% for every class and list.** (If a student ever *passes* below 92, or *fails* at 92+, tell me — that's a misconfig.)

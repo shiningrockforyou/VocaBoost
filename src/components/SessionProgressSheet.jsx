@@ -24,6 +24,8 @@ const STEP_STATUS = {
  * @param {number} props.wordRangeStart - Start of word range
  * @param {number} props.wordRangeEnd - End of word range
  * @param {number|null} props.newWordsTestScore - Score from new words test
+ * @param {number} [props.retakeThreshold=0.95] - Fraction (0-1) required to pass the new words
+ *   test; rendered as a percentage in the step description. Caller-supplied, never re-derived here.
  * @param {number|null} props.reviewTestScore - Score from review test
  * @param {number} props.cardsRemaining - Cards left to study
  * @param {number} props.cardsDismissed - Cards dismissed
@@ -38,6 +40,7 @@ export default function SessionProgressSheet({
   wordRangeStart,
   wordRangeEnd,
   newWordsTestScore = null,
+  retakeThreshold = 0.95,
   reviewTestScore = null,
   cardsRemaining = 0,
   cardsDismissed = 0,
@@ -79,7 +82,7 @@ export default function SessionProgressSheet({
     {
       id: 'new_word_test',
       label: 'New Words Test',
-      description: '95% required to pass',
+      description: `${Math.round(retakeThreshold * 100)}% required to pass`,
       phase: 'new_word_test',
       score: newWordsTestScore
     },

@@ -1712,6 +1712,7 @@ const MCQTest = () => {
           onClose={() => setShowProgressSheet(false)}
           currentPhase={currentTestType === 'new' ? 'new_word_test' : 'review_test'}
           isFirstDay={sessionContext?.isFirstDay}
+          retakeThreshold={retakeThreshold}
         />
       </main>
     )

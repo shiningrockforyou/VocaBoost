@@ -209,7 +209,7 @@ const HelpModal = ({ isOpen, onClose, isTeacher = false }) => {
                   <span className="w-6 h-6 rounded-full bg-brand-primary text-white text-xs font-bold flex items-center justify-center">2</span>
                   <div>
                     <p className="font-semibold text-sm text-text-primary">New Words Test</p>
-                    <p className="text-xs text-text-muted">Must score 95% to continue (retake if needed)</p>
+                    <p className="text-xs text-text-muted">Must reach your class's passing score to continue (retake if needed)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
