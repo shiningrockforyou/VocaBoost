@@ -163,7 +163,7 @@ these were written *because* the process was reinvented badly each time.
 - React 19 + Vite 7 + React Router v7
 - Firebase (Auth + Firestore) backend
 - Tailwind CSS v4
-- Cloud Functions for AI grading (OpenAI)
+- Cloud Functions for AI grading (**Anthropic Claude Haiku** — `@anthropic-ai/sdk`, model `claude-haiku-4-5-20251001`, secret `ANTHROPIC_API_KEY`; NOT OpenAI — corrected 2026-08-04 per `functions/index.js:18,1442`)
 
 ## File Organization
 - Pages: `/src/pages/`
