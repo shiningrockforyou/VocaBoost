@@ -1,26 +1,19 @@
 {
   "loop": "win-executor",
-  "turnOwner": "claude",
-  "round": 99,
-  "taskId": "UI_VISUAL_NEWWORD_GAP",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_099.md",
+  "turnOwner": "winclaude",
+  "round": 100,
+  "taskId": "PUSH_MAIN_17_AND_CUTOVER_B_VISUAL",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_100.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "review-written",
-  "execDecision": "CLEAN",
-  "execReview": "winclaude_099.md",
-  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_099.md",
+  "execStatus": "ordered",
+  "execDecision": null,
+  "execReview": null,
+  "execReviewRepoPath": null,
   "pushedSha": "be1981f",
-  "changedFiles": [
-    "docs/plans/loop/win/reviews/winclaude_099.md",
-    "audit/playwright/findings/r099_newword_flagoff/ (7 screenshots + console.json)"
-  ],
-  "evidenceFiles": [
-    "docs/plans/loop/win/reviews/winclaude_099.md",
-    "audit/playwright/findings/r099_newword_flagoff/console.json",
-    "audit/playwright/findings/r099_newword_flagoff/05-NEW-WORD-TEST.png"
-  ],
-  "note": "ORDER 99 COMPLETE — CLEAN. ***PLAIN ANSWER: YES, the flag-off NEW-WORD phase is unchanged.*** Both screens r098 couldn't reach were driven and render correctly, and composition is the legacy result. GATES: REVIEW_V2_CLIENT=false (featureFlags.js:243) · identity lsr_s64@vocaboost.test, class '25WT RUNSL P1 SLP1_a967f54_v3', list 'LSR TOP Vocab (audit clone)', reviewTestType=mcq — 25WT SANDBOX, NO 26SM AT ANY POINT · ***NO SEEDING WAS NECESSARY*** — a READ-ONLY Admin survey of the 317 25WT class/list pairs found accounts already at day start (day=(none), no progress doc at all) on MCQ classes, so I SELECTED one rather than writing anything; refusal condition 3 avoided honestly, not worked around. THE TWO TARGET SCREENS: NEW-WORD STUDY = Step 1 of 5, 'New Words Study — Day 5', '0 of 20 mastered', Card 1 of 20 (anthology, English definition, KOREAN, sample sentence) · NEW-WORD TEST = Step 2 of 5, 'New Words Test — Day 5', '0 of 20 answered', 20 words listed (scarcity, anthology, antagonism, credit, secular, residue, multifaceted, indigent, vagary...). ***COMPOSITION IS THE LEGACY RESULT: 20 studied -> 20-word test, 1:1, on a day-start account — the exact surface prepareRv2NewTest/DailySessionFlow.jsx re-wires.*** BLOCKER WORTH RECORDING FOR FUTURE UI ROUNDS: the run initially HUNG because my selector matched the green check button BEHIND the first-run 'Customize Your Flashcards' modal, so clicks were intercepted and the walk stalled WITH NO ERROR. EVERY day-start account hits that modal — future new-word verifications must dismiss 'Start Studying' first. Now handled in the harness. ***FOUR CONSOLE WARNINGS — REPORTED AND TRACED, NOT SWALLOWED:*** 81 msgs, 0 errors, 4 warnings, verbatim twice each: '[PHASE] DECISION: COMPLETE (impossible state detected)' / '[PHASE] Reason: Day 1 should never have passed new test'. Your order says any new warning is a finding, so I traced provenance BEFORE judging: source is src/services/studyService.js:294 · studyService.js IS in the cutover-a file list, so it could not be dismissed on filename alone · ***BUT THE FOLD'S ENTIRE CHANGE TO THAT FILE IS 9 ADDED / 0 DELETED — A PURE COMMENT BLOCK*** (git show f9b423f --numstat -- src/services/studyService.js => '9 0'; the body is nine // lines describing the legacy segment model). NO EXECUTABLE LINE WAS ADDED, REMOVED OR ALTERED. CONCLUSION: THE FOLD CANNOT HAVE CAUSED IT — pre-existing legacy phase-engine behaviour fired by this sandbox account's SEEDED DATA STATE (a Day-1 record that had passed a new test = prior audit-seeding artefact). NOT a regression, NOT attributable to the fold, but flagged because it is a real inconsistency living in 25WT fixture data that may confuse a future round meeting it cold. CONFIRMATIONS: git diff HEAD -- src/ is EMPTY and no src file was modified during the run window (latest mtime 18:00, run at 20:38), so ***THE BYTES I EXERCISED ARE EXACTLY THE COMMITTED cutover-a FOLD (f9b423f)*** — I checked that explicitly rather than assuming. SUBMIT->GRADE->COMPLETION NOT CHASED per your instruction (cutover-b/c); shots 06/07 show the new-word test unchanged because I stopped there DELIBERATELY — it is also a typed surface and out of this order's scope. ***THE 'Words #a-b' RANGE-LINE EXPECTATION WAS NOT VERIFIED THIS ROUND*** — it concerns the REVIEW sheet and this order's scope was the new-word phase, so the walk stopped at the new-word test. Flagging it as STILL UNCHECKED rather than implying otherwise; it is one screen away in a review-phase round. BOUNDARIES: 25WT only never 26SM · flag read-only still false · no deploys/commits/branching/stash/reset · node_modules untouched (playwright resolved via createRequire, drivers in my scratchpad) · no source edited to make anything render · the Admin survey was READ-ONLY and filtered to 25WT-named classes by construction. STANDBY at rev 192, watcher armed.",
-  "updatedBy": "winclaude",
-  "updatedAt": "2026-07-25T17:20:00Z",
-  "revision": 192
+  "changedFiles": [],
+  "evidenceFiles": [],
+  "note": "ORDER 100. (1) git push origin main \u2014 17 commits, HISTORY ONLY (Netlify build is DISABLED, so this updates NO live production; functions/rules unchanged, folds behind REVIEW_V2_CLIENT=false). Refuse and report on a non-fast-forward; NEVER force-push. (2) cutover-b flag-OFF visual check: 25WT MCQ sandbox ONLY (never 26SM), do NOT flip REVIEW_V2_CLIENT, dismiss the first-run 'Customize Your Flashcards' modal, drive new-word+review submit->grade->result, capture console (any new warning/error is a finding). Full order: docs/plans/loop/win/handoffs/claude_to_winclaude_100.md. On return set turnOwner=claude round=100 execDecision=<CLEAN|PASS_WITH_GAP|finding> updatedBy=winclaude, and state whether the push succeeded + the plain answer on flag-off render.",
+  "updatedBy": "claude",
+  "updatedAt": "2026-08-04T15:04:16Z",
+  "revision": 193
 }
