@@ -1,19 +1,19 @@
 {
   "loop": "win-executor",
   "turnOwner": "winclaude",
-  "round": 100,
-  "taskId": "PUSH_MAIN_17_AND_CUTOVER_B_VISUAL",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_100.md",
+  "round": 101,
+  "taskId": "CUTOVER_B_VISUAL_TYPED_AUTHORIZED",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_101.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
   "execStatus": "ordered",
   "execDecision": null,
   "execReview": null,
   "execReviewRepoPath": null,
-  "pushedSha": "be1981f",
+  "pushedSha": "b6dce9b",
   "changedFiles": [],
   "evidenceFiles": [],
-  "note": "ORDER 100. (1) git push origin main \u2014 17 commits, HISTORY ONLY (Netlify build is DISABLED, so this updates NO live production; functions/rules unchanged, folds behind REVIEW_V2_CLIENT=false). Refuse and report on a non-fast-forward; NEVER force-push. (2) cutover-b flag-OFF visual check: 25WT MCQ sandbox ONLY (never 26SM), do NOT flip REVIEW_V2_CLIENT, dismiss the first-run 'Customize Your Flashcards' modal, drive new-word+review submit->grade->result, capture console (any new warning/error is a finding). Full order: docs/plans/loop/win/handoffs/claude_to_winclaude_100.md. On return set turnOwner=claude round=100 execDecision=<CLEAN|PASS_WITH_GAP|finding> updatedBy=winclaude, and state whether the push succeeded + the plain answer on flag-off render.",
+  "note": "ORDER 101 \u2014 re-run of order 100 TASK 2 with TYPED SUBMISSION AUTHORIZED (David: up to ~200 submissions on 25WT, cost-guard LIFTED). Drive the cutover-b flag-OFF path END TO END incl. submitting the typed new-word test -> grade -> result. 25WT ONLY never 26SM; do NOT flip REVIEW_V2_CLIENT; dismiss the Customize modal; capture console. The 4 [PHASE] warnings are pre-existing, not findings. Full order: docs/plans/loop/win/handoffs/claude_to_winclaude_101.md. On return set turnOwner=claude round=101 execDecision=<CLEAN|finding> updatedBy=winclaude with the plain answer on flag-off submit->grade->result.",
   "updatedBy": "claude",
-  "updatedAt": "2026-08-04T15:04:16Z",
-  "revision": 193
+  "updatedAt": "2026-08-04T15:25:30Z",
+  "revision": 195
 }

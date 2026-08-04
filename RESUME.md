@@ -20,7 +20,10 @@ is `docs/plans/deepfix2/_ledgers/`.
 **Nothing is deployed; nothing is activated.** `REVIEW_V2_CLIENT=false`. Production: functions STALE at
 `b54c6e5` · rules DEPLOYED (`384c9c7a…`, sha16 `f40f91fce3693b82`).
 
-**COMMITTED locally this session (`main`; NOT pushed — WSL can't push; `main` is 17 ahead of origin):**
+**COMMITTED + PUSHED this session (win order 100 pushed all 19 commits; `origin/main` == HEAD `b6dce9b`).**
+⚠ **COMMITTED ≠ DEPLOYED:** the committed `firestore.rules` (sha16 `4d8e511b`, w/ the namespace guard) and
+`functions/` changes are AHEAD of the DEPLOYED state (rules still `f40f91`, functions still `b54c6e5`) —
+they ship later via `functions-deploy-engine`, Codex-gated. "Production unchanged" = deployed, not committed.
 - `9d73e98` — **cutover-b-submit + namespace-reservation**, each AUDITOR-VERIFIED GO (Opus, level-4):
   - cutover-b-submit: client submit routes through engine `submitAttempt` behind the flag; adapter
     `reviewV2Submit.js` sends only `{presentationId, answers}`; recompose-once on `grade_unusable`. Pure
@@ -31,9 +34,12 @@ is `docs/plans/deepfix2/_ledgers/`.
 - (this commit) — CLAUDE.md operating-model section + this RESUME.
 
 ## PENDING (needs David / WinClaude)
-- **Win order 100 DRAFTED, NOT issued** (`docs/plans/loop/win/handoffs/claude_to_winclaude_100.md`): (1) push
-  `main` to origin — **moves origin forward by 17 commits**, so it awaits David's go; (2) the cutover-b
-  flag-OFF visual check. Baton NOT flipped. To issue: flip the win baton to round 100.
+- **Win order 100 DONE — PASS_WITH_GAP** (`docs/plans/loop/win/reviews/winclaude_100.md`): push SUCCEEDED
+  (all 19 commits on origin). The cutover-b VISUAL CHECK is BLOCKED at a COST boundary — the NEW-WORD test
+  is TYPED (reviewTestType governs only the REVIEW test), so submit→grade→result would bill real AI
+  grading; WinClaude's cost-guard stopped. **Submit→grade→result stays UNVERIFIED in a browser** (cutover-b's
+  acceptance criterion). **DAVID DECISION** (see `cutover-b-visual`): authorize one bounded typed submission,
+  OR make the new-word test MCQ-configurable, OR provide an account past the new-word gate on an MCQ class.
 - **Deferred bundle item:** the shared test-harness lib (`scripts/deepfix2/lib/fold-harness.mjs`) — modest
   savings (~100–200 lines/file, re-scoped by the plan-audit); the clean committed baseline now exists.
 

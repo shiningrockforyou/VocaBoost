@@ -1,0 +1,9 @@
+[click] dismiss flashcard-prefs modal
+[shot] 01-deck1-complete :: Step 1 of 5 20 New Words Study — Day 5 Progress 20 of 20 mastered All cards reviewed! You're ready to take the test. Take Test Study Again ⚡ Ready for
+[click] Take Test (1)
+[click] Start Test modal (1)
+[shot] 02-test1 :: Step 2 of 5 New Words Test — Day 5 Progress 0 of 20 answered 1. multifaceted (adj.) 2. anthology (n.) 3. reluctant (adj.) 4. allegory (n.) 5. credit (
+[modality] round 1: mcq=0 typedInputs=20
+[COST GUARD] round 1 test is TYPED — NOT submitting (typed grading bills real AI money). Stopping.
+[shot] 03-test1-TYPED-not-submitted :: Step 2 of 5 New Words Test — Day 5 Progress 0 of 20 answered 1. multifaceted (adj.) 2. anthology (n.) 3. reluctant (adj.) 4. allegory (n.) 5. credit (
+[shot] 04-final :: Step 2 of 5 New Words Test — Day 5 Progress 0 of 20 answered 1. multifaceted (adj.) 2. anthology (n.) 3. reluctant (adj.) 4. allegory (n.) 5. credit (
