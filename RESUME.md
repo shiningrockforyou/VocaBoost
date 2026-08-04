@@ -7,7 +7,7 @@ Monitor({command: "bash /app/scripts/deepfix2/baton-monitor.sh",
 ```
 Then `bash scripts/deepfix2/session-start.sh`. **The win baton was handed to WinClaude for ORDER 103 at the
 end of the last session** (batched flag-OFF visual checks: dashboard streak + df2-11 teacher modals). CHECK
-IF IT RETURNED — read `docs/plans/loop/win/baton.json` + `/tmp/deepfix2-baton-events.log`. **If order 103
+IF IT RETURNED — read `docs/plans/loop/win/baton.json` + the baton event log (path in CLAUDE.md's baton-monitor section). **If order 103
 returned: that is the top of the queue** — fold it (close `dashboard-streak-authority-visual` +
 `df2-11-teacher-ui-visual` in WORK_QUEUE), then continue.
 
