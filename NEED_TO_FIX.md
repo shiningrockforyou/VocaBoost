@@ -191,6 +191,28 @@ from a pre-flip blocker to a CARDED consumer-side defense-in-depth acceptance te
 ledger); this note records the shrink proposal, it does not enact it. See `20_RV2_NAMESPACE_RESERVATION.md`
 Codex question 3.
 
+**✅ VERIFIED 2026-08-04 (orchestrator, by re-reading the live code — the "confirm two sentences" step; the
+card HELD).** The shrink's foundation — that the CROSS-STUDENT pre-seed vector is closed and only a
+same-uid residual remains — is now verified against source, not asserted:
+1. **Cross-student cache read is FENCED at three layers.** `claimOrRecoverGradingJob` throws
+   `permission-denied` when `job.uid && job.uid !== uid` (`index.js:990-992`) BEFORE the `return_cached`
+   branch (`:994`); every graded job is uid-stamped at claim (`:1001` existing / `:1010` new) and
+   `grading_jobs` is **client-write-DENIED** (`firestore.rules:466-469` — "the grade cache must be
+   forge-proof; clients may NEVER create/update/delete"), so no client can plant a uid-less graded doc to
+   dodge the `job.uid &&` guard; and the namespace reservation refuses `rv2_` keys at the callable mouth
+   (`index.js:1101-1102`). A student cannot read another student's cached grade.
+2. **The residual is same-uid, self-directed, narrow.** The pre-AI idempotency check
+   (`readExistingAttemptForContext`, ownership-checked, `:1108-1111`) returns the caller's OWN bound
+   attempt on key reuse — so the simple reuse returns your own presentation-bound record (the card's "no
+   forgery value" holds for it). The one genuinely open sub-path is Branch-2 (a `grading_job` cached but
+   its attempt ABSENT — the grade-OK→attempt-write-lost window) returning a presentation-UNBOUND cached
+   grade on the LEGACY `return_cached` (`:1120`). Same-uid, self-directed; end-to-end exploitability on the
+   legacy completion is NOT resolved here (as the card already says).
+**Conclusion:** the cross-student BLOCKER is verified closed ⇒ the shrink (23 → a CARDED consumer-side
+acceptance test on the legacy `return_cached` branch, `index.js:1120`) rests on verified ground. The
+same-uid Branch-2 residual is what that carded test should target. **Still the Codex checkpoint's call to
+ratify the shrink — this verification supports it, it does not unilaterally enact it.**
+
 ---
 
 ## 21. ~~`grading_in_progress` is returned for a PERMANENT condition~~ **FIXED 2026-08-04** · client contract · (was: BLOCKS DF2-51; found by the typed-fix-audit independent audit, F3)
