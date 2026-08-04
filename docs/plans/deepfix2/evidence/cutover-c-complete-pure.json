@@ -1,18 +1,18 @@
 {
-  "kind": "cutover-b-submit-pure",
+  "kind": "cutover-c-complete-pure",
   "pass": true,
-  "total": 179,
+  "total": 118,
   "failed": 0,
   "reds": [],
   "sourceShas": {
-    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "src/services/reviewV2Complete.js": "82b5f9d61cec9645",
     "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
     "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
     "src/pages/MCQTest.jsx": "12be25b122c3e023",
     "src/pages/TypedTest.jsx": "dbddd00b6dcbe2df",
+    "src/pages/DailySessionFlow.jsx": "33c0a2185fa8382c",
     "src/config/featureFlags.js": "b619b6c3c24c006e",
-    "functions/index.js": "a814ae821e19df14",
-    "scripts/deepfix2/cutover-b-submit-fixtures.mjs": "d9ec71c458c02cd7"
+    "scripts/deepfix2/cutover-c-complete-fixtures.mjs": "324995659ebc097c"
   },
-  "at": "2026-08-04T17:15:11.339Z"
+  "at": "2026-08-04T17:11:57.879Z"
 }

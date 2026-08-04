@@ -1,0 +1,31 @@
+{
+  "kind": "cutover-c-complete-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C5-INVERT-ALREADY-COMPLETED",
+      "clause": "already_completed is a TERMINAL SUCCESS, never the error path (V3)",
+      "fixture": "PURE",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 118,
+      "failures": 7,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C4-DROP-CAS",
+      "clause": "a loser (an existing completion record) re-runs NOTHING — no double advance/graduate/streak (C3)",
+      "fixture": "EMULATOR",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 40,
+      "failures": 4,
+      "restoredOk": true
+    }
+  ],
+  "targetShas16": {
+    "src/services/reviewV2Complete.js": "82b5f9d61cec9645",
+    "functions/reviewV2/completion.js": "7c3a38476c869c0c"
+  },
+  "at": "2026-08-04T17:14:01.172Z"
+}

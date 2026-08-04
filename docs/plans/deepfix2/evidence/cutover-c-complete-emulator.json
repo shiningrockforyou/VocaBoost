@@ -1,0 +1,18 @@
+{
+  "kind": "cutover-c-complete-emulator",
+  "pass": true,
+  "total": 40,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/reviewV2Complete.js": "82b5f9d61cec9645",
+    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
+    "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
+    "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc",
+    "functions/reviewV2/completion.js": "7c3a38476c869c0c",
+    "functions/reviewV2/composer.js": "5c4d6bfef0b6fb90",
+    "scripts/deepfix2/cutover-c-complete-emulator.mjs": "f2958fe02e8a1bec"
+  },
+  "at": "2026-08-04T17:13:19.621Z"
+}

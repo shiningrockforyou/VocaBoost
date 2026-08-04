@@ -14,6 +14,10 @@ import { composeNewTestV2, composeReviewSessionV2, rv2DistractorPool, rv2TestCon
 // {presentationId, answers} to reviewV2SubmitAttempt — the SERVER grades and
 // writes the attempt. Dead imports while the flag is false — call-site gated.
 import { rv2McqAnswers, submitAttemptV2 } from '../services/reviewV2Submit'
+// CUTOVER-C COMPLETE (REVIEW_V2_CLIENT): route the test-driven day completion
+// through reviewV2CompleteDay — the SERVER advances the day + graduates +
+// credits the streak. Dead imports while the flag is false — call-site gated.
+import { rv2CompletionAttemptIds, completeDayV2 } from '../services/reviewV2Complete'
 import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
@@ -732,6 +736,15 @@ const MCQTest = () => {
         })
 
         let result
+        // CUTOVER-C COMPLETE (REVIEW_V2_CLIENT, flag-on only): hoisted OUT of
+        // the submit try below so the completion call site (~line 980) can
+        // read it — completion routes through the engine ONLY when THIS
+        // submission actually used the engine leg (rv2Handle && !rv2Fallback),
+        // the SAME test cutover-b already uses below to skip the legacy write
+        // branches. Flag-off rv2Handle is always null (line 627), so this
+        // stays false for its whole lifetime — zero flag-off behavioral
+        // change from the hoist.
+        let rv2Fallback = false
         try {
           // CUTOVER-B SUBMIT (REVIEW_V2_CLIENT, flag-on only): ONE call,
           // {presentationId, answers} ONLY (V1) — the SERVER grades against its
@@ -741,7 +754,6 @@ const MCQTest = () => {
           // the 06-29 outage root cause, and the client-counted denominator is
           // the 50-answers-reads-100% bug (V3). The legacy branches below are
           // the flag-off path, byte-identical to today.
-          let rv2Fallback = false
           if (rv2Handle) {
             const out = await submitAttemptV2({
               uid: user.uid, classId: classIdParam, listId,
@@ -973,62 +985,119 @@ const MCQTest = () => {
             }
 
             // [3] Complete session (CSD will increment)
-            const completion = await completeSessionFromTest({
-              userId: user.uid,
-              classId: classIdParam,
-              listId,
-              dayNumber: sessionContext.dayNumber,
-              isFirstDay: sessionContext.isFirstDay,
-              testType: currentTestType,
-              testResults: {
-                score: summary.score,
-                correct: summary.correct,
-                total: summary.total,
-                failed: summary.failed
-              },
-              // segment, interventionLevel, wordsIntroduced, wordsReviewed
-              // are now read from sessionStorage in completeSessionFromTest
-              // CS PR-3 · WI-1 (FORCED_PATHWAY): F3 engagement inputs for the hold-csd routing — the
-              // answered count of THIS review (non-empty studentResponse rows, the >=80% gate) + the
-              // review attempt id (recordReviewOutcome idempotency). Passed only under the flag on a
-              // review submit → flag-off the call is byte-identical to today.
-              ...(FORCED_PATHWAY && currentTestType === 'review' ? {
-                reviewAnswered: answerArray.filter(a => String(a?.studentResponse ?? '').trim() !== '').length,
-                // FIX 3: thread a STABLE non-null idempotency key — fall back to the deterministic
-                // attemptDocId (the exact id the attempt is written under) when result.id is null, so
-                // recordReviewOutcome's whole-window scan never misses on an absent key.
-                reviewAttemptId: result?.id ?? attemptDocId
-              } : {})
-            })
-            // Day-2+ gate: if this day's new-word test wasn't passed, the day does NOT
-            // complete. Don't present as finished — block and require a retake.
-            if (completion?.requiresNewWordRetake) {
-              console.warn('completeSessionFromTest: day not complete — new-word retake required')
-              setSubmitError('이 날을 완료하려면 먼저 새 단어 시험을 통과해야 합니다. (Day not complete — pass the new-word test first.)')
-              return
+            // CUTOVER-C COMPLETE (REVIEW_V2_CLIENT, flag-on only): when THIS
+            // submission actually used the engine leg (rv2Handle && !rv2Fallback
+            // — the SAME test cutover-b's submit branch above uses to skip the
+            // legacy write, line ~826), route completion through completeDay
+            // (V1: the server advances the day + graduates + credits the
+            // streak; the client sends the attempt IDS it resolved from THIS
+            // test flow — V2 — never a computed CSD/TWI/graduation/streak
+            // value). The legacy branch below is byte-identical to today.
+            if (rv2Handle && !rv2Fallback) {
+              const kind = rv2Handle.source === 'composeNewTest' ? 'new' : 'review'
+              // V2: the OTHER slot's id is not resolvable in-memory on a
+              // new-word day completing via the review submit (the 'new' test
+              // ran in an earlier, separate page mount) — resolve it BEFORE
+              // the completeDay call via the SAME query completeSessionFromTest
+              // already performs internally (getNewWordAttemptForDay), so both
+              // ids are in hand at/before the RPC, never after.
+              let dayNewTestAttemptId = null
+              if (kind === 'review') {
+                const dayNewAttempt = await getNewWordAttemptForDay(
+                  user.uid, classIdParam, listId, sessionContext.dayNumber,
+                  { listScope: LIST_SCOPED_RECON, expectedBase: sessionContext?.newWordStartIndex }
+                )
+                dayNewTestAttemptId = dayNewAttempt?.id ?? null
+              }
+              const ids = rv2CompletionAttemptIds({
+                kind, attemptId: result?.id ?? null, classId: classIdParam, dayNewTestAttemptId
+              })
+              const out = await completeDayV2({
+                classId: classIdParam, listId, logicalDay: sessionContext.dayNumber, ...ids
+              })
+              if (out.outcome === 'completed') {
+                console.log('Session completed successfully from MCQTest (engine)', { replayed: out.replayed })
+              } else if (out.outcome === 'legacy') {
+                // The engine stopped serving between the submit and this
+                // completion call (config_hold/review_v2_dark/the thrown
+                // trio) — the attempt is already saved via the engine submit
+                // leg above; completion could not run. Never silently claim
+                // success.
+                logSystemEvent('rv2_complete_legacy_fallback', {
+                  userId: user.uid, classId: classIdParam, listId, testType: 'mcq',
+                  via: out.via, status: out.status ?? null, code: out.code ?? null,
+                }, 'warning')
+                setSubmitError('앱이 업데이트되었습니다. 답안은 저장되었으니, 페이지를 새로고침한 뒤 이어서 진행해 주세요. (The app was updated — your answers are saved. Please reload the page to continue.)')
+                return
+              } else {
+                // blocked: no_evidence / day_guard_rejected / reset_in_progress /
+                // reset_epoch_mismatch / list_words_malformed / client_version_stale
+                // / unknown — render the reason. The attempt is already saved.
+                logSystemEvent('rv2_complete_blocked', {
+                  userId: user.uid, classId: classIdParam, listId, testType: 'mcq',
+                  status: out.status ?? null,
+                }, 'error')
+                setSubmitError(out.reason)
+                return
+              }
+            } else {
+              const completion = await completeSessionFromTest({
+                userId: user.uid,
+                classId: classIdParam,
+                listId,
+                dayNumber: sessionContext.dayNumber,
+                isFirstDay: sessionContext.isFirstDay,
+                testType: currentTestType,
+                testResults: {
+                  score: summary.score,
+                  correct: summary.correct,
+                  total: summary.total,
+                  failed: summary.failed
+                },
+                // segment, interventionLevel, wordsIntroduced, wordsReviewed
+                // are now read from sessionStorage in completeSessionFromTest
+                // CS PR-3 · WI-1 (FORCED_PATHWAY): F3 engagement inputs for the hold-csd routing — the
+                // answered count of THIS review (non-empty studentResponse rows, the >=80% gate) + the
+                // review attempt id (recordReviewOutcome idempotency). Passed only under the flag on a
+                // review submit → flag-off the call is byte-identical to today.
+                ...(FORCED_PATHWAY && currentTestType === 'review' ? {
+                  reviewAnswered: answerArray.filter(a => String(a?.studentResponse ?? '').trim() !== '').length,
+                  // FIX 3: thread a STABLE non-null idempotency key — fall back to the deterministic
+                  // attemptDocId (the exact id the attempt is written under) when result.id is null, so
+                  // recordReviewOutcome's whole-window scan never misses on an absent key.
+                  reviewAttemptId: result?.id ?? attemptDocId
+                } : {})
+              })
+              // Day-2+ gate: if this day's new-word test wasn't passed, the day does NOT
+              // complete. Don't present as finished — block and require a retake.
+              if (completion?.requiresNewWordRetake) {
+                console.warn('completeSessionFromTest: day not complete — new-word retake required')
+                setSubmitError('이 날을 완료하려면 먼저 새 단어 시험을 통과해야 합니다. (Day not complete — pass the new-word test first.)')
+                return
+              }
+              // [Codex-P1-3 / P1r4-1] Day-guard rejection: the day counter advanced elsewhere
+              // and this completion did NOT apply. The attempt itself is saved — do NOT
+              // present the completion as success. sessionCleared distinguishes a clean
+              // rebuild from a SURVIVING stale session doc (deletion failed twice — needs
+              // reload/recovery, already escalated to system_logs as error).
+              if (completion?.requiresSessionRebuild) {
+                console.warn('completeSessionFromTest: day-guard rejection — session rebuild required', { sessionCleared: completion?.sessionCleared })
+                setSubmitError(completion?.sessionCleared
+                  ? '세션 정보가 갱신되었습니다. 답안은 저장되었으니, 학습 화면으로 돌아가 이어서 진행해 주세요. (Your session was refreshed — your answers are saved. Return to the study screen to continue.)'
+                  : '답안은 저장되었지만 세션을 초기화하지 못했습니다. 페이지를 새로고침해 주세요 — 문제가 반복되면 선생님께 알려 주세요. (Your answers are saved, but the session could not be reset. Please reload the page — tell your teacher if this repeats.)')
+                return
+              }
+              // [deepfix F-4] Evidence-free completion refused by the server (no passed new-word
+              // anchor + not a review-only day) — or an unknown status (fail-closed). The attempt
+              // is saved but the day did NOT complete: block success and prompt to pass the
+              // new-word test / retry, never present success.
+              if (completion?.completionNotApplied) {
+                console.warn('completeSessionFromTest: completion not applied — blocking success', { reason: completion?.reason })
+                setSubmitError('아직 이 날을 완료할 수 없습니다. 답안은 저장되었어요. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요. (This day can\'t be completed yet — your answers are saved. Make sure the new-word test was passed, then retry; reload the page if this repeats.)')
+                return
+              }
+              console.log('Session completed successfully from MCQTest')
             }
-            // [Codex-P1-3 / P1r4-1] Day-guard rejection: the day counter advanced elsewhere
-            // and this completion did NOT apply. The attempt itself is saved — do NOT
-            // present the completion as success. sessionCleared distinguishes a clean
-            // rebuild from a SURVIVING stale session doc (deletion failed twice — needs
-            // reload/recovery, already escalated to system_logs as error).
-            if (completion?.requiresSessionRebuild) {
-              console.warn('completeSessionFromTest: day-guard rejection — session rebuild required', { sessionCleared: completion?.sessionCleared })
-              setSubmitError(completion?.sessionCleared
-                ? '세션 정보가 갱신되었습니다. 답안은 저장되었으니, 학습 화면으로 돌아가 이어서 진행해 주세요. (Your session was refreshed — your answers are saved. Return to the study screen to continue.)'
-                : '답안은 저장되었지만 세션을 초기화하지 못했습니다. 페이지를 새로고침해 주세요 — 문제가 반복되면 선생님께 알려 주세요. (Your answers are saved, but the session could not be reset. Please reload the page — tell your teacher if this repeats.)')
-              return
-            }
-            // [deepfix F-4] Evidence-free completion refused by the server (no passed new-word
-            // anchor + not a review-only day) — or an unknown status (fail-closed). The attempt
-            // is saved but the day did NOT complete: block success and prompt to pass the
-            // new-word test / retry, never present success.
-            if (completion?.completionNotApplied) {
-              console.warn('completeSessionFromTest: completion not applied — blocking success', { reason: completion?.reason })
-              setSubmitError('아직 이 날을 완료할 수 없습니다. 답안은 저장되었어요. 새 단어 시험을 통과했는지 확인한 뒤 다시 시도하거나, 문제가 계속되면 페이지를 새로고침해 주세요. (This day can\'t be completed yet — your answers are saved. Make sure the new-word test was passed, then retry; reload the page if this repeats.)')
-              return
-            }
-            console.log('Session completed successfully from MCQTest')
           } catch (completionErr) {
             console.error('Failed to complete session from test:', completionErr)
             // [deepfix P4 / persist C6-2 — DORMANT until the P6 rules cutoff] A permission-denied
