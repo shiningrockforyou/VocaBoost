@@ -30,6 +30,35 @@ question, **the default is to keep going**, not to report and wait.
   program in mind, or just this file and this brief?* Long context degrades enumeration — the sibling
   case you drop is the one that ships.
 
+## ⚡ FIRST THING, EVERY SESSION — ARM THE BATON MONITOR (before anything else)
+
+**Before session-start, before reading RESUME, before any work: arm the perpetual watcher.**
+
+```
+Monitor({command: "bash /app/scripts/deepfix2/baton-monitor.sh",
+         description: "DEEPFIX2 baton returns (win + codex)",
+         persistent: true, timeout_ms: 3600000})
+```
+
+**Why it is FIRST and not a footnote.** The old `baton-watcher.sh` appended to a log FILE. That is
+passive, and on 2026-08-04 it worked perfectly and still failed: it recorded win order 98 returning at
+09:56Z and the result sat unread for an hour, because nothing pinged. It was noticed only because David
+asked "are you checking for baton?". **A watcher whose output nobody is watching is not a watcher.**
+
+The monitor emits to STDOUT so the harness surfaces each change as a notification while you keep working.
+It fires on EVERY change — returned, handed off, verdict, unreadable — because silence must be
+unambiguous. If it is quiet, nothing changed; that is NOT the same as nothing going wrong.
+
+**Rules:**
+- Arm it once per session, first. If you are unsure whether it is armed, arm it again — a duplicate is
+  harmless, a missing one costs an hour.
+- **A returned baton is not a reminder to finish later — it is the top of the queue.** Read the review,
+  verify by re-execution, fold, THEN continue.
+- Never replace it with polling. Do not `sleep` waiting on a baton; the whole point is that you work
+  while it watches.
+- `baton-watcher.sh` (the log-file one) still runs from `session-start.sh` as a durable record. Keep
+  both: the log is the audit trail, the monitor is the alarm.
+
 ## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
 - **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,
   prints both batons, lists unfinished fold ledgers and uncommitted work.

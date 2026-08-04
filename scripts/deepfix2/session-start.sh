@@ -10,6 +10,10 @@ else
   SCRATCH=$(ls -td /tmp/claude-*/-app/*/scratchpad 2>/dev/null | head -1)
   [ -n "$SCRATCH" ] || SCRATCH=/tmp
 fi
+echo "=== 0. IS THE EVENT MONITOR ARMED? (CLAUDE.md: the FIRST action of any session) ==="
+echo "   The log-file watcher below is the AUDIT TRAIL, not the alarm. If you have not armed the"
+echo "   harness Monitor on scripts/deepfix2/baton-monitor.sh this session, ARM IT NOW — a passive"
+echo "   watcher let win order 98 sit unread for an hour on 2026-08-04."
 echo "=== 1. WATCHER (relaunch first-thing, always) ==="
 if pgrep -f "deepfix2/baton-watcher.sh" | grep -qv "^$$\$"; then
   echo "   already alive"
