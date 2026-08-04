@@ -35,9 +35,19 @@ predictable seq. Recomposing yields `_p2`, which a squatter can follow.
 
 **Fix direction (with card 19 — they should be decided together):** the real defect is that a *global*
 collection accepts client creates at server-derived names. Options: deny client creates matching the
-`rv2_` prefix in rules (cheap, rules-only, and the prefix is already server-reserved by convention);
+`rv2_` prefix in rules (cheap, and the prefix is already server-reserved by convention);
 or require the docId to bind to the caller (rules cannot parse ids, so this means a different id scheme);
 or move attempts to a uid-scoped subcollection (the DF2-46 direction, far larger).
+
+**⚠ CORRECTION 2026-08-04 (`20_ENGINE_NAMESPACE_RESERVATION.md` §2) — "rules-only" is INSUFFICIENT.**
+The `attempts` create surface has a SECOND, rules-BYPASSING vector: the live `submitVocabAttempt` callable
+takes a client-supplied `context.attemptDocId` (`functions/index.js:532`), `assertCanWriteAttempt` never
+checks the docId SHAPE (`:306-313`), and `writeAttempt` writes `attempts/{that id}` via the **Admin SDK**,
+which bypasses `firestore.rules` entirely (`:471`). A rules-only `rv2_` deny leaves this open — an
+enrolled classmate squats `attempts/rv2_{victim}_{pid}` through the callable, independent of
+`REVIEW_V2_CLIENT`. So the fix reserves `^rv2_` at THREE boundaries, not one: rules attempts-create (G1),
+`submitVocabAttempt`/`writeAttempt` (G2), and — the card-19 leg — `gradeTypedTest` (G3). This is why 19+22
+are one fold, not two. See the design doc for the vectors, the guards, and the retrospective scan.
 
 **Rehearsal note:** the collision fix removed the *accidental* collisions that would have surfaced this
 class of failure during 25WT. The rehearsal must therefore test squatting **deliberately** — it will no
@@ -134,6 +144,20 @@ assume the engine's finding transfers without re-deriving it on this path.
 **Relationship to the other cards.** Same root as 19 (`gradejob-namespace`): a client-nameable key into a
 server-trusted cache. If 19 is fixed by reserving the key namespace at the source, this may close with it —
 which is an argument for doing 19 at the source rather than only consumer-side.
+
+**⚠ UPDATE 2026-08-04 (namespace-reservation fold, `20_RV2_NAMESPACE_RESERVATION.md` Leg 3) — the source
+fix (G3) has LANDED IN-TREE (not deployed).** `gradeTypedTest` now refuses a client-supplied
+`rv2_`-prefixed `attemptDocId` BEFORE the grading-job claim (`functions/index.js
+assertNotEngineReservedDocId`), so the pre-seeding LEVER this card's exploit depends on dies at the
+source for the engine's `rv2_*` keys: a client can no longer cache into them. **What that leaves — and it
+is a PROPOSED shrink, decided at the Codex checkpoint, not asserted closed here:** legacy-on-legacy
+pre-seeding at a `{uid}_{testId}_{nonce}` key still requires predicting another student's client nonce
+(`testRecovery.js:175` — ms-timestamp + 9 base36 chars), and the residual self-seed caches a genuine
+grade of the caller's OWN answers (no forgery value). If the checkpoint accepts Leg 3, this card SHRINKS
+from a pre-flip blocker to a CARDED consumer-side defense-in-depth acceptance test on the legacy
+`return_cached` branch (`functions/index.js:1052`). **Not implemented in this fold** (E1 of the fold
+ledger); this note records the shrink proposal, it does not enact it. See `20_RV2_NAMESPACE_RESERVATION.md`
+Codex question 3.
 
 ---
 
@@ -305,6 +329,23 @@ a different blast radius, needing its own fold, its own fixtures and its own dep
 **Option if it is ever wanted:** refuse a client-supplied `attemptDocId` matching `^rv2_` in
 `gradeTypedTest` (server-reserved prefix), with a fixture proving the legacy client flow is unchanged.
 Defense in depth only — not a prerequisite for the engine, which fails closed without it.
+
+**⚠ UPDATE 2026-08-04 (namespace-reservation fold, `20_RV2_NAMESPACE_RESERVATION.md`) — that "option"
+was UNDER-CLASSIFIED (this card is a PRE-FLIP BLOCKER, and the denial path above proves the refusal is
+load-bearing, not defense-in-depth), and it is now IMPLEMENTED IN-TREE at the source:** `gradeTypedTest`
+refuses a client-supplied `rv2_`-prefixed `writeContext/gradeContext.attemptDocId` with
+`invalid-argument` BEFORE the idempotency read and BEFORE `claimOrRecoverGradingJob` can touch the key
+(G3) — the SAME fix family, via the SAME shared validator (`functions/index.js
+assertNotEngineReservedDocId`), as card 22's `submitVocabAttempt` guard (G2), with the rules leg (G1)
+denying the client-direct path on all write verbs. One root cause, one fold. Fixtures:
+`scripts/deepfix2/namespace-reservation-emulator.mjs` (refusal per boundary + legacy-shape byte-parity +
+unchanged cached/lease paths). **NOT DEPLOYED — this card stays OPEN until the functions+rules deploy
+lands** (E2 of the fold ledger; ordering-deploys + Codex FINAL GATE + David's authority).
+**Cross-reference NTF 23:** with G3 in place, 23's pre-seeding lever dies at the source — a client can no
+longer cache into `rv2_*` job keys, and legacy-on-legacy pre-seeding requires predicting another
+student's nonce (`testRecovery.js:175` — ms-timestamp + 9 base36 chars). The proposed shrink of 23 to a
+carded consumer-side defense-in-depth item is Leg 3 / Codex question 3 of the canonical design — a
+checkpoint decision, not assumed here.
 
 ---
 

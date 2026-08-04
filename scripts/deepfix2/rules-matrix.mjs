@@ -9,6 +9,15 @@
  * still holds the UNSHIPPED P10 cutover and IS the configured deploy path (an
  * attempt to move it off that path was reverted; see 17_ §7b).
  *
+ * [D3 TRUTH REPAIR, 2026-08-04 — the "/app/firestore.rules holds the UNSHIPPED
+ * P10 cutover" clause above is STALE as of the r97 deploy (2026-08-03) and is
+ * kept only as history: order 97 staged the MERGED ARTIFACT into that deploy
+ * slot and production now runs it (ruleset 384c9c7a…); the P10 draft was
+ * preserved at audit/deepfix/task3/firestore.p10d.rules. Since the
+ * namespace-reservation fold, /app/firestore.rules + firestore.merged.rules +
+ * firestore.live.rules are edited in LOCKSTEP (byte-identical), so running
+ * against the merged artifact IS running against the deploy path.]
+ *
  * LIVE-BASE ADAPTATIONS (documented, per the spec's own CLAUSE 5 note (b) and
  * the "preserved AS FOUND in the live base" NOTE):
  *   - Case 7: the live base legally allows plain client attempt create /
@@ -140,6 +149,15 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   b.set(db.doc("attempts/a_manual"), {
     studentId: "student1", teacherId: "teacher1", score: 100, passed: true,
     manualOverride: true, manualReviewNote: "CS manual pass",
+  });
+  // [NTF 19+22 · G1] a document ALREADY in the reserved rv2_ namespace (models
+  // a pre-guard squat or an engine-written doc), seeded rules-disabled so the
+  // update/delete/teacher verbs can be probed against a doc that EXISTS. Plain
+  // fields, NO engine stamps — so pre-G1 the owner answers-only update and the
+  // owner delete were LEGAL on it; CASE RV asserts the NAME alone now denies.
+  b.set(db.doc("attempts/rv2_squat_prior"), {
+    studentId: "student1", teacherId: "teacher1", score: 10, passed: false,
+    answers: [], totalQuestions: 1,
   });
   // system_config: the seeded dark doc
   b.set(db.doc("system_config/review_v2"), { enabled: false, threshold: 92, configVersion: 1 });
@@ -288,12 +306,48 @@ await ok("GJ15 the engine cache SURVIVED every write above (field-by-field)", s1
   if (v.payload?.answerSheetKey !== "sheet-hash") throw new Error("sheet key mutated");
   if (v.payload?.results?.[0]?.isCorrect !== false) throw new Error("verdict flipped");
 }));
-// THE PREMISE OF THE CONSUMER-SIDE REPLAY CHECK [A4], pinned rather than
-// asserted in prose: `attempts/rv2_{uid}_{presentationId}` is an ORDINARY attempt id
-// to this ruleset, so a client CAN put a document there. That is exactly why
+// THE PREMISE OF THE CONSUMER-SIDE REPLAY CHECK [A4] — AS ORIGINALLY PINNED:
+// `attempts/rv2_{uid}_{presentationId}` WAS an ORDINARY attempt id to this
+// ruleset, so a client COULD put a document there — exactly why
 // reviewV2SubmitAttempt may not treat "a doc exists at this id" as provenance.
-await ok("GJ16 PREMISE: a client CAN create a plain attempt at an rv2_ docId (so the NAME proves nothing)", s1.doc("attempts/rv2_p_squat").set({ studentId: "student1", score: 100, passed: true, answers: [], totalQuestions: 0 }));
+// [G1 · NTF 19+22 fold, 2026-08-04] The namespace is now RESERVED: that same
+// create is DENIED BY NAME (isReservedEngineDocId — CASE RV below carries the
+// full verb set). The consumer-side provenance check STAYS load-bearing
+// (Admin-SDK writes and pre-guard documents remain possible), so GJ16 now
+// pins the rules half of the same fence from the other side:
+await deny("GJ16 the rv2_ attempt-id squat is DENIED BY NAME (pre-G1 this was the pinned ALLOW premise)", s1.doc("attempts/rv2_p_squat").set({ studentId: "student1", score: 100, passed: true, answers: [], totalQuestions: 0 }));
 await deny("GJ17 …but NOT one carrying the engine stamps the replay check demands", s1.doc("attempts/rv2_p_squat2").set({ studentId: "student1", score: 100, passed: true, resetEpoch: 0, presentationId: "p1", engineResult: { ok: true } }));
+
+// ── CASE RV [NTF 19+22 · G1]: THE RESERVED rv2_ NAMESPACE ON attempts — the
+//    permanent-denial squat (a classmate creates attempts/rv2_{victim}_{pid};
+//    the victim's engine submit then fails closed FOREVER via
+//    isEngineAttemptFor, and delete is creator-only so the victim cannot
+//    clear it — NEED_TO_FIX 22). The name test rides EVERY write verb
+//    (set-merge on a nonexistent doc is a create in disguise), through ONE
+//    rules function (isReservedEngineDocId) so the verbs cannot drift apart.
+//    READ is deliberately untouched (RV14 reads as the owner — the engine
+//    client renders its own engine attempt). The false-DENY canary is RV7
+//    (with A21/9-a1): ordinary legacy ids must keep working.
+const VICTIM_ENGINE_ID = "attempts/rv2_student1_c1_l1_d3_e0_p1"; // uid-in-name = student1 (the victim)
+await deny("RV1 STRANGER creates at the victim's engine id with their OWN studentId (the NTF-22 squat)", s2.doc(VICTIM_ENGINE_ID).set({ studentId: "student2", score: 100, passed: true, answers: [], totalQuestions: 0 }));
+await deny("RV2 the NAMED VICTIM client-creates at its own engine id (rv2_ is server-only, not owner-writable)", s1.doc(VICTIM_ENGINE_ID).set({ studentId: "student1", score: 100, passed: true, answers: [], totalQuestions: 0 }));
+await deny("RV3 owner answers-only UPDATE on an existing rv2_-named doc (pre-G1 this shape was legal)", s1.doc("attempts/rv2_squat_prior").update({ answers: [{ wordId: "w1", isCorrect: true }] }));
+await deny("RV4 owner DELETE of an existing rv2_-named doc (the creator cannot clear the namespace either)", s1.doc("attempts/rv2_squat_prior").delete());
+await deny("RV5 SET-MERGE on a NONEXISTENT rv2_ id (create in different clothing)", s1.doc("attempts/rv2_student1_new_p9").set({ studentId: "student1", passed: true }, { merge: true }));
+await deny("RV6 TEACHER creates at an rv2_ id for self-as-student", t2.doc("attempts/rv2_teacher2_p1").set({ studentId: "teacher2", teacherId: "teacher2", score: 100, passed: true }));
+await ok("RV7 NEGATIVE CONTROL: a legit {uid}_{testId}_{nonce} create still ALLOWS (the false-DENY canary)", s1.doc("attempts/student1_vbtest_1722770000123_ab12cd34e").set({ studentId: "student1", teacherId: "teacher1", score: 80, passed: true, answers: [], totalQuestions: 0 }));
+await deny("RV8 the manual-docId sibling clause SURVIVED the new clause (still denied)", s1.doc("attempts/rv8_check_manual").set({ studentId: "student1" }));
+await deny("RV9 BATCH create at an rv2_ id", (() => { const b = s2.batch(); b.set(s2.doc("attempts/rv2_student1_c1_l1_d3_e0_p2"), { studentId: "student2" }); return b.commit(); })());
+await deny("RV10 TRANSACTION create at an rv2_ id", s2.runTransaction(async (tx) => { tx.set(s2.doc("attempts/rv2_student1_c1_l1_d3_e0_p3"), { studentId: "student2" }); }));
+await deny("RV11 UNAUTH create at an rv2_ id", un.doc("attempts/rv2_student1_c1_l1_d3_e0_p4").set({ studentId: "student1" }));
+await deny("RV12 THIRD-PARTY student updates the existing rv2_-named doc", s2.doc("attempts/rv2_squat_prior").update({ answers: [] }));
+await deny("RV13 TEACHER-OF-RECORD updates the existing rv2_-named doc (the hoisted guard covers the sibling branch)", t1.doc("attempts/rv2_squat_prior").update({ answers: [{ wordId: "w1", isCorrect: true }], score: 100 }));
+await ok("RV14 the rv2_-named doc SURVIVED every refusal above — and the OWNER can still READ it (read verb untouched)", s1.doc("attempts/rv2_squat_prior").get().then((d) => {
+  const v = d.data() ?? {};
+  if (v.studentId !== "student1") throw new Error("owner mutated");
+  if (v.score !== 10) throw new Error(`score mutated: ${v.score}`);
+  if (!Array.isArray(v.answers) || v.answers.length !== 0) throw new Error("answers mutated");
+}));
 
 // ── CASE 9: REGRESSION SWEEP — every pre-existing allow still passes ─────────
 // users

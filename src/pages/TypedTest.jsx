@@ -21,6 +21,12 @@ import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, RECOVERY_GUARD, FORCED_PATHWAY
 // recompose a NEW presentation (fresh composeKey) instead of re-sampling
 // locally. Dead imports while the flag is false — every use is call-site gated.
 import { composeNewTestV2, composeReviewSessionV2, rv2ServedTypedWords, rv2TestConfigOverride } from '../services/reviewV2Compose'
+// CUTOVER-B SUBMIT (REVIEW_V2_CLIENT): an engine-composed test submits
+// {presentationId, answers} to reviewV2SubmitAttempt — the SERVER runs the AI
+// grade INSIDE the submit and writes the attempt, so the legacy TWO-call
+// sequence (gradeTypedTest → submitVocabAttempt) is dead on that path. Dead
+// imports while the flag is false — every use is call-site gated.
+import { rv2TypedAnswers, rv2RowsToTypedResults, submitAttemptV2 } from '../services/reviewV2Submit'
 import { STUDY_ALGORITHM_CONSTANTS, shuffleArray } from '../utils/studyAlgorithm'
 import {
   getTestId,
@@ -811,6 +817,12 @@ const TypedTest = () => {
         studentResponse: responses[word.id] || '',
       }))
 
+      // CUTOVER-B SUBMIT (REVIEW_V2_CLIENT): the engine presentation this
+      // on-screen test was composed from — null flag-off by construction, and
+      // null in practice mode (practice writes no attempt, so it keeps the
+      // legacy grade-only path; the engine submit would CREATE a real one).
+      const rv2Handle = (REVIEW_V2_CLIENT && !isPracticeMode) ? getRv2SubmitHandle() : null
+
       // G2: bind the grade to this attempt (deterministic attemptDocId — same nonce reused at the
       // write below) so the server can mint a gradeToken. totalQuestions = words.length to match the
       // write-time context. Used only when GRADE_TOKEN_ENFORCED is on; harmless otherwise.
@@ -821,19 +833,29 @@ const TypedTest = () => {
       }
 
       // Call Cloud Function for AI grading with retry logic
-      const gradingResult = await gradeWithRetry(answersToGrade, gradeContext)
+      // CUTOVER-B (flag-on only): the engine grades INSIDE reviewV2SubmitAttempt,
+      // so the legacy grade call must not also run — that would charge the AI
+      // twice for one submission. `let`: the engine leg re-grades lazily ONLY
+      // when the engine answers "not serving" and the submission falls back to
+      // the legacy path. Flag-off: today's call, byte-identical.
+      let gradingResult = rv2Handle ? null : await gradeWithRetry(answersToGrade, gradeContext)
 
       // Build results array for processTestResults
-      const resultsArray = gradingResult.data.results.map(r => ({
+      // CUTOVER-B (`let` + gate): flag-on these derive from the engine-written
+      // attempt's read-back (the client never holds a grade, V5) inside the
+      // write leg below. Flag-off: today's expressions, byte-identical.
+      let resultsArray = rv2Handle ? [] : gradingResult.data.results.map(r => ({
         wordId: r.wordId,
         correct: r.isCorrect
       }))
+      // The per-word rows the results screen renders (TestResults + gradedResults).
+      let displayedRows = rv2Handle ? [] : gradingResult.data.results
 
       // Summarize locally first (no I/O). Same numbers processTestResults
       // would have returned, computed without touching study_states yet.
       const correctCount = resultsArray.filter(r => r.correct).length
       const failedIds = resultsArray.filter(r => !r.correct).map(r => r.wordId)
-      const summary = {
+      let summary = rv2Handle ? null : {
         score: resultsArray.length > 0 ? correctCount / resultsArray.length : 0,
         correct: correctCount,
         total: resultsArray.length,
@@ -849,7 +871,9 @@ const TypedTest = () => {
       // (so a write retry that succeeds lands on the same results screen). Captures
       // summary + gradingResult from this handleSubmit invocation.
       const finalizeResultsView = () => {
-        if (currentTestType === 'new' && summary.score < retakeThreshold) {
+        // CUTOVER-B: flag-on the retake offer is the SERVER's verdict (set in
+        // the engine leg) — this local compare is the flag-off path only.
+        if (!rv2Handle && currentTestType === 'new' && summary.score < retakeThreshold) {
           setCanRetake(true)
         }
         // Safe to drop local recovery now: grading + attempt + study_states all
@@ -860,21 +884,29 @@ const TypedTest = () => {
           correct: summary.correct,
           total: summary.total,
           failed: summary.failed,
-          gradedResults: gradingResult.data.results,
+          // CUTOVER-B: displayedRows === gradingResult.data.results flag-off
+          // (same object); flag-on it is the engine attempt's read-back rows.
+          gradedResults: displayedRows,
           testType: currentTestType,
           serverPassed // C-23: authoritative stored verdict (null in practice mode)
         })
-        setResults(gradingResult.data.results)
+        setResults(displayedRows)
         setShowResults(true)
       }
 
       if (!isPracticeMode) {
         // Determine if student passed (review tests always pass)
-        const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+        // CUTOVER-B (`let` + gate): flag-on the NEW-test verdict becomes the
+        // SERVER's inside the engine leg; the review always-passes progression
+        // law is untouched (day completion is cutover-c). Flag-off: today's
+        // expression, never reassigned.
+        let passed = rv2Handle ? null : (currentTestType === 'review' ? true : summary.score >= retakeThreshold)
 
         // Get studyDay from sessionContext, or derive it if the launch lost context.
+        // CUTOVER-B: legacy-context assembly only (the server derives the day
+        // from its own presentation record) — skipped flag-on.
         let studyDay = sessionContext?.dayNumber
-        if (!studyDay && user?.uid && classIdParam && listId) {
+        if (!rv2Handle && !studyDay && user?.uid && classIdParam && listId) {
           try {
             const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
             const csd = progress.currentStudyDay || 0
@@ -922,7 +954,8 @@ const TypedTest = () => {
         // restored sessionStorage). Only CSD (review retake of the completed day)
         // and CSD+1 (the in-progress day) are legitimate stamps; anything else
         // would corrupt day-completion inference. Re-derive when clearly invalid.
-        if (sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
+        // CUTOVER-B: legacy-context only — skipped flag-on (see studyDay above).
+        if (!rv2Handle && sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
           try {
             const cpSnap = await getDoc(doc(db, `users/${user.uid}/class_progress`, `${classIdParam}_${listId}`))
             const csdNow = cpSnap.exists() ? (cpSnap.data().currentStudyDay || 0) : 0
@@ -940,6 +973,8 @@ const TypedTest = () => {
         // [PHASE 1] Write the attempt doc FIRST.
         // - Idempotent docId so withRetry / Try-Again overwrites the same doc
         //   instead of producing duplicates.
+        //   [CUTOVER-B D1] LEGACY leg only: flag-on the engine leg sends NO
+        //   docId — the server derives it (engineDocId) and replays idempotently.
         // - study_state mutations happen AFTER this succeeds, so a failed
         //   submit cannot leave word stats ahead of the gradebook.
         //
@@ -951,7 +986,9 @@ const TypedTest = () => {
         // gradeToken was actually minted against (additive field on the grade-only payload,
         // P3; absent from older deployed functions → nullish falls back to the local id).
         // Divergence should be impossible after F1 — the log is the tripwire, not a handler.
-        const serverEchoedAttemptDocId = gradingResult.data?.attemptDocId ?? null
+        // CUTOVER-B gate: flag-on there is no grade-only call and no client
+        // docId at all — the server derives the attempt id (engineDocId).
+        const serverEchoedAttemptDocId = rv2Handle ? null : (gradingResult.data?.attemptDocId ?? null)
         if (serverEchoedAttemptDocId && serverEchoedAttemptDocId !== gradeAttemptDocId) {
           logSystemEvent('nonce_identity_divergence', {
             userId: user.uid, classId: classIdParam, listId, testId,
@@ -967,7 +1004,114 @@ const TypedTest = () => {
         const doWriteAndFinalize = async () => {
         let result
         try {
-          if (SERVER_ATTEMPT_WRITE) {
+          // CUTOVER-B SUBMIT (REVIEW_V2_CLIENT, flag-on only): ONE call,
+          // {presentationId, answers} ONLY (V1) — the SERVER runs the AI grade
+          // INSIDE reviewV2SubmitAttempt and writes the attempt. The legacy
+          // TWO-call sequence (gradeTypedTest → submitVocabAttempt with the
+          // gradeToken fields) is dead on this path — its protection is
+          // SUBSUMED (V2): the attempt id is server-derived and no verdict
+          // reaches the client before the write. The legacy branches below
+          // are the flag-off path, byte-identical to today.
+          let rv2Fallback = false
+          if (rv2Handle) {
+            const out = await submitAttemptV2({
+              uid: user.uid, classId: classIdParam, listId,
+              logicalDay: rv2Handle.logicalDay,
+              kind: rv2Handle.source === 'composeNewTest' ? 'new' : 'review',
+              presentationId: rv2Handle.presentationId,
+              answers: rv2TypedAnswers(words, responses),
+            })
+            if (out.outcome === 'written') {
+              result = { id: out.attemptId }
+              // C-23 idiom: the stored attempt's verdict is what the card renders.
+              serverPassed = out.passed
+              passed = currentTestType === 'review' ? true : out.passed === true
+              // Per-word rows come from the engine-written attempt (the client
+              // never held a grade — V5). A failed/vanished read-back degrades
+              // to summary-only rendering; verdicts are never fabricated.
+              const rows = await fetchEngineAttemptRows(out.attemptId)
+              displayedRows = rv2RowsToTypedResults(rows)
+              resultsArray = displayedRows.map(r => ({ wordId: r.wordId, correct: r.isCorrect === true }))
+              summary = {
+                score: Number.isFinite(out.score) ? out.score / 100 : 0,
+                correct: Number.isFinite(out.correctCount) ? out.correctCount : 0,
+                total: Number.isFinite(out.totalQuestions) ? out.totalQuestions : 0,
+                failed: displayedRows.filter(r => r.isCorrect !== true).map(r => r.wordId)
+              }
+              if (currentTestType === 'new') setCanRetake(out.passed !== true)
+            } else if (out.outcome === 'recomposed') {
+              // grade_unusable ⇒ the adapter recomposed EXACTLY ONCE (A2). Swap
+              // the on-screen test to the fresh presentation and render the
+              // reason — the student retakes; NEVER an automatic resubmit loop.
+              logSystemEvent('rv2_grade_unusable_recomposed', {
+                classId: classIdParam, listId, testType: 'typed',
+                presentationId: rv2Handle.presentationId,
+              }, 'warning')
+              try {
+                if (out.compose.testType !== 'typed') throw new Error('recomposed testType mismatch')
+                const freshWords = await getSegmentWordsByIds(user.uid, listId, out.compose.presentedWordIds)
+                if (freshWords.length !== out.compose.presentedWordIds.length) {
+                  throw new Error('composed word id(s) missing from list')
+                }
+                updateRv2PresentationInBlob({
+                  presentationId: out.compose.presentationId, testType: out.compose.testType,
+                  logicalDay: out.compose.logicalDay, resetEpoch: out.compose.resetEpoch ?? null,
+                  source: rv2Handle.source,
+                })
+                // F4: honour the full served set — the engine sized this test.
+                const servedV2 = rv2ServedTypedWords(freshWords)
+                setOriginalWords(servedV2)
+                setWords(servedV2)
+                setResponses({})
+                setResults(null)
+                setFocusedIndex(0)
+                inputRefs.current = new Array(servedV2.length)
+                setError(out.reason)
+              } catch (swapErr) {
+                // The fresh test could not be prepared: the blob still holds the
+                // poisoned presentation, so a blind resubmit would refuse again
+                // (bounded — the once-guard is set). Reload rebuilds cleanly.
+                console.error('[RV2] recompose swap failed:', swapErr)
+                setGradingErrorKind('deterministic')
+                setGradingError(out.reason)
+              }
+              setIsSubmitting(false)
+              return
+            } else if (out.outcome === 'legacy') {
+              // Engine not serving mid-session (config_hold / review_v2_dark /
+              // the thrown trio): grade NOW (the engine leg skipped the
+              // grader) and fall into the legacy durable write below — the
+              // student's typed work is preserved and submitted as flag-off.
+              rv2Fallback = true
+              gradingResult = await gradeWithRetry(answersToGrade, gradeContext)
+              resultsArray = gradingResult.data.results.map(r => ({ wordId: r.wordId, correct: r.isCorrect }))
+              displayedRows = gradingResult.data.results
+              const fbCorrect = resultsArray.filter(r => r.correct).length
+              summary = {
+                score: resultsArray.length > 0 ? fbCorrect / resultsArray.length : 0,
+                correct: fbCorrect,
+                total: resultsArray.length,
+                failed: resultsArray.filter(r => !r.correct).map(r => r.wordId)
+              }
+              passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+            } else {
+              // blocked: render the reason; the typed work stays in state +
+              // localStorage. "Retry Save" re-runs THIS closure — the engine
+              // submit is replay-safe (idempotent) server-side, and no AI
+              // re-grade can occur (the engine leg never calls the grader).
+              logSystemEvent('rv2_submit_blocked', {
+                classId: classIdParam, listId, testType: 'typed',
+                status: out.status ?? null,
+              }, 'error')
+              pendingSaveRef.current = doWriteAndFinalize
+              setSubmitError(out.reason)
+              setIsSubmitting(false)
+              return
+            }
+          }
+          if (rv2Handle && !rv2Fallback) {
+            // Engine leg above already produced `result` + the server verdict.
+          } else if (SERVER_ATTEMPT_WRITE) {
             // Durable write via Cloud Function (server builds the doc, scores, and
             // persists transactionally + idempotently on attemptDocId). Same nonce-id
             // so a retry/lost-response is an idempotent no-op, not a duplicate.
@@ -1248,6 +1392,44 @@ const TypedTest = () => {
     setSubmitError(null)
     setIsSubmitting(true)
     pendingSaveRef.current()
+  }
+
+  // CUTOVER-B SUBMIT (flag-on only): the engine presentation this ON-SCREEN
+  // test was composed from. The sessionStorage blob is preferred because
+  // in-page retakes update it with the FRESH presentation while
+  // location.state keeps the stale one (cutover-a built the blob handle for
+  // exactly this — see updateRv2PresentationInBlob below); it also survives a
+  // mid-test reload, which location.state does not. Identity-checked against
+  // this page's class/list, and `source` must match the phase, so a stale
+  // blob can never mis-route a submit. Returns null when no engine handle
+  // exists ⇒ the legacy submit path runs (callers gate on REVIEW_V2_CLIENT).
+  const getRv2SubmitHandle = () => {
+    const wantSource = currentTestType === 'new' ? 'composeNewTest' : 'composeSession'
+    try {
+      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
+      const h = blob?.rv2Presentation
+      if (h?.presentationId && h.source === wantSource &&
+          blob.classId === classIdParam && blob.listId === listId) return h
+    } catch { /* absent/corrupt blob — fall through to location.state */ }
+    const h = testConfig?.rv2
+    return (h?.presentationId && h.source === wantSource) ? h : null
+  }
+
+  // CUTOVER-B (flag-on only): read the engine-written attempt back for the
+  // per-word result card — the client no longer holds a grade (the server
+  // graded inside the submit). Owner read is allowed by the attempts rules
+  // (studentId == auth.uid). Null on any failure ⇒ the caller degrades to
+  // summary-only rendering; verdicts are never fabricated client-side.
+  const fetchEngineAttemptRows = async (attemptId) => {
+    if (typeof attemptId !== 'string' || attemptId.length === 0) return null
+    try {
+      const snap = await getDoc(doc(db, 'attempts', attemptId))
+      const rows = snap.exists() ? snap.data()?.answers : null
+      return Array.isArray(rows) ? rows : null
+    } catch (readErr) {
+      console.warn('[RV2] attempt read-back failed — rendering summary only:', readErr)
+      return null
+    }
   }
 
   // RV2 (flag-on only): keep the sessionStorage blob's presentation handle

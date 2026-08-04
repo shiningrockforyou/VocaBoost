@@ -625,6 +625,14 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
       // uid and claiming THIS presentation; anything else fails CLOSED as
       // DATA with ZERO writes. Fixtures: lap CASE TR (pre-seeded · legacy
       // shaped · wrong presentation · foreign uid · the legitimate replay).
+      // [NAMESPACE RESERVED — 2026-08-04, NTF 19+22 fold] The squat ROUTES
+      // into this id space are now closed at their mouths: firestore.rules
+      // denies client create/update/delete at `rv2_`-named attempt ids (G1)
+      // and the live callables refuse client-supplied `rv2_` attemptDocIds
+      // (functions/index.js assertNotEngineReservedDocId — G2/G3). This
+      // provenance check STAYS — it is the consumer-side half of the fence,
+      // and it holds where the mouth guards do not apply (Admin SDK writes,
+      // documents predating the guards, a future rules regression).
       const stored = aSnap.data();
       if (!isEngineAttemptFor(stored, {uid, presentationId: d.presentationId})) {
         return {status: "presentation_invalid",

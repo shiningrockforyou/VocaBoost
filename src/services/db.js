@@ -1246,6 +1246,14 @@ const computeTeacherIdsClient = async ({ studentId, listId, stampTeacherId }) =>
  * Submit an MCQ test attempt and create a gradebook entry.
  * This creates an attempt document in the 'attempts' collection for teacher visibility.
  *
+ * [CUTOVER-B SUBMIT · D1 truth repair] LEGACY (flag-off) writer. Behind
+ * `REVIEW_V2_CLIENT`, an engine-composed test submits `{presentationId, answers}`
+ * to `reviewV2SubmitAttempt` (src/services/reviewV2Submit.js) — the SERVER grades
+ * against its own presentation record and the SERVER writes the attempt, so this
+ * client-side scorer/writer (and the client-supplied totalQuestions denominator)
+ * is dead code on that path. It remains the live path while the flag is false and
+ * whenever the engine reports not-serving mid-session.
+ *
  * @param {string} userId - User ID
  * @param {string} testId - Test ID
  * @param {Array} answers - Array of { wordId, word, correctAnswer, studentResponse, isCorrect }
@@ -1370,6 +1378,14 @@ export const submitTestAttempt = async (userId, testId, answers, totalQuestions 
 /**
  * Submit a typed test attempt and create a gradebook entry.
  * This creates an attempt document in the 'attempts' collection for teacher visibility.
+ *
+ * [CUTOVER-B SUBMIT · D1 truth repair] LEGACY (flag-off) writer — the second call
+ * of the legacy TWO-call typed sequence (gradeTypedTest → this). Behind
+ * `REVIEW_V2_CLIENT`, an engine-composed test submits `{presentationId, answers}`
+ * to `reviewV2SubmitAttempt` — the SERVER runs the AI grade INSIDE the submit and
+ * writes the attempt, so on that path the client never holds a grade and this
+ * writer is dead code. It remains the live path while the flag is false and
+ * whenever the engine reports not-serving mid-session.
  *
  * @param {string} userId - User ID
  * @param {string} testId - Test ID (format: "typed_{listId}_{timestamp}")

@@ -1,0 +1,31 @@
+{
+  "kind": "cutover-b-submit-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C4-UNBOUNDED-RECOMPOSE",
+      "clause": "grade_unusable recomposes EXACTLY ONCE (A2/C3)",
+      "fixture": "PURE",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 179,
+      "failures": 7,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C5-DROP-IDEMPOTENCY",
+      "clause": "a re-submit of the SAME presentation is a replay, never a second write (A1)",
+      "fixture": "EMULATOR",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 65,
+      "failures": 7,
+      "restoredOk": true
+    }
+  ],
+  "targetShas16": {
+    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc"
+  },
+  "at": "2026-08-04T14:33:02.113Z"
+}

@@ -39,6 +39,17 @@
  *    this answer sheet (`usableCachedResults` below, 18_ §5.6). Hardening the
  *    live key namespace AT ITS SOURCE is carded separately (ledger E1): it
  *    touches the path 947 students use today.
+ *    [NAMESPACE RESERVED — 2026-08-04, NTF 19+22 fold. The description above
+ *    is KEPT because it explains why this module trusts nothing derived from
+ *    the key.] That hardening has now landed at the source: the live
+ *    callables refuse any client-supplied `rv2_`-prefixed attemptDocId with
+ *    `invalid-argument` (functions/index.js `assertNotEngineReservedDocId` —
+ *    G2 submitVocabAttempt, G3 gradeTypedTest, checked BEFORE any read/claim/
+ *    write on the key), and firestore.rules denies client create/update/
+ *    delete at `rv2_`-named attempt ids (G1, all write verbs). The acceptance
+ *    test below REMAINS LOAD-BEARING as the consumer-side half of the fence —
+ *    it holds where the mouth guards do not apply (Admin SDK writes,
+ *    documents predating the guards, a future rules regression).
  *  - `claimOrRecoverGradingJob` / `persistGradingJobResult` are the LIVE
  *    production helpers (functions/index.js), reached through
  *    `exports._gradingJobs` — one lease protocol, not two.

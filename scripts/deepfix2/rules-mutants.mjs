@@ -116,6 +116,16 @@ const MUTANTS = [
     to: `        ;`,
   },
   {
+    id: "M16-rv2-namespace-guard-removed",
+    // Mutates the ONE function body all three verbs call (the M14 pattern):
+    // reverting it must redden the create cases (RV1/RV2/RV5/RV6/RV9-RV11 +
+    // GJ16), the update cases (RV3/RV12/RV13) AND the delete case (RV4) at
+    // once — a per-verb revert is impossible by construction.
+    why: "NTF 19+22 (G1) — rv2_ is the engine's server-derived id family; without the NAME test a classmate creates attempts/rv2_{victim}_{pid} and the victim's engine submit fails closed FOREVER (permanent denial), with update/delete reopening the same door in different clothing",
+    from: `      return attemptId.matches('rv2_.*');`,
+    to: `      return false;`,
+  },
+  {
     id: "M14-engine-stamps-dropped",
     // RE-POINTED [codex r78]: the four engine keys moved out of serverOnlyAttemptKeys()
     // into engineStampKeys() (which serverOnlyAttemptKeys() now .concat()s). The old

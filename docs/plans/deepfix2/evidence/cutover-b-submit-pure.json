@@ -1,0 +1,18 @@
+{
+  "kind": "cutover-b-submit-pure",
+  "pass": true,
+  "total": 179,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
+    "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
+    "src/pages/MCQTest.jsx": "c7446552d3034878",
+    "src/pages/TypedTest.jsx": "ad6b70d728f4255d",
+    "src/config/featureFlags.js": "b619b6c3c24c006e",
+    "functions/index.js": "a814ae821e19df14",
+    "scripts/deepfix2/cutover-b-submit-fixtures.mjs": "d9ec71c458c02cd7"
+  },
+  "at": "2026-08-04T14:29:15.890Z"
+}

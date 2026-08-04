@@ -1,0 +1,28 @@
+{
+  "kind": "namespace-reservation-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M-C5-DROP-G2",
+      "clause": "submitVocabAttempt refuses a client-supplied rv2_ attemptDocId (A2)",
+      "killed": true,
+      "fixtureExit": 1,
+      "green": 25,
+      "total": 31,
+      "restoredOk": true
+    },
+    {
+      "id": "M-C6-DROP-G3",
+      "clause": "gradeTypedTest refuses a client-supplied rv2_ attemptDocId on both context fields (A3)",
+      "killed": true,
+      "fixtureExit": 1,
+      "green": 22,
+      "total": 31,
+      "restoredOk": true
+    }
+  ],
+  "sourceShas": {
+    "index.js": "a814ae821e19df14"
+  },
+  "at": "2026-08-04T14:19:42.550Z"
+}

@@ -10,6 +10,10 @@ import { SERVER_ATTEMPT_WRITE, LIST_SCOPED_RECON, REENTRY_GUARD, RECOVERY_GUARD,
 // recompose a NEW presentation (fresh composeKey) instead of re-sampling
 // locally. Dead imports while the flag is false — every use is call-site gated.
 import { composeNewTestV2, composeReviewSessionV2, rv2DistractorPool, rv2TestConfigOverride } from '../services/reviewV2Compose'
+// CUTOVER-B SUBMIT (REVIEW_V2_CLIENT): an engine-composed test submits
+// {presentationId, answers} to reviewV2SubmitAttempt — the SERVER grades and
+// writes the attempt. Dead imports while the flag is false — call-site gated.
+import { rv2McqAnswers, submitAttemptV2 } from '../services/reviewV2Submit'
 import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
@@ -570,7 +574,10 @@ const MCQTest = () => {
       // study_states yet.
       const correctCount = results.filter(r => r.correct).length
       const failedIds = results.filter(r => !r.correct).map(r => r.wordId)
-      const summary = {
+      // CUTOVER-B (`let`, was `const`): flag-on the engine leg overrides these
+      // with the SERVER's verdict/denominator (V3) after the submit returns.
+      // Flag-off nothing reassigns them — behavior byte-identical.
+      let summary = {
         score: correctCount / results.length,
         correct: correctCount,
         total: results.length,
@@ -599,7 +606,10 @@ const MCQTest = () => {
       })
 
       // Determine if student passed (review tests always pass)
-      const passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
+      // CUTOVER-B (`let`, was `const`): flag-on the NEW-test verdict becomes the
+      // SERVER's after the engine submit; the review always-passes progression
+      // law is untouched (day completion is cutover-c). Flag-off: never reassigned.
+      let passed = currentTestType === 'review' ? true : summary.score >= retakeThreshold
 
       // C-23: authoritative verdict of the STORED attempt (server-computed under
       // SERVER_ATTEMPT_WRITE, the client-written doc's own value otherwise). Stays
@@ -608,6 +618,14 @@ const MCQTest = () => {
 
       // Submit attempt for gradebook (non-practice mode only)
       if (!isPracticeMode) {
+        // CUTOVER-B SUBMIT (REVIEW_V2_CLIENT): the engine presentation this
+        // on-screen test was composed from — null flag-off by construction, so
+        // every gate below reduces to today's condition. When present, the
+        // engine leg inside the try replaces the legacy write; the studyDay
+        // derivation below is legacy-context assembly only (the server derives
+        // the day from its own presentation record), so it is skipped flag-on.
+        const rv2Handle = REVIEW_V2_CLIENT ? getRv2SubmitHandle() : null
+
         // Get studyDay from sessionContext, or fetch from progress if standalone test
         console.log('[DEBUG STUDYDAY] Before determining studyDay:', {
           sessionContextExists: !!sessionContext,
@@ -616,7 +634,7 @@ const MCQTest = () => {
         });
 
         let studyDay = sessionContext?.dayNumber
-        if (!studyDay && user?.uid && classIdParam && listId) {
+        if (!rv2Handle && !studyDay && user?.uid && classIdParam && listId) {
           try {
             const { progress } = await getOrCreateClassProgress(user.uid, classIdParam, listId)
             const csd = progress.currentStudyDay || 0
@@ -671,7 +689,9 @@ const MCQTest = () => {
         // restored sessionStorage). Only CSD (review retake of the completed day)
         // and CSD+1 (the in-progress day) are legitimate stamps; anything else
         // would corrupt day-completion inference. Re-derive when clearly invalid.
-        if (sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
+        // CUTOVER-B: legacy-context only — flag-on the server stamps from its
+        // own presentation, so the guard (and its reads/logs) is skipped.
+        if (!rv2Handle && sessionContext?.dayNumber != null && user?.uid && classIdParam && listId) {
           try {
             const cpSnap = await getDoc(doc(db, `users/${user.uid}/class_progress`, `${classIdParam}_${listId}`))
             const csdNow = cpSnap.exists() ? (cpSnap.data().currentStudyDay || 0) : 0
@@ -691,6 +711,8 @@ const MCQTest = () => {
         // [PHASE 1] Write the attempt doc FIRST.
         // - Idempotent docId from a per-session nonce so withRetry / Try-Again
         //   overwrites the same doc instead of producing duplicates.
+        //   [CUTOVER-B D1] LEGACY leg only: flag-on the engine leg below sends
+        //   NO docId — the server derives it (engineDocId) and replays idempotently.
         // - study_state mutations (processTestResults) intentionally happen
         //   AFTER this succeeds, so a failed submit cannot leave word stats
         //   ahead of the gradebook (the audit's split-brain bug).
@@ -711,7 +733,92 @@ const MCQTest = () => {
 
         let result
         try {
-          if (SERVER_ATTEMPT_WRITE) {
+          // CUTOVER-B SUBMIT (REVIEW_V2_CLIENT, flag-on only): ONE call,
+          // {presentationId, answers} ONLY (V1) — the SERVER grades against its
+          // own presentation record and the SERVER writes the attempt
+          // (functions/reviewV2/callables.js reviewV2SubmitAttempt). No client
+          // attemptDocId, no client totalQuestions: the client-minted nonce was
+          // the 06-29 outage root cause, and the client-counted denominator is
+          // the 50-answers-reads-100% bug (V3). The legacy branches below are
+          // the flag-off path, byte-identical to today.
+          let rv2Fallback = false
+          if (rv2Handle) {
+            const out = await submitAttemptV2({
+              uid: user.uid, classId: classIdParam, listId,
+              logicalDay: rv2Handle.logicalDay,
+              kind: rv2Handle.source === 'composeNewTest' ? 'new' : 'review',
+              presentationId: rv2Handle.presentationId,
+              answers: rv2McqAnswers(testWords, currentAnswers),
+            })
+            if (out.outcome === 'written') {
+              result = { id: out.attemptId }
+              // C-23 idiom: the stored attempt's verdict is what the card renders.
+              serverPassed = out.passed
+              // The engine verdict + denominator are the SERVER's (V3). Review
+              // progression keeps the legacy always-pass law — day completion
+              // is cutover-c and must not move here.
+              passed = currentTestType === 'review' ? true : out.passed === true
+              summary = {
+                score: Number.isFinite(out.score) ? out.score / 100 : summary.score,
+                correct: Number.isFinite(out.correctCount) ? out.correctCount : summary.correct,
+                total: Number.isFinite(out.totalQuestions) ? out.totalQuestions : summary.total,
+                // Per-word study display stays the local option compare — the
+                // server returns no rows on the MCQ leg, and the local compare
+                // uses the same canonical definitions the options were built from.
+                failed: summary.failed
+              }
+              if (currentTestType === 'new') setCanRetake(out.passed !== true)
+            } else if (out.outcome === 'recomposed') {
+              // grade_unusable ⇒ the adapter recomposed EXACTLY ONCE (A2). Swap
+              // the on-screen test to the fresh presentation and render the
+              // reason — the student retakes; NEVER an automatic resubmit loop.
+              logSystemEvent('rv2_grade_unusable_recomposed', {
+                classId: classIdParam, listId, testType: 'mcq',
+                presentationId: rv2Handle.presentationId,
+              }, 'warning')
+              try {
+                if (out.compose.testType !== 'mcq') throw new Error('recomposed testType mismatch')
+                const freshWords = await getSegmentWordsByIds(user.uid, listId, out.compose.presentedWordIds)
+                if (freshWords.length !== out.compose.presentedWordIds.length) {
+                  throw new Error('composed word id(s) missing from list')
+                }
+                updateRv2PresentationInBlob({
+                  presentationId: out.compose.presentationId, testType: out.compose.testType,
+                  logicalDay: out.compose.logicalDay, resetEpoch: out.compose.resetEpoch ?? null,
+                  source: rv2Handle.source,
+                })
+                // F3: the fresh pool stays FULL — fresh presentation first, then
+                // the existing entry pool; never the presented subset alone.
+                const freshPool = rv2DistractorPool({ words: freshWords, poolWords: originalWords })
+                setOriginalWords(freshPool)
+                generateQuestions(freshWords, null, freshPool)
+                setError(out.reason)
+              } catch (swapErr) {
+                console.error('[RV2] recompose swap failed:', swapErr)
+                setSubmitError(out.reason)
+              }
+              setSubmitting(false)
+              return
+            } else if (out.outcome === 'legacy') {
+              // Engine not serving mid-session (config_hold / review_v2_dark /
+              // the thrown trio): the legacy submit below serves this
+              // submission — the student's answered test is preserved.
+              rv2Fallback = true
+            } else {
+              // blocked: render the reason; answers stay in state + localStorage,
+              // and a re-submit of the SAME presentation is replay-safe.
+              logSystemEvent('rv2_submit_blocked', {
+                classId: classIdParam, listId, testType: 'mcq',
+                status: out.status ?? null,
+              }, 'error')
+              setSubmitError(out.reason)
+              setSubmitting(false)
+              return
+            }
+          }
+          if (rv2Handle && !rv2Fallback) {
+            // Engine leg above already produced `result` + the server verdict.
+          } else if (SERVER_ATTEMPT_WRITE) {
             // Durable write via Cloud Function (server scores against totalQuestions —
             // skipped count as incorrect — and persists transactionally + idempotently).
             const context = {
@@ -972,6 +1079,27 @@ const MCQTest = () => {
       setSubmitting(false)
       console.log('[SUBMIT] Submission flow completed (submitting=false)')
     }
+  }
+
+  // CUTOVER-B SUBMIT (flag-on only): the engine presentation this ON-SCREEN
+  // test was composed from. The sessionStorage blob is preferred because
+  // in-page retakes update it with the FRESH presentation while
+  // location.state keeps the stale one (cutover-a built the blob handle for
+  // exactly this — see updateRv2PresentationInBlob below); it also survives a
+  // mid-test reload, which location.state does not. Identity-checked against
+  // this page's class/list, and `source` must match the phase, so a stale
+  // blob can never mis-route a submit. Returns null when no engine handle
+  // exists ⇒ the legacy submit path runs (callers gate on REVIEW_V2_CLIENT).
+  const getRv2SubmitHandle = () => {
+    const wantSource = currentTestType === 'new' ? 'composeNewTest' : 'composeSession'
+    try {
+      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
+      const h = blob?.rv2Presentation
+      if (h?.presentationId && h.source === wantSource &&
+          blob.classId === classIdParam && blob.listId === listId) return h
+    } catch { /* absent/corrupt blob — fall through to location.state */ }
+    const h = testConfig?.rv2
+    return (h?.presentationId && h.source === wantSource) ? h : null
   }
 
   // RV2 (flag-on only): keep the sessionStorage blob's presentation handle

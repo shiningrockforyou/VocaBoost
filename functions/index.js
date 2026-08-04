@@ -60,6 +60,20 @@ const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 // G2 (PLAN_server_authoritative_grading.md): HMAC secret binding an AI-graded typed result
 // to its attempt, so the write-failed-after-grade retry (via submitVocabAttempt) can persist
 // the SERVER-graded isCorrect without re-trusting client values. Set in Secret Manager.
+//
+// [CUTOVER-B SUBMIT · D2 truth repair, 2026-08-04] THE TOKEN IS SUBSUMED — NOT LOST —
+// BY THE REVIEW-V2 ENGINE, and both flags below stay FALSE (matching live prod; this
+// note changes no value). What the token existed to close was the gap the LEGACY typed
+// flow opens: the AI verdict travels to the CLIENT between gradeTypedTest and
+// submitVocabAttempt, bound to a CLIENT-minted attemptDocId nonce — the divergence that
+// caused the 06-29 outage when enforcement was armed. The engine path
+// (reviewV2SubmitAttempt, functions/reviewV2/callables.js) closes that gap at the root:
+// the attempt id is SERVER-derived (engineDocId(uid, presentationId) — callables.js:550)
+// and the grade is produced and written INSIDE the submit (typedGrading.js via
+// resolveTypedGrade), so no verdict ever reaches the client before the write and there
+// is no client docId to bind. There is nothing left for a token to protect on that path;
+// the engine neither mints nor verifies one. The token plumbing remains exactly as-is
+// for the LEGACY flow, whose re-arm conditions below are unchanged.
 const gradeTokenSecret = defineSecret("GRADE_TOKEN_SECRET");
 // Enforcement is STAGED OFF: when false, submitVocabAttempt behaves exactly as today for typed
 // (no rejection, no trusted marker) — the token mint/verify plumbing ships dormant. Flip true
@@ -275,6 +289,40 @@ async function readExistingAttemptForContext(uid, ctx) {
     throw new HttpsError("failed-precondition", "Attempt id reused across a different context");
   }
   return snap;
+}
+
+/**
+ * [NTF 19+22 · 20_RV2_NAMESPACE_RESERVATION.md Leg 1] THE `rv2_` NAMESPACE
+ * GUARD — the ONE shared validation both live callables run on every
+ * CLIENT-supplied attemptDocId BEFORE any Admin-SDK read or write keyed on it.
+ *
+ * `rv2_` is the engine's server-derived id family (reviewV2/composer.js
+ * `engineDocId` = `rv2_{uid}_{presentationId}`, used for BOTH `attempts` and
+ * `grading_jobs`). Those names are client-DERIVABLE (uids enumerate from
+ * `classes.studentIds`; presentationId has a small predictable seq) but must
+ * never be client-CHOOSABLE: a classmate who plants a document at another
+ * student's engine id converts the engine's CORRECT fail-closed provenance
+ * checks (`isEngineAttemptFor`, `usableCachedResults`, the grading-job uid
+ * fence at claimOrRecoverGradingJob) into a PERMANENT denial of that
+ * student's test — the victim can neither overwrite nor delete the squat.
+ *
+ * Denies nothing legitimate: legacy client ids are `{uid}_{testId}_{nonce}`
+ * (MCQTest.jsx / TypedTest.jsx) and a Firebase uid is 28-char alphanumeric
+ * (no underscore), so no legitimate id can enter the reserved prefix; the
+ * retrospective corpus scan found 0 rv2_-named docs across 41,688 attempts +
+ * 16,732 grading_jobs (rv2-docid-precondition-receipt.json). The ENGINE's own
+ * writes derive ids server-side and never pass through here (callables.js:551,
+ * typedGrading.js:270), and its internal grade-only invocation of
+ * gradeTypedTest sends NO writeContext/gradeContext (typedGrading.js
+ * defaultGrade), so this guard cannot refuse the engine. UNCONDITIONAL — a
+ * security guard, not flag-gated. firestore.rules carries the same
+ * reservation on the client-direct path (G1, all write verbs).
+ */
+function assertNotEngineReservedDocId(attemptDocId, field) {
+  if (typeof attemptDocId === "string" && attemptDocId.startsWith("rv2_")) {
+    throw new HttpsError("invalid-argument",
+        `${field} may not use the server-reserved rv2_ document-id prefix`);
+  }
 }
 
 /**
@@ -534,6 +582,12 @@ exports.submitVocabAttempt = onCall({enforceAppCheck: false, secrets: [gradeToke
     throw new HttpsError("invalid-argument", "attemptAnswers must be an array");
   }
   const uid = request.auth.uid;
+  // [NTF 22 · G2] The `rv2_` doc-id namespace is server-owned. Refuse a
+  // client-named engine id BEFORE the idempotency read and BEFORE the
+  // Admin-SDK write below (which bypasses firestore.rules — the vector a
+  // rules-only fix leaves open). Fixture: namespace-reservation-emulator.mjs
+  // (deny at rv2_, legit `{uid}_{testId}_{nonce}` byte-parity, replay).
+  assertNotEngineReservedDocId(context?.attemptDocId, "context.attemptDocId");
   // Idempotency / ownership: if already written, return it (no duplicate).
   const existing = await readExistingAttemptForContext(uid, context);
   if (existing) return normalizeExistingAttempt(existing);
@@ -1032,6 +1086,20 @@ exports.gradeTypedTest = onCall(
     if (answers.length > 100) {
       throw new HttpsError("invalid-argument", "maximum 100 answers per request");
     }
+
+    // [NTF 19 · G3] The `rv2_` doc-id namespace is server-owned. Refuse a
+    // client-named engine id BEFORE the idempotency read and BEFORE
+    // claimOrRecoverGradingJob can seed/claim `grading_jobs` at that key
+    // (the permanent-denial squat). BOTH context fields are checked, not the
+    // coalesced value alone: jobKey and bindCtx take `writeContext ||
+    // gradeContext`, and either field reaching ANY downstream use with a
+    // reserved name is the same defect — guard the sibling, not just the
+    // branch the reviewer named. The engine's internal grade-only call
+    // (typedGrading.js defaultGrade) sends NEITHER field, so this can never
+    // refuse the engine. Fixture: namespace-reservation-emulator.mjs (deny on
+    // each field, cached/lease/fresh legit paths unchanged).
+    assertNotEngineReservedDocId(writeContext?.attemptDocId, "writeContext.attemptDocId");
+    assertNotEngineReservedDocId(gradeContext?.attemptDocId, "gradeContext.attemptDocId");
 
     // PRE-AI idempotency (§12.2): if this attempt is already written, return it
     // BEFORE spending Anthropic tokens. Ownership-checked (§Codex).

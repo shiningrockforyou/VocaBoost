@@ -1,0 +1,17 @@
+{
+  "kind": "cutover-b-submit-emulator",
+  "pass": true,
+  "total": 65,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/reviewV2Submit.js": "2292090c813dcb00",
+    "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
+    "src/services/reviewV2Compose.js": "6e5923e678c73fe7",
+    "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc",
+    "functions/reviewV2/typedGrading.js": "21b5be28758c8893",
+    "functions/reviewV2/composer.js": "5c4d6bfef0b6fb90",
+    "scripts/deepfix2/cutover-b-submit-emulator.mjs": "78647c4525402029"
+  },
+  "at": "2026-08-04T14:31:45.169Z"
+}

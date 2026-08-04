@@ -1,0 +1,17 @@
+{
+  "kind": "namespace-reservation-emulator",
+  "pass": true,
+  "total": 31,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "index.js": "a814ae821e19df14",
+    "reviewV2/typedGrading.js": "21b5be28758c8893"
+  },
+  "guards": {
+    "G2": "submitVocabAttempt → assertNotEngineReservedDocId(context.attemptDocId)",
+    "G3": "gradeTypedTest → assertNotEngineReservedDocId(writeContext.attemptDocId, gradeContext.attemptDocId)"
+  },
+  "victimId": "rv2_student1_c1_l1_d3_e0_p1",
+  "at": "2026-08-04T14:18:33.779Z"
+}
