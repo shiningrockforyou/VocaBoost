@@ -45,6 +45,40 @@ longer happen by itself.
 
 ---
 
+## 25. TWO STREAK AUTHORITIES — the server writes one, the dashboard computes another, nothing connects them · dashboard/engine · **SURFACES AT THE FLIP** (found 2026-08-04)
+
+**What's exposed.** The engine already writes a server-side streak credit at day completion —
+`functions/reviewV2/completion.js:679`, `users/{uid}/streak_credits/{kstDate}` — under the frozen R2-21
+semantics: KST calendar basis, AT MOST one credit per date regardless of multi-advance/class/device,
+weekends skipped in gap computation, epoch-scoped, computed inside the day-advance transaction.
+
+Meanwhile the dashboard computes its **own** streak client-side: `calculateStreak`
+(`src/pages/Dashboard.jsx:37-123`) with its own weekend-skip logic, consumed at `:1399` as
+`progress.streakDays ?? calculateStreak(...)`.
+
+**`grep -rn "streak_credits" src/` returns NOTHING.** The client has never read the server's credit.
+
+**Why it matters at the flip.** Two independent authorities computing the same user-visible number, with
+different inputs (the client reads `recentSessions`; the server reads its own credit ledger) and different
+rules (the client takes `studyDaysPerWeek`; the server is fixed KST + weekend-skip). They can disagree,
+and **the student sees the client's**. This is exactly the "two-done-authorities" class DF2-33 exists to
+close, and DF2-33 is not started.
+
+**Why it is not in the cutover folds.** cutover-a/b/c/d re-wire the SESSION (compose → submit → complete).
+None of them touches the dashboard, which is a different surface reading different documents. After all
+four land, the dashboard would still be showing a client-computed streak while the server writes its own.
+
+**Fix direction.** Read the server credit when the engine owns the day, keeping the client calculation as
+the flag-off path — the same shape as every other cutover leg. Sequenced after `cutover-c-complete`,
+because the credit only exists once completion runs server-side.
+
+**Tracking note, and the reason this was invisible.** Dashboard work is split across THREE places that
+never reference each other: DF2-33 (one-affordance), DF2-10 leg 9 (the streak is server-computed), and
+DF2-51 ("Dashboard surface = DF2-51's leg"). It had **no work-queue row at all** and was in no fold's
+scope — so it was not late, it was simply unsequenced.
+
+---
+
 ## 24. BEHAVIOURAL CHANGE AT THE FLIP: today's failed NEW words no longer enter today's REVIEW · review-v2 engine · **NOT A DEFECT — but it must not be discovered during the rehearsal** (found 2026-08-04, cutover-a-compose)
 
 **Today (legacy).** `buildReviewQueue` takes `todaysNewFailed` as an explicit input and
