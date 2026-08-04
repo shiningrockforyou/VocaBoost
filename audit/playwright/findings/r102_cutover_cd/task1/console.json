@@ -1,0 +1,598 @@
+[
+ {
+  "type": "debug",
+  "text": "[vite] connecting..."
+ },
+ {
+  "type": "debug",
+  "text": "[vite] connected."
+ },
+ {
+  "type": "info",
+  "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+ },
+ {
+  "type": "info",
+  "text": "[vocaboost] build 25ec1fb (dirty) · main · 2026-08-04T09:12:33.981Z"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] getRecentAttemptsForClassList called: {userId: g7tSlixMfNPG2B1DMfXItSB7f1R2, classId: 01u09tKReSHEiJbhJIdQ, listId: EQ0Dc9rb7gvoerflHlnz, maxResults: 12}"
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] Executing Firestore query..."
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] Query returned: {attemptCount: 8, studyDays: Array(8), sessionTypes: Array(8)}"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG initializeDailySession: {progressCurrentStudyDay: 4, calculatedDayNumber: 5, totalWordsIntroduced: 100}"
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] getRecentAttemptsForClassList called: {userId: g7tSlixMfNPG2B1DMfXItSB7f1R2, classId: 01u09tKReSHEiJbhJIdQ, listId: EQ0Dc9rb7gvoerflHlnz, maxResults: 12}"
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] Executing Firestore query..."
+ },
+ {
+  "type": "log",
+  "text": "[RECONCILIATION] Query returned: {attemptCount: 8, studyDays: Array(8), sessionTypes: Array(8)}"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG initializeDailySession: {progressCurrentStudyDay: 4, calculatedDayNumber: 5, totalWordsIntroduced: 100}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG setSessionConfig: {dayNumber: 5, newWordStartIndex: 80, newWordCount: 0, startPhase: review-study}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 5"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 8"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 5: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: REVIEW_STUDY (mid-session resume)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: Day 2+, new test passed, no review test yet"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG setSessionConfig: {dayNumber: 5, newWordStartIndex: 80, newWordCount: 0, startPhase: review-study}"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG navigateToTest sessionConfig: {hasSessionConfig: true, segment: Object, dayNumber: 5, isFirstDay: false}"
+ },
+ {
+  "type": "log",
+  "text": "DEBUG MCQ Results: {testWordsCount: 25, answersCount: 25, results: Array(25)}"
+ },
+ {
+  "type": "log",
+  "text": "[DEBUG STUDYDAY] Before determining studyDay: {sessionContextExists: true, sessionContextDayNumber: 5, currentStudyDay: will fetch if needed}"
+ },
+ {
+  "type": "log",
+  "text": "[DEBUG STUDYDAY] Using sessionContext: {studyDay: 5}"
+ },
+ {
+  "type": "log",
+  "text": "[DEBUG STUDYDAY] Final studyDay for attempt: 5"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] Starting test submission with retry logic"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] Test data: {userId: g7tSlixMfNPG2B1DMfXItSB7f1R2, testId: vocaboost_test_01u09tKReSHEiJbhJIdQ_EQ0Dc9rb7gvoerflHlnz_review, attemptDocId: g7tSlixMfNPG2B1DMfXItSB7f1R2_vocaboost_test_01u09t…0Dc9rb7gvoerflHlnz_review_1785869007920_3lctgaa6w, answerCount: 25, totalQuestions: 25}"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] ✓ Submission completed successfully, attempt ID: g7tSlixMfNPG2B1DMfXItSB7f1R2_vocaboost_test_01u09tKReSHEiJbhJIdQ_EQ0Dc9rb7gvoerflHlnz_review_1785869007920_3lctgaa6w"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] Set attempt ID: g7tSlixMfNPG2B1DMfXItSB7f1R2_vocaboost_test_01u09tKReSHEiJbhJIdQ_EQ0Dc9rb7gvoerflHlnz_review_1785869007920_3lctgaa6w"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] ✓ Study states updated"
+ },
+ {
+  "type": "log",
+  "text": "[SNAPSHOT] Saved before completion: {dayNumber: 5, currentCSD: 4, currentTWI: 100}"
+ },
+ {
+  "type": "log",
+  "text": "completeSessionFromTest called: {userId: g7tSlixMfNPG2B1DMfXItSB7f1R2, classId: 01u09tKReSHEiJbhJIdQ, listId: EQ0Dc9rb7gvoerflHlnz, dayNumber: 5, isFirstDay: false}"
+ },
+ {
+  "type": "log",
+  "text": "Graduated 8 words to MASTERED"
+ },
+ {
+  "type": "log",
+  "text": "Session completed successfully from MCQTest"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] Showing test results to user"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[SUBMIT] Submission flow completed (submitting=false)"
+ },
+ {
+  "type": "log",
+  "text": "[CONTINUE] Cleared snapshot"
+ },
+ {
+  "type": "debug",
+  "text": "[vite] connecting..."
+ },
+ {
+  "type": "debug",
+  "text": "[vite] connected."
+ },
+ {
+  "type": "info",
+  "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+ },
+ {
+  "type": "info",
+  "text": "[vocaboost] build 25ec1fb (dirty) · main · 2026-08-04T09:12:33.981Z"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 1"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 1: {totalForDay: 1, hasNewTest: true, newTestPassed: true, newTestScore: 100, hasReviewTest: false}"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] ⚠️ DECISION: COMPLETE (impossible state detected)"
+ },
+ {
+  "type": "warning",
+  "text": "[PHASE] Reason: Day 1 should never have passed new test"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] determineStartingPhase called"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Day Number: 6"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Total attempts provided: 9"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Attempts for day 6: {totalForDay: 0, hasNewTest: false, newTestPassed: undefined, newTestScore: undefined, hasReviewTest: false}"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ✓ DECISION: NEW_WORDS_STUDY (fresh start)"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] Reason: No completed tests found for this day"
+ },
+ {
+  "type": "log",
+  "text": "[PHASE] ═══════════════════════════════════════"
+ }
+]

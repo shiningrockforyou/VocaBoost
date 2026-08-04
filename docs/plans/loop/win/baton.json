@@ -1,19 +1,26 @@
 {
   "loop": "win-executor",
-  "turnOwner": "winclaude",
+  "turnOwner": "claude",
   "round": 102,
   "taskId": "CUTOVER_C_D_FLAGOFF_VISUAL",
   "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_102.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "ordered",
-  "execDecision": null,
-  "execReview": null,
-  "execReviewRepoPath": null,
+  "execStatus": "review-written",
+  "execDecision": "CLEAN",
+  "execReview": "winclaude_102.md",
+  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_102.md",
   "pushedSha": "b6dce9b",
-  "changedFiles": [],
-  "evidenceFiles": [],
-  "note": "ORDER 102 \u2014 TWO batched flag-OFF visual checks on 25WT (do NOT flip REVIEW_V2_CLIENT). TASK 1 cutover-c: drive a full day to completion+advance on a 25WT MCQ class, confirm legacy completion renders/advances unchanged. TASK 2 cutover-d (LIVE UI \u2014 restyled the shared error banners): confirm the refusal/error banners render with design tokens (not unstyled) in BOTH light and dark; if reachable a grade_unusable recompose shows the fresh test not the full-page interstitial. 25WT only never 26SM; typed submission \u2264200 authorized; dismiss the Customize modal; capture console; the 4 [PHASE] warnings are pre-existing. Full order: docs/plans/loop/win/handoffs/claude_to_winclaude_102.md. On return set turnOwner=claude round=102 execDecision=<CLEAN|PASS_WITH_GAP|finding> updatedBy=winclaude with a plain answer per task.",
-  "updatedBy": "claude",
-  "updatedAt": "2026-08-04T18:35:44Z",
-  "revision": 197
+  "changedFiles": [
+    "docs/plans/loop/win/reviews/winclaude_102.md",
+    "audit/playwright/findings/r102_cutover_cd/ (task1 6 shots + task2 8 shots light/dark + consoles)"
+  ],
+  "evidenceFiles": [
+    "docs/plans/loop/win/reviews/winclaude_102.md",
+    "audit/playwright/findings/r102_cutover_cd/task1/05-after-continue.png",
+    "audit/playwright/findings/r102_cutover_cd/task2/04-dark-REFUSAL-BANNER.png"
+  ],
+  "note": "ORDER 102 — CLEAN on BOTH tasks. ***TASK 1: does flag-off day-completion render and advance unchanged? YES. TASK 2: do the refusal banners render correctly, tokenized, in light AND dark? YES.*** TASK 1 (cutover-c, lsr_s64 on 25WT RUNSL P1, MCQ review): Review Test 0->25 of 25 answered -> submitted -> RESULT 'Needs Attention, Low scores significantly slow your progress, 32%, 8 of 25 correct' with per-word breakdown -> ***'Step 5 of 5 DAY 5 COMPLETE Great Job!' with Session Summary (New Word Test 100%, Words Reviewed 25, Review Test 32%, Total Progress 100/3381)*** -> ***DASHBOARD ADVANCED: 'DAY 5 STEP 2 OF 2' => 'DAY 6 STEP 1 OF 2 Learn 20 new words'***. Also saw the legacy low-score branch: 'Resume Day 5? You scored 32%... Move On to Next Day / Retry Review Test'. CONSOLE 0 ERRORS (warnings = the pre-existing PHASE pair only). ***THIS ALSO ANSWERS MY r101 OPEN QUESTION:*** r101 flagged a TYPED test scoring 100% for garbage answers. THIS MCQ REVIEW TEST SCORED 32%, 8 OF 25, on arbitrary choices — SO GRADING DOES DISCRIMINATE, and the r101 anomaly is SPECIFIC TO THE TYPED GRADER, not grading in general. That narrows my earlier concern materially and is worth a deliberate typed-path retest. TASK 2 (cutover-d): METHOD — intercepted the Cloud Functions calls at the network layer and aborted them to force a real refusal; NO request reached the AI grader, so NO SPEND. Banner rendered correctly in BOTH themes (see task2/04-light-REFUSAL-BANNER.png and 04-dark-REFUSAL-BANNER.png): Korean+English \"Couldn't load your progress — please reload the page and try again.\" plus a Back to Dashboard action. ***TOKENIZED AND PROVABLY THEME-AWARE:*** identical class list (relative z-10 rounded-xl bg-error p-6 text-center) resolving to DIFFERENT backgrounds per theme — LIGHT rgb(254,242,242) vs DARK rgb(127,29,29). The bg-error token resolves per theme rather than being hard-coded; that is the proof it is tokenized, not unstyled. Visually confirmed in both: rounded corners, correct padding, readable text, properly styled orange action button. NOTHING renders broken or unstyled in either mode. ***ONE CORRECTION I CAUGHT ON MYSELF, RECORDED BECAUSE IT NEARLY BECAME A FALSE FINDING:*** the banner container's computed color is rgb(15,23,42) in BOTH themes, which looked like a dark-text-on-dark-red contrast failure. I OPENED THE ACTUAL SCREENSHOT BEFORE REPORTING IT — the painted text is salmon/red and clearly readable on the dark-red surface; the value I sampled was the CONTAINER's property, not the text element's. NO CONTRAST FINDING. I would have filed a wrong one had I trusted the number over the image. ***SCOPE NOTE — WHICH BANNER THIS IS:*** the abort trips the PROGRESS-LOAD refusal banner (resolveListProgress), one of the shared banners cutover-d tokenized. I tried to isolate a SUBMIT-specific refusal by narrowing the filter to gradeTypedTest/submitVocabAttempt/completeSession, but nothing matched those names and the run completed normally instead (0 errors, day completed) — SO THE SUBMIT-PATH BANNER SPECIFICALLY WAS NOT ISOLATED. Your order set banner-rendering + dark mode as the priority and both are covered; flagging the narrower gap rather than implying full coverage. grade_unusable -> recompose was NOT reachable deliberately, as your order anticipated. CONSOLE: 5 errors in each themed run, ALL 'Failed to load resource: net::ERR_FAILED' = MY OWN DELIBERATE ABORTS, not app defects. The unblocked task-1 run had 0 errors. BOUNDARIES: 25WT sandbox only (lsr_s64@vocaboost.test), never 26SM · REVIEW_V2_CLIENT read-only, still false · NO AI spend in task 2 (calls aborted before leaving the browser), task 1 used MCQ only · no deploys · no commits, branching, stash or reset · node_modules untouched · no source edited to make anything render · theme driven through the app's own vocaboost-theme localStorage key, no source change. STANDBY at rev 198, watcher armed.",
+  "updatedBy": "winclaude",
+  "updatedAt": "2026-08-05T00:00:00Z",
+  "revision": 198
 }
