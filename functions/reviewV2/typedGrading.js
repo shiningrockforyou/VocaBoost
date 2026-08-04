@@ -28,7 +28,7 @@
  *    space (client attempt nonces)". THAT WAS FALSE.] The LIVE grader takes
  *    its job key from CLIENT-SUPPLIED `writeContext/gradeContext.attemptDocId`
  *    (functions/index.js:1048-1051) with no namespace restriction, and the
- *    client knows its own presentationId (src/services/reviewV2Client.js:152).
+ *    client knows its own presentationId (src/services/reviewV2Client.js:173).
  *    `rv2_` is therefore a NAMING CONVENTION, not a namespace boundary: any
  *    student may claim and populate `rv2_{any uid}_{any presentationId}`
  *    through the live callable — their own key or another student's — with
@@ -63,10 +63,20 @@
  *  - METERING ONCE [§5.4]: the cached-return path calls NO grader. The
  *    caller additionally skips this module entirely when the attempt already
  *    exists (replay ⇒ zero claim, zero grade, zero writes).
- *  - EVERY REFUSAL IS DATA [C5/L-3]: `grading_in_progress` is the one
- *    retryable typed status (frozen in src/services/reviewV2Client.js RV2).
- *    Any non-authoritative persist outcome takes it too — fail-CLOSED, since
- *    a worker that never established authority must not mint an attempt.
+ *  - EVERY REFUSAL IS DATA [C5/L-3], and the refusal SPLITS on whether the
+ *    condition resolves itself [rv2-refusal-status fold — D1 TRUTH REPAIR:
+ *    this bullet used to call `grading_in_progress` "the one retryable typed
+ *    status", which conflated two OPPOSITE conditions]:
+ *      · `grading_in_progress` — TRANSIENT. A live lease held by a concurrent
+ *        worker, or a persist that established no authority. The client polls:
+ *        retry the SAME submit, never recompose. Fail-CLOSED — a worker that
+ *        never established authority must not mint an attempt.
+ *      · `grade_unusable` — PERMANENT. A `graded` job whose cached payload
+ *        failed the acceptance test below (foreign/poisoned/stale). A `graded`
+ *        job never self-clears, so polling can NEVER succeed. The client
+ *        recomposes ONCE (a new presentationId ⇒ a new job key); it must NOT
+ *        poll.
+ *    Both are frozen in src/services/reviewV2Client.js RV2.
  */
 
 "use strict";
@@ -278,11 +288,15 @@ async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
     // checked it. It is now ENFORCED, not assumed]: reuse the cache only when
     // `usableCachedResults` proves engine provenance + this presentation +
     // this answer sheet. No re-grade, no second charge [§5.4]; a payload that
-    // fails any clause is a foreign or stale grade and mints NOTHING.
+    // fails any clause is a foreign or stale grade and mints NOTHING — and
+    // because the job is already `graded` and never self-clears, the refusal
+    // is the PERMANENT status: recompose once, do NOT poll. Returning the
+    // transient status here told a conforming client to poll forever
+    // [rv2-refusal-status].
     // Fixtures: lap CASE TX poison-before-submit / cross-presentation /
     // sheet-drift · the legitimate leg is lap CASE T-3 + TX legit-replay.
     results = usableCachedResults(claim.payload, {presentationId, sheetKey});
-    if (results === null) return {refusal: {status: "grading_in_progress"}};
+    if (results === null) return {refusal: {status: "grade_unusable"}};
     cached = true;
   } else {
     // We own the lease. Only NON-BLANK, resolvable answers reach the AI:
@@ -320,11 +334,24 @@ async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
       // poisoning (our lease expires → the live grader takes the key over →
       // status becomes `graded` → our persist returns `already_graded`). It
       // takes the SAME acceptance test; guarding only the direct path is the
-      // defect class this fold exists to close.
+      // defect class this fold exists to close. And the SAME refusal status:
+      // the job is `graded` and never self-clears, so this too is PERMANENT —
+      // recompose once, do NOT poll [rv2-refusal-status].
       const snap = await db.collection("grading_jobs").doc(jobKey).get();
-      const theirs = usableCachedResults(snap.exists ? snap.data().payload : null,
-          {presentationId, sheetKey});
-      if (theirs === null) return {refusal: {status: "grading_in_progress"}};
+      // TWO SUB-CONDITIONS, and they are NOT the same class [independent audit F1].
+      // This fold's first cut collapsed both into `grade_unusable` via
+      // `snap.exists ? … : null`, which turned a CORRECT classification into a
+      // wrong one: a job that has VANISHED is TRANSIENT, not permanent — a retry
+      // re-claims the absent key, re-grades, and lands. Only a job that EXISTS and
+      // whose payload fails the acceptance test is permanently unusable.
+      // Unreachable today (nothing deletes a `graded` job: rules deny every client
+      // write, reset only flips `claimed`, and no TTL is configured) — so this is
+      // LATENT, and it goes live the day a TTL or cleanup touches `grading_jobs`.
+      // Left mis-classified it would tell that student to recompose, discarding
+      // answers they had already submitted, when polling would have landed them.
+      if (!snap.exists) return {refusal: {status: "grading_in_progress"}};
+      const theirs = usableCachedResults(snap.data().payload, {presentationId, sheetKey});
+      if (theirs === null) return {refusal: {status: "grade_unusable"}};
       results = theirs;
       cached = true;
     } else if (outcome !== "persisted") {

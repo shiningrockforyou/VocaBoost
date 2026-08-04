@@ -1,10 +1,10 @@
 {
   "kind": "typed-seam-mutants",
-  "at": "2026-08-03T22:37:08.200Z",
+  "at": "2026-08-04T04:06:03.809Z",
   "canonical": {
     "exit": 0,
-    "pass": 445,
-    "total": 445,
+    "pass": 453,
+    "total": 453,
     "crashed": false,
     "reds": [],
     "tail": null
@@ -18,11 +18,11 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 443,
-      "total": 445,
+      "pass": 451,
+      "total": 453,
       "killedBy": [
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 `source` stripped off an engine cache ⇒ fails closed — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p18\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 an OLDER engine build's payload (no provenance at all) ⇒ fails closed — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p18\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}"
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 `source` stripped off an engine cache ⇒ fails closed as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p20\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 an OLDER engine build's payload (no provenance at all) ⇒ fails closed as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p20\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}"
       ],
       "redCount": 2,
       "tail": null
@@ -35,10 +35,10 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 443,
-      "total": 445,
+      "pass": 451,
+      "total": 453,
       "killedBy": [
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5 minted nothing — got true want false"
       ],
       "redCount": 2,
@@ -52,16 +52,16 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 433,
-      "total": 445,
+      "pass": 441,
+      "total": 453,
       "killedBy": [
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 text changed on one word ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p11\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 text changed on one word ⇒ fails CLOSED as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p13\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 text changed on one word ⇒ mints nothing — got true want false",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a graded word omitted from this submit ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p12\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a graded word omitted from this submit ⇒ fails CLOSED as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p14\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a graded word omitted from this submit ⇒ mints nothing — got true want false",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a word added that the cached grade never saw ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p13\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a word added that the cached grade never saw ⇒ fails CLOSED as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p15\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a word added that the cached grade never saw ⇒ mints nothing — got true want false",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 CASE drift on one response ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p15\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 CASE drift on one response ⇒ fails CLOSED as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p17\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 CASE drift on one response ⇒ mints nothing — got true want false"
       ],
       "redCount": 12,
@@ -75,16 +75,16 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 420,
-      "total": 445,
+      "pass": 428,
+      "total": 453,
       "killedBy": [
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C1 poisoned-before-submit ⇒ refused as retryable DATA — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C1 poisoned-before-submit ⇒ refused as TERMINAL data (grade_unusable: recompose, never poll) — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C1 ⇒ ZERO attempt writes — got [true,1] want [false,0]",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 1: poisoned ⇒ refused — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p4\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 2: delete-then-RE-poison ⇒ still refused — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p4\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 1: poisoned ⇒ refused as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p4\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 2: delete-then-RE-poison ⇒ still refused as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p4\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 the sequence minted nothing — got true want false",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(i) another presentation's engine grade ⇒ refused — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":50,\"passed\":false,\"totalQuestions\":4,\"correctCount\":2,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
-        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":50,\"passed\":false,\"totalQuestions\":4,\"correctCount\":2,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(i) another presentation's engine grade ⇒ refused as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":50,\"passed\":false,\"totalQuestions\":4,\"correctCount\":2,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uP_cP_LP_d3_e0_p6\",\"score\":50,\"passed\":false,\"totalQuestions\":4,\"correctCount\":2,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5 minted nothing — got true want false"
       ],
       "redCount": 25,
@@ -98,15 +98,55 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 441,
-      "total": 445,
+      "pass": 449,
+      "total": 453,
       "killedBy": [
-        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S1 THE SIBLING SEAM REFUSES the foreign payload (retryable DATA) — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uS_cS_LS_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
+        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S1 THE SIBLING SEAM REFUSES the foreign payload as TERMINAL data (grade_unusable) — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uS_cS_LS_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":4,\"correctCount\":4,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
         "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S1 ⇒ ZERO attempt writes — got [true,1] want [false,0]",
-        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S3 `already_graded` + a grade of ANOTHER sheet ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uS_cS_LS_d3_e0_p3\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grading_in_progress\"}",
-        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S3 ⇒ mints nothing — got [true,3] want [false,2]"
+        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S3 `already_graded` + a grade of ANOTHER sheet ⇒ fails CLOSED as grade_unusable — got {\"status\":\"attempt_written\",\"replayed\":false,\"attemptId\":\"rv2_uS_cS_LS_d3_e0_p4\",\"score\":75,\"passed\":false,\"totalQuestions\":4,\"correctCount\":3,\"stamped\":4,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":{\"effectiveEnabled\":true,\"threshold\":92,\"configVersion\":1,\"source\":\"reviewV2SubmitAttempt\"}} want {\"status\":\"grade_unusable\"}",
+        "TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT write [A1 · typedGrading.js:295-308] :: S3 ⇒ mints nothing — got [true,4] want [false,3]"
       ],
       "redCount": 4,
+      "tail": null
+    },
+    {
+      "id": "M-REFUSAL-PERMANENT-AS-TRANSIENT",
+      "file": "/app/functions/reviewV2/typedGrading.js",
+      "why": "rv2-refusal-status C4 — reverts BOTH permanent refusal sites (`return_cached` refused + its `already_graded` sibling) to `grading_in_progress`, i.e. the pre-split server. A `graded` job never self-clears, so that status told a conforming client (frozen contract: poll the SAME submit, never recompose) to poll FOREVER. Every C1-class assertion must notice the wrong status: TX C1/C4/C5/C11-drift pin the return_cached site, TS S1/S3 pin the sibling — both seams, so a one-seam revert cannot hide behind the other's coverage.",
+      "applied": true,
+      "killed": true,
+      "mode": "red-assertions",
+      "exit": 1,
+      "pass": 438,
+      "total": 453,
+      "killedBy": [
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C1 poisoned-before-submit ⇒ refused as TERMINAL data (grade_unusable: recompose, never poll) — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 1: poisoned ⇒ refused as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C4 step 2: delete-then-RE-poison ⇒ still refused as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(i) another presentation's engine grade ⇒ refused as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 text changed on one word ⇒ fails CLOSED as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a graded word omitted from this submit ⇒ fails CLOSED as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 a word added that the cached grade never saw ⇒ fails CLOSED as grade_unusable — got {\"status\":\"grading_in_progress\"} want {\"status\":\"grade_unusable\"}"
+      ],
+      "redCount": 15,
+      "tail": null
+    },
+    {
+      "id": "M-REFUSAL-TRANSIENT-AS-UNUSABLE",
+      "file": "/app/functions/reviewV2/typedGrading.js",
+      "why": "rv2-refusal-status C5, the OTHER direction — the live-lease site returns `grade_unusable`. A swapped split is indistinguishable from a correct one under one-directional mutation: this direction tells the client to RECOMPOSE (a different test, a different composeKey) exactly when polling the same submit is correct and the lease is about to resolve. The §5.5 concurrent-submit control (CASE T) and the C11 lease-refusal control (CASE TX) must go red.",
+      "applied": true,
+      "killed": true,
+      "mode": "red-assertions",
+      "exit": 1,
+      "pass": 451,
+      "total": 453,
+      "killedBy": [
+        "T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ §§4-6] :: §5.5 concurrent submit ⇒ grading_in_progress as DATA — got {\"status\":\"grade_unusable\"} want {\"status\":\"grading_in_progress\"}",
+        "TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2] :: C11 concurrent submit with a DIFFERENT sheet ⇒ the lease refusal (DATA) — got {\"status\":\"grade_unusable\"} want {\"status\":\"grading_in_progress\"}"
+      ],
+      "redCount": 2,
       "tail": null
     },
     {
@@ -117,8 +157,8 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 443,
-      "total": 445,
+      "pass": 451,
+      "total": 453,
       "killedBy": [
         "TG — completeDay wordId↔presentation binding [A3 · Codex r78 item 3] :: TG substituted wordId does NOT graduate (never presented) — got true want false",
         "TG — completeDay wordId↔presentation binding [A3 · Codex r78 item 3] :: TG extra unpresented wordId does NOT graduate — got true want false"
@@ -134,8 +174,8 @@
       "killed": true,
       "mode": "red-assertions",
       "exit": 1,
-      "pass": 430,
-      "total": 445,
+      "pass": 438,
+      "total": 453,
       "killedBy": [
         "TR — rv2_ replay provenance: never inferred from the document NAME [A4] :: TR a plain client-shaped doc at the predictable id ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uR_cR_LR_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":0,\"correctCount\":0,\"stamped\":null,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":null} want {\"status\":\"presentation_invalid\",\"reason\":\"attempt identity occupied by a non-engine document\"}",
         "TR — rv2_ replay provenance: never inferred from the document NAME [A4] :: TR a LEGACY-shaped attempt ⇒ fails CLOSED — got {\"status\":\"attempt_written\",\"replayed\":true,\"attemptId\":\"rv2_uR_cR_LR_d3_e0_p1\",\"score\":100,\"passed\":true,\"totalQuestions\":1,\"correctCount\":1,\"stamped\":null,\"stampSkipped\":null,\"rerunGraduated\":[],\"visitHalf\":null,\"gatePosture\":null} want {\"status\":\"presentation_invalid\",\"reason\":\"attempt identity occupied by a non-engine document\"}",
@@ -182,11 +222,11 @@
       "tail": "er: got [\"attempt_written\",false,100,\"presentation_invalid\",null,null] want [\"attempt_written\",false,100,\"attempt_written\",false,0]\n  RED RC0 the SERVER-RETURNED ids are uid-scoped and distinct: got [\"rv2_cZ_LZ_d3_e0_p1\",null,true] want [\"rv2_uZ1_cZ_LZ_d3_e0_p1\",\"rv2_uZ2_cZ_LZ_d3_e0_p1\",true]\n  RED RC0 nothing is written at the id the OLD unscoped scheme derived: got [true,1] want [false,2]\nfile:///app/scripts/deepfix2/engine-emulator-lap.mjs:1027\n  check(\"COMPLETE-ROWS: blank explicit\", [attDoc.answers.length, attDoc.answers[0].blank === true || attDoc.answers.some((x) => x.blank === true)], [4, true]);\n                                                 ^\n\nTypeError: Cannot read properties of undefined (reading 'answers')\n    at file:///app/scripts/deepfix2/engine-emulator-lap.mjs:1027:50\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n\nNode.js v24.15.0\n"
     }
   ],
-  "lapSha16": "1fe0fb7cc787e513",
+  "lapSha16": "b72f3395580a29e8",
   "sourceShas": {
-    "/app/functions/reviewV2/typedGrading.js": "bc2d94ce15c6f1be",
+    "/app/functions/reviewV2/typedGrading.js": "6bcac42477d06a63",
     "/app/functions/reviewV2/completion.js": "7c3a38476c869c0c",
-    "/app/functions/reviewV2/callables.js": "c2c8fa58e6f9a207",
+    "/app/functions/reviewV2/callables.js": "a0bed5b71ff61e19",
     "/app/functions/reviewV2/composer.js": "5c4d6bfef0b6fb90"
   },
   "pass": true

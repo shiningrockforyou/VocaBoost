@@ -70,7 +70,7 @@ presentation = one grade.
 > also reached from the LIVE `gradeTypedTest`, whose job key is **client-supplied** —
 > `jobAttemptDocId = (writeContext || gradeContext)?.attemptDocId` (`functions/index.js:1048-1051`),
 > with no namespace restriction — and the client knows its own `presentationId`
-> (`src/services/reviewV2Client.js:152`). `rv2_` is therefore a **naming convention, not a namespace
+> (`src/services/reviewV2Client.js:173`). `rv2_` is therefore a **naming convention, not a namespace
 > boundary**: a student can claim `rv2_{any uid}_{any presentationId}` — their own key or a
 > classmate's, since the uid scoping added by the rv2-docid-collision fold is a namespace and not a
 > fence — grade answers of their choosing, and
@@ -94,8 +94,13 @@ client → reviewV2SubmitAttempt({presentationId, answers})   // typed
                                                // SAME function callables.js
                                                // derives attemptId with [D2]
      claim = claimOrRecoverGradingJob(uid, jobKey)
-       · return_cached  → skip to (4) with the cached rows
-       · in_progress    → return {status: 'grading_in_progress'} as DATA (retryable, no write)
+       · return_cached  → the payload must pass §5.6's acceptance test:
+           - usable    → skip to (4) with the cached rows
+           - unusable  → return {status: 'grade_unusable'} as DATA (PERMANENT —
+                         recompose once, do NOT poll; a `graded` job never
+                         self-clears) [rv2-refusal-status]
+       · in_progress    → return {status: 'grading_in_progress'} as DATA
+                          (TRANSIENT — poll the SAME submit; no write)
        · granted        → (3)
   3. grade the free-text answers with the SAME grader gradeTypedTest uses, then
      persistGradingJobResult(jobKey, leaseId, rows)   // lease-fenced, as today
@@ -103,8 +108,19 @@ client → reviewV2SubmitAttempt({presentationId, answers})   // typed
      correctnessSource: 'server-ai' and the full gatePosture/resetEpoch stamp set
 ```
 
-Step 2's `in_progress` branch is a **new protocol status** and must be added to the frozen list in
-`src/services/reviewV2Client.js` (`RV2`) — it is the one client-visible contract change.
+Step 2 contributes TWO **frozen protocol statuses** to `src/services/reviewV2Client.js` (`RV2`), and
+they are exact inverses — the client-visible contract change of this leg:
+
+- `grading_in_progress` — TRANSIENT (a live lease, or step 3 established no authority): retry the
+  SAME submit; never recompose.
+- `grade_unusable` — PERMANENT (a cached payload that failed §5.6's acceptance test; it can never
+  become usable): recompose ONCE with a new composeKey; never poll.
+
+> **CORRECTION (rv2-refusal-status fold).** This step originally described a SINGLE status:
+> `grading_in_progress` was returned for both conditions, and its frozen client contract — poll the
+> same submit, never recompose — is correct only for the transient one. For an unusable cached payload
+> (a `graded` job never self-clears) it told a conforming client to poll forever. The split above is
+> the fix; the single-status protocol previously written here was the defect, not merely an omission.
 
 ## 5. What must be true before this is safe
 
@@ -121,12 +137,23 @@ Step 2's `in_progress` branch is a **new protocol status** and must be added to 
 5. **Every non-authoritative outcome is a DATA refusal.** A live lease held by a concurrent submit, and
    any persist outcome that did not establish authority (`superseded`/`lease_expired`/`absent`/`error`),
    return `{status: 'grading_in_progress'}` with zero writes — a worker that never established
-   authority must not mint an attempt.
+   authority must not mint an attempt. (These are the TRANSIENT conditions — polling resolves them.
+   Contrast the PERMANENT refusal in point 6 below (§5.6): `grade_unusable`.)
 6. **A cached grade is only usable for the sheet it graded** *(added by the typed-fix-audit fold —
    this is law, not merely code)*. Because the job key is claimable by the client (§3 correction), the
    engine's cached-grade seam (`typedGrading.js` `usableCachedResults`, consumed at BOTH the
    `return_cached` path (`:263`) and its `already_graded` sibling (`:295-308`)) accepts a payload only
    when all three hold:
+
+   > **CORRECTION (independent audit F2).** That sentence read as a CLOSED SET of two. There are
+   > **THREE** transient conditions. The missing one is `callables.js:655` — `gradeSkippedForReplay`:
+   > the submit pre-read saw a stored attempt, so grading was skipped, and by txn time the attempt was
+   > GONE. Transient (a retry re-composes the read and lands), fixtured as lap CASE GU. It appears
+   > nowhere else in this document, and `df2-51b-submit` is instructed to handle every protocol status
+   > from exactly this paragraph — which is how an omission here becomes a client bug there.
+   > **A fourth exists as of the audit fix:** the `already_graded` re-read finding the job VANISHED
+   > (`typedGrading.js`) is also transient. Full transient set: live lease · persist-established-no-
+   > authority · vanished-job-on-re-read · replay-pre-read-then-gone.
 
    > **On the word "BOTH"** — it was published here before it was true as *evidence*. An independent
    > audit reverted only the sibling call site and the entire lap stayed green, proving the battery was
@@ -149,8 +176,13 @@ Step 2's `in_progress` branch is a **new protocol status** and must be added to 
    `.trim()`, and a legitimate replay must not fail closed on a trailing space, whereas no legitimate
    replay re-types an answer in different case.
 
-   A payload written by an **older engine build** carries none of the three and is therefore **refused,
-   not trusted**. It performs zero writes.
+   A payload failing ANY clause is refused as **`grade_unusable`** — the PERMANENT refusal (recompose
+   once with a new composeKey, do NOT poll), because a `graded` job never self-clears, so retrying the
+   same submit can never succeed. *(CORRECTION, rv2-refusal-status fold: until that fold this refusal
+   returned the transient `grading_in_progress`, whose frozen client contract — poll the same submit,
+   never recompose — told a conforming client to poll forever.)* A payload written by an **older
+   engine build** carries none of the three and is therefore **refused, not trusted** — the same
+   status. Refusal performs zero writes.
 
    > **CORRECTION (rv2-collision independent audit, finding F1 — 2026-08-03).** This paragraph used to
    > end: *"because a poisoned/stale key can only ever belong to the caller's own uid
@@ -165,7 +197,7 @@ Step 2's `in_progress` branch is a **new protocol status** and must be added to 
    > *And the victim does not get this DATA refusal at all.* They get a THROWN `permission-denied` from
    > that same uid check (`:2549-2552`), because it runs BEFORE the status and lease checks — so an
    > expired lease never releases the document. The block is **permanent**; clients cannot delete
-   > `grading_jobs` (`firestore.live.rules:417`).
+   > `grading_jobs` (`audit/deepfix/task3/live_baseline/firestore.live.rules:417` — the DEPLOYED ruleset; there is no `firestore.live.rules` at the repo root).
    >
    > Recomposing does yield a new key, so it remains the student-side recovery — but as an escape from
    > someone else's denial, not as a tidy self-service reset, and `_p{seq}` is predictable enough to

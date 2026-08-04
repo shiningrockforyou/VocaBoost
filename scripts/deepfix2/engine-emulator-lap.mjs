@@ -1563,7 +1563,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   const attemptsBeforeC1 = await attemptCount();
   const callsBeforeC1 = engineGraderCalls;
   r = await submitP(pid1, junk(ids1));
-  check("C1 poisoned-before-submit ⇒ refused as retryable DATA", r, {status: "grading_in_progress"});
+  check("C1 poisoned-before-submit ⇒ refused as TERMINAL data (grade_unusable: recompose, never poll)",
+      r, {status: "grade_unusable"});
   check("C1 ⇒ ZERO attempt writes", [(await attOf(pid1)).exists, await attemptCount()],
       [false, attemptsBeforeC1]);
   check("C1 ⇒ ZERO engine grader spend", engineGraderCalls, callsBeforeC1);
@@ -1603,11 +1604,11 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   const ids4 = r.presentation.presentedWordIds;
   await liveGrade("uP", rv2Id("uP", pid4), ids4, "not the meaning at all");
   r = await submitP(pid4, junk(ids4));
-  check("C4 step 1: poisoned ⇒ refused", r, {status: "grading_in_progress"});
+  check("C4 step 1: poisoned ⇒ refused as grade_unusable", r, {status: "grade_unusable"});
   await db.collection("grading_jobs").doc(rv2Id("uP", pid4)).delete();
   await liveGrade("uP", rv2Id("uP", pid4), ids4, "still not the meaning");
   r = await submitP(pid4, junk(ids4));
-  check("C4 step 2: delete-then-RE-poison ⇒ still refused", r, {status: "grading_in_progress"});
+  check("C4 step 2: delete-then-RE-poison ⇒ still refused as grade_unusable", r, {status: "grade_unusable"});
   check("C4 the sequence minted nothing", (await attOf(pid4)).exists, false);
   await db.collection("grading_jobs").doc(rv2Id("uP", pid4)).delete();
   r = await submitP(pid4, good(ids4));
@@ -1628,7 +1629,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     uid: "uP", status: "graded", payload: payload5a, version: 1,
   });
   r = await submitP(pid5b, good(ids5b));
-  check("C5(i) another presentation's engine grade ⇒ refused", r, {status: "grading_in_progress"});
+  check("C5(i) another presentation's engine grade ⇒ refused as grade_unusable", r, {status: "grade_unusable"});
   // (ii) the ISOLATING variant: engine provenance AND the correct sheet key for
   //      THIS submit, only `presentationId` foreign — so ONLY clause (b) fires.
   const sheet5b = TG.answerSheetKey({
@@ -1641,8 +1642,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
       source: "reviewV2", presentationId: pid5a, answerSheetKey: sheet5b},
   });
   r = await submitP(pid5b, good(ids5b));
-  check("C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused",
-      r, {status: "grading_in_progress"});
+  check("C5(ii) right sheet + right provenance, WRONG presentation ⇒ refused as grade_unusable",
+      r, {status: "grade_unusable"});
   check("C5 minted nothing", (await attOf(pid5b)).exists, false);
   // (iii) the same payload with presentationId CORRECTED is accepted — the
   //       clause is the ONLY thing that refused above (a negative control).
@@ -1675,6 +1676,14 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   checkTrue("C6 the victim's submit refuses a foreign-uid job (fail-CLOSED, never consumed)",
       String(errThird).includes("permission-denied"));
   check("C6 …and mints nothing", (await attOf(pid6)).exists, false);
+  // NEED_TO_FIX 19's denial, made RECOVERABLE [rv2-refusal-status]: the victim
+  // is never told to poll (the refusal is a thrown HttpsError, not
+  // grading_in_progress), and recomposing — a new presentationId ⇒ a new job
+  // key the attacker has not claimed — lands the test.
+  r = await composeP("lap-key-tx07b");
+  const recovered6 = await submitP(r.presentation.presentationId, good(r.presentation.presentedWordIds));
+  check("C6 recovery: the victim recomposes past the third-party claim and LANDS",
+      [recovered6.status, recovered6.score], ["attempt_written", 100]);
   // The same fence, exercised by a TEACHER account (identity, not role).
   r = await composeP("lap-key-tx08");
   const pid6t = r.presentation.presentationId;
@@ -1686,6 +1695,10 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   checkTrue("C6 a teacher-poisoned key is refused too",
       String(errTeacher).includes("permission-denied"));
   check("C6 …and mints nothing", (await attOf(pid6t)).exists, false);
+  r = await composeP("lap-key-tx08b");
+  const recovered6t = await submitP(r.presentation.presentationId, good(r.presentation.presentedWordIds));
+  check("C6 recovery: …and past the teacher claim too",
+      [recovered6t.status, recovered6t.score], ["attempt_written", 100]);
   // The mirror: the VICTIM cannot read a foreign-uid job either.
   checkTrue("C6 the fence is symmetric (a foreign uid cannot claim OUR graded job)",
       String(await liveGradeErr("uOther", rv2Id("uP", pid5a), ids5a, "x")).includes("permission-denied"));
@@ -1728,7 +1741,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     const before = engineGraderCalls;
     const res = await submitP(pid, mutate(all, ids));
     if (want === "refuse") {
-      check(`C11 ${label} ⇒ fails CLOSED`, res, {status: "grading_in_progress"});
+      check(`C11 ${label} ⇒ fails CLOSED as grade_unusable`, res, {status: "grade_unusable"});
       check(`C11 ${label} ⇒ mints nothing`, (await attOf(pid)).exists, false);
     } else {
       check(`C11 ${label} ⇒ REUSES the cache`, [res.status, res.score], ["attempt_written", 100]);
@@ -1761,8 +1774,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     await cacheThenDie(pid, withBlank);
     const filled = ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
     let res = await submitP(pid, filled);
-    check("C11 SEQUENCE blank→FILLED ⇒ fails closed (blanks are part of the sheet)",
-        res, {status: "grading_in_progress"});
+    check("C11 SEQUENCE blank→FILLED ⇒ fails closed as grade_unusable (blanks are part of the sheet)",
+        res, {status: "grade_unusable"});
     const beforeSeq = engineGraderCalls;
     res = await submitP(pid, withBlank);
     check("C11 SEQUENCE filled→BLANK again ⇒ the ORIGINAL sheet reuses its grade",
@@ -1800,7 +1813,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
       }));
     };
     const res = await submitP(pid, sheetB);
-    check("C11 the LOSER's sheet cannot claim the winner's cached grade", res, {status: "grading_in_progress"});
+    check("C11 the LOSER's sheet cannot claim the winner's cached grade (grade_unusable — its grade can never appear)",
+        res, {status: "grade_unusable"});
     const beforeWinner = engineGraderCalls;
     const win = await submitP(pid, sheetA);
     check("C11 the WINNER's sheet reuses it, zero grader calls",
@@ -1826,11 +1840,11 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     await jr.update({payload: {results: full.results, presentationId: full.presentationId,
       answerSheetKey: full.answerSheetKey}});
     let res = await submitP(pid, base);
-    check("C11 `source` stripped off an engine cache ⇒ fails closed", res, {status: "grading_in_progress"});
+    check("C11 `source` stripped off an engine cache ⇒ fails closed as grade_unusable", res, {status: "grade_unusable"});
     await jr.update({payload: {results: full.results}});
     res = await submitP(pid, base);
-    check("C11 an OLDER engine build's payload (no provenance at all) ⇒ fails closed",
-        res, {status: "grading_in_progress"});
+    check("C11 an OLDER engine build's payload (no provenance at all) ⇒ fails closed as grade_unusable",
+        res, {status: "grade_unusable"});
     await jr.update({payload: full});
     const before = engineGraderCalls;
     res = await submitP(pid, base);
@@ -1969,10 +1983,17 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   check("S1 our persist was NOT authoritative (⇒ `already_graded`): the foreign payload is still the cached one",
       [(await jobS(pid1).get()).data().payload.source ?? null,
         (await jobS(pid1).get()).data().payload.presentationId ?? null], [null, null]);
-  check("S1 THE SIBLING SEAM REFUSES the foreign payload (retryable DATA)",
-      r, {status: "grading_in_progress"});
+  check("S1 THE SIBLING SEAM REFUSES the foreign payload as TERMINAL data (grade_unusable)",
+      r, {status: "grade_unusable"});
   check("S1 ⇒ ZERO attempt writes", [(await attS(pid1)).exists, await attemptCountS()],
       [false, attemptsBefore1]);
+  // C1 RECOVERY at THIS seam (the status is only a fix if the client can act
+  // on it): recompose — a new presentationId is a new job key the poison has
+  // not touched — and the submit LANDS.
+  r = await composeS("lap-key-ts01b");
+  const recovered1 = await submitS(r.presentation.presentationId, goodS(r.presentation.presentedWordIds));
+  check("S1 recovery: recompose (new key) then submit SUCCEEDS",
+      [recovered1.status, recovered1.score], ["attempt_written", 100]);
 
   // ---- S2 · THE OTHER LEG: a LEGITIMATE winner IS reused ------------------
   // Same seam, same race, but the competitor is another ENGINE worker grading
@@ -2041,8 +2062,8 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
         job3.payload.answerSheetKey === sheetKeyOf(ids3, sheet3b),
         job3.payload.answerSheetKey === sheetKeyOf(ids3, sheet3a)],
       ["reviewV2", pid3, true, false]);
-  check("S3 `already_graded` + a grade of ANOTHER sheet ⇒ fails CLOSED",
-      res3, {status: "grading_in_progress"});
+  check("S3 `already_graded` + a grade of ANOTHER sheet ⇒ fails CLOSED as grade_unusable",
+      res3, {status: "grade_unusable"});
   check("S3 ⇒ mints nothing", [(await attS(pid3)).exists, await attemptCountS()],
       [false, attemptsBefore3]);
   // NOT STRANDED: the sheet the winner actually graded still reuses its grade.
@@ -2056,6 +2077,64 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   TG._typedSeam.grade = null;
   TG._typedSeam.afterPersist = null;
   check("TS: the LIVE grader was exercised for real (AI boundary canned only)", aiCallsS > 0, true);
+}
+
+// ===========================================================================
+CASE("GU — THE REFUSAL SPLIT, THIRD TRANSIENT SITE: gradeSkippedForReplay stays grading_in_progress [rv2-refusal-status C2]");
+{
+  // The split's regression control for the one transient site that lives in
+  // callables.js (:649), not typedGrading.js: the replay pre-read saw a stored
+  // attempt (so the typed grade was SKIPPED), and the attempt is GONE by the
+  // time the txn re-reads it. That is TRANSIENT — the retry re-grades from
+  // scratch or re-lands from the still-cached job — so it must KEEP
+  // `grading_in_progress` (poll), never `grade_unusable` (recompose). The
+  // other two transient sites are pinned at CASE T §4/§7 (:269 lease, :334
+  // superseded); the permanent sites at CASE TX/TS.
+  await wipeEmulator();
+  await seedConfig({rehearsalClassIds: ["cG"], queueSize: 6, testSize: 4});
+  await seedClass("cG", {students: ["uG"], listId: "LG", asg: {reviewTestType: "typed"}});
+  await seedWords("LG", 30);
+  await seedProgress("uG", "cG", "LG", {csd: 2, twi: 10});
+  const common = {classId: "cG", listId: "LG", clientContractVersion: 1};
+  let engineGraderCalls = 0;
+  TG._typedSeam.grade = async ({answers}) => {
+    engineGraderCalls++;
+    return answers.map((a) => ({
+      wordId: a.wordId,
+      isCorrect: a.studentResponse === a.correctDefinition,
+      reasoning: "",
+    }));
+  };
+  const composeG = (ck) => call(CALL.reviewV2ComposeSession, "uG", {...common, logicalDay: 3, composeKey: ck});
+  const submitG = (pid, ans) => call(CALL.reviewV2SubmitAttempt, "uG",
+      {presentationId: pid, answers: ans, clientContractVersion: 1});
+  const goodG = (ids) => ids.map((w) => ({wordId: w, studentResponse: `def${w.slice(1)}`}));
+
+  let r = await composeG("lap-key-gu01");
+  check("GU setup: typed session composes", [r.status, r.presentation.testType], ["composed", "typed"]);
+  const pid1 = r.presentation.presentationId;
+  const ids1 = r.presentation.presentedWordIds;
+  r = await submitG(pid1, goodG(ids1));
+  check("GU setup: the typed attempt lands", [r.status, r.score], ["attempt_written", 100]);
+  // THE RACE: the attempt vanishes AFTER the replay pre-read (which skipped
+  // the grade) and BEFORE the txn — driven through the same emulator-only
+  // one-shot hook as the compose-path races [r74 C8a].
+  const callsBeforeVanish = engineGraderCalls;
+  CALL._testHooks.afterPreflight = async () => {
+    await db.collection("attempts").doc(rv2Id("uG", pid1)).delete();
+  };
+  r = await submitG(pid1, goodG(ids1));
+  check("GU vanished-after-pre-read stays TRANSIENT: grading_in_progress, NOT grade_unusable",
+      r, {status: "grading_in_progress"});
+  check("GU the refusal spent nothing (grade was skipped, not re-run)",
+      engineGraderCalls, callsBeforeVanish);
+  // …and WHY it is transient: the SAME submit, retried, RESOLVES — it re-lands
+  // from the still-cached job with zero grader calls. A `grade_unusable` here
+  // would have sent the student to recompose a test they can still land.
+  r = await submitG(pid1, goodG(ids1));
+  check("GU the poll RESOLVES: the retry re-lands from the cached job, zero grader calls",
+      [r.status, r.score, engineGraderCalls], ["attempt_written", 100, callsBeforeVanish]);
+  TG._typedSeam.grade = null;
 }
 
 // ===========================================================================

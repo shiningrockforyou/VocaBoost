@@ -91,11 +91,42 @@ const MUTANTS = [
   },
   {
     id: "M-A1-SIBLING-CALL-SITE",
+    // RE-POINTED 2026-08-04: the rv2-refusal-status audit fix (F1) split the
+    // `snap.exists ? … : null` ternary into an explicit `!snap.exists` early
+    // return, so this anchor matched 0x and the runner reported NOT APPLIED and
+    // failed the battery — exactly as designed. Worth keeping as the record: a
+    // legitimate fix SILENTLY DISARMED the mutant guarding the sibling seam, and
+    // only the fail-loud-on-stale-anchor rule caught it. A mutant that quietly
+    // stops applying is worse than no mutant, because the run still goes green.
     file: TG,
     why: "A1, THE SECOND CALL SITE: a cached payload enters the engine at TWO seams. The clause mutants above and M-A1-PREFIX-CONSUMER all attack the SHARED PREDICATE, so they die at whichever seam a fixture happens to drive. This one reverts ONLY the `already_graded` branch (typedGrading.js:295-308) to the pre-fix `Array.isArray(payload.results)` and leaves `return_cached` (:263) and the predicate itself fully guarded — the state an accidental revert of that one branch would ship. It survived the entire lap before CASE TS existed (376/376 green), so it is the direct measure of whether the sibling seam has any evidence behind it.",
     edits: [{
-      from: `      const theirs = usableCachedResults(snap.exists ? snap.data().payload : null,\n          {presentationId, sheetKey});`,
-      to: `      // [MUTANT M-A1-SIBLING] second call site reverted to the PRE-FIX test\n      const theirPayload = snap.exists ? snap.data().payload : null;\n      const theirs = Array.isArray(theirPayload?.results) ? theirPayload.results : null;`,
+      from: `      const theirs = usableCachedResults(snap.data().payload, {presentationId, sheetKey});`,
+      to: `      // [MUTANT M-A1-SIBLING] second call site reverted to the PRE-FIX test\n      const theirs = Array.isArray(snap.data().payload?.results) ? snap.data().payload.results : null;`,
+    }],
+  },
+  {
+    id: "M-REFUSAL-PERMANENT-AS-TRANSIENT",
+    file: TG,
+    why: "rv2-refusal-status C4 — reverts BOTH permanent refusal sites (`return_cached` refused + its `already_graded` sibling) to `grading_in_progress`, i.e. the pre-split server. A `graded` job never self-clears, so that status told a conforming client (frozen contract: poll the SAME submit, never recompose) to poll FOREVER. Every C1-class assertion must notice the wrong status: TX C1/C4/C5/C11-drift pin the return_cached site, TS S1/S3 pin the sibling — both seams, so a one-seam revert cannot hide behind the other's coverage.",
+    edits: [
+      {
+        from: `    if (results === null) return {refusal: {status: "grade_unusable"}};`,
+        to: `    if (results === null) return {refusal: {status: "grading_in_progress"}}; // [MUTANT] permanent-as-transient`,
+      },
+      {
+        from: `      if (theirs === null) return {refusal: {status: "grade_unusable"}};`,
+        to: `      if (theirs === null) return {refusal: {status: "grading_in_progress"}}; // [MUTANT] permanent-as-transient`,
+      },
+    ],
+  },
+  {
+    id: "M-REFUSAL-TRANSIENT-AS-UNUSABLE",
+    file: TG,
+    why: "rv2-refusal-status C5, the OTHER direction — the live-lease site returns `grade_unusable`. A swapped split is indistinguishable from a correct one under one-directional mutation: this direction tells the client to RECOMPOSE (a different test, a different composeKey) exactly when polling the same submit is correct and the lease is about to resolve. The §5.5 concurrent-submit control (CASE T) and the C11 lease-refusal control (CASE TX) must go red.",
+    edits: [{
+      from: `  if (claim.action === "in_progress") return {refusal: {status: "grading_in_progress"}};`,
+      to: `  if (claim.action === "in_progress") return {refusal: {status: "grade_unusable"}}; // [MUTANT] transient-as-unusable`,
     }],
   },
   {

@@ -599,6 +599,12 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
   const correctCount = rows.filter((r) => r.isCorrect).length;
   const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
+  // [r74 C8a] the same emulator-only one-shot race hook as compose (:241),
+  // here so the lap can alter state BETWEEN the submit pre-reads and the txn
+  // (e.g. the attempt vanishing after the replay pre-read — the
+  // `gradeSkippedForReplay` refusal below). Inert in production by
+  // construction (env-gated).
+  await _runAfterPreflightHook();
   const result = await db.runTransaction(async (txn) => {
     // ---- READS (the activation barrier: config joins THIS txn) ----------
     const txnConfig = await resolveReviewConfig(db, {classId: pres.classId, listId: pres.listId, uid, txn});
@@ -611,7 +617,7 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
       // [A4 · Codex r78 follow-up] PROVENANCE IS NEVER INFERRED FROM THE
       // DOCUMENT NAME. `attempts` create is open to the owning student in the
       // live ruleset (rules-matrix 9-a1 / A21) and `rv2_{uid}_{presentationId}`
-      // is an id the client can derive itself (reviewV2Client.js:152 + its own
+      // is an id the client can derive itself (reviewV2Client.js:173 + its own
       // uid — the uid scoping is a namespace, not a fence), so "a doc
       // exists at this id" proved nothing — yet this early return handed back
       // its `score`/`passed`/`engineResult` as an engine replay. A replay is

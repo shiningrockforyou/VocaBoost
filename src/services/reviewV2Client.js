@@ -54,9 +54,20 @@ export const RV2 = Object.freeze({
   TYPED_MODALITY_DEFERRED: 'typed_modality_deferred',
   // Typed grading runs OUTSIDE the submit transaction (18_TYPED_LEG_DESIGN §4):
   // a concurrent submit for the same presentation gets this instead of a second
-  // attempt. Retryable, zero writes — the caller polls, it does NOT re-submit
-  // with a new composeKey (that would compose a different test).
+  // attempt. TRANSIENT — the condition resolves itself. Retryable, zero
+  // writes: the caller POLLS (retries the SAME submit); it does NOT re-submit
+  // with a new composeKey (that would compose a different test). Contrast
+  // GRADE_UNUSABLE below, its exact inverse.
   GRADING_IN_PROGRESS: 'grading_in_progress',
+  // PERMANENT sibling of the above [rv2-refusal-status]: the cached
+  // grading-job payload for this submit is unusable and always will be — it
+  // failed the engine's acceptance test (engine provenance / this
+  // presentation / this answer sheet; typedGrading.js `usableCachedResults`),
+  // and a `graded` job never self-clears, so polling can NEVER succeed.
+  // Contract: RECOMPOSE ONCE with a new composeKey (a new presentationId is a
+  // new job key); do NOT poll. The exact inverse of GRADING_IN_PROGRESS above
+  // — conflating the two either polls forever or recomposes a different test.
+  GRADE_UNUSABLE: 'grade_unusable',
   // authority refusals
   DAY_GUARD_REJECTED: 'day_guard_rejected',
   NO_EVIDENCE: 'no_evidence',
@@ -98,10 +109,20 @@ export function isNotServing(result) {
   return Boolean(result) && NOT_SERVING.has(result.status)
 }
 
-/** True when the engine is still grading this submission — retry the SAME
- *  submit, do not recompose [18_TYPED_LEG_DESIGN §4]. */
+/** True when the engine is still grading this submission — TRANSIENT: retry
+ *  the SAME submit, do not recompose [18_TYPED_LEG_DESIGN §4]. The inverse of
+ *  `isGradeUnusable` below. */
 export function isGradingInProgress(result) {
   return Boolean(result) && result.status === RV2.GRADING_IN_PROGRESS;
+}
+
+/** True when the cached grade for this submit is PERMANENTLY unusable
+ *  (foreign/poisoned/stale — it can never become usable): recompose ONCE with
+ *  a new composeKey, do NOT poll [rv2-refusal-status;
+ *  18_TYPED_LEG_DESIGN §5.6]. The exact inverse of `isGradingInProgress`
+ *  above — polling this status polls forever. */
+export function isGradeUnusable(result) {
+  return Boolean(result) && result.status === RV2.GRADE_UNUSABLE;
 }
 
 /** True when the result means "this bundle is too old — force a refresh"

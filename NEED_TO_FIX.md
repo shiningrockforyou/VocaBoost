@@ -45,9 +45,33 @@ longer happen by itself.
 
 ---
 
-## 21. `grading_in_progress` is returned for a PERMANENT condition, but its frozen contract says "poll" · client contract · BLOCKS DF2-51 CLIENT CUTOVER (audit F3, 2026-08-03)
+## 23. The LEGACY `gradeTypedTest` consumes a cached grade with NO acceptance test — the twin of the hole the engine just closed · backend · (found 2026-08-04 by the rv2-refusal-status independent audit, Q2)
 
-**The contradiction.** `src/services/reviewV2Client.js:55-59` freezes `GRADING_IN_PROGRESS` as
+**What's exposed.** `functions/index.js:1052` takes the `return_cached` branch of
+`claimOrRecoverGradingJob` and returns that payload to the caller **without any acceptance test at all** —
+no engine-provenance check, no presentation binding, no answer-sheet binding. The engine's typed leg had
+exactly this shape until the typed-fix-audit fold added `usableCachedResults`; the LEGACY path never got
+the fix.
+
+**Why it matters.** The grading-job key on that path is client-supplied (`index.js:1048-1051`, the
+`gradejob-namespace` card), so the same pre-seeding that the engine now refuses is still accepted here —
+the permanent condition reaches that client as an ACCEPTED GRADE rather than a refusal.
+
+**Scope and honesty.** This is the LIVE path 947 students use today, and it is PRE-EXISTING — neither
+introduced nor worsened by any fold in this program. I have NOT assessed exploitability end-to-end: the
+legacy client also carries a `gradeToken` binding leg that the engine deliberately does not mint, and that
+may or may not fence the same case. **That assessment is the first task if this is picked up** — do not
+assume the engine's finding transfers without re-deriving it on this path.
+
+**Relationship to the other cards.** Same root as 19 (`gradejob-namespace`): a client-nameable key into a
+server-trusted cache. If 19 is fixed by reserving the key namespace at the source, this may close with it —
+which is an argument for doing 19 at the source rather than only consumer-side.
+
+---
+
+## 21. ~~`grading_in_progress` is returned for a PERMANENT condition~~ **FIXED 2026-08-04** · client contract · (was: BLOCKS DF2-51; found by the typed-fix-audit independent audit, F3)
+
+**The contradiction.** `src/services/reviewV2Client.js:55-70` freezes `GRADING_IN_PROGRESS` as
 *"Retryable, zero writes — the caller polls, it does NOT re-submit with a new composeKey"*. That is
 correct for what the status was invented for: a genuinely concurrent worker holding a live 180s lease,
 which resolves on its own.
@@ -63,8 +87,30 @@ contract tells the client not to do — so the code and the published contract d
 engine is dark. It is a **prerequisite for `df2-51-client`**: shipping the cutover against the current
 contract would build a poll-forever path for a real student.
 
-**DECIDED 2026-08-03 (delegator; this is a technical call, not David's): OPTION 1 — a DISTINCT DATA
-status meaning *recompose, do not poll*.**
+**FIXED 2026-08-04 — `grade_unusable` shipped.** The permanent condition now returns its own DATA
+status meaning *recompose ONCE, do not poll*, at exactly the two sites where a cached grading-job
+payload is refused: `typedGrading.js:299` (the `return_cached` path) and `:343` (its `already_graded`
+sibling). The three TRANSIENT sites are untouched and still return `grading_in_progress`:
+`typedGrading.js:279` (a live lease), `:350` (persist established no authority), `callables.js:655`
+(a concurrent submit). Client side: `GRADE_UNUSABLE` is in the frozen RV2 list with each status naming
+the other as its inverse, plus an `isGradeUnusable()` predicate mirroring `isGradingInProgress()`.
+
+**EVIDENCE:** engine lap **453/453** green (was 445) · **11/11** typed-seam mutants killed (was 9).
+Two new mutants prove the split in BOTH directions, which a single mutant cannot: reverting the
+permanent sites dies on 15 assertions — 13 pinning one seam and S1/S3 independently pinning the
+`already_graded` sibling, so a one-seam revert cannot hide behind the other's coverage — and returning
+the new status from a transient site dies on exactly the two keep-controls.
+
+**A CENSUS ERROR WORTH KEEPING:** the fold ledger's verify row claimed six lap assertions needed
+flipping. There were TWELVE, and two of the missing six (S1, S3) were the ONLY coverage of the
+`already_graded` site. Same blind spot as the sibling-seam finding a day earlier: enumerate the obvious
+site, undercount its twin. A hand-typed census of fixture sites is a claim that should be derived.
+
+**STILL OWED (carded, not this fold):** the CLIENT handling — recompose exactly once on
+`grade_unusable`, never in a loop — belongs to `df2-51b-submit`. This fold shipped the SERVER contract
+and its fixtures only.
+
+**The decision, kept for the record:** OPTION 1 — a DISTINCT DATA status, not a discriminator field.
 
 Why option 1 and not the discriminator field: one status that means two opposite things ("keep polling"
 vs "stop polling") is precisely the ambiguity that produces the poll-forever bug. The two conditions are
@@ -73,7 +119,13 @@ list breaks old clients — **does not apply here**: the engine is dark, `REVIEW
 finds no consumer of these statuses anywhere except the definition. There is no old client. The FIRST
 client to read them is the DF2-51 cutover, so this is the one moment the list can be changed for free.
 
-**And recompose is not merely a nicety — it is the ONLY recovery path a student has** (see card 19): a
+**CORRECTED by the independent audit (F3): recompose is NOT the card-19 recovery path.** A student
+blocked by a classmate's pre-claim gets a THROWN `permission-denied` (`index.js:936-938`), never a data
+status — the lap asserts exactly that. So a DF2-51 author who implements "recompose when
+`isGradeUnusable`" leaves the card-19 victim stranded: that contract lives in the THROW, not the status.
+What `grade_unusable` does fix is the poisoned/foreign-cache case, where the student genuinely does see
+the status. Recompose also is not the only recovery there — for a loser-sheet race, resubmitting the
+ORIGINAL sheet lands from cache with zero grader calls. **Original claim, kept as the error**: a
 grading job stamped with someone else's uid can never be re-claimed, and clients cannot delete it. A
 status that tells the client to keep polling would strand that student permanently.
 
@@ -170,7 +222,7 @@ the flip**, which is why this must close before activation rather than after. Re
 `writeContext/gradeContext.attemptDocId` and claims `grading_jobs/{that key}` with no namespace
 restriction (`GRADE_JOB_ENABLED = true`, `:104`). A caller may therefore name **any** key, including
 the engine's `rv2_{presentationId}` — and the client holds its own `presentationId`
-(`src/services/reviewV2Client.js:152`). The payload the live path caches
+(`src/services/reviewV2Client.js:173`). The payload the live path caches
 (`functions/index.js:1136-1141`) satisfies the engine's cached-grade acceptance test
 (`functions/reviewV2/typedGrading.js:102-104`), so a pre-seeded grade would be consumed as engine
 evidence. The header comment at `typedGrading.js:13-16` calling `rv2_` "collision-free against the

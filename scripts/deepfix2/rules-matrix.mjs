@@ -244,7 +244,7 @@ await deny("8d teacher create grading_job", t1.doc("grading_jobs/gj2").set({ uid
 //    is one half of the fence. This is the other half — the grade cache must be
 //    unwritable by a client THROUGH EVERY OPERATION, not just the update that
 //    happened to be fixtured. The docId is `rv2_{uid}_{presentationId}`, which the
-//    client can derive (reviewV2Client.js:152), so it is named literally here.
+//    client can derive (reviewV2Client.js:173), so it is named literally here.
 const POISON = {
   results: [{ wordId: "wordA", isCorrect: true }],
   source: "reviewV2", presentationId: "p1", answerSheetKey: "sheet-hash",
