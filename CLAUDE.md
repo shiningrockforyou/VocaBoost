@@ -58,6 +58,16 @@ unambiguous. If it is quiet, nothing changed; that is NOT the same as nothing go
   while it watches.
 - `baton-watcher.sh` (the log-file one) still runs from `session-start.sh` as a durable record. Keep
   both: the log is the audit trail, the monitor is the alarm.
+- **Nothing here is immortal, so do not treat it as such.** The harness Monitor is *persistent* only
+  until SESSION END; the nohup'd log watcher survives that but not a WSL restart. That is exactly why
+  both exist and why arming is a per-session convention: **arm the monitor first, then read
+  `/tmp/deepfix2-baton-events.log` to see what changed while nothing was armed.** The log is how a new
+  session discovers a baton that returned into an unwatched window — which is how the 2026-08-04 miss
+  was eventually reconstructed.
+- **It POLLS (60s), and that is correct, not a shortcut.** `/app` is a 9p mount; inotify does not fire
+  reliably for Windows-side writes, and the win baton is written from Windows. A reactor would appear
+  instant while silently missing the events it exists to catch. Executor rounds run 10-60 minutes, so
+  60s costs ~2% of the wait.
 
 ## DEEPFIX2 Execution Discipline (read before any review fold or deploy order)
 - **Start every turn with** `bash scripts/deepfix2/session-start.sh` — relaunches the baton watcher,

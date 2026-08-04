@@ -18,7 +18,13 @@
 # Usage (normally via the harness Monitor, persistent):
 #   bash scripts/deepfix2/baton-monitor.sh
 # Env: DEEPFIX2_BATON_POLL (seconds, default 20)
-POLL="${DEEPFIX2_BATON_POLL:-20}"
+# POLLING IS CORRECT HERE, NOT A COMPROMISE [2026-08-04]. /app is a 9p mount (v9fs) —
+# WSL viewing C:\Users\dmchw\vocaboost. inotify does NOT fire reliably for writes made
+# on the WINDOWS side, and the win baton is written by WinClaude FROM WINDOWS. A true
+# reactor would look instantaneous while silently missing exactly the events we exist
+# to catch. 60s: an executor round is 10-60 MINUTES, so the added latency is ~2% of the
+# wait, and every poll crosses the 9p boundary, so slower is kinder.
+POLL="${DEEPFIX2_BATON_POLL:-60}"
 WIN=/app/docs/plans/loop/win/baton.json
 CODEX=/app/docs/plans/loop/baton.json
 
