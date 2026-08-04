@@ -1,61 +1,73 @@
-# RESUME — DEEPFIX2 (2026-08-04: cutover-b + namespace COMMITTED & auditor-verified · operating model hardened)
+# RESUME — DEEPFIX2 (2026-08-04: the CLIENT CUTOVER is DONE — a·b·c·d + dashboard + df2-11 all committed, audited, most visual-CLEAN)
 
-## ⚡ FIRST ACTION — arm the monitor, then session-start
+## ⚡ FIRST ACTION — arm the monitor, then session-start, then READ THE BATON
 ```
 Monitor({command: "bash /app/scripts/deepfix2/baton-monitor.sh",
          description: "DEEPFIX2 baton returns (win + codex)", persistent: true, timeout_ms: 3600000})
 ```
-Then `bash scripts/deepfix2/session-start.sh` — it relaunches the watcher, prints both batons, surfaces the
-baton event log, and lists open ledgers + uncommitted work. This is CLAUDE.md's documented first action.
+Then `bash scripts/deepfix2/session-start.sh`. **The win baton was handed to WinClaude for ORDER 103 at the
+end of the last session** (batched flag-OFF visual checks: dashboard streak + df2-11 teacher modals). CHECK
+IF IT RETURNED — read `docs/plans/loop/win/baton.json` + `/tmp/deepfix2-baton-events.log`. **If order 103
+returned: that is the top of the queue** — fold it (close `dashboard-streak-authority-visual` +
+`df2-11-teacher-ui-visual` in WORK_QUEUE), then continue.
 
-## READ THE OPERATING MODEL (new 2026-08-04 — it changes how you work)
-CLAUDE.md now has an **"Operating model — DELEGATE, KEEP JUDGMENT"** section. In short: delegate
-implementation to the **`implementer`** agent-def (Sonnet; pass `model: opus` at spawn for a live-path fold);
-verify with the **`auditor`** agent-def (Opus — re-executes the evidence, returns GO/NO-GO); **read verdicts,
-not diffs**; do a **file-ownership pass** before parallel fan-out (disjoint sets, else sequence/single-own);
-set **`[>]`** on an item before delegating it; run **`save-state.sh`** at session end. Durable ledger home
-is `docs/plans/deepfix2/_ledgers/`.
+## OPERATING MODEL (CLAUDE.md "DELEGATE, KEEP JUDGMENT")
+Delegate implementation to the **`implementer`** agent-def (Sonnet; `model: opus` at spawn for a live-path/
+security/data fold) from a WRITTEN BRIEF + a fold ledger. Verify live-path/shared work with the independent
+**`auditor`** agent-def (Opus, no Edit/Write — re-executes the evidence, returns GO/NO-GO); read the verdict,
+not the diff. Scale it: a small flag-gated client fold can stop at orchestrator level-4 self-verification
+(re-run the evidence + confirm byte-identity), as `dashboard-streak-authority` did. Set **`[>]`** before
+delegating; **`[~]`** = carded. Durable ledgers live in `docs/plans/deepfix2/_ledgers/`. Stage EXPLICITLY.
 
 ## WHERE THINGS STAND
-**Nothing is deployed; nothing is activated.** `REVIEW_V2_CLIENT=false`. Production: functions STALE at
-`b54c6e5` · rules DEPLOYED (`384c9c7a…`, sha16 `f40f91fce3693b82`).
+**Nothing is deployed; nothing is activated.** `REVIEW_V2_CLIENT=false`. Production functions STALE at
+`b54c6e5`; rules DEPLOYED at `f40f91`. Committed ≠ deployed — the committed `firestore.rules`/`functions`
+(sha16 `4d8e511b`, namespace guard) ship later via `functions-deploy-engine` (David/Codex-gated).
 
-**COMMITTED + PUSHED this session (win order 100 pushed all 19 commits; `origin/main` == HEAD `b6dce9b`).**
-⚠ **COMMITTED ≠ DEPLOYED:** the committed `firestore.rules` (sha16 `4d8e511b`, w/ the namespace guard) and
-`functions/` changes are AHEAD of the DEPLOYED state (rules still `f40f91`, functions still `b54c6e5`) —
-they ship later via `functions-deploy-engine`, Codex-gated. "Production unchanged" = deployed, not committed.
-- `9d73e98` — **cutover-b-submit + namespace-reservation**, each AUDITOR-VERIFIED GO (Opus, level-4):
-  - cutover-b-submit: client submit routes through engine `submitAttempt` behind the flag; adapter
-    `reviewV2Submit.js` sends only `{presentationId, answers}`; recompose-once on `grade_unusable`. Pure
-    179/0 · emulator 65/0 · mutants 2/2. **VISUAL CHECK OWED** (queue `cutover-b-visual`, a win order).
-  - namespace-reservation (NTF 19+22): `rv2_` prefix reserved at 3 mouths (G1 rules + G2 submitVocabAttempt
-    + G3 gradeTypedTest). rules 276/276 · 16/16 mutants · emulator 31/31. 3 deploy artifacts sha16 `4d8e511b`.
-- `a7aadbf` — **orchestration tooling**: `implementer`/`auditor` agent-defs, `[>]`/`[~]` markers, `save-state.sh`.
-- (this commit) — CLAUDE.md operating-model section + this RESUME.
+**THE CLIENT CUTOVER IS COMPLETE (all committed, local; nothing deployed).** Every fold flag-OFF byte-identical:
+- cutover-a/b/c/d (compose·submit·complete·refusals) — auditor-verified GO, **visual-CLEAN win 101+102**.
+- `f60ebf7` **dashboard-streak-authority** (NTF-25) — Dashboard reads the account-wide server streak behind
+  the flag; orchestrator level-4 verified (pure 32/0, mutants 2/2, `calculateStreak` byte-identical). VISUAL owed.
+- `1c05038` **df2-11 teacher review-settings** — review-settings group in BOTH teacher modals + BOTH writers +
+  the ClassDetail read card, behind the flag; **independent OPUS auditor GO** (pure 42/0, mutants 6/6,
+  reviewGateEnabled default-TRUE confirmed). VISUAL owed. `reviewSettingsAuthority.js` mirrors config.js.
+- `54d98a2` **NTF-23 verified**: the legacy cached-grade cross-student vector is fenced (uid throw + client-
+  write-denial + namespace reservation); shrinks to an off-critical-path defense-in-depth card (Codex ratifies).
 
-## PENDING (needs David / WinClaude)
-- **cutover-b VISUAL CLOSED — win order 101 CLEAN** (`winclaude_101.md`; push done at order 100, all 19 on
-  origin): with the typed submission authorized (David, ≤200 on 25WT), WinClaude drove the flag-OFF path
-  end-to-end — typed submit → result card 100% → phase advanced, 0 console errors, flag-gating verified in
-  code. cutover-b's acceptance criterion is met.
-- **⚠ NEW LIVE-PATH FINDING → NEED_TO_FIX 26 (not a cutover-b defect):** the LEGACY typed grader
-  (`gradeTypedTest`, untouched by any fold) marked **20/20 GARBAGE answers** (the literal "answer" for every
-  word) as **100% correct**. cutover-b is provably dead flag-off, so it did not cause this — but typed scores
-  gate graduation for 947 students. No pre-cutover GRADED baseline exists (the account's older attempts were
-  seeded, not graded). NEEDS DIAGNOSIS: a no-spend code-look at the grader's prompt + error handling
-  (fail-open?), and/or a wrong-but-plausible probe (WinClaude, 1 submission). **David is aware; decision pending.**
-- **Deferred bundle item:** the shared test-harness lib (`scripts/deepfix2/lib/fold-harness.mjs`) — modest
-  savings (~100–200 lines/file, re-scoped by the plan-audit); the clean committed baseline now exists.
+## IN FLIGHT (WinClaude — order 103, baton handed off)
+- **`dashboard-streak-authority-visual` + `df2-11-teacher-ui-visual`** — ONE batched WinClaude order 103
+  (`claude_to_winclaude_103.md`): flag-OFF, does the Dashboard load + streak render unchanged; do BOTH teacher
+  modals show today's Min/Max section (NOT the new group) + still save. 25WT, no AI spend. Fold on return.
 
-## NEXT (`node scripts/deepfix2/whats-next.mjs` is authoritative)
-- `cutover-c-complete` (ready) — route day completion through `completeDay`.
-- `namespace-legacy-cache-23`, `functions-deploy-engine` (ready, after namespace).
-- **David's gates:** backfill-go · flip-go · gradedIsCorrect-trust · teacher-registration · deploying the
-  committed folds (Codex-gated — the folds are committed but NOT deployed).
+## PENDING — DAVID (the real bottleneck for the rehearsal → flip)
+- **NTF-26** — the LEGACY typed grader marks garbage 100% (root-caused to Haiku prompt leniency; win-102 MCQ
+  scored 32% ⇒ TYPED-specific, not DEEPFIX2-caused). Gates the deploy content. Options: (a) I prep the fix
+  (prompt negatives + regression + same-answer heuristic), committed-not-deployed, you deploy; (b) a
+  wrong-but-plausible typed probe first; (c) card it. **Your call.**
+- **`functions-deploy-engine`** (deploy the engine — the rehearsal runs against the DEPLOYED dark backend),
+  **backfill-go · flip-go · gradedIsCorrect-trust · teacher-registration · the flip abort-threshold RATIFY.**
+
+## NEXT — AUTONOMOUS (`node scripts/deepfix2/whats-next.mjs` is authoritative). All NON-gating polish.
+- **`df2-07-messaging`** — SCOPED (a real fold, not a swap; see the queue row): (a) threshold copy threads
+  `retakeThreshold` through 4 SessionProgressSheet sites + genericize HelpModal (:212 mislabels Review at 95%
+  when review=92); (b) review-only reason banner = NET-NEW UI (heavy, own design); (e) delete the 30% throttle
+  passages from help HTML + TA docs. Suggested split: bounded (a/d/e) + a separate (b/c) fold.
+- **`df2-51-navui`** — the past-day browser + within-day toggle (retests, metered). Bigger new-nav feature.
+- **`dashboard-df2-33`** — hero/per-list presentation unification; owes a David decision (read-only assembly variant).
+- **Deploy prep** (ordering-deploys) — can PREPARE the order, but content depends on NTF-26; David executes.
+- `namespace-legacy-cache-23` `[~]` — carded defense-in-depth; Codex checkpoint ratifies the shrink.
+
+## CRITICAL PATH to the rehearsal (why the autonomous folds don't unblock it)
+`df2-11 ✓ → playwright-suite (now unblocked, but runs against the DEPLOYED dark backend) → rehearsal-25wt`
+AND `functions-deploy-engine (David) → b0-baseline`. Both prerequisites are WinClaude/David-gated — the
+remaining autonomous UI folds pre-position the UI side but do NOT unblock the rehearsal alone.
 
 ## STANDING FACTS
-- Dev build talks to REAL production Firebase (`VITE_USE_EMULATOR=false`) ⇒ UI checks use 25WT identities
-  ONLY, never 26SM. Typed tests bill real AI tokens.
-- WSL cannot run vite or git push ⇒ both are WinClaude orders. A concurrent session shares this repo
-  (`.claude/settings*.json` are THEIRS) ⇒ stage explicitly, never `git add -A`.
-- Deploy stays David + Codex-gated. Codex baton idle (claude r79 YES).
+- Dev build talks to REAL production Firebase (`VITE_USE_EMULATOR=false`) ⇒ UI checks use 25WT ONLY, never
+  26SM. Typed tests bill real AI tokens (David OK'd ≤200 on 25WT).
+- WSL cannot run vite or git push ⇒ both are WinClaude orders. Every UI fold ends with a WinClaude visual order.
+- A concurrent session shares this repo (`.claude/settings*.json` are THEIRS, always `M`) ⇒ stage explicitly,
+  never `git add -A`. The gate's NUMBERS/EVIDENCE reds against `engine-lap-result.json` + `audit/deepfix/task3`
+  are FOREIGN/pre-existing (re-run at the engine deploy) — enumerate them, don't chase them.
+- Before scoping a fold from a one-line queue entry, READ THE FULL SPEC — df2-11 and df2-07 were both bigger
+  than their queue lines (launch-train live surfaces, not quick wins).
