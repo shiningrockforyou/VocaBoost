@@ -1,0 +1,38 @@
+{
+  "kind": "dashboard-df2-33-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-DROP-NON-DEMOTING-MAX",
+      "clause": "currentStudyDay never demotes below the raw stored value (C1.1/C1.2)",
+      "target": "src/utils/dayStatusAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 2,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-DISPLAYDAY-OFF-BY-ONE",
+      "clause": "displayDay = currentStudyDay + 1 (C1.1)",
+      "target": "src/utils/dayStatusAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 5,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-ATTEMPTS-NULL-TREATED-AS-EMPTY",
+      "clause": "attempts:null is the explicit not-computed sentinel, oracle never invoked (C1.4)",
+      "target": "src/utils/dayStatusAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 5,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": "6677f0ee802f8106",
+  "at": "2026-08-04T23:46:21.937Z"
+}

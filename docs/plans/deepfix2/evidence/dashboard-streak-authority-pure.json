@@ -10,8 +10,8 @@
   "sourceShas": {
     "src/utils/streakAuthority.js": "76132f14c87033ce",
     "src/services/streakCredits.js": "608439a2eb06338f",
-    "src/pages/Dashboard.jsx": "c1bcb28227965424",
+    "src/pages/Dashboard.jsx": "b756400f26501f69",
     "scripts/deepfix2/dashboard-streak-authority-fixtures.mjs": "f6922e9b675dc877"
   },
-  "at": "2026-08-04T19:44:35.843Z"
+  "at": "2026-08-04T23:46:24.500Z"
 }

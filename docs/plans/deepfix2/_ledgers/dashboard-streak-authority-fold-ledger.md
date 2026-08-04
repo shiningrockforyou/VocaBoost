@@ -109,7 +109,7 @@ account-wide server streak the authority behind the flag; df2-33 settles how it'
         `grep -rn "streak_credits" src/` returns exactly those 3 files (orchestrator, post-fold).
 
 ## GROUP E — CARDED, NOT THIS ROUND
-[ ] E1  **The account-wide-vs-per-list PRESENTATION unification → `dashboard-df2-33`** (scout §3 open question,
+[x] E1  **FULFILLED 2026-08-04 by `dashboard-df2-33`** (ledger `_ledgers/dashboard-df2-33-fold-ledger.md`: ONE derivation `dayStatusAuthority.js` behind the flag; streak stays hero-only, no per-list streak UI added). Original card: **The account-wide-vs-per-list PRESENTATION unification → `dashboard-df2-33`** (scout §3 open question,
         `WORK_QUEUE.md:37`, "the first concrete instance"). This fold makes the account-wide server streak the
         authority; df2-33 settles the hero + per-list display (whether/how per-list streaks are shown, since
         the server has only one). Do NOT redesign the presentation here.

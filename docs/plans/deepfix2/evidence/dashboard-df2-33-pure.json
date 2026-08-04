@@ -1,0 +1,30 @@
+{
+  "kind": "dashboard-df2-33-pure",
+  "pass": true,
+  "total": 71,
+  "failed": 0,
+  "reds": [],
+  "grepProofs": {
+    "reviewV2ClientCounts": {
+      "current": 17,
+      "head": 10
+    },
+    "currentStudyDayPlusOneCounts": {
+      "current": 2,
+      "head": 2,
+      "moduleCount": 1
+    }
+  },
+  "realOracleImport": {
+    "attempted": true,
+    "loaded": false,
+    "error": "Cannot find module '/app/src/firebase' imported from /app/src/services/studyService.js",
+    "note": "studyService.js imports ../firebase.js, which reads Vite's import.meta.env; plain node cannot load it (same precedent streakAuthority.js's header documents). Deferring this ONE integration fixture to the rehearsal per the df2-33 BRIEF's own escape hatch — NOT re-implementing the oracle here (oracle drift). This is a DEFERRAL, not a failure, so it is NOT counted in total/failed."
+  },
+  "sourceShas": {
+    "src/utils/dayStatusAuthority.js": "6677f0ee802f8106",
+    "src/pages/Dashboard.jsx": "b756400f26501f69",
+    "scripts/deepfix2/dashboard-df2-33-fixtures.mjs": "3c4d0c54289e3597"
+  },
+  "at": "2026-08-04T23:46:19.372Z"
+}

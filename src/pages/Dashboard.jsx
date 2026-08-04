@@ -21,6 +21,11 @@ import { getClassProgress } from '../services/progressService'
 // read + derivation, behind REVIEW_V2_CLIENT (:1399). Flag-off this is never
 // called (ledger V4/C2 — the legacy calculateStreak path is untouched).
 import { fetchAccountStreak } from '../services/streakCredits'
+// DASHBOARD-DF2-33: the ONE pure "Day N" + phase derivation shared by the hero
+// (Panel C) and each per-list ListProgressStats row, behind REVIEW_V2_CLIENT.
+// Flag-off neither call site invokes it (ledger A2/A3 — the legacy inline
+// expressions are untouched).
+import { deriveListDayStatus, attemptsForList, csdForRow } from '../utils/dayStatusAuthority'
 import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
@@ -174,7 +179,11 @@ function PanelError({ message = "Unable to load", className = "" }) {
   )
 }
 
-function ListProgressStats({ classId, listId, progressData, assignment }) {
+// DAY-STATUS-AUTHORITY (df2-33): `userAttempts`/`resolvedFocusCsd` are the
+// parent's OWN already-loaded state, threaded through for the flag-on leg
+// only — no new reads, no new fetches (decision 3: rows never render a phase/
+// done-state, so `attempts` is deliberately passed as `null` below).
+function ListProgressStats({ classId, listId, progressData, assignment, userAttempts, resolvedFocusCsd }) {
   const key = `${classId}_${listId}`
 
   // Key doesn't exist = still loading
@@ -188,8 +197,20 @@ function ListProgressStats({ classId, listId, progressData, assignment }) {
   }
 
   const progress = progressData[key]
+  // DAY-STATUS-AUTHORITY (df2-33): behind REVIEW_V2_CLIENT, completedDays/
+  // displayDay come from the ONE derivation (attempts: null — a row renders
+  // no phase output, decision 3: no done-today ticks/phase chips here).
+  // Flag-off, today's exact expressions below (untouched).
+  const dayStatus = REVIEW_V2_CLIENT
+    ? deriveListDayStatus({
+        progress,
+        attempts: null,
+        resolvedCsd: csdForRow(resolvedFocusCsd, classId, listId),
+        phaseOracle: determineStartingPhase,
+      })
+    : null
   // null = new user (Day 1), object = has progress
-  const completedDays = progress?.currentStudyDay ?? 0
+  const completedDays = REVIEW_V2_CLIENT ? dayStatus.currentStudyDay : (progress?.currentStudyDay ?? 0)
   const studyDaysPerWeek = assignment?.studyDaysPerWeek ?? 5
   const programStartDate = progress?.programStartDate?.toDate?.() || progress?.programStartDate
   const expectedDay = calculateExpectedStudyDay(programStartDate, studyDaysPerWeek)
@@ -201,7 +222,7 @@ function ListProgressStats({ classId, listId, progressData, assignment }) {
 
   // Display day = currentStudyDay + 1 (consistent with session view)
   // currentStudyDay=0 means on Day 1, currentStudyDay=1 means on Day 2, etc.
-  const displayDay = completedDays + 1
+  const displayDay = REVIEW_V2_CLIENT ? dayStatus.displayDay : (completedDays + 1)
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg bg-muted px-3 py-2 min-w-[90px] h-full">
@@ -1647,31 +1668,48 @@ const Dashboard = () => {
       const key = `${getPrimaryFocus.classId}_${getPrimaryFocus.id}`
       const progress = progressData[key]
 
-      // [deepfix P4, SERVER_PROGRESS_WRITE] Prefer the server-RECONCILED csd for the focused
-      // list (resolveListProgress read — see the effect above) over the raw stored doc value:
-      // the raw read is what fed determineStartingPhase a stale dayNumber and fired the
-      // `impossible_phase_detected` noise. Guarded to the CURRENT focus so a stale resolution
-      // from a previous focus can never leak in. Flag OFF → resolvedFocusCsd is always null
-      // → exactly today's raw read.
-      const resolvedMatchesFocus = SERVER_PROGRESS_WRITE
-        && resolvedFocusCsd
-        && resolvedFocusCsd.classId === getPrimaryFocus.classId
-        && resolvedFocusCsd.listId === getPrimaryFocus.id
-      const currentStudyDay = resolvedMatchesFocus
-        ? Math.max(resolvedFocusCsd.csd, progress?.currentStudyDay ?? 0) // non-demoting (CSD contract)
-        : (progress?.currentStudyDay ?? 0)
+      // DAY-STATUS-AUTHORITY (df2-33): behind REVIEW_V2_CLIENT, currentStudyDay + phase come
+      // from the ONE derivation module (src/utils/dayStatusAuthority.js), fed the SAME inputs
+      // via the two shared predicates (attemptsForList/csdForRow — the exact legacy filter/
+      // guard below, given one home). Flag-off, today's exact code (untouched — wrapped in an
+      // IIFE only so the ternary stays lazy: determineStartingPhase has a real side effect,
+      // a logSystemEvent Firestore write on the "impossible phase" branch, so flag-off must
+      // never risk firing it a second time via an unconditionally-evaluated legacy path).
+      const dayStatus = REVIEW_V2_CLIENT
+        ? deriveListDayStatus({
+            progress,
+            attempts: attemptsForList(userAttempts, getPrimaryFocus.classId, getPrimaryFocus.id),
+            resolvedCsd: csdForRow(resolvedFocusCsd, getPrimaryFocus.classId, getPrimaryFocus.id),
+            phaseOracle: determineStartingPhase,
+          })
+        : (() => {
+            // [deepfix P4, SERVER_PROGRESS_WRITE] Prefer the server-RECONCILED csd for the focused
+            // list (resolveListProgress read — see the effect above) over the raw stored doc value:
+            // the raw read is what fed determineStartingPhase a stale dayNumber and fired the
+            // `impossible_phase_detected` noise. Guarded to the CURRENT focus so a stale resolution
+            // from a previous focus can never leak in. Flag OFF → resolvedFocusCsd is always null
+            // → exactly today's raw read.
+            const resolvedMatchesFocus = SERVER_PROGRESS_WRITE
+              && resolvedFocusCsd
+              && resolvedFocusCsd.classId === getPrimaryFocus.classId
+              && resolvedFocusCsd.listId === getPrimaryFocus.id
+            const currentStudyDay = resolvedMatchesFocus
+              ? Math.max(resolvedFocusCsd.csd, progress?.currentStudyDay ?? 0) // non-demoting (CSD contract)
+              : (progress?.currentStudyDay ?? 0)
 
-      // Phase-aware "what to do today" for the hero CTA — derived from attempts
-      // (authoritative), scoped to the active list. One of:
-      // 'new-words-study' | 'review-study' | 'complete'
-      const listAttempts = (userAttempts || []).filter(
-        (a) => a.classId === getPrimaryFocus.classId && a.listId === getPrimaryFocus.id
-      )
-      const phase = determineStartingPhase(listAttempts, currentStudyDay + 1).phase
+            // Phase-aware "what to do today" for the hero CTA — derived from attempts
+            // (authoritative), scoped to the active list. One of:
+            // 'new-words-study' | 'review-study' | 'complete'
+            const listAttempts = (userAttempts || []).filter(
+              (a) => a.classId === getPrimaryFocus.classId && a.listId === getPrimaryFocus.id
+            )
+            const phase = determineStartingPhase(listAttempts, currentStudyDay + 1).phase
+            return { currentStudyDay, phase }
+          })()
 
       return {
-        currentStudyDay,
-        phase,
+        currentStudyDay: dayStatus.currentStudyDay,
+        phase: dayStatus.phase,
         error: false
       }
     } catch (err) {
@@ -2200,6 +2238,8 @@ const Dashboard = () => {
                                       listId={list.id}
                                       progressData={progressData}
                                       assignment={klass.assignments?.[list.id]}
+                                      userAttempts={userAttempts}
+                                      resolvedFocusCsd={resolvedFocusCsd}
                                     />
                                   </div>
 
