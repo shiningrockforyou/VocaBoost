@@ -1,0 +1,12 @@
+{
+  "kind": "df2-51a-model-pure",
+  "pass": true,
+  "total": 115,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/utils/pastDayAuthority.js": "b879091ed97d113d",
+    "scripts/deepfix2/df2-51a-model-fixtures.mjs": "df6fe4faeff68d21"
+  },
+  "at": "2026-08-05T11:45:14.062Z"
+}

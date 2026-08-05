@@ -1,0 +1,68 @@
+{
+  "kind": "df2-51a-model-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-CROSS-VISIT-PAIRING",
+      "clause": "PIP-CANON: partial progress reads the single canonical (most recent) visit only, never an OR-aggregate across every visit for the day (finding F4)",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 4,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-TODAY-EXCLUSION-INVERTED",
+      "clause": "derivePastDays never emits a phantom currentStudyDay+1 row",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 9,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-NO-NEW-HALF-SPECIAL-CASE-DROPPED",
+      "clause": "F3: a day with no new-word half renders the dashed 'na' pip, not 'off'",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 3,
+      "restoredOk": true
+    },
+    {
+      "id": "M4-BOOKMARK-PRECEDENCE-DROPPED",
+      "clause": "bookmark displaces the progress chip FIRST, before the tier is even considered",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 2,
+      "restoredOk": true
+    },
+    {
+      "id": "M5-RETEST-EXCLUSION-DROPPED",
+      "clause": "originalAttemptsForDay/isLiveAttempt excludes type:'retest' so a rerun can never masquerade as the original completion",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 2,
+      "restoredOk": true
+    },
+    {
+      "id": "M6-CANRETESTTYPED-WINDOW-ROLLOVER-DROPPED",
+      "clause": "canRetestTyped offers typed again once the KST window has rolled over past a prior refusal",
+      "target": "src/utils/pastDayAuthority.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 115,
+      "failures": 1,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": "b879091ed97d113d",
+  "at": "2026-08-05T11:45:14.744Z"
+}
