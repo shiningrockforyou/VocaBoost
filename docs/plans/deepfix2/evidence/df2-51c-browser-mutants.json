@@ -1,0 +1,58 @@
+{
+  "kind": "df2-51c-browser-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-FLAG-OFF-GATE-SIMULATED",
+      "clause": "REVIEW_V2_CLIENT && <Route .../> is load-bearing — forcing it true (in-memory only; no file written) makes /restudy/:classId/:listId reachable",
+      "target": "IN-MEMORY SIMULATION (no file mutated — src/App.jsx is shared, and a flag VALUE may never be changed, even transiently)",
+      "killed": true,
+      "fixtureExit": null,
+      "checks": null,
+      "failures": null,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-TODAY-ACTIONABLE",
+      "clause": "isDayActionable: today is never actionable (the negation must not be dropped)",
+      "target": "src/pages/RestudyBrowser.viewModel.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 84,
+      "failures": 5,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-BOOKMARK-PRECEDENCE-DROPPED",
+      "clause": "computeBookmarkToggleTarget: clicking the already-bookmarked day clears it; the scalar is never additive",
+      "target": "src/pages/RestudyBrowser.viewModel.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 84,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M4-BRANCH-EMPTY-CHECK-DROPPED",
+      "clause": "selectBranch: a genuinely empty pastDays array must select 'empty', not 'list'",
+      "target": "src/pages/RestudyBrowser.viewModel.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 84,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M5-RESTUDY-DISABLED-DROPPED",
+      "clause": "buildDayRowViewModel: restudyDisabled must honor F3's canRestudy:false (nothing to re-study on a no-new-half day)",
+      "target": "src/pages/RestudyBrowser.viewModel.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 84,
+      "failures": 2,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": "3430eacc2d21d1d9",
+  "at": "2026-08-05T12:32:14.848Z"
+}

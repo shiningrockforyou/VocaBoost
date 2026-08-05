@@ -1,0 +1,14 @@
+{
+  "kind": "df2-51c-browser-pure",
+  "pass": true,
+  "total": 84,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/pages/RestudyBrowser.viewModel.js": "3430eacc2d21d1d9",
+    "src/App.jsx": "e40752f54d617c9d",
+    "src/config/featureFlags.js": "b619b6c3c24c006e",
+    "scripts/deepfix2/df2-51c-browser-fixtures.mjs": "b2ea69bd2b516eeb"
+  },
+  "at": "2026-08-05T12:32:12.947Z"
+}

@@ -10,11 +10,17 @@ import ListEditor from './pages/ListEditor.jsx'
 import ClassDetail from './pages/ClassDetail.jsx'
 import DailySessionFlow from './pages/DailySessionFlow.jsx'
 import BlindSpotCheck from './pages/BlindSpotCheck.jsx'
+import RestudyBrowser from './pages/RestudyBrowser.jsx'
 import MCQTest from './pages/MCQTest.jsx'
 import TypedTest from './pages/TypedTest.jsx'
 import Settings from './pages/Settings.jsx'
 import Profile from './pages/Profile.jsx'
 import { queryStudentAttempts } from './services/db'
+// DF2-51-c: route-level flag gate ONLY — REVIEW_V2_CLIENT stays false, so the
+// `/restudy/:classId/:listId` Route below is never added to the router config
+// (react-router's createRoutesFromChildren ignores a falsy child by design)
+// and the path falls through to the existing `*` -> `/` redirect, unchanged.
+import { REVIEW_V2_CLIENT } from './config/featureFlags'
 import PrivateRoute from './components/PrivateRoute.jsx'
 import TeacherRoute from './components/TeacherRoute.jsx'
 import { SimulationProvider, isSimulationEnabled } from './hooks/useSimulation.jsx'
@@ -96,6 +102,16 @@ function App() {
               </PrivateRoute>
             }
           />
+          {REVIEW_V2_CLIENT && (
+            <Route
+              path="/restudy/:classId/:listId"
+              element={
+                <PrivateRoute>
+                  <RestudyBrowser />
+                </PrivateRoute>
+              }
+            />
+          )}
           <Route
             path="/mcqtest/:classId/:listId"
             element={
