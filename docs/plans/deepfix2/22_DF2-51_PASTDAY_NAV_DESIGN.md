@@ -220,3 +220,34 @@ pure client change with no engine dependency.
 
 **F6 (path correction). `DailySessionFlow.jsx` lives at `src/pages/`, not `src/components/`** — the brief's
 path does not exist. All ownership and sequencing above uses `/app/src/pages/DailySessionFlow.jsx`.
+
+---
+
+# 7. RATIFIED — orchestrator decisions, 2026-08-05 (the draft's §3 is now CLOSED)
+
+David ruled the scope question (g) directly; the rest are ratified or superseded below. **This section
+governs; where it conflicts with §3's PROPOSED text, §3 is superseded.**
+
+| # | Ruling | Note |
+|---|---|---|
+| **(g)** | **CORE + EXTRAS — DAVID, 2026-08-05.** The full R2-40 restudy package ships at launch: past-day browser + within-day toggle + resume-where-you-left-off panel + 5-state per-day TOC + progress pips + bookmark toggle + end-of-list completion screen. | Build to the EXTENDED wireframe (`mockups/df2-51-extended.html`), not the core one. |
+| **(c)** | **SUPERSEDED — typed retests DO launch, capped.** The draft proposed MCQ-only because the metering surface did not exist (F1/NTF-28). **It exists now**: `ai-metering-build` landed 2026-08-05 (d3dce7a) per David's "build the spending cap first, launch both". | The client must render the cap refusal — see the NEW decision (h). |
+| **(a)** | **REVISED by (g).** A3 (a dedicated `/restudy/:classId/:listId` route) still holds for the browser, but the entry affordance is **NO LONGER deferred** — the extras' resume panel IS an entry point, so entry ships in the same train. Dashboard entry + resume panel land together. | Keeps the file-ownership benefit of A3 while honoring the ruling. |
+| **(b)** | **RATIFIED as proposed (B2).** Mint `visitId` lazily at first rerun compose; persist in `sessionStorage` under a `composeKeyScope`-mirroring key; discard on `completed:true`, on explicit leave, and re-mint once. | B1 (mint on tile open) silently breaks half-pairing — stays rejected. |
+| **(d)** | **RATIFIED as proposed (D3).** Two additive buttons on the DSF study screens for the within-day toggle; card D2 (tappable `SessionProgressSheet` steps) for the container line. | The toggle mutates only `phase`; compose-key scopes are already `kind`-separated. |
+| **(e)** | **RATIFIED as proposed: NOTHING visible flag-OFF.** Every branch gated at its call site behind `REVIEW_V2_CLIENT`, flag-off byte-identical — the same doctrine every cutover fold shipped under. | Non-negotiable; it is what makes the visual checks meaningful. |
+| **(f)** | **RATIFIED as proposed**, with the standing additions this program has since made law: pure fixtures + one mutant per new clause + an independent opus audit for anything on a live path + a closing WinClaude visual order (25WT, MCQ class, flag-OFF parity first, no global flag flip). | |
+| **(h) NEW** | **The cap refusal must RENDER.** `practice_limit_reached` is in no frozen client status list (carded E1/E3 on the metering fold), so today a capped student sees generic text. DF2-51's client work MUST add it to `src/services/reviewV2Client.js`'s classifiers + a student-facing message ("You've reached today's practice-grading limit — try again tomorrow, or use a multiple-choice re-test") and prove it does NOT poll or recompose. | Closes the metering fold's owed client leg inside this train rather than as an orphan fold. |
+| **(i) NEW** | **Carry NTF-27 into this train.** The `grade_unusable` hard-reload gap (`presentedWordIds` not persisted in the sessionStorage blob) was carded "belongs near df2-51-navui" — it is now in scope: persist `presentedWordIds`, or re-compose on reload. | Cheapest here, where the reload/retest UI is already being touched. |
+
+## FOLD SPLIT (supersedes §4's split — rebuilt for CORE + EXTRAS)
+Each fold flag-gated, flag-off byte-identical, its own ledger + fixtures + mutants; file ownership listed
+so folds can be sequenced against each other and against any concurrent session.
+1. **51-a model** — pure derivation + status/visit types (no UI). Owns: new `src/utils/*`. No contention.
+2. **51-b visit lifecycle** — `visitId` mint/persist/discard per (b). Owns: a new service + sessionStorage helper.
+3. **51-c browser route** — `/restudy/:classId/:listId`, past-days list, 5-state chips, pips, bookmark toggle. Owns: new page + route line in App.jsx.
+4. **51-d retest launch + cap rendering** — wires re-test through the engine rerun leg; implements (h). Owns: `MCQTest.jsx`, `TypedTest.jsx`, `reviewV2Client.js`.
+5. **51-e within-day toggle** — (d). Owns: `DailySessionFlow.jsx`.
+6. **51-f entry + resume panel + end-of-list** — Dashboard affordance + resume panel + completion screen. Owns: `Dashboard.jsx`.
+7. **51-g** — NTF-27 reload persistence (i), bundled where the blob is already being touched.
+8. **51-h** — one batched WinClaude visual order across the whole train (flag-OFF parity first; flag-ON is the rehearsal's).
