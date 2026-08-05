@@ -5,7 +5,7 @@
   "failed": 0,
   "reds": [],
   "sourceShas": {
-    "index.js": "a814ae821e19df14",
+    "index.js": "6b650d2fdc71a8f2",
     "reviewV2/typedGrading.js": "21b5be28758c8893"
   },
   "guards": {
@@ -13,5 +13,5 @@
     "G3": "gradeTypedTest → assertNotEngineReservedDocId(writeContext.attemptDocId, gradeContext.attemptDocId)"
   },
   "victimId": "rv2_student1_c1_l1_d3_e0_p1",
-  "at": "2026-08-04T15:39:07.455Z"
+  "at": "2026-08-05T00:38:39.147Z"
 }
