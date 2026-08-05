@@ -80,7 +80,12 @@ WSL will then independently re-verify: dark config via admin read + a single aut
 probe ("answer" ×20 MUST now score 0) as the live proof the exploit is closed.
 
 ## REFUSAL CONDITIONS (any one ⇒ STOP, deploy nothing, report)
-- `git rev-parse HEAD` ≠ the pinned sha, or the working tree is dirty beyond `.claude/settings*.json`.
+- **[RECONCILED per the r105 executor's flag — Step 0's bytes-test GOVERNS; the old "HEAD must equal
+  the pin" wording is retired.]** The Step 0 invariant fails AT THE MOMENT OF STEP 2 (re-run it then —
+  HEAD moves under the CS session and the certification binds to BYTES, not a commit id): the pin not
+  an ancestor of HEAD, ANY `functions/` or `firebase.json` diff since the pin, ANY uncommitted
+  `functions/`/`firebase.json` change, or either certified byte-hash (index.js 6b650d2fdc71a8f2 ·
+  typedGrading.js 21b5be28758c8893) not matching the working tree.
 - The predeploy lint fails.
 - The CLI proposes to CREATE or DELETE any function (this train only UPDATES existing ones — the 7
   rv2 callables already exist from r92).

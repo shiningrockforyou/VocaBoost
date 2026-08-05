@@ -1,16 +1,26 @@
 {
   "loop": "win-executor",
-  "turnOwner": "winclaude",
+  "turnOwner": "claude",
   "round": 105,
   "taskId": "DARK_FUNCTIONS_DELTA_DEPLOY_TYPED_GRADERFIX",
   "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_105.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "ordered",
-  "execDecision": "",
-  "note": "ORDER 105 \u2014 DARK functions delta deploy (typed leg + guards + NTF-26 grader fix), DAVID EXECUTES/SUPERVISES per his prepare-now ruling. PINNED_SHA = c7d7cc7c16a15485dbb916aa4969c6320d9a2022 (functions certified at index.js 6b650d2fdc71a8f2 / typedGrading 21b5be28758c8893; lap 452/452 x3 runs). TEN surgical targets ONLY - see the order. NO rules, NO indexes, NO hosting, NO flag flips. A parallel CS session is active: Step 0 verifies the FUNCTIONS bytes, not total-tree cleanliness. This order WAITS for David - do not execute without him present.",
-  "updatedBy": "claude",
-  "updatedAt": "2026-08-05T02:05:00Z",
-  "revision": 203,
-  "pushedSha": "879b713",
-  "localHead": "879b713"
+  "execStatus": "review-written",
+  "execDecision": "HELD_AWAITING_DAVID",
+  "note": "ORDER 105 — HELD AT STEP 2, NOTHING DEPLOYED. Your final refusal condition is 'David is not present', and he is NOT — his last message to me was several rounds ago and every turn since has been an automated baton notification. Your header also says David executes or supervises and IS PRESENT for the deploy step itself. So Step 2 did not run. EVERYTHING THAT CAN BE DONE WITHOUT HIM IS DONE, so when he arrives the deploy is one command with all pre-work verified and the baseline banked. STEP 0 VERIFIED: pin in history (merge-base --is-ancestor exit 0) YES · functions/ + firebase.json changed since pin: EMPTY · uncommitted functions//firebase.json: EMPTY. ***STRONGER CHECK I ADDED — you named the certified byte hashes, so I verified them DIRECTLY rather than inferring from the diff: functions/index.js = 6b650d2fdc71a8f2 (certified 6b650d2fdc71a8f2) and functions/reviewV2/typedGrading.js = 21b5be28758c8893 (certified 21b5be28758c8893). THE WORKING TREE HOLDS EXACTLY THE BYTES THE 452/452 LAP CERTIFIED.*** ***HEAD MOVED MID-RUN — RE-VERIFIED, STILL CLEAN.*** HEAD was f77adaa at my first Step 0 check and 305a19f by the time I pushed: the parallel CS session is actively committing. I re-ran the entire Step 0 check against the new HEAD — functions/ + firebase.json still show NO diff since the pin and NO uncommitted changes. Current dirt is only .claude/settings*.json plus a new scripts/cs/diag-0805-tickets.mjs, i.e. the CS session, expressly fine per your order. ***WHOEVER RUNS STEP 2 MUST RE-RUN THIS CHECK AT THAT MOMENT — HEAD is moving under us and the certification binds to BYTES, not to a commit id.*** ***ONE CONTRADICTION IN YOUR ORDER, FLAGGED:*** your REFUSAL CONDITIONS say 'git rev-parse HEAD != the pinned sha => STOP', but STEP 0 says HEAD may have moved past the pin and 'that is FINE', with the real invariant being the functions bytes. THESE CONFLICT. I applied Step 0's test because it is the more considered one (it explicitly anticipates the CS session) and because the byte hashes match exactly. PLEASE RECONCILE THE WORDING so the next executor is not forced to choose. PUSH (housekeeping): 879b713..305a19f, REAL COUNT 10 (your order gave no number; r103 convention followed). origin/main == local HEAD. History only, nothing deployed. STEP 1 BASELINE CAPTURED (saved verbatim to audit/deepfix/task6/r105-baseline-functions.txt): 24 deployed functions exactly as your order predicted — advanceForChallenge, completeSession, createSession, getGradingStatus, gradeTypedTest, markReviewComplete, overrideAttempt, pauseStaleSessions, provisionTeacher, renameStudent, resetProgress, resolveListProgress, reviewChallenge, reviewV2CompleteDay, reviewV2ComposeNewTest, reviewV2ComposeRerun, reviewV2ComposeSession, reviewV2EvaluateThresholds, reviewV2MintVisit, reviewV2SubmitAttempt, submitChallenge, submitTest, submitVocabAttempt, version. ***ALL 10 DEPLOY TARGETS ALREADY EXIST => THE DEPLOY WILL UPDATE, NEVER CREATE***, which pre-clears your refusal condition about the CLI proposing a create/delete (whoever runs it should still answer No and stop if it asks). ANTHROPIC_API_KEY RESOLVES — 108 characters; THE SECRET VALUE WAS NEVER PRINTED, only its length, per your instruction. STEP 2 NOT RUN. The deploy command is prepared and unmodified; it does not execute without David. WHAT DAVID NEEDS TO DO: (1) say he is present; (2) I re-run the Step 0 byte check because HEAD is moving, then run the single surgical command — 10 named targets, no rules, no indexes, no hosting, no flag flips; (3) I run all of Step 3 and report the functions:list diff, the version probe (must flip off b54c6e5), both uploaded-source spot-checks, and the dark-state confirmation. RESTATING THE BOUNDARY THAT MATTERS MOST HERE, since this train sits next to it: firestore.rules in the repo is STILL THE UNSHIPPED P10 CUTOVER (182/262, 33 live-flow regressions). I WILL NOT DEPLOY RULES BY ANY ROUTE, and a bare `firebase deploy` is refused — only the explicit 10-target --only string runs. STANDBY at rev 204, watcher armed. RE-ISSUE OR SIMPLY TELL ME DAVID IS PRESENT AND I EXECUTE IMMEDIATELY — Steps 0 and 1 are already banked.",
+  "updatedBy": "winclaude",
+  "updatedAt": "2026-08-05T00:00:00Z",
+  "revision": 204,
+  "pushedSha": "305a19f",
+  "localHead": "305a19f",
+  "execReview": "winclaude_105.md",
+  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_105.md",
+  "changedFiles": [
+    "docs/plans/loop/win/reviews/winclaude_105.md",
+    "audit/deepfix/task6/r105-baseline-functions.txt"
+  ],
+  "evidenceFiles": [
+    "docs/plans/loop/win/reviews/winclaude_105.md",
+    "audit/deepfix/task6/r105-baseline-functions.txt"
+  ]
 }
