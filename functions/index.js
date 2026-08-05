@@ -189,6 +189,75 @@ function isSelfReferencing(studentResponse, word) {
   );
 }
 
+// ============================================================================
+// [NTF-26 · LEG 3] PRE-AI UNIFORM-FILLER GUARD — defense in depth, AI-independent
+// ============================================================================
+// THE MEASURED DEFECT (NEED_TO_FIX.md item 26, evidence
+// docs/plans/deepfix2/evidence/ntf26-grader-leniency-{baseline,round2}.json,
+// promptSha 153ba85f92a24caf, 3/3 runs): the grader rejects EVERY single-word
+// wrongness class and every uniform-garbage batch tested — except one shape.
+// >= ~10 identical rows of the literal string "answer" (or "answer1") in ONE
+// call were ALL marked correct. 2x and 5x reject; 10x and 20x flip. The
+// mechanism is SCHEMA CONFUSION, not generic leniency: at scale
+// `"student": "answer"` reads as placeholder/template data rather than a real
+// submission, and the rubric's "Default to CORRECT" resolves the ambiguity the
+// wrong way. Leg 1 fixes the prompt; this is the half that does not depend on
+// the model's judgement at all, so a FUTURE string that flips it is still caught.
+//
+// WHY AN ABSOLUTE THRESHOLD AND NO PERCENTAGE LEG: the model flips at ~10
+// identical rows regardless of what fraction of the test that is, so a
+// "and >= 80% of the test" clause would leave 8-of-30 open. A vocabulary list
+// can legitimately carry 2-4 words with the same Korean translation; nothing a
+// real student does writes the SAME non-blank answer for 8 DIFFERENT words.
+//
+// RUNS AFTER the blank/self-ref filters (those rows keep their existing
+// handling and never reach here), counts rows by the NORMALIZED string (so it
+// does not require the whole test to be identical), and its rows flow through
+// `finishGrading` in exactly the same shape as the blank/self-ref results —
+// including the no-AI-needed early return, which a full-filler test now takes.
+// Pure + exported (`exports._uniformFiller`) so it is fixturable without
+// firebase: scripts/deepfix2/ntf26-heuristic-fixtures.mjs (6 cases + 2 mutants).
+
+/** A group must span this many rows before it is treated as filler. */
+const UNIFORM_FILLER_MIN_ROWS = 8;
+
+/** What the student sees on a row this guard failed. Existing reasoning style. */
+const UNIFORM_FILLER_REASONING =
+  "You gave the same answer for many different words, so it does not define this one. " +
+  "Write what each word means.";
+
+/**
+ * The grouping key: trim + lowercase, so "Answer", " answer " and "ANSWER" are
+ * ONE group. Returns "" for a blank/whitespace-only response, which never groups.
+ */
+function normalizeUniformResponse(response) {
+  return String(response ?? "").trim().toLowerCase();
+}
+
+/**
+ * PURE. Groups rows by normalized response and returns only the groups at or
+ * above `threshold`. Blank keys are excluded (defence in depth — blanks are
+ * already filtered upstream, but this helper must be safe standing alone).
+ *
+ * @param {Array<{wordId: string, studentResponse: string}>} answers
+ * @param {number} threshold rows one identical value must span to count
+ * @returns {Array<{key: string, rows: Array<object>}>} empty when nothing qualifies
+ */
+function findUniformFillerGroups(answers, threshold = UNIFORM_FILLER_MIN_ROWS) {
+  const byKey = new Map();
+  for (const a of Array.isArray(answers) ? answers : []) {
+    const key = normalizeUniformResponse(a && a.studentResponse);
+    if (!key) continue;
+    if (!byKey.has(key)) byKey.set(key, []);
+    byKey.get(key).push(a);
+  }
+  const groups = [];
+  for (const [key, rows] of byKey) {
+    if (rows.length >= threshold) groups.push({key, rows});
+  }
+  return groups;
+}
+
 /**
  * True if `response` is merely an inflected/derived ENGLISH form of the target
  * `word` (run→running, candid→candidly, study→studied, big→bigger) — i.e. the
@@ -1330,13 +1399,38 @@ exports.gradeTypedTest = onCall(
         reasoning: "You wrote the word itself rather than its meaning. Try defining what the word means.",
       }));
 
+      // [NTF-26 · LEG 3] Uniform-filler guard — AFTER blank/self-ref (those rows
+      // keep their existing handling and are not in `answersToGrade`), BEFORE the
+      // AI call. Rows sharing one normalized response across >= 8 rows are the
+      // measured exploit shape; they are failed here and never sent to the model,
+      // so the schema-confusion path cannot be reached at all. Membership is by
+      // OBJECT IDENTITY, so it is exact even if two rows ever shared a wordId.
+      const uniformGroups = findUniformFillerGroups(answersToGrade);
+      const uniformRows = new Set(uniformGroups.flatMap((g) => g.rows));
+      const uniformResults = [...uniformRows].map((a) => ({
+        wordId: a.wordId,
+        isCorrect: false,
+        reasoning: UNIFORM_FILLER_REASONING,
+      }));
+      const answersForAI = answersToGrade.filter((a) => !uniformRows.has(a));
+      if (uniformGroups.length > 0) {
+        // Counts + the normalized key only — never the rest of the answer text.
+        logger.info(
+          `Uniform-filler guard: ${uniformResults.length} of ${answersToGrade.length} rows failed pre-AI ` +
+          `across ${uniformGroups.length} group(s) [${uniformGroups.map((g) => `"${g.key}"x${g.rows.length}`).join(", ")}] ` +
+          `for user ${request.auth.uid}`,
+        );
+      }
+
       logger.info(
-        `Grading ${answersToGrade.length} answers, ${blankAnswers.length} blank, ${selfRefAnswers.length} self-ref for user ${request.auth.uid}`,
+        `Grading ${answersForAI.length} answers, ${blankAnswers.length} blank, ${selfRefAnswers.length} self-ref, ${uniformResults.length} uniform-filler for user ${request.auth.uid}`,
       );
 
       // If no answers need AI grading, skip API call (§12.1: still writes via finishGrading)
-      if (answersToGrade.length === 0) {
-        return finishGrading([...blankResults, ...selfRefResults, ...malformedResults]);
+      if (answersForAI.length === 0) {
+        return finishGrading([
+          ...uniformResults, ...blankResults, ...selfRefResults, ...malformedResults,
+        ]);
       }
 
       // Initialize Anthropic client
@@ -1345,7 +1439,7 @@ exports.gradeTypedTest = onCall(
       });
 
       // Build JSON input for the AI
-      const wordsJson = answersToGrade.map((a) => ({
+      const wordsJson = answersForAI.map((a) => ({
         wordId: a.wordId,
         word: a.word,
         english: a.correctDefinition,
@@ -1362,6 +1456,8 @@ Default to CORRECT. Mark WRONG only if one of these is true:
    EXCEPTION — established loanwords: if the Korean transliteration IS the standard, most-commonly-used Korean word for the term, it is CORRECT (piano→피아노, computer→컴퓨터, repertoire→레파토리, bus→버스, energy→에너지). Test: would a Korean person actually use this Korean spelling in everyday life to mean this thing? If yes → CORRECT; if it is only an ad-hoc phonetic spelling no one really uses → WRONG.
 3. Irrelevant or contradictory: the response has nothing to do with the word's meaning.
 4. Reversed meaning: the response describes the opposite direction (e.g., "to like" for "likable").
+
+The "student" value is ALWAYS the literal text that student typed into the answer box — never a placeholder, a sample, or a template value, no matter how many rows repeat it. Filler that says nothing about the word it is answering — "answer", "answer1", "test", "idk" and the like — is rule 3 WRONG, in a request of 20 rows exactly as it is in one. The ONE exception is narrow and applies to a SINGLE row at a time: if that word's own definition is that very thing (a word defined as a reply, answered "answer"; a word defined as a trial, answered "test"), then that row is CORRECT under the rules above, however uncommon the word. It excuses only the row whose meaning it actually is — every other row answered with the same filler is still WRONG. Repetition by itself is not wrongness: judge every row on its own meaning.
 
 Everything else is CORRECT — including partial definitions, a different part of speech expressed as a real translated word (impoverish→가난한 "poor"), Korean near-synonyms, answers with typos, and answers matching the provided Korean definition.
 </rules>
@@ -1422,6 +1518,14 @@ Student: 질리는
 Word: enigmatic | English: mysterious, puzzling | Korean: 신비한
 Student: 암호화된
 → WRONG — {"reasoning": "암호화된 means encrypted, which is different from enigmatic (mysterious/puzzling)."}
+
+Word: reply | English: an answer or response | Korean: 대답
+Student: answer
+→ CORRECT (answer IS what reply means — for THIS word the filler text is the meaning)
+
+Word: vitriolic | English: filled with bitter criticism or malice | Korean: 신랄한
+Student: answer
+→ WRONG — {"reasoning": "answer is not a definition — it says nothing about what vitriolic means. Write the meaning, e.g. 신랄한."}
 </examples>
 
 <output_format>
@@ -1497,7 +1601,7 @@ Do not include "reasoning" for correct answers.
       );
 
       // Build AI results for non-blank answers
-      const aiResults = answersToGrade.map((answer) => {
+      const aiResults = answersForAI.map((answer) => {
         const result = resultsMap.get(answer.wordId);
         if (result && typeof result.isCorrect === "boolean") {
           return {
@@ -1515,9 +1619,10 @@ Do not include "reasoning" for correct answers.
         };
       });
 
-      // Combine AI results with pre-filtered results (incl. auto-incorrect malformed rows)
+      // Combine AI results with pre-filtered results (incl. auto-incorrect malformed
+      // rows and the [NTF-26] uniform-filler rows, which never reached the model).
       const combinedResults = [
-        ...aiResults, ...blankResults, ...selfRefResults, ...malformedResults,
+        ...aiResults, ...uniformResults, ...blankResults, ...selfRefResults, ...malformedResults,
       ];
 
       // Normalize results by wordId to ensure correct order (matching original answers array)
@@ -2276,6 +2381,18 @@ exports.overrideAttempt = foundation.overrideAttempt;
 // (firebase-functions/lib/runtime/loader.js extractStack), so this plain
 // helper object mints no function.
 exports._gradingJobs = {claimOrRecoverGradingJob, persistGradingJobResult};
+
+// [NTF-26 · LEG 3] The pre-AI uniform-filler guard, exported PURE so it can be
+// fixtured without firebase, an API key, or a deployed function
+// (scripts/deepfix2/ntf26-heuristic-fixtures.mjs — 6 cases + 2 mutants). Same
+// deploy-inert shape as `_gradingJobs` directly above: a plain object carries no
+// `__endpoint`, so the runtime loader mints no function from it.
+exports._uniformFiller = {
+  findUniformFillerGroups,
+  normalizeUniformResponse,
+  UNIFORM_FILLER_MIN_ROWS,
+  UNIFORM_FILLER_REASONING,
+};
 
 const reviewV2 = require("./reviewV2/callables");
 exports.reviewV2ComposeSession = reviewV2.reviewV2ComposeSession;

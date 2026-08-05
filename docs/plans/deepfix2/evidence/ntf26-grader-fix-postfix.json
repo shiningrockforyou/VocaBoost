@@ -1,0 +1,1320 @@
+{
+  "generatedAt": "2026-08-05T00:24:50.236Z",
+  "model": "claude-haiku-4-5-20251001",
+  "temperature": 0.1,
+  "runs": 3,
+  "sections": "all",
+  "promptFile": "functions/index.js",
+  "promptSha": "7345c8d4a2d92ada",
+  "systemChars": 5986,
+  "sourceShas": {
+    "functions/index.js": "6b650d2fdc71a8f2",
+    "scripts/grader-regression.mjs": "e6ff53a61abbecff"
+  },
+  "singles": [
+    {
+      "set": "core",
+      "word": "autobiographical",
+      "student": "자전적인",
+      "expect": true,
+      "why": "direct Korean meaning",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "indifferent",
+      "student": "무관심한",
+      "expect": true,
+      "why": "direct Korean meaning",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "dissonance",
+      "student": "불협화음",
+      "expect": true,
+      "why": "direct Korean meaning",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "dissonance",
+      "student": "불협화믐",
+      "expect": true,
+      "why": "minor typo near 불협화음",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "culminate",
+      "student": "요점",
+      "expect": false,
+      "why": "요점=main point ≠ climax (control)",
+      "verdicts": [
+        false,
+        false,
+        false
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "dispel",
+      "student": "express disapproval",
+      "expect": false,
+      "why": "confuses dispel with disapprove (control)",
+      "verdicts": [
+        false,
+        false,
+        false
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "piano",
+      "student": "피아노",
+      "expect": true,
+      "why": "established loanword",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "grief",
+      "student": "그리프",
+      "expect": false,
+      "why": "ad-hoc transliteration (control)",
+      "verdicts": [
+        false,
+        false,
+        false
+      ],
+      "pass": true
+    },
+    {
+      "set": "core",
+      "word": "run",
+      "student": "running",
+      "expect": false,
+      "why": "English inflection (control)",
+      "verdicts": [
+        false,
+        false,
+        false
+      ],
+      "pass": true
+    },
+    {
+      "set": "g",
+      "word": "rejoinder",
+      "student": "answer",
+      "expect": true,
+      "why": "rejoinder IS an answer — PRE-EXISTING false-reject, identical on HEAD (3/3)",
+      "verdicts": [
+        false,
+        false,
+        false
+      ],
+      "pass": false,
+      "knownAccepted": true
+    },
+    {
+      "set": "g",
+      "word": "solution",
+      "student": "answer",
+      "expect": true,
+      "why": "solution IS the answer",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "set": "g",
+      "word": "ordeal",
+      "student": "test",
+      "expect": true,
+      "why": "ordeal IS a test — the regression this fold's first wording introduced",
+      "verdicts": [
+        true,
+        true,
+        true
+      ],
+      "pass": true
+    }
+  ],
+  "batches": [
+    {
+      "id": "a",
+      "name": "20x \"answer\" (win-101 replica)",
+      "n": 20,
+      "expectedCorrect": 0,
+      "rows": [
+        {
+          "word": "vitriolic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "placate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "ephemeral",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "gregarious",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "laconic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "obfuscate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "penurious",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "quixotic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "recalcitrant",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "sycophant",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "taciturn",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "ubiquitous",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "vacillate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "wistful",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "zealous",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "abate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "banal",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "candid",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "dearth",
+          "student": "answer",
+          "expect": false
+        }
+      ],
+      "runs": [
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    },
+    {
+      "id": "b",
+      "name": "10x \"answer\" (flip threshold)",
+      "n": 10,
+      "expectedCorrect": 0,
+      "rows": [
+        {
+          "word": "vitriolic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "placate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "ephemeral",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "gregarious",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "laconic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "obfuscate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "penurious",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "quixotic",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "recalcitrant",
+          "student": "answer",
+          "expect": false
+        }
+      ],
+      "runs": [
+        {
+          "correct": 0,
+          "of": 10,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 10,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 10,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    },
+    {
+      "id": "c",
+      "name": "20x \"answer1\" (near-placeholder)",
+      "n": 20,
+      "expectedCorrect": 0,
+      "rows": [
+        {
+          "word": "vitriolic",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "placate",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "ephemeral",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "gregarious",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "laconic",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "obfuscate",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "penurious",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "quixotic",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "recalcitrant",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "sycophant",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "taciturn",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "ubiquitous",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "vacillate",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "wistful",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "zealous",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "abate",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "banal",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "candid",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "dearth",
+          "student": "answer1",
+          "expect": false
+        }
+      ],
+      "runs": [
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    },
+    {
+      "id": "d",
+      "name": "MIXED 10 filler + 10 genuine",
+      "n": 20,
+      "expectedCorrect": 10,
+      "rows": [
+        {
+          "word": "autobiographical",
+          "student": "자전적인",
+          "expect": true
+        },
+        {
+          "word": "sycophant",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "indifferent",
+          "student": "무관심한",
+          "expect": true
+        },
+        {
+          "word": "taciturn",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "불협화음",
+          "expect": true
+        },
+        {
+          "word": "ubiquitous",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "불협화믐",
+          "expect": true
+        },
+        {
+          "word": "vacillate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "piano",
+          "student": "피아노",
+          "expect": true
+        },
+        {
+          "word": "wistful",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "vitriolic",
+          "student": "신랄한",
+          "expect": true
+        },
+        {
+          "word": "zealous",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "placate",
+          "student": "달래다",
+          "expect": true
+        },
+        {
+          "word": "abate",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "ephemeral",
+          "student": "순식간의",
+          "expect": true
+        },
+        {
+          "word": "banal",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "gregarious",
+          "student": "사교적인",
+          "expect": true
+        },
+        {
+          "word": "candid",
+          "student": "answer",
+          "expect": false
+        },
+        {
+          "word": "laconic",
+          "student": "간결한",
+          "expect": true
+        },
+        {
+          "word": "dearth",
+          "student": "answer",
+          "expect": false
+        }
+      ],
+      "runs": [
+        {
+          "correct": 10,
+          "of": 20,
+          "verdicts": [
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 10,
+          "of": 20,
+          "verdicts": [
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 10,
+          "of": 20,
+          "verdicts": [
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    },
+    {
+      "id": "e",
+      "name": "20x genuine correct (all different)",
+      "n": 20,
+      "expectedCorrect": 20,
+      "rows": [
+        {
+          "word": "vitriolic",
+          "student": "신랄한",
+          "expect": true
+        },
+        {
+          "word": "placate",
+          "student": "달래다",
+          "expect": true
+        },
+        {
+          "word": "dissonance",
+          "student": "불협화음",
+          "expect": true
+        },
+        {
+          "word": "ephemeral",
+          "student": "순식간의",
+          "expect": true
+        },
+        {
+          "word": "gregarious",
+          "student": "사교적인",
+          "expect": true
+        },
+        {
+          "word": "laconic",
+          "student": "간결한",
+          "expect": true
+        },
+        {
+          "word": "obfuscate",
+          "student": "혼란스럽게 하다",
+          "expect": true
+        },
+        {
+          "word": "penurious",
+          "student": "가난한",
+          "expect": true
+        },
+        {
+          "word": "quixotic",
+          "student": "비현실적인",
+          "expect": true
+        },
+        {
+          "word": "recalcitrant",
+          "student": "반항적인",
+          "expect": true
+        },
+        {
+          "word": "sycophant",
+          "student": "아첨꾼",
+          "expect": true
+        },
+        {
+          "word": "taciturn",
+          "student": "과묵한",
+          "expect": true
+        },
+        {
+          "word": "ubiquitous",
+          "student": "어디에나 있는",
+          "expect": true
+        },
+        {
+          "word": "vacillate",
+          "student": "망설이다",
+          "expect": true
+        },
+        {
+          "word": "wistful",
+          "student": "아쉬워하는",
+          "expect": true
+        },
+        {
+          "word": "zealous",
+          "student": "열성적인",
+          "expect": true
+        },
+        {
+          "word": "abate",
+          "student": "줄어들다",
+          "expect": true
+        },
+        {
+          "word": "banal",
+          "student": "진부한",
+          "expect": true
+        },
+        {
+          "word": "candid",
+          "student": "솔직한",
+          "expect": true
+        },
+        {
+          "word": "dearth",
+          "student": "부족",
+          "expect": true
+        }
+      ],
+      "runs": [
+        {
+          "correct": 20,
+          "of": 20,
+          "verdicts": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 20,
+          "of": 20,
+          "verdicts": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 20,
+          "of": 20,
+          "verdicts": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    },
+    {
+      "id": "f",
+      "name": "20x VARIED filler answer1..answer20",
+      "n": 20,
+      "expectedCorrect": 0,
+      "rows": [
+        {
+          "word": "vitriolic",
+          "student": "answer1",
+          "expect": false
+        },
+        {
+          "word": "placate",
+          "student": "answer2",
+          "expect": false
+        },
+        {
+          "word": "dissonance",
+          "student": "answer3",
+          "expect": false
+        },
+        {
+          "word": "ephemeral",
+          "student": "answer4",
+          "expect": false
+        },
+        {
+          "word": "gregarious",
+          "student": "answer5",
+          "expect": false
+        },
+        {
+          "word": "laconic",
+          "student": "answer6",
+          "expect": false
+        },
+        {
+          "word": "obfuscate",
+          "student": "answer7",
+          "expect": false
+        },
+        {
+          "word": "penurious",
+          "student": "answer8",
+          "expect": false
+        },
+        {
+          "word": "quixotic",
+          "student": "answer9",
+          "expect": false
+        },
+        {
+          "word": "recalcitrant",
+          "student": "answer10",
+          "expect": false
+        },
+        {
+          "word": "sycophant",
+          "student": "answer11",
+          "expect": false
+        },
+        {
+          "word": "taciturn",
+          "student": "answer12",
+          "expect": false
+        },
+        {
+          "word": "ubiquitous",
+          "student": "answer13",
+          "expect": false
+        },
+        {
+          "word": "vacillate",
+          "student": "answer14",
+          "expect": false
+        },
+        {
+          "word": "wistful",
+          "student": "answer15",
+          "expect": false
+        },
+        {
+          "word": "zealous",
+          "student": "answer16",
+          "expect": false
+        },
+        {
+          "word": "abate",
+          "student": "answer17",
+          "expect": false
+        },
+        {
+          "word": "banal",
+          "student": "answer18",
+          "expect": false
+        },
+        {
+          "word": "candid",
+          "student": "answer19",
+          "expect": false
+        },
+        {
+          "word": "dearth",
+          "student": "answer20",
+          "expect": false
+        }
+      ],
+      "runs": [
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        },
+        {
+          "correct": 0,
+          "of": 20,
+          "verdicts": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "omitted": [],
+          "mismatches": []
+        }
+      ],
+      "falseAccepts": 0,
+      "falseRejects": 0,
+      "errors": 0,
+      "omittedRows": 0,
+      "pass": true
+    }
+  ],
+  "totals": {
+    "cases": 18,
+    "passed": 18,
+    "falseRejectCases": 0,
+    "falseAcceptCases": 0,
+    "callErrorCases": 0,
+    "unstableCases": 0,
+    "knownAcceptedFailing": 1,
+    "caseG": [
+      {
+        "word": "rejoinder",
+        "student": "answer",
+        "pass": false,
+        "knownAccepted": true
+      },
+      {
+        "word": "solution",
+        "student": "answer",
+        "pass": true,
+        "knownAccepted": false
+      },
+      {
+        "word": "ordeal",
+        "student": "test",
+        "pass": true,
+        "knownAccepted": false
+      }
+    ]
+  },
+  "failed": 0,
+  "pass": true
+}
