@@ -648,3 +648,71 @@ legacy, spread across four classes and three weeks, with zero duplicate wordIds.
 guard): the minimal-repercussion fix is to correct `totalQuestions` UP to the row count — not to delete
 rows or rewrite the score — because that leaves every derived value self-consistent, touches one scalar
 field per document, and keeps the attempt inside the replay's existing fences.
+
+### CS-2026-08-05 — `gradedIsCorrect` DISCREPANCY SWEEP (READ-ONLY): zero unexplained disagreement in 1,038,196 answer rows
+**Script:** `scripts/cs/gradedis-correct-sweep.mjs [classNameRegex=26SM] [--students=N] [--max-per-student=N] [--out=PATH]`
+(READ-ONLY; same cohort law as the other sweeps — class-name regex minus the 25WT/DUP sandbox families.)
+**Evidence:** `docs/plans/deepfix2/evidence/gradedis-correct-sweep.json`. **Writes: none** (no Firestore
+write/delete/transaction/batch API is reachable from the file; proof is a grep for every mutating verb
+returning zero matches — `grep -nE '\.(set|update|delete|add|create|commit|batch)\s*\(|runTransaction|bulkWriter|writeBatch|setDoc|updateDoc|deleteDoc|addDoc|FieldValue' scripts/cs/gradedis-correct-sweep.mjs`).
+
+**Why:** David, 2026-08-05 — before the GATE-4 backfill decides how to treat the client-writable
+`answers[].gradedIsCorrect` (NEED_TO_FIX "#NN GATE-4 BACKFILL TRUSTS A CLIENT-WRITABLE FIELD", option 3
+"read-only sweep first"), quantify whether stored values ever disagree with a recomputation.
+
+**Run (2026-08-05, project `vocaboost-879c2`):** 33 classes · **974 students · 36,173 attempts ·
+1,038,196 answer rows · 91s · 68,716 document reads.** No cap applied — the whole cohort.
+
+| measure | count |
+|---|---|
+| rows carrying `gradedIsCorrect` | **51** (0.0049% of rows, 25 students) |
+| rows NOT carrying it | 1,038,145 |
+| preimage != `isCorrect` **without** an accepted challenge (impossible for a correct writer) | **0** |
+| MCQ rows recomputed deterministically | 406,384 — **406,384 match, 0 mismatch** |
+| typed rows corroborated by the server grading witness | 470,004 match · **23 mismatch** · 1,306 adjudication-explained |
+| typed rows uncorroborated (no server witness) | 159,123 |
+
+**The 23 typed mismatches are 100% accounted for — they are OUR OWN fix.** All 23 sit on one attempt:
+uid `HavPhdjx…`, INT B4, Base Camp Day 19, `manualOverride: true`, note *"CS-2026-07-23: grader marked
+verbatim-correct English defs wrong; TA-verified all 30 correct → 100%."* — i.e. **CS-2026-07-23b**. Its
+`grading_jobs` payload still holds the 23 original `isCorrect:false` AI verdicts, which is exactly why the
+sweep sees a divergence. **Zero students show any other discrepancy.** The sweep annotates that class as
+`mismatchWithManualOverrideMarker` and still reports the raw total, so it can never hide a real one.
+
+**Data model this established (all discovered empirically, then confirmed against source):**
+- MCQ `answers[]` row = `{wordId, word, correctAnswer, studentResponse, isCorrect}`. `studentResponse`
+  is the DEFINITION TEXT of the clicked option → MCQ correctness is a deterministic string compare. The
+  sweep anchors on `lists/{listId}/words/{wordId}.definition` (teacher-owned), **not** on the row's own
+  `correctAnswer`, which lives inside the same client-writable array.
+- Typed row adds `aiReasoning` + the four `challenge*` fields. Typed correctness is an AI verdict, so it
+  is corroborated, never recomputed (**no AI was called by this sweep**).
+- **The server-written grading witness is `grading_jobs/{attemptDocId}`** — the job key IS the attempt's
+  own doc id (`${uid}_${testId}_${nonce}`), 17,017 docs live, `payload.results[] = {wordId, isCorrect,
+  reasoning}`, written only by `persistGradingJobResult` under an Admin-SDK transaction. **No client rule
+  grants `grading_jobs`, so it is an independent witness of what the grader actually returned.**
+- `gradedIsCorrect` is never written at grade time; it is born at the FIRST challenge adjudication
+  (`functions/foundation.js` `applyChallengeAdjudication` / `src/services/db.js reviewChallenge`), copied
+  from the then-current `isCorrect` only where absent. **Its absence on a row is the normal state.**
+
+**Two facts that matter to the GATE-4 choice (not a recommendation — David's call):**
+1. `gradedIsCorrect` exists on **51 of 1,038,196 rows**, and 0 of them are anomalous. Whatever the backfill
+   does with the field, it moves 0.005% of the data.
+2. **1,670 of the 1,714 accepted-challenge rows carry NO preimage** (the R2-49 legacy class the replay
+   reconstructs as graded-WRONG) — a population ~33x larger than the field itself. And a recompute-only
+   backfill would silently REVERT the 23 rows of CS-2026-07-23b, because a CS grade correction is
+   *supposed* to disagree with the original grading record.
+
+**Why 159,123 typed rows are uncorroborated — a deploy boundary, not a gap.** Typed attempts *without* a
+graded job by month: Jan 140 · Feb 72 · **Jun 5,034** · Jul 141 · Aug 0; *with* a job: Jun 1,229 · Jul
+13,688 · Aug 629. The grading-job cache went live at the end of June 2026, so ~97% of the uncorroborated
+population simply predates it. Absence of a mismatch there is absence of evidence — say so when quoting.
+
+**Also observed (no action):** 54 MCQ rows whose stored `correctAnswer` differs from the canonical list
+definition (list content edited after the attempt — the recomputation is unaffected, it never reads that
+field); 906 MCQ rows on legacy attempts with no `listId` (not recomputable); 67 attempts cohort-wide carry
+`manualOverride` (nearly all are empty-`answers` CS anchors, which produce no rows and no mismatches).
+
+**Limit of the claim:** this measures DISAGREEMENT, not tampering. A forger who rewrote `studentResponse`
+and `gradedIsCorrect` together stays self-consistent on the MCQ leg; only the typed leg's server witness
+resists that, and only where a job exists. Pair it with `impossible-results-sweep.mjs` (CS-2026-08-03c).
+**Action: NONE — read-only diagnostic, no 26SM writes.**
