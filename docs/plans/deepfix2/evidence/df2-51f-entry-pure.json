@@ -1,0 +1,15 @@
+{
+  "kind": "df2-51f-entry-pure",
+  "pass": true,
+  "total": 73,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/pages/Dashboard.jsx": "73e391e4a209af57",
+    "src/utils/pastDayAuthority.js": "b879091ed97d113d",
+    "src/utils/dayStatusAuthority.js": "6677f0ee802f8106",
+    "src/config/featureFlags.js": "b619b6c3c24c006e",
+    "scripts/deepfix2/df2-51f-entry-fixtures.mjs": "b999ff3d01373525"
+  },
+  "at": "2026-08-05T13:15:51.974Z"
+}

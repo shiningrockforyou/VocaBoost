@@ -1,0 +1,178 @@
+{
+  "kind": "df2-51f-entry-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-DEAD-END-EXCLUSION-DROPPED",
+      "clause": "a day whose review is done but whose new half is permanently unavailable (F3/F4) is excluded (C1.6)",
+      "family": "mirror",
+      "killed": true,
+      "correctExpected": {
+        "day": 3,
+        "classId": "c1",
+        "listId": "l1"
+      },
+      "correctActual": {
+        "day": 3,
+        "studiedAt": 1003,
+        "testedAt": 1003,
+        "state": "studied",
+        "pips": {
+          "review": "off",
+          "new": "off"
+        },
+        "bookmarked": false,
+        "canRestudy": true,
+        "canRetest": true,
+        "hasNewHalf": true,
+        "classId": "c1",
+        "listId": "l1"
+      },
+      "mutantActual": {
+        "day": 5,
+        "studiedAt": null,
+        "testedAt": 1005,
+        "state": "tested",
+        "pips": {
+          "review": "on",
+          "new": "na"
+        },
+        "bookmarked": false,
+        "canRestudy": false,
+        "canRetest": true,
+        "hasNewHalf": false,
+        "classId": "c1",
+        "listId": "l1"
+      }
+    },
+    {
+      "id": "M2-TIE-BREAK-REVERSED",
+      "clause": "nearest-to-today wins among multiple resumable days, not earliest-first",
+      "family": "mirror",
+      "killed": true,
+      "correctExpected": {
+        "day": 4,
+        "classId": "c1",
+        "listId": "l1"
+      },
+      "correctActual": {
+        "day": 4,
+        "studiedAt": 1004,
+        "testedAt": 1004,
+        "state": "studied",
+        "pips": {
+          "review": "off",
+          "new": "off"
+        },
+        "bookmarked": false,
+        "canRestudy": true,
+        "canRetest": true,
+        "hasNewHalf": true,
+        "classId": "c1",
+        "listId": "l1"
+      },
+      "mutantActual": {
+        "day": 2,
+        "studiedAt": 1002,
+        "testedAt": 1002,
+        "state": "studied",
+        "pips": {
+          "review": "off",
+          "new": "off"
+        },
+        "bookmarked": false,
+        "canRestudy": true,
+        "canRetest": true,
+        "hasNewHalf": true,
+        "classId": "c1",
+        "listId": "l1"
+      }
+    },
+    {
+      "id": "M3-FOCUS-PREFERENCE-DROPPED",
+      "clause": "the currently-focused list wins the cross-list tie-break, not just the alphabetical fallback (C1.9)",
+      "family": "mirror",
+      "killed": true,
+      "correctExpected": {
+        "day": 1,
+        "classId": "c2",
+        "listId": "l2"
+      },
+      "correctActual": {
+        "day": 1,
+        "studiedAt": 1001,
+        "testedAt": 1001,
+        "state": "studied",
+        "pips": {
+          "review": "off",
+          "new": "off"
+        },
+        "bookmarked": false,
+        "canRestudy": true,
+        "canRetest": true,
+        "hasNewHalf": true,
+        "classId": "c2",
+        "listId": "l2"
+      },
+      "mutantActual": {
+        "day": 1,
+        "studiedAt": 1001,
+        "testedAt": 1001,
+        "state": "studied",
+        "pips": {
+          "review": "off",
+          "new": "off"
+        },
+        "bookmarked": false,
+        "canRestudy": true,
+        "canRetest": true,
+        "hasNewHalf": true,
+        "classId": "c1",
+        "listId": "l1"
+      }
+    },
+    {
+      "id": "M4-ENTRY-FLAG-GATE-REMOVED",
+      "clause": "the entry affordance is gated behind REVIEW_V2_CLIENT (brief's 1st named minimum)",
+      "family": "text-anchor",
+      "killed": true,
+      "anchorCountBefore": 1,
+      "anchorCountAfter": 0
+    },
+    {
+      "id": "M5-RESUME-FLAG-GATE-REMOVED",
+      "clause": "the resume panel is gated behind REVIEW_V2_CLIENT",
+      "family": "text-anchor",
+      "killed": true,
+      "anchorCountBefore": 1,
+      "anchorCountAfter": 0
+    },
+    {
+      "id": "M6-RESUME-VISIT-GUARD-REMOVED",
+      "clause": "the resume panel does not render with no resumable visit (brief's 2nd named minimum)",
+      "family": "text-anchor",
+      "killed": true,
+      "anchorCountBefore": 1,
+      "anchorCountAfter": 0
+    },
+    {
+      "id": "M7-ENDOFLIST-FLAG-GATE-REMOVED",
+      "clause": "the end-of-list screen is gated behind REVIEW_V2_CLIENT",
+      "family": "text-anchor",
+      "killed": true,
+      "anchorCountBefore": 1,
+      "anchorCountAfter": 0
+    },
+    {
+      "id": "M8-ENDOFLIST-LISTFINISHED-GUARD-REMOVED",
+      "clause": "the end-of-list screen requires listFinished (reuses, never redefines, the existing derivation)",
+      "family": "text-anchor",
+      "killed": true,
+      "anchorCountBefore": 1,
+      "anchorCountAfter": 0
+    }
+  ],
+  "diskUntouched": true,
+  "dashboardSha256": "73e391e4a209af57eaf0421e61e0142abc5f19ed388fa476edecb52c3513f72c",
+  "at": "2026-08-05T13:15:52.069Z"
+}

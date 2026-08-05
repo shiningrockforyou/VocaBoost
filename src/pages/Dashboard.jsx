@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { doc, getDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { Activity, BookOpen, ChevronDown, Plus, RefreshCw, Trash2, FileText, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
@@ -26,6 +26,10 @@ import { fetchAccountStreak } from '../services/streakCredits'
 // Flag-off neither call site invokes it (ledger A2/A3 — the legacy inline
 // expressions are untouched).
 import { deriveListDayStatus, attemptsForList, csdForRow } from '../utils/dayStatusAuthority'
+// DASHBOARD-DF2-51f: the past-day browser's OWN day/pip/state derivation (51-a, landed) —
+// consumed for the resume panel's day-selection only; this file never computes a state or a
+// pip itself. Flag-off nothing here is ever called (ledger V-group).
+import { DAY_STATES, PIP_STATES, derivePastDays } from '../utils/pastDayAuthority'
 import { CONTINUATION_LINKS, SERVER_PROGRESS_WRITE, CYCLING_ENABLED, REVIEW_V2_CLIENT } from '../config/featureFlags'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { WORD_STATUS, calculateExpectedStudyDay } from '../types/studyTypes'
@@ -354,6 +358,14 @@ const Dashboard = () => {
   // below), so they stay at their initial values for the life of the page.
   const [serverStreak, setServerStreak] = useState(null)
   const [serverStreakLoading, setServerStreakLoading] = useState(false)
+  // DASHBOARD-DF2-51f: the resume panel's restudy_visits read, behind REVIEW_V2_CLIENT.
+  // ACCOUNT-WIDE (mirrors serverStreak's OWN uid-only scoping just above, not day-status-
+  // authority's single-focus scoping used elsewhere in this file) — "resume where you left
+  // off" means ANY half-finished visit across every enrolled list, not just the currently-
+  // focused one. null = not loaded yet, or the read failed (both degrade the SAME way: the
+  // resume panel renders nothing — see loadRestudyVisits/resumableDay below). [] = loaded,
+  // nothing to resume.
+  const [restudyVisits, setRestudyVisits] = useState(null)
   // P9 · CYC (Codex P9-3): canonical cycleLength (positions.length) per cycling list, for
   // lap-aware display. Loaded lazily (cheap aggregate count) ONLY for effective-cycling lists
   // and ONLY when CYCLING_ENABLED. Empty ⇒ displays use the legacy path (byte-equivalent off).
@@ -737,6 +749,29 @@ const Dashboard = () => {
       }
     }
 
+    // DASHBOARD-DF2-51f: behind REVIEW_V2_CLIENT, read EVERY restudy_visits doc for this uid —
+    // ACCOUNT-WIDE (mirrors loadServerStreak's OWN uid-only scoping just above, not day-status-
+    // authority's single-focus scoping used elsewhere in this file): "resume where you left
+    // off" means ANY half-finished visit across every enrolled list, not just the currently-
+    // focused one. ONE query, no classId/listId filter — each visit doc carries its own
+    // classId/listId (resumableDay's memo groups by them, reusing progressData/userAttempts/
+    // studentClasses this effect and loadUserAttempts already load — no per-list fan-out, no
+    // second read). Read-only (the only Firestore verb reached is getDocs, matches the streak
+    // read's V5 discipline). Flag-off this function returns immediately — no read is even
+    // attempted, so the effect stays byte-equivalent to today.
+    const loadRestudyVisits = async () => {
+      if (!REVIEW_V2_CLIENT) return
+      try {
+        const snap = await getDocs(collection(db, `users/${user.uid}/restudy_visits`))
+        if (!cancelled) setRestudyVisits(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      } catch (err) {
+        console.error('Failed to load restudy visits for the resume panel:', err)
+        // Degrade safely: stays null ⇒ the resume panel renders nothing (never a guessed/empty
+        // shell, never thrown into render) — the rest of the Dashboard is unaffected.
+        if (!cancelled) setRestudyVisits(null)
+      }
+    }
+
     const loadProgressData = async () => {
       // Build the fetch tasks from the UNION of every source focus resolution can use
       // (assignedListDetails ids, assignedLists, and assignments keys) — getPrimaryFocus
@@ -800,6 +835,7 @@ const Dashboard = () => {
 
     loadProgressData()
     loadServerStreak()
+    loadRestudyVisits()
     return () => { cancelled = true }
   }, [user?.uid, studentClasses, isTeacher])
 
@@ -1722,6 +1758,53 @@ const Dashboard = () => {
     }
   }, [settingsLoaded, getPrimaryFocus, progressData, progressDataLoading, userAttempts, userAttemptsLoading, resolvedFocusCsd])
 
+  // DASHBOARD-DF2-51f: the resume panel's day-selection — CONSUMES pastDayAuthority.js's own
+  // derivation (derivePastDays) for every list that has ANY visit; never recomputes a state or
+  // a pip locally (brief, "Consume, don't rebuild"). `restudyVisits` null/empty ⇒ not loaded
+  // yet, the read failed, or there is genuinely nothing to resume — returns null so the panel
+  // renders nothing (fail closed, never a guess).
+  // DEAD-END EXCLUSION (judgment call, see report): a day whose review half IS recorded but
+  // whose new half is PERMANENTLY unavailable (pips.review:'on', pips.new:'na' — F3/F4, "tops
+  // out at tested") has nothing left to resume — skipped so "Resume" never points at a day
+  // with no remaining action.
+  // CROSS-LIST TIE-BREAK (judgment call, a rare edge case — more than one list would need a
+  // simultaneously-abandoned visit): prefer the currently-focused list when it is itself among
+  // the candidates; otherwise the alphabetically-first `classId_listId` key, for a
+  // DETERMINISTIC (fixturable) choice rather than relying on Firestore's unspecified doc order
+  // for an unfiltered collection read.
+  const resumableDay = useMemo(() => {
+    if (!REVIEW_V2_CLIENT || !Array.isArray(restudyVisits) || restudyVisits.length === 0) return null
+    const byList = new Map()
+    for (const v of restudyVisits) {
+      if (!v?.classId || !v?.listId) continue
+      const key = `${v.classId}_${v.listId}`
+      if (!byList.has(key)) byList.set(key, [])
+      byList.get(key).push(v)
+    }
+    const candidates = []
+    for (const [, visits] of byList) {
+      const classId = visits[0].classId
+      const listId = visits[0].listId
+      const progress = progressData[`${classId}_${listId}`]
+      const rows = derivePastDays({
+        currentStudyDay: progress?.currentStudyDay ?? 0,
+        attempts: attemptsForList(userAttempts, classId, listId),
+        visits,
+      })
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const row = rows[i]
+        const incomplete = row.state === DAY_STATES.STUDIED || row.state === DAY_STATES.TESTED
+        const deadEnd = row.pips.review === PIP_STATES.ON && row.pips.new === PIP_STATES.NOT_APPLICABLE
+        if (incomplete && !deadEnd) { candidates.push({ ...row, classId, listId }); break }
+      }
+    }
+    if (candidates.length === 0) return null
+    const focused = getPrimaryFocus
+      && candidates.find((c) => c.classId === getPrimaryFocus.classId && c.listId === getPrimaryFocus.id)
+    if (focused) return focused
+    return candidates.slice().sort((a, b) => (`${a.classId}_${a.listId}` < `${b.classId}_${b.listId}` ? -1 : 1))[0]
+  }, [restudyVisits, progressData, userAttempts, getPrimaryFocus])
+
 
   // Modal state
   const [studyModalOpen, setStudyModalOpen] = useState(false)
@@ -1782,6 +1865,38 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+
+        {/* DASHBOARD-DF2-51f: resume-where-you-left-off panel (wireframe §2's top panel,
+            re-homed to the Dashboard per design doc §7 decision (a) — "Dashboard entry + resume
+            panel land together"). Renders ONLY when there IS a resumable visit (resumableDay
+            above); otherwise absent entirely — no empty shell, matches the brief. */}
+        {REVIEW_V2_CLIENT && resumableDay && (
+          <div className="mb-5 flex flex-col gap-3 rounded-2xl border-2 border-brand-primary bg-surface p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-body text-[11px] font-extrabold uppercase tracking-[0.06em] text-brand-primary">
+                Continue where you left off
+              </p>
+              <p className="font-heading text-sm font-bold text-text-primary mt-1">
+                {listTitleLookup[resumableDay.listId] || 'Vocabulary List'} · Day {resumableDay.day} restudy
+              </p>
+              <p className="font-body text-xs text-text-muted mt-0.5">
+                {resumableDay.pips.review === PIP_STATES.OFF
+                  ? 'Review half not finished'
+                  : resumableDay.pips.new === PIP_STATES.OFF
+                    ? 'New-word half not finished'
+                    : 'In progress'}
+              </p>
+            </div>
+            <Button
+              variant="primary-blue"
+              size="md"
+              to={`/restudy/${resumableDay.classId}/${resumableDay.listId}`}
+              className="shrink-0"
+            >
+              Resume
+            </Button>
+          </div>
+        )}
 
         {/* === Redesigned dashboard: consolidated hero + honest tiles + weekly activity === */}
         {(() => {
@@ -1987,6 +2102,34 @@ const Dashboard = () => {
               ) : (
                 <div className="rounded-2xl bg-surface border border-border-default p-8 text-center text-text-muted mb-5">
                   No active list yet — join a class below to begin.
+                </div>
+              )}
+
+              {/* DASHBOARD-DF2-51f: end-of-list completion screen (wireframe §4), gated on the
+                  EXISTING listFinished derivation above (~:1825 area pre-fold) — no second
+                  derivation added. Also requires a resolved, non-loading, non-errored focus so
+                  it never renders alongside the hero's own skeleton/error branches. */}
+              {REVIEW_V2_CLIENT && !anyLoading && !progressHasError && getPrimaryFocus && listFinished && (
+                <div className="mb-5 flex flex-col items-center gap-3 rounded-2xl border border-border-default bg-surface p-6 text-center shadow-sm">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-primary text-lg font-bold text-white">
+                    ✓
+                  </div>
+                  <h3 className="font-heading text-lg font-bold text-text-primary">
+                    {getPrimaryFocus.title} — every day complete
+                  </h3>
+                  <p className="font-body text-sm text-text-muted max-w-md">
+                    You&apos;ve introduced and tested every word in this list. Explore a past day for extra practice, or move on.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <Button variant="outline" size="md" to={`/restudy/${getPrimaryFocus.classId}/${getPrimaryFocus.id}`}>
+                      Browse past days
+                    </Button>
+                    {CONTINUATION_LINKS && getPrimaryFocus.nextListId && getPrimaryFocus.nextListTitle && (
+                      <Button variant="primary" size="md" to={`/session/${getPrimaryFocus.classId}/${getPrimaryFocus.nextListId}`}>
+                        Start next list
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -2265,6 +2408,18 @@ const Dashboard = () => {
                                       </svg>
                                       <span className="truncate whitespace-nowrap">Blind Spots</span>
                                     </Link>
+                                    {/* DASHBOARD-DF2-51f: entry affordance — opens this list's
+                                        past-day browser (route landed in 51-c). */}
+                                    {REVIEW_V2_CLIENT && (
+                                      <Button
+                                        variant="outline"
+                                        size="md"
+                                        to={`/restudy/${klass.id}/${list.id}`}
+                                        className="w-full"
+                                      >
+                                        Past days
+                                      </Button>
+                                    )}
                                   </div>
 
                                   {/* Column 4: PDF Buttons */}

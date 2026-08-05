@@ -6,8 +6,8 @@
   "reds": [],
   "grepProofs": {
     "reviewV2ClientCounts": {
-      "current": 17,
-      "head": 10
+      "current": 24,
+      "head": 17
     },
     "currentStudyDayPlusOneCounts": {
       "current": 2,
@@ -23,8 +23,8 @@
   },
   "sourceShas": {
     "src/utils/dayStatusAuthority.js": "6677f0ee802f8106",
-    "src/pages/Dashboard.jsx": "b756400f26501f69",
+    "src/pages/Dashboard.jsx": "73e391e4a209af57",
     "scripts/deepfix2/dashboard-df2-33-fixtures.mjs": "3c4d0c54289e3597"
   },
-  "at": "2026-08-04T23:46:19.372Z"
+  "at": "2026-08-05T13:16:15.407Z"
 }
