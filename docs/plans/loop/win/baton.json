@@ -1,27 +1,16 @@
 {
   "loop": "win-executor",
-  "turnOwner": "claude",
-  "round": 104,
-  "taskId": "BATCHED_FLAGOFF_VISUAL_DF207A_DF233_PUSH",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_104.md",
+  "turnOwner": "winclaude",
+  "round": 105,
+  "taskId": "DARK_FUNCTIONS_DELTA_DEPLOY_TYPED_GRADERFIX",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_105.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "review-written",
-  "execDecision": "CLEAN",
-  "note": "ORDER 104 — CLEAN on all four checks. (1) sheet percentage sane? YES — '92% required to pass'. (2) HelpModal shows the NEW generic line? YES, and the old 95% text is gone. (3) throttle FAQ absent + pages intact? YES, all three. (4) Dashboard loads + Day badges/streak unchanged? YES. (5) PUSH e37fe76..879b713, REAL COUNT 6 (order said 3). (6) new console error/warning beyond the PHASE pair? NO — 0 errors, 0 beyond. TASK 1 (df2-07a sheet) — BETTER THAN 'not broken': the sheet shows 'New Words Test — 92% required to pass'. No 0.92%, no NaN%, no undefined%, no bare %, line not missing. ***AND IT IS THE CLASS'S REAL CONFIGURED VALUE, NOT THE 95 DEFAULT*** — at r103 I read this same class's Edit List Settings modal showing Pass Threshold = 92 for 'LSR TOP Vocab (audit clone)', and the sheet now renders 92. So retakeThreshold really is threaded through and converted correctly via Math.round(x*100); the hardcode is genuinely gone. That is stronger evidence than a default-95 class could have given. Verified on the screenshot, not just text extraction. TASK 2 (HelpModal) — row reads 'New Words Test — Must reach your class's passing score to continue (retake if needed)'. New generic line present, 'Must score 95%' ABSENT, no new number inserted. TASK 3 (help-site deletions) — all three pages load HTTP 200 and render fully (TOC, sections, FAQ accordions), no visual gap or broken anchor at the deletion point, and NO '30%' anywhere in any of the three. ***I NEARLY FILED A FALSE FINDING HERE TOO — RECORDING THE MECHANISM.*** My first grep reported 2 throttle hits in help-student-ko.html and 0 in the English pages, which looked like a missed Korean deletion. IT WAS MY PATTERN, NOT THE PAGE: I had used a BROADER Korean pattern (낮으면 = 'if low') than English (30%|throttl|held back), so the comparison was asymmetric. The commit shows the deletion applied to ALL FOUR pages (5 lines removed each from help-student-en/ko and help-teacher-en/ko), removing the specific FAQ 'I'm only getting review words... pauses new words... roughly above 30%'. Re-grepping SYMMETRICALLY shows English retains the SAME general adaptive-pacing copy the Korean hits were (help-student-en:1032 'If your scores are low, new words decrease and review increases'; help-teacher-en:899) — the two Korean lines are their direct counterparts, general pacing copy that was NEVER IN SCOPE, not the deleted FAQ. Confirmed on the Korean page: grep -c '30%' = 0. DELETION IS CONSISTENT ACROSS ALL FOUR PAGES. NO FINDING. TASK 4 (df2-33 dashboard parity) — hero + class/list panels + stat tiles all render; 'FIRE 1-day streak'; hero badge 'DAY 6 STEP 1 OF 2' (real numbers, correctly advanced from the r102 completion); no NaN/undefined/Infinity anywhere. Expected differences: none, as specified. TASK 5 (push) — e37fe76..879b713, origin/main == local HEAD, real count 6 not the 3 stated. You anticipated the drift and asked for the real number; third round running, so reporting the actual figure is now routine. History-only, Netlify publish disabled, nothing deployed. ***A PATTERN I AM NOW TREATING AS A STANDING RULE: three false positives in two rounds*** — r102's phantom dark-mode contrast, r103's phantom 'new group', and this round's phantom Korean throttle passage. Each came from trusting a text match or a computed value over the artifact itself, and each would have sent you chasing a bug that does not exist. RULE: for a render or content question, THE SCREENSHOT / THE ACTUAL DIFF IS THE AUTHORITY; the string match is only a pointer to go look. Cheap heuristics find candidates; they do not file findings. CONSOLE: 130 messages, 0 errors, 8 warnings, 0 beyond the known PHASE pair (explicitly filtered and counted). BOUNDARIES: 25WT sandbox only (lsr_s64@vocaboost.test), never 26SM, David's account untouched · REVIEW_V2_CLIENT read-only, still false · NO test submitted, NO grader call, NO AI spend · no deploys · no commits, branching, stash or reset · node_modules untouched · no source edited to make anything render. STANDBY at rev 202, watcher armed.",
-  "updatedBy": "winclaude",
-  "updatedAt": "2026-08-05T00:00:00Z",
-  "revision": 202,
-  "execReview": "winclaude_104.md",
-  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_104.md",
+  "execStatus": "ordered",
+  "execDecision": "",
+  "note": "ORDER 105 \u2014 DARK functions delta deploy (typed leg + guards + NTF-26 grader fix), DAVID EXECUTES/SUPERVISES per his prepare-now ruling. PINNED_SHA = c7d7cc7c16a15485dbb916aa4969c6320d9a2022 (functions certified at index.js 6b650d2fdc71a8f2 / typedGrading 21b5be28758c8893; lap 452/452 x3 runs). TEN surgical targets ONLY - see the order. NO rules, NO indexes, NO hosting, NO flag flips. A parallel CS session is active: Step 0 verifies the FUNCTIONS bytes, not total-tree cleanliness. This order WAITS for David - do not execute without him present.",
+  "updatedBy": "claude",
+  "updatedAt": "2026-08-05T02:05:00Z",
+  "revision": 203,
   "pushedSha": "879b713",
-  "localHead": "879b713",
-  "changedFiles": [
-    "docs/plans/loop/win/reviews/winclaude_104.md",
-    "audit/playwright/findings/r104_df207a_df233_flagoff/ (7 screenshots + console.json)"
-  ],
-  "evidenceFiles": [
-    "docs/plans/loop/win/reviews/winclaude_104.md",
-    "audit/playwright/findings/r104_df207a_df233_flagoff/04-T1-progress-sheet.png",
-    "audit/playwright/findings/r104_df207a_df233_flagoff/02-T2-helpmodal.png"
-  ]
+  "localHead": "879b713"
 }
