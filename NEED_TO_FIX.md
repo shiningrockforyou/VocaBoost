@@ -8,7 +8,40 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
-## 29. AI-meter: a KST-midnight straggler can roll `ai_metering/_global` BACKWARD (zeroing today's global count) · backend/metering · **LOW — safe direction (under-count), sub-second exposure once per day, optional-path budget guard only** (found 2026-08-05 by the ai-metering delta re-audit, measured)
+## 30. THE B0 PRE-FLIP BASELINE CANNOT ACCUMULATE — the R1–R7 invariant emitters DO NOT EXIST · ops/flip-gate · **CRITICAL PATH to the flip** (found 2026-08-05, post-deploy verification)
+
+**What.** `21_DF2-14_FLIP_ABORT_CARD.md:104-109` makes B0 a HARD pre-flip gate — *"Without B0 there is no
+regression signal"* — and states the dependency as: *"the `ops_metrics` writers (DF2-10 dark build) must
+be emitting R1–R7 in production, dark, for at least the baseline window before the ACTIVATION go."*
+**That premise is FALSE.** Verified 2026-08-05, three ways:
+1. **Production `ops_metrics` is EMPTY** — 0 documents, total count 0 (read-only admin check, post
+   order-105 deploy).
+2. **The only emitters that exist are ENGINE-INTERNAL S-series signals** — `composition_fallback`,
+   `cursor_repaired`, `list_words_malformed`, `priority_saturation_day`, `rerun_graduation`, `retest`
+   (callables.js), `quarantined_row_count` (monitoring.js). **None is an R-series invariant.**
+3. **No R1–R7 emitter exists anywhere in the tree** (grep for auth/app-load/dashboard-load/submit-
+   success/attempt-write/gradebook-load/grader-availability emitters over `functions/` + `src/`: zero
+   hits; every apparent match is prose in a comment).
+Compounding it: the engine's emitters only run when the engine runs, which needs `REVIEW_V2_CLIENT=true`
+— so even the S-series stays silent while dark. **A "dark baseline" of engine-emitted signals is a
+contradiction; and R1–R7 are LEGACY-path surfaces (auth, new-word submit, attempt write, dashboard load,
+teacher gradebook, non-review completion, grader availability) that the engine would never emit anyway.**
+
+**Impact.** The flip gate that is supposed to catch "the redesign broke the spine" has no data and no
+producer. As written, the flip is blocked behind BUILD (emitters) + WAIT (a full baseline week). Every
+day this stays unnoticed is a day added to the launch.
+
+**Fix direction — TWO paths; the cheaper one probably collapses the dependency entirely.**
+- **(a) DERIVE B0 RETROSPECTIVELY from data that already exists** (recommended, needs a design pass):
+  attempt-write success and new-word submit success from the `attempts` collection's own history;
+  grader availability from `grading_jobs` statuses/`lastError`; client/dashboard errors from
+  `system_logs`. If R1–R7 are derivable from history, **no waiting week is required at all** — the
+  baseline can be computed the day before the flip over any window. This must be checked invariant by
+  invariant; some (e.g. auth success, uncaught JS exceptions) may have no historical proxy and would
+  fall back to (b) or to an explicitly narrowed R-set.
+- **(b) BUILD the emitters and wait** — a real fold plus a full baseline window before the ACTIVATION go.
+Either way **`21_`'s dependency sentence must be corrected** — it currently tells a future reader the
+emitters exist. can roll `ai_metering/_global` BACKWARD (zeroing today's global count) · backend/metering · **LOW — safe direction (under-count), sub-second exposure once per day, optional-path budget guard only** (found 2026-08-05 by the ai-metering delta re-audit, measured)
 
 **What.** The deferred global-meter writer carries the window key computed at CLAIM time. A write that
 lands after the doc has already rolled to the new KST day arrives holding YESTERDAY's key, takes the
