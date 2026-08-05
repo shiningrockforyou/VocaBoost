@@ -162,7 +162,11 @@ verbatim below, run in that (late) order. See report for full disclosure.
 [x] E3  VISUAL — see dedicated row below (not carded, OWED — kept separate per the brief's exact
         template line so it is not swept into "done").
 
-VISUAL row: [ ] OWED — WinClaude order (batched by orchestrator; flag-off copy check on 25WT)
+VISUAL row: [x] CLOSED CLEAN — win order 104 (2026-08-05, winclaude_104.md T1-T3): the sheet renders "92%
+    required to pass" — the CLASS'S REAL configured threshold, not the 95 default, proving the threading
+    end-to-end (stronger than a default-class check); HelpModal shows the new generic line, old "95%" gone;
+    throttle FAQ absent from all 3 help pages w/ layout intact (executor caught + discarded its own
+    asymmetric-grep false finding on the ko page); 0 console errors beyond the known [PHASE] pair.
 
 ## CLOSE (gate.mjs enforces the mechanical half)
 [x] every row ticked with file:line + fixture ref (VISUAL intentionally excepted — see above)

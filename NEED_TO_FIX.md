@@ -26,7 +26,11 @@ enables reruns for real students.
 **Fix direction.** Implement the frozen 15_ §6 surface server-side (engine), as a DF2-14/DF2-10 residual
 — NOT part of DF2-51's client folds. Draft's launch-scope recommendation (22_ §3c, PROPOSED): MCQ-only
 retests at launch so the client ships without the meter; typed retests stay dark until the meter exists.
-David has not ruled.
+**DAVID RULED 2026-08-05 (de-jargonized decision round, Q2): "Build the spending cap first, launch both"
+— the 22_ §3c MCQ-only proposal is SUPERSEDED. The metering surface gets BUILT server-side
+(`ai-metering-build` queue item, after ntf26-grader-fix lands) and DF2-51's typed-retest leg waits for
+it; both modalities then launch together. Never holds the engine deploy (bundles only if audited in
+time).**
 
 ---
 

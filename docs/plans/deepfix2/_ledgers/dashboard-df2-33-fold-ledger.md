@@ -259,8 +259,10 @@ not re-edit those docs (out of this fold's touch-list; the orchestrator folds th
     or a fresh command run in this session, never hand-typed into this ledger first.
 [x] change log row — PROPOSED in the report (the orchestrator appends it); this fold does NOT write
     `change_action_log.md` itself (hard constraint).
-[ ] VISUAL — OWED — WinClaude order (flag-OFF: Dashboard loads, hero + row Day numbers unchanged; batched;
-    flag-ON verification is a separate later rehearsal order, same as the streak fold's own VISUAL row)
+[x] VISUAL — CLOSED CLEAN — win order 104 (2026-08-05, winclaude_104.md T4): Dashboard loads fully
+    flag-off, hero + every per-list Day badge show real numbers (no NaN/undefined/Infinity), streak pill
+    unchanged, 0 console errors beyond the known [PHASE] pair. Flag-ON verification remains a separate
+    rehearsal order (unchanged plan).
 [~] gate.mjs (explicit ledger path): see the report for the full verbatim run + which reds are foreign/
     pre-existing (task3/cutover-b/cutover-c staleness, none of it in this fold's touch-list) vs this
     fold's own (none — LEDGER/FREEZE/MUTANT/BATON/WATCHER/LOG all green for this fold's own artifacts).
