@@ -68,6 +68,18 @@ export const RV2 = Object.freeze({
   // new job key); do NOT poll. The exact inverse of GRADING_IN_PROGRESS above
   // — conflating the two either polls forever or recomposes a different test.
   GRADE_UNUSABLE: 'grade_unusable',
+  // [DF2-51 decision (h)] The THIRD member of the typed-refusal family, and the
+  // only one that is neither transient nor repairable: the AI spend cap
+  // declined this RE-TEST (`functions/aiMetering.js:107-110` →
+  // `functions/reviewV2/typedGrading.js:323`). Polling cannot clear it (the
+  // window is a KST calendar day) and recomposing cannot clear it either (a new
+  // presentation is a new job key, still capped) — "not now, and not by
+  // retrying". Contract: RENDER `PRACTICE_LIMIT_MESSAGE` and STOP. It can only
+  // ever arrive on a TYPED submit whose presentation is a rerun
+  // (`callables.js:558` gates the typed leg; `:581` supplies the strict
+  // `isRetest` discriminator) — MCQ re-tests are unmetered and stay available,
+  // which is why the message names them as the alternative.
+  PRACTICE_LIMIT_REACHED: 'practice_limit_reached',
   // authority refusals
   DAY_GUARD_REJECTED: 'day_guard_rejected',
   NO_EVIDENCE: 'no_evidence',
@@ -140,6 +152,40 @@ export function isGradingInProgress(result) {
  *  above — polling this status polls forever. */
 export function isGradeUnusable(result) {
   return Boolean(result) && result.status === RV2.GRADE_UNUSABLE;
+}
+
+/** THE CAP COPY [DF2-51 decision (h), ratified verbatim in
+ *  `22_DF2-51_PASTDAY_NAV_DESIGN.md` §7]. Deliberately BYTE-EQUAL to the
+ *  server's own `PRACTICE_LIMIT_MESSAGE` (`functions/aiMetering.js:108-110`) —
+ *  the refusal payload carries the sentence too, but the CLIENT constant is
+ *  what renders, so a server string can never reach a student's screen
+ *  unreviewed. The equality is pinned by a fixture that reads the server file's
+ *  bytes (df2-51dg-retest-fixtures.mjs, CASE C1.2), so a future edit to either
+ *  side goes red instead of silently drifting. English-only, matching the
+ *  ratified copy exactly; the bilingual register in `reviewV2Compose.js` /
+ *  `reviewV2Submit.js` is for refusals whose copy this program authored. */
+export const PRACTICE_LIMIT_MESSAGE =
+  "You've reached today's practice-grading limit — try again tomorrow, " +
+  'or use a multiple-choice re-test.'
+
+/** True when the AI spend cap declined this re-test. PERMANENT-FOR-TODAY: do
+ *  NOT poll (the inverse of `isGradingInProgress`) and do NOT recompose (the
+ *  inverse of `isGradeUnusable`) — a new presentation is a new job key and is
+ *  still capped. Render `practiceLimitReason(result)` and stop. */
+export function isPracticeLimitReached(result) {
+  return Boolean(result) && result.status === RV2.PRACTICE_LIMIT_REACHED
+}
+
+/** The student-facing sentence for a cap refusal, plus the refusal's `scope`
+ *  ('student' | 'global' | 'unavailable' — `functions/aiMetering.js:421-427`)
+ *  so a caller can record the presentation-only snapshot 51-a's
+ *  `canRetestTyped` reads. Returns null for anything that is NOT a cap
+ *  refusal, so a caller cannot accidentally render this copy for another
+ *  status. */
+export function practiceLimitReason(result) {
+  if (!isPracticeLimitReached(result)) return null
+  const scope = typeof result.scope === 'string' && result.scope.length > 0 ? result.scope : 'student'
+  return { message: PRACTICE_LIMIT_MESSAGE, scope }
 }
 
 /** True when the result means "this bundle is too old — force a refresh"

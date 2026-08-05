@@ -24,18 +24,33 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { collection, deleteField, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
-import { ChevronLeft, Info, Star } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Info, Star, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import Flashcard from '../components/Flashcard.jsx'
 import HeaderBar from '../components/HeaderBar.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { Badge, Button, Card, IconButton } from '../components/ui'
 import { db } from '../firebase'
 import { fetchUserAttempts } from '../services/db'
 import { getClassProgress } from '../services/progressService'
+import { getNewWords, getSegmentWordsByIds } from '../services/studyService'
+import { PRACTICE_LIMIT_MESSAGE } from '../services/reviewV2Client'
+// DF2-51-d: the rerun compose/submit glue (pure, node-fixtured). This page
+// MINTS NOTHING while browsing — `composeRerunHalf` is called only from the
+// Re-test click handler, which is where 51-b's lazy mint belongs.
+import {
+  RESTUDY_BLOB_KEY, composeRerunHalf, currentCapWindowKey, effectiveResetEpoch,
+  nextRerunHalf, readPracticeCap, rerunTestConfigOverride, restudyBlobPayload,
+  rv2PersistableHandle, shouldPreemptTypedRetest,
+} from '../services/restudyRetest'
+import { buildTestConfig } from '../utils/testConfig'
 import { attemptsForList } from '../utils/dayStatusAuthority'
-import { DAY_STATES, bookmarkedDayForList, derivePastDays, deriveTodayRow } from '../utils/pastDayAuthority'
+import {
+  DAY_STATES, bestOriginalPass, bookmarkedDayForList, derivePastDays, deriveTodayRow,
+  originalAttemptsForDay,
+} from '../utils/pastDayAuthority'
 import {
   buildRestudyRows,
   computeBookmarkToggleTarget,
@@ -163,6 +178,7 @@ function DayRow({
 
 function RestudyBrowser() {
   const { classId, listId } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [listTitle, setListTitle] = useState(null)
@@ -175,6 +191,13 @@ function RestudyBrowser() {
 
   const [bookmarkSaving, setBookmarkSaving] = useState(false)
   const [bookmarkError, setBookmarkError] = useState('')
+
+  // DF2-51-d: the two wired actions. `actionBusy` is the `${kind}-${day}` of an
+  // in-flight action (one at a time — a second mint/compose would orphan a
+  // visit doc); `deck` is the in-page re-study viewer (see `handleRestudy`).
+  const [actionBusy, setActionBusy] = useState(null)
+  const [actionError, setActionError] = useState('')
+  const [deck, setDeck] = useState(null)
 
   // Loading idiom mirrors Dashboard.jsx's own loaders (loadUserAttempts /
   // loadProgressData): useState data + loading + error, a cancelled-flag
@@ -260,14 +283,163 @@ function RestudyBrowser() {
     }
   }, [user?.uid, classId, listId, bookmarkedDay, bookmarkSaving])
 
-  // 51-d wires these to the real rerun-compose + navigation flow. Stubs only
-  // — browsing must never mint a visit or fake navigation (brief, Build §2).
-  const handleRestudyStub = useCallback(() => {
-    // intentionally empty — 51-d implements this
-  }, [])
-  const handleRetestStub = useCallback(() => {
-    // intentionally empty — 51-d implements this
-  }, [])
+  // -------------------------------------------------------------------------
+  // 51-d — RE-STUDY. Opens that day's flashcards, non-advancing.
+  //
+  // "The normal viewer" is the SAME `<Flashcard>` component the daily session
+  // renders (`DailySessionFlow.jsx:2608`), mounted here: this app has no
+  // standalone flashcard ROUTE (App.jsx has none), flashcards live only inside
+  // DailySessionFlow — which is outside this fold's touch-list AND whose init
+  // is frontier-shaped (it would compose TODAY's words, not day N's; design doc
+  // §3 A2). Recorded as a judgment call in the fold report.
+  //
+  // NON-ADVANCING BY CONSTRUCTION: this path performs ZERO writes. It reads the
+  // day's own historical new-word anchor off the day's PASSED, LIVE new attempt
+  // (`bestOriginalPass` — 51-a already excludes `type:'retest'` rows, so a
+  // previous re-test can never redefine the range) and fetches those words. It
+  // mints no visit (`restudyVisit.js` is not called here — browsing/studying
+  // must never mint; 51-b's mint belongs at the first rerun COMPOSE).
+  // -------------------------------------------------------------------------
+  const handleRestudy = useCallback(async (day) => {
+    if (!user?.uid || !listId || actionBusy) return
+    setActionError('')
+    setActionBusy(`restudy-${day}`)
+    try {
+      const anchor = bestOriginalPass(originalAttemptsForDay(attempts, day), 'new')
+      const start = anchor?.newWordStartIndex
+      const end = anchor?.newWordEndIndex
+      if (!Number.isInteger(start) || !Number.isInteger(end) || end < start) {
+        setActionError('This day has no new-word set to re-study.')
+        return
+      }
+      const words = await getNewWords(listId, start, end - start + 1)
+      if (!Array.isArray(words) || words.length === 0) {
+        setActionError('We could not load this day’s words. Please try again.')
+        return
+      }
+      setDeck({ day, words, index: 0, flipped: false })
+    } catch (err) {
+      console.error('Failed to open the re-study deck:', err)
+      setActionError('We could not load this day’s words. Please try again.')
+    } finally {
+      setActionBusy(null)
+    }
+  }, [user?.uid, listId, attempts, actionBusy])
+
+  // -------------------------------------------------------------------------
+  // 51-d — RE-TEST. Composes a rerun half through the ENGINE's rerun leg and
+  // hands it to the normal test page.
+  //
+  // NON-ADVANCEMENT IS THE SERVER'S: the attempt this eventually writes is
+  // stamped `type:'retest'` by the server from its OWN presentation fingerprint
+  // (`functions/reviewV2/callables.js:684` → `:769`), and a `type:'retest'`
+  // attempt satisfies NEITHER half of the day advance (`completion.js:323`
+  // consumed-review, `:455` new-test — both `no_evidence`); rerun halves are
+  // also written range-less (`callables.js:770-775`), so they cannot move the
+  // day anchor either. What THIS function contributes is the absence of a
+  // session: `rerunTestConfigOverride` strips `dayNumber`/`isFirstDay`/
+  // `segment`, so the test page's completion gate is structurally unreachable.
+  // -------------------------------------------------------------------------
+  const handleRetest = useCallback(async (row) => {
+    const day = row?.day
+    if (!user?.uid || !classId || !listId || !Number.isInteger(day) || actionBusy) return
+    setActionError('')
+    setActionBusy(`retest-${day}`)
+    try {
+      // The class assignment supplies the test settings AND the rerun modality
+      // (`reviewTestType` — the SAME field the engine composes with,
+      // `callables.js:445,467`), which decides the route and the cap pre-empt.
+      const classSnap = await getDoc(doc(db, 'classes', classId))
+      const assignment = classSnap.exists() ? (classSnap.data()?.assignments?.[listId] ?? null) : null
+      if (!assignment) {
+        setActionError('This list is no longer assigned to your class.')
+        return
+      }
+
+      // Decision (h), the PRE-EMPT half: a typed re-test we already know is
+      // capped is not worth a mint + compose. MCQ is unmetered and is never
+      // pre-empted (`shouldPreemptTypedRetest` checks the modality FIRST).
+      const reviewTestType = assignment.reviewTestType || 'mcq'
+      if (shouldPreemptTypedRetest({
+        reviewTestType,
+        metering: readPracticeCap({ uid: user.uid, classId, listId }),
+        currentWindowKey: currentCapWindowKey(),
+      })) {
+        setActionError(PRACTICE_LIMIT_MESSAGE)
+        return
+      }
+
+      // The reset epoch — a CACHE SCOPE for 51-b's visit key ONLY; the server
+      // derives its own for the mint and every tuple check (see
+      // restudyRetest.js#effectiveResetEpoch).
+      const [pmSnap, lpSnap] = await Promise.all([
+        getDoc(doc(db, `users/${user.uid}/progress_meta`, listId)),
+        getDoc(doc(db, `users/${user.uid}/list_progress`, listId)),
+      ])
+      const resetEpoch = effectiveResetEpoch(
+        pmSnap.exists() ? pmSnap.data() : null,
+        lpSnap.exists() ? lpSnap.data() : null,
+      )
+
+      const half = nextRerunHalf({ newPipState: row?.pips?.new?.state })
+      const composed = await composeRerunHalf({
+        uid: user.uid, classId, listId, visitedDay: day, half, resetEpoch,
+      })
+      if (composed.outcome !== 'composed') {
+        setActionError(composed.reason || 'This re-test could not be started right now.')
+        return
+      }
+
+      const words = await getSegmentWordsByIds(user.uid, listId, composed.presentedWordIds)
+      if (words.length !== composed.presentedWordIds.length) {
+        setActionError('We could not load this re-test’s words. Please try again.')
+        return
+      }
+
+      // The engine already sized and ordered this test; `buildTestConfig` is
+      // used ONLY for the assignment settings (options count, threshold), and
+      // its `selectTestWords` re-sample is discarded by the override — the same
+      // idiom the live path uses (`DailySessionFlow.jsx:1485-1521`).
+      const baseConfig = buildTestConfig({
+        assignment, wordPool: words, testType: half,
+        sessionContext: { listTitle },
+      })
+      const testConfig = rerunTestConfigOverride({
+        baseConfig,
+        rerun: { ...composed, words, poolWords: words },
+      })
+
+      // The re-test's OWN blob — never `dailySessionState` (a re-test taken
+      // mid-session must not clobber that session's recovery blob). It carries
+      // the word ids so a hard reload rebuilds this exact test (NTF-27).
+      try {
+        sessionStorage.setItem(RESTUDY_BLOB_KEY, JSON.stringify(restudyBlobPayload({
+          classId, listId, visitedDay: day, half,
+          rv2: rv2PersistableHandle({
+            rv2: testConfig.rv2,
+            words: testConfig.wordsToTest,
+            poolWords: testConfig.originalWordPool,
+            testOptionsCount: testConfig.testOptionsCount,
+            passThresholdDecimal: testConfig.passThresholdDecimal,
+          }),
+        })))
+      } catch (storeErr) {
+        // Degraded (private mode / quota): location.state still carries the
+        // config, so the test runs; only a mid-test reload loses it.
+        console.warn('Could not persist the re-test handle:', storeErr)
+      }
+
+      const route = composed.testType === 'typed' ? '/typedtest' : '/mcqtest'
+      navigate(`${route}/${classId}/${listId}?type=${half}&restudy=1`, {
+        state: { testConfig, returnPath: `/restudy/${classId}/${listId}` },
+      })
+    } catch (err) {
+      console.error('Failed to start the re-test:', err)
+      setActionError('This re-test could not be started right now. Please try again.')
+    } finally {
+      setActionBusy(null)
+    }
+  }, [user?.uid, classId, listId, listTitle, actionBusy, navigate])
 
   return (
     <main className="min-h-screen bg-base px-4 py-10">
@@ -311,6 +483,55 @@ function RestudyBrowser() {
           <p className="mt-3 font-body text-xs font-medium text-error-text" role="alert">{bookmarkError}</p>
         )}
 
+        {actionError && (
+          <Card variant="alert-error" className="mt-4">
+            <p className="font-body text-sm font-medium text-error-text" role="alert">{actionError}</p>
+          </Card>
+        )}
+
+        {/* RE-STUDY (51-d): the day's own flashcards, read-only. Zero writes —
+            no visit is minted and no progress is touched (see handleRestudy). */}
+        {deck && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-heading text-lg font-bold text-text-primary">
+                Day {deck.day} — re-study
+              </h2>
+              <IconButton variant="default" size="sm" onClick={() => setDeck(null)} title="Close">
+                <X size={16} />
+              </IconButton>
+            </div>
+            <p className="mt-1 font-body text-xs text-text-muted">
+              Card {deck.index + 1} of {deck.words.length} · nothing here changes your progress
+            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <IconButton
+                variant="default"
+                size="sm"
+                disabled={deck.index === 0}
+                onClick={() => setDeck((d) => (d ? { ...d, index: Math.max(0, d.index - 1), flipped: false } : d))}
+                title="Previous card"
+              >
+                <ChevronLeft size={16} />
+              </IconButton>
+              <Flashcard
+                word={deck.words[deck.index]}
+                isFlipped={deck.flipped}
+                onFlip={() => setDeck((d) => (d ? { ...d, flipped: !d.flipped } : d))}
+              />
+              <IconButton
+                variant="default"
+                size="sm"
+                disabled={deck.index >= deck.words.length - 1}
+                onClick={() => setDeck((d) => (d ? { ...d, index: Math.min(d.words.length - 1, d.index + 1), flipped: false } : d))}
+                title="Next card"
+              >
+                <ChevronRight size={16} />
+              </IconButton>
+            </div>
+          </Card>
+        )}
+
         {branch === 'loading' && (
           <div className="mt-10 flex justify-center">
             <LoadingSpinner size="lg" />
@@ -351,11 +572,11 @@ function RestudyBrowser() {
                   chip={row.chip}
                   pips={row.pips}
                   bookmarked={row.bookmarked}
-                  restudyDisabled={row.restudyDisabled}
-                  retestDisabled={row.retestDisabled}
+                  restudyDisabled={row.restudyDisabled || Boolean(actionBusy)}
+                  retestDisabled={row.retestDisabled || Boolean(actionBusy)}
                   bookmarkSaving={bookmarkSaving}
-                  onRestudy={handleRestudyStub}
-                  onRetest={handleRetestStub}
+                  onRestudy={() => handleRestudy(row.day)}
+                  onRetest={() => handleRetest(row)}
                   onToggleBookmark={() => handleToggleBookmark(row.day)}
                 />
               ))}
@@ -371,8 +592,8 @@ function RestudyBrowser() {
                 restudyDisabled
                 retestDisabled
                 bookmarkSaving={bookmarkSaving}
-                onRestudy={handleRestudyStub}
-                onRetest={handleRetestStub}
+                onRestudy={() => {}}
+                onRetest={() => {}}
                 onToggleBookmark={() => {}}
               />
             </ul>

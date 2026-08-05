@@ -1,0 +1,77 @@
+{
+  "kind": "df2-51dg-retest-mutants",
+  "pass": true,
+  "total": 9,
+  "caught": 9,
+  "uncaught": 0,
+  "restored": true,
+  "moduleSha": "260c8ab76ff6703c",
+  "results": [
+    {
+      "id": "M1",
+      "what": "compose omits visitId (the engine would refuse visit_invalid; the client would never know)",
+      "ok": true,
+      "failedChecks": 3,
+      "sampleRed": "C2.1 — the FIRST rerun compose mints the visit (51-b), carries it, and the SECOND reuses it :: the compose call carries the minted visitId — got undefined want \"v1\""
+    },
+    {
+      "id": "M2",
+      "what": "practice_limit_reached joins the poll loop — a permanent refusal polled forever",
+      "ok": true,
+      "failedChecks": 10,
+      "sampleRed": "C1.5 — BYPASS SET (c): the RERUN submit renders the cap and stops :: outcome — got \"blocked\" want \"capped\""
+    },
+    {
+      "id": "M3",
+      "what": "MCQ re-tests (unmetered) get hidden by a typed cap",
+      "ok": true,
+      "failedChecks": 2,
+      "sampleRed": "C3.1 — MCQ stays available when typed is capped (the modality is checked FIRST) :: mcq + capped ⇒ NOT pre-empted — got true want false"
+    },
+    {
+      "id": "M4",
+      "what": "grade_unusable on a rerun composes a LIVE test for a PAST day",
+      "ok": true,
+      "failedChecks": 21,
+      "sampleRed": "C2.7 — grade_unusable recomposes EXACTLY ONCE, through the RERUN leg (never a LIVE compose) :: rerun compose used once — got 0 want 1"
+    },
+    {
+      "id": "M5",
+      "what": "processTestResults runs for a practice retest",
+      "ok": true,
+      "greenOnReal": true,
+      "greenOnMutant": false,
+      "diskUntouched": true
+    },
+    {
+      "id": "M6",
+      "what": "the pages' completion gate becomes reachable from a retest",
+      "ok": true,
+      "failedChecks": 1,
+      "sampleRed": "C3.2 — the rerun testConfig CANNOT carry a session (so the completion gate is unreachable) :: no dayNumber — got true want false"
+    },
+    {
+      "id": "M7",
+      "what": "the blob handle stops carrying presentedWordIds ⇒ a reload drift-rejects again",
+      "ok": true,
+      "failedChecks": 4,
+      "sampleRed": "C4.1 — NTF-27: the persisted handle rebuilds THIS test after a reload; the OLD handle cannot :: presented ids survive, in the SERVED order — got undefined want [\"w1\",\"w2\",\"w3\"]"
+    },
+    {
+      "id": "M8",
+      "what": "the retry replays a key fingerprinted to the DEAD visit ⇒ compose_key_reused",
+      "ok": true,
+      "failedChecks": 1,
+      "sampleRed": "C2.2 — visit_invalid ⇒ re-mint ONCE and retry with a FRESH composeKey (V7); a second ⇒ surrender :: the retry used a DIFFERENT composeKey (the old one is fingerprinted to the dead visit) — got false want true"
+    },
+    {
+      "id": "M9",
+      "what": "a rerun sets rv2Fallback ⇒ the legacy grade+write runs for a past day",
+      "ok": true,
+      "greenOnReal": true,
+      "greenOnMutant": false,
+      "diskUntouched": true
+    }
+  ],
+  "at": "2026-08-05T14:15:46.089Z"
+}

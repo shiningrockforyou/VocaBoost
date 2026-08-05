@@ -1,0 +1,18 @@
+{
+  "kind": "df2-51dg-retest-pure",
+  "pass": true,
+  "total": 242,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/restudyRetest.js": "260c8ab76ff6703c",
+    "src/services/reviewV2Client.js": "a44d9859f3fc7eb8",
+    "src/pages/MCQTest.jsx": "f37657112318968f",
+    "src/pages/TypedTest.jsx": "6fc12218348bd3aa",
+    "src/pages/RestudyBrowser.jsx": "d46d6bd125f5b70e",
+    "src/services/restudyVisit.js": "b67991631ba4fa8f",
+    "src/utils/pastDayAuthority.js": "b879091ed97d113d",
+    "scripts/deepfix2/df2-51dg-retest-fixtures.mjs": "d959f3abf6ae1349"
+  },
+  "at": "2026-08-05T14:15:15.121Z"
+}

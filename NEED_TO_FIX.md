@@ -8,6 +8,39 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 31. Past-day re-test: the surrender message tells the student to do something that does not work · client/copy · **LOW — flag-off (0 students today), COPY-ONLY, pre-flip** (found 2026-08-05 by the df2-51-d+g independent audit)
+
+**What.** `REASON_RETEST_SURRENDERED` (`src/services/restudyRetest.js:255-257`) tells a student whose
+re-test visit has surrendered to *"reload the page, and tell your teacher if it repeats."* **A reload
+does not clear it.** The once-guard is sessionStorage-backed (`visitRemintGuardScope`); only closing the
+tab, or completing a visit (`noteVisitCompleted` → `clearVisitRemintGuard`), clears it. The wording is
+inherited from 51-b's own `REASON_VISIT_SURRENDERED`, so **both strings need the same repair**.
+
+**Impact.** None today (flag-off). At the flip: a student follows the instruction, nothing changes, and
+they conclude the app is broken — the specific failure mode good error copy exists to prevent.
+
+**Fix direction.** Two-string copy change: tell the student to **close the tab / come back later**, or
+to take the re-test again from Past Days (which completes a visit and clears the guard legitimately).
+Bundle with the 51-h copy/visual pass rather than reopening an audited fold.
+
+---
+
+## 32. Past-day re-test: an unfixtured precedence between the blob-rebuild and the legacy word-pool recovery path · client · **LOW — flag-ON only, pre-flip** (found 2026-08-05 by the df2-51-d+g independent audit)
+
+**What.** NTF-27's rebuild gate (`if (REVIEW_V2_CLIENT && (await rebuildRv2FromBlob()))`) sits BEFORE
+the legacy `wordPool` branch. `DailySessionFlow.jsx:845-860` navigates the test-recovery path with
+`wordPool` + `sessionContext` and NO `testConfig`, so flag-on that path now consults the blob first.
+
+**Impact.** Believed safe in practice — `DailySessionFlow.jsx:829` rewrites `dailySessionState`
+immediately before that navigate WITHOUT an `rv2Presentation` field, so the handle read returns null
+and the legacy branch runs exactly as today. **But nothing fixtures this precedence against the real
+recovery blob shape**, so the safety rests on a currently-true adjacency rather than on a test.
+
+**Fix direction.** Add a fixture pinning the precedence with a real recovery-shaped blob (rebuild must
+decline, legacy path must run). Cheap; belongs with the next client fold that touches these pages.
+
+---
+
 ## 30. THE B0 PRE-FLIP BASELINE CANNOT ACCUMULATE — the R1–R7 invariant emitters DO NOT EXIST · ops/flip-gate · **CRITICAL PATH to the flip** (found 2026-08-05, post-deploy verification)
 
 **What.** `21_DF2-14_FLIP_ABORT_CARD.md:104-109` makes B0 a HARD pre-flip gate — *"Without B0 there is no
@@ -91,13 +124,23 @@ time).**
 
 ---
 
-## 27. After a grade_unusable recompose, a HARD PAGE RELOAD loses the fresh word list · client · **flag-gated (0 students today), PRE-FLIP** (found 2026-08-04, cutover-d)
+## 27. ~~After a grade_unusable recompose, a HARD PAGE RELOAD loses the fresh word list~~ **FIXED 2026-08-05 (df2-51-d/g)** · client · (was: flag-gated, 0 students; found 2026-08-04, cutover-d)
 
-**What.** cutover-d fixed the in-app recompose retry (fresh words + updated blob ⇒ no drift). But `updateRv2PresentationInBlob` (`src/pages/MCQTest.jsx:1191`) persists only the presentation HANDLE (`{presentationId,testType,logicalDay,resetEpoch,source}`), NOT `presentedWordIds` (those live only in the transient `out.compose`). So a HARD RELOAD after a successful swap but BEFORE the next submit loses the in-memory fresh words, and `loadTestWords` cannot re-fetch them ⇒ the next submit answers the new `presentationId` with the old word set ⇒ server drift-reject (`callables.js:527-529`) — a SAFE refusal banner, not corruption or a wrong grade.
+**What it was.** cutover-d fixed the in-app recompose retry (fresh words + updated blob ⇒ no drift). But `updateRv2PresentationInBlob` persisted only the presentation HANDLE (`{presentationId,testType,logicalDay,resetEpoch,source}`), NOT `presentedWordIds` (those lived only in the transient `out.compose`). So a HARD RELOAD after a successful swap but BEFORE the next submit lost the in-memory fresh words, and `loadTestWords` could not re-fetch them ⇒ the next submit answered the new `presentationId` with the old word set ⇒ server drift-reject (`callables.js:527-529`) — a SAFE refusal banner, not corruption or a wrong grade.
 
-**Impact.** Flag-gated (`REVIEW_V2_CLIENT=false` ⇒ 0 students today); live at the flip. Worst case is a refusal + a re-compose, not data loss. Low severity.
+**What was done (decision (i), `22_DF2-51_PASTDAY_NAV_DESIGN.md` §7).** PERSIST, not re-compose-on-reload. Both options were on the table; persisting won because a reload-recompose turns a local recovery into a NETWORK dependency mid-test that can itself REFUSE (`day_guard_rejected` once the day advanced, `reset_epoch_mismatch`, `config_hold`) — replacing a confusing dead end with a blocking one at the worst moment — and because after a `grade_unusable` recompose the compose key was re-minted with `freshKey:true`, so which presentation a reload-recompose returns depends on storage state the reload may have lost. The blob is already this page's reload-recovery mechanism.
+- `src/services/restudyRetest.js` — `rv2PersistableHandle()` (the handle + `presentedWordIds` + `poolWordIds` + `testOptionsCount`/`passThresholdDecimal`) and `rebuildableHandle()` (the validation), both pure and fixtured.
+- `src/pages/MCQTest.jsx` / `src/pages/TypedTest.jsx` — PATH A stamps the persistable handle onto the blob; a new `rebuildRv2FromBlob()` (called only when `location.state` is absent, i.e. a reload) rebuilds the SAME presented set (MCQ additionally rebuilds the FULL distractor pool, so a reload cannot shrink the options — audit finding F3) before any legacy path runs. The full pool is persisted as ids, so no class-doc re-read is needed.
+- Both branches are `REVIEW_V2_CLIENT`-gated at the call site; **the flag-off PATH is behavior-identical
+  to HEAD** (the pages' bytes did change — ~+450/−38 lines). [CORRECTED 2026-08-05 by the independent
+  audit, which overturned the original "the pages are byte-identical" wording and then PROVED the real
+  claim by exhaustion: all 19 deleted lines per page enumerated and each shown to sit behind a
+  flag-gated call site, plus an executed flag-off reduction against the real modules — 0 sessionStorage
+  reads/writes, `isRestudyRun` provably constant-false even with `?restudy=1` in the URL, and
+  `rv2BlobKey` reducing to the literal `'dailySessionState'` HEAD used.] Also precise: the rebuild runs
+  when **`testConfig`** is absent (a superset of "no `location.state`").
 
-**Fix direction.** Persist `presentedWordIds` in the sessionStorage blob so `loadTestWords` can rebuild after a reload, OR have `loadTestWords` do a server round-trip (re-compose) for an rv2 presentation. Belongs near `df2-51-navui` (the retest/reload UI). Honestly documented by the cutover-d implementer, confirmed by its auditor.
+**Pinned by** `scripts/deepfix2/df2-51dg-retest-fixtures.mjs` (CASE C4 — a reload mid-recompose no longer drift-rejects) + mutant M7 (drop the reload persistence ⇒ the fixture goes red), evidence `docs/plans/deepfix2/evidence/df2-51dg-retest-pure.json`.
 
 ---
 

@@ -18,6 +18,17 @@ import { rv2McqAnswers, submitAttemptV2 } from '../services/reviewV2Submit'
 // through reviewV2CompleteDay — the SERVER advances the day + graduates +
 // credits the streak. Dead imports while the flag is false — call-site gated.
 import { rv2CompletionAttemptIds, completeDayV2 } from '../services/reviewV2Complete'
+// DF2-51-d RETEST + 51-g RELOAD (REVIEW_V2_CLIENT): a past-day re-test submits
+// through the RERUN leg (its own visit, its own status census, no legacy
+// fallback), and the engine handle persisted in sessionStorage now carries the
+// word ids so a hard reload rebuilds THIS test (NEED_TO_FIX 27). Dead imports
+// while the flag is false — every use is call-site gated.
+import {
+  RERUN_RECOMPOSED, isRerunSource, rerunHalfFromSource, submitRerunAttempt,
+  rv2HandleFromBlob, rv2HandleFromBlobAny, rv2HandleFromTestConfig,
+  rv2SessionTypeFromSource, blobWithRv2Presentation, rv2PersistableHandle,
+  rebuildableHandle, LIVE_BLOB_KEY, RESTUDY_BLOB_KEY,
+} from '../services/restudyRetest'
 import { MIN_ENGAGED_ANSWER_RATIO } from '../utils/reviewPairing'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import {
@@ -81,6 +92,15 @@ const MCQTest = () => {
   const searchParams = new URLSearchParams(location.search)
   const testTypeParam = searchParams.get('type') || testType
   const classIdParam = searchParams.get('classId') || classId
+
+  // DF2-51-d (flag-on only): a past-day RE-TEST is marked in the URL, not in
+  // navigation state — the URL is the only carrier that survives a hard reload,
+  // and it is what keeps a re-test's sessionStorage blob separate from a live
+  // session's (a re-test taken mid-session must never clobber that session's
+  // own recovery blob). Flag-off `isRestudyRun` is a constant false and
+  // `rv2BlobKey` is the literal 'dailySessionState' this file already used.
+  const isRestudyRun = REVIEW_V2_CLIENT && searchParams.get('restudy') === '1'
+  const rv2BlobKey = isRestudyRun ? RESTUDY_BLOB_KEY : LIVE_BLOB_KEY
 
   const [listDetails, setListDetails] = useState(null)
   const [testWords, setTestWords] = useState([])
@@ -261,6 +281,39 @@ const MCQTest = () => {
     setCanRetake(false)
   }
 
+  // NTF-27 / decision (i) (flag-on only — the ONE call site below is gated).
+  // A HARD RELOAD drops `location.state`, so PATH A is skipped, but the
+  // sessionStorage blob still holds the engine handle this page will SUBMIT
+  // against. Rebuild exactly that test from the ids persisted alongside the
+  // handle, instead of falling through to the legacy smart selection — which
+  // answers the stored presentationId with DIFFERENT words and earns the
+  // server's drift-reject (functions/reviewV2/callables.js:527-529). Returns
+  // false (nothing touched) whenever anything is missing, so every legacy path
+  // below stays reachable exactly as today.
+  const rebuildRv2FromBlob = async () => {
+    let handle = null
+    try {
+      const blob = JSON.parse(sessionStorage.getItem(rv2BlobKey) || 'null')
+      handle = rv2HandleFromBlobAny({ blob, classId: classIdParam, listId })
+    } catch { return false }
+    const rebuild = rebuildableHandle(handle)
+    if (!rebuild) return false
+    // The FULL pool is fetched (F3: rebuilding from the presented subset alone
+    // would shrink MCQ options and move the guess odds); the presented set is
+    // mapped out of it IN THE SERVED ORDER (V3).
+    const poolWords = await getSegmentWordsByIds(user.uid, listId, rebuild.poolWordIds)
+    const byId = new Map(poolWords.map((w) => [w.id, w]))
+    const words = rebuild.presentedWordIds.map((id) => byId.get(id)).filter(Boolean)
+    if (words.length !== rebuild.presentedWordIds.length) return false
+    const half = rv2SessionTypeFromSource(handle.source)
+    if (half && half !== currentTestType) setCurrentTestType(half)
+    if (Number.isFinite(rebuild.testOptionsCount)) setOptionsCount(rebuild.testOptionsCount)
+    if (Number.isFinite(rebuild.passThresholdDecimal)) setRetakeThreshold(rebuild.passThresholdDecimal)
+    setOriginalWords(poolWords)
+    generateQuestions(words, rebuild.testOptionsCount ?? null, poolWords)
+    return true
+  }
+
   const loadTestWords = useCallback(async () => {
     if (!user?.uid || !listId) return
     setLoading(true)
@@ -288,6 +341,27 @@ const MCQTest = () => {
           testConfig.testOptionsCount,
           (REVIEW_V2_CLIENT && testConfig.rv2) ? testConfig.originalWordPool : null
         )
+        // NTF-27 (flag-on, engine-composed test only): stamp the presented +
+        // pool ids and the two scalars a reload would otherwise have to re-read
+        // the class doc for onto the blob's handle. This is the ONLY new write
+        // on PATH A, and it writes to the SAME key/field the cutover folds
+        // already own (`rv2Presentation`).
+        if (REVIEW_V2_CLIENT && testConfig.rv2) {
+          updateRv2PresentationInBlob(rv2PersistableHandle({
+            rv2: testConfig.rv2,
+            words: testConfig.wordsToTest,
+            poolWords: testConfig.originalWordPool,
+            testOptionsCount: testConfig.testOptionsCount,
+            passThresholdDecimal: testConfig.passThresholdDecimal,
+          }))
+        }
+        setLoading(false)
+        return
+      }
+
+      // NTF-27 (flag-on only): no location.state ⇒ this is a RELOAD. Rebuild
+      // the engine-composed test from the blob before any legacy path runs.
+      if (REVIEW_V2_CLIENT && (await rebuildRv2FromBlob())) {
         setLoading(false)
         return
       }
@@ -629,6 +703,10 @@ const MCQTest = () => {
         // derivation below is legacy-context assembly only (the server derives
         // the day from its own presentation record), so it is skipped flag-on.
         const rv2Handle = REVIEW_V2_CLIENT ? getRv2SubmitHandle() : null
+        // DF2-51-d: the SAME handle, when it is a RERUN. Null flag-off by
+        // construction (rv2Handle is null), so every branch keyed on it below
+        // reduces to today's expression.
+        const rv2Rerun = isRerunSource(rv2Handle?.source) ? rv2Handle : null
 
         // Get studyDay from sessionContext, or fetch from progress if standalone test
         console.log('[DEBUG STUDYDAY] Before determining studyDay:', {
@@ -754,7 +832,93 @@ const MCQTest = () => {
           // the 06-29 outage root cause, and the client-counted denominator is
           // the 50-answers-reads-100% bug (V3). The legacy branches below are
           // the flag-off path, byte-identical to today.
-          if (rv2Handle) {
+          // DF2-51-d RETEST (flag-on only): a RERUN submits through its OWN
+          // leg. It cannot use the live one: that recomposes `grade_unusable`
+          // into a LIVE compose for the visited day (reviewV2Submit.js:345-347)
+          // and knows nothing about the visit half this submit must close
+          // (functions/reviewV2/visits.js:92-130). It also never falls back to
+          // the legacy write — there is no legacy restudy path, and a legacy
+          // write here would mint a LIVE-looking attempt for a PAST day.
+          if (rv2Rerun) {
+            const out = await submitRerunAttempt({
+              uid: user.uid, classId: classIdParam, listId,
+              visitedDay: rv2Rerun.visitedDay,
+              half: rerunHalfFromSource(rv2Rerun.source),
+              resetEpoch: rv2Rerun.resetEpoch ?? 0,
+              visitId: rv2Rerun.visitId,
+              presentationId: rv2Rerun.presentationId,
+              answers: rv2McqAnswers(testWords, currentAnswers),
+            })
+            if (out.outcome === 'written') {
+              result = { id: out.attemptId }
+              serverPassed = out.passed
+              // A rerun has no progression to protect, so the SERVER's verdict
+              // renders as-is for both halves (the live "review always passes"
+              // law exists for day completion, which a retest never reaches —
+              // functions/reviewV2/completion.js:323,455).
+              passed = out.passed === true
+              summary = {
+                score: Number.isFinite(out.score) ? out.score / 100 : summary.score,
+                correct: Number.isFinite(out.correctCount) ? out.correctCount : summary.correct,
+                total: Number.isFinite(out.totalQuestions) ? out.totalQuestions : summary.total,
+                failed: summary.failed
+              }
+              // E2: a rerun offers no in-page retake — `handleRetake` would
+              // compose a LIVE test (:1215/:1327 are source-gated to the live
+              // tags) or locally re-sample words the stored presentationId does
+              // not know. The student re-enters from Past Days, which composes
+              // a fresh rerun with a fresh compose key.
+              setCanRetake(false)
+            } else if (out.outcome === RERUN_RECOMPOSED) {
+              // grade_unusable ⇒ the rerun adapter recomposed EXACTLY ONCE,
+              // through the RERUN leg against the SAME visit. Swap the
+              // on-screen test and render the reason; never an auto-resubmit.
+              logSystemEvent('rv2_retest_recomposed', {
+                classId: classIdParam, listId, testType: 'mcq',
+                presentationId: rv2Rerun.presentationId,
+              }, 'warning')
+              try {
+                if (out.compose.testType !== 'mcq') throw new Error('recomposed testType mismatch')
+                const freshWords = await getSegmentWordsByIds(user.uid, listId, out.compose.presentedWordIds)
+                if (freshWords.length !== out.compose.presentedWordIds.length) {
+                  throw new Error('composed word id(s) missing from list')
+                }
+                const freshPool = rv2DistractorPool({ words: freshWords, poolWords: originalWords })
+                updateRv2PresentationInBlob(rv2PersistableHandle({
+                  rv2: {
+                    presentationId: out.compose.presentationId, testType: out.compose.testType,
+                    logicalDay: out.compose.visitedDay, visitedDay: out.compose.visitedDay,
+                    visitId: out.compose.visitId, resetEpoch: out.compose.resetEpoch ?? null,
+                    source: rv2Rerun.source,
+                  },
+                  words: freshWords, poolWords: freshPool,
+                  testOptionsCount: optionsCount, passThresholdDecimal: retakeThreshold,
+                }))
+                setOriginalWords(freshPool)
+                generateQuestions(freshWords, null, freshPool)
+                setSubmitError(out.reason)
+                // (Same non-blocking treatment as the live leg — cutover-d A1.
+                // This comment also keeps the live leg's certified text anchor
+                // UNIQUE in this file; that fold owns it, not this one.)
+              } catch (swapErr) {
+                console.error('[RV2] retest recompose swap failed:', swapErr)
+                setSubmitError(out.reason)
+              }
+              setSubmitting(false)
+              return
+            } else {
+              // capped (decision (h) — permanent for today: no poll, no
+              // recompose) · blocked · unavailable. Render the reason and STOP;
+              // the answers stay on screen and in localStorage.
+              logSystemEvent('rv2_retest_blocked', {
+                classId: classIdParam, listId, testType: 'mcq',
+                outcome: out.outcome, status: out.status ?? null,
+              }, 'error')
+              setSubmitError(out.reason)
+              setSubmitting(false)
+              return
+            }
+          } else if (rv2Handle) {
             const out = await submitAttemptV2({
               uid: user.uid, classId: classIdParam, listId,
               logicalDay: rv2Handle.logicalDay,
@@ -802,6 +966,23 @@ const MCQTest = () => {
                 // F3: the fresh pool stays FULL — fresh presentation first, then
                 // the existing entry pool; never the presented subset alone.
                 const freshPool = rv2DistractorPool({ words: freshWords, poolWords: originalWords })
+                // NTF-27 (decision (i)): re-stamp the SAME handle with the fresh
+                // word ids now that the pool exists, so a HARD RELOAD after this
+                // swap rebuilds the FRESH test instead of smart-selecting other
+                // words against the new presentationId. Deliberately a SECOND,
+                // additive write rather than an edit of the line above: that
+                // line is cutover-d's certified anchor (its fixture pins the
+                // blob-update → fresh-words → render-state order by that exact
+                // text) and cutover-d's fold owns it, not this one.
+                updateRv2PresentationInBlob(rv2PersistableHandle({
+                  rv2: {
+                    presentationId: out.compose.presentationId, testType: out.compose.testType,
+                    logicalDay: out.compose.logicalDay, resetEpoch: out.compose.resetEpoch ?? null,
+                    source: rv2Handle.source,
+                  },
+                  words: freshWords, poolWords: freshPool,
+                  testOptionsCount: optionsCount, passThresholdDecimal: retakeThreshold,
+                }))
                 setOriginalWords(freshPool)
                 generateQuestions(freshWords, null, freshPool)
                 // A1 (cutover-d, state-collision fix): a SUCCESSFUL swap is NOT
@@ -930,7 +1111,15 @@ const MCQTest = () => {
         // [PHASE 2] Now that the attempt is durable, commit study_state
         // mutations. Guard with a ref so a Try-Again click after a partial
         // failure within the same mount does not double-increment counters.
-        if (!resultsProcessedRef.current) {
+        // DF2-51-d: a RERUN never runs the legacy client study_state write.
+        // `processTestResults` sets status PASSED/FAILED + the timesTested/
+        // timesCorrect counters (src/services/studyService.js:783-794) — legacy
+        // progress state. A re-test is extra practice that "never changes your
+        // progress" (the browser's own promise), and the SERVER already owns a
+        // rerun's word labels + graduation (callables.js:797-811; a rerun
+        // graduates TESTED-CORRECT ONLY — completion.js:786-787). Flag-off
+        // rv2Rerun is null, so this reads exactly as today.
+        if (!rv2Rerun && !resultsProcessedRef.current) {
           try {
             await processTestResults(user.uid, results, listId)
             resultsProcessedRef.current = true
@@ -1173,16 +1362,17 @@ const MCQTest = () => {
   // this page's class/list, and `source` must match the phase, so a stale
   // blob can never mis-route a submit. Returns null when no engine handle
   // exists ⇒ the legacy submit path runs (callers gate on REVIEW_V2_CLIENT).
+  // DF2-51-d: the acceptance test is now the PURE, fixtured `rv2HandleFromBlob`
+  // / `rv2HandleFromTestConfig` (identical clauses — identity + a source that
+  // matches this phase — widened only to accept the RERUN tag for the same
+  // half). Flag-off this function is never called (see its one call site).
   const getRv2SubmitHandle = () => {
-    const wantSource = currentTestType === 'new' ? 'composeNewTest' : 'composeSession'
     try {
-      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
-      const h = blob?.rv2Presentation
-      if (h?.presentationId && h.source === wantSource &&
-          blob.classId === classIdParam && blob.listId === listId) return h
+      const blob = JSON.parse(sessionStorage.getItem(rv2BlobKey) || 'null')
+      const h = rv2HandleFromBlob({ blob, classId: classIdParam, listId, currentTestType })
+      if (h) return h
     } catch { /* absent/corrupt blob — fall through to location.state */ }
-    const h = testConfig?.rv2
-    return (h?.presentationId && h.source === wantSource) ? h : null
+    return rv2HandleFromTestConfig({ testConfig, currentTestType })
   }
 
   // RV2 (flag-on only): keep the sessionStorage blob's presentation handle
@@ -1190,11 +1380,9 @@ const MCQTest = () => {
   // presentation the on-screen test was composed from.
   const updateRv2PresentationInBlob = (rv2) => {
     try {
-      const blob = JSON.parse(sessionStorage.getItem('dailySessionState') || 'null')
-      if (blob) {
-        blob.rv2Presentation = rv2
-        sessionStorage.setItem('dailySessionState', JSON.stringify(blob))
-      }
+      const blob = JSON.parse(sessionStorage.getItem(rv2BlobKey) || 'null')
+      const next = blobWithRv2Presentation(blob, rv2)
+      if (next) sessionStorage.setItem(rv2BlobKey, JSON.stringify(next))
     } catch { /* blob absent/corrupt — the location.state testConfig still carries rv2 */ }
   }
 
@@ -1222,14 +1410,19 @@ const MCQTest = () => {
           if (res.outcome === 'composed') {
             const words = await getSegmentWordsByIds(user.uid, listId, res.presentedWordIds)
             if (words.length === res.presentedWordIds.length) {
-              updateRv2PresentationInBlob({
-                presentationId: res.presentationId, testType: res.testType,
-                logicalDay: res.logicalDay, resetEpoch: null, source: 'composeNewTest',
-              })
               // F3: the retake pool stays FULL — the fresh presentation's
               // words first, then the entry pool (already full via
               // rv2TestConfigOverride) — never the presented subset alone.
               const pool = rv2DistractorPool({ words, poolWords: originalWords })
+              // NTF-27: persist the retake's own word ids with the handle.
+              updateRv2PresentationInBlob(rv2PersistableHandle({
+                rv2: {
+                  presentationId: res.presentationId, testType: res.testType,
+                  logicalDay: res.logicalDay, resetEpoch: null, source: 'composeNewTest',
+                },
+                words, poolWords: pool,
+                testOptionsCount: optionsCount, passThresholdDecimal: retakeThreshold,
+              }))
               setOriginalWords(pool)
               generateQuestions(words, null, pool)
               return
@@ -1347,7 +1540,13 @@ const MCQTest = () => {
               words, poolWords: sessionContext.originalWordPool,
             },
           })
-          updateRv2PresentationInBlob(nextConfig.rv2)
+          // NTF-27: persist the retake's own word ids with the handle.
+          updateRv2PresentationInBlob(rv2PersistableHandle({
+            rv2: nextConfig.rv2,
+            words: nextConfig.wordsToTest, poolWords: nextConfig.originalWordPool,
+            testOptionsCount: nextConfig.testOptionsCount,
+            passThresholdDecimal: nextConfig.passThresholdDecimal,
+          }))
           navigate(`/mcqtest/${classIdParam}/${listId}?type=review`, {
             state: {
               testConfig: nextConfig,
