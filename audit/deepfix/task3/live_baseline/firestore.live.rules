@@ -131,16 +131,6 @@ service cloud.firestore {
     // rationale on the attempts update clause.]
     // A client can author NONE of these four (the attempt create guard denies them),
     // so the presence of any one of them proves the document was server-written.
-    // [NTF-20, BOTH LEGS — cited here per its own instruction: bundle the
-    // citation with the next real rules change, which is the NTF 19+22
-    // namespace-reservation fold.] PROSPECTIVELY the create guard is LIVE
-    // (deployed 2026-08-03, win order 97, ruleset 384c9c7a…, sha16
-    // f40f91fce3693b82 at deploy time). RETROSPECTIVELY the full-corpus
-    // provenance scan (scripts/deepfix2/engine-key-provenance-scan.mjs — a
-    // FULL non-orderBy page-through of 41,680 attempts) found ZERO documents
-    // carrying ANY of the four engine keys; receipt: audit/deepfix/task3/
-    // live_baseline/engine-key-provenance-receipt.json. The claim holds for
-    // history too, not only going forward.
     // NULL-RESOURCE NOTE, stated because it is visible in the emulator log and must
     // not be mistaken for a defect: on a set() against a NON-EXISTENT doc the engine
     // evaluates BOTH the create and the update rule, and in the update evaluation
@@ -151,35 +141,6 @@ service cloud.firestore {
     // Verified: every create case in the matrix (9-a1, A21, R10, …) stays green.
     function isEngineStampedAttempt() {
       return resource.data.keys().hasAny(engineStampKeys());
-    }
-
-    // DEEPFIX2 [NTF 19+22 · 20_RV2_NAMESPACE_RESERVATION.md G1/Leg 2] THE
-    // RESERVED ENGINE DOC-ID NAMESPACE. `rv2_` names are the engine's
-    // server-derived id family (functions/reviewV2/composer.js engineDocId =
-    // `rv2_{uid}_{presentationId}`, written via the Admin SDK for BOTH
-    // `attempts` and `grading_jobs`). The names are client-DERIVABLE (uids
-    // enumerate from classes.studentIds; presentationId has a small
-    // predictable seq), so a classmate could create/squat
-    // `attempts/rv2_{victim}_{pid}` and convert the engine's fail-closed
-    // provenance checks into a PERMANENT denial of the victim's test
-    // (NTF 22). The name test therefore rides EVERY client write verb on
-    // attempts — create, update AND delete, not create only: set({merge:true})
-    // on a nonexistent doc is a create in different clothing, and the uniform
-    // per-verb deny needs no key-presence reasoning. ONE function, called by
-    // all three branches, so the verbs never drift apart (the structural-fix
-    // law). RE2 full-match semantics => 'rv2_.*' is a prefix test.
-    // Denies nothing legitimate: legacy client ids are `{uid}_{testId}_{nonce}`
-    // and a Firebase uid is 28-char alphanumeric (no underscore), so no
-    // legitimate id can enter the prefix (matrix RV7 + A21 pin the ALLOW
-    // direction), and the retrospective corpus scan found 0 rv2_-named docs
-    // in 41,688 attempts + 16,732 grading_jobs (audit/deepfix/task3/
-    // live_baseline/rv2-docid-precondition-receipt.json). Engine writes are
-    // Admin SDK and unaffected; READ is untouched (the client renders its own
-    // engine attempt). The live callables carry the same reservation at their
-    // mouths (G2/G3, functions/index.js assertNotEngineReservedDocId) —
-    // rules alone do not close the Admin-SDK write path (NTF 22 correction).
-    function isReservedEngineDocId(attemptId) {
-      return attemptId.matches('rv2_.*');
     }
 
     // ADMIN: Collection group rule for class_progress (enables admin dashboard).
@@ -342,10 +303,6 @@ service cloud.firestore {
         // DEEPFIX2 [CLAUSE 5(a)]: the force-pass/engine stamp surface is
         // server-only — a client-created attempt must not carry it.
         && !request.resource.data.keys().hasAny(serverOnlyAttemptKeys())
-        // DEEPFIX2 [NTF 19+22 · G1]: …nor may it be NAMED into the engine's
-        // reserved `rv2_` id space (isReservedEngineDocId above — the
-        // permanent-denial squat; matrix cases RV1-RV14 + GJ16).
-        && !isReservedEngineDocId(attemptId)
         // …and neither may it claim the manual-anchor docId, which is a SYNONYM
         // for that field: scripts/cs/deepfix-census{,2}.mjs and the migration
         // WRITER deepfix-migrate-list-progress.mjs:198 all treat a `_manual` id
@@ -387,10 +344,6 @@ service cloud.firestore {
         //     Guarding only the one key a reviewer happened to name is the defect
         //     being repaired; and since the create guard denies a client all four,
         //     the presence of ANY of them already proves server authorship.
-        //     [NTF-20: both legs established — see the citation on
-        //     isEngineStampedAttempt(): the create guard is live in production
-        //     (2026-08-03 deploy) and the full-corpus provenance scan found
-        //     zero historical carriers of any of the four keys.]
         //   * NARROWER than the full marker set, on purpose. manualOverride and
         //     teacherEdited* DO occur on historical documents — both are counted
         //     over the real cohort at scripts/deepfix2/b1-replay-lib.mjs:63-70 —
@@ -412,11 +365,6 @@ service cloud.firestore {
         //     That is the fail-closed direction, which is what makes the guard safe
         //     to carry before the engine ships.
         && !isEngineStampedAttempt()
-        // DEEPFIX2 [NTF 19+22 · G1]: rv2_-NAMED documents are engine-owned —
-        // no client update of ANY shape. Hoisted above the student|teacher OR
-        // for the same sibling-coverage reason as the marked-document guard
-        // above (matrix RV3/RV12/RV13).
-        && !isReservedEngineDocId(attemptId)
         && (
         (resource.data.studentId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers'])) ||
@@ -445,10 +393,6 @@ service cloud.firestore {
       // LOG-ONLY under LIST_SCOPED_RECON.
       allow delete: if isAuthenticated()
         && resource.data.studentId == request.auth.uid
-        // DEEPFIX2 [NTF 19+22 · G1]: rv2_-named documents are engine-owned —
-        // delete stays denied by NAME even for the squatter/creator, so
-        // delete-then-recreate dies at BOTH halves (matrix RV4/RV9).
-        && !isReservedEngineDocId(attemptId)
         && !resource.data.keys().hasAny(serverOnlyAttemptKeys());
     }
 
