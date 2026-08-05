@@ -1,0 +1,157 @@
+{
+ "kind": "ai-metering-mutants",
+ "pass": true,
+ "total": 13,
+ "killed": 13,
+ "mutants": [
+  {
+   "id": "M1",
+   "what": "flip the live/retest branch (live becomes cappable)",
+   "anchor": "if (isRetest !== true) return {allowed: true, scope: null, reason: \"live\"};",
+   "clean": true,
+   "mutated": false,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M2",
+   "what": "drop the fail-CLOSED refusal (an unreadable meter lets a RETEST through uncapped)",
+   "anchor": "if (meterStatus !== \"ok\") {\n    return {allowed: false, scope: \"unavailable\", reason: \"meter unreadable\"};\n  }",
+   "clean": [
+    false,
+    "unavailable"
+   ],
+   "mutated": [
+    true,
+    null
+   ],
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M3",
+   "what": "invert the per-student boundary comparison (>= becomes >)",
+   "anchor": "if (studentCount >= limits.perStudentDailyLimit) {",
+   "clean": false,
+   "mutated": true,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M4",
+   "what": "invert the global boundary comparison (>= becomes >)",
+   "anchor": "if (globalCount >= limits.globalDailyLimit) {",
+   "clean": false,
+   "mutated": true,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M5",
+   "what": "drop the window-rollover reset (yesterday's count survives the day boundary)",
+   "anchor": "if (data.windowStart !== windowKey) return 0;",
+   "clean": 0,
+   "mutated": 40,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M6",
+   "what": "drop the config DEFAULT fallback (a malformed limit becomes unlimited)",
+   "anchor": "const pick = (v, dflt) => (Number.isInteger(v) && v >= 1 ? v : dflt);",
+   "clean": 40,
+   "mutated": 0,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M7",
+   "what": "drop the strict-true coercion (a truthy value makes a LIVE test cappable)",
+   "anchor": "const isRetest = meter?.isRetest === true;",
+   "clean": "grade",
+   "mutated": "capped",
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M8",
+   "what": "drop the capped short-circuit on the fresh-claim branch (a refused retest still claims + counts)",
+   "anchor": "    const freshMeter = await meterGrade();\n    if (!freshMeter.allowed) return {action: \"capped\", scope: freshMeter.scope};",
+   "clean": [
+    "capped",
+    0
+   ],
+   "mutated": [
+    "grade",
+    3
+   ],
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M9",
+   "what": "count on the cached-return path (the idempotency guard)",
+   "anchor": "      if (job.status === \"graded\" && job.payload) {\n        return {action: \"return_cached\", payload: job.payload};\n      }",
+   "clean": [
+    "return_cached",
+    0
+   ],
+   "mutated": [
+    "return_cached",
+    1
+   ],
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M10",
+   "what": "drop the capped short-circuit on the TAKEOVER branch (the sibling seam)",
+   "anchor": "      const takeoverMeter = await meterGrade();\n      if (!takeoverMeter.allowed) return {action: \"capped\", scope: takeoverMeter.scope};",
+   "clean": [
+    "capped",
+    0
+   ],
+   "mutated": [
+    "grade",
+    3
+   ],
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M11",
+   "what": "drop the fail-OPEN default (make the live clause conditional on a readable meter)",
+   "anchor": "if (isRetest !== true) return {allowed: true, scope: null, reason: \"live\"};",
+   "clean": true,
+   "mutated": false,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M12",
+   "what": "put the GLOBAL write back inside the LIVE claim txn (the measured contention regression)",
+   "anchor": "      if (retest) {\n        txn.set(globalRef,",
+   "clean": false,
+   "mutated": true,
+   "killed": true,
+   "error": null
+  },
+  {
+   "id": "M13",
+   "what": "make the LIVE leg READ the global doc inside the txn (re-widens the txn read set)",
+   "anchor": "    if (retest) {\n      // ENFORCEMENT LEG",
+   "clean": false,
+   "mutated": true,
+   "killed": true,
+   "error": null
+  }
+ ],
+ "sourceShas": {
+  "functions/aiMetering.js": "18c9625542f8765e",
+  "functions/index.js": "46ed81afc3c28b4c",
+  "functions/reviewV2/typedGrading.js": "46bc6aac44717d9d",
+  "functions/reviewV2/callables.js": "57ecf7243af6d666",
+  "scripts/deepfix2/ai-metering-fixtures.mjs": "395bd75cb59fcb5f"
+ },
+ "at": "2026-08-05T07:02:09.015Z"
+}

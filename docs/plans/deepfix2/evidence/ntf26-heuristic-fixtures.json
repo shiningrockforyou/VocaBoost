@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-05T00:27:25.206Z",
+  "generatedAt": "2026-08-05T07:21:38.202Z",
   "suite": "ntf26-heuristic-fixtures",
   "underTest": "functions/index.js exports._uniformFiller.findUniformFillerGroups",
   "threshold": 8,
   "reasoning": "You gave the same answer for many different words, so it does not define this one. Write what each word means.",
   "sourceShas": {
-    "functions/index.js": "6b650d2fdc71a8f2",
+    "functions/index.js": "46ed81afc3c28b4c",
     "scripts/deepfix2/ntf26-heuristic-fixtures.mjs": "3f0d090761970730"
   },
   "cases": [

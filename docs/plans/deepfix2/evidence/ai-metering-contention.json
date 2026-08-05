@@ -1,0 +1,159 @@
+{
+  "kind": "ai-metering-contention",
+  "pass": true,
+  "preFoldCommit": "094bbbb",
+  "bursts": [
+    20,
+    50,
+    80
+  ],
+  "baselineClean": true,
+  "regressionWasReal": true,
+  "shippedClean": true,
+  "withinOrder": true,
+  "shippedExact": true,
+  "coldClaimsClean": true,
+  "rows": [
+    {
+      "variant": "BASELINE",
+      "n": 20,
+      "coldWindow": false,
+      "granted": 20,
+      "rejected": 0,
+      "jobsWritten": 20,
+      "globalCount": 0,
+      "ms": 154,
+      "firstRejection": null
+    },
+    {
+      "variant": "GLOBAL_IN_TXN",
+      "n": 20,
+      "coldWindow": false,
+      "granted": 20,
+      "rejected": 0,
+      "jobsWritten": 20,
+      "globalCount": 20,
+      "ms": 12750,
+      "firstRejection": null
+    },
+    {
+      "variant": "SHIPPED",
+      "n": 20,
+      "coldWindow": false,
+      "granted": 20,
+      "rejected": 0,
+      "jobsWritten": 20,
+      "globalCount": 20,
+      "ms": 84,
+      "firstRejection": null
+    },
+    {
+      "variant": "BASELINE",
+      "n": 50,
+      "coldWindow": false,
+      "granted": 50,
+      "rejected": 0,
+      "jobsWritten": 50,
+      "globalCount": 0,
+      "ms": 103,
+      "firstRejection": null
+    },
+    {
+      "variant": "GLOBAL_IN_TXN",
+      "n": 50,
+      "coldWindow": false,
+      "granted": 6,
+      "rejected": 44,
+      "jobsWritten": 6,
+      "globalCount": 6,
+      "ms": 20239,
+      "firstRejection": "10 ABORTED: Transaction lock timeout."
+    },
+    {
+      "variant": "SHIPPED",
+      "n": 50,
+      "coldWindow": false,
+      "granted": 50,
+      "rejected": 0,
+      "jobsWritten": 50,
+      "globalCount": 50,
+      "ms": 138,
+      "firstRejection": null
+    },
+    {
+      "variant": "BASELINE",
+      "n": 80,
+      "coldWindow": false,
+      "granted": 80,
+      "rejected": 0,
+      "jobsWritten": 80,
+      "globalCount": 0,
+      "ms": 113,
+      "firstRejection": null
+    },
+    {
+      "variant": "GLOBAL_IN_TXN",
+      "n": 80,
+      "coldWindow": false,
+      "granted": 20,
+      "rejected": 60,
+      "jobsWritten": 20,
+      "globalCount": 20,
+      "ms": 20476,
+      "firstRejection": "10 ABORTED: Transaction lock timeout."
+    },
+    {
+      "variant": "SHIPPED",
+      "n": 80,
+      "coldWindow": false,
+      "granted": 80,
+      "rejected": 0,
+      "jobsWritten": 80,
+      "globalCount": 80,
+      "ms": 136,
+      "firstRejection": null
+    }
+  ],
+  "coldWindowRows": [
+    {
+      "variant": "SHIPPED",
+      "n": 20,
+      "coldWindow": true,
+      "granted": 20,
+      "rejected": 0,
+      "jobsWritten": 20,
+      "globalCount": 20,
+      "ms": 51,
+      "firstRejection": null
+    },
+    {
+      "variant": "SHIPPED",
+      "n": 50,
+      "coldWindow": true,
+      "granted": 50,
+      "rejected": 0,
+      "jobsWritten": 50,
+      "globalCount": 50,
+      "ms": 100,
+      "firstRejection": null
+    },
+    {
+      "variant": "SHIPPED",
+      "n": 80,
+      "coldWindow": true,
+      "granted": 80,
+      "rejected": 0,
+      "jobsWritten": 80,
+      "globalCount": 80,
+      "ms": 132,
+      "firstRejection": null
+    }
+  ],
+  "note": "Firestore EMULATOR locks pessimistically; production retries optimistically. These are RELATIVE A/B numbers on one engine, not production thresholds.",
+  "sourceShas": {
+    "functions/aiMetering.js": "18c9625542f8765e",
+    "functions/index.js": "46ed81afc3c28b4c",
+    "ai-metering-contention.mjs": "1417715fbfff50cc"
+  },
+  "at": "2026-08-05T06:55:07.910Z"
+}

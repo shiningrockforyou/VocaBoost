@@ -29,6 +29,13 @@ const db = admin.firestore();
 // firestore handle either way).
 const foundation = require("./foundation");
 
+// [ai-metering-build] THE AI-GRADING METER + the re-test-only spend cap (15_ §5/§6,
+// R2-20). Pure clauses + the transactional counter read/commit consumed by
+// `claimOrRecoverGradingJob` below. Requires nothing at load time (its one
+// dependency, the KST day helper, is required lazily), so this cannot reorder
+// the reviewV2 module graph at cold start.
+const aiMetering = require("./aiMetering");
+
 // Build provenance (deploy-provenance fix — see NEED_TO_FIX.md). buildInfo.json is stamped
 // at deploy time by scripts/stamp-build.mjs (firebase.json predeploy). Logged on every cold
 // start and exposed via the `version` callable so we can confirm WHICH commit + flags are
@@ -1045,15 +1052,56 @@ async function sanitizeStoredRows(listId, rows, opts) {
  *   {action:'return_cached', payload}  — a prior grade for this exact attempt is cached → reuse it
  *   {action:'in_progress'}             — another live (unexpired) worker is grading → caller retries
  *   {action:'grade', leaseId}          — caller owns the lease; proceed to grade + persist
+ *   {action:'capped', scope}           — [ai-metering-build] the RE-TEST spend cap declined this
+ *                                        call. ZERO writes: no lease, no counter. UNREACHABLE unless
+ *                                        the caller explicitly declared this a retest (see below).
  * Crash-safe: a `claimed` job whose lease expired is taken over (re-graded). `graded`
  * is a durable cache. Ownership-checked (job.uid === uid).
+ *
+ * ---------------------------------------------------------------------------
+ * METERING [15_ §5/§6 · R2-20 · ai-metering-build]. This transaction is the
+ * contract's counting point, so the per-student + global counters increment
+ * HERE, in the same txn that claims the job, and the job gains `aiCallCount`.
+ *
+ * WHICH BRANCHES COUNT — only the ones that actually invoke the grader:
+ *   fresh claim          → grader RUNS       ⇒ COUNTED   (aiCallCount 1)
+ *   expired-lease takeover → grader RUNS AGAIN ⇒ COUNTED (aiCallCount +1 — it is
+ *                          a genuine second AI call, not a replay)
+ *   return_cached        → grader NOT run    ⇒ NOT counted (THE idempotency
+ *                          case: a retried/recovered claim of an already-graded
+ *                          job must never double-count)
+ *   in_progress          → grader NOT run    ⇒ NOT counted
+ *   foreign owner        → throws before any read/write ⇒ NOT counted
+ *
+ * WHAT MAY BE REFUSED — the optional re-test path, and nothing else. `meter` is
+ * an OPTIONAL third argument and `isRetest` is read with STRICT `=== true`, so
+ * an absent argument, undefined, null, "true" or 1 all read as LIVE. The legacy
+ * live callable below passes nothing, which makes a live typed test uncappable
+ * BY CONSTRUCTION — no counter value and no config state can refuse it. That
+ * asymmetry is the whole point: cost control may degrade an optional feature,
+ * it may not break a student's required work.
+ *
+ * Known and deliberate: the claim precedes the blank/self-ref/uniform-filler
+ * filter, so a submission whose every row is filtered counts one metered call
+ * while sending zero Anthropic requests. The contract's counting point is the
+ * claim txn; the error direction is conservative (it can only make the OPTIONAL
+ * path decline sooner) and never touches live traffic.
  */
-async function claimOrRecoverGradingJob(uid, jobKey) {
+async function claimOrRecoverGradingJob(uid, jobKey, meter) {
   const ref = db.collection("grading_jobs").doc(jobKey);
   const leaseId = crypto.randomUUID();
   const now = Date.now();
-  return db.runTransaction(async (tx) => {
+  // ABSENCE ⇒ LIVE. The safe default, asserted here rather than anywhere the
+  // value is consumed, so there is exactly one place to audit it.
+  const isRetest = meter?.isRetest === true;
+  const claimed = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
+    // ONE metering point, shared by the two grading branches. Invoked BEFORE
+    // either branch's first write (reads-before-writes), and never on
+    // return_cached / in_progress / foreign-owner.
+    const meterGrade = () => aiMetering.meterGradingClaimInTxn(db, tx, {
+      uid, isRetest, config: meter?.config ?? null, nowMs: now,
+    });
     if (snap.exists) {
       const job = snap.data();
       if (job.uid && job.uid !== uid) {
@@ -1066,25 +1114,55 @@ async function claimOrRecoverGradingJob(uid, jobKey) {
       if (job.status === "claimed" && (job.leaseExpiresAt ?? 0) > now) {
         return {action: "in_progress"};
       }
+      const takeoverMeter = await meterGrade();
+      if (!takeoverMeter.allowed) return {action: "capped", scope: takeoverMeter.scope};
       tx.set(ref, {
         uid, status: "claimed", leaseId,
         leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
         attemptCount: (job.attemptCount ?? 0) + 1,
+        aiCallCount: (job.aiCallCount ?? 0) + 1,
         version: GRADE_JOB_VERSION,
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
-      return {action: "grade", leaseId};
+      takeoverMeter.commit(tx);
+      return {action: "grade", leaseId, deferGlobalMeter: takeoverMeter.deferredGlobal};
     }
+    const freshMeter = await meterGrade();
+    if (!freshMeter.allowed) return {action: "capped", scope: freshMeter.scope};
     tx.set(ref, {
       uid, status: "claimed", leaseId,
       leaseExpiresAt: now + GRADE_JOB_LEASE_MS,
       attemptCount: 1,
+      aiCallCount: 1,
       version: GRADE_JOB_VERSION,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     });
-    return {action: "grade", leaseId};
+    freshMeter.commit(tx);
+    return {action: "grade", leaseId, deferGlobalMeter: freshMeter.deferredGlobal};
   });
+  // ★ THE GLOBAL COUNTER LEAVES THE LIVE TRANSACTION HERE [contention fix,
+  // 2026-08-05, measured]. Reading/writing the single `ai_metering/_global`
+  // document inside every live claim serialized all 947 students' typed claims
+  // on one doc — an A/B on the emulator put 80 concurrent live claims at 2/80
+  // granted in 21s (78 lock-timeout aborts) against 80/80 in 0.116s without the
+  // meter. The cap could never REFUSE a live test, but that bottleneck could
+  // make a live submit FAIL with an infra error it used to survive.
+  // So: the claim commits FIRST, and only then is the global counter bumped —
+  // non-transactionally, fire-and-forget, error swallowed and logged. Nothing a
+  // student waits on, no lock, no read set. A lost increment under-counts a
+  // BUDGET GUARD (never inflates it, never refuses required work).
+  // The RETEST leg is untouched: its global write stays inside the txn, because
+  // that is where enforcement must be exact and rerun volume is low.
+  const deferred = claimed.deferGlobalMeter ?? null;
+  delete claimed.deferGlobalMeter; // never leaks into the caller's contract
+  if (deferred) {
+    aiMetering.scheduleGlobalMeterIncrement(db, FieldValue, deferred, (err) => {
+      logger.warn("ai_metering global increment failed (grade unaffected)",
+          {uid, jobKey, error: err.message});
+    });
+  }
+  return claimed;
 }
 
 /**

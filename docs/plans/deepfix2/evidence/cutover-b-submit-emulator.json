@@ -8,10 +8,10 @@
     "src/services/reviewV2Submit.js": "0b667c94bb2e7758",
     "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
     "src/services/reviewV2Compose.js": "32696b09fdc7977b",
-    "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc",
-    "functions/reviewV2/typedGrading.js": "21b5be28758c8893",
+    "functions/reviewV2/callables.js": "57ecf7243af6d666",
+    "functions/reviewV2/typedGrading.js": "46bc6aac44717d9d",
     "functions/reviewV2/composer.js": "5c4d6bfef0b6fb90",
     "scripts/deepfix2/cutover-b-submit-emulator.mjs": "f63f039d14f1f682"
   },
-  "at": "2026-08-04T18:08:45.713Z"
+  "at": "2026-08-05T07:22:40.589Z"
 }

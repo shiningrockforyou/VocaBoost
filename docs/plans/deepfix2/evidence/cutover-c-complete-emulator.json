@@ -9,10 +9,10 @@
     "src/services/reviewV2Submit.js": "0b667c94bb2e7758",
     "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
     "src/services/reviewV2Compose.js": "32696b09fdc7977b",
-    "functions/reviewV2/callables.js": "3dfe93fca0cb2cbc",
+    "functions/reviewV2/callables.js": "57ecf7243af6d666",
     "functions/reviewV2/completion.js": "7c3a38476c869c0c",
     "functions/reviewV2/composer.js": "5c4d6bfef0b6fb90",
     "scripts/deepfix2/cutover-c-complete-emulator.mjs": "f2958fe02e8a1bec"
   },
-  "at": "2026-08-04T18:09:10.240Z"
+  "at": "2026-08-05T07:23:04.956Z"
 }

@@ -74,6 +74,19 @@
  *  - METERING ONCE [§5.4]: the cached-return path calls NO grader. The
  *    caller additionally skips this module entirely when the attempt already
  *    exists (replay ⇒ zero claim, zero grade, zero writes).
+ *    [D1 TRUTH REPAIR — ai-metering-build. This bullet described GRADER CALLS
+ *    at a time when no counter existed, so "metering once" was a statement
+ *    about spend, not about a meter.] A meter exists now: the per-student and
+ *    global counters (`ai_metering/*`) increment inside the grading-job CLAIM
+ *    transaction (functions/index.js `claimOrRecoverGradingJob`, the contract's
+ *    counting point), and ONLY on the branches that actually invoke the
+ *    grader. So the cached-return path increments NO counter either, and
+ *    neither does an in-progress claim or the caller's replay short-circuit.
+ *  - THE SPEND CAP IS RE-TEST-ONLY [ai-metering-build]: this module threads an
+ *    explicit `isRetest` argument from the caller that knows the presentation's
+ *    server-written `requestFingerprint.kind`. Absence reads as LIVE, so a
+ *    live/required typed test can never be refused by the meter; only the
+ *    optional rerun leg can come back `practice_limit_reached`.
  *  - EVERY REFUSAL IS DATA [C5/L-3], and the refusal SPLITS on whether the
  *    condition resolves itself [rv2-refusal-status fold — D1 TRUTH REPAIR:
  *    this bullet used to call `grading_in_progress` "the one retryable typed
@@ -97,6 +110,9 @@ const crypto = require("crypto");
 // ids — the attempt id and this module's job key must never drift apart.
 // composer.js requires only crypto/firestore/config.js, so there is no cycle.
 const {engineDocId} = require("./composer");
+// [ai-metering-build A3] the meter's config reader + the refusal shape. Pure
+// module; no cycle (it requires the KST day helper lazily and nothing else).
+const aiMetering = require("../aiMetering");
 
 /** gradeTypedTest refuses > 100 answers per request — chunk to match. */
 const GRADE_BATCH_MAX = 100;
@@ -267,13 +283,17 @@ function buildTypedRows({presentedWordIds, submitted, wordMetaById, results}) {
  * @param {FirebaseFirestore.Firestore} db
  * @param {{uid: string, classId: string, listId: string,
  *   presentationId: string, presentedWordIds: string[],
- *   submitted: Map<string,string>, wordMetaById: Map<string,object>}} args
+ *   submitted: Map<string,string>, wordMetaById: Map<string,object>,
+ *   isRetest?: boolean}} args `isRetest` is THE spend-cap discriminator
+ *   [ai-metering-build]: the caller passes the presentation's server-written
+ *   `requestFingerprint.kind === "rerun"`. Read with strict `=== true`, so an
+ *   absent/undefined/malformed value is LIVE and can never be refused.
  * @returns {Promise<{refusal: object}|{rows: Array<object>, jobKey: string,
  *   cached: boolean, graderCalls: number}>} `refusal` is a typed DATA status
  *   with ZERO writes performed by this module beyond the job lease itself.
  */
 async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
-  presentedWordIds, submitted, wordMetaById}) {
+  presentedWordIds, submitted, wordMetaById, isRetest}) {
   // [rv2-docid-collision A1] `grading_jobs` is GLOBAL and the claim is fenced
   // on the job's `uid` FIELD (index.js:936-938) — under the unscoped key every
   // student after the first in a class+list+day+epoch hit `permission-denied`
@@ -283,7 +303,24 @@ async function resolveTypedGrade(db, {uid, classId, listId, presentationId,
   // cached-payload seams below test against the same identity.
   const sheetKey = answerSheetKey({presentedWordIds, submitted});
   const jobs = gradingJobs();
-  const claim = await jobs.claimOrRecoverGradingJob(uid, jobKey);
+  // [ai-metering-build A3] THE DISCRIMINATOR, strict. Only a caller that
+  // explicitly declares a rerun can ever be refused by the spend cap.
+  const retest = isRetest === true;
+  // The limits are read OUTSIDE the claim transaction on purpose: a config doc
+  // inside that txn's read set would serialize every grading claim against a
+  // config edit. And the LIVE path is never refused, so it needs no limits at
+  // all and does not pay for this read.
+  const meterConfig = retest ? await aiMetering.readMeteringConfig(db) : null;
+  const claim = await jobs.claimOrRecoverGradingJob(uid, jobKey,
+      {isRetest: retest, config: meterConfig});
+
+  // THE SPEND CAP DECLINED THIS RE-TEST [ai-metering-build A5]: DATA, zero
+  // writes — no lease was taken and no counter moved. Non-transient: polling
+  // cannot clear it (the window is a KST day) and recomposing cannot either (a
+  // new presentation is a new job key, still capped), so the client must render
+  // it and stop. Unreachable on a live/required test by construction (`retest`
+  // is false there, and the claim's own guard is strict `=== true` too).
+  if (claim.action === "capped") return {refusal: aiMetering.practiceLimitRefusal(claim.scope)};
 
   // A live lease held by a concurrent submit ⇒ retryable DATA, ZERO writes
   // [§5.5]. The client polls the SAME submit; it never recomposes.

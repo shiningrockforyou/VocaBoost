@@ -8,6 +8,30 @@ Format per item: **what's broken → why it happens (root cause) → impact → 
 
 ---
 
+## 29. AI-meter: a KST-midnight straggler can roll `ai_metering/_global` BACKWARD (zeroing today's global count) · backend/metering · **LOW — safe direction (under-count), sub-second exposure once per day, optional-path budget guard only** (found 2026-08-05 by the ai-metering delta re-audit, measured)
+
+**What.** The deferred global-meter writer carries the window key computed at CLAIM time. A write that
+lands after the doc has already rolled to the new KST day arrives holding YESTERDAY's key, takes the
+slow (rollover) path, computes `counterAt(today-doc, yesterday) = 0`, and writes
+`{count: 1, windowStart: <yesterday>}`. **Measured by the auditor: stored `{count: 500, today}` →
+today-count 0.** Confirmed NOT inflating (`INFLATED? false`).
+
+**Impact.** The GLOBAL spend guard's accumulated count for the day can reset to ~1 once per day, in a
+sub-second window at KST midnight. Direction is UNDER-count ⇒ the cap trips LATER ⇒ marginally more
+spend; it can never refuse anything early and never touches the per-student counter, the live path, or
+required work (the live path's global write is fire-and-forget and outside the claim txn by design).
+
+**Fix direction (one line, deliberately NOT taken this round — proportionality: two audit rounds already,
+LOW + safe-direction).** Either derive the window key AT WRITE TIME inside the deferred writer, or have
+the slow path REFUSE a `windowKey` older than the stored `windowStart` (leave the doc alone). Bundle
+with the next `functions/` fold rather than reopening this one.
+
+**Related (same audit, INFO):** a lost commit RESPONSE that gRPC retries could double-apply a
+`FieldValue.increment(1)` — generic to non-idempotent increments, bounded, direction = a retest refused
+marginally early. Not worth a design change for a budget guard.
+
+---
+
 ## 28. The FROZEN AI-metering contract (15_ §6) has ZERO implementation — retests cannot be "AI-metered" as their card requires · backend/engine · **BLOCKS DF2-51's typed-retest leg; spend-guard gap at the flip** (found 2026-08-04, df2-51 design draft F1)
 
 **What.** `02_TASK_LIST.md:170` requires DF2-51 retests to be AI-metered; R2-20 (`11_:63`) made metering a

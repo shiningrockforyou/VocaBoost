@@ -72,6 +72,7 @@ const RESET = fnRequire("/app/functions/reviewV2/reset.js");
 const MON = fnRequire("/app/functions/reviewV2/monitoring.js");
 const CALL = fnRequire("/app/functions/reviewV2/callables.js");
 const TG = fnRequire("/app/functions/reviewV2/typedGrading.js");
+const AIM = fnRequire("/app/functions/aiMetering.js");
 const foundation = fnRequire("/app/functions/foundation.js");
 
 const wrap = (c) => fft.wrap(c);
@@ -1442,10 +1443,62 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
       ["completed", "standard", "attempt", 3, 20]);
 
   // ---- 9. METERING SURFACE ------------------------------------------------
-  // There is NO live ai_metering writer in functions/ (15_ H6 schedules it for
-  // the claim txn; grep: zero writers today), so "charged once" is asserted as
-  // (a) the grader-call counts above and (b) the engine writing no metering doc.
-  check("the typed leg writes NO ai_metering doc", (await db.collection("ai_metering").get()).size, 0);
+  // [SUPERSEDED 2026-08-05 — ai-metering-build fold, David's "build the spending
+  // cap first" ruling.] This block used to assert the ABSENCE of a meter:
+  //
+  //     // There is NO live ai_metering writer in functions/ (15_ H6 schedules it for
+  //     // the claim txn; grep: zero writers today), so "charged once" is asserted as
+  //     // (a) the grader-call counts above and (b) the engine writing no metering doc.
+  //     check("the typed leg writes NO ai_metering doc",
+  //           (await db.collection("ai_metering").get()).size, 0);
+  //
+  // Its premise was TRUE when written and is now DELIBERATELY FALSE: the meter
+  // named by 15_ H6 §6 / R2-20 was built (functions/aiMetering.js +
+  // claimOrRecoverGradingJob), so the typed leg now writes exactly two metering
+  // documents. Replacing the line is a CONTRACT UPDATE, not fixture-massaging —
+  // the assertions below are STRICTLY STRONGER than the one they replace.
+  //
+  // In particular the "CHARGED ONCE" property the old line protected only
+  // INDIRECTLY (via "no meter exists to disagree with the grader counts") is now
+  // asserted DIRECTLY and independently: the meter's own count, read back out of
+  // Firestore, must equal this case's grader-call tally. A double-charge, a
+  // missed charge, or a charge on a cached/in-progress/replayed claim all break
+  // it — none of which the old line could have caught.
+  // [contention fix 2026-08-05] The GLOBAL counter is written AFTER the claim
+  // transaction commits, fire-and-forget, so that 947 live typed claims do not
+  // serialize on one document. The asserted VALUES below are unchanged — this
+  // awaits the write the request path deliberately does not await, rather than
+  // loosening what is asserted about it.
+  await AIM.settleGlobalMeterWrites();
+  const meterSnap = await db.collection("ai_metering").get();
+  const meterById = Object.fromEntries(meterSnap.docs.map((d) => [d.id, d.data()]));
+  check("the typed leg writes EXACTLY the two contract meters [15_ H6 §6]",
+      meterSnap.docs.map((d) => d.id).sort(), ["_global", "uT"]);
+  check("CHARGED ONCE, asserted directly: per-student count === this case's grader calls",
+      meterById.uT?.count, graderCalls);
+  check("CHARGED ONCE, asserted directly: global count === this case's grader calls",
+      meterById._global?.count, graderCalls);
+  // The window is the KST calendar day — the SAME day law as streak_credits
+  // (completion.js kstDateString), never a second one. Asserted twice: against
+  // the document's own write clock (pins the DERIVATION, race-free) and against
+  // the run's clock (pins that this run landed in today's window). A lap that
+  // spanned KST midnight would fail BOTH this and the counts above; the answer
+  // to that is a re-run, never a loosened assertion.
+  for (const id of ["uT", "_global"]) {
+    check(`${id}: windowStart is kstDateString(its own updatedAtMs)`,
+        meterById[id]?.windowStart, DONE.kstDateString(meterById[id]?.updatedAtMs));
+    check(`${id}: windowStart is kstDateString(the run's clock)`,
+        meterById[id]?.windowStart, DONE.kstDateString(Date.now()));
+  }
+  // The per-job half of the contract (15_ H6 §5): aiCallCount on the job itself,
+  // pinned on BOTH legs. pid2 (§3) was claimed once and its retry hit the CACHE,
+  // so it stays 1 — a cached return must never bump it. pid5 (§7) was claimed,
+  // superseded, then TAKEN OVER and re-graded, which is a genuine second AI call,
+  // so it is 2. (pid1's job is deliberately deleted in §2 and is not readable.)
+  check("per-job aiCallCount: one claim + a cached retry stays 1 [15_ H6 §5]",
+      (await jobDoc(pid2)).data()?.aiCallCount, 1);
+  check("per-job aiCallCount: an expired-lease TAKEOVER is a second real call ⇒ 2",
+      (await jobDoc(pid5)).data()?.aiCallCount, 2);
   TG._typedSeam.grade = null;
   TG._typedSeam.afterPersist = null;
 }

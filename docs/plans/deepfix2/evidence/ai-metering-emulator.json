@@ -1,0 +1,15 @@
+{
+  "kind": "ai-metering-emulator",
+  "pass": true,
+  "total": 58,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "functions/aiMetering.js": "18c9625542f8765e",
+    "functions/index.js": "46ed81afc3c28b4c",
+    "functions/reviewV2/typedGrading.js": "46bc6aac44717d9d",
+    "functions/reviewV2/callables.js": "57ecf7243af6d666",
+    "ai-metering-emulator.mjs": "fbebe1dc7520ab88"
+  },
+  "at": "2026-08-05T06:53:13.693Z"
+}

@@ -571,6 +571,14 @@ const reviewV2SubmitAttempt = onCall({enforceAppCheck: false, secrets: [anthropi
         presentationId: d.presentationId,
         presentedWordIds: pres.presentedWordIds,
         submitted, wordMetaById,
+        // [ai-metering-build A4] THE SPEND-CAP DISCRIMINATOR, supplied HERE
+        // because this is the only layer that knows the session shape. It is
+        // the SERVER-authored fingerprint (presentations.js writes `kind` from
+        // its own `mode`; a client cannot set it), read from the same pre-txn
+        // presentation snapshot the typed grade already runs against. Strict
+        // equality: absent, malformed or "live" ⇒ false ⇒ LIVE ⇒ the meter can
+        // never refuse it. Only the optional restudy rerun is cappable.
+        isRetest: pres.requestFingerprint?.kind === "rerun",
       });
       if (graded.refusal) return graded.refusal; // DATA, zero attempt writes
       rows = graded.rows;
