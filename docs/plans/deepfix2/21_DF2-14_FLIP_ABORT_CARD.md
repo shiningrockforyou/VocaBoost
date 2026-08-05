@@ -102,11 +102,45 @@ on students who are NOT even at a review day yet — the earliest possible warni
 spine, before any wall-rate signal could accumulate. These are **fast** signals (day-1, hourly rolling).
 
 **The baseline this family needs — B0, and it must be captured BEFORE the flip:** a temporal regression
-signal is only as good as its pre-flip baseline. B0 = the same `ops_metrics` invariant rates over the
-final pre-flip week, frozen the day before the flip. **Without B0 there is no regression signal** — this
-is the one hard sequencing dependency: the `ops_metrics` writers (DF2-10 dark build) must be emitting
-R1–R7 in production, dark, for at least the baseline window before the ACTIVATION go. Carded as a
+signal is only as good as its pre-flip baseline. **Without B0 there is no regression signal** — a
 pre-flip gate, not a post-flip nicety.
+
+> ### ⚠ CORRECTED 2026-08-05 — the paragraph that stood here was FALSE, and its three scoping errors with it
+> **The retracted sentence, verbatim:** *"this is the one hard sequencing dependency: the `ops_metrics`
+> writers (DF2-10 dark build) must be emitting R1–R7 in production, dark, for at least the baseline
+> window before the ACTIVATION go."* Verified false on 2026-08-05, post-deploy: production `ops_metrics`
+> holds **0 documents**, and **no R1–R7 emitter exists anywhere in the tree** — the only emitters are
+> engine-internal S-series events (`composition_fallback`, `cursor_repaired`, `list_words_malformed`,
+> `priority_saturation_day`, `rerun_graduation`, `retest`, `quarantined_row_count`), and those fire only
+> when the engine runs, which is flag-gated. A "dark baseline" of engine-emitted signals is a
+> contradiction in terms, and R1–R7 are LEGACY-path surfaces the engine would never emit anyway.
+> (NEED_TO_FIX 30; derivability study at `evidence/b0-derivability-study.md` incl. its orchestrator
+> verification.)
+>
+> **B0 AS IT ACTUALLY STANDS.** No accumulation window is required: five invariants are DERIVABLE
+> retrospectively from 38–44 days of already-stored history (`attempts` · `system_logs` ·
+> `grading_jobs` · `users/{uid}/sessions`). Note the structural point — **no emitter built today could
+> produce a retrospective baseline either**, so deriving strictly dominates build-and-wait wherever
+> derivation is possible. B0 is produced by `scripts/deepfix2/b0-baseline.mjs` (read-only, explicit
+> window, documented formula, machine-readable receipt) — **never a hand-quoted rate**: a prior study's
+> figures failed to reproduce by 1.6 points on R2, larger than R2's own "drops at all" trigger, which
+> would have made this signal unfalsifiable.
+>
+> **THE B0 SET, and three scoping corrections to the table above:**
+> | invariant | status |
+> |---|---|
+> | **R2** new-word submit success | IN — derivable (`attempts` ÷ that + `system_logs.attempt_write_failed_client`, which carries `sessionType`) |
+> | **R3** attempt-write success | IN — derivable, and splits by `errCode`; `functions/permission-denied` is ~79% of observed failures, so the namespace-guard class is directly watchable |
+> | **R4a** dashboard/list-progress load | IN — derivable. **R4 SPLITS**: the browser-exception half (R4b) has **no producer at all** (no `window.onerror`, no `unhandledrejection`, no root ErrorBoundary) and is OUT |
+> | **R6** non-review-day completions | IN, but as a **VOLUME, not a rate** — the store holds successful completions only and no `completion_failed` type exists, so there is no denominator. Do not invent one |
+> | **R7-typed** grading availability | IN — from `system_logs.grading_attempt_failed` **and** `grading_jobs` (server-written, immune to the client-logger blind spot) |
+> | **R7-MCQ** | **STRUCK — vacuous.** MCQ is graded client-side (`index.js:635`); there is no grader to be unavailable |
+> | **R1** auth / session start · **R5** teacher gradebook load | **OUT of the automated set — David 2026-08-05: accepted as MANUALLY WATCHED** (GCP console + a spot-check at the flip). Neither has any producer in Firestore; R5 has none even GCP-side (direct browser reads) |
+>
+> **Known bias, carried deliberately:** client-side failure logs are un-awaited writes made by a client
+> that just failed a write, so derived rates are UPPER BOUNDS. Defensible only because the bias is
+> common-mode across B0 and post-flip (the flip does not touch that logger) and largely cancels in a
+> temporal comparison. State it wherever a B0 number is published.
 
 > **Playwright scope for the no-canary flip** (O1-5's remaining ask, PAIRED with this) is DF2-34's
 > validation-matrix half and belongs with the `playwright-suite` queue item, not here: the E2E matrix
