@@ -1,0 +1,14 @@
+{
+  "kind": "df2-51b-visit-pure",
+  "pass": true,
+  "total": 192,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/services/restudyVisit.js": "b67991631ba4fa8f",
+    "src/services/reviewV2Client.js": "2f5fe18693ba1a74",
+    "src/services/reviewV2Compose.js": "32696b09fdc7977b",
+    "scripts/deepfix2/df2-51b-visit-fixtures.mjs": "33a49186031fb692"
+  },
+  "at": "2026-08-05T11:50:48.643Z"
+}

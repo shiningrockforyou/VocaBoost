@@ -1,0 +1,62 @@
+{
+  "kind": "df2-51b-visit-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-DROP-RESETEPOCH",
+      "clause": "resetEpoch IS part of the visit scope — a reset must not resurrect a stale visit",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 5,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-UNLIMITED-REMINT",
+      "clause": "re-mint EXACTLY ONCE on a visit-invalidating refusal, then surrender — never loop",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 21,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-CACHE-SURVIVES-COMPLETION",
+      "clause": "noteVisitCompleted discards on completedVisit:true (a stale id must not survive a completed visit)",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 4,
+      "restoredOk": true
+    },
+    {
+      "id": "M4-ACCEPT-CORRUPT",
+      "clause": "a stale/corrupt/foreign stored envelope is discarded rather than used",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 8,
+      "restoredOk": true
+    },
+    {
+      "id": "M5-STORAGE-THROWS",
+      "clause": "a throwing storage degrades the feature, never throws into a caller",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 6,
+      "restoredOk": true
+    },
+    {
+      "id": "M6-PEEK-MINTS",
+      "clause": "peekVisitId NEVER mints — a browse render must stay side-effect-free",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 192,
+      "failures": 8,
+      "restoredOk": true
+    }
+  ],
+  "targetSha16": "b67991631ba4fa8f",
+  "at": "2026-08-05T11:50:51.207Z"
+}
