@@ -1,20 +1,20 @@
 {
   "probe": "b-emulator-lap",
   "version": 2,
-  "at": "2026-08-02T08:19:29.082Z",
-  "checks": 98,
+  "at": "2026-08-05T01:14:35.094Z",
+  "checks": 102,
   "failures": 0,
-  "gitHead": "15fe0f8173e60948c42c2b2d476eb14a03477d2d",
+  "gitHead": "35990772d4d97b19855c15a909bdb5bb11686cec",
   "node": "v24.15.0",
   "scriptSha16": {
     "b-baseline.mjs": "64ff0087faf34f7c",
-    "b1-replay-lib.mjs": "0c39276410cd6af5",
-    "b1-expected-labels.mjs": "94ea4138006af9f0",
+    "b1-replay-lib.mjs": "73606f7f3acdafa9",
+    "b1-expected-labels.mjs": "a8c37f76de79ea0b",
     "b3-backfill-writer.mjs": "088000b61c445c11",
     "b3-txn-core.mjs": "3a0fd64df62bc436",
-    "b4-verify.mjs": "77ee0c7abbbb5923",
-    "b-delta-cycle.mjs": "4b8a8b97759fe8e9",
-    "b-emulator-lap.mjs": "d298ec3aff5d0d37"
+    "b4-verify.mjs": "6ee473bd358b5c6b",
+    "b-delta-cycle.mjs": "03a187551ee8019d",
+    "b-emulator-lap.mjs": "968677ce10d6c965"
   },
   "isolatedRoot": "audit/deepfix/emulator-lap-root (DEEPFIX_AUDIT_ROOT; shared chain untouched)"
 }

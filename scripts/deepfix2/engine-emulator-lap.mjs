@@ -1451,6 +1451,77 @@ CASE("T — THE TYPED LEG: claim → grade → persist → write [DF2-12 · 18_ 
 }
 
 // ===========================================================================
+CASE("GR — THE rv2_ MOUTH GUARD, PINNED INSIDE THE DEPLOY-CERT LAP [NTF 19+22 · index.js:1170-1171]");
+{
+  // WHY THIS CASE EXISTS. CASE TX/TS/RC below were built BEFORE
+  // `assertNotEngineReservedDocId` existed, and reached the engine's OWN
+  // rv2_-prefixed grading-job key through the LIVE gradeTypedTest callable —
+  // a REAL pre-guard production path (index.js:1048-1051, then). The guard
+  // (functions/index.js:390-395, applied at BOTH mouths of gradeTypedTest at
+  // index.js:1170-1171) now refuses that call UNCONDITIONALLY, for every
+  // caller (owner, third party, teacher) alike, BEFORE any grading-job
+  // claim/read/write — which is exactly what turned those three fixtures'
+  // stale calls into an UNCAUGHT crash of this lap (they expected the call
+  // to SUCCEED). This case is the harness-repair brief's ONE new adversarial
+  // assertion: it catches the refusal instead of crashing on it, pinning the
+  // guard here in the deploy-certification lap itself — in addition to, not
+  // instead of, the dedicated namespace-reservation-emulator.mjs fixture
+  // (G3-DENY-GRADECTX/WRITECTX), which already covers this guard
+  // exhaustively but is a separate gate item that can be skipped or drift
+  // out of the certification lap unnoticed.
+  await wipeEmulator();
+  await seedConfig({rehearsalClassIds: ["cGR"], queueSize: 6, testSize: 4});
+  await seedClass("cGR", {students: ["uGR"], listId: "LGR", asg: {reviewTestType: "typed"}});
+  await seedWords("LGR", 20);
+  await seedProgress("uGR", "cGR", "LGR", {csd: 2, twi: 10});
+  const rGR = await call(CALL.reviewV2ComposeSession, "uGR",
+      {classId: "cGR", listId: "LGR", clientContractVersion: 1, logicalDay: 3, composeKey: "lap-key-gr01"});
+  check("GR setup: typed session composes", [rGR.status, rGR.presentation.testType], ["composed", "typed"]);
+  const pidGR = rGR.presentation.presentationId;
+  const idsGR = rGR.presentation.presentedWordIds;
+  const reservedKeyGR = rv2Id("uGR", pidGR); // the engine's OWN derivation — the exact reserved shape
+  const answersGR = idsGR.map((w) => ({wordId: w, word: `word${w.slice(1)}`,
+    correctDefinition: `def${w.slice(1)}`, studentResponse: `def${w.slice(1)}`}));
+
+  let threwG = null;
+  try {
+    await call(INDEX.gradeTypedTest, "uGR",
+        {answers: answersGR, gradeContext: {attemptDocId: reservedKeyGR, classId: "cGR", listId: "LGR"}});
+  } catch (e) { threwG = e; }
+  checkTrue("GR a CLIENT-shaped call naming its OWN rv2_ key via gradeContext is REFUSED, not accepted",
+      threwG !== null);
+  check("GR refused with the EXACT guard error (invalid-argument + the reserved-prefix message)",
+      [threwG?.code ?? null,
+        /gradeContext\.attemptDocId may not use the server-reserved rv2_ document-id prefix/
+            .test(String(threwG?.message ?? ""))],
+      ["invalid-argument", true]);
+  check("GR NO grading_job was claimed at the reserved key (refused before any read/claim/write)",
+      (await db.collection("grading_jobs").doc(reservedKeyGR).get()).exists, false);
+  check("GR NO attempt exists at the reserved key either",
+      (await db.collection("attempts").doc(reservedKeyGR).get()).exists, false);
+
+  // The sibling field [index.js:1170-1171 guards BOTH]: writeContext.attemptDocId
+  // must refuse identically — the guard was added for exactly this reason (a
+  // prior round guarded only the branch a reviewer named; the defect was the
+  // un-guarded sibling).
+  let threwW = null;
+  try {
+    await call(INDEX.gradeTypedTest, "uGR", {
+      answers: answersGR,
+      writeContext: {attemptDocId: reservedKeyGR, classId: "cGR", listId: "LGR",
+        testId: "t1", testType: "typed", totalQuestions: idsGR.length},
+    });
+  } catch (e) { threwW = e; }
+  check("GR the sibling field (writeContext.attemptDocId) is refused identically",
+      [threwW?.code ?? null,
+        /writeContext\.attemptDocId may not use the server-reserved rv2_ document-id prefix/
+            .test(String(threwW?.message ?? ""))],
+      ["invalid-argument", true]);
+  check("GR the sibling refusal ALSO writes nothing",
+      (await db.collection("attempts").doc(reservedKeyGR).get()).exists, false);
+}
+
+// ===========================================================================
 CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]");
 {
   await wipeEmulator();
@@ -1473,29 +1544,24 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
     }));
   };
 
-  // THE ATTACKER USES THE REAL ROUTE. `INDEX.gradeTypedTest` is wrapped exactly
-  // like every other callable here, and ONLY the Anthropic HTTP call is canned
-  // (it cannot run in the emulator). Everything the attack actually depends on
-  // is the LIVE production code 947 students hit today: the client-supplied
-  // `gradeContext.attemptDocId` becoming the job key (index.js:1048-1051),
-  // claimOrRecoverGradingJob's ownership + lease protocol, the entitlement
-  // gate, resolveAnswerDefinitions, and persistGradingJobResult writing the
-  // payload. The stub is installed on Messages.prototype — the object the
-  // `new Anthropic(...)` instance index.js constructs delegates to.
-  process.env.ANTHROPIC_API_KEY = "lap-stub-key-never-leaves-this-process";
-  const AnthropicCtor = fnRequire("@anthropic-ai/sdk").default;
-  const MessagesProto = Object.getPrototypeOf(new AnthropicCtor({apiKey: "x"}).messages);
-  const realMessagesCreate = MessagesProto.create;
-  let aiCalls = 0;
-  MessagesProto.create = async (body) => {
-    aiCalls++;
-    const m = String(body?.messages?.[0]?.content ?? "").match(/<words>\n([\s\S]*?)\n<\/words>/);
-    const words = m ? JSON.parse(m[1]) : [];
-    // THE POISON: every answer graded CORRECT, whatever the student wrote.
-    return {content: [{type: "text",
-      text: JSON.stringify(words.map((w) => ({wordId: w.wordId, isCorrect: true})))}]};
-  };
-
+  // [SUPERSEDED MECHANISM — NTF 19+22, CASE GR above pins the replacement]
+  // C1/C2/C4/C6 below used to attack via THE REAL ROUTE: `INDEX.gradeTypedTest`
+  // wrapped exactly like every other callable here, with ONLY the Anthropic
+  // HTTP call canned, reaching the engine's OWN rv2_ key through the LIVE
+  // production path 947 students hit THEN (the client-supplied
+  // `gradeContext.attemptDocId` becoming the job key, index.js:1048-1051
+  // pre-guard). `assertNotEngineReservedDocId` (index.js:1170-1171) now
+  // refuses that call UNCONDITIONALLY before claimOrRecoverGradingJob is ever
+  // reached — so the live-route attacker helper (`liveGrade`/`liveGradeErr`)
+  // and the Anthropic HTTP stub it alone exercised are both gone from this
+  // case. What C1/C4/C6 certify about `usableCachedResults`/the job's `uid`
+  // fence — a poisoned/foreign-uid payload at my key is refused, however it
+  // got there — is unchanged and still matters for the residual reachability
+  // (Admin SDK / a pre-existing doc, per typedGrading.js's own A1/A2 header),
+  // so those cases now seed the SAME resulting `grading_jobs` state directly
+  // instead of driving it through the (now-refused) callable. C2's SPECIFIC
+  // property had no such residual path and is retired with a comment in
+  // place, below.
   const composeP = (ck) => call(CALL.reviewV2ComposeSession, "uP", {...common, logicalDay: 3, composeKey: ck});
   const submitP = (pid, ans, uid = "uP") => call(CALL.reviewV2SubmitAttempt, uid,
       {presentationId: pid, answers: ans, clientContractVersion: 1});
@@ -1506,16 +1572,13 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   const jobOf = (pid) => db.collection("grading_jobs").doc(rv2Id("uP", pid)).get();
   const attOf = (pid) => db.collection("attempts").doc(rv2Id("uP", pid)).get();
   const attemptCount = async () => (await db.collection("attempts").get()).size;
-  /** THE LIVE ROUTE exactly as a client reaches it: grade-only + a job key of
-   *  the caller's choosing (no writeContext ⇒ the cached-payload branch). */
-  const liveGrade = (uid, jobKey, ids, text) => call(INDEX.gradeTypedTest, uid, {
-    answers: ids.map((w) => ({wordId: w, word: `word${w.slice(1)}`,
-      correctDefinition: `def${w.slice(1)}`, studentResponse: text})),
-    gradeContext: {attemptDocId: jobKey, classId: "cP", listId: "LP"},
+  /** Seed a `grading_jobs` doc byte-shaped like what the (now-refused) live
+   *  route used to leave behind: status graded, the named uid, a bare
+   *  `results` array carrying NONE of the three engine-provenance facts. */
+  const seedForeignJob = (jobKey, uid, ids) => db.collection("grading_jobs").doc(jobKey).set({
+    uid, status: "graded", version: 1,
+    payload: {results: ids.map((w) => ({wordId: w, isCorrect: true, reasoning: ""}))},
   });
-  const liveGradeErr = async (uid, jobKey, ids, text) => {
-    try { await liveGrade(uid, jobKey, ids, text); return null; } catch (e) { return String(e.code ?? e.message ?? e); }
-  };
   const metaFor = async (ids) => {
     const snaps = await db.getAll(...ids.map((w) => db.doc(`lists/LP/words/${w}`)));
     return new Map(snaps.filter((s) => s.exists).map((s) => [s.id, s.data()]));
@@ -1534,10 +1597,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   check("typed session composes", [r.status, r.presentation.testType], ["composed", "typed"]);
   const pid1 = r.presentation.presentationId;
   const ids1 = r.presentation.presentedWordIds;
-  const poisoned = await liveGrade("uP", rv2Id("uP", pid1), ids1, "not the meaning at all");
-  check("the LIVE grader accepted the ENGINE's job key and graded the attacker's sheet",
-      [Array.isArray(poisoned.results), poisoned.results.length,
-        poisoned.results.every((x) => x.isCorrect === true)], [true, ids1.length, true]);
+  await seedForeignJob(rv2Id("uP", pid1), "uP", ids1);
   const j1 = await jobOf(pid1);
   check("…and CACHED it on the engine's key (owned by the caller, status graded)",
       [j1.exists, j1.data().status, j1.data().uid], [true, "graded", "uP"]);
@@ -1575,38 +1635,31 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   check("C1 other leg: the student recovers by recomposing (new key)",
       [recovered.status, recovered.score], ["attempt_written", 100]);
 
-  // ---- C2 · POISON AFTER THE ENGINE CACHED (overwrite attempt) ------------
-  r = await composeP("lap-key-tx03");
-  const pid2 = r.presentation.presentationId;
-  const ids2 = r.presentation.presentedWordIds;
-  r = await submitP(pid2, good(ids2));
-  check("C2 setup: the engine grades and writes first", [r.status, r.score], ["attempt_written", 100]);
-  const engineJob2 = (await jobOf(pid2)).data();
-  check("C2 setup: the engine's cache carries all three provenance facts",
-      [engineJob2.payload.source, engineJob2.payload.presentationId,
-        typeof engineJob2.payload.answerSheetKey === "string" &&
-          engineJob2.payload.answerSheetKey.length === 64],
-      ["reviewV2", pid2, true]);
-  const aiBeforeC2 = aiCalls;
-  const overwrite = await liveGrade("uP", rv2Id("uP", pid2), ids2, "not the meaning at all");
-  check("C2 the live route CANNOT overwrite a graded job — it returns the cache",
-      [overwrite.source, overwrite.presentationId], ["reviewV2", pid2]);
-  check("C2 …and spends no AI call doing it", aiCalls, aiBeforeC2);
-  const engineJob2After = (await jobOf(pid2)).data();
-  check("C2 the engine's grade is still canonical (payload byte-identical)",
-      JSON.stringify(engineJob2After.payload.results), JSON.stringify(engineJob2.payload.results));
-  const att2 = (await attOf(pid2)).data();
-  check("C2 the written attempt is untouched", [att2.score, att2.correctnessSource], [100, "server-ai"]);
+  // ---- C2 · POISON AFTER THE ENGINE CACHED — RETIRED, NTF 19+22 -----------
+  // [SUPERSEDED, no current-contract equivalent] This sub-case certified that
+  // a LIVE grade-only gradeTypedTest call targeting an ALREADY-GRADED job at
+  // the engine's rv2_ key hits claimOrRecoverGradingJob's `return_cached`
+  // branch (index.js:1062-1064) rather than re-grading or overwriting it.
+  // That reachability is now categorically gone: gradeContext.attemptDocId
+  // = rv2_... is refused at the mouth (index.js:1170-1171, CASE GR above)
+  // BEFORE claimOrRecoverGradingJob is ever reached, for any caller — and the
+  // ONLY other production caller of that function is the engine's own
+  // server-derived resolveTypedGrade, whose SAME-key `return_cached` reuse is
+  // already certified through the legitimate path by CASE TX C7 (lost-
+  // response retry) and CASE T §2-3, so re-deriving it here would just
+  // duplicate them under a different label, not certify anything new. Nothing
+  // uniquely certified by this sub-case is lost.
 
   // ---- C4 · poison → refuse → DELETE the job → re-poison → still refuses --
+  // (poisoning mechanism superseded — see the note above C1)
   r = await composeP("lap-key-tx04");
   const pid4 = r.presentation.presentationId;
   const ids4 = r.presentation.presentedWordIds;
-  await liveGrade("uP", rv2Id("uP", pid4), ids4, "not the meaning at all");
+  await seedForeignJob(rv2Id("uP", pid4), "uP", ids4);
   r = await submitP(pid4, junk(ids4));
   check("C4 step 1: poisoned ⇒ refused as grade_unusable", r, {status: "grade_unusable"});
   await db.collection("grading_jobs").doc(rv2Id("uP", pid4)).delete();
-  await liveGrade("uP", rv2Id("uP", pid4), ids4, "still not the meaning");
+  await seedForeignJob(rv2Id("uP", pid4), "uP", ids4);
   r = await submitP(pid4, junk(ids4));
   check("C4 step 2: delete-then-RE-poison ⇒ still refused as grade_unusable", r, {status: "grade_unusable"});
   check("C4 the sequence minted nothing", (await attOf(pid4)).exists, false);
@@ -1660,18 +1713,22 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   // ---- C6 · A THIRD PARTY / A TEACHER CLAIMING THE KEY --------------------
   // The presentationId is DERIVABLE (`{classId}_{listId}_d{day}_e{epoch}_p{n}`,
   // presentations.js:445), and `grading_jobs` is a GLOBAL collection — so the
-  // key is reachable by anyone. NOTE THE ATTACKER'S KEY BELOW: it is the
-  // VICTIM's FULL uid-scoped key `rv2_{uP}_{pid}` [rv2-docid-collision A1]. The
-  // uid in the key is a NAMESPACE, not a fence — a classmate knows uP's uid, so
+  // key is NAMEABLE by anyone. NOTE THE SEEDED KEY BELOW: it is the VICTIM's
+  // FULL uid-scoped key `rv2_{uP}_{pid}` [rv2-docid-collision A1]. The uid in
+  // the key is a NAMESPACE, not a fence — a classmate knows uP's uid, so
   // scoping the id fixes the collision and grants no secrecy. The uid fence
-  // that must hold is the job's `uid` FIELD (index.js:936-938); it is asserted
-  // here, never assumed.
+  // that must hold is the job's `uid` FIELD (index.js:936-938); it is
+  // asserted here, never assumed. [SUPERSEDED MECHANISM — NTF 19+22, see the
+  // note above C1] a third party/teacher can no longer CLAIM this key through
+  // the live route at all (refused at the mouth, CASE GR above) — the job
+  // document is seeded directly to exercise the DOWNSTREAM fence, which is
+  // unchanged and still the thing that must hold.
   r = await composeP("lap-key-tx07");
   const pid6 = r.presentation.presentationId;
   const ids6 = r.presentation.presentedWordIds;
-  await liveGrade("uOther", rv2Id("uP", pid6), ids6, "not the meaning at all");
+  await seedForeignJob(rv2Id("uP", pid6), "uOther", ids6);
   const j6 = (await jobOf(pid6)).data();
-  check("C6 a third party CAN claim the key — but the job records THEIR uid", j6.uid, "uOther");
+  check("C6 the seeded job at the victim's key names the THIRD PARTY's uid", j6.uid, "uOther");
   const errThird = await submitErrP(pid6, good(ids6));
   checkTrue("C6 the victim's submit refuses a foreign-uid job (fail-CLOSED, never consumed)",
       String(errThird).includes("permission-denied"));
@@ -1679,7 +1736,7 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   // NEED_TO_FIX 19's denial, made RECOVERABLE [rv2-refusal-status]: the victim
   // is never told to poll (the refusal is a thrown HttpsError, not
   // grading_in_progress), and recomposing — a new presentationId ⇒ a new job
-  // key the attacker has not claimed — lands the test.
+  // key the foreign job never touched — lands the test.
   r = await composeP("lap-key-tx07b");
   const recovered6 = await submitP(r.presentation.presentationId, good(r.presentation.presentedWordIds));
   check("C6 recovery: the victim recomposes past the third-party claim and LANDS",
@@ -1688,8 +1745,8 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   r = await composeP("lap-key-tx08");
   const pid6t = r.presentation.presentationId;
   const ids6t = r.presentation.presentedWordIds;
-  await liveGrade("uTeach", rv2Id("uP", pid6t), ids6t, "not the meaning at all");
-  check("C6 a teacher's claim is recorded under the TEACHER's uid",
+  await seedForeignJob(rv2Id("uP", pid6t), "uTeach", ids6t);
+  check("C6 the seeded job names the TEACHER's uid",
       (await jobOf(pid6t)).data().uid, "uTeach");
   const errTeacher = await submitErrP(pid6t, good(ids6t));
   checkTrue("C6 a teacher-poisoned key is refused too",
@@ -1699,9 +1756,17 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
   const recovered6t = await submitP(r.presentation.presentationId, good(r.presentation.presentedWordIds));
   check("C6 recovery: …and past the teacher claim too",
       [recovered6t.status, recovered6t.score], ["attempt_written", 100]);
-  // The mirror: the VICTIM cannot read a foreign-uid job either.
-  checkTrue("C6 the fence is symmetric (a foreign uid cannot claim OUR graded job)",
-      String(await liveGradeErr("uOther", rv2Id("uP", pid5a), ids5a, "x")).includes("permission-denied"));
+  // [SUPERSEDED, no current-contract equivalent] "the mirror" used to prove a
+  // foreign uid (uOther) READING/claiming uP's ALREADY-GRADED job via the
+  // live route ALSO hits the same permission-denied fence. That direction is
+  // now unreachable through ANY client-facing callable: reaching
+  // claimOrRecoverGradingJob for an rv2_ key requires naming it via
+  // gradeContext/writeContext (refused at the mouth, CASE GR above), and the
+  // engine's own resolveTypedGrade always derives the key from the CALLER's
+  // OWN uid, so it can never address another uid's key by accident either.
+  // The uid fence itself is still exercised, both directions, above and in
+  // CASE RC's third-party block — only this SPECIFIC reachability path
+  // (a foreign caller reading via the live grade-only route) is gone.
 
   // ---- C7 · THE OTHER LEG: the LEGITIMATE lost-response replay ------------
   r = await composeP("lap-key-tx09");
@@ -1852,10 +1917,16 @@ CASE("TX — THE POISONED GRADE CACHE: provenance + answer-sheet binding [A1/A2]
         [res.status, res.score, engineGraderCalls], ["attempt_written", 100, before]);
   }
 
-  MessagesProto.create = realMessagesCreate;
   TG._typedSeam.grade = null;
   TG._typedSeam.afterPersist = null;
-  check("TX: the LIVE grader was exercised for real (AI boundary canned only)", aiCalls > 0, true);
+  // [was: "the LIVE grader was exercised for real (AI boundary canned only)"
+  // — that Anthropic-HTTP stub was removed with the live-route poisoning
+  // mechanism it alone exercised, see the note above C1.] The engine's OWN
+  // typed grader (the emulator seam this whole case actually exercises
+  // end-to-end, C1/C4/C6's Admin-SDK-seeded poisons excepted by design) still
+  // ran for real throughout.
+  check("TX: the engine's OWN typed grader was exercised for real (TG._typedSeam.grade, not stubbed away)",
+      engineGraderCalls > 0, true);
 }
 
 // ===========================================================================
@@ -1872,12 +1943,18 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   // guard was correct code with no evidence under it. This case is that
   // evidence; the matching mutant is M-A1-SIBLING-CALL-SITE.
   //
-  // REACHABILITY, through production code only: the grading-job lease is 180s
-  // (index.js:109). If it lapses while we grade, the LIVE `gradeTypedTest`
-  // takes the SAME key over under the SAME uid (index.js:943-953), reaches
-  // `status: graded`, and our persist then returns `already_graded`
-  // (index.js:986) — the exact branch under test. Nothing here stubs
-  // `usableCachedResults`; the only canned thing is the Anthropic HTTP call.
+  // REACHABILITY [SUPERSEDED MECHANISM — NTF 19+22, CASE GR pins the
+  // replacement]: through production code only UNTIL this fold, the
+  // grading-job lease is 180s (index.js:109); if it lapsed while we graded,
+  // the LIVE `gradeTypedTest` could take the SAME key over under the SAME
+  // uid (index.js:943-953), reach `status: graded`, and our persist then
+  // returned `already_graded` (index.js:986) — the exact branch under test.
+  // `assertNotEngineReservedDocId` (index.js:1170-1171) now refuses that live
+  // takeover UNCONDITIONALLY before claimOrRecoverGradingJob is ever reached
+  // — so the win below is seeded directly (Admin SDK), reproducing the SAME
+  // resulting `grading_jobs` state a winning live call used to leave behind.
+  // Nothing here stubs `usableCachedResults` — that acceptance test is still
+  // live production code, exercised exactly as before.
   await wipeEmulator();
   await seedConfig({rehearsalClassIds: ["cS"], queueSize: 6, testSize: 4});
   await seedClass("cS", {students: ["uS"], listId: "LS", asg: {reviewTestType: "typed"}});
@@ -1906,22 +1983,13 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   };
   TG._typedSeam.grade = engineGrader;
 
-  // The LIVE grader's Anthropic call, canned exactly as in TX (that HTTP call
-  // is the ONLY thing that cannot run in the emulator); the claim/lease/payload
-  // machinery it drives is production code.
-  process.env.ANTHROPIC_API_KEY = "lap-stub-key-never-leaves-this-process";
-  const AnthropicCtorS = fnRequire("@anthropic-ai/sdk").default;
-  const MessagesProtoS = Object.getPrototypeOf(new AnthropicCtorS({apiKey: "x"}).messages);
-  const realCreateS = MessagesProtoS.create;
-  let aiCallsS = 0;
-  MessagesProtoS.create = async (body) => {
-    aiCallsS++;
-    const m = String(body?.messages?.[0]?.content ?? "").match(/<words>\n([\s\S]*?)\n<\/words>/);
-    const words = m ? JSON.parse(m[1]) : [];
-    // THE POISON: every answer graded CORRECT, whatever the student wrote.
-    return {content: [{type: "text",
-      text: JSON.stringify(words.map((w) => ({wordId: w.wordId, isCorrect: true})))}]};
-  };
+  // [SUPERSEDED MECHANISM — NTF 19+22, CASE GR above pins the replacement]
+  // this case used to canonicalize the S1 win by driving it through the REAL
+  // gradeTypedTest callable, with only its Anthropic HTTP call stubbed (the
+  // claim/lease/payload machinery it drove was production code). That live
+  // takeover is now refused at the mouth for any rv2_-prefixed key before
+  // claimOrRecoverGradingJob runs, so the stub (and the `liveGradeS` helper
+  // it alone served) is gone; S1 seeds the winning job document directly.
 
   const composeS = (ck) => call(CALL.reviewV2ComposeSession, "uS", {...common, logicalDay: 3, composeKey: ck});
   const submitS = (pid, ans) => call(CALL.reviewV2SubmitAttempt, "uS",
@@ -1935,13 +2003,6 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   const attemptCountS = async () => (await db.collection("attempts").get()).size;
   const sheetKeyOf = (ids, sheet) => TG.answerSheetKey({presentedWordIds: ids,
     submitted: new Map(sheet.map((a) => [a.wordId, a.studentResponse]))});
-  /** THE LIVE ROUTE exactly as a client reaches it: grade-only + a job key of
-   *  the caller's choosing (index.js:1048-1051), same helper shape as TX. */
-  const liveGradeS = (uid, jobKey, ids, text) => call(INDEX.gradeTypedTest, uid, {
-    answers: ids.map((w) => ({wordId: w, word: `word${w.slice(1)}`,
-      correctDefinition: `def${w.slice(1)}`, studentResponse: text})),
-    gradeContext: {attemptDocId: jobKey, classId: "cS", listId: "LS"},
-  });
   /** The 180s lease lapsing while we grade — the wall-clock wait, written as
    *  the state it produces (index.js:109 + the takeover at 943-953). */
   const expireOurLease = (pid) => jobS(pid).update({leaseExpiresAt: Date.now() - 1});
@@ -1963,7 +2024,17 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   let takeover = null;
   interleave = async () => {
     await expireOurLease(pid1);
-    await liveGradeS("uS", rv2Id("uS", pid1), ids1, "not the meaning at all");
+    // [SUPERSEDED MECHANISM — NTF 19+22, see the case-header note above]
+    // seeded directly: byte-identical to what a winning live takeover used
+    // to leave on the job (status graded, the SAME uid — a second worker
+    // reclaiming after our lease expired never needed a DIFFERENT uid, since
+    // claimOrRecoverGradingJob's owner check is `job.uid !== uid`, not
+    // "already claimed" — a bare `results` array with none of the three
+    // engine-provenance facts).
+    await jobS(pid1).set({
+      uid: "uS", status: "graded", version: 1,
+      payload: {results: ids1.map((w) => ({wordId: w, isCorrect: true, reasoning: ""}))},
+    }, {merge: true});
     takeover = (await jobS(pid1).get()).data();
   };
   const attemptsBefore1 = await attemptCountS();
@@ -1971,7 +2042,7 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
   r = await submitS(pid1, junkS(ids1));
   checkTrue("S1 setup: the interleave ran INSIDE our grade (the competitor got the window)",
       takeover !== null);
-  check("S1 setup: the LIVE takeover cached a payload that PASSES the pre-fix test and carries NO engine facts",
+  check("S1 setup: the competing write left a payload that PASSES the pre-fix test and carries NO engine facts",
       [takeover?.status ?? null, Array.isArray(takeover?.payload?.results),
         takeover?.payload?.results?.length ?? null,
         (takeover?.payload?.results ?? []).every((x) => x.isCorrect === true),
@@ -2073,10 +2144,13 @@ CASE("TS — THE SIBLING SEAM: `already_graded` re-reads a payload we did NOT wr
       [res3b.status, res3b.correctCount, res3b.totalQuestions, engineGraderCalls],
       ["attempt_written", ids3.length - 1, ids3.length, callsBefore3b]);
 
-  MessagesProtoS.create = realCreateS;
   TG._typedSeam.grade = null;
   TG._typedSeam.afterPersist = null;
-  check("TS: the LIVE grader was exercised for real (AI boundary canned only)", aiCallsS > 0, true);
+  // [was: "the LIVE grader was exercised for real (AI boundary canned only)"
+  // — the Anthropic-HTTP stub was removed with the live-takeover mechanism it
+  // alone exercised, see the case-header note above.]
+  check("TS: the engine's OWN typed grader was exercised for real (TG._typedSeam.grade, not stubbed away)",
+      engineGraderCalls > 0, true);
 }
 
 // ===========================================================================
@@ -2596,40 +2670,35 @@ CASE("RC — THE DERIVED GLOBAL ID IS UID-SCOPED: the full bypass set [rv2-docid
       ["uTA", 100, "server-ai", "uTB", 0]);
 
   // ---- third party / teacher naming the VICTIM's FULL uid-scoped key ------
-  // The uid in the key buys NO secrecy: a classmate (and a teacher) can derive
-  // `rv2_{uA}_{pid}` and claim it through the LIVE grader. The fence that must
-  // hold is the job's `uid` FIELD, and the victim must fail CLOSED rather than
-  // consume a foreign grade — the same law as CASE TX C6, restated against the
-  // NEW key shape so a scoping change cannot quietly retire it.
-  process.env.ANTHROPIC_API_KEY = "lap-stub-key-never-leaves-this-process";
-  const AnthropicCtorC = fnRequire("@anthropic-ai/sdk").default;
-  const MessagesProtoC = Object.getPrototypeOf(new AnthropicCtorC({apiKey: "x"}).messages);
-  const realCreateC = MessagesProtoC.create;
-  MessagesProtoC.create = async (body) => {
-    const m = String(body?.messages?.[0]?.content ?? "").match(/<words>\n([\s\S]*?)\n<\/words>/);
-    const words = m ? JSON.parse(m[1]) : [];
-    return {content: [{type: "text",
-      text: JSON.stringify(words.map((w) => ({wordId: w.wordId, isCorrect: true})))}]};
-  };
-  const liveGradeC = (uid, jobKey, ids) => call(INDEX.gradeTypedTest, uid, {
-    answers: ids.map((w) => ({wordId: w, word: `word${w.slice(1)}`,
-      correctDefinition: `def${w.slice(1)}`, studentResponse: "not the meaning at all"})),
-    gradeContext: {attemptDocId: jobKey, classId: "cTy", listId: "LC"},
-  });
+  // The uid in the key buys NO secrecy: a classmate (and a teacher) can NAME
+  // `rv2_{uA}_{pid}`. [SUPERSEDED MECHANISM — NTF 19+22, CASE GR above pins
+  // the replacement] "claim it through the LIVE grader" was true pre-guard
+  // (index.js:1048-1051 then) but is refused UNCONDITIONALLY now
+  // (index.js:1170-1171) before claimOrRecoverGradingJob is ever reached, for
+  // any caller — so the Anthropic stub and the `liveGradeC` helper that alone
+  // drove it are gone. The fence that must hold is unchanged: the job's `uid`
+  // FIELD, and the victim must fail CLOSED rather than consume a foreign
+  // grade — the same law as CASE TX C6, restated against the NEW key shape so
+  // a scoping change cannot quietly retire it. Seeded directly (Admin SDK /
+  // a pre-existing doc is the residual reachability the mouth guard doesn't
+  // cover, per typedGrading.js's own A1/A2 header).
   const thirdA = await composeTy("uTA", "lap-key-rc-3p-a");
   const thirdB = await composeTy("uTB", "lap-key-rc-3p-b");
   const pid3p = thirdA.presentation.presentationId;
   check("RC THIRD PARTY setup: both students compose, still sharing one presentationId",
       [thirdA.status, thirdB.status, thirdB.presentation.presentationId],
       ["composed", "composed", pid3p]);
-  await liveGradeC("uTB", rv2Id("uTA", pid3p), thirdA.presentation.presentedWordIds);
-  check("RC THIRD PARTY: student B CAN claim A's full uid-scoped key — the job records B's uid",
+  await db.collection("grading_jobs").doc(rv2Id("uTA", pid3p)).set({
+    uid: "uTB", status: "graded", version: 1,
+    payload: {results: thirdA.presentation.presentedWordIds.map((w) => ({wordId: w, isCorrect: true, reasoning: ""}))},
+  });
+  check("RC THIRD PARTY: the job at A's full uid-scoped key names B's uid (the fence under test)",
       (await db.collection("grading_jobs").doc(rv2Id("uTA", pid3p)).get()).data().uid, "uTB");
   const victimErr = await submitTyErr("uTA", pid3p, good(thirdA.presentation.presentedWordIds));
   checkTrue("RC THIRD PARTY: A's submit fails CLOSED on the foreign-uid job (never consumed)",
       String(victimErr).includes("permission-denied"));
   check("RC THIRD PARTY: …and mints nothing", (await attRef("uTA", pid3p).get()).exists, false);
-  check("RC THIRD PARTY: B's OWN key is untouched by the attack — B still lands normally",
+  check("RC THIRD PARTY: B's OWN key is untouched — B still lands normally",
       [(await submitTy("uTB", pid3p, good(thirdB.presentation.presentedWordIds))).status,
         (await db.collection("grading_jobs").doc(rv2Id("uTB", pid3p)).get()).data().uid],
       ["attempt_written", "uTB"]);
@@ -2637,8 +2706,11 @@ CASE("RC — THE DERIVED GLOBAL ID IS UID-SCOPED: the full bypass set [rv2-docid
   const teachA = await composeTy("uTA", "lap-key-rc-tp-a");
   await composeTy("uTB", "lap-key-rc-tp-b"); // keep the two students in lockstep
   const pidTp = teachA.presentation.presentationId;
-  await liveGradeC("uTeachC", rv2Id("uTA", pidTp), teachA.presentation.presentedWordIds);
-  check("RC TEACHER: a teacher-of-record claiming a student's key is recorded under the TEACHER's uid",
+  await db.collection("grading_jobs").doc(rv2Id("uTA", pidTp)).set({
+    uid: "uTeachC", status: "graded", version: 1,
+    payload: {results: teachA.presentation.presentedWordIds.map((w) => ({wordId: w, isCorrect: true, reasoning: ""}))},
+  });
+  check("RC TEACHER: the seeded job names the TEACHER's uid",
       (await db.collection("grading_jobs").doc(rv2Id("uTA", pidTp)).get()).data().uid, "uTeachC");
   const teachErr = await submitTyErr("uTA", pidTp, good(teachA.presentation.presentedWordIds));
   checkTrue("RC TEACHER: the student's submit refuses the teacher-poisoned key too",
@@ -2650,7 +2722,6 @@ CASE("RC — THE DERIVED GLOBAL ID IS UID-SCOPED: the full bypass set [rv2-docid
   check("RC THIRD PARTY (attempts): a doc planted at A's id but naming B is refused for A",
       await submitTy("uTA", pidTp, good(teachA.presentation.presentedWordIds)), REFUSAL_RC);
 
-  MessagesProtoC.create = realCreateC;
   TG._typedSeam.grade = null;
 }
 
