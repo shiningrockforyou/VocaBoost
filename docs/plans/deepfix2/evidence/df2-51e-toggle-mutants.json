@@ -1,0 +1,81 @@
+{
+  "kind": "df2-51e-toggle-mutants",
+  "pass": true,
+  "mutants": [
+    {
+      "id": "M1-FLAG-OFF-GATE-REMOVED",
+      "clause": "REVIEW_V2_CLIENT && ... is load-bearing on the toggle's render gate — removing the flag conjunct must be detected",
+      "target": "src/pages/DailySessionFlow.jsx",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M2-TOGGLE-ADVANCES-DAY",
+      "clause": "moveToNewWordsPhase must never call completeSession/advance the day — injecting a call must be detected",
+      "target": "src/pages/DailySessionFlow.jsx",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M7-ONLY-ONE-STUDY-PHASE",
+      "clause": "the render gate must cover BOTH study phases (NEW_WORDS and REVIEW_STUDY) — dropping either disjunct must be detected",
+      "target": "src/pages/DailySessionFlow.jsx",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M3-REVIEW-AVAILABILITY-IGNORED",
+      "clause": "canOfferReviewPhase must honor `segment` — ignoring it (always offerable) must be detected",
+      "target": "src/pages/DailySessionFlow.phaseToggle.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 6,
+      "restoredOk": true
+    },
+    {
+      "id": "M4-NEWWORDS-AVAILABILITY-IGNORED",
+      "clause": "canOfferNewWordsPhase must honor `newWordCount` — ignoring it (always offerable) must be detected",
+      "target": "src/pages/DailySessionFlow.phaseToggle.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 6,
+      "restoredOk": true
+    },
+    {
+      "id": "M5-CLICKGUARD-AVAILABILITY-DROPPED",
+      "clause": "shouldRunPhaseToggle must return false when `available` is false — dropping that check must be detected",
+      "target": "src/pages/DailySessionFlow.phaseToggle.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 1,
+      "restoredOk": true
+    },
+    {
+      "id": "M6-CLICKGUARD-ALREADY-ACTIVE-DROPPED",
+      "clause": "shouldRunPhaseToggle must return false when the target phase is already active — dropping that check must be detected",
+      "target": "src/pages/DailySessionFlow.phaseToggle.js",
+      "killed": true,
+      "fixtureExit": 1,
+      "checks": 71,
+      "failures": 1,
+      "restoredOk": true
+    }
+  ],
+  "targetShas16": {
+    "src/pages/DailySessionFlow.jsx": "435e8225c8605e74",
+    "src/pages/DailySessionFlow.phaseToggle.js": "dec10ce37015a58b"
+  },
+  "at": "2026-08-05T13:12:45.874Z"
+}

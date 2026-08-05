@@ -1,0 +1,13 @@
+{
+  "kind": "df2-51e-toggle-pure",
+  "pass": true,
+  "total": 71,
+  "failed": 0,
+  "reds": [],
+  "sourceShas": {
+    "src/pages/DailySessionFlow.phaseToggle.js": "dec10ce37015a58b",
+    "src/pages/DailySessionFlow.jsx": "435e8225c8605e74",
+    "scripts/deepfix2/df2-51e-toggle-fixtures.mjs": "46b9bab20a13271d"
+  },
+  "at": "2026-08-05T13:12:44.156Z"
+}

@@ -27,7 +27,7 @@ import SessionProgressSheet from '../components/SessionProgressSheet'
 import SessionMenu from '../components/SessionMenu'
 import SessionHeader from '../components/SessionHeader'
 import DismissedWordsDrawer from '../components/DismissedWordsDrawer'
-import { Button } from '../components/ui'
+import { Button, TabButton } from '../components/ui'
 import { RefreshCw, ChevronLeft, ChevronRight, HelpCircle, X, ListChecks } from 'lucide-react'
 
 // Services
@@ -83,6 +83,10 @@ import { calculateExpectedStudyDay } from '../types/studyTypes'
 import { getClassProgress } from '../services/progressService'
 import { useSimulationContext, isSimulationEnabled } from '../hooks/useSimulation.jsx'
 import { useRef } from 'react'
+// DF2-51-e: within-day Review/New-words toggle — pure availability/guard
+// predicates + copy, extracted so they can be fixtured under plain node
+// (this .jsx file cannot be — see the module's own header).
+import { canOfferReviewPhase, canOfferNewWordsPhase, shouldRunPhaseToggle, PHASE_TOGGLE_COPY } from './DailySessionFlow.phaseToggle'
 
 // Constants
 const PHASES = {
@@ -1234,6 +1238,34 @@ function DailySessionFlowSession() {
     setPhase(PHASES.REVIEW_STUDY)
   }
 
+  // ============================================================
+  // DF2-51-e: within-day Review / New-words toggle (REVIEW_V2_CLIENT)
+  // ============================================================
+  // R2-26 Q11 free-nav, RATIFIED 22_DF2-51_PASTDAY_NAV_DESIGN.md §7(d): move
+  // between today's two halves at will; the day-advance gate stays
+  // SERVER-side (functions/foundation.js completeSession's F-4 evidence
+  // check — verified read-only this fold, never edited) and is untouched by
+  // this toggle. Symmetric partner of moveToReviewPhase (PHASE 3, above),
+  // which is reused verbatim and UNCHANGED by this fold. Unlike that
+  // function, no engine compose is needed to ENTER new-word study: the
+  // new-word set is loaded once at session init (`newWords`/`newWordsQueue`,
+  // PHASE 0 above) and never rebuilt on re-entry, so this only resets the
+  // SHARED flashcard cursor (currentIndex/isFlipped — mirrors
+  // moveToReviewPhase's own reset, since both phases share one cursor) and
+  // flips `phase`. Calls only setCurrentIndex/setIsFlipped/setPhase — never
+  // completeSession/recordSessionCompletion/any Firestore write, so it can
+  // never advance the day, submit a test, or mutate progress.
+  const moveToNewWordsPhase = () => {
+    if (!canOfferNewWordsPhase(sessionConfig)) {
+      // No new-word phase today (review-only day) - nothing to switch to.
+      console.warn('moveToNewWordsPhase: no new-word phase available, skipping')
+      return
+    }
+    setCurrentIndex(0)
+    setIsFlipped(false)
+    setPhase(PHASES.NEW_WORDS)
+  }
+
   // Handler for empty review queue modal
   const handleNoReviewModalClose = async () => {
     setShowNoReviewModal(false)
@@ -2015,6 +2047,28 @@ function DailySessionFlowSession() {
   const currentQueueLength = phase === PHASES.NEW_WORDS ? newWordsQueue.length : reviewQueueCurrent.length
   const currentDismissedCount = phase === PHASES.NEW_WORDS ? newWordsDismissed.size : reviewDismissed.size
 
+  // DF2-51-e: within-day toggle availability + selection handlers
+  // (REVIEW_V2_CLIENT only — the toggle itself is also gated at its render
+  // site below). Availability is derived from the pure, fixtured predicates
+  // in DailySessionFlow.phaseToggle.js (single source of truth — never
+  // re-derived here) so the SAME booleans drive both the disabled reason and
+  // the click guard.
+  const canGoToReviewPhase = canOfferReviewPhase(sessionConfig)
+  const canGoToNewWordsPhase = canOfferNewWordsPhase(sessionConfig)
+  const activeTogglePhase =
+    phase === PHASES.NEW_WORDS ? 'new' :
+    phase === PHASES.REVIEW_STUDY ? 'review' :
+    null
+
+  const handleSelectReviewPhase = () => {
+    if (!shouldRunPhaseToggle({ targetPhase: 'review', activePhase: activeTogglePhase, available: canGoToReviewPhase })) return
+    moveToReviewPhase()
+  }
+  const handleSelectNewWordsPhase = () => {
+    if (!shouldRunPhaseToggle({ targetPhase: 'new', activePhase: activeTogglePhase, available: canGoToNewWordsPhase })) return
+    moveToNewWordsPhase()
+  }
+
   // ============================================================
   // RENDER
   // ============================================================
@@ -2176,6 +2230,16 @@ function DailySessionFlowSession() {
 
       {/* Phase content */}
       <div className="relative z-10 mx-auto max-w-2xl px-4 py-8">
+        {REVIEW_V2_CLIENT && (phase === PHASES.NEW_WORDS || phase === PHASES.REVIEW_STUDY) && (
+          <PhaseToggle
+            activePhase={activeTogglePhase}
+            canGoToReview={canGoToReviewPhase}
+            canGoToNewWords={canGoToNewWordsPhase}
+            onSelectReview={handleSelectReviewPhase}
+            onSelectNewWords={handleSelectNewWordsPhase}
+          />
+        )}
+
         {phase === PHASES.NEW_WORDS && (
           <StudyPhase
             currentWord={currentNewWord}
@@ -2607,6 +2671,50 @@ function StudyPhase({
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// DF2-51-e (RATIFIED 22_DF2-51_PASTDAY_NAV_DESIGN.md §7(d), R2-26 Q11
+// free-nav): the within-day Review / New-words toggle. Purely additive —
+// sits ABOVE StudyPhase, which itself is completely unchanged (wireframe
+// mockups/df2-51-extended.html §3, callout 3: "the flashcard/test area
+// below is today's existing session screen, unchanged — only the toggle
+// above it is new"). Rendered only on the two STUDY phases (see the call
+// site) — the two TEST phases never reach this component at all, because a
+// test navigates away to a separate route (/mcqtest or /typedtest,
+// navigateToTest above), so "disabled while a test is in flight"
+// (22_DF2-51_PASTDAY_NAV_DESIGN.md §3(d)) holds structurally, not by an
+// extra runtime check. Each button disables with a reason when its half
+// genuinely has no work today (brief: "disable with a reason, mirroring
+// 51-c's precedent... an enabled control with nothing behind it is a dead
+// click" — see RestudyBrowser.jsx's restudyDisabled/retestDisabled + title=
+// for the sibling pattern this mirrors). `TabButton` (existing primitive,
+// src/components/ui/buttons/TabButton.jsx — "Tab switching button", already
+// ships active/disabled) is reused rather than inventing a new
+// segmented-pill control.
+function PhaseToggle({ activePhase, canGoToReview, canGoToNewWords, onSelectReview, onSelectNewWords }) {
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-2 border-b border-border-default">
+        <TabButton
+          active={activePhase === 'review'}
+          disabled={!canGoToReview}
+          title={!canGoToReview ? PHASE_TOGGLE_COPY.reviewUnavailable : undefined}
+          onClick={onSelectReview}
+        >
+          Review
+        </TabButton>
+        <TabButton
+          active={activePhase === 'new'}
+          disabled={!canGoToNewWords}
+          title={!canGoToNewWords ? PHASE_TOGGLE_COPY.newWordsUnavailable : undefined}
+          onClick={onSelectNewWords}
+        >
+          New words
+        </TabButton>
+      </div>
+      <p className="mt-2 text-xs text-text-muted">{PHASE_TOGGLE_COPY.rule}</p>
     </div>
   )
 }
