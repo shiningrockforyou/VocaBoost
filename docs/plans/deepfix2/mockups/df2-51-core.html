@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DF2-51 Wireframe — CORE ONLY</title>
+<style>
+:root {
+  --ink-900:#0f172a;
+  --ink-700:#334155;
+  --ink-600:#475569;
+  --ink-500:#64748b;
+  --ink-400:#94a3b8;
+  --line-200:#e2e8f0;
+  --line-300:#cbd5e1;
+  --paper:#ffffff;
+  --base:#f1f5f9;
+  --muted:#f8fafc;
+  --accent:#1b3a94;
+  --accent-soft:#e8ebf7;
+  --radius-card:16px;
+  --radius-card-lg:24px;
+  --radius-btn:12px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow-md:0 4px 10px rgba(15,23,42,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body {
+  background:var(--base);
+  color:var(--ink-900);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5;
+  font-size:14px;
+}
+.page { max-width:1100px; margin:0 auto; padding:36px 28px 90px; }
+
+/* ---------- header ---------- */
+.doc-header { background:linear-gradient(135deg,var(--accent) 0%,#111f4d 100%); color:#fff; border-radius:var(--radius-card-lg); padding:30px 34px; box-shadow:var(--shadow-md); }
+.eyebrow { text-transform:uppercase; letter-spacing:.09em; font-size:11px; font-weight:700; color:rgba(255,255,255,.68); margin:0; }
+.doc-header h1 { font-size:27px; margin:8px 0 10px; font-weight:800; letter-spacing:-.01em; }
+.doc-header .lead { margin:0; font-size:14.5px; color:rgba(255,255,255,.92); max-width:800px; }
+.doc-header .caption { margin:12px 0 0; font-size:11.5px; color:rgba(255,255,255,.6); font-style:italic; }
+
+/* ---------- compare bar ---------- */
+.compare-bar { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+.compare-card { background:var(--paper); border:1.5px solid var(--line-200); border-radius:var(--radius-card); padding:16px 18px; }
+.compare-label { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-500); }
+.compare-card p { margin:6px 0 0; font-size:13px; color:var(--ink-700); }
+.compare-card.active { border-color:var(--accent); background:var(--accent-soft); }
+.compare-card.active .compare-label { color:var(--accent); }
+.compare-card .goto { display:inline-block; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--accent); text-decoration:none; }
+.compare-card .goto:hover { text-decoration:underline; }
+.compare-card .here { display:inline-block; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--ink-500); }
+
+.howto { font-size:12.5px; color:var(--ink-500); margin:16px 2px 0; }
+
+/* ---------- section shell ---------- */
+.section { background:var(--paper); border:1px solid var(--line-200); border-radius:var(--radius-card-lg); padding:24px 26px 28px; margin-top:22px; box-shadow:var(--shadow-sm); }
+.section-head h2 { font-size:16px; margin:0 0 4px; font-weight:800; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.section-no { color:var(--ink-400); font-weight:800; }
+.section-sub { font-size:12.5px; color:var(--ink-500); margin:0 0 16px; }
+
+.tag { display:inline-flex; align-items:center; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; line-height:1.6; white-space:normal; }
+.tag-core { background:var(--line-200); color:var(--ink-600); }
+.tag-extra { background:var(--accent); color:#fff; }
+
+/* ---------- callouts ---------- */
+.cnum { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--accent); color:#fff; font-size:10.5px; font-weight:800; flex-shrink:0; vertical-align:middle; }
+.callout-list { list-style:none; margin:16px 0 0; padding:14px 16px; background:var(--muted); border:1px dashed var(--line-300); border-radius:var(--radius-card); display:flex; flex-direction:column; gap:9px; }
+.callout-list li { display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--ink-700); }
+.callout-list li b { color:var(--ink-900); }
+
+/* ---------- mockup frame ---------- */
+.mockup { border:1px solid var(--line-300); border-radius:var(--radius-card); overflow:hidden; background:var(--muted); }
+.device-bar { display:flex; align-items:center; gap:6px; padding:9px 12px; background:#e7ebf1; border-bottom:1px solid var(--line-300); }
+.device-bar .dot { width:8px; height:8px; border-radius:50%; background:var(--line-300); }
+.device-url { margin-left:8px; font-size:11px; color:var(--ink-400); background:var(--paper); border:1px solid var(--line-200); border-radius:6px; padding:3px 10px; }
+.screen-inner { padding:22px 24px 26px; }
+
+/* ---------- buttons ---------- */
+.btn { display:inline-flex; align-items:center; gap:6px; border-radius:var(--radius-btn); font-weight:700; font-size:12.5px; padding:9px 15px; border:1.5px solid transparent; white-space:nowrap; }
+.btn.sm { padding:6px 12px; font-size:11.5px; border-radius:9px; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-outline { background:var(--paper); color:var(--accent); border-color:var(--accent); }
+.btn-ghost { background:var(--paper); color:var(--ink-600); border-color:var(--line-200); }
+
+/* ---------- section 1: entry affordance ---------- */
+.dash-mock-heading { font-weight:800; font-size:14px; color:var(--ink-900); margin-bottom:14px; }
+.dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.list-card { background:var(--paper); border:1px solid var(--line-200); border-radius:var(--radius-card); padding:16px; box-shadow:var(--shadow-sm); }
+.list-card-title { font-weight:800; font-size:13.5px; color:var(--ink-900); }
+.list-card-sub { font-size:11.5px; color:var(--ink-500); margin-top:3px; }
+.list-card-actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.pastdays-btn { box-shadow:0 0 0 3px var(--accent-soft); }
+.ghost-card { min-height:112px; background:transparent; border:1.5px dashed var(--line-300); box-shadow:none; }
+.grid-note { font-size:11.5px; color:var(--ink-400); margin-top:10px; font-style:italic; }
+
+/* ---------- section 2: day list ---------- */
+.back-link { font-size:12px; color:var(--ink-500); font-weight:600; }
+.screen-title { font-size:18px; font-weight:800; margin:8px 0 4px; color:var(--ink-900); }
+.screen-desc { font-size:13px; color:var(--ink-600); margin:0 0 16px; }
+.info-banner { display:flex; align-items:flex-start; gap:10px; background:var(--accent-soft); border:1px solid #c7d0ef; border-radius:var(--radius-sm); padding:10px 14px; font-size:12.5px; color:var(--ink-700); margin-bottom:16px; }
+.day-list { border:1px solid var(--line-200); border-radius:var(--radius-card); overflow:hidden; background:var(--paper); }
+.day-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 16px; border-bottom:1px solid var(--line-200); }
+.day-row:last-child { border-bottom:none; }
+.day-info { display:flex; flex-direction:column; gap:2px; }
+.day-num { font-weight:800; font-size:13px; color:var(--ink-900); display:flex; align-items:center; gap:8px; }
+.day-dates { font-size:11.5px; color:var(--ink-500); }
+.day-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.today-row { background:var(--muted); }
+.today-tag { background:var(--accent); color:#fff; gap:5px; }
+.muted-note { font-size:12px; color:var(--ink-500); font-style:italic; }
+
+/* ---------- section 3: today's session toggle ---------- */
+.toggle-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.phase-toggle { display:inline-flex; gap:8px; background:var(--line-200); padding:5px; border-radius:14px; }
+.toggle-btn { background:transparent; color:var(--ink-600); }
+.toggle-btn.active { background:var(--accent); color:#fff; }
+.toggle-note { font-size:12.5px; color:var(--ink-600); margin:0 0 20px; display:flex; gap:8px; align-items:flex-start; }
+.ph-label { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-500); margin-bottom:8px; }
+.session-placeholder { display:flex; flex-direction:column; align-items:center; gap:14px; padding:26px; background:var(--paper); border:1px dashed var(--line-300); border-radius:var(--radius-card); }
+.flash-card-mock { width:220px; height:120px; border-radius:var(--radius-card); background:linear-gradient(135deg,var(--paper),var(--muted)); border:1px solid var(--line-300); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:var(--ink-400); box-shadow:var(--shadow-sm); }
+.session-progressdots { display:flex; gap:6px; }
+.pdot { width:8px; height:8px; border-radius:50%; background:var(--line-300); }
+.pdot.on { background:var(--accent); }
+
+/* ---------- footer ---------- */
+.doc-footer { margin-top:26px; }
+.footer-card { background:var(--paper); border:1px dashed var(--line-300); border-radius:var(--radius-card-lg); padding:22px 26px; }
+.footer-card h4 { margin:0 0 10px; font-size:14px; font-weight:800; color:var(--ink-900); }
+.footer-card ul { margin:0 0 14px; padding-left:18px; color:var(--ink-600); font-size:13px; display:flex; flex-direction:column; gap:5px; }
+.footer-card p { font-size:13px; color:var(--ink-600); margin:0 0 14px; }
+.cross-link-btn { display:inline-flex; align-items:center; gap:6px; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--radius-btn); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <p class="eyebrow">DF2-51 · Past-day browser — launch scope wireframe</p>
+    <h1>Option A — CORE ONLY</h1>
+    <p class="lead">You're choosing the launch scope for DF2-51's past-day browser — this file shows the CORE-ONLY option; open the companion file to compare it against CORE + EXTRAS.</p>
+    <p class="caption">Decision aid, not production code — compare the two, then say which to build.</p>
+  </div>
+
+  <div class="compare-bar">
+    <div class="compare-card active">
+      <div class="compare-label">A · Core only</div>
+      <p>Smaller, faster to verify — fewer screens and states means less to build and less to test before it ships.</p>
+      <span class="here">You're viewing this version</span>
+    </div>
+    <div class="compare-card">
+      <div class="compare-label">B · Core + extras</div>
+      <p>Richer restudy experience — but more to build and verify: five status states, pips, bookmark, resume panel, completion screen.</p>
+      <a class="goto" href="df2-51-extended.html">Open this version &rarr;</a>
+    </div>
+  </div>
+  <p class="howto">Small navy circles like <span class="cnum">1</span> key into the plain-language notes listed under each screen.</p>
+
+  <!-- ============ SECTION 1 — ENTRY AFFORDANCE ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">1 ·</span> Entry point on the Dashboard <span class="tag tag-core">Core</span></h2>
+      <p class="section-sub">Where a student starts: one new affordance added to each list card.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / dashboard</span>
+      </div>
+      <div class="screen-inner">
+        <div class="dash-mock-heading">My Vocabulary Lists</div>
+        <div class="dash-grid">
+          <div class="list-card">
+            <div class="list-card-title">Spanish I — Unit 4</div>
+            <div class="list-card-sub">42 words · Day 6 of 12</div>
+            <div class="list-card-actions">
+              <span class="btn btn-ghost sm">Download PDF</span>
+              <span class="btn btn-outline sm pastdays-btn"><span class="cnum">1</span>Past days</span>
+            </div>
+          </div>
+          <div class="list-card ghost-card"></div>
+          <div class="list-card ghost-card"></div>
+        </div>
+        <p class="grid-note">The other cards in the grid get the same treatment (not pictured).</p>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div><b>Past days</b> — a new button on every list card. Opens this list's past-day browser, shown next.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ SECTION 2 — PAST-DAYS LIST ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">2 ·</span> Past-days list <span class="tag tag-core">Core</span></h2>
+      <p class="section-sub">One row per day already completed on this list; today is shown for orientation only.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / restudy / spanish-i-unit-4</span>
+      </div>
+      <div class="screen-inner">
+        <span class="back-link">&larr; Spanish I — Unit 4</span>
+        <h3 class="screen-title">Past Days</h3>
+        <p class="screen-desc">Pick an earlier day to re-study its flashcards or take a short, non-advancing re-test.</p>
+
+        <div class="info-banner">
+          <span class="cnum">1</span>
+          <span>Re-tests never change your progress or grade — they're just extra practice, every time.</span>
+        </div>
+
+        <div class="day-list">
+          <div class="day-row">
+            <div class="day-info"><span class="day-num">Day 1</span><span class="day-dates">Studied Jul 20 · Tested Jul 20</span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm"><span class="cnum">2</span>Re-study</span>
+              <span class="btn btn-primary sm"><span class="cnum">3</span>Re-test</span>
+            </div>
+          </div>
+          <div class="day-row">
+            <div class="day-info"><span class="day-num">Day 2</span><span class="day-dates">Studied Jul 21 · Tested Jul 21</span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+          </div>
+          <div class="day-row">
+            <div class="day-info"><span class="day-num">Day 3</span><span class="day-dates">Studied Jul 22 · Tested Jul 22</span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+          </div>
+          <div class="day-row">
+            <div class="day-info"><span class="day-num">Day 4</span><span class="day-dates">Studied Jul 23 · Tested Jul 23</span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+          </div>
+          <div class="day-row">
+            <div class="day-info"><span class="day-num">Day 5</span><span class="day-dates">Studied Jul 24 · Tested Jul 24</span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+          </div>
+          <div class="day-row today-row">
+            <div class="day-info"><span class="day-num">Day 6 <span class="tag today-tag"><span class="cnum">4</span> Today</span></span><span class="day-dates muted-note">In progress</span></div>
+            <div class="day-actions"><span class="muted-note">Come back once today is finished</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div>Re-tests <b>never change your progress or grade</b> — they're just extra practice, every time.</div></li>
+      <li><span class="cnum">2</span><div><b>Re-study</b> — reopens that day's flashcards in the normal flip-card view, exactly as first seen.</div></li>
+      <li><span class="cnum">3</span><div><b>Re-test</b> — a short, ungraded test on that day. Passing or failing does not move you forward or touch the gradebook.</div></li>
+      <li><span class="cnum">4</span><div><b>Today</b> — still in progress, so it isn't a "past day" yet. No re-study or re-test until it's finished.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ SECTION 3 — TODAY'S SESSION TOGGLE ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">3 ·</span> Today's session — Review / New words toggle <span class="tag tag-core">Core</span></h2>
+      <p class="section-sub">Inside today's session only — move freely between the two halves of today's work.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / session / spanish-i-unit-4</span>
+      </div>
+      <div class="screen-inner">
+        <span class="back-link">&larr; Exit session</span>
+        <h3 class="screen-title">Spanish I — Unit 4 · Day 6</h3>
+
+        <div class="toggle-row">
+          <span class="cnum">1</span>
+          <div class="phase-toggle">
+            <span class="btn toggle-btn active">Review</span>
+            <span class="btn toggle-btn">New words</span>
+          </div>
+        </div>
+        <p class="toggle-note"><span class="cnum">2</span><span>Both halves still have to be finished before tomorrow unlocks — the toggle only changes the order, not the requirement.</span></p>
+
+        <div class="ph-label"><span class="cnum">3</span><span>Today's flashcard/test area (unchanged)</span></div>
+        <div class="session-placeholder">
+          <div class="flash-card-mock">bonjour</div>
+          <div class="session-progressdots">
+            <span class="pdot on"></span><span class="pdot on"></span><span class="pdot"></span><span class="pdot"></span><span class="pdot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div><b>Review / New words</b> toggle — jump between reviewing older words and learning new ones, any time during today's session. "Review" is shown selected here as the example.</div></li>
+      <li><span class="cnum">2</span><div>Both halves still have to be finished before tomorrow unlocks — the toggle only changes the order, not the requirement.</div></li>
+      <li><span class="cnum">3</span><div>The flashcard/test area below is today's existing session screen, unchanged — only the toggle above it is new.</div></li>
+    </ol>
+  </section>
+
+  <footer class="doc-footer">
+    <div class="footer-card">
+      <h4>Not in this scope — see CORE + EXTRAS</h4>
+      <ul>
+        <li>Resume-where-you-left-off panel</li>
+        <li>Five-state day status (this file only shows whether Re-study/Re-test are available)</li>
+        <li>Progress-dot pips per day</li>
+        <li>Bookmarking a day</li>
+        <li>End-of-list completion screen</li>
+      </ul>
+      <p>Same past-day engine underneath either way — this is purely about how much of the R2-40 package ships on day one.</p>
+      <a class="cross-link-btn" href="df2-51-extended.html">Open CORE + EXTRAS &rarr;</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

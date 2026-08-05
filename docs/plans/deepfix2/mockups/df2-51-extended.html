@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DF2-51 Wireframe — CORE + EXTRAS</title>
+<style>
+:root {
+  --ink-900:#0f172a;
+  --ink-700:#334155;
+  --ink-600:#475569;
+  --ink-500:#64748b;
+  --ink-400:#94a3b8;
+  --line-200:#e2e8f0;
+  --line-300:#cbd5e1;
+  --paper:#ffffff;
+  --base:#f1f5f9;
+  --muted:#f8fafc;
+  --accent:#1b3a94;
+  --accent-soft:#e8ebf7;
+  --radius-card:16px;
+  --radius-card-lg:24px;
+  --radius-btn:12px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow-md:0 4px 10px rgba(15,23,42,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body {
+  background:var(--base);
+  color:var(--ink-900);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.5;
+  font-size:14px;
+}
+.page { max-width:1100px; margin:0 auto; padding:36px 28px 90px; }
+
+/* ---------- header ---------- */
+.doc-header { background:linear-gradient(135deg,var(--accent) 0%,#111f4d 100%); color:#fff; border-radius:var(--radius-card-lg); padding:30px 34px; box-shadow:var(--shadow-md); }
+.eyebrow { text-transform:uppercase; letter-spacing:.09em; font-size:11px; font-weight:700; color:rgba(255,255,255,.68); margin:0; }
+.doc-header h1 { font-size:27px; margin:8px 0 10px; font-weight:800; letter-spacing:-.01em; }
+.doc-header .lead { margin:0; font-size:14.5px; color:rgba(255,255,255,.92); max-width:800px; }
+.doc-header .caption { margin:12px 0 0; font-size:11.5px; color:rgba(255,255,255,.6); font-style:italic; }
+
+/* ---------- compare bar ---------- */
+.compare-bar { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+.compare-card { background:var(--paper); border:1.5px solid var(--line-200); border-radius:var(--radius-card); padding:16px 18px; }
+.compare-label { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-500); }
+.compare-card p { margin:6px 0 0; font-size:13px; color:var(--ink-700); }
+.compare-card.active { border-color:var(--accent); background:var(--accent-soft); }
+.compare-card.active .compare-label { color:var(--accent); }
+.compare-card .goto { display:inline-block; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--accent); text-decoration:none; }
+.compare-card .goto:hover { text-decoration:underline; }
+.compare-card .here { display:inline-block; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--ink-500); }
+
+.howto { font-size:12.5px; color:var(--ink-500); margin:16px 2px 0; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+
+/* ---------- section shell ---------- */
+.section { background:var(--paper); border:1px solid var(--line-200); border-radius:var(--radius-card-lg); padding:24px 26px 28px; margin-top:22px; box-shadow:var(--shadow-sm); }
+.section-head h2 { font-size:16px; margin:0 0 4px; font-weight:800; display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.section-no { color:var(--ink-400); font-weight:800; }
+.section-sub { font-size:12.5px; color:var(--ink-500); margin:0 0 16px; }
+
+.tag { display:inline-flex; align-items:center; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:999px; line-height:1.6; white-space:normal; }
+.tag-core { background:var(--line-200); color:var(--ink-600); }
+.tag-extra { background:var(--accent); color:#fff; }
+
+/* ---------- callouts ---------- */
+.cnum { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--accent); color:#fff; font-size:10.5px; font-weight:800; flex-shrink:0; vertical-align:middle; }
+.callout-list { list-style:none; margin:16px 0 0; padding:14px 16px; background:var(--muted); border:1px dashed var(--line-300); border-radius:var(--radius-card); display:flex; flex-direction:column; gap:9px; }
+.callout-list li { display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--ink-700); }
+.callout-list li b { color:var(--ink-900); }
+
+/* ---------- mockup frame ---------- */
+.mockup { border:1px solid var(--line-300); border-radius:var(--radius-card); overflow:hidden; background:var(--muted); }
+.device-bar { display:flex; align-items:center; gap:6px; padding:9px 12px; background:#e7ebf1; border-bottom:1px solid var(--line-300); }
+.device-bar .dot { width:8px; height:8px; border-radius:50%; background:var(--line-300); }
+.device-url { margin-left:8px; font-size:11px; color:var(--ink-400); background:var(--paper); border:1px solid var(--line-200); border-radius:6px; padding:3px 10px; }
+.screen-inner { padding:22px 24px 26px; }
+
+/* ---------- buttons ---------- */
+.btn { display:inline-flex; align-items:center; gap:6px; border-radius:var(--radius-btn); font-weight:700; font-size:12.5px; padding:9px 15px; border:1.5px solid transparent; white-space:nowrap; }
+.btn.sm { padding:6px 12px; font-size:11.5px; border-radius:9px; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-outline { background:var(--paper); color:var(--accent); border-color:var(--accent); }
+.btn-ghost { background:var(--paper); color:var(--ink-600); border-color:var(--line-200); }
+
+/* ---------- section 1: entry affordance ---------- */
+.dash-mock-heading { font-weight:800; font-size:14px; color:var(--ink-900); margin-bottom:14px; }
+.dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.list-card { background:var(--paper); border:1px solid var(--line-200); border-radius:var(--radius-card); padding:16px; box-shadow:var(--shadow-sm); }
+.list-card-title { font-weight:800; font-size:13.5px; color:var(--ink-900); }
+.list-card-sub { font-size:11.5px; color:var(--ink-500); margin-top:3px; }
+.list-card-actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.pastdays-btn { box-shadow:0 0 0 3px var(--accent-soft); }
+.ghost-card { min-height:112px; background:transparent; border:1.5px dashed var(--line-300); box-shadow:none; }
+.grid-note { font-size:11.5px; color:var(--ink-400); margin-top:10px; font-style:italic; }
+
+/* ---------- section 2: day list ---------- */
+.back-link { font-size:12px; color:var(--ink-500); font-weight:600; }
+.screen-title { font-size:18px; font-weight:800; margin:8px 0 4px; color:var(--ink-900); }
+.screen-desc { font-size:13px; color:var(--ink-600); margin:0 0 16px; }
+.info-banner { display:flex; align-items:flex-start; gap:10px; background:var(--accent-soft); border:1px solid #c7d0ef; border-radius:var(--radius-sm); padding:10px 14px; font-size:12.5px; color:var(--ink-700); margin-bottom:16px; }
+.day-list { border:1px solid var(--line-200); border-radius:var(--radius-card); overflow:hidden; background:var(--paper); }
+.day-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 16px; border-bottom:1px solid var(--line-200); }
+.day-row:last-child { border-bottom:none; }
+.day-info { display:flex; flex-direction:column; gap:2px; }
+.day-num { font-weight:800; font-size:13px; color:var(--ink-900); display:flex; align-items:center; gap:8px; }
+.day-dates { font-size:11.5px; color:var(--ink-500); }
+.day-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.today-row { background:var(--muted); }
+.today-tag { background:var(--accent); color:#fff; gap:5px; }
+.muted-note { font-size:12px; color:var(--ink-500); font-style:italic; }
+
+/* ---------- section 3: today's session toggle ---------- */
+.toggle-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.phase-toggle { display:inline-flex; gap:8px; background:var(--line-200); padding:5px; border-radius:14px; }
+.toggle-btn { background:transparent; color:var(--ink-600); }
+.toggle-btn.active { background:var(--accent); color:#fff; }
+.toggle-note { font-size:12.5px; color:var(--ink-600); margin:0 0 20px; display:flex; gap:8px; align-items:flex-start; }
+.ph-label { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-500); margin-bottom:8px; }
+.session-placeholder { display:flex; flex-direction:column; align-items:center; gap:14px; padding:26px; background:var(--paper); border:1px dashed var(--line-300); border-radius:var(--radius-card); }
+.flash-card-mock { width:220px; height:120px; border-radius:var(--radius-card); background:linear-gradient(135deg,var(--paper),var(--muted)); border:1px solid var(--line-300); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px; color:var(--ink-400); box-shadow:var(--shadow-sm); }
+.session-progressdots { display:flex; gap:6px; }
+.pdot { width:8px; height:8px; border-radius:50%; background:var(--line-300); }
+.pdot.on { background:var(--accent); }
+
+/* ---------- footer ---------- */
+.doc-footer { margin-top:26px; }
+.footer-card { background:var(--paper); border:1px dashed var(--line-300); border-radius:var(--radius-card-lg); padding:22px 26px; }
+.footer-card h4 { margin:0 0 10px; font-size:14px; font-weight:800; color:var(--ink-900); }
+.footer-card ul { margin:0 0 14px; padding-left:18px; color:var(--ink-600); font-size:13px; display:flex; flex-direction:column; gap:5px; }
+.footer-card p { font-size:13px; color:var(--ink-600); margin:0 0 14px; }
+.cross-link-btn { display:inline-flex; align-items:center; gap:6px; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; font-size:13px; padding:10px 18px; border-radius:var(--radius-btn); }
+
+/* ================= EXTRAS (not in CORE file) ================= */
+
+/* resume panel */
+.resume-head-row { margin-bottom:10px; }
+.resume-panel { display:flex; align-items:center; gap:16px; background:var(--paper); border:1.5px solid var(--accent); border-radius:var(--radius-card); padding:16px 18px; margin-bottom:20px; }
+.resume-icon { width:38px; height:38px; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+.resume-body { flex:1; }
+.resume-eyebrow { font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); display:flex; align-items:center; gap:7px; }
+.resume-title { font-size:14.5px; font-weight:800; color:var(--ink-900); margin-top:4px; }
+.resume-meta { font-size:12px; color:var(--ink-500); margin-top:2px; }
+
+/* status legend + chips */
+.status-legend-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.status-legend { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:5px 10px; border-radius:999px; }
+.chip-untouched { background:transparent; border:1.5px dashed var(--line-300); color:var(--ink-400); }
+.chip-studied { background:var(--line-200); color:var(--ink-700); border:1px solid var(--line-300); }
+.chip-tested { background:var(--ink-400); color:#fff; border:1px solid var(--ink-400); }
+.chip-recompleted { background:var(--accent); color:#fff; border:1px solid var(--accent); }
+.chip-bookmarked { background:var(--paper); color:var(--accent); border:1.5px solid var(--accent); }
+
+/* day row grid: day / status / pips / actions / bookmark */
+.day-row-head.xrow, .day-row.xrow { display:grid; grid-template-columns:1.4fr 1.05fr 0.85fr 1.55fr 0.85fr; align-items:center; gap:12px; }
+.day-row-head.xrow { padding:9px 16px; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-500); background:var(--muted); border-bottom:1px solid var(--line-200); }
+.day-row-head.xrow > div { display:flex; align-items:center; gap:6px; }
+.pips { display:flex; align-items:center; gap:6px; }
+.pip { width:10px; height:10px; border-radius:50%; border:1.5px solid var(--ink-400); background:transparent; }
+.pip.on { background:var(--accent); border-color:var(--accent); }
+.pip.na { border-style:dashed; border-color:var(--line-300); }
+.bookmark-toggle { width:30px; height:30px; border-radius:9px; border:1.5px solid var(--line-300); background:var(--paper); color:var(--ink-400); display:inline-flex; align-items:center; justify-content:center; font-size:15px; }
+.bookmark-toggle.on { color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+
+/* completion screen */
+.completion-screen { display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; padding:16px 10px 8px; }
+.complete-badge { width:52px; height:52px; border-radius:50%; background:var(--accent); color:#fff; font-size:24px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+.complete-stats { display:flex; gap:32px; margin:18px 0 22px; }
+.stat { display:flex; flex-direction:column; align-items:center; }
+.stat-num { font-size:20px; font-weight:800; color:var(--ink-900); }
+.stat-label { font-size:11px; color:var(--ink-500); margin-top:2px; }
+.complete-actions { display:flex; gap:10px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <p class="eyebrow">DF2-51 · Past-day browser — launch scope wireframe</p>
+    <h1>Option B — CORE + EXTRAS</h1>
+    <p class="lead">You're choosing the launch scope for DF2-51's past-day browser — this file shows CORE + EXTRAS (core plus the full R2-40 restudy package); open the companion file to compare it against CORE ONLY.</p>
+    <p class="caption">Decision aid, not production code — compare the two, then say which to build.</p>
+  </div>
+
+  <div class="compare-bar">
+    <div class="compare-card">
+      <div class="compare-label">A · Core only</div>
+      <p>Smaller, faster to verify — fewer screens and states means less to build and less to test before it ships.</p>
+      <a class="goto" href="df2-51-core.html">Open this version &rarr;</a>
+    </div>
+    <div class="compare-card active">
+      <div class="compare-label">B · Core + extras</div>
+      <p>Richer restudy experience — but more to build and verify: five status states, pips, bookmark, resume panel, completion screen.</p>
+      <span class="here">You're viewing this version</span>
+    </div>
+  </div>
+  <p class="howto">Small navy circles like <span class="cnum">1</span> key into the plain-language notes under each screen; the <span class="tag tag-extra">Extra vs core</span> badge flags anything not in the CORE-only file.</p>
+
+  <!-- ============ SECTION 1 — ENTRY AFFORDANCE (same as CORE) ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">1 ·</span> Entry point on the Dashboard <span class="tag tag-core">Core</span></h2>
+      <p class="section-sub">Where a student starts: one new affordance added to each list card. Identical to the CORE-only file.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / dashboard</span>
+      </div>
+      <div class="screen-inner">
+        <div class="dash-mock-heading">My Vocabulary Lists</div>
+        <div class="dash-grid">
+          <div class="list-card">
+            <div class="list-card-title">Spanish I — Unit 4</div>
+            <div class="list-card-sub">42 words · Day 6 of 12</div>
+            <div class="list-card-actions">
+              <span class="btn btn-ghost sm">Download PDF</span>
+              <span class="btn btn-outline sm pastdays-btn"><span class="cnum">1</span>Past days</span>
+            </div>
+          </div>
+          <div class="list-card ghost-card"></div>
+          <div class="list-card ghost-card"></div>
+        </div>
+        <p class="grid-note">The other cards in the grid get the same treatment (not pictured).</p>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div><b>Past days</b> — a new button on every list card. Opens this list's past-day browser, shown next.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ SECTION 2 — PAST-DAYS LIST / TABLE OF CONTENTS (extended) ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">2 ·</span> Past-days list / table of contents</h2>
+      <p class="section-sub">Same day-by-day list as CORE, plus a resume panel, five-state status, pips, and a bookmark toggle.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / restudy / spanish-i-unit-4</span>
+      </div>
+      <div class="screen-inner">
+        <span class="back-link">&larr; Spanish I — Unit 4</span>
+        <h3 class="screen-title">Past Days</h3>
+        <p class="screen-desc">Pick an earlier day to re-study its flashcards or take a short, non-advancing re-test.</p>
+
+        <div class="resume-head-row"><span class="tag tag-extra">Extra vs core</span></div>
+        <div class="resume-panel">
+          <div class="resume-icon">&#9654;</div>
+          <div class="resume-body">
+            <div class="resume-eyebrow"><span class="cnum">1</span><span>Continue where you left off</span></div>
+            <div class="resume-title">Day 3 restudy · new-word half not finished</div>
+            <div class="resume-meta">Review half re-tested Jul 22 · new words still open</div>
+          </div>
+          <span class="btn btn-primary">Resume</span>
+        </div>
+
+        <div class="info-banner">
+          <span class="cnum">2</span>
+          <span>Re-tests never change your progress or grade — they're just extra practice, every time.</span>
+        </div>
+
+        <div class="status-legend-row">
+          <span class="tag tag-extra">Extra vs core</span>
+          <div class="status-legend">
+            <span class="chip chip-untouched">&#9675; Untouched</span>
+            <span class="chip chip-studied">&#9680; Studied</span>
+            <span class="chip chip-tested">&#10003; Tested</span>
+            <span class="chip chip-recompleted">&#10003;&#10003; Re-completed</span>
+            <span class="chip chip-bookmarked">&#9733; Bookmarked</span>
+          </div>
+        </div>
+
+        <div class="day-list">
+          <div class="day-row-head xrow">
+            <div>Day</div>
+            <div><span class="cnum">3</span>Status</div>
+            <div><span class="cnum">4</span>Pips <span class="tag tag-extra">Extra vs core</span></div>
+            <div><span class="cnum">5</span>Actions</div>
+            <div><span class="cnum">6</span>&#9733; <span class="tag tag-extra">Extra vs core</span></div>
+          </div>
+
+          <div class="day-row xrow">
+            <div class="day-info"><span class="day-num">Day 1</span><span class="day-dates">Studied Jul 20 · Tested Jul 20</span></div>
+            <div><span class="chip chip-recompleted">&#10003;&#10003; Re-completed</span></div>
+            <div class="pips"><span class="pip on" title="Review half done"></span><span class="pip on" title="New-word half done"></span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+            <span class="bookmark-toggle" title="Not bookmarked">&#9734;</span>
+          </div>
+
+          <div class="day-row xrow">
+            <div class="day-info"><span class="day-num">Day 2</span><span class="day-dates">Studied Jul 21 · Tested Jul 21</span></div>
+            <div><span class="chip chip-studied">&#9680; Studied</span></div>
+            <div class="pips"><span class="pip" title="Review half not done"></span><span class="pip" title="New-word half not done"></span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+            <span class="bookmark-toggle" title="Not bookmarked">&#9734;</span>
+          </div>
+
+          <div class="day-row xrow">
+            <div class="day-info"><span class="day-num">Day 3</span><span class="day-dates">Studied Jul 22 · Tested Jul 22</span></div>
+            <div><span class="chip chip-tested">&#10003; Tested</span></div>
+            <div class="pips"><span class="pip on" title="Review half done"></span><span class="pip" title="New-word half not done"></span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+            <span class="bookmark-toggle" title="Not bookmarked">&#9734;</span>
+          </div>
+
+          <div class="day-row xrow">
+            <div class="day-info"><span class="day-num">Day 4</span><span class="day-dates">Studied Jul 23 · Tested Jul 23</span></div>
+            <div><span class="chip chip-untouched">&#9675; Untouched</span></div>
+            <div class="pips"><span class="pip" title="Review half not done"></span><span class="pip na" title="No new-word half exists for this day"></span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+            <span class="bookmark-toggle" title="Not bookmarked">&#9734;</span>
+          </div>
+
+          <div class="day-row xrow">
+            <div class="day-info"><span class="day-num">Day 5</span><span class="day-dates">Studied Jul 24 · Tested Jul 24</span></div>
+            <div><span class="chip chip-bookmarked">&#9733; Bookmarked</span></div>
+            <div class="pips"><span class="pip on" title="Review half done"></span><span class="pip" title="New-word half not done"></span></div>
+            <div class="day-actions">
+              <span class="btn btn-outline sm">Re-study</span>
+              <span class="btn btn-primary sm">Re-test</span>
+            </div>
+            <span class="bookmark-toggle on" title="Bookmarked">&#9733;</span>
+          </div>
+
+          <div class="day-row xrow today-row">
+            <div class="day-info"><span class="day-num">Day 6 <span class="tag today-tag"><span class="cnum">7</span> Today</span></span><span class="day-dates muted-note">In progress</span></div>
+            <div class="muted-note">&mdash;</div>
+            <div class="muted-note">&mdash;</div>
+            <div class="muted-note">Come back once finished</div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div><b>Resume panel (Extra)</b> — appears when a past-day restudy visit was left half-finished, like Day 3 below (review half re-tested, new-word half still open). Tap Resume to jump straight back into the unfinished half.</div></li>
+      <li><span class="cnum">2</span><div>Re-tests <b>never change your progress or grade</b> — same as CORE.</div></li>
+      <li><span class="cnum">3</span><div><b>Status chip (Extra)</b> — one of five states per day; see the key just above the table for what each one looks like.</div></li>
+      <li><span class="cnum">4</span><div><b>Pips (Extra)</b> — two dots per day: review half re-tested / new-word half re-tested. A dashed pip (see Day 4) means that day has no new-word half to test at all — not that it's incomplete.</div></li>
+      <li><span class="cnum">5</span><div><b>Re-study / Re-test</b> — identical to CORE.</div></li>
+      <li><span class="cnum">6</span><div><b>Bookmark star (Extra)</b> — tap to flag a day to come back to; a bookmarked day's status chip switches to "Bookmarked" in place of its progress state (see Day 5).</div></li>
+      <li><span class="cnum">7</span><div><b>Today</b> — same meaning as CORE: still in progress, not yet a browsable past day.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ SECTION 3 — TODAY'S SESSION TOGGLE (same as CORE) ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">3 ·</span> Today's session — Review / New words toggle <span class="tag tag-core">Core</span></h2>
+      <p class="section-sub">Inside today's session only — move freely between the two halves of today's work. Identical to the CORE-only file.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / session / spanish-i-unit-4</span>
+      </div>
+      <div class="screen-inner">
+        <span class="back-link">&larr; Exit session</span>
+        <h3 class="screen-title">Spanish I — Unit 4 · Day 6</h3>
+
+        <div class="toggle-row">
+          <span class="cnum">1</span>
+          <div class="phase-toggle">
+            <span class="btn toggle-btn active">Review</span>
+            <span class="btn toggle-btn">New words</span>
+          </div>
+        </div>
+        <p class="toggle-note"><span class="cnum">2</span><span>Both halves still have to be finished before tomorrow unlocks — the toggle only changes the order, not the requirement.</span></p>
+
+        <div class="ph-label"><span class="cnum">3</span><span>Today's flashcard/test area (unchanged)</span></div>
+        <div class="session-placeholder">
+          <div class="flash-card-mock">bonjour</div>
+          <div class="session-progressdots">
+            <span class="pdot on"></span><span class="pdot on"></span><span class="pdot"></span><span class="pdot"></span><span class="pdot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div><b>Review / New words</b> toggle — jump between reviewing older words and learning new ones, any time during today's session. "Review" is shown selected here as the example.</div></li>
+      <li><span class="cnum">2</span><div>Both halves still have to be finished before tomorrow unlocks — the toggle only changes the order, not the requirement.</div></li>
+      <li><span class="cnum">3</span><div>The flashcard/test area below is today's existing session screen, unchanged — only the toggle above it is new.</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ SECTION 4 — END-OF-LIST COMPLETION (extra) ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2><span class="section-no">4 ·</span> End-of-list completion <span class="tag tag-extra">Extra vs core</span></h2>
+      <p class="section-sub">Shown once every day in the list has been fully completed.</p>
+    </div>
+
+    <div class="mockup">
+      <div class="device-bar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="device-url">vocaboost.app / session / spanish-i-unit-4 / complete</span>
+      </div>
+      <div class="screen-inner">
+        <div class="completion-screen">
+          <div class="complete-badge">&#10003;</div>
+          <h3 class="screen-title">Spanish I — Unit 4 — complete!</h3>
+          <p class="screen-desc">All 12 days finished. Nice work.</p>
+          <div class="complete-stats">
+            <div class="stat"><div class="stat-num">12/12</div><div class="stat-label">Days done</div></div>
+            <div class="stat"><div class="stat-num">4</div><div class="stat-label">Re-studies</div></div>
+            <div class="stat"><div class="stat-num">9</div><div class="stat-label">Best streak</div></div>
+          </div>
+          <div class="complete-actions">
+            <span class="btn btn-outline"><span class="cnum">1</span>Browse past days</span>
+            <span class="btn btn-primary"><span class="cnum">2</span>Start next list</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ol class="callout-list">
+      <li><span class="cnum">1</span><div>Jump back into any day's flashcards or a practice re-test — the same browser as section 2.</div></li>
+      <li><span class="cnum">2</span><div>Move straight on to whatever list comes next for this class.</div></li>
+    </ol>
+  </section>
+
+  <footer class="doc-footer">
+    <div class="footer-card">
+      <h4>This file = CORE + every "Extra vs core" element above</h4>
+      <p>Sections 1 and 3 tell the same story as the CORE-only file. Remove the resume panel, the status/pips/bookmark columns, and section 4, and what's left is that file.</p>
+      <a class="cross-link-btn" href="df2-51-core.html">&larr; Open CORE ONLY</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
