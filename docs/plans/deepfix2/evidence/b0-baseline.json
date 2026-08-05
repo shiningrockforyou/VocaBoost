@@ -1,0 +1,610 @@
+{
+  "artifact": "b0-baseline",
+  "schemaVersion": 1,
+  "label": "B0 candidate — 14d pre-flip window",
+  "generatedAt": "2026-08-05T11:24:26.268Z",
+  "generatedBy": "scripts/deepfix2/b0-baseline.mjs",
+  "producerSha256": "c8b436424ab7369bef64c4afca2bf327070dfd63b1dabe59782b6f957d6bd36c",
+  "project": "vocaboost-879c2",
+  "pass": true,
+  "sourceShas": {
+    "b0-baseline.mjs": "c8b436424ab7369b"
+  },
+  "window": {
+    "from": "2026-07-22T00:00:00.000Z",
+    "to": "2026-08-05T00:00:00.000Z",
+    "days": 14,
+    "convention": "HALF-OPEN [from, to), UTC-anchored. A document is in-window iff from <= t < to.",
+    "timeFieldPerSource": {
+      "attempts": "submittedAt (SERVER timestamp, functions/index.js:637)",
+      "system_logs": "timestamp (SERVER timestamp, db.js:110 / foundation.js:228)",
+      "grading_jobs": "createdAt (SERVER timestamp)",
+      "users/{uid}/sessions": "completedAt (CLIENT Timestamp.now(), studyService.js:1104 — client-clock skew at the window edges)"
+    }
+  },
+  "scope": {
+    "computed": [
+      "R2",
+      "R3",
+      "R4a",
+      "R6",
+      "R7-typed"
+    ],
+    "explicitlyNull": {
+      "R1": "manually watched per David 2026-08-05",
+      "R5": "manually watched per David 2026-08-05",
+      "R4b": "no producer exists — out of scope",
+      "R7-MCQ": "VACUOUS — MCQ is graded client-side"
+    },
+    "ruling": "David 2026-08-05: R1 auth and R5 teacher-gradebook are ACCEPTED AS MANUALLY WATCHED and are not computed here; they are emitted as null so the receipt is complete and the narrowing is explicit."
+  },
+  "globalCaveat": "Client-side failure logs are un-awaited writes made by a client that just failed a write, so derived rates are UPPER BOUNDS; defensible only because the bias is common-mode across B0 and post-flip.",
+  "metrics": {
+    "R1": {
+      "inScope": false,
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "reason": "manually watched per David 2026-08-05",
+      "invariant": "auth / session start success rate",
+      "detail": "Firestore holds nothing: no auth event is ever written (AuthContext.jsx performs no Firestore write on login/logout/onAuthStateChanged) and Firebase Auth lastSignInTime is a last-write scalar with no failure counterpart. Failures live in GCP Cloud Logging / Identity Platform, outside Firestore."
+    },
+    "R2": {
+      "inScope": true,
+      "unit": "rate (0..1)",
+      "value": 0.9971282051282051,
+      "numerator": 4861,
+      "denominator": 4875,
+      "formula": "count(attempts where sessionType=='new' and from<=submittedAt<to) / (that + count(system_logs where type=='attempt_write_failed_client' and sessionType=='new' and from<=timestamp<to))",
+      "sourceCollections": [
+        "attempts",
+        "system_logs"
+      ],
+      "failures": 14,
+      "failuresByErrCode": {
+        "functions/deadline-exceeded": 6,
+        "functions/invalid-argument": 7,
+        "functions/internal": 1
+      },
+      "excludingSynthetic": {
+        "value": 0.9971270264723989,
+        "numerator": 4859,
+        "denominator": 4873,
+        "note": "removes 2 server-written synthetic new-word rows (autoCompleted/manualOverride) from the numerator"
+      },
+      "exclusions": [
+        "a student who never reached submit (compose failed, page crashed) is in NEITHER leg",
+        "system_logs docs with no `timestamp` field are outside any window query; measured 2026-08-05 they are only orphaned_attempt_flagged / orphaned_attempt_deleted, neither an R-metric leg"
+      ],
+      "caveats": [
+        "Client-side failure logs are un-awaited writes made by a client that just failed a write, so derived rates are UPPER BOUNDS; defensible only because the bias is common-mode across B0 and post-flip.",
+        "21_:92's RED rule is 'drops at all', so an upper-bound baseline is biased in the CONSERVATIVE direction (it makes the alarm easier to trip, not harder).",
+        "attempt_write_failed (db.js:175, the withRetry logger) has ZERO production rows because isTransientError matches bare codes while production codes carry the functions/ prefix — the _client leg is the only failure leg that exists."
+      ]
+    },
+    "R3": {
+      "inScope": true,
+      "unit": "rate (0..1)",
+      "value": 0.9957288973811397,
+      "numerator": 8859,
+      "denominator": 8897,
+      "formula": "count(attempts where from<=submittedAt<to) / (that + count(system_logs where type=='attempt_write_failed_client' and from<=timestamp<to))",
+      "sourceCollections": [
+        "attempts",
+        "system_logs"
+      ],
+      "failures": 38,
+      "byErrCode": {
+        "functions/internal": {
+          "failures": 20,
+          "shareOfFailures": 0.5263157894736842,
+          "failureRate": 0.0022479487467685737
+        },
+        "functions/deadline-exceeded": {
+          "failures": 11,
+          "shareOfFailures": 0.2894736842105263,
+          "failureRate": 0.0012363718107227155
+        },
+        "functions/invalid-argument": {
+          "failures": 7,
+          "shareOfFailures": 0.18421052631578946,
+          "failureRate": 0.0007867820613690008
+        }
+      },
+      "breakdownRationale": "21_:93 calls R3 a proxy for the namespace guards misfiring; functions/permission-denied IS the guard-rejection class, so a blended rate would dilute exactly the signal R3 exists for. Watch the per-code failureRate, not only the headline.",
+      "syntheticRowsInNumerator": {
+        "autoCompleted": 1,
+        "manualOverride": 2,
+        "note": "server-written rows (foundation.js:1093 / :2985). They are real successful attempt-doc writes so they are NOT removed from this count-based rate, but they must be excluded from any SCORE-derived metric."
+      },
+      "exclusions": [
+        "a student who never reached submit (compose failed, page crashed) is in NEITHER leg",
+        "system_logs docs with no `timestamp` field are outside any window query; measured 2026-08-05 they are only orphaned_attempt_flagged / orphaned_attempt_deleted, neither an R-metric leg"
+      ],
+      "caveats": [
+        "Client-side failure logs are un-awaited writes made by a client that just failed a write, so derived rates are UPPER BOUNDS; defensible only because the bias is common-mode across B0 and post-flip."
+      ]
+    },
+    "R4a": {
+      "inScope": true,
+      "unit": "rate (0..1)",
+      "value": 0.9975116419608261,
+      "numerator": 28061,
+      "denominator": 28131,
+      "formula": "count(system_logs type=='resolve_list_progress' in window) / (that + count(system_logs type=='progress_resolver_unavailable' in window))",
+      "sourceCollections": [
+        "system_logs"
+      ],
+      "failures": 70,
+      "normalized": {
+        "activeStudentDays": 3832,
+        "resolvesPerActiveStudentDay": 7.322807933194155,
+        "unavailablePer1000ActiveStudentDays": 18.26722338204593,
+        "distinctResolverUserDays": 4154,
+        "why": "B0 for R4a must be normalised per-distinct-active-student-day, not per raw call: if the review-v2 client changes how many resolver calls a dashboard load makes, the raw numerator moves with no regression at all."
+      },
+      "exclusions": [
+        "measures the progress RESOLVER, not the dashboard RENDER — a dashboard that loads its data and then fails to paint scores 100%",
+        "the two legs are different units: successful callable INVOCATIONS vs LOADS that failed both resolver attempts; a failure that succeeds on retry counts as a success"
+      ],
+      "caveats": [
+        "Client-side failure logs are un-awaited writes made by a client that just failed a write, so derived rates are UPPER BOUNDS; defensible only because the bias is common-mode across B0 and post-flip.",
+        "The denominator unit can move at the flip for benign reasons (DF2-33 dashboard / DF2-11 menu). Compare normalized.resolvesPerActiveStudentDay across the flip before calling a change in `value` a regression."
+      ]
+    },
+    "R4b": {
+      "inScope": false,
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "reason": "no producer exists — out of scope",
+      "invariant": "client JS exception rate",
+      "detail": "No window.onerror, no unhandledrejection listener, no root ErrorBoundary anywhere in /app/src; apBoost's logError writes to console.error only. Absence of rows is NOT evidence of health. Needs a client error reporter — a separate fold, and it cannot produce a RETROSPECTIVE baseline."
+    },
+    "R5": {
+      "inScope": false,
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "reason": "manually watched per David 2026-08-05",
+      "invariant": "teacher gradebook / analytics load",
+      "detail": "Zero teacher read telemetry exists: Gradebook.jsx, ClassDetail.jsx and their query helpers write nothing. Teacher reads are direct browser Firestore reads, not callables, so not even Cloud Functions logs see them."
+    },
+    "R6": {
+      "inScope": true,
+      "unit": "VOLUME (count of completions) — NOT a rate",
+      "value": 2106,
+      "numerator": 2106,
+      "denominator": null,
+      "denominatorReason": "THERE IS NO DENOMINATOR. users/{uid}/sessions records only completions that SUCCEEDED, and no completion_failed event type exists anywhere in the tree, so no failure record exists to divide by. Inventing one would fabricate a rate. 21_:96 must be read as a VOLUME/conversion drop, not a success-rate drop.",
+      "formula": "count(users/{uid}/sessions where from<=completedAt<to and serverReviewOnlyDay===false), fanned out over the students who submitted an attempt in the same window",
+      "sourceCollections": [
+        "users/{uid}/sessions",
+        "attempts (for the active-student fan-out set)"
+      ],
+      "breakdown": {
+        "totalCompletions": 3721,
+        "nonReviewDay": 2106,
+        "reviewOnlyDay": 1494,
+        "unknownDiscriminator": 121
+      },
+      "normalized": {
+        "activeStudentDays": 3832,
+        "nonReviewCompletionsPerActiveStudentDay": 0.5495824634655533,
+        "why": "a raw volume falls when the cohort shrinks or the calendar changes; normalise before calling a drop a regression"
+      },
+      "perDayNonReview": {
+        "2026-07-23": 199,
+        "2026-07-30": 179,
+        "2026-07-22": 261,
+        "2026-07-28": 203,
+        "2026-07-29": 245,
+        "2026-07-24": 241,
+        "2026-07-31": 201,
+        "2026-07-26": 23,
+        "2026-07-27": 252,
+        "2026-08-03": 150,
+        "2026-08-04": 129,
+        "2026-07-25": 8,
+        "2026-08-02": 12,
+        "2026-08-01": 3
+      },
+      "perDayTotal": {
+        "2026-07-23": 384,
+        "2026-07-26": 48,
+        "2026-07-28": 348,
+        "2026-07-30": 323,
+        "2026-07-31": 355,
+        "2026-08-03": 256,
+        "2026-08-04": 225,
+        "2026-07-22": 502,
+        "2026-07-24": 410,
+        "2026-07-29": 404,
+        "2026-08-02": 26,
+        "2026-07-27": 419,
+        "2026-07-25": 12,
+        "2026-08-01": 9
+      },
+      "discriminatorCoverage": {
+        "withServerFlag": 3600,
+        "withoutServerFlag": 121,
+        "coverage": 0.9674818597151303,
+        "clientServerDisagreements": 40,
+        "clientNonReviewDay": 2146,
+        "note": "serverReviewOnlyDay (studyService.js:1108) only exists on sessions completed from ~2026-07-19. A window that starts earlier will show low coverage here — that is a degraded metric, not a healthy one. serverReviewOnlyDay is the ONLY valid discriminator: `newWordScore != null` is NOT a proxy (measured: 257 review-only sessions carry a non-null newWordScore)."
+      },
+      "exclusions": [
+        "students who completed a day but submitted NO attempt inside the window are outside the fan-out set",
+        "completedAt is a CLIENT clock value (studyService.js:1104 Timestamp.now()), so window edges carry client skew — unlike attempts.submittedAt which is a server timestamp"
+      ],
+      "caveats": [
+        "A store of successful completions cannot by itself yield a success rate. This is the single most important honesty point carried from the derivability study.",
+        "Cohort-wide reads need a COLLECTION_GROUP_ASC exemption on sessions.completedAt that does not exist; this producer fans out per student instead. See missingIndexes."
+      ]
+    },
+    "R7-typed": {
+      "inScope": true,
+      "unit": "rate (0..1)",
+      "primary": "sourceB",
+      "primaryReason": "grading_jobs is SERVER-written by the Admin SDK and never pruned, so it is immune to the client-logger blind spot that caps sourceA (and R2/R3/R4a) at an upper bound.",
+      "value": 0.9989688595586719,
+      "numerator": 4844,
+      "denominator": 4849,
+      "formula": "MIRRORS sourceB (the primary): count(grading_jobs status=='graded' and from<=createdAt<to) / count(grading_jobs with from<=createdAt<to)",
+      "sourceCollections": [
+        "grading_jobs",
+        "system_logs (sourceA diagnostic)",
+        "attempts (sourceA denominator)"
+      ],
+      "caveats": [
+        "sourceB is server-written and NOT subject to the global client-logger caveat; sourceA is, and is kept as the per-errCode diagnostic leg"
+      ],
+      "sourceA": {
+        "label": "system_logs.grading_attempt_failed (client-written, TypedTest.jsx:742)",
+        "value": 0.9948421704146895,
+        "numerator": 4822,
+        "denominator": 4847,
+        "formula": "(count(attempts testType=='typed' in window) - count(system_logs type=='grading_attempt_failed' and isFinal===true in window)) / count(attempts testType=='typed' in window)",
+        "sourceCollections": [
+          "attempts",
+          "system_logs"
+        ],
+        "finalFailures": 25,
+        "allFailedGradeAttempts": 166,
+        "timedOut": 16,
+        "failedFast": 104,
+        "offlineAtFailure": 36,
+        "recovered": 43,
+        "failuresByErrCode": {
+          "functions/deadline-exceeded": 13,
+          "functions/internal": 96,
+          "functions/aborted": 56,
+          "functions/unauthenticated": 1
+        },
+        "caveats": [
+          "Client-side failure logs are un-awaited writes made by a client that just failed a write, so derived rates are UPPER BOUNDS; defensible only because the bias is common-mode across B0 and post-flip.",
+          "the denominator is successes-only (attempts that got written), so this is a diagnostic rate, not an availability truth — use sourceB for the headline"
+        ]
+      },
+      "sourceB": {
+        "label": "grading_jobs (server-written, never pruned)",
+        "value": 0.9989688595586719,
+        "numerator": 4844,
+        "denominator": 4849,
+        "formula": "count(grading_jobs status=='graded' and from<=createdAt<to) / count(grading_jobs with from<=createdAt<to)",
+        "sourceCollections": [
+          "grading_jobs"
+        ],
+        "neverGraded": 5,
+        "neverGradedRate": 0.0010311404413281089,
+        "neverGradedDefinition": "status=='claimed' AND leaseExpiresAt < WINDOW END. getGradingStatus's 'stale' is a computed view, not a stored value, so this must be DERIVED. Anchored on the window end (never on wall-clock) so --verify reproduces exactly.",
+        "leaseFieldType": "grading_jobs.leaseExpiresAt is raw epoch MILLISECONDS (a number), not a Firestore Timestamp — functions/index.js:1121,1134. Coercing it as a Timestamp silently buckets every never-graded job as claimedWithNoLease and reports neverGraded 0.",
+        "inFlightAtWindowEnd": 0,
+        "claimedWithNoLease": 0,
+        "leaseTakeovers": 11,
+        "leaseTakeoverRate": 0.0022685089709218397,
+        "statusCensus": {
+          "graded": 4844,
+          "claimed": 5
+        },
+        "attemptCountCensus": {
+          "1": 4838,
+          "2": 6,
+          "3": 2,
+          "4": 3
+        },
+        "exclusions": [
+          "a metering-CAPPED claim returns BEFORE the claim transaction writes the job doc (index.js:1131), so spend refusals create NO doc and are invisible here (they are not availability failures, so this is a scoping note not a hole)",
+          "persistGradingJobResult outcomes (already_graded | superseded | lease_expired | absent | error) are RETURNED, never stored — a stale worker's discarded grade leaves no record"
+        ],
+        "caveats": [
+          "server-written: NOT subject to the global client-logger caveat"
+        ]
+      }
+    },
+    "R7-MCQ": {
+      "inScope": false,
+      "value": null,
+      "numerator": null,
+      "denominator": null,
+      "reason": "VACUOUS — MCQ is graded client-side, there is no grader to be unavailable",
+      "invariant": "MCQ grading availability",
+      "detail": "functions/index.js:635 — correctnessSource is null for \"client-computed (MCQ)\". No callable is invoked and no grading_jobs doc is ever created, so an availability rate would be a constant. attempt_write_failed_client rows with testType:mcq are WRITE failures, already counted in R3."
+    }
+  },
+  "structuralValidity": {
+    "pass": true,
+    "checks": [
+      {
+        "check": "window is half-open and non-empty",
+        "ok": true,
+        "detail": "2026-07-22T00:00:00.000Z < 2026-08-05T00:00:00.000Z"
+      },
+      {
+        "check": "R2 in scope and populated",
+        "ok": true,
+        "detail": "inScope===true"
+      },
+      {
+        "check": "R3 in scope and populated",
+        "ok": true,
+        "detail": "inScope===true"
+      },
+      {
+        "check": "R4a in scope and populated",
+        "ok": true,
+        "detail": "inScope===true"
+      },
+      {
+        "check": "R6 in scope and populated",
+        "ok": true,
+        "detail": "inScope===true"
+      },
+      {
+        "check": "R7-typed in scope and populated",
+        "ok": true,
+        "detail": "inScope===true"
+      },
+      {
+        "check": "R2 has a positive denominator",
+        "ok": true,
+        "detail": "denominator=4875"
+      },
+      {
+        "check": "R2 value is a finite rate in [0,1]",
+        "ok": true,
+        "detail": "value=0.9971282051282051"
+      },
+      {
+        "check": "R3 has a positive denominator",
+        "ok": true,
+        "detail": "denominator=8897"
+      },
+      {
+        "check": "R3 value is a finite rate in [0,1]",
+        "ok": true,
+        "detail": "value=0.9957288973811397"
+      },
+      {
+        "check": "R4a has a positive denominator",
+        "ok": true,
+        "detail": "denominator=28131"
+      },
+      {
+        "check": "R4a value is a finite rate in [0,1]",
+        "ok": true,
+        "detail": "value=0.9975116419608261"
+      },
+      {
+        "check": "R6 declares NO denominator (a volume must not fake a rate)",
+        "ok": true,
+        "detail": "denominator===null with reason"
+      },
+      {
+        "check": "R6 value is a non-negative integer volume",
+        "ok": true,
+        "detail": "value=2106"
+      },
+      {
+        "check": "R7-typed sourceB denominator positive",
+        "ok": true,
+        "detail": "denominator=4849"
+      },
+      {
+        "check": "R7-typed top-level mirrors its declared primary source",
+        "ok": true,
+        "detail": "primary=sourceB"
+      },
+      {
+        "check": "every claimed grading_job was classified by an actual lease value",
+        "ok": true,
+        "detail": "claimedWithNoLease=0 (leaseExpiresAt is epoch-ms; see sourceB.leaseFieldType)"
+      },
+      {
+        "check": "R3 per-errCode failures reconcile with the failure total",
+        "ok": true,
+        "detail": "sum(byErrCode)=38 vs failures=38"
+      },
+      {
+        "check": "R2 per-errCode failures reconcile with its failure total",
+        "ok": true,
+        "detail": "sum=14 vs failures=14"
+      },
+      {
+        "check": "R6 buckets partition the completions read",
+        "ok": true,
+        "detail": "2106+1494+121 === 3721"
+      },
+      {
+        "check": "R7-typed sourceA denominator positive",
+        "ok": true,
+        "detail": "denominator=4847"
+      },
+      {
+        "check": "R1 explicitly null with a reason",
+        "ok": true,
+        "detail": "manually watched per David 2026-08-05"
+      },
+      {
+        "check": "R4b explicitly null with a reason",
+        "ok": true,
+        "detail": "no producer exists — out of scope"
+      },
+      {
+        "check": "R5 explicitly null with a reason",
+        "ok": true,
+        "detail": "manually watched per David 2026-08-05"
+      },
+      {
+        "check": "R7-MCQ explicitly null with a reason",
+        "ok": true,
+        "detail": "VACUOUS — MCQ is graded client-side, there is no grader to be unavailable"
+      },
+      {
+        "check": "global caveat carried verbatim on every client-derived rate",
+        "ok": true,
+        "detail": "caveats[] contains GLOBAL_CAVEAT"
+      },
+      {
+        "check": "zero writes",
+        "ok": true,
+        "detail": "reads.writes===0"
+      },
+      {
+        "check": "paged system_logs matches its count() aggregate",
+        "ok": true,
+        "detail": "paged 36835 vs agg 36835"
+      },
+      {
+        "check": "paged attempts matches its count() aggregate",
+        "ok": true,
+        "detail": "paged 8859 vs agg 8859"
+      },
+      {
+        "check": "paged grading_jobs matches its count() aggregate",
+        "ok": true,
+        "detail": "paged 4849 vs agg 4849"
+      }
+    ],
+    "meaning": "STRUCTURAL only: every in-scope metric is present with a usable denominator, every out-of-scope metric is explicitly null with a reason, no rate was fabricated for R6, and the paged totals reconcile with their count() aggregates. It is NOT a judgement on whether the values are healthy."
+  },
+  "reads": {
+    "documentReads": 54273,
+    "aggregateQueries": 3,
+    "queries": 638,
+    "writes": 0,
+    "perPass": {
+      "preflight": {
+        "documentReads": 0,
+        "queries": 0,
+        "aggregateQueries": 3
+      },
+      "A:system_logs": {
+        "documentReads": 36835,
+        "queries": 19
+      },
+      "B:attempts": {
+        "documentReads": 8859,
+        "queries": 5
+      },
+      "C:grading_jobs": {
+        "documentReads": 4849,
+        "queries": 3
+      },
+      "D:sessions": {
+        "documentReads": 3730,
+        "queries": 611
+      }
+    },
+    "preflightAggregateCounts": {
+      "system_logs": 36835,
+      "attempts": 8859,
+      "grading_jobs": 4849
+    },
+    "note": "documentReads counts documents actually returned; the sessions fan-out charges max(1, size) per query because Firestore bills a minimum of one read for an empty query result."
+  },
+  "missingIndexes": [
+    {
+      "collection": "system_logs",
+      "scope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "ASCENDING"
+        }
+      ],
+      "wouldEnable": "count() of one system_logs type inside a window — removes the whole PASS A page (~2.6k docs/day)",
+      "verifiedMissing": "FAILED_PRECONDITION (9) on where(type==).where(timestamp>=).count(), 2026-08-05"
+    },
+    {
+      "collection": "attempts",
+      "scope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sessionType",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "ASCENDING"
+        }
+      ],
+      "wouldEnable": "R2's numerator as a single count() instead of paging attempts",
+      "verifiedMissing": "FAILED_PRECONDITION (9) on where(sessionType==).where(submittedAt>=).count(), 2026-08-05"
+    },
+    {
+      "collection": "attempts",
+      "scope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "testType",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "ASCENDING"
+        }
+      ],
+      "wouldEnable": "R7-typed sourceA's denominator as a single count()",
+      "verifiedMissing": "FAILED_PRECONDITION (9) on where(testType==).where(submittedAt>=).count(), 2026-08-05"
+    },
+    {
+      "collection": "grading_jobs",
+      "scope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ],
+      "wouldEnable": "R7-typed sourceB's status split as count()s instead of paging grading_jobs",
+      "verifiedMissing": "FAILED_PRECONDITION (9) on where(status==).where(createdAt>=).count(), 2026-08-05"
+    },
+    {
+      "collection": "sessions",
+      "scope": "COLLECTION_GROUP",
+      "kind": "single-field index exemption",
+      "fields": [
+        {
+          "fieldPath": "completedAt",
+          "order": "ASCENDING (COLLECTION_GROUP_ASC)"
+        }
+      ],
+      "wouldEnable": "R6 as ONE collectionGroup query instead of a per-student fan-out",
+      "verifiedMissing": "FAILED_PRECONDITION (9): \"requires a COLLECTION_GROUP_ASC index for collection sessions and field completedAt\", 2026-08-05"
+    }
+  ],
+  "readOnlyProof": {
+    "pattern": "\\.(set|update|delete|add|create|commit|batch)\\s*\\(|runTransaction|bulkWriter|writeBatch|setDoc|updateDoc|deleteDoc|addDoc|FieldValue",
+    "command": "grep -nE '\\.(set|update|delete|add|create|commit|batch)\\s*\\(|runTransaction|bulkWriter|writeBatch|setDoc|updateDoc|deleteDoc|addDoc|FieldValue' scripts/deepfix2/b0-baseline.mjs",
+    "assertion": "the only Firestore verbs in the producer are .get() and .count().get(); zero writes to Firestore"
+  }
+}
