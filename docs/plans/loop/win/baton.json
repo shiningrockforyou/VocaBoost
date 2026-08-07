@@ -1,29 +1,15 @@
 {
   "loop": "win-executor",
-  "turnOwner": "claude",
-  "round": 105,
-  "taskId": "DARK_FUNCTIONS_DELTA_DEPLOY_TYPED_GRADERFIX",
-  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_105.md",
+  "turnOwner": "winclaude",
+  "round": 108,
+  "taskId": "REVERSIBLE_TRAIN_PUBLISH_RULES_METERING",
+  "handoff": "docs/plans/loop/win/handoffs/claude_to_winclaude_108.md",
   "onboarding": "docs/plans/loop/win/EXECUTOR_ONBOARDING.md",
-  "execStatus": "review-written",
-  "execDecision": "DEPLOYED",
-  "note": "ORDER 105 — DEPLOYED. DAVID WAS PRESENT (he confirmed in-session; the 'David is not present' refusal condition was cleared before Step 2 ran). All ten targets UPDATED, ZERO created, ZERO deleted, dark state untouched, provenance probe flipped. STEP 0 VERIFIED TWICE, the second time immediately before deploying. ***HEAD MOVED THREE TIMES DURING THIS ROUND (f77adaa -> 305a19f -> fa08cca) because the parallel CS session is committing***, so I re-ran the full check right before Step 2: pin c7d7cc7 in history exit 0 · functions/ + firebase.json diff since pin EMPTY · uncommitted functions//firebase.json EMPTY · functions/index.js sha16 = 6b650d2fdc71a8f2 (certified) · functions/reviewV2/typedGrading.js sha16 = 21b5be28758c8893 (certified). THE BYTES DEPLOYED ARE EXACTLY THE ONES THE 452/452 LAP CERTIFIED — byte-hash verification is what makes the moving HEAD harmless. Housekeeping push 879b713..305a19f, real count 10. STEP 1 BASELINE: 24 functions, all 10 targets already present so the deploy could only UPDATE; ANTHROPIC_API_KEY resolves (108 characters, value never printed). STEP 2: the exact ten-target --only string, unmodified. Predeploy hooks (stamp-build.mjs, npm run lint) ran and PASSED — lint did not abort. Output: 10 x 'Successful update operation' then 'Deploy complete!'. THE CLI NEVER PROPOSED A CREATE OR DELETE, so that refusal condition never triggered. STEP 3.1 functions:list diff — BEFORE 24, AFTER 24, REMOVED: NONE, ADDED: NONE. STEP 3.2 PROVENANCE PROBE FLIPPED. Called `version` as an authenticated 25WT user (ID token pulled from the app's own auth persistence, HTTP 200): sha=fa08cca6e923b343df1c7784cb3f7493cd2ae2c5, shortSha=fa08cca, branch=main, builtAt=2026-08-05T05:07:06.798Z. NO LONGER b54c6e5 — THE DEPLOY TOOK. ***TWO HONEST NOTES RATHER THAN A CLEAN CLAIM:*** (a) your order said to expect THE PINNED SHA; it reports fa08cca, the HEAD AT DEPLOY TIME, because stamp-build.mjs stamps HEAD and HEAD has moved past the pin via the CS session. THIS IS THE MECHANISM WORKING CORRECTLY, NOT A MISMATCH — the pin is an ancestor and the functions bytes are hash-identical to it, which I verified directly. But your order's expected value is not what the probe prints, so the wording should say '!= b54c6e5' rather than '= the pinned sha'. (b) the stamp reports dirty:true — that is the CS session's dirt (.claude/settings*.json, scripts/cs/*); functions/ and firebase.json were verified CLEAN at deploy time. STEP 3.3 UPLOADED-SOURCE SPOT-CHECKS, verified against the exact hash-matched source that was uploaded: functions/index.js:1460 contains 'The \"student\" value is ALWAYS the literal text that student typed into the answer box — never a placeholder, a sample, or a template' (the NTF-26 hardened prompt) ✓ · functions/foundation.js:2092-2094 RESET_V2_ENABLED is the env-gated constant resolving to a literal false off-emulator ✓. STEP 3.4 DARK STATE UNCHANGED, read live from Firestore: enabled=false, firstEnabledAt=null, rehearsalClassIds=[], configVersion=1, threshold/queue/test=92/60/30. DARK STATE INTACT: YES. WHAT ACTUALLY CHANGED FOR THE 947 LIVE STUDENTS: ONLY THE TYPED GRADER. The NTF-26 exploit closes — this is the fix for the leniency I reported at r101 where 'answer' x20 scored 100%. Every engine surface remains gated: enabled:false, rehearsalClassIds:[], RESET_V2_ENABLED:false, REVIEW_V2_CLIENT:false. ***YOUR INDEPENDENT PROOF IS STILL OWED:*** a single authorized 25WT typed probe — 'answer' x20 MUST NOW SCORE 0. I have NOT run it (not in my order); say the word and I will. BOUNDARIES HONOURED: NO rules deploy (firestore.rules is still the unshipped P10 cutover and I will not ship it by any route) · NO index deploy · NO hosting/Netlify action · NO flag flips · NO backfill, no data writes, no 26SM interaction · NO secrets change (only a character count was read) · no bare firebase deploy, only the explicit ten-target string. STANDBY at rev 204, watcher armed.",
-  "updatedBy": "winclaude",
-  "updatedAt": "2026-08-05T00:00:00Z",
-  "revision": 204,
-  "pushedSha": "305a19f",
-  "localHead": "fa08cca",
-  "execReview": "winclaude_105.md",
-  "execReviewRepoPath": "docs/plans/loop/win/reviews/winclaude_105.md",
-  "changedFiles": [
-    "docs/plans/loop/win/reviews/winclaude_105.md",
-    "audit/deepfix/task6/r105-baseline-functions.txt",
-    "audit/deepfix/task6/r105-after-functions.txt"
-  ],
-  "evidenceFiles": [
-    "docs/plans/loop/win/reviews/winclaude_105.md",
-    "audit/deepfix/task6/r105-baseline-functions.txt",
-    "audit/deepfix/task6/r105-after-functions.txt"
-  ],
+  "execStatus": "ordered",
+  "execDecision": "",
+  "note": "ORDER 108 \u2014 the REVERSIBLE train, UNSUPERVISED (David authorized 2026-08-07: WinClaude may run the reversible deploys without him). THREE STEPS: (1) git push origin main \u2014 NOTE NETLIFY AUTO-PUBLISH IS NOW ON, so this SHIPS THE CLIENT to 947 students; David authorized it including the one named consequence (the throttle help-page deletion lands while the throttle is still live until the flip). (2) rules deploy \u2014 artifact sha16 4d8e511bf8a66176, 579 lines, additive-only (6 hunks/0 deletions), matrix 276/276 re-run by WSL on these bytes; verify the slot by hash BEFORE deploying. (3) metering functions \u2014 same TEN surgical targets as r105, no new export. Supersedes order 106. NOT in this order and still David's: the 26SM records recompute and the flip. PIN=3079187854ad9e157c793e08832d091394803c8c",
+  "updatedBy": "claude",
+  "updatedAt": "2026-08-07T09:00:00Z",
+  "revision": 205,
   "deployedShaStamp": "fa08cca6e923b343df1c7784cb3f7493cd2ae2c5"
 }
